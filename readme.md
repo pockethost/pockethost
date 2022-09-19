@@ -1,6 +1,8 @@
 # PocketHost
 
-PocketHost is a BaaS meant to rival Firebase and Supabase. Spin up your own fully managed backend in seconds at [https://pockethost.io](https://pockethost.io).
+This is the open source monorepo for PocketHost.
+
+PocketHost is a zero-config backend (database, authentication, functions, and storage) meant to rival Firebase and Supabase. Spin up your own fully managed backend for your next app at [https://pockethost.io](https://pockethost.io).
 
 Get up and running in 30 seconds flat:
 
