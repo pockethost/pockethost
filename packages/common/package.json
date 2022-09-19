@@ -1,0 +1,11 @@
+{
+  "name": "@pockethost/common",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "dependencies": {
+    "nanoid": "^4.0.0",
+    "pocketbase": "^0.7.0",
+    "ts-brand": "^0.0.2"
+  }
+}

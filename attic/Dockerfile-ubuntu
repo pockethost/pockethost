@@ -1,0 +1,19 @@
+FROM ubuntu
+
+RUN apt update
+RUN apt-get install -y golang-go 
+RUN apt-get install -y ca-certificates
+
+COPY ./pocketbase /pocketbase
+WORKDIR /pocketbase
+RUN go clean
+RUN go build
+RUN chmod +x pocketbase
+RUN mv pocketbase /usr/local/bin/pocketbase
+WORKDIR /
+
+ADD ./data /data
+
+EXPOSE 80
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]

@@ -1,0 +1,36 @@
+{
+  "name": "@pockethost/daemon",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "build": "parcel",
+    "serve": "node dist/server.js"
+  },
+  "targets": {
+    "server": {
+      "engines": {
+        "node": ">=18"
+      },
+      "source": "src/server.ts",
+      "includeNodeModules": [
+        "@pockethost/common",
+        "get-port",
+        "pocketbase",
+        "@s-libs/micro-dash"
+      ]
+    }
+  },
+  "dependencies": {
+    "@pockethost/common": "0.0.1",
+    "@s-libs/micro-dash": "^14.1.0",
+    "bottleneck": "^2.19.5",
+    "event-source-polyfill": "^1.0.31",
+    "get-port": "^6.1.2",
+    "pocketbase": "^0.7.0",
+    "ts-brand": "^0.0.2"
+  },
+  "devDependencies": {
+    "parcel": "^2.7.0",
+    "ts-node": "^10.9.1"
+  }
+}

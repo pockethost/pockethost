@@ -1,0 +1,16 @@
+[Unit]
+Description=Pockethost DB Service
+
+[Service]
+StandardOutput = append:/data/pockethost/logs/errors.log
+StandardError  = append:/data/pockethost/logs/errors.log
+ExecStart=/usr/local/bin/pockethost serve --http '127.0.0.1:8090' --dir /data/pockethost
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
+[Unit]
+Description = pocketbase
+

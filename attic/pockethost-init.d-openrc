@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+
+description="Pockethost server"
+extra_commands=""
+extra_started_commands=""
+
+
+start_pre() {
+  einfo "Starting pockethost"
+  /usr/local/bin/pocketbase serve --http '127.0.0.1:8090' --dir /data/pockethost
+}

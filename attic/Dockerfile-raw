@@ -1,0 +1,22 @@
+FROM nginx:alpine
+
+
+RUN apk update
+RUN apk add -v build-base
+RUN apk add -v go 
+RUN apk add -v ca-certificates
+RUN apk add -v git
+
+COPY ./pocketbase /pocketbase
+WORKDIR /pocketbase
+RUN go clean
+RUN go build
+RUN chmod +x pocketbase
+RUN mv pocketbase /usr/local/bin/pocketbase
+WORKDIR /
+
+
+# Notify Docker that the container wants to expose a port.
+EXPOSE 80
+
+ENTRYPOINT pocketbase serve --http 127.0.0.1:80

@@ -1,0 +1,32 @@
+{
+  "name": "pockethost",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Ben Allfree <ben@benallfree.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "sync": "rsync -avv --exclude-from=.rsyncignore ./* pockethost@pockethost.io:~/pockethost --delete",
+    "watch": "chokidar './**/*' -i .git -i '**/node_modules' -i '.svelte-kit' -c 'yarn sync' --initial"
+  },
+  "workspaces": [
+    "packages/fcs-client",
+    "packages/worker",
+    "packages/admin",
+    "packages/*"
+  ],
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "plugins": [
+      "./node_modules/prettier-plugin-organize-imports",
+      "./node_modules/prettier-plugin-svelte"
+    ]
+  },
+  "devDependencies": {
+    "prettier": "^2.7.1",
+    "prettier-plugin-organize-imports": "^3.1.1",
+    "prettier-plugin-svelte": "^2.7.0",
+    "typescript": "^4.8.3"
+  }
+}

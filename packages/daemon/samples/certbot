@@ -1,0 +1,1 @@
+sudo certbot certonly --agree-tos --nginx --email pockethost@benallfree.com -d $SUBDOMAIN.pockethost.io

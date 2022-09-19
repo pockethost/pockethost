@@ -1,0 +1,37 @@
+FROM nginx:alpine
+
+# RUN apk add openrc
+# RUN apt update
+# RUN apt-get install -y unzip
+# RUN apt-get install -y nginx
+# RUN apt-get install -y systemd
+RUN apk add -v build-base
+RUN apk add -v go 
+RUN apk add -v ca-certificates
+
+
+
+# COPY ./pockethost-init.d /etc/init.d/pockethost
+# RUN chmod +x /etc/init.d/pockethost
+# RUN service nginx start
+# RUN service pockethost start
+
+COPY ./run.sh /run.sh
+RUN chmod +x /run.sh
+
+COPY ./pockethost /pockethost
+WORKDIR /pockethost
+RUN ls
+RUN go clean
+RUN go build
+RUN chmod +x pockethost
+RUN mv pockethost /usr/local/bin/pockethost
+WORKDIR /
+
+ADD ./data /data
+ADD ./nginx/conf.d /etc/nginx/conf.d
+
+# Notify Docker that the container wants to expose a port.
+EXPOSE 80
+
+ENTRYPOINT /run.sh
