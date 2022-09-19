@@ -1,7 +1,6 @@
 {
   "name": "pockethost",
   "version": "0.0.1",
-  "main": "index.js",
   "author": "Ben Allfree <ben@benallfree.com>",
   "license": "MIT",
   "private": true,
