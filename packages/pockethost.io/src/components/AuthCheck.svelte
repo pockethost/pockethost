@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { isLoggedIn, user } from '@pockethost/common/src/pocketbase'
-  import Button from './Button/Button.svelte'
+  import { browser } from '$app/environment'
+  import { redirect } from '$util/redirect'
+  import { isLoggedIn } from '@pockethost/common/src/pocketbase'
 
-  if (typeof window !== 'undefined' && isLoggedIn()) {
-    window.location.href = '/dashboard'
+  if (browser && isLoggedIn()) {
+    redirect(`/dashboard`)
   }
 </script>
 

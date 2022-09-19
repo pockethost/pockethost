@@ -34,6 +34,7 @@
 		"sass": "^1.54.9",
 		"svelte-fa": "^3.0.3",
 		"svelte-highlight": "^6.2.1",
+		"sveltestrap": "^5.9.0",
 		"ts-brand": "^0.0.2"
 	}
 }

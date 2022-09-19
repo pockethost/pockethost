@@ -1,31 +1,14 @@
 <script lang="ts">
-  import { isLoggedIn, logOut, user } from '@pockethost/common/src/pocketbase'
-  import Button from './Button/Button.svelte'
-  import { ButtonStyles } from './Button/types'
+  import { browser } from '$app/environment'
+  import { redirect } from '$util/redirect'
+  import { isLoggedIn } from '@pockethost/common/src/pocketbase'
 
-  if (typeof window !== 'undefined' && !isLoggedIn()) {
-    window.location.href = '/signup'
-  }
-
-  const handleLogout = () => {
-    logOut()
-    window.location.href = '/'
+  if (browser && !isLoggedIn()) {
+    redirect(`/signup`)
   }
 </script>
 
-<div class="logbar">
-  {user()?.email}
-  <Button style={ButtonStyles.Micro} click={handleLogout}>Log Out</Button>
-  <div>
-    <a href="/dashboard">dashboard</a>
-  </div>
-</div>
 <slot />
 
 <style lang="scss">
-  .logbar {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-  }
 </style>

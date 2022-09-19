@@ -800,6 +800,11 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.21.tgz#5de5a2385a35309427f6011992b544514d559aa1"
   integrity sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==
 
+"@popperjs/core@^2.9.2":
+  version "2.11.6"
+  resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
+  integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
+
 "@rollup/pluginutils@^4.2.1":
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/@rollup/pluginutils/-/pluginutils-4.2.1.tgz#e6c6c3aba0744edce3fb2074922d3776c0af2a6d"
@@ -2585,6 +2590,13 @@ svelte@^3.44.0:
   version "3.50.1"
   resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.50.1.tgz#b35fbc5e79ddd71e8bb27c3149ee6ff903841239"
   integrity sha512-bS4odcsdj5D5jEg6riZuMg5NKelzPtmsCbD9RG+8umU03TeNkdWnP6pqbCm0s8UQNBkqk29w/Bdubn3C+HWSwA==
+
+sveltestrap@^5.9.0:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/sveltestrap/-/sveltestrap-5.9.0.tgz#69cffd4d1178d69da423b097a34d185294b9e1c0"
+  integrity sha512-ZSiYKYrKhDMhhbamnAFK3RK/uqUdcLgjae5Fk3GYdv6Ccth0tN2y6vSg+Vp/PBTYc51u08ZwnYvt8SfWSRNCMA==
+  dependencies:
+    "@popperjs/core" "^2.9.2"
 
 svgo@^2.4.0:
   version "2.8.0"

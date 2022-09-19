@@ -16,6 +16,7 @@
   ],
   "prettier": {
     "semi": false,
+    "useTabs": false,
     "singleQuote": true,
     "plugins": [
       "./node_modules/prettier-plugin-organize-imports",

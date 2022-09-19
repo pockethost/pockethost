@@ -1,10 +1,13 @@
 <script lang="ts">
+  import { TitleSize } from './types'
+
   export let first = 'Pocket'
   export let second = 'Host'
   export let third = ''
+  export let size: TitleSize = TitleSize.Normal
 </script>
 
-<h1>{first}<span id="host">{second}</span>{third}</h1>
+<h1 class={size}>{first}<span id="host">{second}</span>{third}</h1>
 
 <style type="text/scss">
   h1 {
@@ -17,6 +20,11 @@
     text-align: center;
     #host {
       color: blue;
+    }
+    &.nav {
+      font-size: 15px;
+      font-weight: 400;
+      display: inline-block;
     }
   }
 </style>
