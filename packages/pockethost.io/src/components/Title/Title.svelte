@@ -1,8 +1,8 @@
 <script lang="ts">
   import { TitleSize } from './types'
 
-  export let first = 'Pocket'
-  export let second = 'Host'
+  export let first = ''
+  export let second = ''
   export let third = ''
   export let size: TitleSize = TitleSize.Normal
 </script>
@@ -12,7 +12,7 @@
 <style type="text/scss">
   h1 {
     color: #ff3e00;
-    font-size: 12vw;
+    font-size: 30px;
     font-weight: 100;
     margin-left: auto;
     margin-right: auto;

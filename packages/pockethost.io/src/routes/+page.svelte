@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from '$components/Button/Button.svelte'
-  import { ButtonStyles } from '$components/Button/types'
+  import { ButtonSizes } from '$components/Button/types'
   import Caption from '$components/Caption/Caption.svelte'
   import { CaptionSize } from '$components/Caption/types'
   import Feature from '$components/Feature.svelte'
@@ -11,7 +11,7 @@
   <Caption size={CaptionSize.Hero}>Firebase and Supabase...<br />ljbf</Caption>
 
   <div style="max-width: 400px; margin-left: auto; margin-right: auto">
-    <Button href="/signup" style={ButtonStyles.Wide}>Get Started Free</Button>
+    <Button href="/signup" size={ButtonSizes.Wide}>Get Started Free</Button>
   </div>
   <Gap />
   <div>

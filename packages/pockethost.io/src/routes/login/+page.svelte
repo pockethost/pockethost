@@ -3,6 +3,7 @@
   import Title from '$components/Title/Title.svelte'
   import { redirect } from '$util/redirect'
   import { authViaEmail } from '@pockethost/common/src/pocketbase'
+  import { Form, FormGroup, Input, Label } from 'sveltestrap'
 
   let email = ''
   let password = ''
@@ -21,18 +22,21 @@
   }
 </script>
 
-<Title first="Log" second="In" />
+<Title first="Log" second="in" />
 
 <main>
   <error>{loginError}</error>
-  <div>
-    <label for="email">Email</label>
-    <input name="email" type="email" bind:value={email} />
-  </div>
-  <div>
-    <label for="password">Password</label>
-    <input name="password" type="password" bind:value={password} />
-  </div>
+  <Form>
+    <FormGroup>
+      <Label for="email">Email</Label>
+      <Input type="email" id="email" bind:value={email} />
+    </FormGroup>
+    <FormGroup>
+      <Label for="password">Password</Label>
+      <Input type="password" id="password" bind:value={password} />
+    </FormGroup>
+  </Form>
+
   <div>
     Need to <a href="/signup">create an account</a>?
   </div>
@@ -40,25 +44,9 @@
 </main>
 
 <style type="text/scss">
-  error {
-    color: red;
-    display: block;
-  }
-
-  label {
-    display: block;
-    font-weight: bold;
-    width: 200px;
-  }
   main {
-    padding: 1em;
+    max-width: 300px;
     margin-left: auto;
     margin-right: auto;
-  }
-
-  .caption {
-    font-size: 30px;
-    margin-top: 20px;
-    margin-bottom: 20px;
   }
 </style>

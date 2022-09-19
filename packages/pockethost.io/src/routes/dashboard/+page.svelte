@@ -1,12 +1,14 @@
 <script lang="ts">
   import Button from '$components/Button/Button.svelte'
-  import { ButtonStyles } from '$components/Button/types'
+  import { ButtonSizes } from '$components/Button/types'
+  import Gap from '$components/Gap.svelte'
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import Title from '$components/Title/Title.svelte'
   import { getAllInstancesById } from '@pockethost/common/src/pocketbase'
   import { InstanceStatuses, type Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { values } from '@s-libs/micro-dash'
+  import { Col, Container, Row } from 'sveltestrap'
 
   let apps: Instance_Out_ByIdCollection = {}
   getAllInstancesById()
@@ -19,39 +21,56 @@
 </script>
 
 <Protected>
-  <Title />
+  <Title first="Dash" second="board" />
   <main>
-    <h2>Dashboard</h2>
-    <h4>Apps</h4>
-    {#each values(apps) as app}
-      <div>
-        <ProvisioningStatus status={app.status} />
-        {app.subdomain}.pockethost.io
+    <h2>Apps</h2>
+    <Container>
+      {#each values(apps) as app}
+        <Row>
+          <Col>
+            <ProvisioningStatus status={app.status} />
+          </Col>
+          <Col>
+            {app.subdomain}.pockethost.io
+          </Col>
 
-        <Button style={ButtonStyles.Micro} href={`/app/instances/${app.id}`}>Details</Button>
-        <Button
-          disabled={app.status !== InstanceStatuses.Started}
-          style={ButtonStyles.Micro}
-          click={() => {
-            window.open(`https://${app.subdomain}.pockethost.io/_`)
-          }}>Admin</Button
-        >
-      </div>
-    {/each}
-    <Button href="/app/new">+</Button>
+          <Col>
+            <Button size={ButtonSizes.Micro} href={`/app/instances/${app.id}`}>Details</Button>
+
+            <Button
+              disabled={app.status !== InstanceStatuses.Started}
+              size={ButtonSizes.Micro}
+              click={() => {
+                window.open(`https://${app.subdomain}.pockethost.io/_`)
+              }}>Admin</Button
+            >
+          </Col>
+        </Row>
+      {/each}
+    </Container>
+    <Gap />
+    <div class="newApp">
+      <Button href="/app/new" size={ButtonSizes.Wide}>+ New App</Button>
+    </div>
   </main>
 </Protected>
 
 <style type="text/scss">
   main {
-    padding: 1em;
-    margin-left: auto;
+    margin-top: 10px;
     margin-right: auto;
-
-    .caption {
-      font-size: 30px;
-      margin-top: 20px;
-      margin-bottom: 20px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    max-width: 600px;
+    padding: 10px;
+    h2 {
+      text-align: center;
+    }
+    .newApp {
+      width: 200px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
     }
   }
 </style>

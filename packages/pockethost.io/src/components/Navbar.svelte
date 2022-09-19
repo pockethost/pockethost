@@ -1,9 +1,24 @@
 <script lang="ts">
   import { redirect } from '$util/redirect'
   import { isLoggedIn, logOut, user } from '@pockethost/common/src/pocketbase'
-  import { Collapse, Nav, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'sveltestrap'
+  import {
+    Collapse,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownToggle,
+    Icon,
+    Nav,
+    Navbar,
+    NavbarBrand,
+    NavbarToggler,
+    NavItem,
+    NavLink
+  } from 'sveltestrap'
   import logo from '../assets/logo-square.png'
+  import Github from './Icons/Github.svelte'
   import NavbarBrandImage from './NavbarBrandImage.svelte'
+  import NavbarText from './NavbarText.svelte'
   import Title from './Title/Title.svelte'
   import { TitleSize } from './Title/types'
 
@@ -28,15 +43,21 @@
   <Collapse {isOpen} navbar expand="md" on:update={handleUpdate}>
     <Nav class="ms-auto" navbar>
       {#if isLoggedIn()}
-        <NavItem>
-          <div class="navbar-text">Welcome back, {user()?.email}</div>
-        </NavItem>
+        <NavItem />
         <NavItem>
           <NavLink href="/dashboard">Dashboard</NavLink>
         </NavItem>
-        <NavItem>
-          <NavLink on:click={handleLogout}>Logout</NavLink>
-        </NavItem>
+        <NavItem />
+        <Dropdown nav inNavbar>
+          <DropdownToggle nav><Icon name="person-fill" /></DropdownToggle>
+          <DropdownMenu end>
+            <DropdownItem>
+              <NavbarText>{user()?.email}</NavbarText>
+            </DropdownItem>
+            <DropdownItem divider />
+            <DropdownItem><NavLink on:click={handleLogout}>Logout</NavLink></DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       {/if}
       {#if !isLoggedIn()}
         <NavItem>
@@ -46,6 +67,9 @@
           <NavLink href="/login">Log in</NavLink>
         </NavItem>
       {/if}
+      <NavItem>
+        <NavLink href="https://github.com/benallfree/pockethost"><Github /></NavLink>
+      </NavItem>
     </Nav>
   </Collapse>
 </Navbar>

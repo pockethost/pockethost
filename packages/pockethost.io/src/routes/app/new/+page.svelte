@@ -1,7 +1,7 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import Button from '$components/Button/Button.svelte'
-  import { ButtonStyles } from '$components/Button/types'
+  import { ButtonColors, ButtonSizes } from '$components/Button/types'
   import Error from '$components/Error/Error.svelte'
   import { parseError } from '$components/Error/parseError'
   import Protected from '$components/Protected.svelte'
@@ -48,13 +48,12 @@
 </script>
 
 <Protected>
-  <Title />
+  <Title first="New" second="App" />
   <main>
-    <h2>New App</h2>
     <div class="caption">Choose a name for your PocketBase app.</div>
     <div class="subdomain">
       <label for="instanceName">Instance Name</label>
-      <Button click={() => (instanceName = generateSlug(2))} style={ButtonStyles.Micro}>
+      <Button click={() => (instanceName = generateSlug(2))} size={ButtonSizes.Micro}>
         <Fa icon={faRefresh} /></Button
       >
 
@@ -67,6 +66,7 @@
     </div>
     <Error>{errorMessage}</Error>
     <Button click={handleCreate}>Create</Button>
+    <Button href={`/dashboard`} color={ButtonColors.Light}>Cancel</Button>
   </main>
 </Protected>
 

@@ -5,4 +5,12 @@
 
 <Styles />
 <Navbar />
-<slot />
+<main>
+  <slot />
+</main>
+
+<style lang="scss">
+  main {
+    margin-top: 20px;
+  }
+</style>

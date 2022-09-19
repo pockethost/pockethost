@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores'
+  import Button from '$components/Button/Button.svelte'
   import Caption from '$components/Caption/Caption.svelte'
   import CodeSample from '$components/CodeSample.svelte'
   import Protected from '$components/Protected.svelte'
@@ -38,29 +39,39 @@
 </script>
 
 <Protected>
-  <Title />
-  {#if instance}
-    {#if instance.status === InstanceStatuses.Started}
-      <Caption>Your PocketHost instance is now live.</Caption>
-      <div>
-        Admin URL: <a href={`${url}/_`} target="_blank">{`${url}/_`}</a>
-      </div>
-      <div>
-        JavaScript:
-        <CodeSample {code} />
-      </div>
+  <main>
+    <Title />
+    {#if instance}
+      {#if instance.status === InstanceStatuses.Started}
+        <ProvisioningStatus status={instance.status} />
+
+        <div>
+          Admin URL: <a href={`${url}/_`} target="_blank">{`${url}/_`}</a>
+        </div>
+        <div>
+          JavaScript:
+          <CodeSample {code} />
+        </div>
+      {/if}
+      {#if instance.status !== InstanceStatuses.Started}
+        <Caption>Please stand by, your instance is starting now...</Caption>
+        <div class="provisioning">
+          <ProvisioningStatus status={instance.status} size={ProvisioningSize.Hero} />
+        </div>
+      {/if}
     {/if}
-    {#if instance.status !== InstanceStatuses.Started}
-      <Caption>Please stand by, your instance is starting now...</Caption>
-      <div class="provisioning">
-        <ProvisioningStatus status={instance.status} size={ProvisioningSize.Hero} />
-      </div>
-    {/if}
-  {/if}
+    <Button href="/dashboard">&lt; Back to Dashboard</Button>
+  </main>
 </Protected>
 
 <style lang="scss">
-  .provisioning {
-    text-align: center;
+  main {
+    margin: 10px;
+    .provisioning {
+      text-align: center;
+    }
+    a {
+      text-decoration: initial;
+    }
   }
 </style>
