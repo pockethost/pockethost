@@ -1,14 +1,14 @@
 <script lang="ts">
-  import {fade} from 'svelte/transition';
-  import {onMount} from "svelte";
+    import {fade} from 'svelte/transition';
+    import {onMount} from "svelte";
 
-  let isReady: boolean = false;
+    let isReady: boolean = false;
 
-  onMount(() => {
-    setTimeout(() => {
-      isReady = true;
-		}, 3000);
-	})
+    onMount(() => {
+        setTimeout(() => {
+            isReady = true;
+        }, 3000);
+    })
 </script>
 
 
@@ -33,11 +33,11 @@
 <style>
     .homepage-hero-animation {
         border: 1px solid #eee;
-				border-radius: 25px;
-				padding: 30px;
-				min-height: 500px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
+        border-radius: 25px;
+        padding: 30px;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>
