@@ -1,10 +1,6 @@
 <script lang="ts">
-  import Feature from '$components/Feature.svelte'
-
-  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
   import HomepageHeroAnimation from "$components/HomepageHeroAnimation.svelte";
   import FeatureCard from "$components/FeatureCard.svelte";
-
 </script>
 
 
