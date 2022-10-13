@@ -5,6 +5,7 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import getPort from 'get-port'
 import fetch from 'node-fetch'
 import {
+  APP_DOMAIN,
   CORE_PB_PASSWORD,
   CORE_PB_PORT,
   CORE_PB_SUBDOMAIN,
@@ -98,7 +99,12 @@ export const createInstanceManger = async () => {
     heartbeat: () => {},
   }
   await tryFetch(coreInternalUrl)
-  await client.adminAuthViaEmail(CORE_PB_USERNAME, CORE_PB_PASSWORD)
+  try {
+    await client.adminAuthViaEmail(CORE_PB_USERNAME, CORE_PB_PASSWORD)}
+  catch(e) {
+    console.error(`***WARNING*** CANNOT AUTHENTICATE TO https://${CORE_PB_SUBDOMAIN}.${APP_DOMAIN}/_/`)
+    console.error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
+  }
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 

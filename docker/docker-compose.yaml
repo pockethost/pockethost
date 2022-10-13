@@ -16,10 +16,10 @@ services:
     depends_on:
       - pbproxy
     env_file:
-      - ../.env
+      - ./.env
   pbproxy:
     env_file:
-      - ../.env
+      - ./.env
     image: node:18
     container_name: pbproxy
     restart: unless-stopped

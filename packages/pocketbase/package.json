@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build": "GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build"
+    "build:arm64": "GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build",
+    "build:386": "GOOS=linux GOARCH=386 CGO_ENABLED=0 go build"
   }
 }
