@@ -4,3 +4,4 @@ node_modules
 .vscode
 *.out
 .env
+*.log

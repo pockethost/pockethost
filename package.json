@@ -4,6 +4,10 @@
   "author": "Ben Allfree <ben@benallfree.com>",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "prettier:check": "prettier -c \"./**/*.ts\"",
+    "prettier:fix": "prettier -w \"./**/*.ts\""
+  },
   "workspaces": {
     "packages": [
       "packages/*"

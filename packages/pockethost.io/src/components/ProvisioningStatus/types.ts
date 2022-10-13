@@ -1,6 +1,6 @@
 export enum ProvisioningSize {
-	Small = 'small',
-	Normal = 'normal',
-	Large = 'large',
-	Hero = 'hero'
+  Small = 'small',
+  Normal = 'normal',
+  Large = 'large',
+  Hero = 'hero'
 }
