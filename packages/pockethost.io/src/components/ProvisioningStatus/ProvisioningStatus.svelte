@@ -16,7 +16,10 @@
     font-size: 10px;
     background-color: rgb(217, 138, 10);
     color: white;
-    &.started {
+    &.idle {
+      background-color: green;
+    }
+    &.running {
       background-color: green;
     }
     &.failed {
