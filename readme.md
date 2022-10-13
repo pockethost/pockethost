@@ -46,7 +46,7 @@ Join us in the discussion area.
 ### 0.2.1
 
 - Idle/running status for PB instance now shows in green
-- Ability to run separate versions of PocketBase per instance for beta/dev purposes
+- Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
 
 ### 0.2.0
 

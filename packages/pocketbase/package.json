@@ -3,7 +3,13 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build:arm64": "GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build",
-    "build:386": "GOOS=linux GOARCH=386 CGO_ENABLED=0 go build"
+    "build:arm64": "cd src && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist/pocketbase && echo 'Build complete' `date`",
+    "build:beta:arm64": "cd src && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist/pocketbase-beta && echo 'Build complete' `date`",
+    "build:386": "cd src && GOOS=linux GOARCH=386 CGO_ENABLED=0 go build -o ../dist/pocketbase && echo 'Build complete' `date`",
+    "build:beta:386": "cd src && GOOS=linux GOARCH=386 CGO_ENABLED=0 go build -o ../dist/pocketbase-beta && echo 'Build complete' `date`",
+    "watch:beta:386": "chokidar 'src/**/*' -c 'yarn build:beta:386' --initial"
+  },
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0"
   }
 }

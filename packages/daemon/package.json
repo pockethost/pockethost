@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build": "mkdir -p dist && esbuild src/server.ts --bundle --platform=node > dist/server.js",
+    "build": "mkdir -p dist && esbuild src/server.ts --bundle --platform=node > dist/server.js && echo 'Build complete' `date`",
     "watch": "chokidar 'src/**' -c 'yarn build' --initial",
     "serve": "node dist/server.js"
   },

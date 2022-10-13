@@ -31,11 +31,11 @@ const tryFetch = (url: string) =>
       console.log(`Trying to connect to instance ${url} `)
       fetch(url)
         .then(() => {
-          console.log(`Connection successful`)
+          console.log(`Connection to ${url} successful`)
           resolve()
         })
         .catch((e) => {
-          console.error(`Could not connect`)
+          console.error(`Could not connect to ${url}`)
           setTimeout(tryFetch, 1000)
         })
     }
@@ -48,9 +48,13 @@ const mkInternalUrl = (port: number) => `http://${mkInternalAddress(port)}`
 export const createInstanceManger = async () => {
   const instances: { [_: string]: Instance } = {}
 
-  const _spawn = async (cfg: { subdomain: string; port: number }) => {
-    const { subdomain, port } = cfg
-    const cmd = `${BIN_ROOT}/pocketbase`
+  const _spawn = async (cfg: {
+    subdomain: string
+    port: number
+    bin: string
+  }) => {
+    const { subdomain, port, bin } = cfg
+    const cmd = `${BIN_ROOT}/${bin}`
     const args = [
       `serve`,
       `--dir`,
@@ -91,6 +95,7 @@ export const createInstanceManger = async () => {
   const mainProcess = await _spawn({
     subdomain: CORE_PB_SUBDOMAIN,
     port: CORE_PB_PORT,
+    bin: 'pocketbase',
   })
   instances[CORE_PB_SUBDOMAIN] = {
     process: mainProcess,
@@ -100,10 +105,14 @@ export const createInstanceManger = async () => {
   }
   await tryFetch(coreInternalUrl)
   try {
-    await client.adminAuthViaEmail(CORE_PB_USERNAME, CORE_PB_PASSWORD)}
-  catch(e) {
-    console.error(`***WARNING*** CANNOT AUTHENTICATE TO https://${CORE_PB_SUBDOMAIN}.${APP_DOMAIN}/_/`)
-    console.error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
+    await client.adminAuthViaEmail(CORE_PB_USERNAME, CORE_PB_PASSWORD)
+  } catch (e) {
+    console.error(
+      `***WARNING*** CANNOT AUTHENTICATE TO https://${CORE_PB_SUBDOMAIN}.${APP_DOMAIN}/_/`
+    )
+    console.error(
+      `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
+    )
   }
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
@@ -111,18 +120,20 @@ export const createInstanceManger = async () => {
   const getInstance = (subdomain: string) =>
     limiter.schedule(async () => {
       console.log(`Getting instance ${subdomain}`)
-      const instance = instances[subdomain]
-      if (instance) {
-        console.log(`Found in cache: ${subdomain}`)
-        instance.heartbeat()
-        return instance
+      {
+        const instance = instances[subdomain]
+        if (instance) {
+          console.log(`Found in cache: ${subdomain}`)
+          instance.heartbeat()
+          return instance
+        }
       }
 
       console.log(`Checking ${subdomain} for permission`)
 
       const recs = await client.getInstanceBySubdomain(subdomain)
-      const [item] = recs.items
-      if (!item) {
+      const [instance] = recs.items
+      if (!instance) {
         console.log(`${subdomain} not found`)
         return
       }
@@ -134,13 +145,17 @@ export const createInstanceManger = async () => {
         port: 8090,
         exclude,
       }).catch((e) => {
-        console.error(`Failed to get port`)
+        console.error(`Failed to get port for ${subdomain}`)
         throw e
       })
       console.log(`Found port for ${subdomain}: ${newPort}`)
 
       await client.updateInstanceStatus(subdomain, InstanceStatus.Starting)
-      const childProcess = await _spawn({ subdomain, port: newPort })
+      const childProcess = await _spawn({
+        subdomain,
+        port: newPort,
+        bin: instance.bin || 'pocketbase',
+      })
 
       const internalUrl = mkInternalUrl(newPort)
 
