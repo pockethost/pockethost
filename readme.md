@@ -51,7 +51,7 @@ Join us in the discussion area.
 ### 0.2.0
 
 - 100% dockerized
-- Completley rewritten daemon proxy that launches PocketBase instances on demand
+- Completely rewritten daemon proxy that launches PocketBase instances on demand
 
 ### 0.0.1
 
