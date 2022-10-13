@@ -1,8 +1,8 @@
 <script lang="ts">
-  export let title: string;
-  export let subtitle: string;
-  export let icon: string;
-  export let fullHeight: boolean;
+    export let title: string;
+    export let subtitle: string;
+    export let icon: string;
+    export let fullHeight: boolean;
 </script>
 
 
@@ -31,19 +31,19 @@
 
 
 <style>
-		.card {
+    .card {
         border: 0;
         box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
-				border-radius: 18px;
-		}
-	.card-icon {
-			background-color: #eee;
-			width: 35px;
-			height: 35px;
-			border-radius: 35px;
-			font-size: 20px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-	}
+        border-radius: 18px;
+    }
+    .card-icon {
+        background-color: #eee;
+        width: 35px;
+        height: 35px;
+        border-radius: 35px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
