@@ -8,7 +8,7 @@
 <div class="container">
   <div class="row align-items-center justify-content-between hero">
     <div class="col-lg-6">
-      <h2>Deploy <span>Pocketbase</span> in 30 seconds</h2>
+      <h2>Deploy <span>PocketBase</span> in 30 seconds</h2>
 
       <p>Spend less time on configuring your backend, and more time building new features for your web app.</p>
 
