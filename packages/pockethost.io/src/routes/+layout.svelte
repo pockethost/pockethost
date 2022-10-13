@@ -1,11 +1,10 @@
 <script>
   import Navbar from '$components/Navbar.svelte'
-  import { Styles } from 'sveltestrap'
 </script>
 
-<Styles />
 <Navbar />
-<main>
+
+<main data-sveltekit-prefetch>
   <slot />
 </main>
 
