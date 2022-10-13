@@ -1,15 +1,15 @@
 <script lang="ts">
   import Button from '$components/Button/Button.svelte'
   import Error from '$components/Error/Error.svelte'
-  import { parseError } from '$components/Error/parseError'
   import Title from '$components/Title/Title.svelte'
   import { TitleSize } from '$components/Title/types'
+  import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
-  import { authViaEmail, createUser } from '@pockethost/common/src/pocketbase'
   import { Form, FormGroup, Input, Label } from 'sveltestrap'
 
+  const { authViaEmail, createUser, parseError } = client
   let email = ''
-  let emailError = ''
+  let emailError: string[] = []
   let password = ''
   let passwordError = ''
 
@@ -22,7 +22,7 @@
   //     .catch((e) => console.error(`user login error`, e))
 
   const handleSignup = () => {
-    emailError = ''
+    emailError = []
     passwordError = ''
     createUser(email, password)
       .then((user) => {
@@ -37,7 +37,7 @@
       })
       .catch((e) => {
         emailError = parseError(e)
-        console.error(emailError, e)
+        console.error(emailError.join('\n'), e)
       })
   }
 </script>
@@ -49,7 +49,7 @@
     <FormGroup>
       <Label for="email">Email Address</Label>
       <Input type="email" bind:value={email} id="email" />
-      <Error>{emailError}</Error>
+      <Error>{emailError.join('<br/>')}</Error>
     </FormGroup>
     <FormGroup>
       <Label for="password">Password</Label>

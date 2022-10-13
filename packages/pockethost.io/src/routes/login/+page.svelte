@@ -1,13 +1,15 @@
 <script lang="ts">
   import Button from '$components/Button/Button.svelte'
   import Title from '$components/Title/Title.svelte'
+  import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
-  import { authViaEmail } from '@pockethost/common/src/pocketbase'
   import { Form, FormGroup, Input, Label } from 'sveltestrap'
 
   let email = ''
   let password = ''
   let loginError = ''
+
+  const { authViaEmail } = client
 
   const handleLogin = () => {
     loginError = ''

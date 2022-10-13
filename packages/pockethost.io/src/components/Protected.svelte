@@ -1,7 +1,9 @@
 <script lang="ts">
   import { browser } from '$app/environment'
+  import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
-  import { isLoggedIn } from '@pockethost/common/src/pocketbase'
+
+  const { isLoggedIn } = client
 
   if (browser && !isLoggedIn()) {
     redirect(`/signup`)

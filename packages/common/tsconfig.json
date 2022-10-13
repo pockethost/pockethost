@@ -12,10 +12,9 @@
     "moduleResolution": "node",
     "noUncheckedIndexedAccess": true,
     "strictNullChecks": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["vite/client"]
   },
-  "ts-node": {
-    "esm": true
-  },
+
   "include": ["./src"]
 }

@@ -5,19 +5,44 @@
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import Title from '$components/Title/Title.svelte'
-  import { getAllInstancesById } from '@pockethost/common/src/pocketbase'
-  import { InstanceStatuses, type Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
-  import { values } from '@s-libs/micro-dash'
+  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { client } from '$src/pocketbase'
+  import {
+    InstanceStatus,
+    type Instance_Out,
+    type Instance_Out_ByIdCollection
+  } from '@pockethost/common/src/schema'
+  import { forEach, values } from '@s-libs/micro-dash'
+  import { onDestroy, onMount } from 'svelte'
+  import type { Unsubscriber } from 'svelte/store'
   import { Col, Container, Row } from 'sveltestrap'
 
+  const { getAllInstancesById, watchInstanceById } = client
   let apps: Instance_Out_ByIdCollection = {}
-  getAllInstancesById()
-    .then((instances) => {
-      apps = instances
-    })
-    .catch((e) => {
-      console.error(`Failed to fetch instances`)
-    })
+  const isRunning = (app: Instance_Out) =>
+    app.status === InstanceStatus.Running || app.status === InstanceStatus.Idle
+
+  let unsubs: Unsubscriber[] = []
+  onMount(() => {
+    getAllInstancesById()
+      .then((instances) => {
+        apps = instances
+        forEach(apps, (app) => {
+          const instanceId = app.id
+          const unsub = watchInstanceById(instanceId, (r) => {
+            console.log(`got a record`, r)
+            apps[r.id] = r
+          })
+          unsubs.push(unsub)
+        })
+      })
+      .catch((e) => {
+        console.error(`Failed to fetch instances`)
+      })
+  })
+  onDestroy(() => {
+    unsubs.forEach((u) => u())
+  })
 </script>
 
 <Protected>
@@ -31,17 +56,17 @@
             <ProvisioningStatus status={app.status} />
           </Col>
           <Col>
-            {app.subdomain}.pockethost.io
+            {app.subdomain}.{PUBLIC_APP_DOMAIN}
           </Col>
 
           <Col>
             <Button size={ButtonSizes.Micro} href={`/app/instances/${app.id}`}>Details</Button>
 
             <Button
-              disabled={app.status !== InstanceStatuses.Started}
+              disabled={!isRunning(app)}
               size={ButtonSizes.Micro}
               click={() => {
-                window.open(`https://${app.subdomain}.pockethost.io/_`)
+                window.open(`https://${app.subdomain}.${PUBLIC_APP_DOMAIN}/_`)
               }}>Admin</Button
             >
           </Col>

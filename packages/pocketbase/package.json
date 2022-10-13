@@ -1,0 +1,8 @@
+{
+  "name": "enchanted-pocketbase",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "build": "GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build"
+  }
+}

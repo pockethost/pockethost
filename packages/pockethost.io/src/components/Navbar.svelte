@@ -1,6 +1,6 @@
 <script lang="ts">
+  import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
-  import { isLoggedIn, logOut, user } from '@pockethost/common/src/pocketbase'
   import {
     Collapse,
     Dropdown,
@@ -27,6 +27,8 @@
   function handleUpdate(event: CustomEvent<boolean>) {
     isOpen = event.detail.valueOf()
   }
+
+  const { isLoggedIn, logOut, user } = client
 
   const handleLogout = () => {
     logOut()

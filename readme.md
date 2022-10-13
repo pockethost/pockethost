@@ -1,8 +1,6 @@
-# PocketHost
+# pockethost.io
 
-This is the open source monorepo for PocketHost.
-
-PocketHost is a zero-config backend (database, authentication, functions, and storage) meant to rival Firebase and Supabase. Spin up your own fully managed backend for your next app at [https://pockethost.io](https://pockethost.io).
+This is the open source monorepo for pockethost.io, the hosting platform for PocketBase.
 
 Get up and running in 30 seconds flat:
 
@@ -22,21 +20,34 @@ const client = new PocketBase(`https://harvest.pockethost.io`)
 
 PocketBase is very, very cool. But, to run and manage it successfully, you need to know a lot of backend Linux sysadmin/devops stuff:
 
-- VPS
 - Probably Docker
 - Email and DKIM+SPF and more
 - DNS, MX, TXT, CNAME
 - SSL
+- Storage
+- Volume mounts
+- Could computing or VPS
 
 That's where PocketHost comes in. Firebase and Supabase have made BaaS very attrictive, and PocketHost brings that same attractiveness to PocketBase.
 
 ## Roadmap
 
 - Tighter integration with PocketBase
-- Cloud functions in Node or Deno
+- Cloud functions [PBScript](https://github.com/benallfree/pbscript)
 - Lightstream support
 - fly.io deployment support
 
 ## Questions?
 
 Join us in the discussion area.
+
+## Changelog
+
+### 0.2.0
+
+- 100% dockerized
+- Completley rewritten daemon proxy that launches PocketBase instances on demand
+
+### 0.0.1
+
+- Initial release

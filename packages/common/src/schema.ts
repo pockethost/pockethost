@@ -1,34 +1,32 @@
-import { AnyBrand, Brand, identity } from 'ts-brand'
+export type RecordId = string
+export type UserId = RecordId
+export type InstanceId = RecordId
+export type InternalInstanceId = RecordId
+export type Subdomain = string
+export type Port = number
+export type IsoDate = string
+export type ProcessId = number
+export type Username = string
+export type Password = string
 
-export type UserId = Brand<string, 'UserId'>
-export type InstanceId = Brand<string, 'InstanceId'>
-export type InternalInstanceId = Brand<string, 'InternalInstanceId'>
-export type Subdomain = Brand<string, 'Subdomain'>
-export type Port = Brand<number, 'Port'>
-export type IsoDate = Brand<string, 'IsoDate'>
-export type ProcessId = Brand<number, 'ProcessId'>
-export type Username = Brand<string, 'username'>
-export type Password = Brand<string, 'password'>
+export const pocketNow = () => new Date().toISOString()
 
-export const pocketNow = () => identity<IsoDate>(new Date().toISOString())
-
-export enum InstanceStatuses {
+export enum InstanceStatus {
   Unknown = '',
-  Provisioning = 'provisioning',
-  Port = 'obtaining port',
-  Cert = 'creating SSL cert',
+  Idle = 'idle',
+  Port = 'porting',
   Starting = 'starting',
-  Started = 'started',
+  Running = 'running',
   Failed = 'failed',
 }
 
 export type Instance_In = {
   uid?: UserId
   subdomain?: Subdomain
-  status?: InstanceStatuses
+  status?: InstanceStatus
 }
 
-export type PocketbaseRecord<TIdType extends AnyBrand> = {
+export type PocketbaseRecord<TIdType extends RecordId> = {
   id: TIdType
   created: IsoDate
   updated: IsoDate
@@ -37,7 +35,7 @@ export type PocketbaseRecord<TIdType extends AnyBrand> = {
 export type Instance_Out = PocketbaseRecord<InstanceId> & {
   uid: UserId
   subdomain: Subdomain
-  status: InstanceStatuses
+  status: InstanceStatus
 }
 
 export type Instance_Internal_In = {

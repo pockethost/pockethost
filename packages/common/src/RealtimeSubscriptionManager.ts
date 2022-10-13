@@ -1,7 +1,7 @@
-import { pocketbase } from './pocketbase'
+import PocketBase from 'pocketbase'
 import { Any_Record_Out } from './schema'
 
-export const createRealtimeSubscriptionManager = () => {
+export const createRealtimeSubscriptionManager = (pocketbase: PocketBase) => {
   const subscriptions: { [_: string]: number } = {}
 
   const subscribe = <TRec extends Any_Record_Out>(

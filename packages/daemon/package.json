@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build": "parcel",
+    "build": "esbuild src/server.ts --bundle --platform=node > dist/server.js",
+    "watch": "chokidar 'src/**' -c 'yarn build' --initial",
     "serve": "node dist/server.js"
   },
   "targets": {
@@ -23,13 +24,18 @@
   "dependencies": {
     "@pockethost/common": "0.0.1",
     "@s-libs/micro-dash": "^14.1.0",
+    "@types/http-proxy": "^1.17.9",
     "bottleneck": "^2.19.5",
+    "chokidar-cli": "^3.0.0",
     "event-source-polyfill": "^1.0.31",
     "get-port": "^6.1.2",
+    "http-proxy": "^1.18.1",
+    "node-fetch": "^3.2.10",
     "pocketbase": "^0.7.0",
-    "ts-brand": "^0.0.2"
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
+    "chokidar-cli": "^3.0.0",
     "parcel": "^2.7.0",
     "ts-node": "^10.9.1"
   }

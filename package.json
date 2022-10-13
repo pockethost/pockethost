@@ -1,19 +1,14 @@
 {
   "name": "pockethost",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "author": "Ben Allfree <ben@benallfree.com>",
   "license": "MIT",
   "private": true,
-  "scripts": {
-    "sync": "rsync -avv --exclude-from=.rsyncignore ./* pockethost@pockethost.io:~/pockethost --delete",
-    "watch": "chokidar './**/*' -i .git -i '**/node_modules' -i '.svelte-kit' -c 'yarn sync' --initial"
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
   },
-  "workspaces": [
-    "packages/fcs-client",
-    "packages/worker",
-    "packages/admin",
-    "packages/*"
-  ],
   "prettier": {
     "semi": false,
     "useTabs": false,

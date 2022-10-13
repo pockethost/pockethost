@@ -4,8 +4,8 @@
   "main": "src/index.ts",
   "license": "MIT",
   "dependencies": {
+    "@s-libs/micro-dash": "^14.1.0",
     "nanoid": "^4.0.0",
-    "pocketbase": "^0.7.0",
-    "ts-brand": "^0.0.2"
+    "pocketbase": "^0.7.0"
   }
 }

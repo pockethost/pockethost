@@ -5,6 +5,7 @@
   import { CaptionSize } from '$components/Caption/types'
   import Feature from '$components/Feature.svelte'
   import Gap from '$components/Gap.svelte'
+  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
 </script>
 
 <main>
@@ -42,7 +43,8 @@
     </Feature>
     <Feature title={'Auth'}
       >Email and oAuth authentication options work out of the box. Send transactional email to your
-      users from our verified domain and your custom address, <code>yoursubdomin@pockethost.io</code
+      users from our verified domain and your custom address, <code
+        >yoursubdomin@{PUBLIC_APP_DOMAIN}</code
       >.</Feature
     >
     <Feature title={'Storage'}

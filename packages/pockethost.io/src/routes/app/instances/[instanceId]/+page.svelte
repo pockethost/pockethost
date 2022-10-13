@@ -7,42 +7,41 @@
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import { ProvisioningSize } from '$components/ProvisioningStatus/types'
   import Title from '$components/Title/Title.svelte'
+  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { client } from '$src/pocketbase'
   import { assertExists } from '@pockethost/common/src/assert'
-  import { watchInstanceById } from '@pockethost/common/src/pocketbase'
-  import {
-    InstanceStatuses,
-    type InstanceId,
-    type Instance_Out
-  } from '@pockethost/common/src/schema'
+  import { InstanceStatus, type Instance_Out } from '@pockethost/common/src/schema'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
-  import { identity } from 'ts-brand'
 
   const { instanceId } = $page.params
 
   let instance: Instance_Out | undefined
 
+  const { watchInstanceById } = client
   let url: string
   let code: string = ''
   let unsub: Unsubscriber = () => {}
   onMount(() => {
-    unsub = watchInstanceById(identity<InstanceId>(instanceId), (r) => {
+    unsub = watchInstanceById(instanceId, (r) => {
       console.log(`got a record`, r)
       instance = r
       assertExists(instance, `Expected instance here`)
       const { subdomain } = instance
-      url = `https://${subdomain}.pockethost.io`
+      url = `https://${subdomain}.${PUBLIC_APP_DOMAIN}`
       code = `const url = '${url}'\nconst client = new PocketBase(url)`
     })
   })
   onDestroy(() => unsub())
+  const isRunning = (instance: Instance_Out) =>
+    instance.status === InstanceStatus.Running || instance.status === InstanceStatus.Idle
 </script>
 
 <Protected>
   <main>
     <Title />
     {#if instance}
-      {#if instance.status === InstanceStatuses.Started}
+      {#if isRunning(instance)}
         <ProvisioningStatus status={instance.status} />
 
         <div>
@@ -53,7 +52,7 @@
           <CodeSample {code} />
         </div>
       {/if}
-      {#if instance.status !== InstanceStatuses.Started}
+      {#if !isRunning}
         <Caption>Please stand by, your instance is starting now...</Caption>
         <div class="provisioning">
           <ProvisioningStatus status={instance.status} size={ProvisioningSize.Hero} />

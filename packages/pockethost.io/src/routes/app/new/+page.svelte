@@ -3,29 +3,28 @@
   import Button from '$components/Button/Button.svelte'
   import { ButtonColors, ButtonSizes } from '$components/Button/types'
   import Error from '$components/Error/Error.svelte'
-  import { parseError } from '$components/Error/parseError'
   import Protected from '$components/Protected.svelte'
   import Title from '$components/Title/Title.svelte'
+  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
   import { faRefresh } from '@fortawesome/free-solid-svg-icons'
   import { assertExists } from '@pockethost/common/src/assert'
-  import { createInstance, user } from '@pockethost/common/src/pocketbase'
-  import type { Subdomain, UserId } from '@pockethost/common/src/schema'
-  import PocketBase from 'pocketbase'
+  import type { UserId } from '@pockethost/common/src/schema'
   import { generateSlug } from 'random-word-slugs'
   import Fa from 'svelte-fa'
-  import { identity } from 'ts-brand'
 
-  const client = new PocketBase('https://db.pockethost.io')
-  if (browser && !client.authStore.isValid) {
+  const { user, createInstance, parseError } = client
+
+  if (browser && !user) {
     redirect('/signup')
   }
   let instanceName = generateSlug(2)
 
-  let errorMessage = ''
+  let errorMessage: string[] = []
   let code = ''
   $: {
-    code = `const url = 'https://${instanceName}.pockethost.io'\nconst client = new PocketBase(url)`
+    code = `const url = 'https://${instanceName}.${PUBLIC_APP_DOMAIN}'\nconst client = new PocketBase(url)`
   }
 
   const handleCreate = () => {
@@ -33,7 +32,7 @@
     const { id } = user() || {}
     assertExists<UserId>(id, `Expected uid here`)
     createInstance({
-      subdomain: identity<Subdomain>(instanceName),
+      subdomain: instanceName,
       uid: id
     })
       .then((rec) => {
@@ -42,7 +41,7 @@
       })
       .catch((e) => {
         errorMessage = parseError(e)
-        console.error(errorMessage, e)
+        console.error(errorMessage.join('\n'), e)
       })
   }
 </script>
@@ -62,9 +61,9 @@
         name="instanceName"
         type="text"
         bind:value={instanceName}
-      />.pockethost.io
+      />.{PUBLIC_APP_DOMAIN}
     </div>
-    <Error>{errorMessage}</Error>
+    <Error>{errorMessage.join('<br/>')}</Error>
     <Button click={handleCreate}>Create</Button>
     <Button href={`/dashboard`} color={ButtonColors.Light}>Cancel</Button>
   </main>
