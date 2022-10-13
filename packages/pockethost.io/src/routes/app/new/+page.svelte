@@ -5,7 +5,7 @@
   import Error from '$components/Error/Error.svelte'
   import Protected from '$components/Protected.svelte'
   import Title from '$components/Title/Title.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
   import { faRefresh } from '@fortawesome/free-solid-svg-icons'
@@ -24,7 +24,7 @@
   let errorMessage: string[] = []
   let code = ''
   $: {
-    code = `const url = 'https://${instanceName}.${PUBLIC_APP_DOMAIN}'\nconst client = new PocketBase(url)`
+    code = `const url = 'https://${instanceName}.${PUBLIC_PB_DOMAIN}'\nconst client = new PocketBase(url)`
   }
 
   const handleCreate = () => {
@@ -61,7 +61,7 @@
         name="instanceName"
         type="text"
         bind:value={instanceName}
-      />.{PUBLIC_APP_DOMAIN}
+      />.{PUBLIC_PB_DOMAIN}
     </div>
     <Error>{errorMessage.join('<br/>')}</Error>
     <Button click={handleCreate}>Create</Button>

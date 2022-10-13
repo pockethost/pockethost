@@ -7,7 +7,7 @@
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import { ProvisioningSize } from '$components/ProvisioningStatus/types'
   import Title from '$components/Title/Title.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import { assertExists } from '@pockethost/common/src/assert'
   import { InstanceStatus, type Instance_Out } from '@pockethost/common/src/schema'
@@ -28,7 +28,7 @@
       instance = r
       assertExists(instance, `Expected instance here`)
       const { subdomain } = instance
-      url = `https://${subdomain}.${PUBLIC_APP_DOMAIN}`
+      url = `https://${subdomain}.${PUBLIC_PB_DOMAIN}`
       code = `const url = '${url}'\nconst client = new PocketBase(url)`
     })
   })

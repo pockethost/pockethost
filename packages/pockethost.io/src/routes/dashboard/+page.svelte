@@ -5,7 +5,7 @@
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import Title from '$components/Title/Title.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import {
     InstanceStatus,
@@ -56,7 +56,7 @@
             <ProvisioningStatus status={app.status} />
           </Col>
           <Col>
-            {app.subdomain}.{PUBLIC_APP_DOMAIN}
+            {app.subdomain}.{PUBLIC_PB_DOMAIN}
           </Col>
 
           <Col>
@@ -66,7 +66,7 @@
               disabled={!isRunning(app)}
               size={ButtonSizes.Micro}
               click={() => {
-                window.open(`https://${app.subdomain}.${PUBLIC_APP_DOMAIN}/_`)
+                window.open(`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`)
               }}>Admin</Button
             >
           </Col>
