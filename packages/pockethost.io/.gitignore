@@ -8,3 +8,4 @@ node_modules
 !.env.example
 dist-server
 .idea
+yarn-error.log
