@@ -1,5 +1,7 @@
 import { client } from '$src/pocketbase'
 import { InstanceStatus } from '@pockethost/common'
+import { keys, map } from '@s-libs/micro-dash'
+import { ClientResponseError } from 'pocketbase'
 import { redirect } from './redirect'
 const { authViaEmail, createUser, user, createInstance } = client
 

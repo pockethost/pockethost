@@ -20,7 +20,11 @@
     font-weight: 300;
 
     #host {
-      background-image: linear-gradient( 83.2deg,  rgba(150,93,233,1) 10.8%, rgba(99,88,238,1) 94.3% );
+      background-image: linear-gradient(
+        83.2deg,
+        rgba(150, 93, 233, 1) 10.8%,
+        rgba(99, 88, 238, 1) 94.3%
+      );
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
