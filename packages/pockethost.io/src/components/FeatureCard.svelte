@@ -1,8 +1,8 @@
 <script lang="ts">
-    export let title: string;
-    export let subtitle: string;
-    export let icon: string;
-    export let fullHeight: boolean;
+    export let title: string = "";
+    export let subtitle: string = "";
+    export let icon: string = "";
+    export let fullHeight: boolean = false;
 </script>
 
 

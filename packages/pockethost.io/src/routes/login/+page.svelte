@@ -1,54 +1,100 @@
 <script lang="ts">
-  import Button from '$components/Button/Button.svelte'
-  import Title from '$components/Title/Title.svelte'
-  import { client } from '$src/pocketbase'
-  import { redirect } from '$util/redirect'
-  import { Form, FormGroup, Input, Label } from 'sveltestrap'
+  import {handleLogin} from "$util/database";
+  import AlertBar from "$components/AlertBar.svelte";
 
-  let email = ''
-  let password = ''
-  let loginError = ''
+  let email: string = "";
+  let password: string = "";
+  let formError: string = "";
 
-  const { authViaEmail } = client
+  let isFormButtonDisabled: boolean = true;
+  $: isFormButtonDisabled = email.length === 0 || password.length === 0;
 
-  const handleLogin = () => {
-    loginError = ''
-    authViaEmail(email, password)
-      .then((user) => {
-        console.log(user)
-        redirect('/dashboard')
-      })
-      .catch((e) => {
-        loginError = e.message
-      })
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    isFormButtonDisabled = true;
+
+    await handleLogin(email, password, (error) => {
+      formError = error;
+    });
+
+    isFormButtonDisabled = false;
   }
 </script>
 
-<Title first="Log" second="in" />
 
-<main>
-  <error>{loginError}</error>
-  <Form>
-    <FormGroup>
-      <Label for="email">Email</Label>
-      <Input type="email" id="email" bind:value={email} />
-    </FormGroup>
-    <FormGroup>
-      <Label for="password">Password</Label>
-      <Input type="password" id="password" bind:value={password} />
-    </FormGroup>
-  </Form>
+<div class="page-bg">
+  <div class="card">
+    <h2 class="mb-4">Login</h2>
 
-  <div>
-    Need to <a href="/signup">create an account</a>?
+    <form on:submit={handleSubmit}>
+      <div class="form-floating mb-3">
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          placeholder="name@example.com"
+          bind:value={email}
+          required
+          autocomplete="email" />
+        <label for="email">Email address</label>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          placeholder="Password"
+          bind:value={password}
+          required
+          autocomplete="current-password" />
+        <label for="password">Password</label>
+      </div>
+
+      {#if formError}
+        <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+      {/if}
+
+      <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+        Log In <i class="bi bi-arrow-right-short"></i>
+      </button>
+    </form>
+
+    <div class="py-4"><hr/></div>
+
+    <div class="text-center">
+      Need to <a href="/signup">create an account</a>?
+    </div>
   </div>
-  <Button click={handleLogin} disabled={email.length === 0 || password.length === 0}>Log In</Button>
-</main>
+</div>
 
-<style type="text/scss">
-  main {
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
+
+
+<style lang="scss">
+  .page-bg {
+    background-color: #222;
+    background-image: linear-gradient( 109.6deg,  rgba(125,89,252,1) 11.2%, rgba(218,185,252,1) 91.1% );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 91px);
+    padding: 0 18px;
+  }
+
+  .card {
+    border: 0;
+    background-color: #fff;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    padding: 24px;
+    max-width: 425px;
+    width: 100%;
+    border-radius: 24px;
+  }
+
+  @media screen and (min-width: 768px) {
+    .card {
+      padding: 48px;
+    }
   }
 </style>

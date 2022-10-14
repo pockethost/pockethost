@@ -17,7 +17,7 @@
   </div>
 </div>
 
-<style type="text/scss">
+<style lang="scss">
   .copy-container {
     position: relative;
     margin: 5px;

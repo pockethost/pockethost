@@ -80,7 +80,7 @@
   </main>
 </Protected>
 
-<style type="text/scss">
+<style lang="scss">
   main {
     margin-top: 10px;
     margin-right: auto;

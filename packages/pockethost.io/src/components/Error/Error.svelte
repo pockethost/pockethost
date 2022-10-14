@@ -1,6 +1,6 @@
 <error><slot /></error>
 
-<style type="text/scss">
+<style lang="scss">
   error {
     color: red;
     display: block;

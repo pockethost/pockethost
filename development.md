@@ -9,10 +9,11 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost
 ```
 
-### Build custom PockeBase
+### Build custom PocketBase
 
 ```bash
 cd packages/pocketbase
+
 yarn build
 ```
 

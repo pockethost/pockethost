@@ -13,7 +13,7 @@
   <p>Please check the instance URL and try again.</p>
 </main>
 
-<style type="text/scss">
+<style lang="scss">
   main {
     max-width: 600px;
     margin-left: auto;

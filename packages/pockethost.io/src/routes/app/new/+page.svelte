@@ -59,6 +59,7 @@
       <input
         class="subdomain"
         name="instanceName"
+        id="instanceName"
         type="text"
         bind:value={instanceName}
       />.{PUBLIC_PB_DOMAIN}
@@ -69,7 +70,7 @@
   </main>
 </Protected>
 
-<style type="text/scss">
+<style lang="scss">
   main {
     padding: 1em;
     margin-left: auto;

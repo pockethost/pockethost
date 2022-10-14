@@ -9,22 +9,20 @@
 
 <h1 class={size}>{first}<span id="host">{second}</span>{third}</h1>
 
-<style type="text/scss">
+<style lang="scss">
   h1 {
     color: #ff3e00;
     font-size: 30px;
-    font-weight: 100;
     margin-left: auto;
     margin-right: auto;
     display: block;
     text-align: center;
+    font-weight: 300;
+
     #host {
-      color: blue;
-    }
-    &.nav {
-      font-size: 15px;
-      font-weight: 400;
-      display: inline-block;
+      background-image: linear-gradient( 83.2deg,  rgba(150,93,233,1) 10.8%, rgba(99,88,238,1) 94.3% );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   }
 </style>

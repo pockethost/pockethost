@@ -1,6 +1,10 @@
 <script lang="ts">
+  import { client } from '$src/pocketbase';
   import HomepageHeroAnimation from "$components/HomepageHeroAnimation.svelte";
   import FeatureCard from "$components/FeatureCard.svelte";
+  import InstanceGeneratorWidget from "$components/InstanceGeneratorWidget.svelte";
+
+  const { isLoggedIn } = client;
 </script>
 
 
@@ -10,11 +14,17 @@
     <div class="col-lg-6">
       <h2>Deploy <span>PocketBase</span> in 30 seconds</h2>
 
-      <p>Spend less time on configuring your backend, and more time building new features for your web app.</p>
+      <p class="mb-5">Spend less time on configuring your backend, and more time building new features for your web app.</p>
 
-      <div>
-        <a href="/signup" class="btn btn-primary">Get Started for Free</a>
-      </div>
+      {#if isLoggedIn()}
+        <div>
+          <a href="/dashboard" class="btn btn-primary">Go to Your Dashboard <i class="bi bi-arrow-right-short"></i></a>
+        </div>
+      {/if}
+
+      {#if !isLoggedIn()}
+        <InstanceGeneratorWidget />
+      {/if}
     </div>
 
     <div class="col-lg-5">
