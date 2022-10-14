@@ -1,3 +1,3 @@
-import { writable } from 'svelte/store';
+import { writable } from 'svelte/store'
 
-const instanceCreationWidgetName = writable(0);
+const instanceCreationWidgetName = writable(0)

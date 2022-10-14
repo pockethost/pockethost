@@ -4,7 +4,7 @@
 
   const { isLoggedIn, logOut } = client
 
-  const handleLogout = (e) => {
+  const handleLogout = (e: Event) => {
     e.preventDefault()
     logOut()
     redirect(`/`)
