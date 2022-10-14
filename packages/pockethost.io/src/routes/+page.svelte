@@ -11,7 +11,7 @@
 
 <div class="container">
   <div class="row align-items-center justify-content-between hero">
-    <div class="col-lg-6">
+    <div class="col-lg-6 mb-5 mb-lg-0">
       <h2>Deploy <span>PocketBase</span> in 30 seconds</h2>
 
       <p class="mb-5">Spend less time on configuring your backend, and more time building new features for your web app.</p>
@@ -110,11 +110,11 @@
 
 <style>
   .hero {
-    padding: 100px 0;
+    padding: 50px 0;
   }
 
   .hero h2 {
-    font-size: 65px;
+    font-size: 35px;
   }
 
   .hero h2 span {
@@ -130,5 +130,15 @@
 
   .features h2 {
     font-size: 56px;
+  }
+
+  @media screen and (min-width: 768px) {
+    .hero {
+      padding: 100px 0;
+    }
+
+    .hero h2 {
+      font-size: 65px;
+    }
   }
 </style>

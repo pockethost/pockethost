@@ -37,9 +37,17 @@
         border: 1px solid #eee;
         border-radius: 25px;
         padding: 30px;
+        margin-right: 45px;
+				margin-top: 25px;
         min-height: 500px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
+
+		@media screen and (min-width: 768px) {
+				.homepage-hero-animation {
+            margin: 0;
+				}
+		}
 </style>

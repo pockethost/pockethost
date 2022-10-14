@@ -114,7 +114,7 @@
 		</div>
 
 		<div class="col-lg-6 col-12">
-			<div class="mb-3 mb-lg-3">
+			<div class="mb-3 mb-lg-3 text-lg-start text-center">
 				<button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
 					Create <i class="bi bi-arrow-right-short"></i>
 				</button>
@@ -154,4 +154,5 @@
         right: 7px;
         transition: all 200ms;
     }
+
 </style>
