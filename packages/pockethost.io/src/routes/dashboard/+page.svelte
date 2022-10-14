@@ -7,11 +7,7 @@
   import Title from '$components/Title/Title.svelte'
   import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
-  import {
-    InstanceStatus,
-    type Instance_Out,
-    type Instance_Out_ByIdCollection
-  } from '@pockethost/common/src/schema'
+  import { InstanceStatus, type Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
@@ -19,8 +15,6 @@
 
   const { getAllInstancesById, watchInstanceById } = client
   let apps: Instance_Out_ByIdCollection = {}
-  const isRunning = (app: Instance_Out) =>
-    app.status === InstanceStatus.Running || app.status === InstanceStatus.Idle
 
   let unsubs: Unsubscriber[] = []
   onMount(() => {
@@ -53,10 +47,12 @@
       {#each values(apps) as app}
         <Row>
           <Col>
-            <ProvisioningStatus status={app.status||InstanceStatus.Idle} />
+            <ProvisioningStatus status={app.status || InstanceStatus.Idle} />
           </Col>
           <Col>
-            {app.subdomain}.{PUBLIC_PB_DOMAIN}
+            <div class="nowrap">
+              {app.subdomain}
+            </div>
           </Col>
 
           <Col>
@@ -89,6 +85,9 @@
     padding: 10px;
     h2 {
       text-align: center;
+    }
+    .nowrap {
+      white-space: nowrap;
     }
     .newApp {
       width: 200px;
