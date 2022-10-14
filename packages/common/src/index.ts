@@ -1,3 +1,3 @@
 export * from './assert'
-export * from './pocketbase'
+export * from './RealtimeSubscriptionManager'
 export * from './schema'
