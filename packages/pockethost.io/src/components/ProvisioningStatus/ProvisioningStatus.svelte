@@ -4,9 +4,10 @@
 
   export let status: InstanceStatus = InstanceStatus.Unknown
   export let size: ProvisioningSize = ProvisioningSize.Normal
+  const _status = status || InstanceStatus.Idle
 </script>
 
-<div class={`status ${status} ${size}`}>{status}</div>
+<div class={`status ${_status} ${size}`}>{_status}</div>
 
 <style lang="scss">
   .status {
