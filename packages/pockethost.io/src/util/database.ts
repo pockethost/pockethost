@@ -11,12 +11,12 @@ export type FormErrorHandler = (value:string)=>void
 
 export const handleFormError = (error:any, setError?: FormErrorHandler)=>{
     console.error(`Form error: ${error}`,{error})
-    const message = (()=>{
-        if(!(error instanceof ClientResponseError)) return error.message
-        if(error.data.message && keys(error.data.data).length===0) return error.data.message
-        return map(error.data.data, info=>info.message).join('<br/>')
-    })()
     if(setError) {
+        const message = (()=>{
+            if(!(error instanceof ClientResponseError)) return error.message
+            if(error.data.message && keys(error.data.data).length===0) return error.data.message
+            return map(error.data.data, info=>info.message).join('<br/>')
+        })()
         setError(message);
     } else {
         throw error
