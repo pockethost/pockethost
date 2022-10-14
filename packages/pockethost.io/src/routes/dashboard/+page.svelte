@@ -7,7 +7,7 @@
   import Title from '$components/Title/Title.svelte'
   import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
-  import { InstanceStatus, type Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
+  import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
@@ -47,7 +47,7 @@
       {#each values(apps) as app}
         <Row>
           <Col>
-            <ProvisioningStatus status={app.status || InstanceStatus.Idle} />
+            <ProvisioningStatus status={app.status} />
           </Col>
           <Col>
             <div class="nowrap">
