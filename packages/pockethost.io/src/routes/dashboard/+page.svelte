@@ -7,11 +7,7 @@
   import Title from '$components/Title/Title.svelte'
   import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
-  import {
-    InstanceStatus,
-    type Instance_Out,
-    type Instance_Out_ByIdCollection
-  } from '@pockethost/common/src/schema'
+  import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
@@ -19,8 +15,6 @@
 
   const { getAllInstancesById, watchInstanceById } = client
   let apps: Instance_Out_ByIdCollection = {}
-  const isRunning = (app: Instance_Out) =>
-    app.status === InstanceStatus.Running || app.status === InstanceStatus.Idle
 
   let unsubs: Unsubscriber[] = []
   onMount(() => {
@@ -56,14 +50,15 @@
             <ProvisioningStatus status={app.status} />
           </Col>
           <Col>
-            {app.subdomain}.{PUBLIC_PB_DOMAIN}
+            <div class="nowrap">
+              {app.subdomain}
+            </div>
           </Col>
 
           <Col>
             <Button size={ButtonSizes.Micro} href={`/app/instances/${app.id}`}>Details</Button>
 
             <Button
-              disabled={!isRunning(app)}
               size={ButtonSizes.Micro}
               click={() => {
                 window.open(`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`)
@@ -90,6 +85,9 @@
     padding: 10px;
     h2 {
       text-align: center;
+    }
+    .nowrap {
+      white-space: nowrap;
     }
     .newApp {
       width: 200px;

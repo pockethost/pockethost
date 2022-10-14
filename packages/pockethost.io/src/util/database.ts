@@ -1,7 +1,27 @@
+import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte';
 import { client } from '$src/pocketbase';
+import { InstanceStatus } from '@pockethost/common';
+import { forEach, keys, map, mapValues, values } from '@s-libs/micro-dash';
+import { ClientResponseError } from 'pocketbase';
 const { authViaEmail, createUser, user, createInstance } = client;
 import {redirect} from "./redirect";
 
+
+export type FormErrorHandler = (value:string)=>void
+
+export const handleFormError = (error:any, setError?: FormErrorHandler)=>{
+    console.error(`Form error: ${error}`,{error})
+    if(setError) {
+        const message = (()=>{
+            if(!(error instanceof ClientResponseError)) return error.message
+            if(error.data.message && keys(error.data.data).length===0) return error.data.message
+            return map(error.data.data, info=>info.message).join('<br/>')
+        })()
+        setError(message);
+    } else {
+        throw error
+    }
+}
 
 /**
  * This will log a user into Pocketbase, and includes an optional error handler
@@ -13,11 +33,11 @@ import {redirect} from "./redirect";
 export const handleLogin = async(
     email: string,
     password: string,
-    setError = (value: string) => {},
+    setError?: FormErrorHandler,
     shouldRedirect: boolean = true,
 ) => {
     // Reset the form error if the form is submitted
-    setError("");
+    setError?.("");
 
     try {
         await authViaEmail(email, password);
@@ -26,8 +46,7 @@ export const handleLogin = async(
             redirect('/dashboard');
         }
     } catch(error: any) {
-        setError(error.message);
-        console.error(error)
+        handleFormError(error,setError)
     }
 }
 
@@ -41,23 +60,22 @@ export const handleLogin = async(
 export const handleRegistration = async(
     email: string,
     password: string,
-    setError = (value: string) => {}
+    setError?: FormErrorHandler
 ) => {
     // Reset the form error if the form is submitted
-    setError("");
+    setError?.("");
 
     try {
         await createUser(email, password);
     } catch(error: any) {
-        setError(error.message);
-        console.error(error)
+        handleFormError(error,setError)
     }
 }
 
 
 export const handleCreateNewInstance = async(
     instanceName: string,
-    setError = (value: string) => {}
+    setError?: FormErrorHandler
 ) => {
     // Get the newly created user id
     const { id } = user() || {};
@@ -66,13 +84,13 @@ export const handleCreateNewInstance = async(
         // Create a new instance using the generated name
         const record = await createInstance({
             subdomain: instanceName,
-            uid: id
+            uid: id,
+            status: InstanceStatus.Idle
         })
 
         redirect(`/app/instances/${record.id}`)
     } catch (error: any) {
-        setError(error.message);
-        console.error(error)
+        handleFormError(error,setError)
     }
 }
 
@@ -83,12 +101,16 @@ export const handleInstanceGeneratorWidget = async(
     instanceName: string,
     setError = (value: string) => {}
 ) => {
-    // First create the new user
-    await handleRegistration(email, password, setError);
+    try {
+        // First create the new user
+        await handleRegistration(email, password);
 
-    // Then log them into the site, but don't trigger the redirect yet
-    await handleLogin(email, password, setError, false);
+        // Then log them into the site, but don't trigger the redirect yet
+        await handleLogin(email, password, undefined, false);
 
-    // Now try to create the new instance
-    await handleCreateNewInstance(instanceName, setError);
+        // Now try to create the new instance
+        await handleCreateNewInstance(instanceName);
+    } catch (error:any) {
+        handleFormError(error,setError)
+    }
 }

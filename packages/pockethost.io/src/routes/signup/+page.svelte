@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {handleRegistration, handleLogin} from "$util/database";
+  import {handleRegistration, handleLogin, handleFormError} from "$util/database";
   import AlertBar from "$components/AlertBar.svelte";
 
   let email: string = "";
@@ -9,19 +9,21 @@
   let isFormButtonDisabled: boolean = true;
   $: isFormButtonDisabled = email.length === 0 || password.length === 0;
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async(e:SubmitEvent) => {
     e.preventDefault();
 
     isFormButtonDisabled = true;
 
-    await handleRegistration(email, password, (error) => {
-      formError = error;
-    })
+    try {
+      await handleRegistration(email, password)
 
-    // Go ahead and log the user into the site
-    await handleLogin(email, password, (error) => {
-      formError = error;
-    })
+      // Go ahead and log the user into the site
+      await handleLogin(email, password)
+    } catch (error:any) {
+      handleFormError(error,(error) => {
+        formError = error;
+      })
+    }
 
     isFormButtonDisabled = false;
   }

@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { generateSlug } from 'random-word-slugs';
-    import {handleInstanceGeneratorWidget} from "$util/database";
-    import {getRandomElementFromArray} from "$util/utilities";
-    import AlertBar from "$components/AlertBar.svelte";
+    import AlertBar from "$components/AlertBar.svelte"
+    import { handleInstanceGeneratorWidget } from "$util/database"
+    import { getRandomElementFromArray } from "$util/utilities"
+    import { generateSlug } from 'random-word-slugs'
 
     // Controls the spin animation of the instance regeneration button
     let rotationCounter: number = 0;
@@ -29,18 +29,18 @@
         instanceName = generateSlug(2);
     }
 
-    const handleSubmit = async(e) => {
+    const handleSubmit = async(e:SubmitEvent) => {
         e.preventDefault();
-
         isFormButtonDisabled = true;
+        isProcessing = true;
 
         await handleInstanceGeneratorWidget(email, password, instanceName, (error) => {
             formError = error;
 				});
 
-        isProcessing = true;
+		isFormButtonDisabled=false
 
-        isFormButtonDisabled = true;
+		isProcessing=false
     }
 </script>
 
