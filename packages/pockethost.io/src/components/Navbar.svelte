@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase';
-  import { redirect } from '$util/redirect';
+  import { client } from '$src/pocketbase'
+  import { redirect } from '$util/redirect'
 
-  const { isLoggedIn, logOut } = client;
+  const { isLoggedIn, logOut } = client
 
   const handleLogout = (e) => {
-    e.preventDefault();
+    e.preventDefault()
     logOut()
     redirect(`/`)
   }
@@ -19,8 +19,16 @@
       <h1>Pocket<span>Host</span></h1>
     </a>
 
-    <button class="btn btn-light mobile-nav-button navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-links" aria-controls="nav-links" aria-expanded="false" aria-label="Toggle navigation">
-      <i class="bi bi-list"></i>
+    <button
+      class="btn btn-light mobile-nav-button navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#nav-links"
+      aria-controls="nav-links"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <i class="bi bi-list" />
     </button>
 
     <div class="collapse navbar-collapse" id="nav-links">
@@ -31,14 +39,20 @@
           </li>
 
           <li class="nav-item dropdown">
-            <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-person-circle"></i>
+            <a
+              class="nav-link"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="bi bi-person-circle" />
             </a>
 
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="#">Profile</a></li>
               <li><a class="dropdown-item" href="#">Settings</a></li>
-              <li><hr class="dropdown-divider"></li>
+              <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item" href="#" on:click={handleLogout}>Logout</a></li>
             </ul>
           </li>
@@ -54,11 +68,14 @@
           </li>
         {/if}
 
-
-
         <li class="nav-item">
-          <a class="nav-link" href="https://github.com/benallfree/pockethost" target="_blank" rel="noopener">
-            <i class="bi bi-github"></i>
+          <a
+            class="nav-link"
+            href="https://github.com/benallfree/pockethost"
+            target="_blank"
+            rel="noopener"
+          >
+            <i class="bi bi-github" />
           </a>
         </li>
       </ul>
@@ -76,7 +93,7 @@
   .logo {
     img {
       max-width: 50px;
-      margin-right: 16px
+      margin-right: 16px;
     }
 
     h1 {
@@ -87,7 +104,11 @@
 
       span {
         font-weight: 700;
-        background-image: linear-gradient( 83.2deg,  rgba(150,93,233,1) 10.8%, rgba(99,88,238,1) 94.3% );
+        background-image: linear-gradient(
+          83.2deg,
+          rgba(150, 93, 233, 1) 10.8%,
+          rgba(99, 88, 238, 1) 94.3%
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
