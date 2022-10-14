@@ -2,15 +2,14 @@
   import { InstanceStatus } from '@pockethost/common/src/schema'
   import { ProvisioningSize } from './types'
 
-  export let status: InstanceStatus
+  export let status: InstanceStatus = InstanceStatus.Idle
   export let size: ProvisioningSize = ProvisioningSize.Normal
-  let _status = InstanceStatus.Idle
-  $: {
-    _status = status || InstanceStatus.Idle
+  if (!status) {
+    status = InstanceStatus.Idle
   }
 </script>
 
-<div class={`status ${_status} ${size}`}>{_status}</div>
+<div class={`status ${status} ${size}`}>{status}</div>
 
 <style lang="scss">
   .status {
