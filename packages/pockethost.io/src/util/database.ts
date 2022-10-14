@@ -1,4 +1,6 @@
+import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte';
 import { client } from '$src/pocketbase';
+import { InstanceStatus } from '@pockethost/common';
 const { authViaEmail, createUser, user, createInstance } = client;
 import {redirect} from "./redirect";
 
@@ -66,7 +68,8 @@ export const handleCreateNewInstance = async(
         // Create a new instance using the generated name
         const record = await createInstance({
             subdomain: instanceName,
-            uid: id
+            uid: id,
+            status: InstanceStatus.Idle
         })
 
         redirect(`/app/instances/${record.id}`)

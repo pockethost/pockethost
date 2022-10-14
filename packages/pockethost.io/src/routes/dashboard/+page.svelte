@@ -53,7 +53,7 @@
       {#each values(apps) as app}
         <Row>
           <Col>
-            <ProvisioningStatus status={app.status} />
+            <ProvisioningStatus status={app.status||InstanceStatus.Idle} />
           </Col>
           <Col>
             {app.subdomain}.{PUBLIC_PB_DOMAIN}
@@ -63,7 +63,6 @@
             <Button size={ButtonSizes.Micro} href={`/app/instances/${app.id}`}>Details</Button>
 
             <Button
-              disabled={!isRunning(app)}
               size={ButtonSizes.Micro}
               click={() => {
                 window.open(`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`)
