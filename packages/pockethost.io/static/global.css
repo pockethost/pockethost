@@ -1,15 +1,41 @@
-body, p,
-h1, h2, h3, h4, h5, h6 {
-	font-family: 'Inter', sans-serif;
+body {
 }
 
-h1, h2, h3, h4, h5, h6 {
-	font-weight: 700;
+body,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Inter', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
 }
 
 .btn.btn-primary {
-	--bs-btn-border-radius: 50px;
-	--bs-btn-bg: #0072f5;
-	--bs-btn-padding-x: 24px;
-	--bs-btn-padding-y: 8px;
+  --bs-btn-border-radius: 50px;
+  --bs-btn-bg: #965de9;
+  --bs-btn-padding-x: 24px;
+  --bs-btn-padding-y: 8px;
+}
+
+.dropdown-menu {
+  --bs-dropdown-item-padding-y: 12px;
+}
+
+.alert {
+  --bs-alert-border-radius: 18px;
+}
+
+.form-control {
+  border-radius: 18px;
 }
