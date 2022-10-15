@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase'
-  import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import FeatureCard from '$components/FeatureCard.svelte'
+  import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import InstanceGeneratorWidget from '$components/InstanceGeneratorWidget.svelte'
+  import { client } from '$src/pocketbase'
 
   const { isLoggedIn } = client
 </script>

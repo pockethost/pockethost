@@ -1,9 +1,9 @@
 <script lang="ts">
   import { browser } from '$app/environment'
+  import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
-  import { isLoggedIn } from '@pockethost/common/src/pocketbase'
 
-  if (browser && isLoggedIn()) {
+  if (browser && client.isLoggedIn()) {
     redirect(`/dashboard`)
   }
 </script>
