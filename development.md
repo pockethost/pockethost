@@ -9,7 +9,7 @@ cp .env-template-frontend-only .env
 yarn dev
 ```
 
-That's it. Youre in business. Your local Svelte build will talk to the pockethost.io mothership and connect to that for all database-related tasks.
+That's it. You're in business. Your local Svelte build will talk to the pockethost.io mothership and connect to that for all database-related tasks.
 
 # Developing the backend using `docker-compose`
 
@@ -26,7 +26,7 @@ cd pockethost
 
 **Edit `/etc/hosts`**
 
-You need at least 3 host entries. One for the main domain, one for the database that tracks everything (the main pockethost.io db), and one (or more) for any instances you want to create an test. Wildcarding is not supported in `/etc/hosts`, so you have to make a manual entry for any PB instance you want to create and test. See `.etc-hosts-sample` for details.
+You need at least 3 host entries. One for the main domain, one for the database that tracks everything (the main pockethost.io db), and one (or more) for any instances you want to create a test. Wildcarding is not supported in `/etc/hosts`, so you have to make a manual entry for any PB instance you want to create and test. See `.etc-hosts-sample` for details.
 
 ```
 127.0.0.1 pockethost.local                      # The main domain
@@ -38,7 +38,7 @@ You need at least 3 host entries. One for the main domain, one for the database 
 
 _Any time you change the PocketBase code, you need to rebuild (`yarn build:_`) and restart `docker-compose`\_
 
-This is to build the binary that runs INSIDE Docker. The Docker container will run using the same architecture as the host machine. If you are running an x86 machine, you'll probably need `build:386`. If you're running on Linux or Mac, then `arm64` is the one you want. You can try them both if you aren't sure. The worst that will appen is the `pocketbase` binary won't execute in Docker and you'll quickly discover that.
+This is to build the binary that runs INSIDE Docker. The Docker container will run using the same architecture as the host machine. If you are running an x86 machine, you'll probably need `build:386`. If you're running on Linux or Mac, then `arm64` is the one you want. You can try them both if you aren't sure. The worst that will happen is the `pocketbase` binary won't execute in Docker and you'll quickly discover that.
 
 ```bash
 cd packages/pocketbase

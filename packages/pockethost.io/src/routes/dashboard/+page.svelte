@@ -1,7 +1,6 @@
 <script lang="ts">
   import Button from '$components/Button/Button.svelte'
   import { ButtonSizes } from '$components/Button/types'
-  import Gap from '$components/Gap.svelte'
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import Title from '$components/Title/Title.svelte'
@@ -68,7 +67,7 @@
         </Row>
       {/each}
     </Container>
-    <Gap />
+
     <div class="newApp">
       <Button href="/app/new" size={ButtonSizes.Wide}>+ New App</Button>
     </div>

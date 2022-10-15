@@ -1,6 +1,7 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
+  import MediaQuery from '$components/MediaQuery.svelte'
 
   const { isLoggedIn, logOut } = client
 
@@ -12,10 +13,9 @@
 </script>
 
 <header class="container-fluid">
-  <nav class="navbar navbar-expand-lg">
+  <nav class="navbar navbar-expand-md">
     <a href="/" class="logo text-decoration-none d-flex align-items-center">
       <img src="/images/logo-square.png" alt="PocketHost Logo" class="img-fluid" />
-      <!--<Title size={TitleSize.Nav} first="pocket" second="host" third=".io" />-->
       <h1>Pocket<span>Host</span></h1>
     </a>
 
@@ -32,30 +32,44 @@
     </button>
 
     <div class="collapse navbar-collapse" id="nav-links">
-      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        {#if isLoggedIn()}
+      <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+        {#if !isLoggedIn()}
           <li class="nav-item">
             <a class="nav-link" href="/dashboard">Dashboard</a>
           </li>
 
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <i class="bi bi-person-circle" />
-            </a>
+          <MediaQuery query="(min-width: 767px)" let:matches>
+            {#if matches}
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="bi bi-person-circle" />
+                </a>
 
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#">Profile</a></li>
-              <li><a class="dropdown-item" href="#">Settings</a></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#" on:click={handleLogout}>Logout</a></li>
-            </ul>
-          </li>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                  <li><a class="dropdown-item" href="/settings">Settings</a></li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li><a class="dropdown-item" href="/" on:click={handleLogout}>Logout</a></li>
+                </ul>
+              </li>
+            {:else}
+              <li class="nav-item">
+                <a class="nav-link" href="/profile">Profile</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/settings">Settings</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/" on:click={handleLogout}>Logout</a>
+              </li>
+            {/if}
+          </MediaQuery>
         {/if}
 
         {#if !isLoggedIn()}
