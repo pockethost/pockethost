@@ -1,0 +1,9 @@
+{
+  "folders": [
+    {
+      "uri": "vscode-remote://ssh-remote+pockethost.io/home/pockethost/pockethost"
+    }
+  ],
+  "remoteAuthority": "ssh-remote+pockethost.io",
+  "settings": {}
+}
