@@ -20,15 +20,14 @@ services:
   pbproxy:
     env_file:
       - ./.env
-    image: node:18
+    build:
+      context: ..
+      dockerfile: Dockerfile-daemon
     container_name: pbproxy
     restart: unless-stopped
-    command: yarn serve
-    working_dir: /mount/repo/packages/daemon/
     volumes:
-      - ..:/mount/repo
-      - ../packages/pocketbase/pocketbase:/mount/pocketbase/bin/pocketbase
-      - ./mount/pocketbase/instances:/mount/pocketbase/instances
+      - ./mount/pocketbase/instances:/data
+      - ./mount/cache/apk:/var/cache/apk
     networks:
       - app-network
     ports:

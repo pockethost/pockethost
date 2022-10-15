@@ -1,0 +1,40 @@
+FROM node:18-alpine as buildbox
+COPY --from=golang:1.19-alpine /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
+RUN --mount=type=cache,target=/var/cache/apk  --mount=type=cache,target=/var/lib/apk apk add python3 py3-pip make gcc musl-dev g++
+
+FROM buildbox as pocketbase
+WORKDIR /src
+COPY packages/pocketbase/src .
+RUN ls -lah
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go build
+
+
+FROM buildbox as yarn
+ENV PATH="/usr/local/go/bin:${PATH}"
+WORKDIR /src
+COPY packages/daemon/package.* ./packages/daemon/
+COPY packages/daemon/yarn.* ./packages/daemon/
+COPY packages/pockethost.io/package.* ./packages/pockethost.io/
+COPY packages/pockethost.io/yarn.* ./packages/pockethost.io/
+COPY packages/common/package.* ./packages/common/
+COPY package.* .
+COPY yarn.* .
+RUN yarn
+
+FROM yarn as daemon
+WORKDIR /src/packages
+COPY packages/common ./common
+COPY packages/daemon ./daemon/
+WORKDIR /src/packages/daemon
+RUN yarn build
+RUN ls -lahR .
+
+# CMD ["ls", "-lah"]
+
+FROM node:18-alpine as binbox
+WORKDIR /binbox
+COPY --from=pocketbase /src/pocketbase .
+COPY --from=daemon /src/packages/daemon/dist ./daemon/
+RUN ls -lahR .
+

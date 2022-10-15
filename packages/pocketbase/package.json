@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
+    "build": "cd src && CGO_ENABLED=0 go build -o ../dist/pocketbase && echo 'Build complete' `date`",
     "build:arm64": "cd src && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist/pocketbase && echo 'Build complete' `date`",
     "build:beta:arm64": "cd src && GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o ../dist/pocketbase-beta && echo 'Build complete' `date`",
     "build:386": "cd src && GOOS=linux GOARCH=386 CGO_ENABLED=0 go build -o ../dist/pocketbase && echo 'Build complete' `date`",
