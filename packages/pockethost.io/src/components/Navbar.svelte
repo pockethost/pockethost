@@ -66,7 +66,9 @@
                 <a class="nav-link text-md-start text-center" href="/settings">Settings</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-md-start text-center" href="/" on:click={handleLogout}>Logout</a>
+                <a class="nav-link text-md-start text-center" href="/" on:click={handleLogout}
+                  >Logout</a
+                >
               </li>
             {/if}
           </MediaQuery>
