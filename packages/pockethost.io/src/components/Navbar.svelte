@@ -33,12 +33,12 @@
 
     <div class="collapse navbar-collapse" id="nav-links">
       <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-        {#if !isLoggedIn()}
-          <li class="nav-item">
+        {#if isLoggedIn()}
+          <li class="nav-item text-md-start text-center">
             <a class="nav-link" href="/dashboard">Dashboard</a>
           </li>
 
-          <MediaQuery query="(min-width: 767px)" let:matches>
+          <MediaQuery query="(min-width: 768px)" let:matches>
             {#if matches}
               <li class="nav-item dropdown">
                 <a
@@ -60,13 +60,13 @@
               </li>
             {:else}
               <li class="nav-item">
-                <a class="nav-link" href="/profile">Profile</a>
+                <a class="nav-link text-md-start text-center" href="/profile">Profile</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/settings">Settings</a>
+                <a class="nav-link text-md-start text-center" href="/settings">Settings</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/" on:click={handleLogout}>Logout</a>
+                <a class="nav-link text-md-start text-center" href="/" on:click={handleLogout}>Logout</a>
               </li>
             {/if}
           </MediaQuery>
@@ -74,22 +74,23 @@
 
         {#if !isLoggedIn()}
           <li class="nav-item">
-            <a class="nav-link" href="/signup">Sign up</a>
+            <a class="nav-link text-md-start text-center" href="/signup">Sign up</a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="/login">Log in</a>
+            <a class="nav-link text-md-start text-center" href="/login">Log in</a>
           </li>
         {/if}
 
         <li class="nav-item">
           <a
-            class="nav-link"
+            class="nav-link text-md-start text-center"
             href="https://github.com/benallfree/pockethost"
             target="_blank"
+            aria-label="Link to our Github Project"
             rel="noopener"
           >
-            <i class="bi bi-github" />
+            <i class="bi bi-github" /><span class="nav-github-link">Github</span>
           </a>
         </li>
       </ul>
@@ -135,5 +136,16 @@
 
   .nav-link {
     font-weight: 500;
+  }
+
+  .nav-github-link {
+    display: inline-block;
+    margin-left: 4px;
+  }
+
+  @media screen and (min-width: 768px) {
+    .nav-github-link {
+      display: none;
+    }
   }
 </style>

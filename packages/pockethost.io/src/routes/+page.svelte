@@ -30,7 +30,7 @@
       {/if}
     </div>
 
-    <div class="col-lg-5">
+    <div class="col-lg-5 d-none d-sm-block">
       <HomepageHeroAnimation />
     </div>
   </div>
