@@ -1,41 +1,41 @@
 {
-	"name": "@pockethost/app",
-	"version": "0.0.1",
-	"private": true,
-	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --check .",
-		"format": "prettier --write .",
-		"serve": "node dist-server/index.js",
-		"watch": "chokidar 'src/**' -c 'yarn build' --initial"
-	},
-	"devDependencies": {
-		"@sveltejs/adapter-auto": "next",
-		"@sveltejs/kit": "next",
-		"chokidar-cli": "^3.0.0",
-		"svelte": "^3.44.0",
-		"svelte-check": "^2.7.1",
-		"svelte-preprocess": "^4.10.6",
-		"tslib": "^2.3.1",
-		"typescript": "^4.7.4",
-		"vite": "^3.1.0"
-	},
-	"type": "module",
-	"dependencies": {
-		"@fortawesome/free-brands-svg-icons": "^6.2.0",
-		"@fortawesome/free-solid-svg-icons": "^6.2.0",
-		"@pockethost/common": "0.0.1",
-		"@s-libs/micro-dash": "12",
-		"@sveltejs/adapter-node": "^1.0.0-next.92",
-		"pocketbase": "^0.7.0",
-		"random-word-slugs": "^0.1.6",
-		"sass": "^1.54.9",
-		"svelte-fa": "^3.0.3",
-		"svelte-highlight": "^6.2.1",
-		"sveltestrap": "^5.9.0"
-	}
+  "name": "@pockethost/app",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "serve": "node dist-server/index.js",
+    "watch": "chokidar 'src/**' -c 'yarn build' --initial"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "next",
+    "@sveltejs/kit": "next",
+    "chokidar-cli": "^3.0.0",
+    "svelte": "^3.44.0",
+    "svelte-check": "^2.7.1",
+    "svelte-preprocess": "^4.10.6",
+    "tslib": "^2.3.1",
+    "typescript": "^4.7.4",
+    "vite": "^3.1.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@fortawesome/free-brands-svg-icons": "^6.2.0",
+    "@fortawesome/free-solid-svg-icons": "^6.2.0",
+    "@pockethost/common": "0.0.1",
+    "@s-libs/micro-dash": "12",
+    "@sveltejs/adapter-node": "^1.0.0-next.92",
+    "pocketbase": "^0.7.0",
+    "random-word-slugs": "^0.1.6",
+    "sass": "^1.54.9",
+    "svelte-fa": "^3.0.3",
+    "svelte-highlight": "^6.2.1",
+    "sveltestrap": "^5.9.0"
+  }
 }

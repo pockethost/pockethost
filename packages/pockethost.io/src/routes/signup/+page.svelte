@@ -1,95 +1,110 @@
 <script lang="ts">
-  import Button from '$components/Button/Button.svelte'
-  import Error from '$components/Error/Error.svelte'
-  import Title from '$components/Title/Title.svelte'
-  import { TitleSize } from '$components/Title/types'
-  import { client } from '$src/pocketbase'
-  import { redirect } from '$util/redirect'
-  import { Form, FormGroup, Input, Label } from 'sveltestrap'
+  import { handleRegistration, handleLogin, handleFormError } from '$util/database'
+  import AlertBar from '$components/AlertBar.svelte'
 
-  const { authViaEmail, createUser, parseError } = client
-  let email = ''
-  let emailError: string[] = []
-  let password = ''
-  let passwordError = ''
+  let email: string = ''
+  let password: string = ''
+  let formError: string = ''
 
-  //   client.users
-  //     .authViaEmail('ben@benallfree.com', 'Dhjb2X6C1y0W')
-  //     .then((u) => {
-  //       console.log(`user logged in`, u)
-  //       window.location.href = '/dashboard'
-  //     })
-  //     .catch((e) => console.error(`user login error`, e))
+  let isFormButtonDisabled: boolean = true
+  $: isFormButtonDisabled = email.length === 0 || password.length === 0
 
-  const handleSignup = () => {
-    emailError = []
-    passwordError = ''
-    createUser(email, password)
-      .then((user) => {
-        console.log({ user })
+  const handleSubmit = async (e: SubmitEvent) => {
+    e.preventDefault()
 
-        authViaEmail(email, password)
-          .then((u) => {
-            console.log(`user logged in`, u)
-            redirect('/dashboard')
-          })
-          .catch((e) => console.error(`user login error`, e))
+    isFormButtonDisabled = true
+
+    try {
+      await handleRegistration(email, password)
+
+      // Go ahead and log the user into the site
+      await handleLogin(email, password)
+    } catch (error: any) {
+      handleFormError(error, (error) => {
+        formError = error
       })
-      .catch((e) => {
-        emailError = parseError(e)
-        console.error(emailError.join('\n'), e)
-      })
+    }
+
+    isFormButtonDisabled = false
   }
 </script>
 
-<Title first="Sign" second="up" size={TitleSize.Normal} />
+<div class="page-bg">
+  <div class="card">
+    <h2 class="mb-4">Sign Up</h2>
 
-<main>
-  <Form>
-    <FormGroup>
-      <Label for="email">Email Address</Label>
-      <Input type="email" bind:value={email} id="email" />
-      <Error>{emailError.join('<br/>')}</Error>
-    </FormGroup>
-    <FormGroup>
-      <Label for="password">Password</Label>
-      <Input type="password" name="password" id="password" bind:value={password} />
-      <Error>{passwordError}</Error>
-    </FormGroup>
-  </Form>
-  <Button click={handleSignup} disabled={email.length === 0 || password.length === 0}>
-    Sign Up
-  </Button>
-  <div>
-    Already have an account? <a href="/login">Log in</a>
+    <form on:submit={handleSubmit}>
+      <div class="form-floating mb-3">
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          placeholder="name@example.com"
+          bind:value={email}
+          required
+          autocomplete="email"
+        />
+        <label for="email">Email address</label>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          placeholder="Password"
+          bind:value={password}
+          required
+          autocomplete="new-password"
+        />
+        <label for="password">Password</label>
+      </div>
+
+      {#if formError}
+        <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+      {/if}
+
+      <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+        Sign Up <i class="bi bi-arrow-right-short" />
+      </button>
+    </form>
+
+    <div class="py-4"><hr /></div>
+
+    <div class="text-center">
+      Already have an account? <a href="/login">Log in</a>
+    </div>
   </div>
-</main>
+</div>
 
-<style type="text/scss">
-  main {
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
-    error {
-      color: red;
-      display: block;
-    }
+<style lang="scss">
+  .page-bg {
+    background-color: #222;
+    background-image: linear-gradient(
+      109.6deg,
+      rgba(218, 185, 252, 1) 11.2%,
+      rgba(125, 89, 252, 1) 91.1%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 91px);
+    padding: 0 18px;
+  }
 
-    label {
-      display: block;
-      font-weight: bold;
-      width: 200px;
-    }
-    main {
-      padding: 1em;
-      margin-left: auto;
-      margin-right: auto;
-    }
+  .card {
+    border: 0;
+    background-color: #fff;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    padding: 24px;
+    max-width: 425px;
+    width: 100%;
+    border-radius: 24px;
+  }
 
-    .caption {
-      font-size: 30px;
-      margin-top: 20px;
-      margin-bottom: 20px;
+  @media screen and (min-width: 768px) {
+    .card {
+      padding: 48px;
     }
   }
 </style>

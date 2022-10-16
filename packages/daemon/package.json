@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
+    "esbuild": "^0.15.11",
     "parcel": "^2.7.0",
     "ts-node": "^10.9.1"
   }

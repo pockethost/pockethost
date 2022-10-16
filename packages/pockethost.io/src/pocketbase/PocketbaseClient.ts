@@ -1,12 +1,8 @@
-import { map } from '@s-libs/micro-dash'
-import PocketBase, {
-  BaseAuthStore,
-  ClientResponseError,
-  Record,
-} from 'pocketbase'
+import type { InstanceId, Instance_In, Instance_Out } from '@pockethost/common'
+import { createRealtimeSubscriptionManager } from '@pockethost/common'
+import { keys, map } from '@s-libs/micro-dash'
+import PocketBase, { BaseAuthStore, ClientResponseError, Record } from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
-import { createRealtimeSubscriptionManager } from './RealtimeSubscriptionManager'
-import type { InstanceId, Instance_In, Instance_Out } from './schema'
 
 export const createPocketbaseClient = (url: string) => {
   const client = new PocketBase(url)
@@ -19,8 +15,7 @@ export const createPocketbaseClient = (url: string) => {
 
   const isLoggedIn = () => authStore.isValid
 
-  const onAuthChange = (cb: (user: BaseAuthStore) => Unsubscriber) =>
-    onChange(() => cb(authStore))
+  const onAuthChange = (cb: (user: BaseAuthStore) => Unsubscriber) => onChange(() => cb(authStore))
 
   const logOut = () => authStore.clear()
 
@@ -28,29 +23,22 @@ export const createPocketbaseClient = (url: string) => {
     client.users.create({
       email,
       password,
-      passwordConfirm: password,
+      passwordConfirm: password
     })
 
   const authViaEmail = (email: string, password: string) =>
     client.users.authViaEmail(email, password)
 
   const createInstance = (payload: Instance_In): Promise<Instance_Out> => {
-    return client.records
-      .create('instances', payload)
-      .then((r) => r as unknown as Instance_Out)
+    return client.records.create('instances', payload).then((r) => r as unknown as Instance_Out)
   }
 
   const getInstanceById = (id: InstanceId): Promise<Instance_Out | undefined> =>
-    client.records
-      .getOne('instances', id)
-      .then((r) => r as unknown as Instance_Out)
+    client.records.getOne('instances', id).then((r) => r as unknown as Instance_Out)
 
   const subscribe = createRealtimeSubscriptionManager(client)
 
-  const watchInstanceById = (
-    id: InstanceId,
-    cb: (rec: Instance_Out) => void
-  ): Unsubscriber => {
+  const watchInstanceById = (id: InstanceId, cb: (rec: Instance_Out) => void): Unsubscriber => {
     const slug = `instances/${id}`
     getInstanceById(id).then((v) => {
       if (!v) return
@@ -75,24 +63,16 @@ export const createPocketbaseClient = (url: string) => {
     console.log(`${instanceId} setting fields`, { fields })
     return client.records.update('instances', instanceId, fields).catch((e) => {
       console.error(`setInstance failed for ${instanceId} with ${e}`, {
-        fields,
+        fields
       })
       throw e
     })
   }
 
-  const parseError = (e: any): string[] => {
-    if (e instanceof ClientResponseError) {
-      const { data } = e
-      if (!data || !data.data) {
-        return [`Unknown error ${e.message}`]
-      }
-      return map(data.data, (v, k) => (v ? v.message : undefined)).filter(
-        (v) => !!v
-      )
-    } else {
-      return [`Unknown error ${e.message}`]
-    }
+  const parseError = (e: Error): string[] => {
+    if (!(e instanceof ClientResponseError)) return [e.message]
+    if (e.data.message && keys(e.data.data).length === 0) return [e.data.message]
+    return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter((v) => !!v)
   }
 
   return {
@@ -108,6 +88,6 @@ export const createPocketbaseClient = (url: string) => {
     user,
     watchInstanceById,
     getAllInstancesById,
-    setInstance,
+    setInstance
   }
 }

@@ -9,7 +9,4 @@
 </main>
 
 <style lang="scss">
-  main {
-    margin-top: 20px;
-  }
 </style>
