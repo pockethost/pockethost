@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: www
+    restart: unless-stopped
+    command: node index.js
+    working_dir: /src/packages/pockethost.io/dist-server
+    networks:
+      - app-network
+    ports:
+      - '9000:3000'
+    depends_on:
+      - pbproxy
+    env_file:
+      - ./.env
+  pbproxy:
+    environment:
+      - APP_DOMAIN=pockethost.io
+      - CORE_PB_SUBDOMAIN=pockethost-central
+      - CORE_PB_USERNAME=<cli>
+      - CORE_PB_PASSWORD=<cli>
+      - CORE_PB_PORT=8090
+      - PB_IDLE_TTL=5000
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: pbproxy
+    command: node server.js
+    working_dir: /src/packages/daemon/dist
+    restart: unless-stopped
+    volumes:
+      - ./mount/pocketbase/instances:/data
+    networks:
+      - app-network
+    ports:
+      - '9001:3000'
+  nginx:
+    image: nginx:mainline-alpine
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+      - pbproxy
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx-conf:/etc/nginx/conf.d
+      - ./mount/logs:/mount/logs
+      - ./mount/ssl:/mount/ssl
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

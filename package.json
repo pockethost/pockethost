@@ -6,7 +6,11 @@
   "private": true,
   "scripts": {
     "prettier:check": "prettier -c \"./**/*.ts\"",
-    "prettier:fix": "prettier -w \"./**/*.ts\""
+    "prettier:fix": "prettier -w \"./**/*.ts\"",
+    "build": "concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
+    "build:pocketbase": "cd packages/pocketbase && yarn build",
+    "build:daemon": "cd packages/daemon && yarn build",
+    "build:www": "cd packages/pockethost.io && yarn build"
   },
   "workspaces": {
     "packages": [
@@ -23,6 +27,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^7.4.0",
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^3.1.1",
     "prettier-plugin-svelte": "^2.7.0",

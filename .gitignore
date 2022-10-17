@@ -3,6 +3,5 @@ node_modules
 .secret
 .vscode
 *.out
-.env
 *.log
 .idea
