@@ -52,19 +52,10 @@
                 </a>
 
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                  <li><a class="dropdown-item" href="/settings">Settings</a></li>
-                  <li><hr class="dropdown-divider" /></li>
                   <li><a class="dropdown-item" href="/" on:click={handleLogout}>Logout</a></li>
                 </ul>
               </li>
             {:else}
-              <li class="nav-item">
-                <a class="nav-link text-md-start text-center" href="/profile">Profile</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-md-start text-center" href="/settings">Settings</a>
-              </li>
               <li class="nav-item">
                 <a class="nav-link text-md-start text-center" href="/" on:click={handleLogout}
                   >Logout</a
