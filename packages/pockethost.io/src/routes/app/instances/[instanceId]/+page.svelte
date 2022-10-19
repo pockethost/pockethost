@@ -5,7 +5,7 @@
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import Title from '$components/Title/Title.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
+  import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { assertExists } from '@pockethost/common/src/assert'
   import type { Instance_Out } from '@pockethost/common/src/schema'

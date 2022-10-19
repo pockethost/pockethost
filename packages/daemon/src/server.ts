@@ -1,2 +1,6 @@
 import { createProxyServer } from './ProxyServer'
-createProxyServer()
+createProxyServer().then((api) => {
+  process.once('SIGUSR2', async () => {
+    api.shutdown()
+  })
+})

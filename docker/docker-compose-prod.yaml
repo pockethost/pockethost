@@ -5,6 +5,9 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+    environment:
+      - APP_DOMAIN=pockethost.io
+      - CORE_PB_SUBDOMAIN=pockethost-central
     container_name: www
     restart: unless-stopped
     command: node index.js
@@ -14,10 +17,8 @@ services:
     ports:
       - '9000:3000'
     depends_on:
-      - pbproxy
-    env_file:
-      - ./.env
-  pbproxy:
+      - daemon
+  daemon:
     environment:
       - APP_DOMAIN=pockethost.io
       - CORE_PB_SUBDOMAIN=pockethost-central
@@ -28,7 +29,7 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: pbproxy
+    container_name: daemon
     command: node server.js
     working_dir: /src/packages/daemon/dist
     restart: unless-stopped
@@ -44,7 +45,7 @@ services:
     restart: unless-stopped
     depends_on:
       - app
-      - pbproxy
+      - daemon
     ports:
       - '80:80'
       - '443:443'

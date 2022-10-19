@@ -42,4 +42,11 @@ export const createProxyServer = async () => {
 
   console.log('daemon on port 3000')
   server.listen(3000)
+
+  const shutdown = () => {
+    server.close()
+    instanceManager.shutdown()
+  }
+
+  return { shutdown }
 }

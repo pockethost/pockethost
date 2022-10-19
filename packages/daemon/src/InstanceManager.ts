@@ -1,16 +1,18 @@
 import { InstanceStatus } from '@pockethost/common'
-import { map } from '@s-libs/micro-dash'
+import { forEach, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import getPort from 'get-port'
 import fetch from 'node-fetch'
 import {
-  APP_DOMAIN,
-  CORE_PB_PASSWORD,
-  CORE_PB_PORT,
-  CORE_PB_SUBDOMAIN,
-  CORE_PB_USERNAME,
-  PB_IDLE_TTL,
+  DAEMON_PB_BIN_DIR,
+  DAEMON_PB_DATA_DIR,
+  DAEMON_PB_IDLE_TTL,
+  DAEMON_PB_PASSWORD,
+  DAEMON_PB_PORT_BASE,
+  DAEMON_PB_USERNAME,
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_PB_SUBDOMAIN,
 } from './constants'
 import { createPbClient } from './PbClient'
 
@@ -19,11 +21,8 @@ type Instance = {
   internalUrl: string
   port: number
   heartbeat: (shouldStop?: boolean) => void
+  shutdown: () => boolean
 }
-
-const ROOT_DIR = `/mount/pocketbase`
-const BIN_ROOT = `${ROOT_DIR}/bin`
-const INSTANCES_ROOT = `${ROOT_DIR}/instances`
 
 const tryFetch = (url: string) =>
   new Promise<void>((resolve, reject) => {
@@ -54,11 +53,12 @@ export const createInstanceManger = async () => {
     bin: string
   }) => {
     const { subdomain, port, bin } = cfg
-    const cmd = `${BIN_ROOT}/${bin}`
+    const cmd = `${DAEMON_PB_BIN_DIR}/${bin}`
+
     const args = [
       `serve`,
       `--dir`,
-      `${INSTANCES_ROOT}/${subdomain}/pb_data`,
+      `${DAEMON_PB_DATA_DIR}/${subdomain}/pb_data`,
       `--http`,
       mkInternalAddress(port),
     ]
@@ -90,25 +90,26 @@ export const createInstanceManger = async () => {
     return ls
   }
 
-  const coreInternalUrl = mkInternalUrl(CORE_PB_PORT)
+  const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
   const client = createPbClient(coreInternalUrl)
   const mainProcess = await _spawn({
-    subdomain: CORE_PB_SUBDOMAIN,
-    port: CORE_PB_PORT,
+    subdomain: PUBLIC_PB_SUBDOMAIN,
+    port: DAEMON_PB_PORT_BASE,
     bin: 'pocketbase',
   })
-  instances[CORE_PB_SUBDOMAIN] = {
+  instances[PUBLIC_PB_SUBDOMAIN] = {
     process: mainProcess,
     internalUrl: coreInternalUrl,
-    port: CORE_PB_PORT,
+    port: DAEMON_PB_PORT_BASE,
     heartbeat: () => {},
+    shutdown: () => mainProcess.kill(),
   }
   await tryFetch(coreInternalUrl)
   try {
-    await client.adminAuthViaEmail(CORE_PB_USERNAME, CORE_PB_PASSWORD)
+    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
   } catch (e) {
     console.error(
-      `***WARNING*** CANNOT AUTHENTICATE TO https://${CORE_PB_SUBDOMAIN}.${APP_DOMAIN}/_/`
+      `***WARNING*** CANNOT AUTHENTICATE TO https://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_APP_DOMAIN}/_/`
     )
     console.error(
       `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
@@ -163,16 +164,17 @@ export const createInstanceManger = async () => {
         process: childProcess,
         internalUrl,
         port: newPort,
+        shutdown: () => childProcess.kill(),
         heartbeat: (() => {
           let tid: ReturnType<typeof setTimeout>
           const _cleanup = () => {
             childProcess.kill()
           }
-          tid = setTimeout(_cleanup, PB_IDLE_TTL)
+          tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
           return (shouldStop) => {
             clearTimeout(tid)
             if (!shouldStop) {
-              tid = setTimeout(_cleanup, PB_IDLE_TTL)
+              tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
             }
           }
         })(),
@@ -183,5 +185,10 @@ export const createInstanceManger = async () => {
       return instances[subdomain]
     })
 
-  return { getInstance }
+  const shutdown = () => {
+    forEach(instances, (instance) => {
+      instance.shutdown()
+    })
+  }
+  return { getInstance, shutdown }
 }

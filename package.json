@@ -10,7 +10,9 @@
     "build": "concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
     "build:pocketbase": "cd packages/pocketbase && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
-    "build:www": "cd packages/pockethost.io && yarn build"
+    "build:www": "cd packages/pockethost.io && yarn build",
+    "dev:www": "cd packages/pockethost.io && yarn dev",
+    "dev:daemon": "cd packages/daemon && yarn dev"
   },
   "workspaces": {
     "packages": [

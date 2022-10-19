@@ -5,7 +5,7 @@
   import Error from '$components/Error/Error.svelte'
   import Protected from '$components/Protected.svelte'
   import Title from '$components/Title/Title.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
+  import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { redirect } from '$util/redirect'
   import { faRefresh } from '@fortawesome/free-solid-svg-icons'
