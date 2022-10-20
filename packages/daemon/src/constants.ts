@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 
 export const PUBLIC_APP_DOMAIN =
-  process.env.PUBLIC_APP_DOMAIN || `pockethost.local`
+  process.env.PUBLIC_APP_DOMAIN || `pockethost.test`
 export const PUBLIC_PB_SUBDOMAIN =
   process.env.PUBLIC_PB_SUBDOMAIN || `pockethost-central`
 export const DAEMON_PB_USERNAME = (() => {

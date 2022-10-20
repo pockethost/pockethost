@@ -37,6 +37,8 @@ export const createProxyServer = async () => {
     console.log(
       `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
     )
+    const endRequest = instance.startRequest()
+    req.on('close', endRequest)
     proxy.web(req, res, { target: instance.internalUrl })
   })
 
@@ -44,6 +46,7 @@ export const createProxyServer = async () => {
   server.listen(3000)
 
   const shutdown = () => {
+    console.log(`Shutting down proxy server`)
     server.close()
     instanceManager.shutdown()
   }

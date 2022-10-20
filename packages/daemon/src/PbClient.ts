@@ -1,5 +1,6 @@
 import { InstanceStatus } from '@pockethost/common'
 import PocketBase from 'pocketbase'
+import { Collection_Serialized } from './migrations'
 
 const safeCatch = <TIn extends any[], TOut>(
   name: string,
@@ -47,5 +48,17 @@ export const createPbClient = (url: string) => {
     }
   )
 
-  return { adminAuthViaEmail, getInstanceBySubdomain, updateInstanceStatus }
+  const migrate = safeCatch(
+    `migrate`,
+    async (collections: Collection_Serialized[]) => {
+      await client.collections.import(collections)
+    }
+  )
+
+  return {
+    adminAuthViaEmail,
+    getInstanceBySubdomain,
+    updateInstanceStatus,
+    migrate,
+  }
 }

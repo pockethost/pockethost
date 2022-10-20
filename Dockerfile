@@ -18,5 +18,6 @@ COPY package.json ./
 COPY yarn.lock ./
 RUN yarn
 COPY . .
+RUN yarn patch
 RUN yarn build
 RUN ls -lah node_modules

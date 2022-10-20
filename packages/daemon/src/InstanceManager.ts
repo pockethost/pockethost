@@ -1,5 +1,5 @@
 import { InstanceStatus } from '@pockethost/common'
-import { forEach, map } from '@s-libs/micro-dash'
+import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import getPort from 'get-port'
@@ -14,6 +14,7 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_PB_SUBDOMAIN,
 } from './constants'
+import { collections_001 } from './migrations'
 import { createPbClient } from './PbClient'
 
 type Instance = {
@@ -22,6 +23,7 @@ type Instance = {
   port: number
   heartbeat: (shouldStop?: boolean) => void
   shutdown: () => boolean
+  startRequest: () => () => void
 }
 
 const tryFetch = (url: string) =>
@@ -79,7 +81,9 @@ export const createInstanceManger = async () => {
     ls.on('exit', (code) => {
       instances[subdomain]?.heartbeat(true)
       delete instances[subdomain]
-      client.updateInstanceStatus(subdomain, InstanceStatus.Idle)
+      if (subdomain !== PUBLIC_PB_SUBDOMAIN) {
+        client.updateInstanceStatus(subdomain, InstanceStatus.Idle)
+      }
       console.log(`${subdomain} exited with code ${code}`)
     })
     ls.on('error', (err) => {
@@ -102,11 +106,16 @@ export const createInstanceManger = async () => {
     internalUrl: coreInternalUrl,
     port: DAEMON_PB_PORT_BASE,
     heartbeat: () => {},
-    shutdown: () => mainProcess.kill(),
+    shutdown: () => {
+      console.log(`Shutting down instance ${PUBLIC_PB_SUBDOMAIN}`)
+      return mainProcess.kill()
+    },
+    startRequest: () => () => {},
   }
   await tryFetch(coreInternalUrl)
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
+    await client.migrate(collections_001)
   } catch (e) {
     console.error(
       `***WARNING*** CANNOT AUTHENTICATE TO https://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_APP_DOMAIN}/_/`
@@ -160,15 +169,28 @@ export const createInstanceManger = async () => {
 
       const internalUrl = mkInternalUrl(newPort)
 
+      let requestCount = 0
+      const RECHECK_TTL = 1000 // 1 second
+      const now = () => +new Date()
       const api: Instance = {
         process: childProcess,
         internalUrl,
         port: newPort,
-        shutdown: () => childProcess.kill(),
+        shutdown: () => {
+          console.log(`Shutting down instance ${subdomain}`)
+          return childProcess.kill()
+        },
         heartbeat: (() => {
           let tid: ReturnType<typeof setTimeout>
           const _cleanup = () => {
-            childProcess.kill()
+            if (requestCount === 0) {
+              childProcess.kill()
+            } else {
+              console.log(
+                `${requestCount} requests remain open on ${subdomain}`
+              )
+              tid = setTimeout(_cleanup, RECHECK_TTL)
+            }
           }
           tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
           return (shouldStop) => {
@@ -178,6 +200,16 @@ export const createInstanceManger = async () => {
             }
           }
         })(),
+        startRequest: () => {
+          requestCount++
+          const id = requestCount
+
+          console.log(`${subdomain} started new request ${id}`)
+          return () => {
+            requestCount--
+            console.log(`${subdomain} ended request ${id}`)
+          }
+        },
       }
       instances[subdomain] = api
       await client.updateInstanceStatus(subdomain, InstanceStatus.Running)
@@ -186,7 +218,8 @@ export const createInstanceManger = async () => {
     })
 
   const shutdown = () => {
-    forEach(instances, (instance) => {
+    console.log(`Shutting down instance manager`)
+    forEachRight(instances, (instance) => {
       instance.shutdown()
     })
   }
