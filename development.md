@@ -17,15 +17,8 @@ The entire pockethost.io stack is dockerized to make it as easy as possible to r
 
 **Prerequisites**
 
-Local Docker development assumes you'll be developing against `https://pockethost.local`. You must add host entries to `/etc./hosts` as follows:
-
-```
-127.0.0.1 pockethost.local                      # The main domain
-127.0.0.1 pockethost-central.pockethost.local   # The main pocketbase instance
-127.0.0.1 test.pockethost.local                 # A sample (user) pocketbase instance
-```
-
-Add as many `*.pockethost.local` subdomains as you want to test. Since `/etc/hosts` does not support wildcarding, this must be done manually.
+- Docker
+- **Local SSL wildcard domain** - Docker development assumes you'll be developing against `https://pockethost.test`. You need SSL and subdomains to test correctly. Follow the [local domain setup instructions](./local-domain-setup.md).
 
 **Running in dev mode**
 
