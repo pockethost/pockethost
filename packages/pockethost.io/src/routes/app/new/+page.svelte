@@ -64,11 +64,11 @@
       {/if}
 
       <div class="text-center">
+        <a href="/dashboard" class="btn btn-light">Cancel</a>
+
         <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
           Create <i class="bi bi-arrow-right-short" />
         </button>
-
-        <a href="/dashboard" class="btn btn-light">Cancel</a>
       </div>
     </form>
   </div>
