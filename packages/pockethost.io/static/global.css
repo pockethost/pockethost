@@ -1,6 +1,3 @@
-body {
-}
-
 body,
 p,
 h1,
@@ -21,11 +18,29 @@ h6 {
   font-weight: 700;
 }
 
-.btn.btn-primary {
+:root {
+  --bs-success-rgb: 46, 204, 113;
+}
+
+.btn.btn-primary,
+.btn.btn-outline-primary,
+.btn.btn-light {
   --bs-btn-border-radius: 50px;
-  --bs-btn-bg: #965de9;
   --bs-btn-padding-x: 24px;
   --bs-btn-padding-y: 8px;
+}
+
+.btn.btn-primary {
+  --bs-btn-bg: #965de9;
+}
+
+.btn.btn-outline-primary {
+  --bs-btn-color: #965de9;
+  --bs-btn-border-color: #965de9;
+  --bs-btn-hover-bg: #965de9;
+  --bs-btn-hover-border-color: #965de9;
+  --bs-btn-active-bg: #965de9;
+  --bs-btn-active-border-color: #965de9;
 }
 
 .dropdown-menu {

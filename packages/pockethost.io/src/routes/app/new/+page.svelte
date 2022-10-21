@@ -1,96 +1,97 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
-  import Button from '$components/Button/Button.svelte'
-  import { ButtonColors, ButtonSizes } from '$components/Button/types'
-  import Error from '$components/Error/Error.svelte'
   import Protected from '$components/Protected.svelte'
-  import Title from '$components/Title/Title.svelte'
   import { PUBLIC_PB_DOMAIN } from '$env/static/public'
-  import { client } from '$src/pocketbase'
-  import { redirect } from '$util/redirect'
-  import { faRefresh } from '@fortawesome/free-solid-svg-icons'
-  import { assertExists } from '@pockethost/common/src/assert'
-  import type { UserId } from '@pockethost/common/src/schema'
   import { generateSlug } from 'random-word-slugs'
-  import Fa from 'svelte-fa'
+  import { handleCreateNewInstance } from '$util/database'
+  import AlertBar from '$components/AlertBar.svelte'
 
-  const { user, createInstance, parseError } = client
+  let instanceName: string = generateSlug(2)
+  let formError: string = ''
 
-  if (browser && !user) {
-    redirect('/signup')
+  // Controls the spin animation of the instance regeneration button
+  let rotationCounter: number = 0
+
+  let isFormButtonDisabled: boolean = true
+  $: isFormButtonDisabled = instanceName.length === 0
+
+  const handleInstanceNameRegeneration = () => {
+    rotationCounter = rotationCounter + 180
+    instanceName = generateSlug(2)
   }
-  let instanceName = generateSlug(2)
 
-  let errorMessage: string[] = []
-  let code = ''
-  $: {
-    code = `const url = 'https://${instanceName}.${PUBLIC_PB_DOMAIN}'\nconst client = new PocketBase(url)`
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
 
-  const handleCreate = () => {
-    console.log(`creating `, instanceName)
-    const { id } = user() || {}
-    assertExists<UserId>(id, `Expected uid here`)
-    createInstance({
-      subdomain: instanceName,
-      uid: id
+    await handleCreateNewInstance(instanceName, (error) => {
+      formError = error
     })
-      .then((rec) => {
-        console.log(`Record`, rec)
-        redirect(`/app/instances/${rec.id}`)
-      })
-      .catch((e) => {
-        errorMessage = parseError(e)
-        console.error(errorMessage.join('\n'), e)
-      })
   }
 </script>
 
 <Protected>
-  <Title first="New" second="App" />
-  <main>
-    <div class="caption">Choose a name for your PocketBase app.</div>
-    <div class="subdomain">
-      <label for="instanceName">Instance Name</label>
-      <Button click={() => (instanceName = generateSlug(2))} size={ButtonSizes.Micro}>
-        <Fa icon={faRefresh} /></Button
-      >
-
-      <input
-        class="subdomain"
-        name="instanceName"
-        id="instanceName"
-        type="text"
-        bind:value={instanceName}
-      />.{PUBLIC_PB_DOMAIN}
+  <div class="container">
+    <div class="py-4">
+      <h1 class="text-center">Choose a name for your PocketBase app.</h1>
     </div>
-    <Error>{errorMessage.join('<br/>')}</Error>
-    <Button click={handleCreate}>Create</Button>
-    <Button href={`/dashboard`} color={ButtonColors.Light}>Cancel</Button>
-  </main>
+
+    <form on:submit={handleSubmit}>
+      <div class="row g-3 align-items-center justify-content-center mb-4">
+        <div class="col-auto">
+          <label for="instance-name" class="col-form-label">Instance Name:</label>
+        </div>
+
+        <div class="col-auto pe-1 position-relative">
+          <input type="text" id="instance-name" class="form-control" bind:value={instanceName} />
+
+          <button
+            aria-label="Regenerate Instance Name"
+            type="button"
+            style="transform: rotate({rotationCounter}deg);"
+            class="btn btn-light rounded-circle regenerate-instance-name-btn"
+            on:click={handleInstanceNameRegeneration}
+          >
+            <i class="bi bi-arrow-repeat" />
+          </button>
+        </div>
+
+        <div class="col-auto ps-0">
+          <span class="form-text">.{PUBLIC_PB_DOMAIN}</span>
+        </div>
+      </div>
+
+      {#if formError}
+        <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+      {/if}
+
+      <div class="text-center">
+        <a href="/dashboard" class="btn btn-light">Cancel</a>
+
+        <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
+          Create <i class="bi bi-arrow-right-short" />
+        </button>
+      </div>
+    </form>
+  </div>
 </Protected>
 
 <style lang="scss">
-  main {
-    padding: 1em;
-    margin-left: auto;
-    margin-right: auto;
-    label {
-      display: block;
-      font-weight: bold;
-      width: 200px;
-    }
-    .caption {
-      font-size: 15px;
-      margin-top: 20px;
-      margin-bottom: 20px;
-    }
-    .subdomain {
-      input {
-        text-align: right;
-        max-width: 200px;
-      }
-      white-space: nowrap;
-    }
+  .container {
+    max-width: 600px;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .regenerate-instance-name-btn {
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    position: absolute;
+    z-index: 500;
+    top: 2px;
+    right: 6px;
+    transition: all 200ms;
   }
 </style>

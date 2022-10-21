@@ -7,6 +7,7 @@ export type FormErrorHandler = (value: string) => void
 
 export const handleFormError = (error: any, setError?: FormErrorHandler) => {
   console.error(`Form error: ${error}`, { error })
+
   if (setError) {
     const message = client.parseError(error)[0]
     setError(message)

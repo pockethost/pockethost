@@ -9,7 +9,7 @@
 
   let email: string = ''
   let password: string = ''
-  let instanceName = generateSlug(2)
+  let instanceName: string = generateSlug(2)
   let formError: string = ''
 
   let isFormButtonDisabled: boolean = true
