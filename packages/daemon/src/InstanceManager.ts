@@ -167,53 +167,56 @@ export const createInstanceManger = async () => {
         bin: instance.bin || 'pocketbase',
       })
 
-      const internalUrl = mkInternalUrl(newPort)
+      const api: Instance = (() => {
+        let openRequestCount = 0
+        const internalUrl = mkInternalUrl(newPort)
 
-      let requestCount = 0
-      const RECHECK_TTL = 1000 // 1 second
-      const now = () => +new Date()
-      const api: Instance = {
-        process: childProcess,
-        internalUrl,
-        port: newPort,
-        shutdown: () => {
-          console.log(`Shutting down instance ${subdomain}`)
-          return childProcess.kill()
-        },
-        heartbeat: (() => {
-          let tid: ReturnType<typeof setTimeout>
-          const _cleanup = () => {
-            if (requestCount === 0) {
-              childProcess.kill()
-            } else {
-              console.log(
-                `${requestCount} requests remain open on ${subdomain}`
-              )
-              tid = setTimeout(_cleanup, RECHECK_TTL)
+        const RECHECK_TTL = 1000 // 1 second
+        const _api: Instance = {
+          process: childProcess,
+          internalUrl,
+          port: newPort,
+          shutdown: () => {
+            console.log(`Shutting down instance ${subdomain}`)
+            return childProcess.kill()
+          },
+          heartbeat: (() => {
+            let tid: ReturnType<typeof setTimeout>
+            const _cleanup = () => {
+              if (openRequestCount === 0) {
+                _api.shutdown()
+              } else {
+                console.log(
+                  `${openRequestCount} requests remain open on ${subdomain}`
+                )
+                tid = setTimeout(_cleanup, RECHECK_TTL)
+              }
             }
-          }
-          tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
-          return (shouldStop) => {
-            clearTimeout(tid)
-            if (!shouldStop) {
-              tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
+            tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
+            return (shouldStop) => {
+              clearTimeout(tid)
+              if (!shouldStop) {
+                tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
+              }
             }
-          }
-        })(),
-        startRequest: () => {
-          requestCount++
-          const id = requestCount
+          })(),
+          startRequest: () => {
+            openRequestCount++
+            const id = openRequestCount
 
-          console.log(`${subdomain} started new request ${id}`)
-          return () => {
-            requestCount--
-            console.log(`${subdomain} ended request ${id}`)
-          }
-        },
-      }
+            console.log(`${subdomain} started new request ${id}`)
+            return () => {
+              openRequestCount--
+              console.log(`${subdomain} ended request ${id}`)
+            }
+          },
+        }
+        return _api
+      })()
+
       instances[subdomain] = api
       await client.updateInstanceStatus(subdomain, InstanceStatus.Running)
-      console.log(`${internalUrl} is running`)
+      console.log(`${api.internalUrl} is running`)
       return instances[subdomain]
     })
 
