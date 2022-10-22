@@ -1,38 +1,59 @@
 <script lang="ts">
   import { InstanceStatus } from '@pockethost/common/src/schema'
-  import { ProvisioningSize } from './types'
 
   export let status: InstanceStatus = InstanceStatus.Idle
-  export let size: ProvisioningSize = ProvisioningSize.Normal
+
+  let badgeColor: string = 'bg-secondary'
+
   if (!status) {
     status = InstanceStatus.Idle
   }
+
+  switch (status) {
+    case 'idle':
+      badgeColor = 'bg-secondary'
+      break
+    case 'porting':
+      badgeColor = 'bg-info'
+      break
+    case 'starting':
+      badgeColor = 'bg-warning'
+      break
+    case 'running':
+      badgeColor = 'bg-success'
+      break
+    case 'failed':
+      badgeColor = 'bg-danger'
+      break
+    default:
+      badgeColor = 'bg-secondary'
+      break
+  }
 </script>
 
-<div class={`status ${status} ${size}`}>{status}</div>
+<div class={`badge ${badgeColor} ${status === 'running' && 'pulse'}`}>{status}</div>
 
 <style lang="scss">
-  .status {
-    border-radius: 5px;
-    display: inline-block;
-    padding: 3px;
-    font-size: 10px;
-    background-color: rgb(217, 138, 10);
-    color: white;
-    &.idle {
-      background-color: green;
+  .pulse {
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 1);
+    transform: scale(1);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
     }
-    &.running {
-      background-color: green;
+
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
     }
-    &.failed {
-      background-color: red;
-    }
-    &.hero {
-      font-size: 50px;
-      padding: 20px;
-      border-radius: 20px;
-      border: 1px solid black;
+
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
     }
   }
 </style>

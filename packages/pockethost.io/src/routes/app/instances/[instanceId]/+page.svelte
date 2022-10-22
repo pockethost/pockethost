@@ -1,10 +1,8 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import Button from '$components/Button/Button.svelte'
   import CodeSample from '$components/CodeSample.svelte'
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
-  import Title from '$components/Title/Title.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { assertExists } from '@pockethost/common/src/assert'
@@ -20,6 +18,7 @@
   let url: string
   let code: string = ''
   let unsub: Unsubscriber = () => {}
+
   onMount(() => {
     unsub = watchInstanceById(instanceId, (r) => {
       console.log(`got a record`, r)
@@ -34,31 +33,30 @@
 </script>
 
 <Protected>
-  <main>
-    <Title />
+  <div class="container">
     {#if instance}
-      <ProvisioningStatus status={instance.status} />
+      <div class="py-4">
+        <div class="d-flex gap-3 align-items-center mb-3">
+          <h1 class="mb-0">Admin URL</h1>
+          <ProvisioningStatus status={instance.status} />
+        </div>
 
-      <div>
-        Admin URL: <a href={`${url}/_`} target="_blank">{`${url}/_`}</a>
+        <h2><a href={`${url}/_`} target="_blank">{`${url}/_`}</a></h2>
       </div>
+
       <div>
         JavaScript:
         <CodeSample {code} />
       </div>
     {/if}
-    <Button href="/dashboard">&lt; Back to Dashboard</Button>
-  </main>
+
+    <div class="text-center py-5">
+      <a href="/dashboard" class="btn btn-light"
+        ><i class="bi bi-arrow-left-short" /> Back to Dashboard</a
+      >
+    </div>
+  </div>
 </Protected>
 
 <style lang="scss">
-  main {
-    margin: 10px;
-    .provisioning {
-      text-align: center;
-    }
-    a {
-      text-decoration: initial;
-    }
-  }
 </style>

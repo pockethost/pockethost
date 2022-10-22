@@ -1,6 +1,5 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
-  import { redirect } from '$util/redirect'
   import MediaQuery from '$components/MediaQuery.svelte'
 
   const { isLoggedIn, logOut } = client
@@ -8,7 +7,8 @@
   const handleLogout = (e: Event) => {
     e.preventDefault()
     logOut()
-    redirect(`/`)
+    // Hard refresh to make sure any remaining data is cleared
+    window.location = "/";
   }
 </script>
 
@@ -41,15 +41,14 @@
           <MediaQuery query="(min-width: 768px)" let:matches>
             {#if matches}
               <li class="nav-item dropdown">
-                <a
-                  class="nav-link"
-                  href="#"
-                  role="button"
+                <button
+                  class="btn border-0 nav-link"
+                  type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
                   <i class="bi bi-person-circle" />
-                </a>
+                </button>
 
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="/" on:click={handleLogout}>Logout</a></li>

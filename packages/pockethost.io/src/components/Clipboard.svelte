@@ -17,6 +17,7 @@
 </script>
 
 <slot {copy} />
+
 <textarea bind:this={textarea} value={text} />
 
 <style>
