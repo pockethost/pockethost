@@ -1,10 +1,10 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { client } from '$src/pocketbase'
-  import { redirect } from '$util/redirect'
+  import { goto } from '$app/navigation'
 
   if (browser && client.isLoggedIn()) {
-    redirect(`/dashboard`)
+    goto(`/dashboard`)
   }
 </script>
 

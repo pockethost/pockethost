@@ -14,3 +14,4 @@ yarn.lock
 
 # Source files
 /src/assets/_bootstrap.css
+dist-server
