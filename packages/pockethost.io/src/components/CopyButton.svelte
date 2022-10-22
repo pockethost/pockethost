@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Clipboard from './Clipboard.svelte'
+  import Clipboard from '$components/Clipboard.svelte'
 
   let isCopied = false
   export let code: string

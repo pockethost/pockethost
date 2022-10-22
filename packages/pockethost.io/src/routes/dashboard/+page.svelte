@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import Protected from '$components/Protected.svelte'
-  import ProvisioningStatus from '../../components/ProvisioningStatus.svelte'
+  import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
