@@ -12,6 +12,7 @@
 
 <div class="copy-container">
   <Highlight language={typescript} {code} />
+
   <div class="copy-button">
     <CopyButton {code} copy={handleCopy} />
   </div>
