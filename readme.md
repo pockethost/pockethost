@@ -1,8 +1,26 @@
-# pockethost.io
+<h1>pockethost.io</h1>
 
 This is the open source monorepo for pockethost.io, the hosting platform for PocketBase.
 
-Get up and running in 30 seconds flat:
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Introduction](#introduction)
+- [Development](#development)
+  - [Just the frontend (Svelte)](#just-the-frontend-svelte)
+  - [All our base](#all-our-base)
+- [Release History](#release-history)
+
+<!-- /code_chunk_output -->
+
+# Introduction
+
+https://pockethost.io hosts your PocketBase projects so you don't have to. Create a project like you would in Firebase and Supabase and let PocketHost do the rest.
+
+**Focus on your app**
+
+Get a live PocketBase instance in 10 seconds with no backend setup:
 
 1. Create an account at pockethost.io
 2. Provision your first PocketBase instance
@@ -12,65 +30,89 @@ Get up and running in 30 seconds flat:
 const client = new PocketBase(`https://harvest.pockethost.io`)
 ```
 
-## Powered by PocketBase
+**Batteries Included**
 
-[PocketBase](https://pocketbase.io) is a single-file backend written in Go and powered by SQLite. It can scale vertically and handle massive concurrency which makes it a great choice for most business applications. And because everything is open source, you can host your own instance of PocketBase on your own infrastructure.
+Here's all the Linux/devops stuff that PocketHost does for you:
 
-## Why PocketHost?
-
-PocketBase is very, very cool. But, to run and manage it successfully, you need to know a lot of backend Linux sysadmin/devops stuff:
-
-- Probably Docker
+- Docker
 - Email and DKIM+SPF and more
-- DNS, MX, TXT, CNAME
-- SSL
+- DNS jargon: MX, TXT, CNAME
+- SSL cert provisioning and management
 - Storage
 - Volume mounts
-- Could computing or VPS
+- Could computing or VPS deployment
+- CDN and static asset hosting
+- Aamzon AWS
+- Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on
 
-That's where PocketHost comes in. Firebase and Supabase have made BaaS very attrictive, and PocketHost brings that same attractiveness to PocketBase.
+This monorepo contains the entire open source stack that powers pockethost.io. You can use it to run your own private or public multitenant platform.
 
-## Roadmap
-
-### 0.2
-
-### 0.3
-
-- Dockerized dev and prod
-- UI cleanup
-
-### 0.4
-
-- JS/TS cloud functions ([PBScript](https://github.com/benallfree/pbscript))
-
-### 0.5
-
-- Lightstream support
-
-### 0.6
-
-- fly.io deployment support
-
-### Icebox
-
-- Provision outgoing email config for new instances while hiding root credentials
-
-## Questions?
+**Questions?**
 
 Join us in the discussion area.
 
-## Changelog
+# Development
 
-### 0.2.1
+## Just the frontend (Svelte)
 
-- Idle/running status for PB instance now shows in green
-- Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
+This is the easiest setup.
 
-### 0.2.0
+```bash
+git clone git@github.com:benallfree/pockethost.git
+cd pockethost
+yarn
+yarn dev:www
+```
+
+That's it. You're in business. Your local Svelte build will talk to the `pockethost.io` mothership and connect to that for all database-related tasks.
+
+## All our base
+
+The entire pockethost.io stack is dockerized to make it as easy as possible to mimic a production environment.
+
+**Prerequisites**
+
+- Docker
+- Local SSL wildcard domain - [local domain setup instructions](./local-domain-setup.md)
+
+**Running in dev mode**
+
+The following will run the Docker stack in dev mode. Dev mode links all code to the host repo and everything will rebuild/relaunch upon modification.
+
+```bash
+git clone git@github.com:benallfree/pockethost.git
+cd pockethost/docker
+cp .env-template .env-local  # Edit as needed - defaults should work
+cd ..
+docker-compose -f docker/docker-compose.dev.yaml build
+docker-compose -f docker/docker-compose.dev.yaml up
+open https://pockethost.test
+```
+
+# Release History
+
+**next**
+
+- [ ] Improved realtime support in proxy
+- [ ] Updated developer docs
+- [x] Improved Docker support for dev and prod
+
+* [x] Complete UX redesign
+* [x] Idle/running status for PB instance now shows in green
+* [x] Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
+
+**Icebox**
+
+- [ ] JS/TS cloud functions ([PBScript](https://github.com/benallfree/pbscript))
+- [ ] Litestream support
+- [ ] fly.io deployment support
+- [ ] Provision outgoing email config for new instances while hiding root credentials
+
+**0.2.0**
 
 - 100% dockerized
 - Completely rewritten daemon proxy that launches PocketBase instances on demand
 
-### 0.0.1
+**0.0.1**
 
 - Initial release

@@ -1,11 +1,15 @@
-First, generate a root certificate for self-signing:
+# Local Domain Setup Instructions
+
+This document covers how to set up your local development environment to recongize wildcard domains with SSL. Developing the full Dockerized stack for PocketHost requires these steps.
+
+**1. Generate a root certificate for self-signing.**
 
 ```bash
 cd docker/mount/nginx/ssl
 ./create-ca.sh
 ```
 
-Then,
+**2. Manually approve the self-signed certificate in your browser.**
 
 For FireFox OS X, do this:
 
@@ -17,11 +21,13 @@ For FireFox OS X, do this:
 
 For other browsers and operating systems, follow the instructions here: https://github.com/BenMorel/dev-certificates
 
-Next, generate a wildcard domain cert
+**3. Generate a wildcard domain cert for `pockethost.test`**
 
 ```
 ./create-certificate pockethost.test
 ```
+
+**4. Configure your machine to recognize wildcard localhost domains.**
 
 If you are on OS X, follow the [dnsmasq instructions](./dnsmasq.md) to set up your local machine for the ultimate local domain wildcard dev experience.
 

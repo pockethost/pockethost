@@ -134,7 +134,7 @@
           <ul>
             <li>JS/TS cloud functions</li>
             <li>Deploy to Fly.io</li>
-            <li>Lightstream</li>
+            <li>Litestream</li>
           </ul>
         </FeatureCard>
       </div>

@@ -1,6 +1,14 @@
 # Manually set up `/etc/hosts`
 
-Add host entries to `/etc./hosts` as follows:
+If you can't use [dnsmasq](./dnsmasq.md) or equivalent, you can still configure hosts manually. The dev experience will be slightly more limited, but it will still work.
+
+**1. Add host entries to `/etc./hosts`**
+
+```bash
+sudo nano /etc/hosts
+```
+
+Then, add these entires:
 
 ```
 127.0.0.1 pockethost.test                      # The main domain
