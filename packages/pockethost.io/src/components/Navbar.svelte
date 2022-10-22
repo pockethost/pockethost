@@ -46,6 +46,8 @@
                   class="btn border-0 nav-link"
                   type="button"
                   data-bs-toggle="dropdown"
+                  aria-label="Click to expand the Account Dropdown"
+                  title="Account Dropdown"
                   aria-expanded="false"
                 >
                   <i class="bi bi-person-circle" />
@@ -81,6 +83,7 @@
             href="https://github.com/benallfree/pockethost"
             target="_blank"
             aria-label="Link to our Github Project"
+            title="Link to our Github Project"
             rel="noopener"
           >
             <i class="bi bi-github" /><span class="nav-github-link">Github</span>
