@@ -1,7 +1,7 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
   import MediaQuery from '$components/MediaQuery.svelte'
-  import ThemeToggle from "$components/ThemeToggle.svelte";
+  import ThemeToggle from '$components/ThemeToggle.svelte'
 
   const { isLoggedIn, logOut } = client
 
@@ -9,7 +9,7 @@
     e.preventDefault()
     logOut()
     // Hard refresh to make sure any remaining data is cleared
-    window.location = "/";
+    window.location = '/'
   }
 </script>
 

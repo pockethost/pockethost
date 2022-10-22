@@ -8,7 +8,7 @@
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
-  import RetroBoxContainer from "$components/RetroBoxContainer.svelte";
+  import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
 
   // Wait for the instance call to complete before rendering the UI
   let hasPageLoaded = false

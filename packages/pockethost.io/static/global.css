@@ -26,19 +26,31 @@ h6 {
   --bs-warning-rgb: 241, 196, 15;
   --bs-danger-rgb: 192, 57, 43;
 
-  --bs-primary: #3498DB;
-  --bs-secondary: #7F8C8D;
-  --bs-success: #2ECC71;
-  --bs-info: #ECF0F1;
-  --bs-warning: #F1C40F;
-  --bs-danger: #C0392B;
+  --bs-primary: #3498db;
+  --bs-secondary: #7f8c8d;
+  --bs-success: #2ecc71;
+  --bs-info: #ecf0f1;
+  --bs-warning: #f1c40f;
+  --bs-danger: #c0392b;
 
   /* Custom Colors */
-  --bs-orange: #E67E22;
+  --bs-orange: #e67e22;
 
-  --gradient-white-lime: linear-gradient(179.4deg, rgb(252, 239, 233) 2.2%, rgb(211, 242, 185) 96.2%);
-  --gradient-light-soft-blue: linear-gradient(109.6deg, rgba(125, 89, 252, 1) 11.2%, rgba(218, 185, 252, 1) 91.1%);
-  --gradient-dark-soft-blue: linear-gradient(109.6deg, rgba(218, 185, 252, 1) 11.2%, rgba(125, 89, 252, 1) 91.1%);
+  --gradient-white-lime: linear-gradient(
+    179.4deg,
+    rgb(252, 239, 233) 2.2%,
+    rgb(211, 242, 185) 96.2%
+  );
+  --gradient-light-soft-blue: linear-gradient(
+    109.6deg,
+    rgba(125, 89, 252, 1) 11.2%,
+    rgba(218, 185, 252, 1) 91.1%
+  );
+  --gradient-dark-soft-blue: linear-gradient(
+    109.6deg,
+    rgba(218, 185, 252, 1) 11.2%,
+    rgba(125, 89, 252, 1) 91.1%
+  );
 
   --soft-box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 }
@@ -71,7 +83,7 @@ h6 {
   --bs-btn-hover-color: var(--bs-body-color);
   --bs-btn-hover-bg: var(--bs-gray-300);
   --bs-btn-hover-border-color: var(--bs-gray-300);
-  --bs-btn-focus-shadow-rgb: 211,212,213;
+  --bs-btn-focus-shadow-rgb: 211, 212, 213;
   --bs-btn-active-color: var(--bs-body-color);
   --bs-btn-active-bg: var(--bs-gray-300);
   --bs-btn-active-border-color: var(--bs-gray-300);
@@ -88,7 +100,7 @@ h6 {
   --bs-btn-hover-color: var(--bs-body-bg);
   --bs-btn-hover-bg: var(--bs-gray-700);
   --bs-btn-hover-border-color: var(--bs-gray-700);
-  --bs-btn-focus-shadow-rgb: 66,70,73;
+  --bs-btn-focus-shadow-rgb: 66, 70, 73;
   --bs-btn-active-color: var(--bs-body-bg);
   --bs-btn-active-bg: var(--bs-gray-700);
   --bs-btn-active-border-color: var(--bs-gray-700);
@@ -97,7 +109,6 @@ h6 {
   --bs-btn-disabled-bg: var(--bs-gray-500);
   --bs-btn-disabled-border-color: var(--bs-gray-500);
 }
-
 
 .dropdown-menu {
   --bs-dropdown-item-padding-y: 12px;
@@ -120,10 +131,8 @@ h6 {
 
 .navbar {
   --bs-navbar-color: var(--bs-body-color);
-  --bs-navbar-hover-color: var(--bs-gray-500)
+  --bs-navbar-hover-color: var(--bs-gray-500);
 }
-
-
 
 /* Dark Mode */
 [data-theme='dark']:root {
@@ -165,9 +174,16 @@ h6 {
   --bs-highlight-bg: #fff3cd;
 
   --gradient-white-lime: linear-gradient(179.4deg, rgb(3, 16, 22) 2.2%, rgb(44, 13, 67) 96.2%);
-  --gradient-light-soft-blue: linear-gradient(109.6deg, rgba(125, 89, 252, 1) 11.2%, rgba(25, 25, 25, 1) 91.1%);
-  --gradient-dark-soft-blue: linear-gradient(109.6deg, rgba(25, 25, 25, 1) 11.2%, rgba(125, 89, 252, 1) 91.1%);
+  --gradient-light-soft-blue: linear-gradient(
+    109.6deg,
+    rgba(125, 89, 252, 1) 11.2%,
+    rgba(25, 25, 25, 1) 91.1%
+  );
+  --gradient-dark-soft-blue: linear-gradient(
+    109.6deg,
+    rgba(25, 25, 25, 1) 11.2%,
+    rgba(125, 89, 252, 1) 91.1%
+  );
 
   --soft-box-shadow: rgba(0, 0, 0, 0.3) 0px 7px 29px 0px;
 }
-

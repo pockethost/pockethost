@@ -1,6 +1,6 @@
 <script lang="ts">
   import { InstanceStatus } from '@pockethost/common/src/schema'
-  import {onMount} from "svelte";
+  import { onMount } from 'svelte'
 
   export let status: InstanceStatus = InstanceStatus.Idle
 
@@ -11,34 +11,34 @@
   }
 
   const handleBadgeColor = () => {
-      switch (status) {
-          case 'idle':
-              badgeColor = 'bg-secondary'
-              break
-          case 'porting':
-              badgeColor = 'bg-info'
-              break
-          case 'starting':
-              badgeColor = 'bg-warning'
-              break
-          case 'running':
-              badgeColor = 'bg-success'
-              break
-          case 'failed':
-              badgeColor = 'bg-danger'
-              break
-          default:
-              badgeColor = 'bg-secondary'
-              break
-      }
-	}
+    switch (status) {
+      case 'idle':
+        badgeColor = 'bg-secondary'
+        break
+      case 'porting':
+        badgeColor = 'bg-info'
+        break
+      case 'starting':
+        badgeColor = 'bg-warning'
+        break
+      case 'running':
+        badgeColor = 'bg-success'
+        break
+      case 'failed':
+        badgeColor = 'bg-danger'
+        break
+      default:
+        badgeColor = 'bg-secondary'
+        break
+    }
+  }
 
   onMount(() => {
-      handleBadgeColor()
-	})
+    handleBadgeColor()
+  })
 
-	// Watch for changes with the status variable and update the badge color
-	$: if(status) handleBadgeColor()
+  // Watch for changes with the status variable and update the badge color
+  $: if (status) handleBadgeColor()
 </script>
 
 <div class={`badge ${badgeColor} ${status === 'running' && 'pulse'}`}>{status}</div>
