@@ -1,6 +1,6 @@
+import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
 import { InstanceStatus } from '@pockethost/common'
-import { redirect } from './redirect'
 const { authViaEmail, createUser, user, createInstance } = client
 
 export type FormErrorHandler = (value: string) => void
@@ -36,7 +36,7 @@ export const handleLogin = async (
     await authViaEmail(email, password)
 
     if (shouldRedirect) {
-      redirect('/dashboard')
+      goto('/dashboard')
     }
   } catch (error: any) {
     handleFormError(error, setError)
@@ -83,7 +83,7 @@ export const handleCreateNewInstance = async (
       status: InstanceStatus.Idle
     })
 
-    redirect(`/app/instances/${record.id}`)
+    await goto(`/app/instances/${record.id}`)
   } catch (error: any) {
     handleFormError(error, setError)
   }
