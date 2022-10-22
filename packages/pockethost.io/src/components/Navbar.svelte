@@ -1,6 +1,5 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
-  import { goto } from '$app/navigation'
   import MediaQuery from '$components/MediaQuery.svelte'
 
   const { isLoggedIn, logOut } = client
