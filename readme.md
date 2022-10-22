@@ -32,10 +32,28 @@ That's where PocketHost comes in. Firebase and Supabase have made BaaS very attr
 
 ## Roadmap
 
-- Tighter integration with PocketBase
-- Cloud functions [PBScript](https://github.com/benallfree/pbscript)
+### 0.2
+
+### 0.3
+
+- Dockerized dev and prod
+- UI cleanup
+
+### 0.4
+
+- JS/TS cloud functions ([PBScript](https://github.com/benallfree/pbscript))
+
+### 0.5
+
 - Lightstream support
+
+### 0.6
+
 - fly.io deployment support
+
+### Icebox
+
+- Provision outgoing email config for new instances while hiding root credentials
 
 ## Questions?
 
