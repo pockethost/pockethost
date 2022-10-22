@@ -1,3 +1,7 @@
+body {
+  min-height: 101vh;
+}
+
 body,
 p,
 h1,
