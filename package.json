@@ -13,7 +13,9 @@
     "build:www": "cd packages/pockethost.io && yarn build",
     "dev:www": "cd packages/pockethost.io && yarn dev",
     "dev:daemon": "cd packages/daemon && yarn dev",
-    "patch": "patch-package"
+    "start": "concurrently 'yarn start:www' 'yarn start:daemon'",
+    "start:www": "cd packages/pockethost.io && yarn start",
+    "start:daemon": "cd packages/daemon && yarn start"
   },
   "workspaces": {
     "packages": [
@@ -31,7 +33,6 @@
   },
   "devDependencies": {
     "concurrently": "^7.4.0",
-    "patch-package": "^6.4.7",
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^3.1.1",
     "prettier-plugin-svelte": "^2.7.0",

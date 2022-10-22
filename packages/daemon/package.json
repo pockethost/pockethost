@@ -7,7 +7,7 @@
     "dev": "yarn build && concurrently 'yarn dev:watch' 'yarn dev:serve'",
     "dev:watch": "chokidar 'src/**' '../pocketbase/src/**' -c 'yarn build'",
     "dev:serve": "nodemon dist/server.js",
-    "serve": "node dist/server.js"
+    "start": "node dist/server.js"
   },
   "targets": {
     "server": {

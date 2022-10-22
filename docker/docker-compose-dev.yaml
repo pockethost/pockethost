@@ -1,6 +1,21 @@
 version: '3'
 
 services:
+  prepbox:
+    environment:
+      - GOPATH=/go
+    env_file:
+      - .env.local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: prepbox
+    working_dir: /src
+    command: bash -c "yarn"
+    volumes:
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
   www:
     env_file:
       - .env.local
@@ -10,23 +25,23 @@ services:
     container_name: www
     restart: unless-stopped
     working_dir: /src
-    command: bash -c "yarn && yarn patch && yarn dev:www --host=www"
+    command: bash -c "yarn dev:www --host=www"
     volumes:
-      - ../patches:/src/patches
-      - ../package.json:/src/package.json
-      - ../yarn.lock:/src/yarn.lock
-      - ../packages/pockethost.io/src:/src/packages/pockethost.io/src
-      - ../packages/pockethost.io/package.json:/src/packages/pockethost.io/package.json
-      - ../packages/pockethost.io/yarn.lock:/src/packages/pockethost.io/yarn.lock
-      - ../packages/common/src:/src/packages/common/src
-      - ../packages/common/package.json:/src/packages/common/package.json
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
     networks:
       - app-network
     ports:
       - '9000:5173'
     depends_on:
-      - daemon
+      daemon:
+        condition: service_started
+      prepbox:
+        condition: service_completed_successfully
   daemon:
+    environment:
+      - GOPATH=/go
+      - SHELL=/bin/bash
     env_file:
       - .env.local
     build:
@@ -34,24 +49,20 @@ services:
       dockerfile: Dockerfile
     container_name: daemon
     working_dir: /src
-    command: bash -c "yarn && yarn patch && yarn dev:daemon"
+    command: bash -c "yarn dev:daemon"
     restart: unless-stopped
-    environment:
-      - SHELL=/bin/bash
     volumes:
-      - ../patches:/src/patches
-      - ../package.json:/src/package.json
-      - ../yarn.lock:/src/yarn.lock
       - ./mount/daemon/instances:/data
-      - ../packages/common/src:/src/packages/common/src
-      - ../packages/common/package.json:/src/packages/common/package.json
-      - ../packages/daemon/src:/src/packages/daemon/src
-      - ../packages/daemon/package.json:/src/packages/daemon/package.json
-      - ../packages/daemon/yarn.lock:/src/packages/daemon/yarn.lock
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
     networks:
       - app-network
     ports:
       - '9001:3000'
+    depends_on:
+      prepbox:
+        condition: service_completed_successfully
   nginx:
     image: nginx:mainline-alpine
     container_name: nginx

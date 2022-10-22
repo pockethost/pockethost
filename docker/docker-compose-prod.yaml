@@ -1,58 +1,99 @@
 version: '3'
 
 services:
-  app:
+  prepbox:
+    environment:
+      - GOPATH=/go
+    env_file:
+      - .env.local
     build:
       context: ..
       dockerfile: Dockerfile
+    container_name: prepbox
+    working_dir: /src
+    command: bash -c "yarn"
+    volumes:
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
+  buildbox:
     environment:
-      - APP_DOMAIN=pockethost.io
-      - CORE_PB_SUBDOMAIN=pockethost-central
+      - GOPATH=/go
+    env_file:
+      - .env.local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: buildbox
+    working_dir: /src
+    command: bash -c "yarn build"
+    volumes:
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
+    depends_on:
+      prepbox:
+        condition: service_completed_successfully
+  www:
+    env_file:
+      - .env.local
+    build:
+      context: ..
+      dockerfile: Dockerfile
     container_name: www
     restart: unless-stopped
-    command: node index.js
-    working_dir: /src/packages/pockethost.io/dist-server
+    working_dir: /src
+    command: bash -c "yarn start:www --host=www"
+    volumes:
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
     networks:
       - app-network
     ports:
-      - '9000:3000'
+      - '9000:5173'
     depends_on:
-      - daemon
+      daemon:
+        condition: service_started
+      buildbox:
+        condition: service_completed_successfully
   daemon:
-    environment:
-      - APP_DOMAIN=pockethost.io
-      - CORE_PB_SUBDOMAIN=pockethost-central
-      - CORE_PB_USERNAME=<cli>
-      - CORE_PB_PASSWORD=<cli>
-      - CORE_PB_PORT=8090
-      - PB_IDLE_TTL=5000
+    env_file:
+      - .env.local
     build:
       context: ..
       dockerfile: Dockerfile
     container_name: daemon
-    command: node server.js
-    working_dir: /src/packages/daemon/dist
+    working_dir: /src
+    command: bash -c "yarn start:daemon"
     restart: unless-stopped
+    environment:
+      - SHELL=/bin/bash
     volumes:
-      - ./mount/pocketbase/instances:/data
+      - ./mount/daemon/instances:/data
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src
     networks:
       - app-network
     ports:
       - '9001:3000'
+    depends_on:
+      buildbox:
+        condition: service_completed_successfully
   nginx:
     image: nginx:mainline-alpine
     container_name: nginx
     restart: unless-stopped
     depends_on:
-      - app
+      - www
       - daemon
     ports:
       - '80:80'
       - '443:443'
     volumes:
-      - ./nginx-conf:/etc/nginx/conf.d
-      - ./mount/logs:/mount/logs
-      - ./mount/ssl:/mount/ssl
+      - ./mount/nginx/conf.d/prod:/etc/nginx/conf.d
+      - ./mount/nginx/logs:/mount/logs
+      - ./mount/nginx/ssl:/mount/ssl
     networks:
       - app-network
 

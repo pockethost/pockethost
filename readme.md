@@ -75,6 +75,8 @@ The entire pockethost.io stack is dockerized to make it as easy as possible to m
 - Docker
 - Local SSL wildcard domain - [local domain setup instructions](./docs/local-domain-setup.md)
 
+_OS X Tip - In Docker Desktop > Beta Features, enable the Virtualization framework and VirtioFS. These settings make a huge performance difference with the volume mounts used frequently with development mode._
+
 **Running in dev mode**
 
 The following will run the Docker stack in dev mode. Dev mode links all code to the host repo and everything will rebuild/relaunch upon modification.
