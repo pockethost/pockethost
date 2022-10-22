@@ -58,7 +58,7 @@
 
         <div class="row justify-content-center">
           {#each values(apps) as app}
-            <div class="col-lg-4 col-12 mb-5">
+            <div class="col-xl-4 col-md-6 col-12 mb-5">
               <div class="card">
                 <div class="server-status">
                   <ProvisioningStatus status={app.status} />
