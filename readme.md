@@ -73,7 +73,7 @@ The entire pockethost.io stack is dockerized to make it as easy as possible to m
 **Prerequisites**
 
 - Docker
-- Local SSL wildcard domain - [local domain setup instructions](./local-domain-setup.md)
+- Local SSL wildcard domain - [local domain setup instructions](./tree/master/docs/local-domain-setup.md)
 
 **Running in dev mode**
 
