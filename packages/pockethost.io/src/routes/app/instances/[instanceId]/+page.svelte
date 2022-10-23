@@ -2,7 +2,7 @@
   import { page } from '$app/stores'
   import CodeSample from '$components/CodeSample.svelte'
   import Protected from '$components/Protected.svelte'
-  import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
+  import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_PB_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import { assertExists } from '@pockethost/common/src/assert'

@@ -80,11 +80,7 @@
 <style lang="scss">
   .page-bg {
     background-color: #222;
-    background-image: linear-gradient(
-      109.6deg,
-      rgba(218, 185, 252, 1) 11.2%,
-      rgba(125, 89, 252, 1) 91.1%
-    );
+    background-image: var(--gradient-dark-soft-blue);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,8 +90,7 @@
 
   .card {
     border: 0;
-    background-color: #fff;
-    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    box-shadow: var(--soft-box-shadow);
     padding: 24px;
     max-width: 425px;
     width: 100%;

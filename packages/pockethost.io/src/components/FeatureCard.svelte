@@ -30,11 +30,11 @@
 <style>
   .card {
     border: 0;
-    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    box-shadow: var(--soft-box-shadow);
     border-radius: 18px;
   }
   .card-icon {
-    background-color: #eee;
+    background-color: var(--bs-gray-200);
     width: 35px;
     height: 35px;
     border-radius: 35px;
