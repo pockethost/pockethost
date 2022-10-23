@@ -2,8 +2,6 @@ version: '3'
 
 services:
   prepbox:
-    environment:
-      - GOPATH=/go
     env_file:
       - .env.local
     build:
@@ -39,9 +37,6 @@ services:
       prepbox:
         condition: service_completed_successfully
   daemon:
-    environment:
-      - GOPATH=/go
-      - SHELL=/bin/bash
     env_file:
       - .env.local
     build:
