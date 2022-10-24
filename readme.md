@@ -18,6 +18,12 @@ This is the open source monorepo for pockethost.io, the hosting platform for Poc
 
 https://pockethost.io hosts your PocketBase projects so you don't have to. Create a project like you would in Firebase and Supabase and let PocketHost do the rest.
 
+Features:
+
+- Create unlimited PocketBase instances
+- Each instance runs on a subdomain of `pockethost.io`
+- Run your instance in an ultra-beefy shared environment
+
 **Focus on your app**
 
 Get a live PocketBase instance in 10 seconds with no backend setup:
@@ -75,7 +81,7 @@ The entire pockethost.io stack is dockerized to make it as easy as possible to m
 - Docker
 - Local SSL wildcard domain - [local domain setup instructions](./docs/local-domain-setup.md)
 
-_OS X Tip - In Docker Desktop > Beta Features, enable the Virtualization framework and VirtioFS. These settings make a huge performance difference with the volume mounts used frequently with development mode._
+_OS X Tip - In Docker Desktop > Beta Features, enable the Virtualization framework and VirtioFS. These settings make a huge performance difference with the volume mounts used frequently with development mode_
 
 **Running in dev mode**
 
@@ -95,16 +101,17 @@ open https://pockethost.test
 
 **next**
 
-- [ ] Improved realtime support in proxy
-- [ ] Updated developer docs
-- [x] Improved Docker support for dev and prod
-
-* [x] Complete UX redesign
-* [x] Idle/running status for PB instance now shows in green
-* [x] Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
+- [ ] IN PROGRESS - Improved realtime support in proxy
+- [ ] IN PROGRESS - Updated developer docs
+- [ ] IN PROGRESS - Improved Docker support for dev and prod
+- [x] Complete UX redesign
+- [x] Idle/running status for PB instance now shows in green
+- [x] Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
 
 **Icebox**
 
+- [ ] instance stats and quotas
+- [ ] realtime proxy connection monitoring
 - [ ] JS/TS cloud functions ([PBScript](https://github.com/benallfree/pbscript))
 - [ ] Litestream support
 - [ ] fly.io deployment support
