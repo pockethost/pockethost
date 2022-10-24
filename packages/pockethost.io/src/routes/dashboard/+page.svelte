@@ -1,13 +1,13 @@
 <script lang="ts">
   import Protected from '$components/Protected.svelte'
-  import ProvisioningStatus from '$components/ProvisioningStatus/ProvisioningStatus.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
+  import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { client } from '$src/pocketbase'
   import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
-  import { fade } from 'svelte/transition'
+  import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
 
   // Wait for the instance call to complete before rendering the UI
   let hasPageLoaded = false
@@ -58,7 +58,7 @@
 
         <div class="row justify-content-center">
           {#each values(apps) as app}
-            <div class="col-lg-4 col-12 mb-5">
+            <div class="col-xl-4 col-md-6 col-12 mb-5">
               <div class="card">
                 <div class="server-status">
                   <ProvisioningStatus status={app.status} />
@@ -92,12 +92,12 @@
       {/if}
 
       <div class="first-app-screen">
-        <div class="fun-border {isFirstApplication && 'fun-border-large'}">
+        <RetroBoxContainer minHeight={isFirstApplication ? 500 : 0}>
           <div class="px-lg-5">
             <h2 class="mb-4">Create Your {isFirstApplication ? 'First' : 'Next'} App</h2>
             <a href="/app/new" class="btn btn-primary btn-lg"><i class="bi bi-plus" /> New App</a>
           </div>
-        </div>
+        </RetroBoxContainer>
       </div>
     </div>
   {/if}
@@ -112,31 +112,10 @@
     padding: 85px 0;
   }
 
-  .fun-border {
-    background-color: #fff;
-    box-shadow: blue 0px 0px 0px 2px inset, rgb(255, 255, 255) 10px -10px 0px -3px,
-      rgb(31, 193, 27) 10px -10px, rgb(255, 255, 255) 20px -20px 0px -3px,
-      rgb(255, 217, 19) 20px -20px, rgb(255, 255, 255) 30px -30px 0px -3px,
-      rgb(255, 156, 85) 30px -30px, rgb(255, 255, 255) 40px -40px 0px -3px,
-      rgb(255, 85, 85) 40px -40px;
-    border: 1px solid #eee;
-    border-radius: 25px;
-    padding: 30px;
-    margin-right: 45px;
-    margin-top: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .fun-border-large {
-    min-height: 400px;
-  }
-
   .card {
     border: 0;
     padding: 24px;
-    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    box-shadow: var(--soft-box-shadow);
   }
 
   .server-status {
@@ -152,10 +131,6 @@
   @media screen and (min-width: 768px) {
     .first-app-screen {
       min-height: 70vh;
-    }
-
-    .fun-border {
-      margin: 0;
     }
   }
 </style>

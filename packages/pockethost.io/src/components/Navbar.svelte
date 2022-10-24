@@ -1,6 +1,7 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
   import MediaQuery from '$components/MediaQuery.svelte'
+  import ThemeToggle from '$components/ThemeToggle.svelte'
 
   const { isLoggedIn, logOut } = client
 
@@ -8,7 +9,7 @@
     e.preventDefault()
     logOut()
     // Hard refresh to make sure any remaining data is cleared
-    window.location = "/";
+    window.location = '/'
   }
 </script>
 
@@ -45,6 +46,8 @@
                   class="btn border-0 nav-link"
                   type="button"
                   data-bs-toggle="dropdown"
+                  aria-label="Click to expand the Account Dropdown"
+                  title="Account Dropdown"
                   aria-expanded="false"
                 >
                   <i class="bi bi-person-circle" />
@@ -80,10 +83,15 @@
             href="https://github.com/benallfree/pockethost"
             target="_blank"
             aria-label="Link to our Github Project"
+            title="Link to our Github Project"
             rel="noopener"
           >
             <i class="bi bi-github" /><span class="nav-github-link">Github</span>
           </a>
+        </li>
+
+        <li class="nav-item">
+          <ThemeToggle navLink={true} />
         </li>
       </ul>
     </div>
@@ -92,9 +100,9 @@
 
 <style lang="scss">
   header {
-    background-color: #fff;
+    background-color: var(--bs-body-bg);
     padding: 12px 24px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--bs-gray-300);
   }
 
   .logo {
@@ -107,7 +115,7 @@
       font-size: 36px;
       font-weight: 300;
       margin: 0;
-      color: #222;
+      color: var(--bs-body-color);
 
       span {
         font-weight: 700;
@@ -128,6 +136,7 @@
 
   .nav-link {
     font-weight: 500;
+    margin: 0 5px;
   }
 
   .nav-github-link {

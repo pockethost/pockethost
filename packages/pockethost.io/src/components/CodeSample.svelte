@@ -2,7 +2,7 @@
   import { Highlight } from 'svelte-highlight'
   import { typescript } from 'svelte-highlight/languages'
   import 'svelte-highlight/styles/github.css'
-  import CopyButton from './CopyButton.svelte'
+  import CopyButton from '$components/CopyButton.svelte'
 
   export let code: string
   const handleCopy = () => {

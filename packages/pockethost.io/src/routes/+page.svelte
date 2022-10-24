@@ -162,7 +162,7 @@
   }
 
   .features {
-    background-image: linear-gradient(179.4deg, rgb(252, 239, 233) 2.2%, rgb(211, 242, 185) 96.2%);
+    background-image: var(--gradient-white-lime);
     padding: 120px 0;
   }
 
