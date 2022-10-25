@@ -16,6 +16,7 @@ services:
       - ./mount/cache/go:/go
       - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
       - ..:/src
+    profiles: ['build']
   buildbox:
     environment:
       - GOPATH=/go
@@ -34,6 +35,7 @@ services:
     depends_on:
       prepbox:
         condition: service_completed_successfully
+    profiles: ['build']
   www:
     env_file:
       - .env.local
@@ -54,8 +56,7 @@ services:
     depends_on:
       daemon:
         condition: service_started
-      buildbox:
-        condition: service_completed_successfully
+    profiles: ['serve']
   daemon:
     env_file:
       - .env.local
@@ -77,9 +78,7 @@ services:
       - app-network
     ports:
       - '9001:3000'
-    depends_on:
-      buildbox:
-        condition: service_completed_successfully
+    profiles: ['serve']
   nginx:
     image: nginx:mainline-alpine
     container_name: nginx
@@ -96,6 +95,7 @@ services:
       - ./mount/nginx/ssl:/mount/nginx/ssl
     networks:
       - app-network
+    profiles: ['serve']
 
 networks:
   app-network:

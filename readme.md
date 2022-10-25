@@ -109,7 +109,7 @@ cp .env-template-prod .env.local  # Edit as needed - defaults should work
 cd ..
 docker-compose -f docker/docker-compose-prod.yaml build
 # Use 'buildbox' to test your build before launching service
-docker-compose -f docker/docker-compose-prod.yaml up buildbox --remove-orphans
+docker-compose -f docker/docker-compose-prod.yaml --profile=build up --remove-orphans
 ```
 
 **2. Refresh Certbot**
@@ -123,7 +123,7 @@ Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/n
 **3. Run**
 
 ```bash
-nohup docker-compose -f docker/docker-compose.prod.yaml up --remove-orphans
+docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans
 open https://pockethost.io
 ```
 
