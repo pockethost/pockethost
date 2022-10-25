@@ -69,7 +69,7 @@ services:
     environment:
       - SHELL=/bin/bash
     volumes:
-      - ./mount/daemon/instances:/data
+      - /home/pockethost/data:/data
       - ./mount/cache/go:/go
       - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
       - ..:/src
