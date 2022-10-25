@@ -91,7 +91,7 @@ The following will run the Docker stack in dev mode. Dev mode links all code to 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
-cp .env-template-dev .env-local  # Edit as needed - defaults should work
+cp .env-template-dev .env.local  # Edit as needed - defaults should work
 cd ..
 docker-compose -f docker/docker-compose.dev.yaml build
 docker-compose -f docker/docker-compose.dev.yaml up
@@ -105,7 +105,7 @@ open https://pockethost.test
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
-cp .env-template-prod .env-local  # Edit as needed - defaults should work
+cp .env-template-prod .env.local  # Edit as needed - defaults should work
 cd ..
 docker-compose -f docker/docker-compose.prod.yaml build
 # Use 'buildbox' to test your build before launching service
