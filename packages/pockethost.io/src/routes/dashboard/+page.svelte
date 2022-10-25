@@ -4,10 +4,11 @@
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
+  import { createCleanupManagerSync } from '$util/CleanupManager'
   import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
-  import type { Unsubscriber } from 'svelte/store'
+  import { fade } from 'svelte/transition'
 
   // Wait for the instance call to complete before rendering the UI
   let hasPageLoaded = false
@@ -18,8 +19,7 @@
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
 
-  let unsubs: Unsubscriber[] = []
-
+  const cm = createCleanupManagerSync()
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
   const _update = (_apps: Instance_Out_ByIdCollection) => {
     apps = _apps
@@ -37,7 +37,7 @@
             console.log(`got a record`, r)
             _update({ ...apps, [r.id]: r })
           })
-          unsubs.push(unsub)
+          cm.add(unsub)
         })
       })
       .catch((e) => {
@@ -48,9 +48,7 @@
       })
   })
 
-  onDestroy(() => {
-    unsubs.forEach((u) => u())
-  })
+  onDestroy(cm.cleanupAll)
 </script>
 
 <Protected>
