@@ -10,6 +10,7 @@ This is the open source monorepo for pockethost.io, the hosting platform for Poc
 - [Development](#development)
   - [Just the frontend (Svelte)](#just-the-frontend-svelte)
   - [All our base](#all-our-base)
+- [Production Deployment](#production-deployment)
 - [Release History](#release-history)
 
 <!-- /code_chunk_output -->
@@ -90,32 +91,52 @@ The following will run the Docker stack in dev mode. Dev mode links all code to 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
-cp .env-template .env-local  # Edit as needed - defaults should work
+cp .env-template-dev .env-local  # Edit as needed - defaults should work
 cd ..
 docker-compose -f docker/docker-compose.dev.yaml build
 docker-compose -f docker/docker-compose.dev.yaml up
 open https://pockethost.test
 ```
 
+# Production Deployment
+
+**1. Build**
+
+```bash
+git clone git@github.com:benallfree/pockethost.git
+cd pockethost/docker
+cp .env-template-prod .env-local  # Edit as needed - defaults should work
+cd ..
+docker-compose -f docker/docker-compose.prod.yaml build
+# Use 'buildbox' to test your build before launching service
+docker-compose -f docker/docker-compose.prod.yaml up buildbox
+```
+
+**2. Refresh Certbot**
+
+```bash
+./scripts/certbot-refresh.sh
+```
+
+Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/nginx/ssl`.
+
+**3. Run**
+
+```bash
+nohup docker-compose -f docker/docker-compose.prod.yaml up
+open https://pockethost.io
+```
+
 # Release History
 
-**next**
+**0.3.0**
 
-- [ ] IN PROGRESS - Improved realtime support in proxy
-- [ ] IN PROGRESS - Updated developer docs
-- [ ] IN PROGRESS - Improved Docker support for dev and prod
+- [x] Improved realtime support in proxy
+- [x] Updated developer docs
+- [x] Improved Docker support for dev and prod
 - [x] Complete UX redesign
 - [x] Idle/running status for PB instance now shows in green
 - [x] Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
-
-**Icebox**
-
-- [ ] instance stats and quotas
-- [ ] realtime proxy connection monitoring
-- [ ] JS/TS cloud functions ([PBScript](https://github.com/benallfree/pbscript))
-- [ ] Litestream support
-- [ ] fly.io deployment support
-- [ ] Provision outgoing email config for new instances while hiding root credentials
 
 **0.2.0**
 
