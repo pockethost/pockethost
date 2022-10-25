@@ -93,8 +93,8 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-dev .env-local  # Edit as needed - defaults should work
 cd ..
-docker-compose -f docker/docker-compose.dev.yaml build
-docker-compose -f docker/docker-compose.dev.yaml up
+docker-compose -f docker/docker-compose-dev.yaml build
+docker-compose -f docker/docker-compose-dev.yaml up
 open https://pockethost.test
 ```
 
@@ -107,9 +107,9 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-prod .env-local  # Edit as needed - defaults should work
 cd ..
-docker-compose -f docker/docker-compose.prod.yaml build
+docker-compose -f docker/docker-compose-prod.yaml build
 # Use 'buildbox' to test your build before launching service
-docker-compose -f docker/docker-compose.prod.yaml up buildbox
+docker-compose -f docker/docker-compose-prod.yaml up buildbox
 ```
 
 **2. Refresh Certbot**

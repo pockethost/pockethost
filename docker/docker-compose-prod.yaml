@@ -92,8 +92,8 @@ services:
       - '443:443'
     volumes:
       - ./mount/nginx/conf.d/prod:/etc/nginx/conf.d
-      - ./mount/nginx/logs:/mount/logs
-      - ./mount/nginx/ssl:/mount/ssl
+      - ./mount/nginx/logs:/mount/nginx/logs
+      - ./mount/nginx/ssl:/mount/nginx/ssl
     networks:
       - app-network
 
