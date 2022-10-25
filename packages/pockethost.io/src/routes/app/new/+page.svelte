@@ -1,9 +1,9 @@
 <script lang="ts">
-  import Protected from '$components/Protected.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
-  import { generateSlug } from 'random-word-slugs'
-  import { handleCreateNewInstance } from '$util/database'
   import AlertBar from '$components/AlertBar.svelte'
+  import Protected from '$components/Protected.svelte'
+  import { PUBLIC_PB_DOMAIN } from '$src/env'
+  import { handleCreateNewInstance } from '$util/database'
+  import { generateSlug } from 'random-word-slugs'
 
   let instanceName: string = generateSlug(2)
   let formError: string = ''
@@ -19,7 +19,7 @@
     instanceName = generateSlug(2)
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
 
     await handleCreateNewInstance(instanceName, (error) => {

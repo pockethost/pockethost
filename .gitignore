@@ -1,8 +1,9 @@
-.DS_Store
-node_modules
+**/.DS_Store
+**/node_modules
 .secret
 .vscode
-*.out
-.env
-*.log
+**/*.out
+**/*.log
 .idea
+**/.env
+**/.env.*

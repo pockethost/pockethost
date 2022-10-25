@@ -4,8 +4,10 @@
   "license": "MIT",
   "scripts": {
     "build": "mkdir -p dist && esbuild src/server.ts --bundle --platform=node > dist/server.js && echo 'Build complete' `date`",
-    "watch": "chokidar 'src/**' -c 'yarn build' --initial",
-    "serve": "node dist/server.js"
+    "dev": "yarn build && concurrently 'yarn dev:watch' 'yarn dev:serve'",
+    "dev:watch": "chokidar 'src/**' '../pocketbase/src/**' -c 'yarn build'",
+    "dev:serve": "nodemon dist/server.js",
+    "start": "node dist/server.js"
   },
   "targets": {
     "server": {
@@ -36,7 +38,9 @@
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
+    "concurrently": "^7.4.0",
     "esbuild": "^0.15.11",
+    "nodemon": "^2.0.20",
     "parcel": "^2.7.0",
     "ts-node": "^10.9.1"
   }

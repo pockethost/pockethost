@@ -1,3 +1,0 @@
-127.0.0.1 pockethost.local                      # The main domain
-127.0.0.1 pockethost-central.pockethost.local   # The main pocketbase instance
-127.0.0.1 test.pockethost.local                 # A sample (user) pocketbase instance

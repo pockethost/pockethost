@@ -3,5 +3,4 @@
 **/.parcel-cache
 **/dist
 **/dist-server
-**/.env
 **/*.log
