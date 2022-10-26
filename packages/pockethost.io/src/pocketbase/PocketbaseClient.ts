@@ -4,18 +4,21 @@ import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, { BaseAuthStore, ClientResponseError, Record } from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
 
+export type AuthChangeHandler = (user: BaseAuthStore) => void
+
 export const createPocketbaseClient = (url: string) => {
   const client = new PocketBase(url)
 
   const { authStore } = client
 
-  const { onChange } = authStore
-
   const user = () => authStore.model
 
   const isLoggedIn = () => authStore.isValid
 
-  const onAuthChange = (cb: (user: BaseAuthStore) => Unsubscriber) => onChange(() => cb(authStore))
+  const onAuthChange = (cb: AuthChangeHandler): Unsubscriber =>
+    authStore.onChange(() => {
+      cb(authStore)
+    })
 
   const logOut = () => authStore.clear()
 

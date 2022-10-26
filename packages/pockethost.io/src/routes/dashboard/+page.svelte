@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition'
   import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$env/static/public'
+  import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
+  import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
+  import { createCleanupManagerSync } from '$util/CleanupManager'
   import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
-  import type { Unsubscriber } from 'svelte/store'
-  import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
+  import { fade } from 'svelte/transition'
 
   // Wait for the instance call to complete before rendering the UI
   let hasPageLoaded = false
@@ -19,21 +19,25 @@
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
 
-  let unsubs: Unsubscriber[] = []
-
+  const cm = createCleanupManagerSync()
+  let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
+  const _update = (_apps: Instance_Out_ByIdCollection) => {
+    apps = _apps
+    _touch++
+  }
   onMount(() => {
     getAllInstancesById()
       .then((instances) => {
-        apps = instances
+        _update(instances)
 
         forEach(apps, (app) => {
           const instanceId = app.id
 
           const unsub = watchInstanceById(instanceId, (r) => {
             console.log(`got a record`, r)
-            apps[r.id] = r
+            _update({ ...apps, [r.id]: r })
           })
-          unsubs.push(unsub)
+          cm.add(unsub)
         })
       })
       .catch((e) => {
@@ -44,9 +48,7 @@
       })
   })
 
-  onDestroy(() => {
-    unsubs.forEach((u) => u())
-  })
+  onDestroy(cm.cleanupAll)
 </script>
 
 <svelte:head>
@@ -54,58 +56,52 @@
 </svelte:head>
 
 <Protected>
-  {#if hasPageLoaded}
-    <div class="container" in:fade={{ duration: 30 }}>
-      {#if values(apps).length}
-        <div class="py-4">
-          <h1 class="text-center">Your Apps</h1>
-        </div>
+  <div class="container" in:fade={{ duration: 30 }}>
+    {#if values(apps).length}
+      <div class="py-4">
+        <h1 class="text-center">Your Apps</h1>
+      </div>
 
-        <div class="row justify-content-center">
-          {#each values(apps) as app}
-            <div class="col-xl-4 col-md-6 col-12 mb-5">
-              <div class="card">
-                <div class="server-status">
-                  <ProvisioningStatus status={app.status} />
-                </div>
+      <div class="row justify-content-center">
+        {#each values(apps) as app}
+          <div class="col-xl-4 col-md-6 col-12 mb-5">
+            <div class="card">
+              <div class="server-status">
+                <ProvisioningStatus status={app.status} />
+              </div>
 
-                <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
+              <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
 
-                <div class="d-flex justify-content-around">
-                  <a href={`/app/instances/${app.id}`} class="btn btn-light">
-                    <i class="bi bi-gear-fill" />
-                    <span>Details</span>
-                  </a>
+              <div class="d-flex justify-content-around">
+                <a href={`/app/instances/${app.id}`} class="btn btn-light">
+                  <i class="bi bi-gear-fill" />
+                  <span>Details</span>
+                </a>
 
-                  <a
-                    class="btn btn-light pocketbase-button"
-                    href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
-                    target="_blank"
-                  >
-                    <img
-                      src="/images/pocketbase-logo.svg"
-                      alt="PocketBase Logo"
-                      class="img-fluid"
-                    />
-                    <span>Admin</span>
-                  </a>
-                </div>
+                <a
+                  class="btn btn-light pocketbase-button"
+                  href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
+                  target="_blank"
+                >
+                  <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
+                  <span>Admin</span>
+                </a>
               </div>
             </div>
-          {/each}
-        </div>
-      {/if}
-
-      <div class="first-app-screen">
-        <RetroBoxContainer minHeight={isFirstApplication ? 500 : 0}>
-          <div class="px-lg-5">
-            <h2 class="mb-4">Create Your {isFirstApplication ? 'First' : 'Next'} App</h2>
-            <a href="/app/new" class="btn btn-primary btn-lg"><i class="bi bi-plus" /> New App</a>
           </div>
-        </RetroBoxContainer>
+        {/each}
       </div>
+    {/if}
+
+    <div class="first-app-screen">
+      <RetroBoxContainer minHeight={isFirstApplication ? 500 : 0}>
+        <div class="px-lg-5">
+          <h2 class="mb-4">Create Your {isFirstApplication ? 'First' : 'Next'} App</h2>
+          <a href="/app/new" class="btn btn-primary btn-lg"><i class="bi bi-plus" /> New App</a>
+        </div>
+      </RetroBoxContainer>
     </div>
-  {/if}
+  </div>
 </Protected>
 
 <style lang="scss">

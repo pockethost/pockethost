@@ -2,6 +2,7 @@
   import FeatureCard from '$components/FeatureCard.svelte'
   import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import InstanceGeneratorWidget from '$components/InstanceGeneratorWidget.svelte'
+  import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
 
   const { isLoggedIn } = client
@@ -89,7 +90,7 @@
           <p>
             Email and oAuth authentication options work out of the box. Send transactional email to
             your users from our verified domain and your custom address <code
-              >yoursubdomin@pockethost.local</code
+              >yoursubdomin@{PUBLIC_APP_DOMAIN}</code
             >.
           </p>
         </FeatureCard>
@@ -137,7 +138,7 @@
           <ul>
             <li>JS/TS cloud functions</li>
             <li>Deploy to Fly.io</li>
-            <li>Lightstream</li>
+            <li>Litestream</li>
           </ul>
         </FeatureCard>
       </div>

@@ -1,0 +1,1 @@
+pocketbase serve --dir ~/pocketbase-microservice/data/$SUBDOMAIN/pb_data --http 127.0.0.1:$PORT &

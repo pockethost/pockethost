@@ -38,30 +38,8 @@ export type Instance_Out = PocketbaseRecord<InstanceId> & {
   status: InstanceStatus
 }
 
-export type Instance_Internal_In = {
-  instanceId?: InstanceId
-  port?: Port
-  certCreatedAt?: IsoDate
-  nginxCreatedAt?: IsoDate
-  pid?: ProcessId
-  launchedAt?: IsoDate
-}
-
-export type Instance_Internal_Out = PocketbaseRecord<InternalInstanceId> & {
-  instanceId: InstanceId
-  port: Port
-  certCreatedAt: IsoDate
-  nginxCreatedAt: IsoDate
-  pid: ProcessId
-  launchedAt: IsoDate
-}
-
-export type Any_Record_Out = Instance_Out | Instance_Internal_Out
+export type Any_Record_Out = Instance_Out
 
 export type Instance_Out_ByIdCollection = {
   [_: InstanceId]: Instance_Out
-}
-
-export type Instance_Internal_Out_ByIdCollection = {
-  [_: InstanceId]: Instance_Internal_Out
 }
