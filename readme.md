@@ -129,6 +129,11 @@ open https://pockethost.io
 
 # Release History
 
+**0.3.1**
+
+- [x] OpenGraph support
+- [x] Darkmode enhancements
+
 **0.3.0**
 
 - [x] Improved realtime support in proxy
