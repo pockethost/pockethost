@@ -28,6 +28,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>New Instance - PocketHost</title>
+</svelte:head>
+
 <Protected>
   <div class="container">
     <div class="py-4">

@@ -32,6 +32,10 @@
   onDestroy(() => unsub())
 </script>
 
+<svelte:head>
+  <title>Your Instance - PocketHost</title>
+</svelte:head>
+
 <Protected>
   <div class="container">
     {#if instance}

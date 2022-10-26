@@ -49,6 +49,10 @@
   })
 </script>
 
+<svelte:head>
+  <title>Dashboard - PocketHost</title>
+</svelte:head>
+
 <Protected>
   {#if hasPageLoaded}
     <div class="container" in:fade={{ duration: 30 }}>

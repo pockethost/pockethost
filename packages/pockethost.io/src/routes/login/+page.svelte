@@ -22,6 +22,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Sign In - PocketHost</title>
+</svelte:head>
+
 <div class="page-bg">
   <div class="card">
     <h2 class="mb-4">Login</h2>
