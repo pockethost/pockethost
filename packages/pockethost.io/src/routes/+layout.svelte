@@ -1,22 +1,11 @@
 <script>
+  import Meta from '$components/Meta.svelte'
   import Navbar from '$components/Navbar.svelte'
+  import ThemeDetector from '$components/ThemeDetector.svelte'
 </script>
 
-<svelte:head>
-  <script>
-    {
-      const THEME_ATTRIBUTE = 'data-theme'
-      const currentTheme =
-        document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('theme='))
-          ?.split('=')?.[1] || 'light'
-      console.log(`Current theme is ${currentTheme}`)
-      document.querySelector('html')?.setAttribute(THEME_ATTRIBUTE, currentTheme)
-      console.log(document.querySelector('html'))
-    }
-  </script>
-</svelte:head>
+<Meta />
+<ThemeDetector />
 <Navbar />
 
 <main data-sveltekit-prefetch>

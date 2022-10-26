@@ -2,6 +2,10 @@
   import { page } from '$app/stores'
 </script>
 
+<svelte:head>
+  <title>{$page.status} - PocketHost</title>
+</svelte:head>
+
 <div class="container text-center py-4">
   <h1 class="mb-5">{$page.status}: {$page.error.message}</h1>
 

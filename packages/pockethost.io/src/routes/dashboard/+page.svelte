@@ -51,6 +51,10 @@
   onDestroy(cm.cleanupAll)
 </script>
 
+<svelte:head>
+  <title>Dashboard - PocketHost</title>
+</svelte:head>
+
 <Protected>
   <div class="container" in:fade={{ duration: 30 }}>
     {#if values(apps).length}
