@@ -11,6 +11,19 @@
   <title>PocketHost</title>
   <meta name="description" content={tagline} />
 
+  <script>
+    {
+      const THEME_ATTRIBUTE = 'data-theme'
+      const currentTheme =
+        document.cookie
+          .split('; ')
+          .find((row) => row.startsWith('theme='))
+          ?.split('=')?.[1] || 'light'
+
+      document.querySelector('html')?.setAttribute(THEME_ATTRIBUTE, currentTheme)
+    }
+  </script>
+
   <link rel="manifest" href="/manifest.json" />
 
   <!-- Facebook Meta Tags -->
