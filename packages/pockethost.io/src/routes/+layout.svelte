@@ -10,7 +10,7 @@
         document.cookie
           .split('; ')
           .find((row) => row.startsWith('theme='))
-          ?.split('=')?.[1] || 'dark'
+          ?.split('=')?.[1] || 'light'
       console.log(`Current theme is ${currentTheme}`)
       document.querySelector('html')?.setAttribute(THEME_ATTRIBUTE, currentTheme)
       console.log(document.querySelector('html'))
