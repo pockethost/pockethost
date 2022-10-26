@@ -1,76 +1,66 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
+  import { assertTruthy } from '@pockethost/common'
+  import { find } from '@s-libs/micro-dash'
+  import Cookies from 'js-cookie'
   import { onMount } from 'svelte'
+
+  // Set some default values to be referenced later
+  enum ThemeNames {
+    Light = 'light',
+    Dark = 'dark'
+  }
+  const ALLOWED_THEMES: ThemeNames[] = [ThemeNames.Light, ThemeNames.Dark]
+  const DEFAULT_THEME: ThemeNames = ThemeNames.Light
+  const STORAGE_NAME: string = 'theme'
+  const THEME_ATTRIBUTE: string = 'data-theme'
+  const THEME_ICONS: { [_ in ThemeNames]: string } = {
+    [ThemeNames.Light]: 'bi bi-moon-stars',
+    [ThemeNames.Dark]: 'bi bi-brightness-high'
+  }
+
+  const html = () => {
+    const htmlElement = document.querySelector('html')
+    assertTruthy(htmlElement, `Expected <html> element to exist`)
+    return htmlElement
+  }
+  const currentTheme = () => {
+    const htmlElement = html()
+    const _att = htmlElement.getAttribute(THEME_ATTRIBUTE)
+    const currentTheme = find(ALLOWED_THEMES, (v) => _att === v) || DEFAULT_THEME
+    return currentTheme
+  }
+  const currentIcon = () => {
+    return THEME_ICONS[currentTheme()]
+  }
 
   // This can change the CSS a bit depending on where the theme toggle is rendered
   export let navLink: boolean = false
 
   // Set the default icon to be light mode
-  let iconClass: string = 'bi bi-moon-stars'
-
-  // Set some default values to be referenced later
-  const STORAGE_NAME: string = 'theme'
-  const THEME_ATTRIBUTE: string = 'data-theme'
-
-  // FIXME: I don't think these enums are right
-  enum PossibleThemeValues {
-    Dark = {
-      icon: 'bi bi-brightness-high',
-      theme: 'dark'
-    },
-    Light = {
-      icon: 'bi bi-moon-stars',
-      theme: 'light'
-    }
-  }
-
-  // This will track the user's theme throughout the app
-  let localStorageTheme = ''
+  let iconClass: string = browser ? currentIcon() : ''
 
   // Wait for the DOM to be available
   onMount(() => {
-    // First get the site default theme
-    const htmlElement: Element = document.querySelector('html')
-    const currentTheme: string = htmlElement.getAttribute(THEME_ATTRIBUTE)
-
-    // If this is the user's first time on the site, set the default theme
-    if (localStorage.getItem(STORAGE_NAME) === null) {
-      localStorage.setItem(STORAGE_NAME, currentTheme)
-    }
-
-    // Now get the user's theme value
-    localStorageTheme = localStorage.getItem(STORAGE_NAME)
-
-    // If the storage item is different from the HTML theme attribute, update the HTML
-    if (localStorageTheme === 'light') {
-      updateTheme(PossibleThemeValues.Light)
-    } else {
-      updateTheme(PossibleThemeValues.Dark)
-    }
+    updateTheme(currentTheme())
   })
 
   // Alternate the theme values on toggle click
   const handleClick = () => {
-    // Get the user's current theme setting
-    localStorageTheme = localStorage.getItem(STORAGE_NAME)
-
-    if (localStorageTheme === 'light') {
-      updateTheme(PossibleThemeValues.Dark)
-    } else {
-      updateTheme(PossibleThemeValues.Light)
-    }
+    const newTheme = currentTheme() === ThemeNames.Light ? ThemeNames.Dark : ThemeNames.Light
+    updateTheme(newTheme)
   }
 
-  const updateTheme = (type: PossibleThemeValues) => {
-    const htmlElement: Element = document.querySelector('html')
+  const updateTheme = (themeName: ThemeNames) => {
+    const htmlElement = html()
 
     // Update the icon class name to toggle between light and dark mode
-    iconClass = type['icon']
+    iconClass = THEME_ICONS[themeName]
 
     // Update the HTML element to have the right data-theme value
-    htmlElement.setAttribute(THEME_ATTRIBUTE, type['theme'])
+    htmlElement.setAttribute(THEME_ATTRIBUTE, themeName)
 
-    // Now update the localStorage to have the latest value
-    localStorage.setItem(STORAGE_NAME, type['theme'])
+    Cookies.set(STORAGE_NAME, themeName)
   }
 </script>
 
