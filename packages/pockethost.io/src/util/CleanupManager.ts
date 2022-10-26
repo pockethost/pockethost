@@ -35,8 +35,7 @@ export const createCleanupManagerAsync = () => {
     return cleanup
   }
 
-  const cleanupAll = () =>
-    reduce(cleanups, (c, v) => c.then(v()), Promise.resolve())
+  const cleanupAll = () => reduce(cleanups, (c, v) => c.then(v()), Promise.resolve())
 
   return { add, cleanupAll }
 }
