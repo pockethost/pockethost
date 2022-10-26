@@ -11,7 +11,7 @@ import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_PORT_BASE,
   DAEMON_PB_USERNAME,
-  PUBLIC_APP_DOMAIN,
+  PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from './constants'
@@ -119,7 +119,7 @@ export const createInstanceManger = async () => {
     await client.migrate(collections_001)
   } catch (e) {
     console.error(
-      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_APP_DOMAIN}/_/`
+      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
     )
     console.error(
       `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
