@@ -2,8 +2,9 @@
   import { page } from '$app/stores'
   import CodeSample from '$components/CodeSample.svelte'
   import Protected from '$components/Protected.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$src/env'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
+  import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
+  import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { assertExists } from '@pockethost/common/src/assert'
   import type { Instance_Out } from '@pockethost/common/src/schema'
@@ -25,7 +26,7 @@
       instance = r
       assertExists(instance, `Expected instance here`)
       const { subdomain } = instance
-      url = `https://${subdomain}.${PUBLIC_PB_DOMAIN}`
+      url = `${PUBLIC_PB_PROTOCOL}://${subdomain}.${PUBLIC_PB_DOMAIN}`
       code = `const url = '${url}'\nconst client = new PocketBase(url)`
     })
   })

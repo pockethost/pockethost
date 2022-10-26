@@ -1,5 +1,6 @@
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
+import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from './constants'
 import { createInstanceManger } from './InstanceManager'
 
 export const createProxyServer = async () => {
@@ -30,7 +31,7 @@ export const createProxyServer = async () => {
     const instance = await instanceManager.getInstance(subdomain)
     if (!instance) {
       die(
-        `${host} not found. Please check the instance URL and try again, or create one at https://pockethost.io`
+        `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}`
       )
       return
     }

@@ -1,7 +1,10 @@
 import { existsSync } from 'fs'
-
+export const PUBLIC_APP_PROTOCOL = process.env.PUBLIC_APP_PROTOCOL || `https`
+export const PUBLIC_PB_PROTOCOL = process.env.PUBLIC_PB_PROTOCOL || `https`
 export const PUBLIC_APP_DOMAIN =
   process.env.PUBLIC_APP_DOMAIN || `pockethost.test`
+export const PUBLIC_PB_DOMAIN =
+  process.env.PUBLIC_PB_DOMAIN || `pockethost.test`
 export const PUBLIC_PB_SUBDOMAIN =
   process.env.PUBLIC_PB_SUBDOMAIN || `pockethost-central`
 export const DAEMON_PB_USERNAME = (() => {
