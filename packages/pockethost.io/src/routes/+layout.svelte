@@ -1,9 +1,11 @@
 <script>
+  import Meta from '$components/Meta.svelte'
   import Navbar from '$components/Navbar.svelte'
-  import Meta from './Meta.svelte'
+  import ThemeDetector from '$components/ThemeDetector.svelte'
 </script>
 
 <Meta />
+<ThemeDetector />
 <Navbar />
 
 <main data-sveltekit-prefetch>
