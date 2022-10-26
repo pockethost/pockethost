@@ -28,6 +28,8 @@
   "dependencies": {
     "@pockethost/common": "0.0.1",
     "@s-libs/micro-dash": "12",
+    "@types/js-cookie": "^3.0.2",
+    "js-cookie": "^3.0.1",
     "pocketbase": "^0.7.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
