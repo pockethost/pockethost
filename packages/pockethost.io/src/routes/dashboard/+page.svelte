@@ -34,7 +34,6 @@
           const instanceId = app.id
 
           const unsub = watchInstanceById(instanceId, (r) => {
-            console.log(`got a record`, r)
             _update({ ...apps, [r.id]: r })
           })
           cm.add(unsub)

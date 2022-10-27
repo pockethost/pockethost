@@ -22,7 +22,6 @@
 
   onMount(() => {
     unsub = watchInstanceById(instanceId, (r) => {
-      console.log(`got a record`, r)
       instance = r
       assertExists(instance, `Expected instance here`)
       const { subdomain } = instance

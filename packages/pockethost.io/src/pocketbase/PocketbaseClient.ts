@@ -32,6 +32,10 @@ export const createPocketbaseClient = (url: string) => {
   const authViaEmail = (email: string, password: string) =>
     client.users.authViaEmail(email, password)
 
+  const refreshUserData = async () => {
+    return await client.users.refresh()
+  }
+
   const createInstance = (payload: Instance_In): Promise<Instance_Out> => {
     return client.records.create('instances', payload).then((r) => r as unknown as Instance_Out)
   }
@@ -45,7 +49,6 @@ export const createPocketbaseClient = (url: string) => {
     const slug = `instances/${id}`
     getInstanceById(id).then((v) => {
       if (!v) return
-      console.log(`Initial record`, { v })
       cb(v)
     })
     return subscribe(slug, cb)
@@ -63,7 +66,6 @@ export const createPocketbaseClient = (url: string) => {
     }, {} as Record)
 
   const setInstance = (instanceId: InstanceId, fields: Instance_In) => {
-    console.log(`${instanceId} setting fields`, { fields })
     return client.records.update('instances', instanceId, fields).catch((e) => {
       console.error(`setInstance failed for ${instanceId} with ${e}`, {
         fields
@@ -89,6 +91,7 @@ export const createPocketbaseClient = (url: string) => {
     onAuthChange,
     isLoggedIn,
     user,
+    refreshUserData,
     watchInstanceById,
     getAllInstancesById,
     setInstance

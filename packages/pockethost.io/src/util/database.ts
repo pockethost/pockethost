@@ -1,7 +1,8 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
+import { globalUserData } from '$util/stores'
 import { InstanceStatus } from '@pockethost/common'
-const { authViaEmail, createUser, user, createInstance } = client
+const { authViaEmail, createUser, user, logOut, createInstance } = client
 
 export type FormErrorHandler = (value: string) => void
 
@@ -33,10 +34,13 @@ export const handleLogin = async (
   setError?.('')
 
   try {
-    await authViaEmail(email, password)
+    const response = await authViaEmail(email, password)
+
+    // Update the global svelte store
+    globalUserData.set(response)
 
     if (shouldRedirect) {
-      goto('/dashboard')
+      await goto('/dashboard')
     }
   } catch (error: any) {
     handleFormError(error, setError)
@@ -168,4 +172,19 @@ export const handleInstanceGeneratorWidget = async (
     console.error(`Caught widget error`, { error })
     handleFormError(error, setError)
   }
+}
+
+export const handleResendVerificationEmail = () => {
+  alert('Email sent')
+}
+
+export const handleLogout = () => {
+  // Clear the Pocketbase session
+  logOut()
+
+  // Reset the global stores
+  globalUserData.set({})
+
+  // Hard refresh to make sure any remaining data is cleared
+  window.location.href = '/'
 }

@@ -1,0 +1,38 @@
+<script>
+  import { client } from '$src/pocketbase'
+  import { globalUserData } from '$util/stores'
+  import { onMount } from 'svelte'
+  import { getRouter } from '$util/utilities'
+
+  const { refreshUserData } = client
+
+  onMount(async () => {
+    try {
+      // First check if the user even has a token
+      const doesUserTokenExist = localStorage.getItem('pocketbase_auth')
+
+      if (doesUserTokenExist === null) {
+        throw new Error('User has not logged in yet')
+      }
+
+      // Verify the user's token on page load
+      const response = await refreshUserData()
+
+      // Set the global state if successful
+      await globalUserData.set(response)
+    } catch (error) {
+      // Either the token is invalid, or the database is down.
+      console.warn('Unable to verify your token, or connect to PocketHost')
+
+      // Clear their local storage
+      localStorage.removeItem('pocketbase_auth')
+
+      // Send user to the homepage
+      const router = getRouter()
+
+      if (router.pathname !== '/') {
+        window.location.href = '/?message=invalid-token'
+      }
+    }
+  })
+</script>

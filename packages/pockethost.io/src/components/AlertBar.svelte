@@ -9,7 +9,7 @@
     <i class={icon} />
   {/if}
 
-  <div>
+  <div class="w-100">
     {#if title}<p class="fw-bold mb-0">{title}</p>{/if}
 
     {#if text}

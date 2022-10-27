@@ -1,30 +1,8 @@
 <script lang="ts">
   import MediaQuery from '$components/MediaQuery.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
-  import { client } from '$src/pocketbase'
-  import { createCleanupManagerSync } from '$util/CleanupManager'
-  import { onDestroy, onMount } from 'svelte'
-  const { isLoggedIn, logOut, onAuthChange } = client
-
-  const cm = createCleanupManagerSync()
-
-  let _isLoggedIn = isLoggedIn()
-  onMount(() => {
-    _isLoggedIn = isLoggedIn()
-    const unsub = onAuthChange(() => {
-      _isLoggedIn = isLoggedIn()
-    })
-    cm.add(unsub)
-  })
-
-  onDestroy(cm.cleanupAll)
-
-  const handleLogout = (e: Event) => {
-    e.preventDefault()
-    logOut()
-    // Hard refresh to make sure any remaining data is cleared
-    window.location.href = '/'
-  }
+  import { isUserLoggedIn } from '$util/stores'
+  import { handleLogout } from '$util/database'
 </script>
 
 <header class="container-fluid">
@@ -48,7 +26,7 @@
 
     <div class="collapse navbar-collapse" id="nav-links">
       <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-        {#if _isLoggedIn}
+        {#if $isUserLoggedIn}
           <li class="nav-item text-md-start text-center">
             <a class="nav-link" href="/dashboard">Dashboard</a>
           </li>
@@ -68,7 +46,11 @@
                 </button>
 
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="/" on:click={handleLogout}>Logout</a></li>
+                  <li>
+                    <button class="dropdown-item" type="button" on:click={handleLogout}
+                      >Logout</button
+                    >
+                  </li>
                 </ul>
               </li>
             {:else}
@@ -81,7 +63,7 @@
           </MediaQuery>
         {/if}
 
-        {#if !_isLoggedIn}
+        {#if !$isUserLoggedIn}
           <li class="nav-item">
             <a class="nav-link text-md-start text-center" href="/signup">Sign up</a>
           </li>
