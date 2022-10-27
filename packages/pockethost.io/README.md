@@ -22,7 +22,7 @@ The second derived value is `isUserVerified`. This will return a true or false b
 
 An example of showing or hiding components can be found with the `<VerifyAccountBar>` component, that prompts the user to make sure to verify their account before continuing. The code looks roughly like this:
 
-```sveltehtml
+```svelte
 <script>
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
 </script>
