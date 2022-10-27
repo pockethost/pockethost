@@ -3,6 +3,7 @@
   import { globalUserData } from '$util/stores'
   import { onMount } from 'svelte'
   import { getRouter } from '$util/utilities'
+  import publicRoutes from '$util/public-routes.json'
 
   const { refreshUserData } = client
 
@@ -30,7 +31,7 @@
       // Send user to the homepage
       const router = getRouter()
 
-      if (router.pathname !== '/') {
+      if (!publicRoutes.includes(router.pathname)) {
         window.location.href = '/?message=invalid-token'
       }
     }

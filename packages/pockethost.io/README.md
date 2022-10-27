@@ -1,4 +1,5 @@
 # PocketHost UI
+
 ## Built with SvelteKit and Typescript
 
 Description about PocketHost goes here!
@@ -9,6 +10,9 @@ To run this project, navigate to the `/packages/pockethost.io` folder and run `v
 
 It will start up the server here: [http://127.0.0.1:5173/](http://127.0.0.1:5173/) and now you're ready to code!
 
+## Routing
+
+There is a file called `public-routes.json` that controls which URLs are accessible to non-authenticated users. Any public facing page needs to have its URL added to this list. Otherwise, the authentication system will kick in and send them to the homepage.
 
 ## User Management
 
