@@ -1,7 +1,7 @@
 <script lang="ts">
-	import {isUserLoggedIn} from "$util/stores";
+  import { isUserLoggedIn } from '$util/stores'
 </script>
 
 {#if $isUserLoggedIn}
-	<slot />
+  <slot />
 {/if}
