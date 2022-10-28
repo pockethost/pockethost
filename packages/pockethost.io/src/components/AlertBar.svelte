@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {AlertTypes} from "$components/AlertBar.types";
+  import { AlertTypes } from '$components/AlertBar.types'
 
   export let title: string = ''
   export let text: string = ''

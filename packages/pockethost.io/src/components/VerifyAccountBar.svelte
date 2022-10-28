@@ -1,29 +1,31 @@
 <script lang="ts">
   import { handleResendVerificationEmail } from '$util/database'
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
-  import {AlertTypes} from "$components/AlertBar.types";
+  import { AlertTypes } from '$components/AlertBar.types'
   import AlertBar from '$components/AlertBar.svelte'
 
   let defaultAlertBarType: AlertTypes = AlertTypes.Warning
 
-  let isButtonProcessing: boolean = false;
+  let isButtonProcessing: boolean = false
   let formError: string = ''
 
   const handleClick = () => {
     // Reset the alert type if resubmitted
-    defaultAlertBarType = AlertTypes.Warning;
+    defaultAlertBarType = AlertTypes.Warning
 
     // Update the state
-    isButtonProcessing = true;
+    isButtonProcessing = true
 
     handleResendVerificationEmail((error) => {
-      formError = error;
-      defaultAlertBarType = AlertTypes.Danger;
+      formError = error
+      defaultAlertBarType = AlertTypes.Danger
       isButtonProcessing = false
-    });
+    })
 
     // Wait a bit after the success before showing the button again
-    setTimeout(() => {isButtonProcessing = false}, 5000)
+    setTimeout(() => {
+      isButtonProcessing = false
+    }, 5000)
   }
 </script>
 
@@ -37,14 +39,12 @@
 
         {#if isButtonProcessing}
           <div class="success-icon">
-            <i class="bi bi-check-square"></i>
+            <i class="bi bi-check-square" />
             Sent!
           </div>
         {:else}
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            on:click={handleClick}>Resend Email</button
+          <button type="button" class="btn btn-outline-secondary" on:click={handleClick}
+            >Resend Email</button
           >
         {/if}
       </div>
