@@ -1,12 +1,12 @@
 import type { User } from 'pocketbase';
 import { writable } from 'svelte/store'
 
-type PocketbaseUser = {
+type UserAuthResponse = {
   user: User,
   token: string,
 }
 
-export const globalUserData = writable<PocketbaseUser>()
+export const globalUserData = writable<UserAuthResponse>()
 export const isUserLoggedIn = writable<boolean>(false)
 export const isUserVerified = writable<boolean>(false)
 
