@@ -1,5 +1,6 @@
 <script>
   import { client } from '$src/pocketbase'
+	import { LocalAuthStore } from 'pocketbase';
   import { globalUserData } from '$util/stores'
   import { onMount } from 'svelte'
   import { getRouter } from '$util/utilities'
@@ -25,8 +26,8 @@
       // Either the token is invalid, or the database is down.
       console.warn('Warning: ', error)
 
-      // Clear their local storage
-      localStorage.removeItem('pocketbase_auth')
+      // Clear the token from local storage
+      LocalAuthStore.clear();
 
       // Send user to the homepage
       const router = getRouter()
