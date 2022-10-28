@@ -2,7 +2,7 @@
   import MediaQuery from '$components/MediaQuery.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
   import { isUserLoggedIn } from '$util/stores'
-  import { handleLogout } from '$util/database'
+  import { handleLogoutAndRedirect } from '$util/database'
 </script>
 
 <header class="container-fluid">
@@ -47,7 +47,7 @@
 
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li>
-                    <button class="dropdown-item" type="button" on:click={handleLogout}
+                    <button class="dropdown-item" type="button" on:click={handleLogoutAndRedirect}
                       >Logout</button
                     >
                   </li>
@@ -55,7 +55,7 @@
               </li>
             {:else}
               <li class="nav-item">
-                <a class="nav-link text-md-start text-center" href="/" on:click={handleLogout}
+                <a class="nav-link text-md-start text-center" href="/" on:click={handleLogoutAndRedirect}
                   >Logout</a
                 >
               </li>

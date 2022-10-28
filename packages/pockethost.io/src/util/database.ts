@@ -185,6 +185,10 @@ export const handleResendVerificationEmail = async (setError = (value: string) =
 export const handleLogout = () => {
   // Clear the Pocketbase session
   logOut()
+}
+
+export const handleLogoutAndRedirect = () => {
+  handleLogout()
 
   // Hard refresh to make sure any remaining data is cleared
   window.location.href = '/'

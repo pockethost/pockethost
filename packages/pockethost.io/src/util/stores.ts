@@ -18,3 +18,5 @@ globalUserData.subscribe((data) => {
   // Check if the user has verified their email
   isUserVerified.set(!!data?.user?.verified)
 })
+
+// Watch for any realtime changes with the DB and update the `globalUserData` store
