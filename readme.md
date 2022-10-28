@@ -132,6 +132,7 @@ open https://pockethost.io
 **next**
 
 - [x] Migrated PBScript repository to here
+- [x] Accounts must now be verified before running an instance
 
 **0.3.1**
 
