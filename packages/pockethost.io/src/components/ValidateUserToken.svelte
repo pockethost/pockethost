@@ -16,7 +16,7 @@
       // First check if the user even has a token
 			const doesUserTokenExist = getAuthStore.token;
 
-      if (doesUserTokenExist === null) {
+      if (!doesUserTokenExist) {
         throw new Error('User has not logged in yet')
       }
 
