@@ -55,8 +55,10 @@
               </li>
             {:else}
               <li class="nav-item">
-                <a class="nav-link text-md-start text-center" href="/" on:click={handleLogoutAndRedirect}
-                  >Logout</a
+                <a
+                  class="nav-link text-md-start text-center"
+                  href="/"
+                  on:click={handleLogoutAndRedirect}>Logout</a
                 >
               </li>
             {/if}

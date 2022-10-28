@@ -1,20 +1,20 @@
 <script>
   import { client } from '$src/pocketbase'
-	import { LocalAuthStore } from 'pocketbase';
+  import { LocalAuthStore } from 'pocketbase'
   import { globalUserData } from '$util/stores'
   import { onMount } from 'svelte'
   import { getRouter } from '$util/utilities'
-	import { handleLogout } from "$util/database";
+  import { handleLogout } from '$util/database'
   import publicRoutes from '$util/public-routes.json'
 
   const { refreshUserData } = client
 
   onMount(async () => {
-    const getAuthStore = new LocalAuthStore();
+    const getAuthStore = new LocalAuthStore()
 
     try {
       // First check if the user even has a token
-			const doesUserTokenExist = getAuthStore.token;
+      const doesUserTokenExist = getAuthStore.token
 
       if (!doesUserTokenExist) {
         throw new Error('User has not logged in yet')
@@ -30,7 +30,7 @@
       console.warn('Warning: ', error)
 
       // Clear the token from local storage
-      handleLogout();
+      handleLogout()
 
       // Send user to the homepage
       const router = getRouter()
