@@ -1,5 +1,8 @@
 import type { User } from 'pocketbase'
-import { writable } from 'svelte/store'
+import { client } from '$src/pocketbase'
+import {get, writable} from 'svelte/store'
+
+const { onAuthChange } = client;
 
 type UserAuthResponse = {
   user: User
@@ -20,3 +23,16 @@ globalUserData.subscribe((data) => {
 })
 
 // Watch for any realtime changes with the DB and update the `globalUserData` store
+onAuthChange((newUserProfileData) => {
+  // Get the current info and model
+  const currentUserData = get(globalUserData);
+
+  // Create a new object with the updated user profile data from Pocketbase
+  const updateValues = {
+    ...currentUserData,
+    user: <User>newUserProfileData.model
+  };
+
+  // Update the global store
+  globalUserData.set(updateValues);
+})
