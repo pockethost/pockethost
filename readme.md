@@ -94,7 +94,7 @@ cd pockethost/docker
 cp .env-template-dev .env.local  # Edit as needed - defaults should work
 cd ..
 docker-compose -f docker/docker-compose-dev.yaml build
-docker-compose -f docker/docker-compose-dev.yaml up
+docker-compose -f docker/docker-compose-dev.yaml up --remove-orphans
 open https://pockethost.test
 ```
 
