@@ -129,6 +129,10 @@ open https://pockethost.io
 
 # Release History
 
+**next**
+
+- [x] Accounts must now be verified before running an instance
+
 **0.3.1**
 
 - [x] OpenGraph support
