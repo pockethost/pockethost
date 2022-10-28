@@ -20,7 +20,7 @@ This app uses [Svelte Stores](https://svelte.dev/docs#run-time-svelte-store) to 
 
 ### Derived User Values
 
-There are additional derived values that are useful for showing and hiding components across the site. The first one is `isUserLoggedIn`. This one will return a true or false depending on the state of the logged in user. It is derived from the `email` property in the Pocketbase response.
+There are additional derived values that are useful for showing and hiding components across the site. The first one is `isUserLoggedIn`. This one will return a true or false depending on the state of the logged in user. It is dependent on the `email` property in the Pocketbase response.
 
 The second derived value is `isUserVerified`. This will return a true or false boolean depending on if their Pocketbase account has been verified via the email they got when they initially registered.
 
