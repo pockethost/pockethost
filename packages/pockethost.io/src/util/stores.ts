@@ -1,9 +1,9 @@
-import type { User } from 'pocketbase';
+import type { User } from 'pocketbase'
 import { writable } from 'svelte/store'
 
 type UserAuthResponse = {
-  user: User,
-  token: string,
+  user: User
+  token: string
 }
 
 export const globalUserData = writable<UserAuthResponse>()
