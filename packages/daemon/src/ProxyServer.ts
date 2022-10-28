@@ -18,23 +18,21 @@ export const createProxyServer = async () => {
       })
       res.end(msg)
     }
+
     const host = req.headers.host
     if (!host) {
-      die(`Host not found`)
-      return
+      throw new Error(`Host not found`)
     }
     const [subdomain, ...junk] = host.split('.')
     if (!subdomain) {
-      die(`${host} has no subdomain.`)
-      return
+      throw new Error(`${host} has no subdomain.`)
     }
     try {
       const instance = await instanceManager.getInstance(subdomain)
       if (!instance) {
-        die(
+        throw new Error(
           `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
         )
-        return
       }
 
       console.log(
