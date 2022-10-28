@@ -174,8 +174,12 @@ export const handleInstanceGeneratorWidget = async (
   }
 }
 
-export const handleResendVerificationEmail = () => {
-  alert('Email sent')
+export const handleResendVerificationEmail = async (setError = (value: string) => {}) => {
+  try {
+    await client.resendVerificationEmail()
+  } catch (error: any) {
+    handleFormError(error, setError)
+  }
 }
 
 export const handleLogout = () => {

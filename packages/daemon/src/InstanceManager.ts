@@ -11,6 +11,8 @@ import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_PORT_BASE,
   DAEMON_PB_USERNAME,
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_PROTOCOL,
   PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
@@ -142,11 +144,16 @@ export const createInstanceManger = async () => {
 
       console.log(`Checking ${subdomain} for permission`)
 
-      const recs = await client.getInstanceBySubdomain(subdomain)
-      const [instance] = recs.items
+      const [instance, owner] = await client.getInstanceBySubdomain(subdomain)
       if (!instance) {
         console.log(`${subdomain} not found`)
         return
+      }
+
+      if (!owner?.verified) {
+        throw new Error(
+          `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`
+        )
       }
 
       await client.updateInstanceStatus(subdomain, InstanceStatus.Port)
@@ -162,6 +169,7 @@ export const createInstanceManger = async () => {
       console.log(`Found port for ${subdomain}: ${newPort}`)
 
       await client.updateInstanceStatus(subdomain, InstanceStatus.Starting)
+
       const childProcess = await _spawn({
         subdomain,
         port: newPort,

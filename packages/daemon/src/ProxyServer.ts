@@ -13,7 +13,7 @@ export const createProxyServer = async () => {
 
     const die = (msg: string) => {
       console.error(`ERROR: ${msg}`)
-      res.writeHead(200, {
+      res.writeHead(403, {
         'Content-Type': `text/plain`,
       })
       res.end(msg)
@@ -28,19 +28,25 @@ export const createProxyServer = async () => {
       die(`${host} has no subdomain.`)
       return
     }
-    const instance = await instanceManager.getInstance(subdomain)
-    if (!instance) {
-      die(
-        `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}`
+    try {
+      const instance = await instanceManager.getInstance(subdomain)
+      if (!instance) {
+        die(
+          `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
+        )
+        return
+      }
+
+      console.log(
+        `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
       )
+      const endRequest = instance.startRequest()
+      req.on('close', endRequest)
+      proxy.web(req, res, { target: instance.internalUrl })
+    } catch (e) {
+      die(`${e}`)
       return
     }
-    console.log(
-      `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
-    )
-    const endRequest = instance.startRequest()
-    req.on('close', endRequest)
-    proxy.web(req, res, { target: instance.internalUrl })
   })
 
   console.log('daemon on port 3000')

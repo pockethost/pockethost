@@ -1,5 +1,10 @@
-import type { InstanceId, Instance_In, Instance_Out } from '@pockethost/common'
-import { createRealtimeSubscriptionManager } from '@pockethost/common'
+import {
+  assertExists,
+  createRealtimeSubscriptionManager,
+  type InstanceId,
+  type Instance_In,
+  type Instance_Out
+} from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, { BaseAuthStore, ClientResponseError, Record } from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
@@ -80,6 +85,12 @@ export const createPocketbaseClient = (url: string) => {
     return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter((v) => !!v)
   }
 
+  const resendVerificationEmail = async () => {
+    const user = client.authStore.model
+    assertExists(user, `Login required`)
+    await client.users.requestVerification(user.email)
+  }
+
   return {
     parseError,
     subscribe,
@@ -94,6 +105,7 @@ export const createPocketbaseClient = (url: string) => {
     refreshUserData,
     watchInstanceById,
     getAllInstancesById,
-    setInstance
+    setInstance,
+    resendVerificationEmail
   }
 }
