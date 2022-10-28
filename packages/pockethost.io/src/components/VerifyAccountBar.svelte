@@ -1,7 +1,7 @@
 <script>
   import { handleResendVerificationEmail } from '$util/database'
-  import AlertBar from '$components/AlertBar.svelte'
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
+  import AlertBar from '$components/AlertBar.svelte'
 </script>
 
 {#if $isUserLoggedIn && !$isUserVerified}

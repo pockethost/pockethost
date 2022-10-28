@@ -23,7 +23,7 @@
       await globalUserData.set(response)
     } catch (error) {
       // Either the token is invalid, or the database is down.
-      console.warn('Unable to verify your token, or connect to PocketHost')
+			console.warn('Warning: ', error)
 
       // Clear their local storage
       localStorage.removeItem('pocketbase_auth')

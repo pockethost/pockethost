@@ -182,9 +182,6 @@ export const handleLogout = () => {
   // Clear the Pocketbase session
   logOut()
 
-  // Reset the global stores
-  globalUserData.set({})
-
   // Hard refresh to make sure any remaining data is cleared
   window.location.href = '/'
 }
