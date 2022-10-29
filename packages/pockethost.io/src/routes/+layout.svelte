@@ -1,16 +1,16 @@
 <script>
   import Meta from '$components/Meta.svelte'
   import Navbar from '$components/Navbar.svelte'
+  import Protect from '$components/Protect.svelte'
   import ThemeDetector from '$components/ThemeDetector.svelte'
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
-  import ValidateUserToken from '$components/ValidateUserToken.svelte'
 </script>
 
 <Meta />
 
-<ThemeDetector />
+<Protect />
 
-<ValidateUserToken />
+<ThemeDetector />
 
 <Navbar />
 

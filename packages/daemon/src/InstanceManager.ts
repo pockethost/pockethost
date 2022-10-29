@@ -132,11 +132,11 @@ export const createInstanceManger = async () => {
 
   const getInstance = (subdomain: string) =>
     limiter.schedule(async () => {
-      console.log(`Getting instance ${subdomain}`)
+      // console.log(`Getting instance ${subdomain}`)
       {
         const instance = instances[subdomain]
         if (instance) {
-          console.log(`Found in cache: ${subdomain}`)
+          // console.log(`Found in cache: ${subdomain}`)
           instance.heartbeat()
           return instance
         }

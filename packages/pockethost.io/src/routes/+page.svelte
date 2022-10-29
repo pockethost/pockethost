@@ -3,9 +3,7 @@
   import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import InstanceGeneratorWidget from '$components/InstanceGeneratorWidget.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
-  import { client } from '$src/pocketbase'
-
-  const { isLoggedIn } = client
+  import { isUserLoggedIn } from '$util/stores'
 </script>
 
 <svelte:head>
@@ -22,7 +20,7 @@
         web app.
       </p>
 
-      {#if isLoggedIn()}
+      {#if $isUserLoggedIn}
         <div>
           <a href="/dashboard" class="btn btn-primary"
             >Go to Your Dashboard <i class="bi bi-arrow-right-short" /></a
@@ -30,7 +28,7 @@
         </div>
       {/if}
 
-      {#if !isLoggedIn()}
+      {#if !$isUserLoggedIn}
         <InstanceGeneratorWidget />
       {/if}
     </div>

@@ -1,16 +1,15 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
-import { globalUserData } from '$util/stores'
 import { InstanceStatus } from '@pockethost/common'
-const { authViaEmail, createUser, user, logOut, createInstance } = client
 
 export type FormErrorHandler = (value: string) => void
 
 export const handleFormError = (error: any, setError?: FormErrorHandler) => {
+  const { parseError } = client()
   console.error(`Form error: ${error}`, { error })
 
   if (setError) {
-    const message = client.parseError(error)[0]
+    const message = parseError(error)[0]
     setError(message)
   } else {
     throw error
@@ -30,14 +29,12 @@ export const handleLogin = async (
   setError?: FormErrorHandler,
   shouldRedirect: boolean = true
 ) => {
+  const { authViaEmail } = client()
   // Reset the form error if the form is submitted
   setError?.('')
 
   try {
-    const response = await authViaEmail(email, password)
-
-    // Update the global svelte store
-    globalUserData.set(response)
+    await authViaEmail(email, password)
 
     if (shouldRedirect) {
       await goto('/dashboard')
@@ -58,6 +55,7 @@ export const handleRegistration = async (
   password: string,
   setError?: FormErrorHandler
 ) => {
+  const { createUser } = client()
   // Reset the form error if the form is submitted
   setError?.('')
 
@@ -72,6 +70,7 @@ export const handleCreateNewInstance = async (
   instanceName: string,
   setError?: FormErrorHandler
 ) => {
+  const { user, createInstance } = client()
   // Get the newly created user id
   const { id } = user() || {}
 
@@ -99,6 +98,7 @@ export const handleInstanceGeneratorWidget = async (
   instanceName: string,
   setError = (value: string) => {}
 ) => {
+  const { user, parseError } = client()
   try {
     // Handle user creation/signin
     // First, attempt to log in using the provided credentials.
@@ -142,7 +142,7 @@ export const handleInstanceGeneratorWidget = async (
             // This means there is something wrong with the user input.
             // Bail out to show errors
             // Transform the errors so they mention a problem with account creation.
-            const messages = client.parseError(e)
+            const messages = parseError(e)
             throw new Error(`Account creation: ${messages[0]}`)
           })
       })
@@ -165,7 +165,7 @@ export const handleInstanceGeneratorWidget = async (
         }
         // The errors remaining errors are kind of generic, so transofrm them into something about
         // the instance name.
-        const messages = client.parseError(e)
+        const messages = parseError(e)
         throw new Error(`Instance creation: ${messages[0]}`)
       })
   } catch (error: any) {
@@ -175,14 +175,16 @@ export const handleInstanceGeneratorWidget = async (
 }
 
 export const handleResendVerificationEmail = async (setError = (value: string) => {}) => {
+  const { resendVerificationEmail } = client()
   try {
-    await client.resendVerificationEmail()
+    await resendVerificationEmail()
   } catch (error: any) {
     handleFormError(error, setError)
   }
 }
 
 export const handleLogout = () => {
+  const { logOut } = client()
   // Clear the Pocketbase session
   logOut()
 }

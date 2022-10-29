@@ -9,7 +9,7 @@ export const createProxyServer = async () => {
   const proxy = httpProxy.createProxyServer({})
 
   const server = createServer(async (req, res) => {
-    console.log(`Incoming request ${req.headers.host}/${req.url}`)
+    // console.log(`Incoming request ${req.headers.host}/${req.url}`)
 
     const die = (msg: string) => {
       console.error(`ERROR: ${msg}`)
@@ -35,9 +35,9 @@ export const createProxyServer = async () => {
         )
       }
 
-      console.log(
-        `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
-      )
+      // console.log(
+      //   `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
+      // )
       const endRequest = instance.startRequest()
       req.on('close', endRequest)
       proxy.web(req, res, { target: instance.internalUrl })

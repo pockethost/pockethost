@@ -1,8 +1,8 @@
 <script lang="ts">
   import MediaQuery from '$components/MediaQuery.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
-  import { isUserLoggedIn } from '$util/stores'
   import { handleLogoutAndRedirect } from '$util/database'
+  import { isUserLoggedIn } from '$util/stores'
 </script>
 
 <header class="container-fluid">
