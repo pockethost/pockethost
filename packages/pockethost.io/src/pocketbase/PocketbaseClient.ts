@@ -136,19 +136,24 @@ export const createPocketbaseClient = (url: string) => {
      * This way, when the verified flag is flipped, it will appear that the
      * authstore model is updated.
      */
-    let unsub: Unsubscriber | undefined
-    onAuthChange((authStore) => {
+    const unsub = onAuthChange((authStore) => {
       console.log(`onAuthChange`, { ...authStore })
-      unsub?.()
       const { model } = authStore
       if (!model) return
       if (model instanceof Admin) return
+      if (model.verified) {
+        unsub()
+        return
+      }
+      const _check = safeCatch(`_checkVerified`, () => client.users.refresh())
+      setTimeout(_check, 1000)
 
-      console.log(`watching _users`)
-      unsub = subscribe<User>(`users/${model.id}`, (user) => {
-        console.log(`realtime _users change`, { ...user })
-        fireAuthChange({ ...authStore, model: user })
-      })
+      // FIXME - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
+      // console.log(`watching _users`)
+      // unsub = subscribe<User>(`users/${model.id}`, (user) => {
+      //   console.log(`realtime _users change`, { ...user })
+      //   fireAuthChange({ ...authStore, model: user })
+      // })
     })
   }
 
