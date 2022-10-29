@@ -6,13 +6,18 @@ import { writable } from 'svelte/store'
 export const authStoreState = writable<AuthStoreProps>({ isValid: false, model: null, token: '' })
 export const isUserLoggedIn = writable(false)
 export const isUserVerified = writable(false)
+export const isAuthStateInitialized = writable(false)
 
 if (browser) {
   const { onAuthChange } = client()
-  // Watch for any realtime changes with the DB and update the `globalUserData` store
+
+  /**
+   * Listen for auth change events. When we get at least one, the auth state is initialized.
+   */
   onAuthChange((authStoreProps) => {
     console.log(`onAuthChange in store`, { ...authStoreProps })
     authStoreState.set(authStoreProps)
+    isAuthStateInitialized.set(true)
   })
 
   // Update derived stores when authStore changes

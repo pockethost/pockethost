@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
@@ -57,52 +58,54 @@
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
-<div class="container" in:fade={{ duration: 30 }}>
-  {#if appsArray.length}
-    <div class="py-4">
-      <h1 class="text-center">Your Apps</h1>
-    </div>
+<AuthStateGuard>
+  <div class="container" in:fade={{ duration: 30 }}>
+    {#if appsArray.length}
+      <div class="py-4">
+        <h1 class="text-center">Your Apps</h1>
+      </div>
 
-    <div class="row justify-content-center">
-      {#each appsArray as app}
-        <div class="col-xl-4 col-md-6 col-12 mb-5">
-          <div class="card">
-            <div class="server-status">
-              <ProvisioningStatus status={app.status} />
-            </div>
+      <div class="row justify-content-center">
+        {#each appsArray as app}
+          <div class="col-xl-4 col-md-6 col-12 mb-5">
+            <div class="card">
+              <div class="server-status">
+                <ProvisioningStatus status={app.status} />
+              </div>
 
-            <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
+              <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
 
-            <div class="d-flex justify-content-around">
-              <a href={`/app/instances/${app.id}`} class="btn btn-light">
-                <i class="bi bi-gear-fill" />
-                <span>Details</span>
-              </a>
+              <div class="d-flex justify-content-around">
+                <a href={`/app/instances/${app.id}`} class="btn btn-light">
+                  <i class="bi bi-gear-fill" />
+                  <span>Details</span>
+                </a>
 
-              <a
-                class="btn btn-light pocketbase-button"
-                href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
-                target="_blank"
-              >
-                <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
-                <span>Admin</span>
-              </a>
+                <a
+                  class="btn btn-light pocketbase-button"
+                  href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
+                  target="_blank"
+                >
+                  <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
+                  <span>Admin</span>
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      {/each}
-    </div>
-  {/if}
-
-  <div class="first-app-screen">
-    <RetroBoxContainer minHeight={isFirstApplication ? 500 : 0}>
-      <div class="px-lg-5">
-        <h2 class="mb-4">Create Your {isFirstApplication ? 'First' : 'Next'} App</h2>
-        <a href="/app/new" class="btn btn-primary btn-lg"><i class="bi bi-plus" /> New App</a>
+        {/each}
       </div>
-    </RetroBoxContainer>
+    {/if}
+
+    <div class="first-app-screen">
+      <RetroBoxContainer minHeight={isFirstApplication ? 500 : 0}>
+        <div class="px-lg-5">
+          <h2 class="mb-4">Create Your {isFirstApplication ? 'First' : 'Next'} App</h2>
+          <a href="/app/new" class="btn btn-primary btn-lg"><i class="bi bi-plus" /> New App</a>
+        </div>
+      </RetroBoxContainer>
+    </div>
   </div>
-</div>
+</AuthStateGuard>
 
 <style lang="scss">
   .first-app-screen {

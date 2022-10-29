@@ -1,8 +1,8 @@
 <script lang="ts">
+  import AlertBar from '$components/AlertBar.svelte'
+  import { AlertTypes } from '$components/AlertBar.types'
   import { handleResendVerificationEmail } from '$util/database'
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
-  import { AlertTypes } from '$components/AlertBar.types'
-  import AlertBar from '$components/AlertBar.svelte'
 
   let defaultAlertBarType: AlertTypes = AlertTypes.Warning
 

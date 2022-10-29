@@ -1,5 +1,6 @@
 <script lang="ts">
   import FeatureCard from '$components/FeatureCard.svelte'
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import InstanceGeneratorWidget from '$components/InstanceGeneratorWidget.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
@@ -20,17 +21,19 @@
         web app.
       </p>
 
-      {#if $isUserLoggedIn}
-        <div>
-          <a href="/dashboard" class="btn btn-primary"
-            >Go to Your Dashboard <i class="bi bi-arrow-right-short" /></a
-          >
-        </div>
-      {/if}
+      <AuthStateGuard>
+        {#if $isUserLoggedIn}
+          <div>
+            <a href="/dashboard" class="btn btn-primary"
+              >Go to Your Dashboard <i class="bi bi-arrow-right-short" /></a
+            >
+          </div>
+        {/if}
 
-      {#if !$isUserLoggedIn}
-        <InstanceGeneratorWidget />
-      {/if}
+        {#if !$isUserLoggedIn}
+          <InstanceGeneratorWidget />
+        {/if}
+      </AuthStateGuard>
     </div>
 
     <div class="col-lg-5 d-none d-sm-block">
