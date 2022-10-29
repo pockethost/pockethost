@@ -9,6 +9,7 @@ import {
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, { Admin, BaseAuthStore, ClientResponseError, Record, User } from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
+import { safeCatch } from '../util/safeCatch'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
 
@@ -20,16 +21,6 @@ export type AuthStoreProps = {
 }
 
 export type PocketbaseClientApi = ReturnType<typeof createPocketbaseClient>
-
-const safeCatch = <TIn extends any[], TOut>(name: string, cb: (...args: TIn) => Promise<TOut>) => {
-  return (...args: TIn) => {
-    console.log(`${name}`)
-    return cb(...args).catch((e: any) => {
-      console.error(`${name} failed: ${e}`)
-      throw e
-    })
-  }
-}
 
 export const createPocketbaseClient = (url: string) => {
   const client = new PocketBase(url)
@@ -53,6 +44,8 @@ export const createPocketbaseClient = (url: string) => {
   const authViaEmail = safeCatch(`authViaEmail`, (email: string, password: string) =>
     client.users.authViaEmail(email, password)
   )
+
+  const refreshAuthToken = safeCatch(`refreshAuthToken`, () => client.users.refresh())
 
   const createInstance = safeCatch(
     `createInstance`,
@@ -117,24 +110,36 @@ export const createPocketbaseClient = (url: string) => {
     }
   }
 
+  /**
+   * Use synthetic event for authStore changers so we can broadcast just
+   * the props we want and not the actual authStore object.
+   */
   const [onAuthChange, fireAuthChange] = createGenericSyncEvent<AuthStoreProps>()
 
-  client.authStore.onChange(() => {
-    console.log(`native authstore change`, { ...authStore })
-    fireAuthChange(getAuthStoreProps())
-  })
-  client.users
-    .refresh()
-    .then((res) => {
-      console.log(`User token refreshed`, res)
-    })
-    .catch(() => {})
-
+  /**
+   * This section is for initialization
+   */
   {
+    /**
+     * Listen for native authStore changes and convert to synthetic event
+     */
+    client.authStore.onChange(() => {
+      fireAuthChange(getAuthStoreProps())
+    })
+
+    /**
+     * Refresh the auth token immediately upon creating the client. The auth token may be
+     * out of date, or fields in the user record may have changed in the backend.
+     */
+    refreshAuthToken()
+
     /**
      * Listen for auth state changes and subscribe to realtime _user events.
      * This way, when the verified flag is flipped, it will appear that the
      * authstore model is updated.
+     *
+     * Polling is a stopgap til v.0.8. Once 0.8 comes along, we can do a realtime
+     * watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
       console.log(`onAuthChange`, { ...authStore })

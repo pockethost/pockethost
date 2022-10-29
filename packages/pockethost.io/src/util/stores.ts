@@ -8,7 +8,6 @@ export const isUserLoggedIn = writable(false)
 export const isUserVerified = writable(false)
 
 if (browser) {
-  console.log(`inside browser`)
   const { onAuthChange } = client()
   // Watch for any realtime changes with the DB and update the `globalUserData` store
   onAuthChange((authStoreProps) => {
