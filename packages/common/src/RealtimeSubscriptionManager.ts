@@ -1,13 +1,9 @@
 import PocketBase from 'pocketbase'
-import { Any_Record_Out } from './schema'
 
 export const createRealtimeSubscriptionManager = (pocketbase: PocketBase) => {
   const subscriptions: { [_: string]: number } = {}
 
-  const subscribe = <TRec extends Any_Record_Out>(
-    slug: string,
-    cb: (rec: TRec) => void
-  ) => {
+  const subscribe = <TRec>(slug: string, cb: (rec: TRec) => void) => {
     if (subscriptions[slug]) {
       subscriptions[slug]++
     } else {

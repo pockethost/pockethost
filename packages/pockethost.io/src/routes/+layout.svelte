@@ -1,20 +1,21 @@
 <script>
-  import Meta from '$components/Meta.svelte'
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
+  import Meta from '$components/helpers/Meta.svelte'
+  import Protect from '$components/helpers/Protect.svelte'
+  import ThemeDetector from '$components/helpers/ThemeDetector.svelte'
   import Navbar from '$components/Navbar.svelte'
-  import ThemeDetector from '$components/ThemeDetector.svelte'
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
-  import ValidateUserToken from '$components/ValidateUserToken.svelte'
 </script>
 
 <Meta />
-
+<Protect />
 <ThemeDetector />
-
-<ValidateUserToken />
 
 <Navbar />
 
-<VerifyAccountBar />
+<AuthStateGuard>
+  <VerifyAccountBar />
+</AuthStateGuard>
 
 <main data-sveltekit-prefetch>
   <slot />

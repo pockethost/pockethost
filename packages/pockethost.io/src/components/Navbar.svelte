@@ -1,8 +1,9 @@
 <script lang="ts">
   import MediaQuery from '$components/MediaQuery.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
-  import { isUserLoggedIn } from '$util/stores'
   import { handleLogoutAndRedirect } from '$util/database'
+  import { isUserLoggedIn } from '$util/stores'
+  import AuthStateGuard from './helpers/AuthStateGuard.svelte'
 </script>
 
 <header class="container-fluid">
@@ -26,55 +27,56 @@
 
     <div class="collapse navbar-collapse" id="nav-links">
       <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-        {#if $isUserLoggedIn}
-          <li class="nav-item text-md-start text-center">
-            <a class="nav-link" href="/dashboard">Dashboard</a>
-          </li>
+        <AuthStateGuard>
+          {#if $isUserLoggedIn}
+            <li class="nav-item text-md-start text-center">
+              <a class="nav-link" href="/dashboard">Dashboard</a>
+            </li>
 
-          <MediaQuery query="(min-width: 768px)" let:matches>
-            {#if matches}
-              <li class="nav-item dropdown">
-                <button
-                  class="btn border-0 nav-link"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-label="Click to expand the Account Dropdown"
-                  title="Account Dropdown"
-                  aria-expanded="false"
-                >
-                  <i class="bi bi-person-circle" />
-                </button>
+            <MediaQuery query="(min-width: 768px)" let:matches>
+              {#if matches}
+                <li class="nav-item dropdown">
+                  <button
+                    class="btn border-0 nav-link"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-label="Click to expand the Account Dropdown"
+                    title="Account Dropdown"
+                    aria-expanded="false"
+                  >
+                    <i class="bi bi-person-circle" />
+                  </button>
 
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li>
-                    <button class="dropdown-item" type="button" on:click={handleLogoutAndRedirect}
-                      >Logout</button
-                    >
-                  </li>
-                </ul>
-              </li>
-            {:else}
-              <li class="nav-item">
-                <a
-                  class="nav-link text-md-start text-center"
-                  href="/"
-                  on:click={handleLogoutAndRedirect}>Logout</a
-                >
-              </li>
-            {/if}
-          </MediaQuery>
-        {/if}
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" type="button" on:click={handleLogoutAndRedirect}
+                        >Logout</button
+                      >
+                    </li>
+                  </ul>
+                </li>
+              {:else}
+                <li class="nav-item">
+                  <a
+                    class="nav-link text-md-start text-center"
+                    href="/"
+                    on:click={handleLogoutAndRedirect}>Logout</a
+                  >
+                </li>
+              {/if}
+            </MediaQuery>
+          {/if}
 
-        {#if !$isUserLoggedIn}
-          <li class="nav-item">
-            <a class="nav-link text-md-start text-center" href="/signup">Sign up</a>
-          </li>
+          {#if !$isUserLoggedIn}
+            <li class="nav-item">
+              <a class="nav-link text-md-start text-center" href="/signup">Sign up</a>
+            </li>
 
-          <li class="nav-item">
-            <a class="nav-link text-md-start text-center" href="/login">Log in</a>
-          </li>
-        {/if}
-
+            <li class="nav-item">
+              <a class="nav-link text-md-start text-center" href="/login">Log in</a>
+            </li>
+          {/if}
+        </AuthStateGuard>
         <li class="nav-item">
           <a
             class="nav-link text-md-start text-center"

@@ -1,38 +1,29 @@
+import { browser } from '$app/environment'
 import { client } from '$src/pocketbase'
-import type { User } from 'pocketbase'
-import { get, writable } from 'svelte/store'
+import type { AuthStoreProps } from '$src/pocketbase/PocketbaseClient'
+import { writable } from 'svelte/store'
 
-const { onAuthChange } = client
+export const authStoreState = writable<AuthStoreProps>({ isValid: false, model: null, token: '' })
+export const isUserLoggedIn = writable(false)
+export const isUserVerified = writable(false)
+export const isAuthStateInitialized = writable(false)
 
-type UserAuthResponse = {
-  user: User
-  token: string
+if (browser) {
+  const { onAuthChange } = client()
+
+  /**
+   * Listen for auth change events. When we get at least one, the auth state is initialized.
+   */
+  onAuthChange((authStoreProps) => {
+    console.log(`onAuthChange in store`, { ...authStoreProps })
+    authStoreState.set(authStoreProps)
+    isAuthStateInitialized.set(true)
+  })
+
+  // Update derived stores when authStore changes
+  authStoreState.subscribe((authStoreProps) => {
+    console.log(`subscriber change`, authStoreProps)
+    isUserLoggedIn.set(authStoreProps.isValid)
+    isUserVerified.set(!!authStoreProps.model?.verified)
+  })
 }
-
-export const globalUserData = writable<UserAuthResponse>()
-export const isUserLoggedIn = writable<boolean>(false)
-export const isUserVerified = writable<boolean>(false)
-
-// Update some derived stores based on the logged-in state of the user
-globalUserData.subscribe((data) => {
-  // Check if the email property exists
-  isUserLoggedIn.set(!!data?.user?.email)
-
-  // Check if the user has verified their email
-  isUserVerified.set(!!data?.user?.verified)
-})
-
-// Watch for any realtime changes with the DB and update the `globalUserData` store
-onAuthChange((newUserProfileData) => {
-  // Get the current info and model
-  const currentUserData = get(globalUserData)
-
-  // Create a new object with the updated user profile data from Pocketbase
-  const updateValues = {
-    ...currentUserData,
-    user: <User>newUserProfileData.model
-  }
-
-  // Update the global store
-  globalUserData.set(updateValues)
-})
