@@ -4,3 +4,5 @@
 **/dist
 **/dist-server
 **/*.log
+docker/mount/cache
+**/build

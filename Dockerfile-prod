@@ -4,5 +4,5 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 RUN apk add python3 py3-pip make gcc musl-dev g++ bash
 WORKDIR /src
 COPY . .
-RUN yarn
-RUN yarn build
+RUN yarn --verbose
+RUN yarn build --verbose
