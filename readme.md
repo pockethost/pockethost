@@ -123,7 +123,7 @@ Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/n
 **3. Run**
 
 ```bash
-docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans
+nohup docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans &
 open https://pockethost.io
 ```
 
