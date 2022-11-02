@@ -4,11 +4,11 @@ import { assertExists } from './assert'
 export const RELEASES = {
   ermine: {
     weight: 1,
-    versions: ['0.7.9', '0.7.8', '0.7.7'],
+    versions: ['0.7.7', '0.7.8', '0.7.9', '0.7.10'],
   },
   lollipop: {
     weight: 2,
-    versions: ['0.8.0-rc1'],
+    versions: ['0.8.0-rc1', '0.8.0-rc2'],
   },
 }
 

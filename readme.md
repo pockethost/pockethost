@@ -132,7 +132,13 @@ open https://pockethost.io
 
 **next**
 
-- [] Docker build system updates
+- []
+
+**0.4.1**
+
+- [x] Support for 0.7.10 and 0.8.0-rc2
+- [x] Update to go 1.19.3
+- [x] Docker build system updates
 
 **0.4.0**
 
