@@ -108,9 +108,9 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-prod .env.local  # Edit as needed - defaults should work
 cd ..
-docker-compose -f docker/build.yaml up --remove-orphans
-docker-compose -f docker/migrate.yaml up --remove-orphans
-docker-compose -f docker/prod.yaml up --remove-orphans
+docker compose -f docker/build.yaml up --remove-orphans
+docker compose -f docker/migrate.yaml up --remove-orphans
+docker compose -f docker/prod.yaml up --remove-orphans
 ```
 
 **2. Refresh Certbot**

@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     container_name: prepbox
     working_dir: /src
-    command: bash -c "yarn && yarn build && yarn migrate"
+    command: bash -c "yarn migrate"
     volumes:
       - /home/pockethost/data:/data
       - ./mount/cache/go:/go
