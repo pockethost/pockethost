@@ -65,10 +65,11 @@ Join us in the discussion area.
 This is the easiest setup.
 
 ```bash
+npm i -g pnpm
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
-yarn
-yarn dev:www
+pnpm
+pnpm  dev:www
 ```
 
 That's it. You're in business. Your local Svelte build will talk to the `pockethost.io` mothership and connect to that for all database-related tasks.

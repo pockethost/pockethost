@@ -11,7 +11,7 @@
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "start": "node dist-server/index.js",
-    "watch": "chokidar 'src/**' -c 'yarn build' --initial"
+    "watch": "chokidar 'src/**' -c 'pnpm build' --initial"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^1.0.0-next.99",

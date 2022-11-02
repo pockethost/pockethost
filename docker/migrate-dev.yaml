@@ -9,9 +9,9 @@ services:
       dockerfile: Dockerfile
     container_name: prepbox
     working_dir: /src
-    command: bash -c "yarn migrate"
+    command: bash -c "pnpm migrate"
     volumes:
       - ./mount/daemon/instances:/data
       - ./mount/cache/go:/go
-      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ./mount/cache/pnpm:/src/docker/mount/cache/pnpm
       - ..:/src

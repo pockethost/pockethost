@@ -13,8 +13,8 @@
     "url": "https://github.com/benallfree/pockethost"
   },
   "scripts": {
-    "dev": "chokidar package.json 'src/**' './node_modules/**' -c 'yarn build' --initial",
-    "build": "parcel build --no-cache && yarn build:shebang && npm i -g --force .",
+    "dev": "chokidar package.json 'src/**' './node_modules/**' -c 'pnpm build' --initial",
+    "build": "parcel build --no-cache && pnpm build:shebang && npm i -g --force .",
     "build:shebang": "echo \"#!/usr/bin/env node\"|cat - ./dist/index.js > ./dist/pbscript",
     "publish": "npm publish --access public"
   },

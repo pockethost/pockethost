@@ -10,7 +10,7 @@ services:
     container_name: www
     restart: unless-stopped
     working_dir: /src
-    command: bash -c "yarn start:www --host=www"
+    command: bash -c "pnpm start:www --host=www"
     volumes:
       - ..:/src
     networks:
@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile
     container_name: daemon
     working_dir: /src
-    command: bash -c "yarn start:daemon"
+    command: bash -c "pnpm start:daemon"
     restart: unless-stopped
     environment:
       - SHELL=/bin/bash

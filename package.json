@@ -7,17 +7,17 @@
   "scripts": {
     "lint": "prettier -c \"./**/*.ts\"",
     "lint:fix": "prettier -w \"./**/*.ts\"",
-    "build": "concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
-    "build:pocketbase": "cd packages/pocketbase && yarn build",
-    "build:daemon": "cd packages/daemon && yarn build",
-    "build:www": "cd packages/pockethost.io && yarn build",
-    "dev:www": "cd packages/pockethost.io && yarn dev",
-    "dev:daemon": "cd packages/daemon && yarn dev",
-    "start": "concurrently 'yarn start:www' 'yarn start:daemon'",
-    "start:www": "cd packages/pockethost.io && yarn start",
-    "start:daemon": "cd packages/daemon && yarn start",
-    "migrate": "yarn migrate:daemon",
-    "migrate:daemon": "cd packages/daemon && yarn migrate"
+    "build": "concurrently 'pnpm build:pocketbase' 'pnpm build:daemon' 'pnpm build:www'",
+    "build:pocketbase": "cd packages/pocketbase && pnpm build",
+    "build:daemon": "cd packages/daemon && pnpm build",
+    "build:www": "cd packages/pockethost.io && pnpm build",
+    "dev:www": "cd packages/pockethost.io && pnpm dev",
+    "dev:daemon": "cd packages/daemon && pnpm dev",
+    "start": "concurrently 'pnpm start:www' 'pnpm start:daemon'",
+    "start:www": "cd packages/pockethost.io && pnpm start",
+    "start:daemon": "cd packages/daemon && pnpm start",
+    "migrate": "pnpm migrate:daemon",
+    "migrate:daemon": "cd packages/daemon && pnpm migrate"
   },
   "workspaces": {
     "packages": [

@@ -110,7 +110,7 @@ The important part is that your script gets bundled as ES5:
   "scripts": {
     "build": "parcel build --no-cache",
     "deploy:local": "pbscript deploy --host 'http://127.0.0.1:8090'",
-    "dev": "chokidar 'src/**' './node_modules/**' -c 'yarn build && yarn deploy:local' --initial"
+    "dev": "chokidar 'src/**' './node_modules/**' -c 'pnpm build && pnpm deploy:local' --initial"
   },
   "targets": {
     "iife": {
