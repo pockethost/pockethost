@@ -132,6 +132,10 @@ export const createPocketbaseClient = (url: string) => {
      * out of date, or fields in the user record may have changed in the backend.
      */
     refreshAuthToken()
+      .catch(() => {})
+      .finally(() => {
+        fireAuthChange(getAuthStoreProps())
+      })
 
     /**
      * Listen for auth state changes and subscribe to realtime _user events.
