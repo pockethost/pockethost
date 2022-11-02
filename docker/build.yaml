@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile
     container_name: build
     working_dir: /src
-    command: bash -c "yarn && yarn build"
+    command: bash -c "pnpm i && pnpm build"
     volumes:
       - ./mount/cache/go:/go
-      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ./mount/cache/pnpm:/src/docker/mount/cache/pnpm
       - ..:/src
