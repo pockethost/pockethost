@@ -1,3 +1,5 @@
+import { PlatformId, VersionId } from './releases'
+
 export type RecordId = string
 export type UserId = RecordId
 export type InstanceId = RecordId
@@ -8,6 +10,7 @@ export type IsoDate = string
 export type ProcessId = number
 export type Username = string
 export type Password = string
+export type CollectionName = string
 
 export const pocketNow = () => new Date().toISOString()
 
@@ -20,26 +23,21 @@ export enum InstanceStatus {
   Failed = 'failed',
 }
 
-export type Instance_In = {
-  uid?: UserId
-  subdomain?: Subdomain
-  status?: InstanceStatus
-}
-
-export type PocketbaseRecord<TIdType extends RecordId> = {
-  id: TIdType
-  created: IsoDate
-  updated: IsoDate
-}
-
-export type Instance_Out = PocketbaseRecord<InstanceId> & {
-  uid: UserId
+export type InstancesRecord = {
+  id: RecordId
   subdomain: Subdomain
+  uid: UserId
   status: InstanceStatus
+  platform: PlatformId
+  version: VersionId
 }
 
-export type Any_Record_Out = Instance_Out
+export type InstancesRecord_New = Omit<InstancesRecord, 'id'>
 
-export type Instance_Out_ByIdCollection = {
-  [_: InstanceId]: Instance_Out
+export type UserRecord = {
+  id: RecordId
+  email: string
+  verified: boolean
 }
+
+export type InstanceRecordById = { [_: InstanceId]: InstancesRecord }

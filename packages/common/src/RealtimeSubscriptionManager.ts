@@ -1,25 +1,38 @@
-import PocketBase from 'pocketbase'
+import PocketBase, { Record } from 'pocketbase'
+import { CollectionName, RecordId } from './schema'
+
+export interface RecordSubscription<T = Record> {
+  action: string
+  record: T
+}
+
+export type RealtimeEventHandler<TRec> = (e: RecordSubscription<TRec>) => void
 
 export const createRealtimeSubscriptionManager = (pocketbase: PocketBase) => {
   const subscriptions: { [_: string]: number } = {}
 
-  const subscribe = <TRec>(slug: string, cb: (rec: TRec) => void) => {
+  const subscribeOne = <TRec>(
+    collection: CollectionName,
+    id: RecordId,
+    cb: (e: RecordSubscription<TRec>) => void
+  ) => {
+    const slug = `${collection}/${id}`
     if (subscriptions[slug]) {
       subscriptions[slug]++
     } else {
       subscriptions[slug] = 1
-      pocketbase.realtime.subscribe(slug, (e) => {
+      pocketbase.collection(collection).subscribeOne<TRec>(id, (e) => {
         console.log(`Realtime update`, { e })
-        cb(e.record as unknown as TRec)
+        cb(e)
       })
     }
     return () => {
       subscriptions[slug]--
       if (subscriptions[slug] === 0) {
-        pocketbase.realtime.unsubscribe(slug)
+        pocketbase.collection(collection).unsubscribe(id)
       }
     }
   }
 
-  return subscribe
+  return { subscribeOne }
 }

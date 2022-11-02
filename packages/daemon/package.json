@@ -3,45 +3,24 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build": "mkdir -p dist && esbuild src/server.ts --bundle --platform=node > dist/server.js && echo 'Build complete' `date`",
-    "dev": "yarn build && concurrently 'yarn dev:watch' 'yarn dev:serve'",
-    "dev:watch": "chokidar 'src/**' '../pocketbase/src/**' -c 'yarn build'",
-    "dev:serve": "nodemon dist/server.js",
-    "start": "node dist/server.js"
-  },
-  "targets": {
-    "server": {
-      "engines": {
-        "node": ">=18"
-      },
-      "source": "src/server.ts",
-      "includeNodeModules": [
-        "@pockethost/common",
-        "get-port",
-        "pocketbase",
-        "@s-libs/micro-dash"
-      ]
-    }
+    "build": "echo 'Build complete' `date`",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx  src/server.ts",
+    "migrate": "tsx src/migrate/migrate.ts"
   },
   "dependencies": {
     "@pockethost/common": "0.0.1",
     "@s-libs/micro-dash": "^14.1.0",
     "@types/http-proxy": "^1.17.9",
+    "@types/node": "^18.11.9",
     "bottleneck": "^2.19.5",
-    "chokidar-cli": "^3.0.0",
     "event-source-polyfill": "^1.0.31",
     "get-port": "^6.1.2",
     "http-proxy": "^1.18.1",
     "node-fetch": "^3.2.10",
-    "pocketbase": "^0.7.0",
-    "ts-node": "^10.9.1"
+    "pocketbase": "^0.8.0-rc1"
   },
   "devDependencies": {
-    "chokidar-cli": "^3.0.0",
-    "concurrently": "^7.4.0",
-    "esbuild": "^0.15.11",
-    "nodemon": "^2.0.20",
-    "parcel": "^2.7.0",
-    "ts-node": "^10.9.1"
+    "tsx": "^3.11.0"
   }
 }

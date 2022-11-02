@@ -3,11 +3,13 @@ import {
   assertExists,
   createRealtimeSubscriptionManager,
   type InstanceId,
-  type Instance_In,
-  type Instance_Out
+  type InstancesRecord,
+  type InstancesRecord_New,
+  type RealtimeEventHandler,
+  type UserRecord
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
-import PocketBase, { Admin, BaseAuthStore, ClientResponseError, Record, User } from 'pocketbase'
+import PocketBase, { Admin, BaseAuthStore, ClientResponseError, Record } from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
 import { safeCatch } from '../util/safeCatch'
 
@@ -16,7 +18,7 @@ export type AuthChangeHandler = (user: BaseAuthStore) => void
 export type AuthToken = string
 export type AuthStoreProps = {
   token: AuthToken
-  model: User | null
+  model: UserRecord | null
   isValid: boolean
 }
 
@@ -27,65 +29,75 @@ export const createPocketbaseClient = (url: string) => {
 
   const { authStore } = client
 
-  const user = () => authStore.model
+  const user = () => authStore.model as AuthStoreProps['model']
 
   const isLoggedIn = () => authStore.isValid
 
   const logOut = () => authStore.clear()
 
   const createUser = safeCatch(`createUser`, (email: string, password: string) =>
-    client.users.create({
-      email,
-      password,
-      passwordConfirm: password
-    })
+    client
+      .collection('users')
+      .create({
+        email,
+        password,
+        passwordConfirm: password
+      })
+      .then(() => {
+        console.log(`Sending verification email to ${email}`)
+        return client.collection('users').requestVerification(email)
+      })
   )
 
   const authViaEmail = safeCatch(`authViaEmail`, (email: string, password: string) =>
-    client.users.authViaEmail(email, password)
+    client.collection('users').authWithPassword(email, password)
   )
 
-  const refreshAuthToken = safeCatch(`refreshAuthToken`, () => client.users.refresh())
+  const refreshAuthToken = safeCatch(`refreshAuthToken`, () =>
+    client.collection('users').authRefresh()
+  )
 
   const createInstance = safeCatch(
     `createInstance`,
-    (payload: Instance_In): Promise<Instance_Out> => {
-      return client.records.create('instances', payload).then((r) => r as unknown as Instance_Out)
+    (payload: InstancesRecord_New): Promise<InstancesRecord> => {
+      return client.collection('instances').create<InstancesRecord>(payload)
     }
   )
 
   const getInstanceById = safeCatch(
     `getInstanceById`,
-    (id: InstanceId): Promise<Instance_Out | undefined> =>
-      client.records.getOne('instances', id).then((r) => r as unknown as Instance_Out)
+    (id: InstanceId): Promise<InstancesRecord | undefined> =>
+      client.collection('instances').getOne<InstancesRecord>(id)
   )
 
-  const subscribe = createRealtimeSubscriptionManager(client)
+  const { subscribeOne } = createRealtimeSubscriptionManager(client)
 
-  const watchInstanceById = (id: InstanceId, cb: (rec: Instance_Out) => void): Unsubscriber => {
-    const slug = `instances/${id}`
-    getInstanceById(id).then((v) => {
-      if (!v) return
-      cb(v)
+  const watchInstanceById = (
+    id: InstanceId,
+    cb: RealtimeEventHandler<InstancesRecord>
+  ): Unsubscriber => {
+    getInstanceById(id).then((record) => {
+      console.log(`Got instnace`, record)
+      assertExists(record, `Expected instance ${id} here`)
+      cb({ action: 'init', record })
     })
-    return subscribe(slug, cb)
+    return subscribeOne('instances', id, cb)
   }
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
     (
-      await client.records.getFullList('instances').catch((e) => {
-        console.error(`getAllInstancesById failed with ${e}`)
-        throw e
-      })
+      await client
+        .collection('instances')
+        .getFullList()
+        .catch((e) => {
+          console.error(`getAllInstancesById failed with ${e}`)
+          throw e
+        })
     ).reduce((c, v) => {
       c[v.id] = v
       return c
     }, {} as Record)
   )
-
-  const setInstance = safeCatch(`setInstance`, (instanceId: InstanceId, fields: Instance_In) => {
-    return client.records.update('instances', instanceId, fields)
-  })
 
   const parseError = (e: Error): string[] => {
     if (!(e instanceof ClientResponseError)) return [e.message]
@@ -96,13 +108,14 @@ export const createPocketbaseClient = (url: string) => {
   const resendVerificationEmail = safeCatch(`resendVerificationEmail`, async () => {
     const user = client.authStore.model
     assertExists(user, `Login required`)
-    await client.users.requestVerification(user.email)
+    await client.collection('users').requestVerification(user.email)
   })
 
   const getAuthStoreProps = (): AuthStoreProps => {
-    const { token, model, isValid } = client.authStore
+    const { token, model, isValid } = client.authStore as AuthStoreProps
     // console.log(`curent authstore`, { token, model, isValid })
     if (model instanceof Admin) throw new Error(`Admin models not supported`)
+    if (model && !model.email) throw new Error(`Expected model to be a user here`)
     return {
       token,
       model,
@@ -132,7 +145,10 @@ export const createPocketbaseClient = (url: string) => {
      * out of date, or fields in the user record may have changed in the backend.
      */
     refreshAuthToken()
-      .catch(() => {})
+      .catch((e) => {
+        console.error(`Clearing auth store: ${e}`)
+        client.authStore.clear()
+      })
       .finally(() => {
         fireAuthChange(getAuthStoreProps())
       })
@@ -154,7 +170,7 @@ export const createPocketbaseClient = (url: string) => {
         unsub()
         return
       }
-      const _check = safeCatch(`_checkVerified`, () => client.users.refresh())
+      const _check = safeCatch(`_checkVerified`, refreshAuthToken)
       setTimeout(_check, 1000)
 
       // FIXME - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
@@ -169,7 +185,6 @@ export const createPocketbaseClient = (url: string) => {
   return {
     getAuthStoreProps,
     parseError,
-    subscribe,
     getInstanceById,
     createInstance,
     authViaEmail,
@@ -180,7 +195,6 @@ export const createPocketbaseClient = (url: string) => {
     user,
     watchInstanceById,
     getAllInstancesById,
-    setInstance,
     resendVerificationEmail
   }
 }

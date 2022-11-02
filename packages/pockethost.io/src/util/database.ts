@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
-import { InstanceStatus } from '@pockethost/common'
+import { InstanceStatus, LATEST_PLATFORM, USE_LATEST_VERSION } from '@pockethost/common'
 
 export type FormErrorHandler = (value: string) => void
 
@@ -83,7 +83,9 @@ export const handleCreateNewInstance = async (
     const record = await createInstance({
       subdomain: instanceName,
       uid: id,
-      status: InstanceStatus.Idle
+      status: InstanceStatus.Idle,
+      platform: LATEST_PLATFORM,
+      version: USE_LATEST_VERSION
     })
 
     await goto(`/app/instances/${record.id}`)

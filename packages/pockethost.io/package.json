@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --force",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -30,7 +30,7 @@
     "@s-libs/micro-dash": "12",
     "@types/js-cookie": "^3.0.2",
     "js-cookie": "^3.0.1",
-    "pocketbase": "^0.7.0",
+    "pocketbase": "^0.8.0-rc1",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
     "svelte-highlight": "^6.2.1"

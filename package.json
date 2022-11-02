@@ -15,7 +15,9 @@
     "dev:daemon": "cd packages/daemon && yarn dev",
     "start": "concurrently 'yarn start:www' 'yarn start:daemon'",
     "start:www": "cd packages/pockethost.io && yarn start",
-    "start:daemon": "cd packages/daemon && yarn start"
+    "start:daemon": "cd packages/daemon && yarn start",
+    "migrate": "yarn migrate:daemon",
+    "migrate:daemon": "cd packages/daemon && yarn migrate"
   },
   "workspaces": {
     "packages": [

@@ -1,5 +1,5 @@
 export function assertExists<TType>(
-  v: unknown,
+  v: TType,
   message = `Value does not exist`
 ): asserts v is NonNullable<TType> {
   if (typeof v === 'undefined') {

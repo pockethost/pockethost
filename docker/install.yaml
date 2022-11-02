@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  prepbox:
+    env_file:
+      - .env.local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: prepbox
+    working_dir: /src
+    command: bash -c "yarn"
+    volumes:
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src

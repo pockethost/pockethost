@@ -93,9 +93,9 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-dev .env.local  # Edit as needed - defaults should work
 cd ..
-docker-compose -f docker/docker-compose-dev.yaml build
-docker-compose -f docker/docker-compose-dev.yaml --profile=build up  --remove-orphans
-docker-compose -f docker/docker-compose-dev.yaml --profile=serve up  --remove-orphans
+docker-compose -f docker/build.yaml up --remove-orphans
+docker-compose -f docker/migrate.yaml up --remove-orphans
+docker-compose -f docker/dev.yaml up --remove-orphans
 open https://pockethost.test
 ```
 
@@ -108,10 +108,9 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-prod .env.local  # Edit as needed - defaults should work
 cd ..
-docker-compose -f docker/docker-compose-prod.yaml build
-# Use 'buildbox' to test your build before launching service
-docker-compose -f docker/docker-compose-prod.yaml --profile=build up --remove-orphans
-docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans
+docker-compose -f docker/build.yaml up --remove-orphans
+docker-compose -f docker/migrate.yaml up --remove-orphans
+docker-compose -f docker/prod.yaml up --remove-orphans
 ```
 
 **2. Refresh Certbot**
@@ -131,9 +130,10 @@ open https://pockethost.io
 
 # Release History
 
-**next**
+**0.4.0**
 
-- [ ]
+- [x] PocketBase 0.8 support
+- [x] Introduced "platforms" concept for version control
 
 **0.3.2**
 

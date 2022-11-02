@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  build:
+    env_file:
+      - .env.local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: build
+    working_dir: /src
+    command: bash -c "yarn && yarn build"
+    volumes:
+      - ./mount/cache/go:/go
+      - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6
+      - ..:/src

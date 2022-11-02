@@ -5,25 +5,27 @@
   import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
+  import { humanVersion, type InstancesRecord } from '@pockethost/common'
   import { assertExists } from '@pockethost/common/src/assert'
-  import type { Instance_Out } from '@pockethost/common/src/schema'
   import { onDestroy, onMount } from 'svelte'
   import type { Unsubscriber } from 'svelte/store'
 
   const { instanceId } = $page.params
 
-  let instance: Instance_Out | undefined
+  let instance: InstancesRecord | undefined
 
   let url: string
   let code: string = ''
   let unsub: Unsubscriber = () => {}
 
-  onMount(() => {
+  onMount(async () => {
     const { watchInstanceById } = client()
     unsub = watchInstanceById(instanceId, (r) => {
-      instance = r
-      assertExists(instance, `Expected instance here`)
-      const { subdomain } = instance
+      console.log(`Handling instance update`, r)
+      const { action, record } = r
+      instance = record
+      assertExists(record, `Expected instance here`)
+      const { subdomain } = record
       url = `${PUBLIC_PB_PROTOCOL}://${subdomain}.${PUBLIC_PB_DOMAIN}`
       code = `const url = '${url}'\nconst client = new PocketBase(url)`
     })
@@ -49,6 +51,10 @@
     <div>
       JavaScript:
       <CodeSample {code} />
+    </div>
+    <div>
+      Running {instance.platform}
+      {humanVersion(instance.platform, instance.version)}
     </div>
   {/if}
 

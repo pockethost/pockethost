@@ -5,7 +5,7 @@
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import type { Instance_Out, Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
+  import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
@@ -13,18 +13,18 @@
   // Wait for the instance call to complete before rendering the UI
   let hasPageLoaded = false
 
-  let apps: Instance_Out_ByIdCollection = {}
+  let apps: InstanceRecordById = {}
 
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
 
-  let appsArray: Instance_Out[]
+  let appsArray: InstancesRecord[]
   $: {
     appsArray = values(apps)
   }
   const cm = createCleanupManagerSync()
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
-  const _update = (_apps: Instance_Out_ByIdCollection) => {
+  const _update = (_apps: InstanceRecordById) => {
     apps = _apps
     _touch++
   }
@@ -38,7 +38,8 @@
           const instanceId = app.id
 
           const unsub = watchInstanceById(instanceId, (r) => {
-            _update({ ...apps, [r.id]: r })
+            const { action, record } = r
+            _update({ ...apps, [record.id]: record })
           })
           cm.add(unsub)
         })
@@ -74,6 +75,8 @@
               </div>
 
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
+              Running {app.platform}
+              {humanVersion(app.platform, app.version)}
 
               <div class="d-flex justify-content-around">
                 <a href={`/app/instances/${app.id}`} class="btn btn-light">
