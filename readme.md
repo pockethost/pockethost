@@ -130,6 +130,10 @@ open https://pockethost.io
 
 # Release History
 
+**next**
+
+- [] Docker build system updates
+
 **0.4.0**
 
 - [x] PocketBase 0.8 support
