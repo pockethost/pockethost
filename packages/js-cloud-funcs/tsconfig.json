@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    "typeRoots": ["./node_modules/@types"],
+    "inlineSourceMap": true,
+    "lib": ["ES2015"]
+  },
+  "include": ["./src"]
+}

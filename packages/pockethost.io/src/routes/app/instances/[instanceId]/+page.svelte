@@ -1,7 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import CodeSample from '$components/CodeSample.svelte'
-  import Protected from '$components/Protected.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
@@ -15,14 +14,13 @@
 
   let instance: Instance_Out | undefined
 
-  const { watchInstanceById } = client
   let url: string
   let code: string = ''
   let unsub: Unsubscriber = () => {}
 
   onMount(() => {
+    const { watchInstanceById } = client()
     unsub = watchInstanceById(instanceId, (r) => {
-      console.log(`got a record`, r)
       instance = r
       assertExists(instance, `Expected instance here`)
       const { subdomain } = instance
@@ -37,31 +35,29 @@
   <title>Your Instance - PocketHost</title>
 </svelte:head>
 
-<Protected>
-  <div class="container">
-    {#if instance}
-      <div class="py-4">
-        <div class="d-flex gap-3 align-items-center mb-3">
-          <h1 class="mb-0">Admin URL</h1>
-          <ProvisioningStatus status={instance.status} />
-        </div>
-
-        <h2><a href={`${url}/_`} target="_blank">{`${url}/_`}</a></h2>
+<div class="container">
+  {#if instance}
+    <div class="py-4">
+      <div class="d-flex gap-3 align-items-center mb-3">
+        <h1 class="mb-0">Admin URL</h1>
+        <ProvisioningStatus status={instance.status} />
       </div>
 
-      <div>
-        JavaScript:
-        <CodeSample {code} />
-      </div>
-    {/if}
-
-    <div class="text-center py-5">
-      <a href="/dashboard" class="btn btn-light"
-        ><i class="bi bi-arrow-left-short" /> Back to Dashboard</a
-      >
+      <h2><a href={`${url}/_`} target="_blank">{`${url}/_`}</a></h2>
     </div>
+
+    <div>
+      JavaScript:
+      <CodeSample {code} />
+    </div>
+  {/if}
+
+  <div class="text-center py-5">
+    <a href="/dashboard" class="btn btn-light"
+      ><i class="bi bi-arrow-left-short" /> Back to Dashboard</a
+    >
   </div>
-</Protected>
+</div>
 
 <style lang="scss">
 </style>

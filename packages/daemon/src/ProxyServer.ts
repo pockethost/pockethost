@@ -9,38 +9,42 @@ export const createProxyServer = async () => {
   const proxy = httpProxy.createProxyServer({})
 
   const server = createServer(async (req, res) => {
-    console.log(`Incoming request ${req.headers.host}/${req.url}`)
+    // console.log(`Incoming request ${req.headers.host}/${req.url}`)
 
     const die = (msg: string) => {
       console.error(`ERROR: ${msg}`)
-      res.writeHead(200, {
+      res.writeHead(403, {
         'Content-Type': `text/plain`,
       })
       res.end(msg)
     }
+
     const host = req.headers.host
     if (!host) {
-      die(`Host not found`)
-      return
+      throw new Error(`Host not found`)
     }
     const [subdomain, ...junk] = host.split('.')
     if (!subdomain) {
-      die(`${host} has no subdomain.`)
+      throw new Error(`${host} has no subdomain.`)
+    }
+    try {
+      const instance = await instanceManager.getInstance(subdomain)
+      if (!instance) {
+        throw new Error(
+          `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
+        )
+      }
+
+      // console.log(
+      //   `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
+      // )
+      const endRequest = instance.startRequest()
+      req.on('close', endRequest)
+      proxy.web(req, res, { target: instance.internalUrl })
+    } catch (e) {
+      die(`${e}`)
       return
     }
-    const instance = await instanceManager.getInstance(subdomain)
-    if (!instance) {
-      die(
-        `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}`
-      )
-      return
-    }
-    console.log(
-      `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
-    )
-    const endRequest = instance.startRequest()
-    req.on('close', endRequest)
-    proxy.web(req, res, { target: instance.internalUrl })
   })
 
   console.log('daemon on port 3000')

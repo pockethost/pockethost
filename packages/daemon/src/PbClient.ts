@@ -1,5 +1,5 @@
 import { InstanceStatus } from '@pockethost/common'
-import PocketBase from 'pocketbase'
+import PocketBase, { Record, User } from 'pocketbase'
 import { Collection_Serialized } from './migrations'
 
 const safeCatch = <TIn extends any[], TOut>(
@@ -27,24 +27,34 @@ export const createPbClient = (url: string) => {
 
   const getInstanceBySubdomain = safeCatch(
     `getInstanceBySubdomain`,
-    (subdomain: string) =>
-      client.records.getList(`instances`, 1, 1, {
-        filter: `subdomain = '${subdomain}'`,
-      })
+    (subdomain: string): Promise<[Record, User] | []> =>
+      client.records
+        .getList(`instances`, 1, 1, {
+          filter: `subdomain = '${subdomain}'`,
+        })
+        .then((recs) => {
+          if (recs.totalItems > 1) {
+            throw new Error(
+              `Expected just one or zero instance records for ${subdomain}`
+            )
+          }
+          const [instance] = recs.items
+          if (!instance) return []
+          return client.users.getOne(instance.uid).then((user) => {
+            return [instance, user]
+          })
+        })
   )
 
   const updateInstanceStatus = safeCatch(
     `updateInstanceStatus`,
     async (subdomain: string, status: InstanceStatus) => {
-      const recs = await getInstanceBySubdomain(subdomain)
-      if (recs.totalItems !== 1) {
-        throw new Error(`Expected just one subdomain record for ${subdomain}`)
-      }
-      const [item] = recs.items
-      if (!item) {
+      const [instance, owner] = await getInstanceBySubdomain(subdomain)
+
+      if (!instance) {
         throw new Error(`Expected item here for ${subdomain}`)
       }
-      await client.records.update(`instances`, item.id, { status })
+      await client.records.update(`instances`, instance.id, { status })
     }
   )
 

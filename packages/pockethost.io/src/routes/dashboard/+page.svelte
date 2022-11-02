@@ -1,11 +1,11 @@
 <script lang="ts">
-  import Protected from '$components/Protected.svelte'
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import type { Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
+  import type { Instance_Out, Instance_Out_ByIdCollection } from '@pockethost/common/src/schema'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
@@ -13,12 +13,15 @@
   // Wait for the instance call to complete before rendering the UI
   let hasPageLoaded = false
 
-  const { getAllInstancesById, watchInstanceById } = client
   let apps: Instance_Out_ByIdCollection = {}
 
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
 
+  let appsArray: Instance_Out[]
+  $: {
+    appsArray = values(apps)
+  }
   const cm = createCleanupManagerSync()
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
   const _update = (_apps: Instance_Out_ByIdCollection) => {
@@ -26,6 +29,7 @@
     _touch++
   }
   onMount(() => {
+    const { getAllInstancesById, watchInstanceById } = client()
     getAllInstancesById()
       .then((instances) => {
         _update(instances)
@@ -34,7 +38,6 @@
           const instanceId = app.id
 
           const unsub = watchInstanceById(instanceId, (r) => {
-            console.log(`got a record`, r)
             _update({ ...apps, [r.id]: r })
           })
           cm.add(unsub)
@@ -55,15 +58,15 @@
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
-<Protected>
+<AuthStateGuard>
   <div class="container" in:fade={{ duration: 30 }}>
-    {#if values(apps).length}
+    {#if appsArray.length}
       <div class="py-4">
         <h1 class="text-center">Your Apps</h1>
       </div>
 
       <div class="row justify-content-center">
-        {#each values(apps) as app}
+        {#each appsArray as app}
           <div class="col-xl-4 col-md-6 col-12 mb-5">
             <div class="card">
               <div class="server-status">
@@ -102,7 +105,7 @@
       </RetroBoxContainer>
     </div>
   </div>
-</Protected>
+</AuthStateGuard>
 
 <style lang="scss">
   .first-app-screen {

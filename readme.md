@@ -94,7 +94,8 @@ cd pockethost/docker
 cp .env-template-dev .env.local  # Edit as needed - defaults should work
 cd ..
 docker-compose -f docker/docker-compose-dev.yaml build
-docker-compose -f docker/docker-compose-dev.yaml up
+docker-compose -f docker/docker-compose-dev.yaml --profile=build up  --remove-orphans
+docker-compose -f docker/docker-compose-dev.yaml --profile=serve up  --remove-orphans
 open https://pockethost.test
 ```
 
@@ -128,6 +129,20 @@ open https://pockethost.io
 ```
 
 # Release History
+
+**next**
+
+- [ ]
+
+**0.3.2**
+
+- [x] Migrated PBScript repository to here
+- [x] Accounts must now be verified before running an instance
+
+**0.3.1**
+
+- [x] OpenGraph support
+- [x] Darkmode enhancements
 
 **0.3.0**
 

@@ -5,8 +5,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "prettier:check": "prettier -c \"./**/*.ts\"",
-    "prettier:fix": "prettier -w \"./**/*.ts\"",
+    "lint": "prettier -c \"./**/*.ts\"",
+    "lint:fix": "prettier -w \"./**/*.ts\"",
     "build": "concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
     "build:pocketbase": "cd packages/pocketbase && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
