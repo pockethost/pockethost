@@ -66,7 +66,7 @@
 
 <button
   type="button"
-  class="{navLink && 'nav-link'} btn border-0"
+  class="{navLink && 'nav-link'} btn border-0 d-inline-block"
   aria-label="Toggle the site theme"
   title="Toggle the site theme"
   on:click={handleClick}
