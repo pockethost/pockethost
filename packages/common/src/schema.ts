@@ -40,4 +40,13 @@ export type UserRecord = {
   verified: boolean
 }
 
+export type InvocationRecord = {
+  id: RecordId
+  instanceId: RecordId
+  startedAt: IsoDate
+  endedAt: IsoDate
+  pid: number
+  totalSeconds: number
+}
+
 export type InstanceRecordById = { [_: InstanceId]: InstancesRecord }

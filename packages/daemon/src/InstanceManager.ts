@@ -1,7 +1,6 @@
-import { binFor, InstanceStatus } from '@pockethost/common'
+import { assertTruthy, binFor, InstanceStatus } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { ChildProcessWithoutNullStreams } from 'child_process'
 import getPort from 'get-port'
 import {
   DAEMON_PB_IDLE_TTL,
@@ -16,15 +15,16 @@ import {
 } from './constants'
 import { createPbClient } from './PbClient'
 import { mkInternalUrl } from './util/internal'
+import { now } from './util/now'
+import { safeCatch } from './util/safeCatch'
 import { tryFetch } from './util/tryFetch'
-import { _spawn } from './util/_spawn'
+import { PocketbaseProcess, _spawn } from './util/_spawn'
 
 type Instance = {
-  process: ChildProcessWithoutNullStreams
+  process: PocketbaseProcess
   internalUrl: string
   port: number
-  heartbeat: (shouldStop?: boolean) => void
-  shutdown: () => boolean
+  shutdown: () => Promise<void>
   startRequest: () => () => void
 }
 
@@ -42,10 +42,9 @@ export const createInstanceManger = async () => {
     process: mainProcess,
     internalUrl: coreInternalUrl,
     port: DAEMON_PB_PORT_BASE,
-    heartbeat: () => {},
-    shutdown: () => {
+    shutdown: async () => {
       console.log(`Shutting down instance ${PUBLIC_PB_SUBDOMAIN}`)
-      return mainProcess.kill()
+      mainProcess.kill()
     },
     startRequest: () => () => {},
   }
@@ -70,7 +69,6 @@ export const createInstanceManger = async () => {
         const instance = instances[subdomain]
         if (instance) {
           // console.log(`Found in cache: ${subdomain}`)
-          instance.heartbeat()
           return instance
         }
       }
@@ -107,18 +105,19 @@ export const createInstanceManger = async () => {
         subdomain,
         port: newPort,
         bin: binFor(instance.platform, instance.version),
-        cleanup: (code) => {
-          instances[subdomain]?.heartbeat(true)
-          delete instances[subdomain]
-          if (subdomain !== PUBLIC_PB_SUBDOMAIN) {
-            client.updateInstanceStatus(subdomain, InstanceStatus.Idle)
-          }
-          console.log(`${subdomain} exited with code ${code}`)
+        onUnexpectedStop: (code) => {
+          console.warn(`${subdomain} exited unexpectedly with ${code}`)
+          api.shutdown()
         },
       })
+      const { pid } = childProcess
+      assertTruthy(pid, `Expected PID here but got ${pid}`)
 
+      const invocation = await client.createInvocation(instance, pid)
       const api: Instance = (() => {
         let openRequestCount = 0
+        let lastRequest = now()
+        let tid: ReturnType<typeof setTimeout>
         const internalUrl = mkInternalUrl(newPort)
 
         const RECHECK_TTL = 1000 // 1 second
@@ -126,34 +125,26 @@ export const createInstanceManger = async () => {
           process: childProcess,
           internalUrl,
           port: newPort,
-          shutdown: () => {
-            console.log(`Shutting down instance ${subdomain}`)
-            return childProcess.kill()
-          },
-          heartbeat: (() => {
-            let tid: ReturnType<typeof setTimeout>
-            const _cleanup = () => {
-              if (openRequestCount === 0) {
-                _api.shutdown()
-              } else {
-                console.log(
-                  `${openRequestCount} requests remain open on ${subdomain}`
-                )
-                tid = setTimeout(_cleanup, RECHECK_TTL)
-              }
-            }
-            tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
-            return (shouldStop) => {
+          shutdown: safeCatch(
+            `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
+            async () => {
               clearTimeout(tid)
-              if (!shouldStop) {
-                tid = setTimeout(_cleanup, DAEMON_PB_IDLE_TTL)
+              await client.finalizeInvocation(invocation)
+              const res = childProcess.kill()
+              delete instances[subdomain]
+              if (subdomain !== PUBLIC_PB_SUBDOMAIN) {
+                client.updateInstanceStatus(subdomain, InstanceStatus.Idle)
               }
+              assertTruthy(
+                res,
+                `Expected child process to exit gracefully but got ${res}`
+              )
             }
-          })(),
+          ),
           startRequest: () => {
+            lastRequest = now()
             openRequestCount++
             const id = openRequestCount
-
             console.log(`${subdomain} started new request ${id}`)
             return () => {
               openRequestCount--
@@ -161,6 +152,34 @@ export const createInstanceManger = async () => {
             }
           },
         }
+
+        {
+          /**
+           * Heartbeat and idle shutdown
+           */
+          const _beat = async () => {
+            console.log(
+              `${subdomain} heartbeat: ${openRequestCount} open requests`
+            )
+            await client.pingInvocation(invocation)
+            if (
+              openRequestCount === 0 &&
+              lastRequest + DAEMON_PB_IDLE_TTL < now()
+            ) {
+              console.log(
+                `${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`
+              )
+              await _api.shutdown()
+            } else {
+              console.log(
+                `${openRequestCount} requests remain open on ${subdomain}`
+              )
+              tid = setTimeout(_beat, RECHECK_TTL)
+            }
+          }
+          _beat()
+        }
+
         return _api
       })()
 

@@ -1,4 +1,10 @@
-import { InstancesRecord, InstanceStatus, UserRecord } from '@pockethost/common'
+import {
+  InstancesRecord,
+  InstanceStatus,
+  InvocationRecord,
+  pocketNow,
+  UserRecord,
+} from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import PocketBase, { Collection } from 'pocketbase'
@@ -20,16 +26,8 @@ export const createPbClient = (url: string) => {
     (subdomain: string): Promise<[InstancesRecord, UserRecord] | []> =>
       client
         .collection('instances')
-        .getList<InstancesRecord>(1, 1, {
-          filter: `subdomain = '${subdomain}'`,
-        })
-        .then((recs) => {
-          if (recs.totalItems > 1) {
-            throw new Error(
-              `Expected just one or zero instance records for ${subdomain}`
-            )
-          }
-          const [instance] = recs.items
+        .getFirstListItem<InstancesRecord>(`subdomain = '${subdomain}'`)
+        .then((instance) => {
           if (!instance) return []
           return client
             .collection('users')
@@ -48,7 +46,56 @@ export const createPbClient = (url: string) => {
       if (!instance) {
         throw new Error(`Expected item here for ${subdomain}`)
       }
-      await client.collection('instances').update(instance.id, { status })
+      await client
+        .collection('instances')
+        .update<InstancesRecord>(instance.id, { status })
+    }
+  )
+
+  const createInvocation = safeCatch(
+    'createInvocation',
+    async (instance: InstancesRecord, pid: number) => {
+      const init: Partial<InvocationRecord> = {
+        startedAt: pocketNow(),
+        pid,
+        instanceId: instance.id,
+        totalSeconds: 0,
+      }
+      const _inv = await client
+        .collection('invocations')
+        .create<InvocationRecord>(init)
+      return _inv
+    }
+  )
+
+  const pingInvocation = safeCatch(
+    'pingInvocation',
+    async (invocation: InvocationRecord) => {
+      const totalSeconds =
+        (+new Date() - Date.parse(invocation.startedAt)) / 1000
+      const toUpdate: Partial<InvocationRecord> = {
+        totalSeconds,
+      }
+      const _inv = await client
+        .collection('invocations')
+        .update<InvocationRecord>(invocation.id, toUpdate)
+      return _inv
+    }
+  )
+
+  const finalizeInvocation = safeCatch(
+    'finalizeInvocation',
+    async (invocation: InvocationRecord) => {
+      const totalSeconds =
+        (+new Date() - Date.parse(invocation.startedAt)) / 1000
+      const toUpdate: Partial<InvocationRecord> = {
+        endedAt: pocketNow(),
+        totalSeconds,
+      }
+      const _inv = await client
+        .collection('invocations')
+        .update<InvocationRecord>(invocation.id, toUpdate)
+      return _inv
     }
   )
 
@@ -87,6 +134,9 @@ export const createPbClient = (url: string) => {
   )
 
   return {
+    pingInvocation,
+    finalizeInvocation,
+    createInvocation,
     adminAuthViaEmail,
     getInstanceBySubdomain,
     updateInstanceStatus,

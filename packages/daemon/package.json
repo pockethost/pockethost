@@ -18,7 +18,8 @@
     "get-port": "^6.1.2",
     "http-proxy": "^1.18.1",
     "node-fetch": "^3.2.10",
-    "pocketbase": "^0.8.0-rc1"
+    "pocketbase": "^0.8.0-rc1",
+    "type-fest": "^3.1.0"
   },
   "devDependencies": {
     "tsx": "^3.11.0"
