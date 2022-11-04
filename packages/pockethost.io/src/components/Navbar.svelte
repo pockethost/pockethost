@@ -77,6 +77,11 @@
             </li>
           {/if}
         </AuthStateGuard>
+
+        <li class="nav-item text-center">
+          <a href="https://github.com/benallfree/pockethost/discussions" class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3" target="_blank" rel="noreferrer">Discussions</a>
+        </li>
+
         <li class="nav-item">
           <a
             class="nav-link text-md-start text-center"
@@ -90,7 +95,7 @@
           </a>
         </li>
 
-        <li class="nav-item">
+        <li class="nav-item text-center">
           <ThemeToggle navLink={true} />
         </li>
       </ul>
@@ -134,6 +139,10 @@
     font-size: 20px;
   }
 
+  .nav-item {
+    margin: 8px 0;
+  }
+
   .nav-link {
     font-weight: 500;
     margin: 0 5px;
@@ -147,6 +156,10 @@
   @media screen and (min-width: 768px) {
     .nav-github-link {
       display: none;
+    }
+
+    .nav-item {
+      margin: 0;
     }
   }
 </style>
