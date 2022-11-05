@@ -12,7 +12,7 @@ import Bottleneck from 'bottleneck'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import PocketBase, { Collection } from 'pocketbase'
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
-import { Collection_Serialized } from '../migrate/migrations'
+import { Collection_Serialized } from '../migrate/schema'
 import { dbg } from '../util/dbg'
 import { safeCatch } from '../util/safeAsync'
 import { createRawPbClient } from './RawPbClient'
@@ -137,8 +137,8 @@ export const createPbClient = (url: string) => {
     }
   )
 
-  const migrate = safeCatch(
-    `migrate`,
+  const applySchema = safeCatch(
+    `applySchema`,
     async (collections: Collection_Serialized[]) => {
       await client.collections.import(collections as Collection[])
     }
@@ -177,7 +177,7 @@ export const createPbClient = (url: string) => {
     getInstanceBySubdomain,
     updateInstanceStatus,
     updateInstance,
-    migrate,
+    applySchema,
     updateInstances,
   }
 }

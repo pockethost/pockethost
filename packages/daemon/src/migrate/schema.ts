@@ -4,7 +4,7 @@ export type Collection_Serialized = Omit<Partial<Collection>, 'schema'> & {
   schema: Array<Partial<SchemaField>>
 }
 
-export const collections_001: Collection_Serialized[] = [
+export const schema: Collection_Serialized[] = [
   {
     id: 'etae8tuiaxl6xfv',
     name: 'instances',
@@ -76,6 +76,18 @@ export const collections_001: Collection_Serialized[] = [
           pattern: '',
         },
       },
+      {
+        id: '1arlklqq',
+        name: 'secondsThisMonth',
+        type: 'number',
+        system: false,
+        required: false,
+        unique: false,
+        options: {
+          min: null,
+          max: null,
+        },
+      },
     ],
     listRule: 'uid=@request.auth.id',
     viewRule: 'uid = @request.auth.id',
@@ -139,5 +151,80 @@ export const collections_001: Collection_Serialized[] = [
       onlyEmailDomains: null,
       requireEmail: true,
     },
+  },
+  {
+    id: 'aiw8te7y7atklwn',
+    name: 'invocations',
+    type: 'base',
+    system: false,
+    schema: [
+      {
+        id: 'st9ydrbo',
+        name: 'instanceId',
+        type: 'relation',
+        system: false,
+        required: true,
+        unique: false,
+        options: {
+          maxSelect: 1,
+          collectionId: 'etae8tuiaxl6xfv',
+          cascadeDelete: false,
+        },
+      },
+      {
+        id: 'av4mpuyh',
+        name: 'startedAt',
+        type: 'date',
+        system: false,
+        required: true,
+        unique: false,
+        options: {
+          min: '',
+          max: '',
+        },
+      },
+      {
+        id: 'fnwatixg',
+        name: 'endedAt',
+        type: 'date',
+        system: false,
+        required: false,
+        unique: false,
+        options: {
+          min: '',
+          max: '',
+        },
+      },
+      {
+        id: 'awjozhbn',
+        name: 'pid',
+        type: 'number',
+        system: false,
+        required: false,
+        unique: false,
+        options: {
+          min: null,
+          max: null,
+        },
+      },
+      {
+        id: 'vdkfqege',
+        name: 'totalSeconds',
+        type: 'number',
+        system: false,
+        required: false,
+        unique: false,
+        options: {
+          min: null,
+          max: null,
+        },
+      },
+    ],
+    listRule: null,
+    viewRule: null,
+    createRule: null,
+    updateRule: null,
+    deleteRule: null,
+    options: {},
   },
 ]
