@@ -11,6 +11,7 @@ export type ProcessId = number
 export type Username = string
 export type Password = string
 export type CollectionName = string
+export type Seconds = number
 
 export const pocketNow = () => new Date().toISOString()
 
@@ -30,6 +31,7 @@ export type InstancesRecord = {
   status: InstanceStatus
   platform: PlatformId
   version: VersionId
+  secondsThisMonth: Seconds
 }
 
 export type InstancesRecord_New = Omit<InstancesRecord, 'id'>

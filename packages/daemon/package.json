@@ -13,12 +13,16 @@
     "@s-libs/micro-dash": "^14.1.0",
     "@types/http-proxy": "^1.17.9",
     "@types/node": "^18.11.9",
+    "boolean": "^3.2.0",
     "bottleneck": "^2.19.5",
+    "date-fns": "^2.29.3",
     "event-source-polyfill": "^1.0.31",
     "get-port": "^6.1.2",
     "http-proxy": "^1.18.1",
+    "knex": "^2.3.0",
     "node-fetch": "^3.2.10",
     "pocketbase": "^0.8.0-rc1",
+    "sqlite3": "^5.1.2",
     "type-fest": "^3.1.0"
   },
   "devDependencies": {

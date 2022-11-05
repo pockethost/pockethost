@@ -1,4 +1,6 @@
 import {
+  assertExists,
+  InstanceId,
   InstancesRecord,
   InstanceStatus,
   InvocationRecord,
@@ -7,13 +9,26 @@ import {
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import PocketBase, { Collection } from 'pocketbase'
-import { Collection_Serialized } from './migrate/migrations'
-import { safeCatch } from './util/safeCatch'
+import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
+import { Collection_Serialized } from '../migrate/migrations'
+import { dbg } from '../util/dbg'
+import { safeCatch } from '../util/safeAsync'
+import { createRawPbClient } from './RawPbClient'
 
 export const createPbClient = (url: string) => {
   console.log(`Initializing client: ${url}`)
+  const rawDb = createRawPbClient(
+    `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}/pb_data/data.db`
+  )
+
   const client = new PocketBase(url)
+  client.beforeSend = (url: string, reqConfig: { [_: string]: any }) => {
+    dbg(reqConfig)
+    delete reqConfig.signal
+    return reqConfig
+  }
 
   const adminAuthViaEmail = safeCatch(
     `adminAuthViaEmail`,
@@ -38,22 +53,22 @@ export const createPbClient = (url: string) => {
         })
   )
 
+  const updateInstance = safeCatch(
+    `updateInstance`,
+    async (instanceId: InstanceId, fields: Partial<InstancesRecord>) => {
+      await client.collection('instances').update(instanceId, fields)
+    }
+  )
+
   const updateInstanceStatus = safeCatch(
     `updateInstanceStatus`,
-    async (subdomain: string, status: InstanceStatus) => {
-      const [instance, owner] = await getInstanceBySubdomain(subdomain)
-
-      if (!instance) {
-        throw new Error(`Expected item here for ${subdomain}`)
-      }
-      await client
-        .collection('instances')
-        .update<InstancesRecord>(instance.id, { status })
+    async (instanceId: InstanceId, status: InstanceStatus) => {
+      await updateInstance(instanceId, { status })
     }
   )
 
   const createInvocation = safeCatch(
-    'createInvocation',
+    `createInvocation`,
     async (instance: InstancesRecord, pid: number) => {
       const init: Partial<InvocationRecord> = {
         startedAt: pocketNow(),
@@ -69,7 +84,7 @@ export const createPbClient = (url: string) => {
   )
 
   const pingInvocation = safeCatch(
-    'pingInvocation',
+    `pingInvocation`,
     async (invocation: InvocationRecord) => {
       const totalSeconds =
         (+new Date() - Date.parse(invocation.startedAt)) / 1000
@@ -79,23 +94,46 @@ export const createPbClient = (url: string) => {
       const _inv = await client
         .collection('invocations')
         .update<InvocationRecord>(invocation.id, toUpdate)
+      await updateInstanceSeconds(invocation.instanceId)
       return _inv
     }
   )
 
   const finalizeInvocation = safeCatch(
-    'finalizeInvocation',
+    `finalizeInvocation`,
     async (invocation: InvocationRecord) => {
+      dbg('finalizing')
       const totalSeconds =
         (+new Date() - Date.parse(invocation.startedAt)) / 1000
       const toUpdate: Partial<InvocationRecord> = {
         endedAt: pocketNow(),
         totalSeconds,
       }
+      dbg({ toUpdate })
       const _inv = await client
         .collection('invocations')
         .update<InvocationRecord>(invocation.id, toUpdate)
+      await updateInstanceSeconds(invocation.instanceId)
       return _inv
+    }
+  )
+
+  const updateInstanceSeconds = safeCatch(
+    `updateInstanceSeconds`,
+    async (instanceId: InstanceId, forPeriod = new Date()) => {
+      const startIso = startOfMonth(forPeriod).toISOString()
+      const endIso = endOfMonth(forPeriod).toISOString()
+      const query = rawDb('invocations')
+        .sum('totalSeconds as t')
+        .where('instanceId', instanceId)
+        .where('startedAt', '>=', startIso)
+        .where('startedAt', '<=', endIso)
+      dbg(query.toString())
+      const res = await query
+      const [row] = res
+      assertExists(row, `Expected row here`)
+      const secondsThisMonth = row.t
+      await updateInstance(instanceId, { secondsThisMonth })
     }
   )
 
@@ -119,9 +157,7 @@ export const createPbClient = (url: string) => {
           c.push(
             limiter.schedule(() => {
               const toUpdate = cb(r)
-              console.log(
-                `Updating instnace ${r.id} with ${JSON.stringify(toUpdate)}`
-              )
+              dbg(`Updating instnace ${r.id} with ${JSON.stringify(toUpdate)}`)
               return client.collection('instances').update(r.id, toUpdate)
             })
           )
@@ -140,6 +176,7 @@ export const createPbClient = (url: string) => {
     adminAuthViaEmail,
     getInstanceBySubdomain,
     updateInstanceStatus,
+    updateInstance,
     migrate,
     updateInstances,
   }

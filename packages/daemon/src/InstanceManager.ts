@@ -13,10 +13,11 @@ import {
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from './constants'
-import { createPbClient } from './PbClient'
+import { createPbClient } from './db/PbClient'
+import { dbg } from './util/dbg'
 import { mkInternalUrl } from './util/internal'
 import { now } from './util/now'
-import { safeCatch } from './util/safeCatch'
+import { safeCatch } from './util/safeAsync'
 import { tryFetch } from './util/tryFetch'
 import { PocketbaseProcess, _spawn } from './util/_spawn'
 
@@ -43,7 +44,7 @@ export const createInstanceManger = async () => {
     internalUrl: coreInternalUrl,
     port: DAEMON_PB_PORT_BASE,
     shutdown: async () => {
-      console.log(`Shutting down instance ${PUBLIC_PB_SUBDOMAIN}`)
+      dbg(`Shutting down instance ${PUBLIC_PB_SUBDOMAIN}`)
       mainProcess.kill()
     },
     startRequest: () => () => {},
@@ -64,20 +65,20 @@ export const createInstanceManger = async () => {
 
   const getInstance = (subdomain: string) =>
     limiter.schedule(async () => {
-      // console.log(`Getting instance ${subdomain}`)
+      // dbg(`Getting instance ${subdomain}`)
       {
         const instance = instances[subdomain]
         if (instance) {
-          // console.log(`Found in cache: ${subdomain}`)
+          // dbg(`Found in cache: ${subdomain}`)
           return instance
         }
       }
 
-      console.log(`Checking ${subdomain} for permission`)
+      dbg(`Checking ${subdomain} for permission`)
 
       const [instance, owner] = await client.getInstanceBySubdomain(subdomain)
       if (!instance) {
-        console.log(`${subdomain} not found`)
+        dbg(`${subdomain} not found`)
         return
       }
 
@@ -87,8 +88,8 @@ export const createInstanceManger = async () => {
         )
       }
 
-      await client.updateInstanceStatus(subdomain, InstanceStatus.Port)
-      console.log(`${subdomain} found in DB`)
+      await client.updateInstanceStatus(instance.id, InstanceStatus.Port)
+      dbg(`${subdomain} found in DB`)
       const exclude = map(instances, (i) => i.port)
       const newPort = await getPort({
         port: DAEMON_PB_PORT_BASE,
@@ -97,9 +98,9 @@ export const createInstanceManger = async () => {
         console.error(`Failed to get port for ${subdomain}`)
         throw e
       })
-      console.log(`Found port for ${subdomain}: ${newPort}`)
+      dbg(`Found port for ${subdomain}: ${newPort}`)
 
-      await client.updateInstanceStatus(subdomain, InstanceStatus.Starting)
+      await client.updateInstanceStatus(instance.id, InstanceStatus.Starting)
 
       const childProcess = await _spawn({
         subdomain,
@@ -133,7 +134,10 @@ export const createInstanceManger = async () => {
               const res = childProcess.kill()
               delete instances[subdomain]
               if (subdomain !== PUBLIC_PB_SUBDOMAIN) {
-                client.updateInstanceStatus(subdomain, InstanceStatus.Idle)
+                await client.updateInstanceStatus(
+                  instance.id,
+                  InstanceStatus.Idle
+                )
               }
               assertTruthy(
                 res,
@@ -145,10 +149,10 @@ export const createInstanceManger = async () => {
             lastRequest = now()
             openRequestCount++
             const id = openRequestCount
-            console.log(`${subdomain} started new request ${id}`)
+            dbg(`${subdomain} started new request ${id}`)
             return () => {
               openRequestCount--
-              console.log(`${subdomain} ended request ${id}`)
+              dbg(`${subdomain} ended request ${id}`)
             }
           },
         }
@@ -158,22 +162,16 @@ export const createInstanceManger = async () => {
            * Heartbeat and idle shutdown
            */
           const _beat = async () => {
-            console.log(
-              `${subdomain} heartbeat: ${openRequestCount} open requests`
-            )
+            dbg(`${subdomain} heartbeat: ${openRequestCount} open requests`)
             await client.pingInvocation(invocation)
             if (
               openRequestCount === 0 &&
               lastRequest + DAEMON_PB_IDLE_TTL < now()
             ) {
-              console.log(
-                `${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`
-              )
+              dbg(`${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`)
               await _api.shutdown()
             } else {
-              console.log(
-                `${openRequestCount} requests remain open on ${subdomain}`
-              )
+              dbg(`${openRequestCount} requests remain open on ${subdomain}`)
               tid = setTimeout(_beat, RECHECK_TTL)
             }
           }
@@ -184,13 +182,13 @@ export const createInstanceManger = async () => {
       })()
 
       instances[subdomain] = api
-      await client.updateInstanceStatus(subdomain, InstanceStatus.Running)
-      console.log(`${api.internalUrl} is running`)
+      await client.updateInstanceStatus(instance.id, InstanceStatus.Running)
+      dbg(`${api.internalUrl} is running`)
       return instances[subdomain]
     })
 
   const shutdown = () => {
-    console.log(`Shutting down instance manager`)
+    dbg(`Shutting down instance manager`)
     forEachRight(instances, (instance) => {
       instance.shutdown()
     })
