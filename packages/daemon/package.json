@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "echo 'Build complete' `date`",
-    "dev": "tsx watch src/server.ts",
+    "dev": "DEBUG=1 tsx watch src/server.ts",
     "start": "tsx  src/server.ts",
     "migrate": "tsx src/migrate/migrate.ts"
   },

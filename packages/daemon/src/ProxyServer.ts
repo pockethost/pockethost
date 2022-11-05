@@ -2,6 +2,7 @@ import { createServer } from 'http'
 import httpProxy from 'http-proxy'
 import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from './constants'
 import { createInstanceManger } from './InstanceManager'
+import { dbg, info } from './util/dbg'
 
 export const createProxyServer = async () => {
   const instanceManager = await createInstanceManger()
@@ -9,7 +10,7 @@ export const createProxyServer = async () => {
   const proxy = httpProxy.createProxyServer({})
 
   const server = createServer(async (req, res) => {
-    // console.log(`Incoming request ${req.headers.host}/${req.url}`)
+    dbg(`Incoming request ${req.headers.host}/${req.url}`)
 
     const die = (msg: string) => {
       console.error(`ERROR: ${msg}`)
@@ -35,9 +36,9 @@ export const createProxyServer = async () => {
         )
       }
 
-      // console.log(
-      //   `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
-      // )
+      dbg(
+        `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
+      )
       const endRequest = instance.startRequest()
       req.on('close', endRequest)
       proxy.web(req, res, { target: instance.internalUrl })
@@ -47,11 +48,11 @@ export const createProxyServer = async () => {
     }
   })
 
-  console.log('daemon on port 3000')
+  info('daemon on port 3000')
   server.listen(3000)
 
   const shutdown = () => {
-    console.log(`Shutting down proxy server`)
+    info(`Shutting down proxy server`)
     server.close()
     instanceManager.shutdown()
   }

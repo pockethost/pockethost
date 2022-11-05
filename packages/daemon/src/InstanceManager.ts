@@ -14,7 +14,7 @@ import {
   PUBLIC_PB_SUBDOMAIN,
 } from './constants'
 import { createPbClient } from './db/PbClient'
-import { dbg } from './util/dbg'
+import { dbg, error } from './util/dbg'
 import { mkInternalUrl } from './util/internal'
 import { now } from './util/now'
 import { safeCatch } from './util/safeAsync'
@@ -53,12 +53,10 @@ export const createInstanceManger = async () => {
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
   } catch (e) {
-    console.error(
+    error(
       `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
     )
-    console.error(
-      `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
-    )
+    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
   }
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })

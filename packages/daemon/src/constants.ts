@@ -1,5 +1,5 @@
 import { existsSync } from 'fs'
-import { env, envi } from './util/env'
+import { env, envb, envi } from './util/env'
 export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
 export const PUBLIC_PB_PROTOCOL = env('PUBLIC_PB_PROTOCOL', `https`)
 export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `pockethost.test`)
@@ -49,4 +49,4 @@ export const DAEMON_PB_DATA_DIR = (() => {
   return v
 })()
 
-export const DEVELOPMENT = env('NODE_ENV') === 'development'
+export const DEVELOPMENT = envb('DEBUG', false)
