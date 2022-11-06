@@ -77,6 +77,8 @@
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
               Running {app.platform}
               {humanVersion(app.platform, app.version)}
+              <br />
+              {Math.ceil(app.secondsThisMonth / 60)} minutes
 
               <div class="d-flex justify-content-around">
                 <a href={`/app/instances/${app.id}`} class="btn btn-light">

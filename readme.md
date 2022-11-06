@@ -132,7 +132,7 @@ open https://pockethost.io
 
 **next**
 
-- []
+- [x] Runtime metrics now show how many minutes per month an instance has used
 
 **0.4.1**
 
