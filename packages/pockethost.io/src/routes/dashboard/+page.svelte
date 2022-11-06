@@ -5,7 +5,13 @@
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
+  import {
+    humanVersion,
+    JobStatus,
+    type InstanceId,
+    type InstanceRecordById,
+    type InstancesRecord
+  } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
@@ -14,6 +20,14 @@
   let hasPageLoaded = false
 
   let apps: InstanceRecordById = {}
+
+  type AppMeta = {
+    [_: InstanceId]: {
+      isBackingUp: boolean
+      backupStatus?: JobStatus
+    }
+  }
+  let appMeta: AppMeta = {}
 
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
@@ -26,10 +40,27 @@
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
   const _update = (_apps: InstanceRecordById) => {
     apps = _apps
+    forEach(_apps, (app) => {
+      if (appMeta[app.id]) return
+      appMeta[app.id] = {
+        isBackingUp: false
+      }
+    })
     _touch++
   }
+
+  const { getAllInstancesById, watchInstanceById, startInstanceBackup } = client()
+
+  const startBackup = (app: InstancesRecord) => {
+    startInstanceBackup(app.id, (job) => {
+      appMeta[app.id].isBackingUp =
+        job.status != JobStatus.FinishedError && job.status !== JobStatus.FinishedSuccess
+      appMeta[app.id].backupStatus = job.status
+      console.log({ appMeta })
+    })
+  }
+
   onMount(() => {
-    const { getAllInstancesById, watchInstanceById } = client()
     getAllInstancesById()
       .then((instances) => {
         _update(instances)
@@ -79,6 +110,10 @@
               {humanVersion(app.platform, app.version)}
               <br />
               {Math.ceil(app.secondsThisMonth / 60)} minutes
+              {#if appMeta[app.id].isBackingUp}
+                <br />
+                Backup status: {appMeta[app.id].backupStatus}
+              {/if}
 
               <div class="d-flex justify-content-around">
                 <a href={`/app/instances/${app.id}`} class="btn btn-light">
@@ -86,14 +121,15 @@
                   <span>Details</span>
                 </a>
 
-                <a
+                <div
                   class="btn btn-light pocketbase-button"
-                  href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
                   target="_blank"
+                  on:click={() => startBackup(app)}
+                  disabled={appMeta[app.id].isBackingUp}
                 >
-                  <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
-                  <span>Admin</span>
-                </a>
+                  <i class="bi bi-gear-fill" />
+                  <span>Backup</span>
+                </div>
 
                 <a
                   class="btn btn-light pocketbase-button"

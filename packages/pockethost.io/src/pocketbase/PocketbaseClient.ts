@@ -2,9 +2,14 @@ import { createGenericSyncEvent } from '$util/events'
 import {
   assertExists,
   createRealtimeSubscriptionManager,
+  JobStatus,
+  type InstanceBackupJobPayload,
+  type InstanceBackupJobRecord,
   type InstanceId,
   type InstancesRecord,
   type InstancesRecord_New,
+  type JobRecord,
+  type JobRecord_In,
   type RealtimeEventHandler,
   type UserRecord
 } from '@pockethost/common'
@@ -182,6 +187,39 @@ export const createPocketbaseClient = (url: string) => {
     })
   }
 
+  const createInstanceBackupJob = safeCatch(
+    `createInstanceBackupJob`,
+    async (instanceId: InstanceId) => {
+      const _user = user()
+      assertExists(_user, `Expected user to exist here`)
+      const { id: userId } = _user
+      const job: JobRecord_In<InstanceBackupJobPayload> = {
+        userId,
+        status: JobStatus.New,
+        payload: {
+          instanceId
+        }
+      }
+      const rec = await client.collection('jobs').create<InstanceBackupJobRecord>(job)
+      return rec
+    }
+  )
+
+  const startInstanceBackup = safeCatch(
+    `startInstanceBackup`,
+    async (instanceId: InstanceId, cb: (job: InstanceBackupJobRecord) => void) => {
+      const job = await createInstanceBackupJob(instanceId)
+      const unsub = subscribeOne<JobRecord<InstanceBackupJobPayload>>('jobs', job.id, (e) => {
+        const job = e.record
+        if (job.status === JobStatus.FinishedError || job.status == JobStatus.FinishedSuccess) {
+          unsub()
+        }
+        cb(job)
+      })
+      cb(job)
+    }
+  )
+
   return {
     getAuthStoreProps,
     parseError,
@@ -195,6 +233,7 @@ export const createPocketbaseClient = (url: string) => {
     user,
     watchInstanceById,
     getAllInstancesById,
-    resendVerificationEmail
+    resendVerificationEmail,
+    startInstanceBackup
   }
 }

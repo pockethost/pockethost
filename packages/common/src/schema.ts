@@ -24,11 +24,19 @@ export enum InstanceStatus {
   Failed = 'failed',
 }
 
+export enum InstanceBackupStatus {
+  Idle = 'idle',
+  Queued = 'queued',
+  Running = 'running',
+  Completed = 'completed',
+}
+
 export type InstancesRecord = {
   id: RecordId
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
+  backupStatus: InstanceBackupStatus
   platform: PlatformId
   version: VersionId
   secondsThisMonth: Seconds
@@ -50,5 +58,29 @@ export type InvocationRecord = {
   pid: number
   totalSeconds: number
 }
+
+export enum JobStatus {
+  New = 'new',
+  Queued = 'queued',
+  Running = 'running',
+  FinishedSuccess = 'finished-success',
+  FinishedError = 'finished-error',
+}
+
+export type InstanceBackupJobPayload = {
+  instanceId: InstanceId
+}
+
+export type JobRecord<TPayload> = {
+  id: RecordId
+  userId: UserId
+  payload: TPayload
+  status: JobStatus
+  message: string
+}
+
+export type InstanceBackupJobRecord = JobRecord<InstanceBackupJobPayload>
+
+export type JobRecord_In<TPayload> = Omit<JobRecord<TPayload>, 'id' | 'message'>
 
 export type InstanceRecordById = { [_: InstanceId]: InstancesRecord }
