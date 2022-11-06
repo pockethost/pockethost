@@ -94,6 +94,15 @@
                   <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
                   <span>Admin</span>
                 </a>
+
+                <a
+                  class="btn btn-light pocketbase-button"
+                  href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
+                  target="_blank"
+                >
+                  <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
+                  <span>Admin</span>
+                </a>
               </div>
             </div>
           </div>
