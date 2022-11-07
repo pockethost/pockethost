@@ -1,11 +1,31 @@
+import { JobRecord } from '@pockethost/common'
+import Bottleneck from 'bottleneck'
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
-import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from './constants'
+import {
+  DAEMON_PB_PORT_BASE,
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_PROTOCOL,
+} from './constants'
+import { ClientApi, createPbClient } from './db/PbClient'
 import { createInstanceManger } from './InstanceManager'
 import { dbg, info } from './util/dbg'
+import { mkInternalUrl } from './util/internal'
+
+const createJobRunner = (client: ClientApi, job: JobRecord<any>) => {}
+const createJobManager = async (client: ClientApi) => {
+  const limiter = new Bottleneck({ maxConcurrent: 1 })
+  client.onNewJob((job) => {
+    const jr = createJobRunner(client, job)
+    limiter.schedule(async () => {})
+  })
+}
 
 export const createProxyServer = async () => {
-  const instanceManager = await createInstanceManger()
+  const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
+  const client = createPbClient(coreInternalUrl)
+  const instanceManager = await createInstanceManger(client)
+  const jobManager = await createJobManager(client)
 
   const proxy = httpProxy.createProxyServer({})
 

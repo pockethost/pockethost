@@ -17,6 +17,8 @@ import { dbg } from '../util/dbg'
 import { safeCatch } from '../util/safeAsync'
 import { createRawPbClient } from './RawPbClient'
 
+export type ClientApi = ReturnType<typeof createPbClient>
+
 export const createPbClient = (url: string) => {
   console.log(`Initializing client: ${url}`)
   const rawDb = createRawPbClient(

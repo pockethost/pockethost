@@ -1,7 +1,6 @@
 import { createGenericSyncEvent } from '$util/events'
 import {
   assertExists,
-  createRealtimeSubscriptionManager,
   JobStatus,
   type InstanceBackupJobPayload,
   type InstanceBackupJobRecord,
@@ -10,12 +9,18 @@ import {
   type InstancesRecord_New,
   type JobRecord,
   type JobRecord_In,
-  type RealtimeEventHandler,
   type UserRecord
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
-import PocketBase, { Admin, BaseAuthStore, ClientResponseError, Record } from 'pocketbase'
+import PocketBase, {
+  Admin,
+  BaseAuthStore,
+  ClientResponseError,
+  Record,
+  type RecordSubscription
+} from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
+import {} from 'type-fest'
 import { safeCatch } from '../util/safeCatch'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
@@ -75,18 +80,16 @@ export const createPocketbaseClient = (url: string) => {
       client.collection('instances').getOne<InstancesRecord>(id)
   )
 
-  const { subscribeOne } = createRealtimeSubscriptionManager(client)
-
-  const watchInstanceById = (
+  const watchInstanceById = async (
     id: InstanceId,
-    cb: RealtimeEventHandler<InstancesRecord>
-  ): Unsubscriber => {
+    cb: (data: RecordSubscription<InstancesRecord>) => void
+  ): Promise<Unsubscriber> => {
     getInstanceById(id).then((record) => {
-      console.log(`Got instnace`, record)
+      console.log(`Got instance`, record)
       assertExists(record, `Expected instance ${id} here`)
       cb({ action: 'init', record })
     })
-    return subscribeOne('instances', id, cb)
+    return client.collection('instances').subscribe<InstancesRecord>(id, cb)
   }
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
@@ -118,7 +121,7 @@ export const createPocketbaseClient = (url: string) => {
 
   const getAuthStoreProps = (): AuthStoreProps => {
     const { token, model, isValid } = client.authStore as AuthStoreProps
-    // console.log(`curent authstore`, { token, model, isValid })
+    // console.log(`current authStore`, { token, model, isValid })
     if (model instanceof Admin) throw new Error(`Admin models not supported`)
     if (model && !model.email) throw new Error(`Expected model to be a user here`)
     return {
@@ -209,13 +212,15 @@ export const createPocketbaseClient = (url: string) => {
     `startInstanceBackup`,
     async (instanceId: InstanceId, cb: (job: InstanceBackupJobRecord) => void) => {
       const job = await createInstanceBackupJob(instanceId)
-      const unsub = subscribeOne<JobRecord<InstanceBackupJobPayload>>('jobs', job.id, (e) => {
-        const job = e.record
-        if (job.status === JobStatus.FinishedError || job.status == JobStatus.FinishedSuccess) {
-          unsub()
-        }
-        cb(job)
-      })
+      const unsub = await client
+        .collection('jobs')
+        .subscribe<JobRecord<InstanceBackupJobPayload>>(job.id, (e) => {
+          const job = e.record
+          if (job.status === JobStatus.FinishedError || job.status == JobStatus.FinishedSuccess) {
+            unsub()
+          }
+          cb(job)
+        })
       cb(job)
     }
   )
