@@ -1,7 +1,6 @@
 import { binFor, InstanceStatus } from '@pockethost/common'
 import { renameSync } from 'fs'
 import { resolve } from 'path'
-import { chdir } from 'process'
 import {
   DAEMON_PB_BIN_DIR,
   DAEMON_PB_DATA_DIR,
@@ -9,15 +8,13 @@ import {
 } from '../constants'
 import { error } from '../util/dbg'
 import { applyDbMigrations } from './applyDbMigrations'
+import { backupInstance } from './backupInstance'
 import { pexec } from './pexec'
 
-const PB_BIN = `${DAEMON_PB_BIN_DIR}/${binFor('lollipop')}`
-const DATA_ROOT = `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}`
+const PB_BIN = resolve(DAEMON_PB_BIN_DIR, binFor('lollipop'))
 
 ;(async () => {
-  console.log(`Backing up`)
-  chdir(DATA_ROOT)
-  await pexec(`tar -czvf ${+new Date()}.tgz pb_data`)
+  await backupInstance(PUBLIC_PB_SUBDOMAIN)
 
   console.log(`Upgrading`)
   await pexec(`${PB_BIN} upgrade --dir=pb_data`)
