@@ -68,6 +68,7 @@ export enum JobStatus {
 }
 
 export type InstanceBackupJobPayload = {
+  cmd: 'backup-instance'
   instanceId: InstanceId
 }
 

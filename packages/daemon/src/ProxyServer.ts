@@ -7,18 +7,27 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from './constants'
-import { ClientApi, createPbClient } from './db/PbClient'
+import { createPbClient, PocketbaseClientApi } from './db/PbClient'
 import { createInstanceManger } from './InstanceManager'
 import { dbg, info } from './util/dbg'
 import { mkInternalUrl } from './util/internal'
 
-const createJobRunner = (client: ClientApi, job: JobRecord<any>) => {}
-const createJobManager = async (client: ClientApi) => {
+const createJobRunner = (client: PocketbaseClientApi) => {
   const limiter = new Bottleneck({ maxConcurrent: 1 })
-  client.onNewJob((job) => {
-    const jr = createJobRunner(client, job)
-    limiter.schedule(async () => {})
-  })
+  const run = async (job: JobRecord<any>) =>
+    limiter.schedule(async () => {
+      console.log(`Running job ${job.id}`, job)
+    })
+
+  return { run }
+}
+
+const createJobManager = async (client: PocketbaseClientApi) => {
+  const jr = createJobRunner(client)
+  client.onNewJob(jr.run)
+  await client.resetJobs()
+  const jobs = await client.incompleteJobs()
+  jobs.forEach(jr.run)
 }
 
 export const createProxyServer = async () => {

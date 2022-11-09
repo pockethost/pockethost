@@ -4,20 +4,22 @@ import {
   InstancesRecord,
   InstanceStatus,
   InvocationRecord,
+  JobRecord,
+  JobStatus,
   pocketNow,
   UserRecord,
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import PocketBase, { Collection } from 'pocketbase'
+import PocketBase, { Collection, RecordSubscriptionAction } from 'pocketbase'
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { Collection_Serialized } from '../migrate/schema'
 import { dbg } from '../util/dbg'
 import { safeCatch } from '../util/safeAsync'
 import { createRawPbClient } from './RawPbClient'
 
-export type ClientApi = ReturnType<typeof createPbClient>
+export type PocketbaseClientApi = ReturnType<typeof createPbClient>
 
 export const createPbClient = (url: string) => {
   console.log(`Initializing client: ${url}`)
@@ -27,7 +29,7 @@ export const createPbClient = (url: string) => {
 
   const client = new PocketBase(url)
   client.beforeSend = (url: string, reqConfig: { [_: string]: any }) => {
-    dbg(reqConfig)
+    // dbg(reqConfig)
     delete reqConfig.signal
     return reqConfig
   }
@@ -171,6 +173,36 @@ export const createPbClient = (url: string) => {
     }
   )
 
+  const onNewJob = safeCatch(
+    `onNewJob`,
+    async (cb: (e: JobRecord<any>) => void) => {
+      const unsub = await client
+        .collection('jobs')
+        .subscribe<JobRecord<any>>('*', (e) => {
+          if (e.action !== RecordSubscriptionAction.Create) return
+          cb(e.record)
+        })
+      return unsub
+    }
+  )
+
+  const resetJobs = safeCatch(`resetJobs`, async () =>
+    rawDb('jobs')
+      .whereNotIn('status', [
+        JobStatus.FinishedError,
+        JobStatus.FinishedSuccess,
+      ])
+      .update({
+        status: JobStatus.New,
+      })
+  )
+
+  const incompleteJobs = safeCatch(`incompleteJobs`, async () => {
+    return client.collection('jobs').getFullList<JobRecord<any>>(100, {
+      filter: `status != '${JobStatus.FinishedError}' && status != '${JobStatus.FinishedSuccess}'`,
+    })
+  })
+
   return {
     pingInvocation,
     finalizeInvocation,
@@ -181,5 +213,8 @@ export const createPbClient = (url: string) => {
     updateInstance,
     applySchema,
     updateInstances,
+    onNewJob,
+    resetJobs,
+    incompleteJobs,
   }
 }
