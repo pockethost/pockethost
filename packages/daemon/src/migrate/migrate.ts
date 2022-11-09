@@ -29,7 +29,7 @@ const PB_BIN = resolve(DAEMON_PB_BIN_DIR, binFor('lollipop'))
         error(`${e}`)
       }
       return {
-        status: instance.status || InstanceStatus.Idle,
+        status: InstanceStatus.Idle,
         platform: instance.platform || 'ermine',
         version: instance.version || 'latest',
       }
