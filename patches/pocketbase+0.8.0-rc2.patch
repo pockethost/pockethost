@@ -1,0 +1,26 @@
+diff --git a/node_modules/pocketbase/dist/pocketbase.es.d.ts b/node_modules/pocketbase/dist/pocketbase.es.d.ts
+index cdc523e..4bfef44 100644
+--- a/node_modules/pocketbase/dist/pocketbase.es.d.ts
++++ b/node_modules/pocketbase/dist/pocketbase.es.d.ts
+@@ -405,9 +405,14 @@ interface AuthMethodsList {
+     emailPassword: boolean;
+     authProviders: Array<AuthProviderInfo>;
+ }
++enum RecordSubscriptionAction {
++    Create = 'create',
++    Update = 'update',
++    Delete = 'delete'
++}
+ interface RecordSubscription<T = Record> {
+     [key: string]: any;
+-    action: string;
++    action: RecordSubscriptionAction;
+     record: T;
+ }
+ declare class RecordService extends CrudService<Record> {
+@@ -847,4 +852,4 @@ declare class LocalAuthStore extends BaseAuthStore {
+ declare function getTokenPayload(token: string): {
+     [key: string]: any;
+ };
+-export { Client as default, ClientResponseError, BaseAuthStore, LocalAuthStore, getTokenPayload, ExternalAuth, Admin, Collection, Record, LogRequest, BaseModel, ListResult, SchemaField };
++export { Client as default, ClientResponseError, BaseAuthStore, LocalAuthStore, getTokenPayload, ExternalAuth, Admin, Collection, Record, LogRequest, BaseModel, ListResult, SchemaField, RecordSubscription, RecordSubscriptionAction };

@@ -68,11 +68,10 @@
         forEach(apps, (app) => {
           const instanceId = app.id
 
-          const unsub = watchInstanceById(instanceId, (r) => {
+          watchInstanceById(instanceId, (r) => {
             const { action, record } = r
             _update({ ...apps, [record.id]: record })
-          })
-          cm.add(unsub)
+          }).then(cm.add)
         })
       })
       .catch((e) => {

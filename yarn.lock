@@ -864,14 +864,6 @@
     estree-walker "^2.0.2"
     picomatch "^2.3.1"
 
-"@s-libs/micro-dash@12":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@s-libs/micro-dash/-/micro-dash-12.0.0.tgz#79dd682a2545467b4fe9d123253f6178d8afce23"
-  integrity sha512-TQlYM5YJj/NZ6FuicfjAg3Lv5xeZ69Sp2CwEVVcqD19LcyZd6zjEnWgRpbglWsozhQHsBpXtoIKoUQMuW6UTpQ==
-  dependencies:
-    tslib "^2.1.0"
-    utility-types "^3.10.0"
-
 "@s-libs/micro-dash@^14.1.0":
   version "14.1.0"
   resolved "https://registry.yarnpkg.com/@s-libs/micro-dash/-/micro-dash-14.1.0.tgz#268af3a014067efe6aae01c251704b73303d7968"
@@ -3138,9 +3130,9 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.3.1:
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
 pocketbase@^0.8.0-rc1:
-  version "0.8.0-rc1"
-  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.8.0-rc1.tgz#43b6f603db146fb373e0f243c8d33bec08fd67b9"
-  integrity sha512-PXY2d0Em639n0WlixAhUtpsUH8At7S2VH0eqPWU0Ouiv7NwJLFFNTIE1IQL9F/cEJZF9BGb6FIYZqb/I4Fj4Iw==
+  version "0.8.0-rc2"
+  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.8.0-rc2.tgz#c3954ff68aa0eb761df36fae71cc4c3db795d752"
+  integrity sha512-+MzpwKNZBnshwKS3sBtWIaH3Ru7oISTG33OS7OO5P7SFqdOMwlXVgCyGw2lNVY9Tw/uf7wtDoJpqskBWGp9f9g==
 
 postcss-value-parser@^4.2.0:
   version "4.2.0"
@@ -3839,7 +3831,7 @@ type-fest@^3.1.0:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-3.1.0.tgz#157b74044d9c27fd796b9c6aa46eae6658b1e9b8"
   integrity sha512-StmrZmK3eD9mDF9Vt7UhqthrDSk66O9iYl5t5a0TSoVkHjl0XZx/xuc/BRz4urAXXGHOY5OLsE0RdJFIApSFmw==
 
-typescript@*, typescript@^4.7.4, typescript@^4.8.3:
+typescript@*, typescript@^4.8.0, typescript@^4.8.3:
   version "4.8.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.4.tgz#c464abca159669597be5f96b8943500b238e60e6"
   integrity sha512-QCh+85mCy+h0IGff8r5XWzOVSbBO+KfeYrMQh7NJ58QujwcE22u+NUSmUxqF+un70P9GXKxa2HCNiTTMJknyjQ==
