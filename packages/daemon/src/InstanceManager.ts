@@ -35,6 +35,7 @@ export const createInstanceManger = async (client: PocketbaseClientApi) => {
   const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
   const mainProcess = await _spawn({
     subdomain: PUBLIC_PB_SUBDOMAIN,
+    slug: PUBLIC_PB_SUBDOMAIN,
     port: DAEMON_PB_PORT_BASE,
     bin: binFor('lollipop'),
   })
@@ -101,6 +102,7 @@ export const createInstanceManger = async (client: PocketbaseClientApi) => {
 
       const childProcess = await _spawn({
         subdomain,
+        slug: instance.id,
         port: newPort,
         bin: binFor(instance.platform, instance.version),
         onUnexpectedStop: (code) => {

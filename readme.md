@@ -130,6 +130,10 @@ open https://pockethost.io
 
 # Release History
 
+**0.5.0**
+
+- [x] Create and restore data backups
+
 **0.4.2**
 
 - [x] Runtime metrics now show how many minutes per month an instance has used

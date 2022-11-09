@@ -1,21 +1,15 @@
 import { binFor, InstanceStatus } from '@pockethost/common'
+import { renameSync } from 'fs'
+import { resolve } from 'path'
 import { chdir } from 'process'
 import {
   DAEMON_PB_BIN_DIR,
   DAEMON_PB_DATA_DIR,
-  DAEMON_PB_PASSWORD,
-  DAEMON_PB_PORT_BASE,
-  DAEMON_PB_USERNAME,
-  PUBLIC_PB_DOMAIN,
-  PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { createPbClient } from '../db/PbClient'
-import { mkInternalUrl } from '../util/internal'
-import { tryFetch } from '../util/tryFetch'
-import { _spawn } from '../util/_spawn'
+import { error } from '../util/dbg'
+import { applyDbMigrations } from './applyDbMigrations'
 import { pexec } from './pexec'
-import { schema } from './schema'
 
 const PB_BIN = `${DAEMON_PB_BIN_DIR}/${binFor('lollipop')}`
 const DATA_ROOT = `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}`
@@ -28,38 +22,20 @@ const DATA_ROOT = `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}`
   console.log(`Upgrading`)
   await pexec(`${PB_BIN} upgrade --dir=pb_data`)
 
-  // Add `platform` and `bin` required columns (migrate db json)
-  try {
-    const mainProcess = await _spawn({
-      subdomain: PUBLIC_PB_SUBDOMAIN,
-      port: DAEMON_PB_PORT_BASE,
-      bin: binFor('lollipop'),
+  await applyDbMigrations(async (client) => {
+    await client.updateInstances((instance) => {
+      const src = resolve(DAEMON_PB_DATA_DIR, instance.subdomain)
+      const dst = resolve(DAEMON_PB_DATA_DIR, instance.id)
+      try {
+        renameSync(src, dst)
+      } catch (e) {
+        error(`${e}`)
+      }
+      return {
+        status: instance.status || InstanceStatus.Idle,
+        platform: instance.platform || 'ermine',
+        version: instance.version || 'latest',
+      }
     })
-    try {
-      const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
-      const client = createPbClient(coreInternalUrl)
-      await tryFetch(coreInternalUrl)
-      await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-      await client.applySchema(schema)
-      await client.updateInstances((instance) => {
-        return {
-          status: instance.status || InstanceStatus.Idle,
-          platform: instance.platform || 'ermine',
-          version: instance.version || 'latest',
-        }
-      })
-    } catch (e) {
-      console.error(
-        `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
-      )
-      console.error(
-        `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
-      )
-    } finally {
-      console.log(`Exiting process`)
-      mainProcess.kill()
-    }
-  } catch (e) {
-    console.error(`${e}`)
-  }
+  })
 })()

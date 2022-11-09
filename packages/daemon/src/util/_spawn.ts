@@ -7,13 +7,16 @@ import { mkInternalAddress, mkInternalUrl } from './internal'
 import { tryFetch } from './tryFetch'
 export type PocketbaseProcess = AsyncReturnType<typeof _spawn>
 
-export const _spawn = async (cfg: {
+export type Config = {
   subdomain: string
+  slug: string
   port: number
   bin: string
   onUnexpectedStop?: (code: number | null) => void
-}) => {
-  const { subdomain, port, bin, onUnexpectedStop } = cfg
+}
+
+export const _spawn = async (cfg: Config) => {
+  const { subdomain, port, bin, onUnexpectedStop, slug } = cfg
   const cmd = `${DAEMON_PB_BIN_DIR}/${bin}`
   if (!existsSync(cmd)) {
     throw new Error(
@@ -24,7 +27,7 @@ export const _spawn = async (cfg: {
   const args = [
     `serve`,
     `--dir`,
-    `${DAEMON_PB_DATA_DIR}/${subdomain}/pb_data`,
+    `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
     `--http`,
     mkInternalAddress(port),
   ]
