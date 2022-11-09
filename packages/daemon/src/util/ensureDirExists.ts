@@ -1,5 +1,5 @@
 import { mkdirSync } from 'fs'
-import { dbg } from '../util/dbg'
+import { dbg } from './dbg'
 
 export const ensureDirExists = (path: string) => {
   try {

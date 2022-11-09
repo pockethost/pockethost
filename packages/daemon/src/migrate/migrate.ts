@@ -6,9 +6,9 @@ import {
   DAEMON_PB_DATA_DIR,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
+import { backupInstance } from '../util/backupInstance'
 import { error } from '../util/dbg'
 import { applyDbMigrations } from './applyDbMigrations'
-import { backupInstance } from './backupInstance'
 import { pexec } from './pexec'
 
 const PB_BIN = resolve(DAEMON_PB_BIN_DIR, binFor('lollipop'))
