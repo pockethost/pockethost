@@ -13,7 +13,7 @@ import {
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from './constants'
-import { createPbClient } from './db/PbClient'
+import { PocketbaseClientApi } from './db/PbClient'
 import { dbg, error } from './util/dbg'
 import { mkInternalUrl } from './util/internal'
 import { now } from './util/now'
@@ -29,11 +29,10 @@ type Instance = {
   startRequest: () => () => void
 }
 
-export const createInstanceManger = async () => {
+export const createInstanceManger = async (client: PocketbaseClientApi) => {
   const instances: { [_: string]: Instance } = {}
 
   const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
-  const client = createPbClient(coreInternalUrl)
   const mainProcess = await _spawn({
     subdomain: PUBLIC_PB_SUBDOMAIN,
     port: DAEMON_PB_PORT_BASE,
