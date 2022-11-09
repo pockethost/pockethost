@@ -1,6 +1,7 @@
 import { createGenericSyncEvent } from '$util/events'
 import {
   assertExists,
+  JobCommands,
   JobStatus,
   type InstanceBackupJobPayload,
   type InstanceBackupJobRecord,
@@ -20,7 +21,6 @@ import PocketBase, {
   type RecordSubscription
 } from 'pocketbase'
 import type { Unsubscriber } from 'svelte/store'
-import {} from 'type-fest'
 import { safeCatch } from '../util/safeCatch'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
@@ -200,6 +200,7 @@ export const createPocketbaseClient = (url: string) => {
         userId,
         status: JobStatus.New,
         payload: {
+          cmd: JobCommands.BackupInstance,
           instanceId
         }
       }
@@ -208,22 +209,10 @@ export const createPocketbaseClient = (url: string) => {
     }
   )
 
-  const startInstanceBackup = safeCatch(
-    `startInstanceBackup`,
-    async (instanceId: InstanceId, cb: (job: InstanceBackupJobRecord) => void) => {
-      const job = await createInstanceBackupJob(instanceId)
-      const unsub = await client
-        .collection('jobs')
-        .subscribe<JobRecord<InstanceBackupJobPayload>>(job.id, (e) => {
-          const job = e.record
-          if (job.status === JobStatus.FinishedError || job.status == JobStatus.FinishedSuccess) {
-            unsub()
-          }
-          cb(job)
-        })
-      cb(job)
-    }
-  )
+  const [onJobUpdated, fireJobUpdated] =
+    createGenericSyncEvent<RecordSubscription<JobRecord<any>>>()
+
+  client.collection('jobs').subscribe<JobRecord<InstanceBackupJobPayload>>('*', fireJobUpdated)
 
   return {
     getAuthStoreProps,
@@ -239,6 +228,7 @@ export const createPocketbaseClient = (url: string) => {
     watchInstanceById,
     getAllInstancesById,
     resendVerificationEmail,
-    startInstanceBackup
+    onJobUpdated,
+    createInstanceBackupJob
   }
 }

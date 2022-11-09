@@ -49,5 +49,12 @@ export const createJobMixin = (context: MixinContext) => {
     }
   )
 
-  return { incompleteJobs, resetJobs, onNewJob, rejectJob }
+  const setJobStatus = safeCatch(
+    `setJobStatus`,
+    async (job: JobRecord<any>, status: JobStatus) => {
+      return client.collection('jobs').update(job.id, { status })
+    }
+  )
+
+  return { incompleteJobs, resetJobs, onNewJob, rejectJob, setJobStatus }
 }

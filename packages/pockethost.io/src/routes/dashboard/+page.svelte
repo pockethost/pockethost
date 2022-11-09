@@ -24,6 +24,7 @@
   type AppMeta = {
     [_: InstanceId]: {
       isBackingUp: boolean
+      isBackupFinished: boolean
       backupStatus?: JobStatus
     }
   }
@@ -43,24 +44,37 @@
     forEach(_apps, (app) => {
       if (appMeta[app.id]) return
       appMeta[app.id] = {
-        isBackingUp: false
+        isBackingUp: false,
+        isBackupFinished: false
       }
     })
     _touch++
   }
 
-  const { getAllInstancesById, watchInstanceById, startInstanceBackup } = client()
+  const { getAllInstancesById, watchInstanceById, createInstanceBackupJob, onJobUpdated } = client()
 
   const startBackup = (app: InstancesRecord) => {
-    startInstanceBackup(app.id, (job) => {
-      appMeta[app.id].isBackingUp =
-        job.status != JobStatus.FinishedError && job.status !== JobStatus.FinishedSuccess
-      appMeta[app.id].backupStatus = job.status
-      console.log({ appMeta })
-    })
+    createInstanceBackupJob(app.id)
   }
 
   onMount(() => {
+    {
+      const unsub = onJobUpdated((e) => {
+        const { action, record } = e
+        const job = record
+        console.log(`Job updated`, job)
+        const { payload } = job
+        const { instanceId } = payload
+        if (!instanceId) return
+        appMeta[instanceId].isBackingUp =
+          job.status != JobStatus.FinishedError && job.status !== JobStatus.FinishedSuccess
+        appMeta[instanceId].isBackupFinished =
+          job.status === JobStatus.FinishedError || job.status === JobStatus.FinishedSuccess
+        appMeta[instanceId].backupStatus = job.status
+      })
+      cm.add(unsub)
+    }
+
     getAllInstancesById()
       .then((instances) => {
         _update(instances)
@@ -109,7 +123,7 @@
               {humanVersion(app.platform, app.version)}
               <br />
               {Math.ceil(app.secondsThisMonth / 60)} minutes
-              {#if appMeta[app.id].isBackingUp}
+              {#if appMeta[app.id].isBackingUp || appMeta[app.id].isBackupFinished}
                 <br />
                 Backup status: {appMeta[app.id].backupStatus}
               {/if}

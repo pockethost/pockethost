@@ -4,6 +4,7 @@ import {
   JobCommands,
   JobPayloadBase,
   JobRecord,
+  JobStatus,
   JOB_COMMANDS,
 } from '@pockethost/common'
 import { includes, isObject } from '@s-libs/micro-dash'
@@ -37,6 +38,7 @@ export const createJobManager = async (client: PocketbaseClientApi) => {
   const run = async (job: JobRecord<any>) =>
     limiter.schedule(async () => {
       try {
+        await client.setJobStatus(job, JobStatus.Queued)
         const { payload } = job
         assertTruthy(isObject(payload), `Payload must be an object`)
         const unsafePayload = payload as Partial<JobPayloadBase>
@@ -48,7 +50,9 @@ export const createJobManager = async (client: PocketbaseClientApi) => {
         )
         const handler = JOB_HANDLERS[cmd]
         console.log(`Running job ${job.id}`, job)
+        await client.setJobStatus(job, JobStatus.Running)
         await handler(job)
+        await client.setJobStatus(job, JobStatus.FinishedSuccess)
       } catch (e) {
         await client.rejectJob(job, `${e}`).catch((e) => {
           error(`job ${job.id} failed to reject with ${e}`)
