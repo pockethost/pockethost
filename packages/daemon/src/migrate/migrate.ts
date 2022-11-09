@@ -14,7 +14,7 @@ import { pexec } from './pexec'
 const PB_BIN = resolve(DAEMON_PB_BIN_DIR, binFor('lollipop'))
 
 ;(async () => {
-  await backupInstance(PUBLIC_PB_SUBDOMAIN)
+  await backupInstance(PUBLIC_PB_SUBDOMAIN, `${+new Date()}`)
 
   console.log(`Upgrading`)
   await pexec(`${PB_BIN} upgrade --dir=pb_data`)

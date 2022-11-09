@@ -7,6 +7,7 @@ import {
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { Collection_Serialized } from '../migrate/schema'
 import { safeCatch } from '../util/safeAsync'
+import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'
 import { createJobMixin } from './JobMixin'
@@ -45,6 +46,7 @@ export const createPbClient = (url: string) => {
   const context: MixinContext = { client, rawDb }
   const jobsApi = createJobMixin(context)
   const instanceApi = createInstanceMixin(context)
+  const backupApi = createBackupMixin(context)
   const invocationApi = createInvocationMixin(context, instanceApi)
 
   const api = {
@@ -53,6 +55,7 @@ export const createPbClient = (url: string) => {
     ...jobsApi,
     ...instanceApi,
     ...invocationApi,
+    ...backupApi,
   }
 
   return api

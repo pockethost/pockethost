@@ -1,5 +1,6 @@
 import {
   assertTruthy,
+  BackupStatus,
   InstanceBackupJobPayload,
   JobCommands,
   JobPayloadBase,
@@ -10,6 +11,7 @@ import {
 import { includes, isObject } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from './db/PbClient'
+import { backupInstance } from './util/backupInstance'
 import { error } from './util/dbg'
 
 export const createJobManager = async (client: PocketbaseClientApi) => {
@@ -32,6 +34,22 @@ export const createJobManager = async (client: PocketbaseClientApi) => {
         instance.uid === unsafeJob.userId,
         `Instance ${instanceId} is not owned by user ${unsafeJob.userId}`
       )
+      const backupRec = await client.createBackup(instance.id)
+      try {
+        await client.updateBackup(backupRec.id, {
+          status: BackupStatus.Running,
+        })
+        const bytes = await backupInstance(instance.id, backupRec.id)
+        await client.updateBackup(backupRec.id, {
+          bytes,
+          status: BackupStatus.FinishedSuccess,
+        })
+      } catch (e) {
+        await client.updateBackup(backupRec.id, {
+          status: BackupStatus.FinishedError,
+          message: `${e}`,
+        })
+      }
     },
   }
 
