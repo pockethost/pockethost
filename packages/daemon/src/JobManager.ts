@@ -1,12 +1,59 @@
-import { JobRecord } from '@pockethost/common'
+import {
+  assertTruthy,
+  InstanceBackupJobPayload,
+  JobCommands,
+  JobPayloadBase,
+  JobRecord,
+  JOB_COMMANDS,
+} from '@pockethost/common'
+import { includes, isObject } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from './db/PbClient'
+import { error } from './util/dbg'
 
 export const createJobManager = async (client: PocketbaseClientApi) => {
   const limiter = new Bottleneck({ maxConcurrent: 1 })
+
+  const JOB_HANDLERS: {
+    [_ in JobCommands]: (
+      unsafeJob: JobRecord<Partial<JobPayloadBase>>
+    ) => Promise<void>
+  } = {
+    [JobCommands.BackupInstance]: async (
+      unsafeJob: JobRecord<Partial<InstanceBackupJobPayload>>
+    ) => {
+      const unsafePayload = unsafeJob.payload
+      const { instanceId } = unsafePayload
+      assertTruthy(instanceId, `Expected instanceId here`)
+      const instance = await client.getInstance(instanceId)
+      assertTruthy(instance, `Instance ${instanceId} not found`)
+      assertTruthy(
+        instance.uid === unsafeJob.userId,
+        `Instance ${instanceId} is not owned by user ${unsafeJob.userId}`
+      )
+    },
+  }
+
   const run = async (job: JobRecord<any>) =>
     limiter.schedule(async () => {
-      console.log(`Running job ${job.id}`, job)
+      try {
+        const { payload } = job
+        assertTruthy(isObject(payload), `Payload must be an object`)
+        const unsafePayload = payload as Partial<JobPayloadBase>
+        const { cmd } = unsafePayload
+        assertTruthy(cmd, `Payload must contain command`)
+        assertTruthy(
+          includes(JOB_COMMANDS, cmd),
+          `Payload command not recognized`
+        )
+        const handler = JOB_HANDLERS[cmd]
+        console.log(`Running job ${job.id}`, job)
+        await handler(job)
+      } catch (e) {
+        await client.rejectJob(job, `${e}`).catch((e) => {
+          error(`job ${job.id} failed to reject with ${e}`)
+        })
+      }
     })
 
   client.onNewJob(run)

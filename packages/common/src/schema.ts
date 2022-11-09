@@ -67,8 +67,18 @@ export enum JobStatus {
   FinishedError = 'finished-error',
 }
 
+export type JobPayloadBase = {
+  cmd: JobCommands
+}
+
+export enum JobCommands {
+  BackupInstance = 'backup-instance',
+}
+
+export const JOB_COMMANDS = [JobCommands.BackupInstance]
+
 export type InstanceBackupJobPayload = {
-  cmd: 'backup-instance'
+  cmd: JobCommands.BackupInstance
   instanceId: InstanceId
 }
 
