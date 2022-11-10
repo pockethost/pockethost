@@ -10,11 +10,11 @@ import {
 } from '@pockethost/common'
 import { includes, isObject } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { PocketbaseClientApi } from './db/PbClient'
-import { backupInstance } from './util/backupInstance'
-import { dbg, error } from './util/dbg'
+import { PocketbaseClientApi } from '../db/PbClient'
+import { backupInstance } from '../util/backupInstance'
+import { dbg, error } from '../util/dbg'
 
-export const createJobManager = async (client: PocketbaseClientApi) => {
+export const createBackupService = async (client: PocketbaseClientApi) => {
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 
   const JOB_HANDLERS: {

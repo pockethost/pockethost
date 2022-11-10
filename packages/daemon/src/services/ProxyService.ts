@@ -1,22 +1,15 @@
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
-import {
-  DAEMON_PB_PORT_BASE,
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
-} from './constants'
-import { createPbClient } from './db/PbClient'
-import { createInstanceManger } from './InstanceManager'
-import { createJobManager } from './JobManager'
-import { dbg, info } from './util/dbg'
-import { mkInternalUrl } from './util/internal'
+import { AsyncReturnType } from 'type-fest'
+import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '../constants'
+import { dbg, info } from '../util/dbg'
+import { InstanceServiceApi } from './InstanceService'
 
-export const createProxyServer = async () => {
-  const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
-  const client = createPbClient(coreInternalUrl)
-  const instanceManager = await createInstanceManger(client)
-  const jobManager = await createJobManager(client)
+export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
 
+export const createProxyService = async (
+  instanceManager: InstanceServiceApi
+) => {
   const proxy = httpProxy.createProxyServer({})
 
   const server = createServer(async (req, res) => {

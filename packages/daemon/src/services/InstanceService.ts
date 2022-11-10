@@ -2,6 +2,7 @@ import { assertTruthy, binFor, InstanceStatus } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import getPort from 'get-port'
+import { AsyncReturnType } from 'type-fest'
 import {
   DAEMON_PB_IDLE_TTL,
   DAEMON_PB_PASSWORD,
@@ -12,14 +13,13 @@ import {
   PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
-} from './constants'
-import { PocketbaseClientApi } from './db/PbClient'
-import { dbg, error } from './util/dbg'
-import { mkInternalUrl } from './util/internal'
-import { now } from './util/now'
-import { safeCatch } from './util/safeAsync'
-import { tryFetch } from './util/tryFetch'
-import { PocketbaseProcess, _spawn } from './util/_spawn'
+} from '../constants'
+import { PocketbaseClientApi } from '../db/PbClient'
+import { dbg, error } from '../util/dbg'
+import { mkInternalUrl } from '../util/internal'
+import { now } from '../util/now'
+import { safeCatch } from '../util/safeAsync'
+import { PocketbaseProcess, _spawn } from '../util/_spawn'
 
 type Instance = {
   process: PocketbaseProcess
@@ -29,27 +29,10 @@ type Instance = {
   startRequest: () => () => void
 }
 
-export const createInstanceManger = async (client: PocketbaseClientApi) => {
+export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
+export const createInstanceService = async (client: PocketbaseClientApi) => {
   const instances: { [_: string]: Instance } = {}
 
-  const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
-  const mainProcess = await _spawn({
-    subdomain: PUBLIC_PB_SUBDOMAIN,
-    slug: PUBLIC_PB_SUBDOMAIN,
-    port: DAEMON_PB_PORT_BASE,
-    bin: binFor('lollipop'),
-  })
-  instances[PUBLIC_PB_SUBDOMAIN] = {
-    process: mainProcess,
-    internalUrl: coreInternalUrl,
-    port: DAEMON_PB_PORT_BASE,
-    shutdown: async () => {
-      dbg(`Shutting down instance ${PUBLIC_PB_SUBDOMAIN}`)
-      mainProcess.kill()
-    },
-    startRequest: () => () => {},
-  }
-  await tryFetch(coreInternalUrl)
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
   } catch (e) {
