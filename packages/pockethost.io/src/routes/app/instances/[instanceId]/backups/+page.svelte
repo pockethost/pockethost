@@ -4,6 +4,7 @@
   import { BackupStatus, type BackupRecord, type RecordId } from '@pockethost/common'
   import { reduce, sortBy } from '@s-libs/micro-dash'
   import { formatDistanceToNow } from 'date-fns'
+  import prettyBytes from 'pretty-bytes'
   import { onDestroy, onMount } from 'svelte'
   import { instance } from '../store'
 
@@ -53,9 +54,9 @@
 </div>
 
 <div>
-  {#each backups as { id, status, updated }}
+  {#each backups as { bytes, updated, platform, version }}
     <div>
-      {id}.tgz ({formatDistanceToNow(Date.parse(updated))} ago)
+      {platform}:{version} ({prettyBytes(bytes)}) - {formatDistanceToNow(Date.parse(updated))} ago
     </div>
   {/each}
 </div>
