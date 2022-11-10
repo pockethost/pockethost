@@ -44,8 +44,19 @@ export const createBackupMixin = (context: MixinContext) => {
       await client.collection('backups').update(backupId, fields)
     }
   )
+
+  const resetBackups = safeCatch(`resetBackups`, async () =>
+    rawDb('backups')
+      .whereNotIn('status', [
+        BackupStatus.FinishedError,
+        BackupStatus.FinishedSuccess,
+      ])
+      .delete()
+  )
+
   return {
     createBackup,
     updateBackup,
+    resetBackups,
   }
 }

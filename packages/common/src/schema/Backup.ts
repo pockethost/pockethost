@@ -18,6 +18,7 @@ export type BackupRecord = {
   updated: IsoDate
   platform: string
   version: string
+  progress: number
 }
 
 export type BackupRecord_Create = Pick<
@@ -28,6 +29,12 @@ export type BackupRecord_Create = Pick<
 export type BackupRecord_Update = Partial<
   Pick<
     BackupRecord,
-    'instanceId' | 'status' | 'bytes' | 'message' | 'platform' | 'version'
+    | 'instanceId'
+    | 'status'
+    | 'bytes'
+    | 'message'
+    | 'platform'
+    | 'version'
+    | 'progress'
   >
 >

@@ -39,7 +39,11 @@ export const createJobManager = async (client: PocketbaseClientApi) => {
         await client.updateBackup(backupRec.id, {
           status: BackupStatus.Running,
         })
-        const bytes = await backupInstance(instance.id, backupRec.id)
+        const bytes = await backupInstance(instance, backupRec.id, (progress) =>
+          client.updateBackup(backupRec.id, {
+            progress,
+          })
+        )
         await client.updateBackup(backupRec.id, {
           bytes,
           status: BackupStatus.FinishedSuccess,
@@ -80,6 +84,7 @@ export const createJobManager = async (client: PocketbaseClientApi) => {
 
   client.onNewJob(run)
   await client.resetJobs()
+  await client.resetBackups()
   const jobs = await client.incompleteJobs()
   jobs.forEach(run)
 }

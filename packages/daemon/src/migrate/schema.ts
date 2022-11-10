@@ -372,6 +372,18 @@ export const schema: Collection_Serialized[] = [
           pattern: '',
         },
       },
+      {
+        id: 'bh7hk0tp',
+        name: 'progress',
+        type: 'number',
+        system: false,
+        required: false,
+        unique: false,
+        options: {
+          min: null,
+          max: null,
+        },
+      },
     ],
     listRule: '@request.auth.id = instanceId.uid',
     viewRule: null,
