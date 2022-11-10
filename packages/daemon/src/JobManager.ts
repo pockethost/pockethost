@@ -12,7 +12,7 @@ import { includes, isObject } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from './db/PbClient'
 import { backupInstance } from './util/backupInstance'
-import { error } from './util/dbg'
+import { dbg, error } from './util/dbg'
 
 export const createJobManager = async (client: PocketbaseClientApi) => {
   const limiter = new Bottleneck({ maxConcurrent: 1 })
@@ -39,10 +39,17 @@ export const createJobManager = async (client: PocketbaseClientApi) => {
         await client.updateBackup(backupRec.id, {
           status: BackupStatus.Running,
         })
-        const bytes = await backupInstance(instance, backupRec.id, (progress) =>
-          client.updateBackup(backupRec.id, {
-            progress,
-          })
+        let progress = backupRec.progress || {}
+        const bytes = await backupInstance(
+          instance,
+          backupRec.id,
+          (_progress) => {
+            progress = { ...progress, ..._progress }
+            dbg(_progress)
+            return client.updateBackup(backupRec.id, {
+              progress,
+            })
+          }
         )
         await client.updateBackup(backupRec.id, {
           bytes,

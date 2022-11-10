@@ -18,7 +18,9 @@ export type BackupRecord = {
   updated: IsoDate
   platform: string
   version: string
-  progress: number
+  progress: {
+    [_: string]: number
+  }
 }
 
 export type BackupRecord_Create = Pick<

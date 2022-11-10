@@ -4,17 +4,19 @@ index 560f96f..0000000
 Binary files a/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64/node_sqlite3.node and /dev/null differ
 diff --git a/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node b/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node
 new file mode 100755
-index 0000000..e69de29
+index 0000000..b6b4c3a
+Binary files /dev/null and b/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node differ
 diff --git a/node_modules/sqlite3/lib/sqlite3.d.ts b/node_modules/sqlite3/lib/sqlite3.d.ts
-index b27b0cf..10a66f3 100644
+index b27b0cf..1921b6c 100644
 --- a/node_modules/sqlite3/lib/sqlite3.d.ts
 +++ b/node_modules/sqlite3/lib/sqlite3.d.ts
-@@ -139,6 +139,18 @@ export class Database extends events.EventEmitter {
+@@ -139,6 +139,19 @@ export class Database extends events.EventEmitter {
      wait(callback?: (param: null) => void): this;
  
      interrupt(): void;
 +
 +    backup(path:string): Backup
++
 +}
 +
 +export class Backup extends events.EventEmitter {
@@ -26,5 +28,5 @@ index b27b0cf..10a66f3 100644
 +    finish():void
 +    step(nPages: number): void
  }
- 
+     
  export function verbose(): sqlite3;

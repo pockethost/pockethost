@@ -7,10 +7,11 @@
   import { formatDistanceToNow } from 'date-fns'
   import prettyBytes from 'pretty-bytes'
   import { onDestroy, onMount } from 'svelte'
+  import { writable } from 'svelte/store'
   import { instance } from '../store'
 
   const cm = createCleanupManagerSync()
-  let backups: BackupRecord[] = []
+  const backups = writable<BackupRecord[]>([])
   let isBackingUp = false
   onMount(async () => {
     const { watchBackupsByInstanceId } = client()
@@ -18,7 +19,7 @@
       console.log(`Handling backup update`, r)
       const { action, record } = r
       const _backups = reduce(
-        backups,
+        $backups,
         (c, b) => {
           c[b.id] = b
           return c
@@ -28,11 +29,13 @@
       _backups[record.id] = record
 
       isBackingUp = false
-      backups = sortBy(_backups, (e) => {
-        isBackingUp ||=
-          e.status !== BackupStatus.FinishedError && e.status !== BackupStatus.FinishedSuccess
-        return Date.parse(e.created)
-      }).reverse()
+      backups.set(
+        sortBy(_backups, (e) => {
+          isBackingUp ||=
+            e.status !== BackupStatus.FinishedError && e.status !== BackupStatus.FinishedSuccess
+          return Date.parse(e.created)
+        }).reverse()
+      )
       console.log(record.id)
     }).then(cm.add)
   })
@@ -55,7 +58,7 @@
 </div>
 
 <div>
-  {#each backups as { bytes, updated, platform, version, status, message, progress }}
+  {#each $backups as { bytes, updated, platform, version, status, message, progress }}
     <div>
       {#if status === BackupStatus.FinishedSuccess}
         <div class="text-success">
@@ -68,12 +71,29 @@
           <AlertBar icon="bi bi-exclamation-triangle-fill" text={message} />
         </div>
       {/if}
-      {#if ![BackupStatus.FinishedSuccess, BackupStatus.FinishedError].find((v) => v === status)}
+      {#if status !== BackupStatus.FinishedError && status !== BackupStatus.FinishedSuccess}
         <div class="text-warning">
-          {platform}:{version} ({status}
-          {Math.ceil(progress * 100)}%) - Started {formatDistanceToNow(Date.parse(updated))} ago
+          {platform}:{version}
+          {status}
+          {#each Object.entries(progress || {}) as [src, pct]}
+            <div class="badge bg-secondary" style="margin-right: 3px">
+              {src}
+              <code>
+                {Math.ceil(pct * 100)}%
+              </code>
+            </div>
+          {/each}
+          Started {formatDistanceToNow(Date.parse(updated))} ago
         </div>
       {/if}
     </div>
   {/each}
 </div>
+
+<style lang="scss">
+  code {
+    width: 30px;
+    text-align: right;
+    display: inline-block;
+  }
+</style>
