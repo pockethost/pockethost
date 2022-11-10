@@ -3,6 +3,7 @@ import {
   assertExists,
   JobCommands,
   JobStatus,
+  type BackupRecord,
   type InstanceBackupJobPayload,
   type InstanceBackupJobRecord,
   type InstanceId,
@@ -90,6 +91,22 @@ export const createPocketbaseClient = (url: string) => {
       cb({ action: 'init', record })
     })
     return client.collection('instances').subscribe<InstancesRecord>(id, cb)
+  }
+
+  const watchBackupsByInstanceId = async (
+    id: InstanceId,
+    cb: (data: RecordSubscription<BackupRecord>) => void
+  ): Promise<Unsubscriber> => {
+    const unsub = client.collection('backups').subscribe<BackupRecord>('*', (e) => {
+      console.log(e.record.instanceId, id)
+      if (e.record.instanceId !== id) return
+      cb(e)
+    })
+    const existingBackups = await client
+      .collection('backups')
+      .getFullList<BackupRecord>(100, { filter: `instanceId = '${id}'` })
+    existingBackups.forEach((record) => cb({ action: 'init', record }))
+    return unsub
   }
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
@@ -228,6 +245,7 @@ export const createPocketbaseClient = (url: string) => {
     watchInstanceById,
     getAllInstancesById,
     resendVerificationEmail,
+    watchBackupsByInstanceId,
     onJobUpdated,
     createInstanceBackupJob
   }

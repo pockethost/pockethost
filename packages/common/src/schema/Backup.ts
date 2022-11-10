@@ -1,4 +1,4 @@
-import { InstanceId, RecordId } from './types'
+import { InstanceId, IsoDate, RecordId } from './types'
 
 export enum BackupStatus {
   New = 'new',
@@ -14,6 +14,8 @@ export type BackupRecord = {
   status: BackupStatus
   message: string
   bytes: number
+  created: IsoDate
+  updated: IsoDate
 }
 
 export type BackupRecord_In = Omit<BackupRecord, 'id' | 'message' | 'bytes'>

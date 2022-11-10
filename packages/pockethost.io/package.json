@@ -33,6 +33,7 @@
     "pocketbase": "^0.8.0-rc1",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
-    "svelte-highlight": "^6.2.1"
+    "svelte-highlight": "^6.2.1",
+    "date-fns": "^2.29.3"
   }
 }

@@ -51,13 +51,15 @@
     _touch++
   }
 
-  const { getAllInstancesById, watchInstanceById, createInstanceBackupJob, onJobUpdated } = client()
-
   const startBackup = (app: InstancesRecord) => {
+    const { getAllInstancesById, watchInstanceById, createInstanceBackupJob, onJobUpdated } =
+      client()
     createInstanceBackupJob(app.id)
   }
 
   onMount(() => {
+    const { getAllInstancesById, watchInstanceById, createInstanceBackupJob, onJobUpdated } =
+      client()
     {
       const unsub = onJobUpdated((e) => {
         const { action, record } = e
@@ -129,20 +131,15 @@
               {/if}
 
               <div class="d-flex justify-content-around">
-                <a href={`/app/instances/${app.id}`} class="btn btn-light">
-                  <i class="bi bi-gear-fill" />
-                  <span>Details</span>
+                <a href={`/app/instances/${app.id}/code`} class="btn btn-light">
+                  <i class="bi bi-code-slash" />
+                  <span>Code</span>
                 </a>
 
-                <div
-                  class="btn btn-light pocketbase-button"
-                  target="_blank"
-                  on:click={() => startBackup(app)}
-                  disabled={appMeta[app.id].isBackingUp}
-                >
+                <a href={`/app/instances/${app.id}/backups`} class="btn btn-light">
                   <i class="bi bi-gear-fill" />
-                  <span>Backup</span>
-                </div>
+                  <span>Backups</span>
+                </a>
 
                 <a
                   class="btn btn-light pocketbase-button"
