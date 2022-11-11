@@ -120,7 +120,7 @@ h6 {
   --bs-btn-hover-color: var(--bs-body-color);
   --bs-btn-hover-bg: var(--bs-gray-200);
   --bs-btn-hover-border-color: var(--bs-gray-900);
-  --bs-btn-focus-shadow-rgb: 33,37,41;
+  --bs-btn-focus-shadow-rgb: 33, 37, 41;
   --bs-btn-active-color: var(--bs-body-color);
   --bs-btn-active-bg: var(--bs-gray-200);
   --bs-btn-active-border-color: var(--bs-gray-900);
@@ -134,7 +134,6 @@ h6 {
 .btn-outline-dark.nav-link:hover {
   --bs-nav-link-hover-color: var(--bs-black);
 }
-
 
 .dropdown-menu {
   --bs-dropdown-item-padding-y: 12px;

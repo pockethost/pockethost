@@ -79,7 +79,12 @@
         </AuthStateGuard>
 
         <li class="nav-item text-center">
-          <a href="https://github.com/benallfree/pockethost/discussions" class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3" target="_blank" rel="noreferrer">Discussions</a>
+          <a
+            href="https://github.com/benallfree/pockethost/discussions"
+            class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
+            target="_blank"
+            rel="noreferrer">Discussions</a
+          >
         </li>
 
         <li class="nav-item">
