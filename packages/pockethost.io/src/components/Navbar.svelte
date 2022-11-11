@@ -37,14 +37,14 @@
               {#if matches}
                 <li class="nav-item dropdown">
                   <button
-                    class="btn border-0 nav-link"
+                    class="btn border-0 nav-link dropdown-toggle"
                     type="button"
                     data-bs-toggle="dropdown"
                     aria-label="Click to expand the Account Dropdown"
                     title="Account Dropdown"
                     aria-expanded="false"
                   >
-                    <i class="bi bi-person-circle" />
+                    Account
                   </button>
 
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -79,7 +79,12 @@
         </AuthStateGuard>
 
         <li class="nav-item text-center">
-          <a href="https://github.com/benallfree/pockethost/discussions" class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3" target="_blank" rel="noreferrer">Discussions</a>
+          <a
+            href="https://github.com/benallfree/pockethost/discussions"
+            class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
+            target="_blank"
+            rel="noreferrer">Discussions</a
+          >
         </li>
 
         <li class="nav-item">
