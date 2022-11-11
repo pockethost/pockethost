@@ -37,14 +37,14 @@
               {#if matches}
                 <li class="nav-item dropdown">
                   <button
-                    class="btn border-0 nav-link"
+                    class="btn border-0 nav-link dropdown-toggle"
                     type="button"
                     data-bs-toggle="dropdown"
                     aria-label="Click to expand the Account Dropdown"
                     title="Account Dropdown"
                     aria-expanded="false"
                   >
-                    <i class="bi bi-person-circle" />
+                    Account
                   </button>
 
                   <ul class="dropdown-menu dropdown-menu-end">

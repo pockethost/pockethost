@@ -130,6 +130,11 @@ open https://pockethost.io
 
 # Release History
 
+**next**
+
+- [x] Menu items freshened
+- [x] PocketBase instance version number now shows on dashboard
+
 **0.4.2**
 
 - [x] Runtime metrics now show how many minutes per month an instance has used

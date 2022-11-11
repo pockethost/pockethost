@@ -44,7 +44,7 @@ export const createPocketbaseClient = (url: string) => {
         passwordConfirm: password
       })
       .then(() => {
-        console.log(`Sending verification email to ${email}`)
+        // console.log(`Sending verification email to ${email}`)
         return client.collection('users').requestVerification(email)
       })
   )
@@ -97,7 +97,7 @@ export const createPocketbaseClient = (url: string) => {
     cb: RealtimeEventHandler<InstancesRecord>
   ): Unsubscriber => {
     getInstanceById(id).then((record) => {
-      console.log(`Got instnace`, record)
+      // console.log(`Got instnace`, record)
       assertExists(record, `Expected instance ${id} here`)
       cb({ action: 'init', record })
     })
@@ -110,7 +110,7 @@ export const createPocketbaseClient = (url: string) => {
         .collection('instances')
         .getFullList()
         .catch((e) => {
-          console.error(`getAllInstancesById failed with ${e}`)
+          // console.error(`getAllInstancesById failed with ${e}`)
           throw e
         })
     ).reduce((c, v) => {
@@ -166,7 +166,7 @@ export const createPocketbaseClient = (url: string) => {
      */
     refreshAuthToken()
       .catch((e) => {
-        console.error(`Clearing auth store: ${e}`)
+        // console.error(`Clearing auth store: ${e}`)
         client.authStore.clear()
       })
       .finally(() => {
@@ -182,7 +182,7 @@ export const createPocketbaseClient = (url: string) => {
      * watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
-      console.log(`onAuthChange`, { ...authStore })
+      // console.log(`onAuthChange`, { ...authStore })
       const { model } = authStore
       if (!model) return
       if (model instanceof Admin) return
