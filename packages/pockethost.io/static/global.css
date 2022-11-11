@@ -214,6 +214,11 @@ h6 {
     rgba(25, 25, 25, 1) 11.2%,
     rgba(125, 89, 252, 1) 91.1%
   );
+  --gradient-light-soft-blue-vertical: linear-gradient(
+          0deg,
+          rgba(125, 89, 252, 1) 11.2%,
+          rgba(25, 25, 25, 1) 91.1%
+  );
 
   --soft-box-shadow: rgba(0, 0, 0, 0.3) 0px 7px 29px 0px;
 }

@@ -67,6 +67,30 @@ export const handleRegistration = async (
 }
 
 /**
+ * This will let a user confirm their new account email, and includes an optional error handler
+ * @param token {string} The token from the verification email
+ * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
+ */
+export const handleAccountConfirmation = async (
+    token: string,
+    setError?: FormErrorHandler
+) => {
+  const { confirmVerification } = client()
+  // Reset the form error if the form is submitted
+  setError?.('')
+
+  try {
+    await confirmVerification(token)
+
+    await goto('/dashboard')
+  } catch (error: any) {
+    handleFormError(error, setError)
+  }
+
+  return false
+}
+
+/**
  * This will reset an unauthenticated user's password by sending a verification link to their email, and includes an optional error handler
  * @param email {string} The email of the user
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
