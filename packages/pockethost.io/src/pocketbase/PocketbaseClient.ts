@@ -49,15 +49,13 @@ export const createPocketbaseClient = (url: string) => {
       })
   )
 
-  const confirmVerification = safeCatch(
-      `confirmVerification`,
-      (token: string) =>
-          client
-              .collection('users')
-              .confirmVerification(token)
-              .then((response) => {
-                return response
-              })
+  const confirmVerification = safeCatch(`confirmVerification`, (token: string) =>
+    client
+      .collection('users')
+      .confirmVerification(token)
+      .then((response) => {
+        return response
+      })
   )
 
   const requestPasswordReset = safeCatch(`requestPasswordReset`, (email: string) =>

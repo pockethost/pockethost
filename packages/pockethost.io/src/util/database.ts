@@ -71,10 +71,7 @@ export const handleRegistration = async (
  * @param token {string} The token from the verification email
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
-export const handleAccountConfirmation = async (
-    token: string,
-    setError?: FormErrorHandler
-) => {
+export const handleAccountConfirmation = async (token: string, setError?: FormErrorHandler) => {
   const { confirmVerification } = client()
   // Reset the form error if the form is submitted
   setError?.('')

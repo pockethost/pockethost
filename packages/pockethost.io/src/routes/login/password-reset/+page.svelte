@@ -33,7 +33,7 @@
     {#if userShouldCheckTheirEmail}
       <div class="text-center">
         <h2 class="mb-4">Check Your Email</h2>
-        <p>A verification link has been sent to <br/><strong>{email}</strong></p>
+        <p>A verification link has been sent to <br /><strong>{email}</strong></p>
 
         <div class="display-1">
           <i class="bi bi-envelope-check" />

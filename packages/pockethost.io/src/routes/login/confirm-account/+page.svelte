@@ -9,10 +9,10 @@
 
   // Check for a token in the URL
   $: {
-    if(browser) {
+    if (browser) {
       token = $page?.url?.searchParams?.get('token')
 
-      if(token) {
+      if (token) {
         handleLoad()
       } else {
         // No token was found in the URL
@@ -21,7 +21,7 @@
     }
   }
 
-  const handleLoad = async() => {
+  const handleLoad = async () => {
     await handleAccountConfirmation(token, (error) => {
       formError = error
     })
