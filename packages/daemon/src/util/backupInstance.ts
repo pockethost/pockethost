@@ -39,7 +39,6 @@ export const execBackup = (
         await progress?.({
           [basename(src)]: 1,
         })
-        const db = new Database(dst)
         resolve()
         return
       }
@@ -50,7 +49,9 @@ export const execBackup = (
         [basename(src)]: pct,
       })
       if (backup.idle) {
-        backup.step(5)
+        await new Promise<void>((resolve) => {
+          backup.step(5, () => resolve())
+        })
       }
       setTimeout(_work, 100)
     }

@@ -6,27 +6,12 @@
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import {
-    humanVersion,
-    JobStatus,
-    type InstanceId,
-    type InstanceRecordById,
-    type InstancesRecord
-  } from '@pockethost/common'
+  import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
 
   let apps: InstanceRecordById = {}
-
-  type AppMeta = {
-    [_: InstanceId]: {
-      isBackingUp: boolean
-      isBackupFinished: boolean
-      backupStatus?: JobStatus
-    }
-  }
-  let appMeta: AppMeta = {}
 
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
@@ -47,42 +32,11 @@
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
   const _update = (_apps: InstanceRecordById) => {
     apps = _apps
-    forEach(_apps, (app) => {
-      if (appMeta[app.id]) return
-      appMeta[app.id] = {
-        isBackingUp: false,
-        isBackupFinished: false
-      }
-    })
     _touch++
   }
 
-  const startBackup = (app: InstancesRecord) => {
-    const { getAllInstancesById, watchInstanceById, createInstanceBackupJob, onJobUpdated } =
-      client()
-    createInstanceBackupJob(app.id)
-  }
-
   onMount(() => {
-    const { getAllInstancesById, watchInstanceById, createInstanceBackupJob, onJobUpdated } =
-      client()
-    {
-      const unsub = onJobUpdated((e) => {
-        const { action, record } = e
-        const job = record
-        console.log(`Job updated`, job)
-        const { payload } = job
-        const { instanceId } = payload
-        if (!instanceId) return
-        appMeta[instanceId].isBackingUp =
-          job.status != JobStatus.FinishedError && job.status !== JobStatus.FinishedSuccess
-        appMeta[instanceId].isBackupFinished =
-          job.status === JobStatus.FinishedError || job.status === JobStatus.FinishedSuccess
-        appMeta[instanceId].backupStatus = job.status
-      })
-      cm.add(unsub)
-    }
-
+    const { getAllInstancesById, watchInstanceById } = client()
     getAllInstancesById()
       .then((instances) => {
         _update(instances)
@@ -138,11 +92,6 @@
               </div>
 
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
-
-              {#if appMeta[app.id].isBackingUp || appMeta[app.id].isBackupFinished}
-                <br />
-                Backup status: {appMeta[app.id].backupStatus}
-              {/if}
 
               <div class="d-flex justify-content-around">
                 <a href={`/app/instances/${app.id}/code`} class="btn btn-light">
