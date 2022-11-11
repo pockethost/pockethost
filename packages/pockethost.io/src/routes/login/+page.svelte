@@ -57,6 +57,8 @@
         <label for="password">Password</label>
       </div>
 
+      <p class="password-reset-container"><a href="/login/password-reset">Forgot Your Password?</a></p>
+
       {#if formError}
         <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
       {/if}
@@ -92,6 +94,11 @@
     max-width: 425px;
     width: 100%;
     border-radius: 24px;
+  }
+
+  .password-reset-container {
+    font-size: 13px;
+    text-align: right;
   }
 
   @media screen and (min-width: 768px) {
