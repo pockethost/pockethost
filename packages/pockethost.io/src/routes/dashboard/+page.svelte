@@ -4,14 +4,12 @@
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
+  import { browser } from '$app/environment'
   import { createCleanupManagerSync } from '$util/CleanupManager'
   import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
-
-  // Wait for the instance call to complete before rendering the UI
-  let hasPageLoaded = false
 
   let apps: InstanceRecordById = {}
 
@@ -21,6 +19,14 @@
   let appsArray: InstancesRecord[]
   $: {
     appsArray = values(apps)
+    // Tooltips must be manually initialized
+    // https://getbootstrap.com/docs/5.2/components/tooltips/#enable-tooltips
+    if (browser) {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(
+        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+      )
+    }
   }
   const cm = createCleanupManagerSync()
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
@@ -47,9 +53,6 @@
       .catch((e) => {
         console.error(`Failed to fetch instances`)
       })
-      .finally(() => {
-        hasPageLoaded = true
-      })
   })
 
   onDestroy(cm.cleanupAll)
@@ -70,15 +73,25 @@
         {#each appsArray as app}
           <div class="col-xl-4 col-md-6 col-12 mb-5">
             <div class="card">
-              <div class="server-status">
-                <ProvisioningStatus status={app.status} />
+              <div class="server-status d-flex align-items-center justify-content-between">
+                <div class="server-status-minutes">
+                  Usage: {Math.ceil(app.secondsThisMonth / 60)} mins
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                  <i
+                    class="bi bi-info-circle"
+                    data-bs-toggle="tooltip"
+                    data-bs-title={`Running ${app.platform} ${humanVersion(
+                      app.platform,
+                      app.version
+                    )}`}
+                  />
+                  <ProvisioningStatus status={app.status} />
+                </div>
               </div>
 
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
-              Running {app.platform}
-              {humanVersion(app.platform, app.version)}
-              <br />
-              {Math.ceil(app.secondsThisMonth / 60)} minutes
 
               <div class="d-flex justify-content-around">
                 <a href={`/app/instances/${app.id}`} class="btn btn-light">
@@ -123,14 +136,22 @@
 
   .card {
     border: 0;
-    padding: 24px;
+    padding: 42px 24px 24px 24px;
     box-shadow: var(--soft-box-shadow);
   }
 
   .server-status {
     position: absolute;
-    top: 4px;
-    right: 8px;
+    top: 8px;
+    right: 16px;
+    width: calc(100% - 32px);
+  }
+
+  .server-status-minutes {
+    font-size: 13px;
+  }
+
+  .server-status-icons {
   }
 
   .pocketbase-button img {
