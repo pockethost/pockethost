@@ -10,12 +10,12 @@ import {
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { createPbClient } from '../PbClient'
+import { createPbClient } from '../db/PbClient'
 import { mkInternalUrl } from '../util/internal'
 import { tryFetch } from '../util/tryFetch'
 import { _spawn } from '../util/_spawn'
-import { collections_001 } from './migrations'
 import { pexec } from './pexec'
+import { schema } from './schema'
 
 const PB_BIN = `${DAEMON_PB_BIN_DIR}/${binFor('lollipop')}`
 const DATA_ROOT = `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}`
@@ -40,7 +40,7 @@ const DATA_ROOT = `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}`
       const client = createPbClient(coreInternalUrl)
       await tryFetch(coreInternalUrl)
       await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-      await client.migrate(collections_001)
+      await client.applySchema(schema)
       await client.updateInstances((instance) => {
         return {
           status: instance.status || InstanceStatus.Idle,
