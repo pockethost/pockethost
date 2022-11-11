@@ -132,6 +132,7 @@ open https://pockethost.io
 
 **next**
 
+- [x] Menu items freshened
 - [x] PocketBase instance version number now shows on dashboard
 
 **0.4.2**
