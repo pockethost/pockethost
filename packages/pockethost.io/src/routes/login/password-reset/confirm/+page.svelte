@@ -1,62 +1,62 @@
 <script lang="ts">
-    import { page } from '$app/stores';
-    import {handleUnauthenticatedPasswordResetConfirm} from '$util/database'
-    import AlertBar from '$components/AlertBar.svelte'
+  import { page } from '$app/stores'
+  import { handleUnauthenticatedPasswordResetConfirm } from '$util/database'
+  import AlertBar from '$components/AlertBar.svelte'
 
-    let password: string = ''
-		let token: string = ''
-    let formError: string = ''
+  let password: string = ''
+  let token: string = ''
+  let formError: string = ''
 
-		// Check for a token in the URL
-		$: token = $page?.url?.searchParams?.get('token')
+  // Check for a token in the URL
+  $: token = $page?.url?.searchParams?.get('token')
 
-    let isFormButtonDisabled: boolean = true
-    $: isFormButtonDisabled = password.length === 0
+  let isFormButtonDisabled: boolean = true
+  $: isFormButtonDisabled = password.length === 0
 
-    const handleSubmit = async (e: SubmitEvent) => {
-        e.preventDefault()
+  const handleSubmit = async (e: SubmitEvent) => {
+    e.preventDefault()
 
-        isFormButtonDisabled = true
+    isFormButtonDisabled = true
 
-        await handleUnauthenticatedPasswordResetConfirm(token, password, (error) => {
-            formError = error
-        })
+    await handleUnauthenticatedPasswordResetConfirm(token, password, (error) => {
+      formError = error
+    })
 
-        isFormButtonDisabled = false
-    }
+    isFormButtonDisabled = false
+  }
 </script>
 
 <svelte:head>
-	<title>Reset Your Password - PocketHost</title>
+  <title>Reset Your Password - PocketHost</title>
 </svelte:head>
 
 <div class="page-bg">
-	<div class="card">
-		<h2 class="mb-4">New Password</h2>
+  <div class="card">
+    <h2 class="mb-4">New Password</h2>
 
-		<form on:submit={handleSubmit}>
-			<div class="form-floating mb-3">
-				<input
-					type="password"
-					class="form-control"
-					id="password"
-					placeholder="Password"
-					bind:value={password}
-					required
-					autocomplete="password"
-				/>
-				<label for="password">New Password</label>
-			</div>
+    <form on:submit={handleSubmit}>
+      <div class="form-floating mb-3">
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          placeholder="Password"
+          bind:value={password}
+          required
+          autocomplete="password"
+        />
+        <label for="password">New Password</label>
+      </div>
 
-			{#if formError}
-				<AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
-			{/if}
+      {#if formError}
+        <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+      {/if}
 
-			<button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
-				Save <i class="bi bi-arrow-right-short" />
-			</button>
-		</form>
-	</div>
+      <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+        Save <i class="bi bi-arrow-right-short" />
+      </button>
+    </form>
+  </div>
 </div>
 
 <style lang="scss">

@@ -57,7 +57,9 @@
         <label for="password">Password</label>
       </div>
 
-      <p class="password-reset-container"><a href="/login/password-reset">Forgot Your Password?</a></p>
+      <p class="password-reset-container">
+        <a href="/login/password-reset">Forgot Your Password?</a>
+      </p>
 
       {#if formError}
         <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />

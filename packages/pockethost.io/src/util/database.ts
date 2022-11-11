@@ -72,8 +72,8 @@ export const handleRegistration = async (
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
 export const handleUnauthenticatedPasswordReset = async (
-    email: string,
-    setError?: FormErrorHandler,
+  email: string,
+  setError?: FormErrorHandler
 ) => {
   const { requestPasswordReset } = client()
   // Reset the form error if the form is submitted
@@ -85,7 +85,7 @@ export const handleUnauthenticatedPasswordReset = async (
     handleFormError(error, setError)
   }
 
-  return false;
+  return false
 }
 
 /**
@@ -95,9 +95,9 @@ export const handleUnauthenticatedPasswordReset = async (
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
 export const handleUnauthenticatedPasswordResetConfirm = async (
-    token: string,
-    password: string,
-    setError?: FormErrorHandler,
+  token: string,
+  password: string,
+  setError?: FormErrorHandler
 ) => {
   const { requestPasswordResetConfirm } = client()
   // Reset the form error if the form is submitted
@@ -111,7 +111,7 @@ export const handleUnauthenticatedPasswordResetConfirm = async (
     handleFormError(error, setError)
   }
 
-  return false;
+  return false
 }
 
 export const handleCreateNewInstance = async (

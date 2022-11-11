@@ -56,9 +56,9 @@ h6 {
     rgba(125, 89, 252, 1) 91.1%
   );
   --gradient-light-soft-blue-vertical: linear-gradient(
-          0deg,
-          rgba(125, 89, 252, 1) 11.2%,
-          rgba(218, 185, 252, 1) 91.1%
+    0deg,
+    rgba(125, 89, 252, 1) 11.2%,
+    rgba(218, 185, 252, 1) 91.1%
   );
 
   --soft-box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;

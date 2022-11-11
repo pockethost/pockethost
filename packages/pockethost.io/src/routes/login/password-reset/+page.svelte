@@ -1,80 +1,77 @@
 <script lang="ts">
-    import {handleUnauthenticatedPasswordReset} from '$util/database'
-    import AlertBar from '$components/AlertBar.svelte'
+  import { handleUnauthenticatedPasswordReset } from '$util/database'
+  import AlertBar from '$components/AlertBar.svelte'
 
-    let email: string = ''
-    let formError: string = ''
+  let email: string = ''
+  let formError: string = ''
 
-    let isFormButtonDisabled: boolean = true
-    $: isFormButtonDisabled = email.length === 0
+  let isFormButtonDisabled: boolean = true
+  $: isFormButtonDisabled = email.length === 0
 
-    let userShouldCheckTheirEmail = false;
+  let userShouldCheckTheirEmail = false
 
-    const handleSubmit = async (e: SubmitEvent) => {
-        e.preventDefault()
+  const handleSubmit = async (e: SubmitEvent) => {
+    e.preventDefault()
 
-        isFormButtonDisabled = true
+    isFormButtonDisabled = true
 
-        await handleUnauthenticatedPasswordReset(email, (error) => {
-            formError = error
-        })
+    await handleUnauthenticatedPasswordReset(email, (error) => {
+      formError = error
+    })
 
-        isFormButtonDisabled = false
-        userShouldCheckTheirEmail = true
-    }
+    isFormButtonDisabled = false
+    userShouldCheckTheirEmail = true
+  }
 </script>
 
 <svelte:head>
-	<title>Password Reset - PocketHost</title>
+  <title>Password Reset - PocketHost</title>
 </svelte:head>
 
 <div class="page-bg">
-	<div class="card">
+  <div class="card">
+    {#if userShouldCheckTheirEmail}
+      <div class="text-center">
+        <h2 class="mb-4">Check Your Email</h2>
+        <p>A verification link has been sent to <strong>{email}</strong></p>
 
+        <div class="display-1">
+          <i class="bi bi-envelope-check" />
+        </div>
+      </div>
+    {:else}
+      <h2 class="mb-4">Password Reset</h2>
 
-		{#if userShouldCheckTheirEmail}
-			<div class="text-center">
-				<h2 class="mb-4">Check Your Email</h2>
-				<p>A verification link has been sent to <strong>{email}</strong></p>
+      <form on:submit={handleSubmit}>
+        <div class="form-floating mb-3">
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            placeholder="name@example.com"
+            bind:value={email}
+            required
+            autocomplete="email"
+          />
+          <label for="email">Email address</label>
+        </div>
 
-				<div class="display-1">
-					<i class="bi bi-envelope-check"></i>
-				</div>
-			</div>
-		{:else}
-			<h2 class="mb-4">Password Reset</h2>
+        {#if formError}
+          <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+        {/if}
 
-			<form on:submit={handleSubmit}>
-				<div class="form-floating mb-3">
-					<input
-						type="email"
-						class="form-control"
-						id="email"
-						placeholder="name@example.com"
-						bind:value={email}
-						required
-						autocomplete="email"
-					/>
-					<label for="email">Email address</label>
-				</div>
+        <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+          Send Verification Email <i class="bi bi-arrow-right-short" />
+        </button>
+      </form>
+    {/if}
 
-				{#if formError}
-					<AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
-				{/if}
+    <div class="py-4"><hr /></div>
 
-				<button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
-					Send Verification Email <i class="bi bi-arrow-right-short" />
-				</button>
-			</form>
-		{/if}
-
-
-		<div class="py-4"><hr /></div>
-
-		<div class="text-center">
-			Need to <a href="/signup">create an account</a>?
-		</div>
-	</div>
+    <div class="text-center">
+      Need to <a href="/signup">create an account</a>?
+    </div>
+  </div>
 </div>
 
 <style lang="scss">
