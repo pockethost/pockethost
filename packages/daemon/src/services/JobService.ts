@@ -1,6 +1,6 @@
 import {
   assertTruthy,
-  JobCommandName,
+  JobCommands,
   JobPayloadBase,
   JobRecord,
   JobStatus,
@@ -10,8 +10,8 @@ import Bottleneck from 'bottleneck'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
-import { PocketbaseClientApi } from '../../db/PbClient'
-import { error } from '../../util/dbg'
+import { PocketbaseClientApi } from '../db/PbClient'
+import { error } from '../util/dbg'
 
 export type JobServiceApi = AsyncReturnType<typeof createJobService>
 
@@ -30,7 +30,7 @@ export const createJobService = async (client: PocketbaseClientApi) => {
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 
   const jobHandlers: {
-    [_ in JobCommandName]: JobHandler<any>
+    [_ in JobCommands]?: JobHandler<any>
   } = {}
 
   const run = async (job: JobRecord<any>) =>
@@ -68,7 +68,7 @@ export const createJobService = async (client: PocketbaseClientApi) => {
   }
 
   const registerCommand = <TPayload>(
-    commandName: string,
+    commandName: JobCommands,
     handler: JobHandler<TPayload>
   ) => {
     if (jobHandlers[commandName]) {

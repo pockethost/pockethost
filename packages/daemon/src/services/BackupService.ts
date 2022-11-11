@@ -1,11 +1,34 @@
-import { BackupStatus, createTimerManager } from '@pockethost/common'
-import Bottleneck from 'bottleneck'
+import {
+  assertTruthy,
+  BackupStatus,
+  createTimerManager,
+  InstanceBackupJobPayload,
+  JobCommands,
+} from '@pockethost/common'
 import { PocketbaseClientApi } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
 import { dbg } from '../util/dbg'
+import { JobServiceApi } from './JobService'
 
-export const createBackupService = async (client: PocketbaseClientApi) => {
-  const limiter = new Bottleneck({ maxConcurrent: 1 })
+export const createBackupService = async (
+  client: PocketbaseClientApi,
+  jobService: JobServiceApi
+) => {
+  jobService.registerCommand<InstanceBackupJobPayload>(
+    JobCommands.BackupInstance,
+    async (unsafeJob) => {
+      const unsafePayload = unsafeJob.payload
+      const { instanceId } = unsafePayload
+      assertTruthy(instanceId, `Expected instanceId here`)
+      const instance = await client.getInstance(instanceId)
+      assertTruthy(instance, `Instance ${instanceId} not found`)
+      assertTruthy(
+        instance.uid === unsafeJob.userId,
+        `Instance ${instanceId} is not owned by user ${unsafeJob.userId}`
+      )
+      await client.createBackup(instance.id)
+    }
+  )
 
   const tm = createTimerManager({})
   tm.everyAsync(async () => {
