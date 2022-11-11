@@ -6,8 +6,7 @@ import { createInstanceService } from './services/InstanceService'
 import { createJobService } from './services/JobService'
 import { createProxyService } from './services/ProxyService'
 import { mkInternalUrl } from './util/internal'
-import { tryFetch } from './util/tryFetch'
-import { _spawn } from './util/_spawn'
+import { spawnInstance } from './util/spawnInstance'
 // npm install eventsource --save
 global.EventSource = require('eventsource')
 ;(async () => {
@@ -16,25 +15,27 @@ global.EventSource = require('eventsource')
   /**
    * Launch central database
    */
-  const mainProcess = await _spawn({
+  const mainProcess = await spawnInstance({
     subdomain: PUBLIC_PB_SUBDOMAIN,
     slug: PUBLIC_PB_SUBDOMAIN,
     port: DAEMON_PB_PORT_BASE,
     bin: binFor('lollipop'),
   })
-  await tryFetch(coreInternalUrl)
 
   /**
    * Launch services
    */
   const client = createPbClient(coreInternalUrl)
   const instanceService = await createInstanceService(client)
+  const proxyService = await createProxyService(instanceService)
   const jobService = await createJobService(client)
   const backupService = await createBackupService(client)
 
-  const api = await createProxyService(instanceService)
   process.once('SIGUSR2', async () => {
     console.log(`SIGUSR2 detected`)
-    api.shutdown()
+    proxyService.shutdown()
+    instanceService.shutdown()
+    jobService.shutdown()
+    backupService.shutdown()
   })
 })()

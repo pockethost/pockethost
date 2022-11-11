@@ -1,7 +1,7 @@
 import { InstanceId, IsoDate, RecordId } from './types'
 
 export enum BackupStatus {
-  New = 'new',
+  Queued = 'queued',
   Running = 'running',
   FinishedSuccess = 'finished-success',
   FinishedError = 'finished-error',

@@ -27,7 +27,7 @@ export const createBackupMixin = (context: MixinContext) => {
       const { platform, version } = instance
       const rec: BackupRecord_Create = {
         instanceId,
-        status: BackupStatus.New,
+        status: BackupStatus.Queued,
         platform,
         version,
       }
@@ -54,9 +54,21 @@ export const createBackupMixin = (context: MixinContext) => {
       .delete()
   )
 
+  const getNextBackupJob = safeCatch(`getNextBackupJob`, async () => {
+    return client
+      .collection('backups')
+      .getList<BackupRecord>(1, 1, {
+        filter: `status = '${BackupStatus.Queued}'`,
+      })
+      .then((recs) => {
+        return recs.items[0] || null
+      })
+  })
+
   return {
     createBackup,
     updateBackup,
     resetBackups,
+    getNextBackupJob,
   }
 }

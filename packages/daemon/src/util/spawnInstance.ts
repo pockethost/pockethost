@@ -5,7 +5,7 @@ import { DAEMON_PB_BIN_DIR, DAEMON_PB_DATA_DIR } from '../constants'
 import { dbg } from './dbg'
 import { mkInternalAddress, mkInternalUrl } from './internal'
 import { tryFetch } from './tryFetch'
-export type PocketbaseProcess = AsyncReturnType<typeof _spawn>
+export type PocketbaseProcess = AsyncReturnType<typeof spawnInstance>
 
 export type Config = {
   subdomain: string
@@ -15,7 +15,7 @@ export type Config = {
   onUnexpectedStop?: (code: number | null) => void
 }
 
-export const _spawn = async (cfg: Config) => {
+export const spawnInstance = async (cfg: Config) => {
   const { subdomain, port, bin, onUnexpectedStop, slug } = cfg
   const cmd = `${DAEMON_PB_BIN_DIR}/${bin}`
   if (!existsSync(cmd)) {

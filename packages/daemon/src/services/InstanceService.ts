@@ -19,7 +19,7 @@ import { dbg, error } from '../util/dbg'
 import { mkInternalUrl } from '../util/internal'
 import { now } from '../util/now'
 import { safeCatch } from '../util/safeAsync'
-import { PocketbaseProcess, _spawn } from '../util/_spawn'
+import { PocketbaseProcess, spawnInstance } from '../util/spawnInstance'
 
 type Instance = {
   process: PocketbaseProcess
@@ -83,7 +83,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
 
       await client.updateInstanceStatus(instance.id, InstanceStatus.Starting)
 
-      const childProcess = await _spawn({
+      const childProcess = await spawnInstance({
         subdomain,
         slug: instance.id,
         port: newPort,

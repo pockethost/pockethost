@@ -50,6 +50,8 @@ export const createPbClient = (url: string) => {
   const invocationApi = createInvocationMixin(context, instanceApi)
 
   const api = {
+    client,
+    knex: rawDb,
     adminAuthViaEmail,
     applySchema,
     ...jobsApi,

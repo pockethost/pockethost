@@ -1,8 +1,14 @@
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
-import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '../constants'
+import {
+  DAEMON_PB_PORT_BASE,
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_PROTOCOL,
+  PUBLIC_PB_SUBDOMAIN,
+} from '../constants'
 import { dbg, info } from '../util/dbg'
+import { mkInternalUrl } from '../util/internal'
 import { InstanceServiceApi } from './InstanceService'
 
 export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
@@ -32,6 +38,13 @@ export const createProxyService = async (
       throw new Error(`${host} has no subdomain.`)
     }
     try {
+      if (subdomain === PUBLIC_PB_SUBDOMAIN) {
+        const target = mkInternalUrl(DAEMON_PB_PORT_BASE)
+        dbg(`Forwarding proxy request for ${req.url} to instance ${target}`)
+        proxy.web(req, res, { target })
+        return
+      }
+
       const instance = await instanceManager.getInstance(subdomain)
       if (!instance) {
         throw new Error(
@@ -42,6 +55,7 @@ export const createProxyService = async (
       dbg(
         `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
       )
+
       const endRequest = instance.startRequest()
       req.on('close', endRequest)
       proxy.web(req, res, { target: instance.internalUrl })

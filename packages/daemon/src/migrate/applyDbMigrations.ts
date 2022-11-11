@@ -9,8 +9,8 @@ import {
 } from '../constants'
 import { createPbClient, PocketbaseClientApi } from '../db/PbClient'
 import { mkInternalUrl } from '../util/internal'
+import { spawnInstance } from '../util/spawnInstance'
 import { tryFetch } from '../util/tryFetch'
-import { _spawn } from '../util/_spawn'
 import { schema } from './schema'
 
 export const applyDbMigrations = async (
@@ -18,7 +18,7 @@ export const applyDbMigrations = async (
 ) => {
   // Add `platform` and `bin` required columns (migrate db json)
   try {
-    const mainProcess = await _spawn({
+    const mainProcess = await spawnInstance({
       subdomain: PUBLIC_PB_SUBDOMAIN,
       slug: PUBLIC_PB_SUBDOMAIN,
       port: DAEMON_PB_PORT_BASE,
