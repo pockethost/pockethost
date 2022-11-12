@@ -271,7 +271,7 @@ export const createPocketbaseClient = (url: string) => {
           backupId
         }
       }
-      const rec = await client.collection('jobs').create<InstanceBackupJobRecord>(job)
+      const rec = await client.collection('jobs').create<JobRecord<InstanceRestoreJobPayload>>(job)
       return rec
     }
   )

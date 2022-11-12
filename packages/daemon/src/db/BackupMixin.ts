@@ -65,10 +65,18 @@ export const createBackupMixin = (context: MixinContext) => {
       })
   })
 
+  const getBackupJob = safeCatch(
+    `getBackupJob`,
+    async (backupId: BackupRecordId) => {
+      return client.collection('backups').getOne<BackupRecord>(backupId)
+    }
+  )
+
   return {
     createBackup,
     updateBackup,
     resetBackups,
     getNextBackupJob,
+    getBackupJob,
   }
 }

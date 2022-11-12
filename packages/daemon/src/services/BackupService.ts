@@ -3,6 +3,7 @@ import {
   BackupStatus,
   createTimerManager,
   InstanceBackupJobPayload,
+  InstanceRestoreJobPayload,
   JobCommands,
 } from '@pockethost/common'
 import { PocketbaseClientApi } from '../db/PbClient'
@@ -25,6 +26,24 @@ export const createBackupService = async (
       assertTruthy(
         instance.uid === unsafeJob.userId,
         `Instance ${instanceId} is not owned by user ${unsafeJob.userId}`
+      )
+      await client.createBackup(instance.id)
+    }
+  )
+
+  jobService.registerCommand<InstanceRestoreJobPayload>(
+    JobCommands.BackupInstance,
+    async (unsafeJob) => {
+      const unsafePayload = unsafeJob.payload
+      const { backupId } = unsafePayload
+      assertTruthy(backupId, `Expected backupId here`)
+      const backup = await client.getBackupJob(backupId)
+      assertTruthy(backup, `Backup ${backupId} not found`)
+      const instance = await client.getInstance(backup.instanceId)
+      assertTruthy(instance, `Instance ${backup.instanceId} not found`)
+      assertTruthy(
+        instance.uid === unsafeJob.userId,
+        `Backup ${backupId} is not owned by user ${unsafeJob.userId}`
       )
       await client.createBackup(instance.id)
     }
