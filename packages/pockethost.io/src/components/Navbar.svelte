@@ -11,6 +11,7 @@
     <a href="/" class="logo text-decoration-none d-flex align-items-center">
       <img src="/images/logo-square.png" alt="PocketHost Logo" class="img-fluid" />
       <h1>Pocket<span>Host</span></h1>
+      <sup class="">{__PACKAGE_VERSION__}</sup>
     </a>
 
     <button
@@ -137,6 +138,13 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
+    }
+
+    sup {
+      margin-left: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--bs-gray-600)
     }
   }
 
