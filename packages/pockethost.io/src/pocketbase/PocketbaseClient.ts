@@ -4,9 +4,11 @@ import {
   JobCommands,
   JobStatus,
   type BackupRecord,
+  type BackupRecordId,
   type InstanceBackupJobPayload,
   type InstanceBackupJobRecord,
   type InstanceId,
+  type InstanceRestoreJobPayload,
   type InstancesRecord,
   type InstancesRecord_New,
   type JobRecord,
@@ -226,10 +228,29 @@ export const createPocketbaseClient = (url: string) => {
     }
   )
 
+  const createInstanceRestoreJob = safeCatch(
+    `createInstanceRestoreJob`,
+    async (backupId: BackupRecordId) => {
+      const _user = user()
+      assertExists(_user, `Expected user to exist here`)
+      const { id: userId } = _user
+      const job: JobRecord_In<InstanceRestoreJobPayload> = {
+        userId,
+        status: JobStatus.New,
+        payload: {
+          cmd: JobCommands.RestoreInstance,
+          backupId
+        }
+      }
+      const rec = await client.collection('jobs').create<InstanceBackupJobRecord>(job)
+      return rec
+    }
+  )
+
   const [onJobUpdated, fireJobUpdated] =
     createGenericSyncEvent<RecordSubscription<JobRecord<any>>>()
 
-  client.collection('jobs').subscribe<JobRecord<InstanceBackupJobPayload>>('*', fireJobUpdated)
+  client.collection('jobs').subscribe<JobRecord<any>>('*', fireJobUpdated)
 
   return {
     getAuthStoreProps,
@@ -247,6 +268,7 @@ export const createPocketbaseClient = (url: string) => {
     resendVerificationEmail,
     watchBackupsByInstanceId,
     onJobUpdated,
-    createInstanceBackupJob
+    createInstanceBackupJob,
+    createInstanceRestoreJob
   }
 }

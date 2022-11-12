@@ -2,7 +2,12 @@
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import { BackupStatus, type BackupRecord, type RecordId } from '@pockethost/common'
+  import {
+    BackupStatus,
+    type BackupRecord,
+    type BackupRecordId,
+    type RecordId
+  } from '@pockethost/common'
   import { reduce, sortBy } from '@s-libs/micro-dash'
   import { formatDistanceToNow } from 'date-fns'
   import prettyBytes from 'pretty-bytes'
@@ -16,7 +21,7 @@
   onMount(async () => {
     const { watchBackupsByInstanceId } = client()
     watchBackupsByInstanceId($instance.id, (r) => {
-      console.log(`Handling backup update`, r)
+      // console.log(`Handling backup update`, r)
       const { action, record } = r
       const _backups = reduce(
         $backups,
@@ -36,7 +41,7 @@
           return Date.parse(e.created)
         }).reverse()
       )
-      console.log(record.id)
+      // console.log(record.id)
     }).then(cm.add)
   })
   onDestroy(cm.cleanupAll)
@@ -44,6 +49,10 @@
   const startBackup = () => {
     const { createInstanceBackupJob } = client()
     createInstanceBackupJob($instance.id)
+  }
+
+  const restoreBackup = (backupId: BackupRecordId) => {
+    client().createInstanceRestoreJob(backupId)
   }
 </script>
 
@@ -58,11 +67,12 @@
 </div>
 
 <div>
-  {#each $backups as { bytes, updated, platform, version, status, message, progress }}
+  {#each $backups as { id, bytes, updated, platform, version, status, message, progress }}
     <div>
       {#if status === BackupStatus.FinishedSuccess}
         <div class="text-success">
           {platform}:{version} ({prettyBytes(bytes)}) - Finished {new Date(updated)}
+          <div class="btn btn-light btn-xs" on:click={() => restoreBackup(id)}>Restore</div>
         </div>
       {/if}
       {#if status === BackupStatus.FinishedError}

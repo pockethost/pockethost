@@ -1,3 +1,4 @@
+import { BackupRecordId } from './Backup'
 import { InstancesRecord } from './Instance'
 import { InstanceId, RecordId, UserId } from './types'
 
@@ -15,6 +16,7 @@ export type JobPayloadBase = {
 
 export enum JobCommands {
   BackupInstance = 'backup-instance',
+  RestoreInstance = 'restore-instance',
 }
 
 export const JOB_COMMANDS = [JobCommands.BackupInstance]
@@ -22,6 +24,11 @@ export const JOB_COMMANDS = [JobCommands.BackupInstance]
 export type InstanceBackupJobPayload = {
   cmd: JobCommands.BackupInstance
   instanceId: InstanceId
+}
+
+export type InstanceRestoreJobPayload = {
+  cmd: JobCommands.RestoreInstance
+  backupId: BackupRecordId
 }
 
 export type JobRecord<TPayload> = {
