@@ -140,7 +140,9 @@ open https://pockethost.io
 
 **next**
 
-- [x] Menu items freshened
+- [x] Account activation ux enhancements
+- [x] Password reset feature
+- [x] Menu ux refresh
 - [x] PocketBase instance version number now shows on dashboard
 
 **0.4.2**
