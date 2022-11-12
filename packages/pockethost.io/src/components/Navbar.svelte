@@ -144,7 +144,7 @@
       margin-left: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: var(--bs-gray-600)
+      color: var(--bs-gray-600);
     }
   }
 
