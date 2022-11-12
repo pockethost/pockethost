@@ -49,6 +49,35 @@ export const createPocketbaseClient = (url: string) => {
       })
   )
 
+  const confirmVerification = safeCatch(`confirmVerification`, (token: string) =>
+    client
+      .collection('users')
+      .confirmVerification(token)
+      .then((response) => {
+        return response
+      })
+  )
+
+  const requestPasswordReset = safeCatch(`requestPasswordReset`, (email: string) =>
+    client
+      .collection('users')
+      .requestPasswordReset(email)
+      .then(() => {
+        return true
+      })
+  )
+
+  const requestPasswordResetConfirm = safeCatch(
+    `requestPasswordResetConfirm`,
+    (token: string, password: string) =>
+      client
+        .collection('users')
+        .confirmPasswordReset(token, password, password)
+        .then((response) => {
+          return response
+        })
+  )
+
   const authViaEmail = safeCatch(`authViaEmail`, (email: string, password: string) =>
     client.collection('users').authWithPassword(email, password)
   )
@@ -189,6 +218,9 @@ export const createPocketbaseClient = (url: string) => {
     createInstance,
     authViaEmail,
     createUser,
+    requestPasswordReset,
+    requestPasswordResetConfirm,
+    confirmVerification,
     logOut,
     onAuthChange,
     isLoggedIn,
