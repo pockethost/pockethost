@@ -45,6 +45,16 @@ export const createBackupService = async (
         instance.uid === unsafeJob.userId,
         `Backup ${backupId} is not owned by user ${unsafeJob.userId}`
       )
+
+      /**
+       * Restore strategy:
+       *
+       * 1. Place instance in maintenance mode
+       * 2. Shut down instance
+       * 3. Back up
+       * 4. Restore
+       * 5. Lift maintenance mode
+       */
       await client.createBackup(instance.id)
     }
   )

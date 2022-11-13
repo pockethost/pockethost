@@ -1,4 +1,9 @@
-import { assertTruthy, binFor, InstanceStatus } from '@pockethost/common'
+import {
+  assertTruthy,
+  binFor,
+  InstanceId,
+  InstanceStatus,
+} from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import getPort from 'get-port'
@@ -21,7 +26,7 @@ import { now } from '../util/now'
 import { safeCatch } from '../util/safeAsync'
 import { PocketbaseProcess, spawnInstance } from '../util/spawnInstance'
 
-type Instance = {
+type InstanceApi = {
   process: PocketbaseProcess
   internalUrl: string
   port: number
@@ -31,7 +36,7 @@ type Instance = {
 
 export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
 export const createInstanceService = async (client: PocketbaseClientApi) => {
-  const instances: { [_: string]: Instance } = {}
+  const instances: { [_: string]: InstanceApi } = {}
 
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
@@ -61,6 +66,12 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
       if (!instance) {
         dbg(`${subdomain} not found`)
         return
+      }
+
+      if (instance.status === InstanceStatus.Maintenance) {
+        throw new Error(
+          `${subdomain} is currently undergoing maintenance. Please check again soon.`
+        )
       }
 
       if (!owner?.verified) {
@@ -97,14 +108,14 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
       assertTruthy(pid, `Expected PID here but got ${pid}`)
 
       const invocation = await client.createInvocation(instance, pid)
-      const api: Instance = (() => {
+      const api: InstanceApi = (() => {
         let openRequestCount = 0
         let lastRequest = now()
         let tid: ReturnType<typeof setTimeout>
         const internalUrl = mkInternalUrl(newPort)
 
         const RECHECK_TTL = 1000 // 1 second
-        const _api: Instance = {
+        const _api: InstanceApi = {
           process: childProcess,
           internalUrl,
           port: newPort,
@@ -115,12 +126,10 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
               await client.finalizeInvocation(invocation)
               const res = childProcess.kill()
               delete instances[subdomain]
-              if (subdomain !== PUBLIC_PB_SUBDOMAIN) {
-                await client.updateInstanceStatus(
-                  instance.id,
-                  InstanceStatus.Idle
-                )
-              }
+              await client.updateInstanceStatus(
+                instance.id,
+                InstanceStatus.Idle
+              )
               assertTruthy(
                 res,
                 `Expected child process to exit gracefully but got ${res}`
@@ -143,7 +152,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
           /**
            * Heartbeat and idle shutdown
            */
-          const _beat = async () => {
+          const _beat = safeCatch(`_beat`, async () => {
             dbg(`${subdomain} heartbeat: ${openRequestCount} open requests`)
             await client.pingInvocation(invocation)
             if (
@@ -156,7 +165,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
               dbg(`${openRequestCount} requests remain open on ${subdomain}`)
               tid = setTimeout(_beat, RECHECK_TTL)
             }
-          }
+          })
           _beat()
         }
 
@@ -175,5 +184,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
       instance.shutdown()
     })
   }
-  return { getInstance, shutdown }
+
+  const maintenance = async (instanceId: InstanceId) => {}
+  return { getInstance, shutdown, maintenance }
 }
