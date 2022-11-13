@@ -94,14 +94,9 @@
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
 
               <div class="d-flex justify-content-around">
-                <a href={`/app/instances/${app.id}/code`} class="btn btn-light">
-                  <i class="bi bi-code-slash" />
-                  <span>Code</span>
-                </a>
-
-                <a href={`/app/instances/${app.id}/backups`} class="btn btn-light">
+                <a href={`/app/instances/${app.id}/details`} class="btn btn-light">
                   <i class="bi bi-gear-fill" />
-                  <span>Backups</span>
+                  <span>Details</span>
                 </a>
 
                 <a

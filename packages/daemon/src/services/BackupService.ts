@@ -32,7 +32,7 @@ export const createBackupService = async (
   )
 
   jobService.registerCommand<InstanceRestoreJobPayload>(
-    JobCommands.BackupInstance,
+    JobCommands.RestoreInstance,
     async (unsafeJob) => {
       const unsafePayload = unsafeJob.payload
       const { backupId } = unsafePayload

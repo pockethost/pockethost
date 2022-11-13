@@ -136,7 +136,8 @@ open https://pockethost.io
 
 **0.5.0**
 
-- [x] Create and restore data backups
+- [x] Create data backups
+- [ ] Restore data backups
 
 **next**
 
