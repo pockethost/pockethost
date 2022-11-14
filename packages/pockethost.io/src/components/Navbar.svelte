@@ -4,7 +4,7 @@
   import { handleLogoutAndRedirect } from '$util/database'
   import { isUserLoggedIn } from '$util/stores'
   import AuthStateGuard from './helpers/AuthStateGuard.svelte'
-  import {PUBLIC_POCKETHOST_VERSION} from "../env";
+  import { PUBLIC_POCKETHOST_VERSION } from '../env'
 </script>
 
 <header class="container-fluid">
