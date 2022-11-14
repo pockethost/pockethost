@@ -52,6 +52,10 @@ export const createProxyService = async (
         )
       }
 
+      if (req.closed) {
+        throw new Error(`Request already closed.`)
+      }
+
       dbg(
         `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
       )
