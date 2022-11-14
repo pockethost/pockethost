@@ -4,6 +4,7 @@
   import { handleLogoutAndRedirect } from '$util/database'
   import { isUserLoggedIn } from '$util/stores'
   import AuthStateGuard from './helpers/AuthStateGuard.svelte'
+  import {PUBLIC_POCKETHOST_VERSION} from "../env";
 </script>
 
 <header class="container-fluid">
@@ -11,7 +12,7 @@
     <a href="/" class="logo text-decoration-none d-flex align-items-center">
       <img src="/images/logo-square.png" alt="PocketHost Logo" class="img-fluid" />
       <h1>Pocket<span>Host</span></h1>
-      <sup class="">{__PACKAGE_VERSION__}</sup>
+      <sup class="">{PUBLIC_POCKETHOST_VERSION}</sup>
     </a>
 
     <button
