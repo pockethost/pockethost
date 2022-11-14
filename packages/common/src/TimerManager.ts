@@ -33,11 +33,13 @@ export const createTimerManager = (config: Config) => {
     let _unsub: TimerCanceler | undefined = undefined
     const _again = async () => {
       await cb()
-      _unsub = add(_again, ms)
+      // If unsub wasn't called/canceled, go again
+      if (_unsub) _unsub = add(_again, ms)
     }
     _again()
     return () => {
       _unsub?.()
+      _unsub = undefined
     }
   }
 
