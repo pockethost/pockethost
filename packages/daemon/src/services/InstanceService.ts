@@ -1,6 +1,7 @@
 import {
   assertTruthy,
   binFor,
+  createTimerManager,
   InstanceId,
   InstanceStatus,
 } from '@pockethost/common'
@@ -68,12 +69,6 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         return
       }
 
-      if (instance.status === InstanceStatus.Maintenance) {
-        throw new Error(
-          `${subdomain} is currently undergoing maintenance. Please check again soon.`
-        )
-      }
-
       if (!owner?.verified) {
         throw new Error(
           `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`
@@ -108,10 +103,10 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
       assertTruthy(pid, `Expected PID here but got ${pid}`)
 
       const invocation = await client.createInvocation(instance, pid)
+      const tm = createTimerManager({})
       const api: InstanceApi = (() => {
         let openRequestCount = 0
         let lastRequest = now()
-        let tid: ReturnType<typeof setTimeout>
         const internalUrl = mkInternalUrl(newPort)
 
         const RECHECK_TTL = 1000 // 1 second
@@ -122,7 +117,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
           shutdown: safeCatch(
             `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
             async () => {
-              clearTimeout(tid)
+              tm.shutdown()
               await client.finalizeInvocation(invocation)
               const res = childProcess.kill()
               delete instances[subdomain]
@@ -149,24 +144,33 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         }
 
         {
-          /**
-           * Heartbeat and idle shutdown
-           */
-          const _beat = safeCatch(`_beat`, async () => {
-            dbg(`${subdomain} heartbeat: ${openRequestCount} open requests`)
-            await client.pingInvocation(invocation)
-            if (
-              openRequestCount === 0 &&
-              lastRequest + DAEMON_PB_IDLE_TTL < now()
-            ) {
-              dbg(`${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`)
-              await _api.shutdown()
-            } else {
-              dbg(`${openRequestCount} requests remain open on ${subdomain}`)
-              tid = setTimeout(_beat, RECHECK_TTL)
-            }
-          })
-          _beat()
+          tm.everyAsync(
+            safeCatch(`idleCheck`, async () => {
+              dbg(`${subdomain} idle check: ${openRequestCount} open requests`)
+              if (
+                openRequestCount === 0 &&
+                lastRequest + DAEMON_PB_IDLE_TTL < now()
+              ) {
+                dbg(
+                  `${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`
+                )
+                await _api.shutdown()
+              } else {
+                dbg(`${openRequestCount} requests remain open on ${subdomain}`)
+              }
+            }),
+            RECHECK_TTL
+          )
+        }
+
+        {
+          tm.everyAsync(
+            safeCatch(`uptime`, async () => {
+              dbg(`${subdomain} uptime`)
+              await client.pingInvocation(invocation)
+            }),
+            1000
+          )
         }
 
         return _api
