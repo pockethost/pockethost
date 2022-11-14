@@ -141,6 +141,7 @@ open https://pockethost.io
 
 **next**
 
+- [x] Display version near PocketHost logo
 - [x] Account activation ux enhancements
 - [x] Password reset feature
 - [x] Menu ux refresh
