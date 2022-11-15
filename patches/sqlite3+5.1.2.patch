@@ -1,8 +1,10 @@
+diff --git a/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node b/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node
+new file mode 100755
 diff --git a/node_modules/sqlite3/lib/sqlite3.d.ts b/node_modules/sqlite3/lib/sqlite3.d.ts
-index b27b0cf..a69dd7e 100644
+index b27b0cf..b0086af 100644
 --- a/node_modules/sqlite3/lib/sqlite3.d.ts
 +++ b/node_modules/sqlite3/lib/sqlite3.d.ts
-@@ -139,6 +139,145 @@ export class Database extends events.EventEmitter {
+@@ -139,6 +139,153 @@ export class Database extends events.EventEmitter {
      wait(callback?: (param: null) => void): this;
  
      interrupt(): void;
@@ -45,6 +47,8 @@ index b27b0cf..a69dd7e 100644
 + *     succeeeds.
 + *   - `backup.failed` is set to `true` when the backup
 + *     has a fatal error.
++ *   - `backup.message` is set to the error string 
++ *     the backup has a fatal error.
 + *   - `backup.idle` is set to `true` when no operation
 + *     is currently in progress or queued for the backup.
 + *   - `backup.remaining` is an integer with the remaining
@@ -101,7 +105,13 @@ index b27b0cf..a69dd7e 100644
 +    readonly completed: boolean
 +
 +    /**
-+     * `true` when the backup has failed, `false` otherwise.
++     * `true` when the backup has failed, `false` otherwise. `Backup.message`
++     * contains the error message.
++     */
++    readonly failed: boolean
++
++    /**
++     * Message failure string from sqlite3_errstr() if `Backup.failed` is `true`
 +     */
 +    readonly failed: boolean
 +
