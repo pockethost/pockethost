@@ -14,7 +14,7 @@ import { tryFetch } from '../util/tryFetch'
 import { schema } from './schema'
 
 export const applyDbMigrations = async (
-  cb: (client: PocketbaseClientApi) => void
+  cb: (client: PocketbaseClientApi) => Promise<void>
 ) => {
   // Add `platform` and `bin` required columns (migrate db json)
   try {

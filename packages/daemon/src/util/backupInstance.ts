@@ -1,4 +1,4 @@
-import { BackupRecordId, InstancesRecord } from '@pockethost/common'
+import { BackupRecordId, InstanceId } from '@pockethost/common'
 import { statSync } from 'fs'
 import { basename, resolve } from 'path'
 import { chdir, cwd } from 'process'
@@ -53,18 +53,17 @@ export const execBackup = (
           backup.step(5, () => resolve())
         })
       }
-      setTimeout(_work, 100)
+      setTimeout(_work, 10)
     }
     _work()
   })
 }
 
 export const backupInstance = async (
-  instance: InstancesRecord,
+  instanceId: InstanceId,
   backupId: BackupRecordId,
   progress?: ProgressCallback
 ) => {
-  const instanceId = instance.id
   const dataRoot = resolve(DAEMON_PB_DATA_DIR, instanceId)
   const backupTgzRoot = resolve(dataRoot, 'backup')
   const backupTgzFile = resolve(backupTgzRoot, `${backupId}.tgz`)

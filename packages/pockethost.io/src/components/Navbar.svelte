@@ -1,10 +1,10 @@
 <script lang="ts">
   import MediaQuery from '$components/MediaQuery.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
+  import { PUBLIC_POCKETHOST_VERSION } from '$src/env'
   import { handleLogoutAndRedirect } from '$util/database'
   import { isUserLoggedIn } from '$util/stores'
   import AuthStateGuard from './helpers/AuthStateGuard.svelte'
-  import { PUBLIC_POCKETHOST_VERSION } from '$src/env'
 </script>
 
 <header class="container-fluid">
@@ -85,7 +85,7 @@
             href="https://github.com/benallfree/pockethost/discussions"
             class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
             target="_blank"
-            rel="noreferrer">Discussions</a
+            rel="noreferrer">Support</a
           >
         </li>
 

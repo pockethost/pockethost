@@ -35,7 +35,7 @@ export const safeCatch = <TIn extends any[], TOut>(
     const uuid = `${name}:${_c}`
     dbg(uuid, ...args)
     const tid = setTimeout(() => {
-      error(uuid, `ERROR: timeout waiting for ${uuid}`)
+      dbg(uuid, `WARNING: timeout waiting for ${uuid}`)
     }, 100)
 
     inside = uuid

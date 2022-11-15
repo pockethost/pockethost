@@ -73,7 +73,7 @@ export const createBackupService = async (
       })
       let progress = backupRec.progress || {}
       const bytes = await backupInstance(
-        instance,
+        instance.id,
         backupRec.id,
         (_progress) => {
           progress = { ...progress, ..._progress }
