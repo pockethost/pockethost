@@ -8,12 +8,13 @@ import {
 } from '../constants'
 import { backupInstance } from '../util/backupInstance'
 import { error } from '../util/dbg'
+import { safeCatch } from '../util/safeAsync'
 import { applyDbMigrations } from './applyDbMigrations'
 import { pexec } from './pexec'
 
 const PB_BIN = resolve(DAEMON_PB_BIN_DIR, binFor('lollipop'))
 
-;(async () => {
+safeCatch(`root`, async () => {
   await backupInstance(
     PUBLIC_PB_SUBDOMAIN,
     `${+new Date()}`,

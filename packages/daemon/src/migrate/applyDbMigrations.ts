@@ -9,40 +9,42 @@ import {
 } from '../constants'
 import { createPbClient, PocketbaseClientApi } from '../db/PbClient'
 import { mkInternalUrl } from '../util/internal'
+import { safeCatch } from '../util/safeAsync'
 import { spawnInstance } from '../util/spawnInstance'
 import { tryFetch } from '../util/tryFetch'
 import { schema } from './schema'
 
-export const applyDbMigrations = async (
-  cb: (client: PocketbaseClientApi) => Promise<void>
-) => {
-  // Add `platform` and `bin` required columns (migrate db json)
-  try {
-    const mainProcess = await spawnInstance({
-      subdomain: PUBLIC_PB_SUBDOMAIN,
-      slug: PUBLIC_PB_SUBDOMAIN,
-      port: DAEMON_PB_PORT_BASE,
-      bin: binFor('lollipop'),
-    })
+export const applyDbMigrations = safeCatch(
+  `applyDbMigrations`,
+  async (cb: (client: PocketbaseClientApi) => Promise<void>) => {
+    // Add `platform` and `bin` required columns (migrate db json)
     try {
-      const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
-      const client = createPbClient(coreInternalUrl)
-      await tryFetch(coreInternalUrl)
-      await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-      await client.applySchema(schema)
-      await cb(client)
+      const mainProcess = await spawnInstance({
+        subdomain: PUBLIC_PB_SUBDOMAIN,
+        slug: PUBLIC_PB_SUBDOMAIN,
+        port: DAEMON_PB_PORT_BASE,
+        bin: binFor('lollipop'),
+      })
+      try {
+        const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
+        const client = createPbClient(coreInternalUrl)
+        await tryFetch(coreInternalUrl)
+        await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
+        await client.applySchema(schema)
+        await cb(client)
+      } catch (e) {
+        console.error(
+          `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
+        )
+        console.error(
+          `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
+        )
+      } finally {
+        console.log(`Exiting process`)
+        mainProcess.kill()
+      }
     } catch (e) {
-      console.error(
-        `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
-      )
-      console.error(
-        `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
-      )
-    } finally {
-      console.log(`Exiting process`)
-      mainProcess.kill()
+      console.error(`${e}`)
     }
-  } catch (e) {
-    console.error(`${e}`)
   }
-}
+)
