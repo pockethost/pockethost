@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
   import { BackupStatus, type BackupRecord, type RecordId } from '@pockethost/common'
@@ -50,30 +51,35 @@
 <div class="py-4">
   <h2>Restore</h2>
 
-  {#if $backups.length === 0}
-    You must create a backup first.
+  {#if PUBLIC_APP_DOMAIN.toString().endsWith('.io')}
+    Contact support to perform a restore.
   {/if}
-  {#if $backups.length > 0}
-    <select value={sourceBackupId}>
-      <option value=""> -- choose snapshot -- </option>
-      {#each $backups as { id, bytes, updated, platform, version, status, message, progress }}
-        {#if status === BackupStatus.FinishedSuccess}
-          <option value={id}>
-            {platform}:{version} ({prettyBytes(bytes)}) - Finished {new Date(updated)}
-          </option>
-        {/if}
-      {/each}
-    </select>
+  {#if PUBLIC_APP_DOMAIN.toString().endsWith('.test')}
+    {#if $backups.length === 0}
+      You must create a backup first.
+    {/if}
+    {#if $backups.length > 0}
+      <select value={sourceBackupId}>
+        <option value=""> -- choose snapshot -- </option>
+        {#each $backups as { id, bytes, updated, platform, version, status, message, progress }}
+          {#if status === BackupStatus.FinishedSuccess}
+            <option value={id}>
+              {platform}:{version} ({prettyBytes(bytes)}) - Finished {new Date(updated)}#
+            </option>
+          {/if}
+        {/each}
+      </select>
 
-    <div class="text-center py-5">
-      <div class="text-danger">
-        Notice: Your instance will be placed in maintenance mode and then backed up before restoring
-        the selected snapshot.
+      <div class="text-center py-5">
+        <div class="text-danger">
+          Notice: Your instance will be placed in maintenance mode and then backed up before
+          restoring the selected snapshot.
+        </div>
+        <button class="btn btn-light" on:click={() => startRestore()} disabled={!sourceBackupId}>
+          <i class="bi bi-safe" /> Restore Now
+        </button>
       </div>
-      <button class="btn btn-light" on:click={() => startRestore()} disabled={!sourceBackupId}>
-        <i class="bi bi-safe" /> Restore Now
-      </button>
-    </div>
+    {/if}
   {/if}
 </div>
 

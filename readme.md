@@ -136,11 +136,11 @@ open https://pockethost.io
 
 **0.5.0**
 
-- [x] Create data backups
 - [ ] Restore data backups
 
 **next**
 
+- [x] Create data backups
 - [x] Display version near PocketHost logo
 - [x] Account activation ux enhancements
 - [x] Password reset feature
