@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     container_name: prepbox
     working_dir: /src
-    command: bash -c "yarn"
+    command: bash -c "yarn && npx patch-package"
     volumes:
       - ./mount/cache/go:/go
       - ./mount/cache/yarn:/usr/local/share/.cache/yarn/v6

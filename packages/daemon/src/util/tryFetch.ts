@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { dbg, error } from './dbg'
 
 export const tryFetch = (url: string) =>

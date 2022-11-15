@@ -1,21 +1,21 @@
+import { Knex } from 'knex'
 import {
-  assertExists,
-  InstanceId,
-  InstancesRecord,
-  InstanceStatus,
-  InvocationRecord,
-  pocketNow,
-  UserRecord,
-} from '@pockethost/common'
-import { reduce } from '@s-libs/micro-dash'
-import Bottleneck from 'bottleneck'
-import { endOfMonth, startOfMonth } from 'date-fns'
-import PocketBase, { Collection } from 'pocketbase'
+  Collection,
+  default as PocketBase,
+  default as pocketbaseEs,
+} from 'pocketbase'
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { Collection_Serialized } from '../migrate/schema'
-import { dbg } from '../util/dbg'
 import { safeCatch } from '../util/safeAsync'
+import { createBackupMixin } from './BackupMixin'
+import { createInstanceMixin } from './InstanceMIxin'
+import { createInvocationMixin } from './InvocationMixin'
+import { createJobMixin } from './JobMixin'
 import { createRawPbClient } from './RawPbClient'
+
+export type PocketbaseClientApi = ReturnType<typeof createPbClient>
+
+export type MixinContext = { client: pocketbaseEs; rawDb: Knex }
 
 export const createPbClient = (url: string) => {
   console.log(`Initializing client: ${url}`)
@@ -25,7 +25,7 @@ export const createPbClient = (url: string) => {
 
   const client = new PocketBase(url)
   client.beforeSend = (url: string, reqConfig: { [_: string]: any }) => {
-    dbg(reqConfig)
+    // dbg(reqConfig)
     delete reqConfig.signal
     return reqConfig
   }
@@ -36,107 +36,6 @@ export const createPbClient = (url: string) => {
       client.admins.authWithPassword(email, password)
   )
 
-  const getInstanceBySubdomain = safeCatch(
-    `getInstanceBySubdomain`,
-    (subdomain: string): Promise<[InstancesRecord, UserRecord] | []> =>
-      client
-        .collection('instances')
-        .getFirstListItem<InstancesRecord>(`subdomain = '${subdomain}'`)
-        .then((instance) => {
-          if (!instance) return []
-          return client
-            .collection('users')
-            .getOne<UserRecord>(instance.uid)
-            .then((user) => {
-              return [instance, user]
-            })
-        })
-  )
-
-  const updateInstance = safeCatch(
-    `updateInstance`,
-    async (instanceId: InstanceId, fields: Partial<InstancesRecord>) => {
-      await client.collection('instances').update(instanceId, fields)
-    }
-  )
-
-  const updateInstanceStatus = safeCatch(
-    `updateInstanceStatus`,
-    async (instanceId: InstanceId, status: InstanceStatus) => {
-      await updateInstance(instanceId, { status })
-    }
-  )
-
-  const createInvocation = safeCatch(
-    `createInvocation`,
-    async (instance: InstancesRecord, pid: number) => {
-      const init: Partial<InvocationRecord> = {
-        startedAt: pocketNow(),
-        pid,
-        instanceId: instance.id,
-        totalSeconds: 0,
-      }
-      const _inv = await client
-        .collection('invocations')
-        .create<InvocationRecord>(init)
-      return _inv
-    }
-  )
-
-  const pingInvocation = safeCatch(
-    `pingInvocation`,
-    async (invocation: InvocationRecord) => {
-      const totalSeconds =
-        (+new Date() - Date.parse(invocation.startedAt)) / 1000
-      const toUpdate: Partial<InvocationRecord> = {
-        totalSeconds,
-      }
-      const _inv = await client
-        .collection('invocations')
-        .update<InvocationRecord>(invocation.id, toUpdate)
-      await updateInstanceSeconds(invocation.instanceId)
-      return _inv
-    }
-  )
-
-  const finalizeInvocation = safeCatch(
-    `finalizeInvocation`,
-    async (invocation: InvocationRecord) => {
-      dbg('finalizing')
-      const totalSeconds =
-        (+new Date() - Date.parse(invocation.startedAt)) / 1000
-      const toUpdate: Partial<InvocationRecord> = {
-        endedAt: pocketNow(),
-        totalSeconds,
-      }
-      dbg({ toUpdate })
-      const _inv = await client
-        .collection('invocations')
-        .update<InvocationRecord>(invocation.id, toUpdate)
-      await updateInstanceSeconds(invocation.instanceId)
-      return _inv
-    }
-  )
-
-  const updateInstanceSeconds = safeCatch(
-    `updateInstanceSeconds`,
-    async (instanceId: InstanceId, forPeriod = new Date()) => {
-      const startIso = startOfMonth(forPeriod).toISOString()
-      const endIso = endOfMonth(forPeriod).toISOString()
-      const query = rawDb('invocations')
-        .sum('totalSeconds as t')
-        .where('instanceId', instanceId)
-        .where('startedAt', '>=', startIso)
-        .where('startedAt', '<=', endIso)
-      dbg(query.toString())
-      const res = await query
-      const [row] = res
-      assertExists(row, `Expected row here`)
-      const secondsThisMonth = row.t
-      await updateInstance(instanceId, { secondsThisMonth })
-    }
-  )
-
   const applySchema = safeCatch(
     `applySchema`,
     async (collections: Collection_Serialized[]) => {
@@ -144,40 +43,22 @@ export const createPbClient = (url: string) => {
     }
   )
 
-  const updateInstances = safeCatch(
-    'updateInstances',
-    async (cb: (rec: InstancesRecord) => Partial<InstancesRecord>) => {
-      const res = await client
-        .collection('instances')
-        .getFullList<InstancesRecord>(200)
-      const limiter = new Bottleneck({ maxConcurrent: 1 })
-      const promises = reduce(
-        res,
-        (c, r) => {
-          c.push(
-            limiter.schedule(() => {
-              const toUpdate = cb(r)
-              dbg(`Updating instnace ${r.id} with ${JSON.stringify(toUpdate)}`)
-              return client.collection('instances').update(r.id, toUpdate)
-            })
-          )
-          return c
-        },
-        [] as Promise<void>[]
-      )
-      await Promise.all(promises)
-    }
-  )
+  const context: MixinContext = { client, rawDb }
+  const jobsApi = createJobMixin(context)
+  const instanceApi = createInstanceMixin(context)
+  const backupApi = createBackupMixin(context)
+  const invocationApi = createInvocationMixin(context, instanceApi)
 
-  return {
-    pingInvocation,
-    finalizeInvocation,
-    createInvocation,
+  const api = {
+    client,
+    knex: rawDb,
     adminAuthViaEmail,
-    getInstanceBySubdomain,
-    updateInstanceStatus,
-    updateInstance,
     applySchema,
-    updateInstances,
+    ...jobsApi,
+    ...instanceApi,
+    ...invocationApi,
+    ...backupApi,
   }
+
+  return api
 }

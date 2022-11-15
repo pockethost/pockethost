@@ -21,17 +21,20 @@
     "svelte-check": "^2.7.1",
     "svelte-preprocess": "^4.10.6",
     "tslib": "^2.3.1",
-    "typescript": "^4.7.4",
+    "typescript": "^4.8.0",
     "vite": "^3.1.0"
   },
   "type": "module",
   "dependencies": {
     "@pockethost/common": "0.0.1",
-    "@s-libs/micro-dash": "12",
+    "@s-libs/micro-dash": "^14.1.0",
     "@types/bootstrap": "^5.2.6",
     "@types/js-cookie": "^3.0.2",
+    "async-mutex": "^0.4.0",
+    "date-fns": "^2.29.3",
     "js-cookie": "^3.0.1",
     "pocketbase": "^0.8.0-rc1",
+    "pretty-bytes": "^6.0.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
     "svelte-highlight": "^6.2.1"

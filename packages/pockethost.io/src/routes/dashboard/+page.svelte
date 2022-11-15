@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
-  import { browser } from '$app/environment'
   import { createCleanupManagerSync } from '$util/CleanupManager'
   import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
@@ -34,6 +34,7 @@
     apps = _apps
     _touch++
   }
+
   onMount(() => {
     const { getAllInstancesById, watchInstanceById } = client()
     getAllInstancesById()
@@ -43,11 +44,10 @@
         forEach(apps, (app) => {
           const instanceId = app.id
 
-          const unsub = watchInstanceById(instanceId, (r) => {
+          watchInstanceById(instanceId, (r) => {
             const { action, record } = r
             _update({ ...apps, [record.id]: record })
-          })
-          cm.add(unsub)
+          }).then(cm.add)
         })
       })
       .catch((e) => {
@@ -94,7 +94,7 @@
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
 
               <div class="d-flex justify-content-around">
-                <a href={`/app/instances/${app.id}`} class="btn btn-light">
+                <a href={`/app/instances/${app.id}/details`} class="btn btn-light">
                   <i class="bi bi-gear-fill" />
                   <span>Details</span>
                 </a>

@@ -93,8 +93,10 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-dev .env.local  # Edit as needed - defaults should work
 cd ..
+docker build .
 docker-compose -f docker/build.yaml up --remove-orphans
 docker-compose -f docker/migrate.yaml up --remove-orphans
+docker-compose -f docker/install.yaml up --remove-orphans
 docker-compose -f docker/dev.yaml up --remove-orphans
 open https://pockethost.test
 ```
@@ -108,8 +110,10 @@ git clone git@github.com:benallfree/pockethost.git
 cd pockethost/docker
 cp .env-template-prod .env.local  # Edit as needed - defaults should work
 cd ..
+docker build .
 docker compose -f docker/build.yaml up --remove-orphans
 docker compose -f docker/migrate.yaml up --remove-orphans
+docker-compose -f docker/install.yaml up --remove-orphans
 docker compose -f docker/prod.yaml up --remove-orphans
 ```
 
@@ -130,8 +134,9 @@ open https://pockethost.io
 
 # Release History
 
-**next**
+**0.5.0**
 
+- [x] Create data backups
 - [x] Display version near PocketHost logo
 - [x] Account activation ux enhancements
 - [x] Password reset feature
