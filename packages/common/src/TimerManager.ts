@@ -29,12 +29,14 @@ export const createTimerManager = (config: Config) => {
     // console.log(`done`, cleanups)
   }
 
-  const everyAsync = (cb: () => Promise<void>, ms: UnixTimestampMs) => {
+  const repeat = (
+    cb: () => Promise<boolean> | boolean,
+    ms: UnixTimestampMs
+  ) => {
     let _unsub: TimerCanceler | undefined = undefined
     const _again = async () => {
-      await cb()
-      // If unsub wasn't called/canceled, go again
-      if (_unsub) _unsub = add(_again, ms)
+      const shouldRepeat = await cb()
+      if (shouldRepeat) _unsub = add(_again, ms)
     }
     _again()
     return () => {
@@ -43,5 +45,5 @@ export const createTimerManager = (config: Config) => {
     }
   }
 
-  return { add, shutdown, everyAsync }
+  return { add, shutdown, repeat }
 }

@@ -144,7 +144,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         }
 
         {
-          tm.everyAsync(
+          tm.repeat(
             safeCatch(`idleCheck`, async () => {
               dbg(`${subdomain} idle check: ${openRequestCount} open requests`)
               if (
@@ -155,19 +155,22 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
                   `${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`
                 )
                 await _api.shutdown()
+                return false
               } else {
                 dbg(`${openRequestCount} requests remain open on ${subdomain}`)
               }
+              return true
             }),
             RECHECK_TTL
           )
         }
 
         {
-          tm.everyAsync(
+          tm.repeat(
             safeCatch(`uptime`, async () => {
               dbg(`${subdomain} uptime`)
               await client.pingInvocation(invocation)
+              return true
             }),
             1000
           )

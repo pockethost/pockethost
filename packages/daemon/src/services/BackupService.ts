@@ -60,11 +60,11 @@ export const createBackupService = async (
   )
 
   const tm = createTimerManager({})
-  tm.everyAsync(async () => {
+  tm.repeat(async () => {
     const backupRec = await client.getNextBackupJob()
     if (!backupRec) {
       dbg(`No backups requested`)
-      return
+      return true
     }
     const instance = await client.getInstance(backupRec.instanceId)
     try {
@@ -93,6 +93,7 @@ export const createBackupService = async (
         message: `${e}`,
       })
     }
+    return true
   }, 1000)
 
   const shutdown = () => {
