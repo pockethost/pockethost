@@ -133,7 +133,7 @@ export const createPocketbaseClient = (url: string) => {
     cb: (data: RecordSubscription<BackupRecord>) => void
   ): Promise<Unsubscriber> => {
     const unsub = client.collection('backups').subscribe<BackupRecord>('*', (e) => {
-      console.log(e.record.instanceId, id)
+      // console.log(e.record.instanceId, id)
       if (e.record.instanceId !== id) return
       cb(e)
     })
