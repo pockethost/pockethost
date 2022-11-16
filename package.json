@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "prettier -c \"./**/*.ts\"",
     "lint:fix": "prettier -w \"./**/*.ts\"",
-    "build": "yarn run patch && concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
+    "build": "concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
     "build:pocketbase": "cd packages/pocketbase && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
     "build:www": "cd packages/pockethost.io && yarn build",
@@ -18,7 +18,7 @@
     "start:daemon": "cd packages/daemon && yarn start",
     "migrate": "yarn migrate:daemon",
     "migrate:daemon": "cd packages/daemon && yarn migrate",
-    "patch": "patch-package"
+    "postinstall": "patch-package"
   },
   "workspaces": {
     "packages": [
@@ -36,10 +36,13 @@
   },
   "devDependencies": {
     "concurrently": "^7.4.0",
+    "patch-package": "^6.5.0",
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^3.1.1",
     "prettier-plugin-svelte": "^2.7.0",
-    "typescript": "^4.8.3",
-    "patch-package": "^6.5.0"
+    "typescript": "^4.8.3"
+  },
+  "dependencies": {
+    "postinstall-postinstall": "^2.1.0"
   }
 }

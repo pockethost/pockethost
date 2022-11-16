@@ -1,5 +1,3 @@
-diff --git a/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node b/node_modules/sqlite3/lib/binding/napi-v6-linux-musl-arm64/node_sqlite3.node
-new file mode 100755
 diff --git a/node_modules/sqlite3/lib/sqlite3.d.ts b/node_modules/sqlite3/lib/sqlite3.d.ts
 index b27b0cf..b0086af 100644
 --- a/node_modules/sqlite3/lib/sqlite3.d.ts
