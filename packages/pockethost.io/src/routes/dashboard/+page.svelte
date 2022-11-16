@@ -94,7 +94,7 @@
               <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
 
               <div class="d-flex justify-content-around">
-                <a href={`/app/instances/${app.id}/details`} class="btn btn-light">
+                <a href={`/app/instances/${app.id}`} class="btn btn-light">
                   <i class="bi bi-gear-fill" />
                   <span>Details</span>
                 </a>

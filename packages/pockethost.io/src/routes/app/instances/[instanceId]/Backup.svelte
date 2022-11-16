@@ -13,7 +13,7 @@
   import prettyBytes from 'pretty-bytes'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
-  import { instance } from '../store'
+  import { instance } from './store'
 
   const cm = createCleanupManagerSync()
   const backups = writable<BackupRecord[]>([])

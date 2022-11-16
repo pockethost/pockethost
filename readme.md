@@ -134,6 +134,11 @@ open https://pockethost.io
 
 # Release History
 
+**next**
+
+- [x] Bugfix: 404 after creating instance
+- [ ] Bugfix: Disallow backups if data dir doesn't exist
+
 **0.5.0**
 
 - [x] Create data backups
