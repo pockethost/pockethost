@@ -79,7 +79,7 @@ export const handleAccountConfirmation = async (token: string, setError?: FormEr
   try {
     await confirmVerification(token)
 
-    await goto('/dashboard')
+    window.location.href = '/dashboard'
   } catch (error: any) {
     handleFormError(error, setError)
   }
