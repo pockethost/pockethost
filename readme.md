@@ -139,7 +139,7 @@ open https://pockethost.io
 - [ ] Bugfix: Disallow backups if data dir doesn't exist
 - [ ] Bugfix: dedupe yarn
 - [ ] Bugfix: Account verification needs to hard-redirect
-- [ ] Chore: packegize bootstrap
+- [x] Chore: improved bootstrap TS support
 
 **0.5.1**
 
