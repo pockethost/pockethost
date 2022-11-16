@@ -280,11 +280,6 @@ export const createPocketbaseClient = (url: string) => {
     }
   )
 
-  const [onJobUpdated, fireJobUpdated] =
-    createGenericSyncEvent<RecordSubscription<JobRecord<any>>>()
-
-  client.collection('jobs').subscribe<JobRecord<any>>('*', fireJobUpdated)
-
   return {
     getAuthStoreProps,
     parseError,
@@ -303,7 +298,6 @@ export const createPocketbaseClient = (url: string) => {
     getAllInstancesById,
     resendVerificationEmail,
     watchBackupsByInstanceId,
-    onJobUpdated,
     createInstanceBackupJob,
     createInstanceRestoreJob
   }
