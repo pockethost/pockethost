@@ -137,6 +137,9 @@ open https://pockethost.io
 **next**
 
 - [ ] Bugfix: Disallow backups if data dir doesn't exist
+- [ ] Bugfix: dedupe yarn
+- [ ] Bugfix: Account verification needs to hard-redirect
+- [ ] Chore: packegize bootstrap
 
 **0.5.1**
 
