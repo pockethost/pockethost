@@ -20,4 +20,7 @@ export type InstancesRecord = {
   secondsThisMonth: Seconds
 }
 
-export type InstancesRecord_New = Omit<InstancesRecord, 'id'>
+export type InstancesRecord_New = Omit<
+  InstancesRecord,
+  'id' | 'secondsThisMonth'
+>
