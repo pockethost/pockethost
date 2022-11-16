@@ -136,8 +136,12 @@ open https://pockethost.io
 
 **next**
 
-- [x] Bugfix: 404 after creating instance
 - [ ] Bugfix: Disallow backups if data dir doesn't exist
+
+**0.5.1**
+
+- [x] Bugfix: 404 after creating instance
+- [x] SQLite3 build fix
 
 **0.5.0**
 
