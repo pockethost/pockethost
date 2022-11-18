@@ -6,7 +6,7 @@ export const safeCatch = <TIn extends any[], TOut>(
 ) => {
   return (...args: TIn) => {
     if (dev) {
-      console.log(`${name}`)
+      //console.log(`${name}`)
     }
     return cb(...args).catch((e: any) => {
       console.error(`${name} failed: ${e}`)

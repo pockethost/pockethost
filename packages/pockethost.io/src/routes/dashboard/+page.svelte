@@ -9,7 +9,8 @@
   import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import NewUserOnboarding from "$components/NewUserOnboarding.svelte";
+
 
   let apps: InstanceRecordById = {}
 
@@ -62,8 +63,11 @@
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
+
+<NewUserOnboarding />
+
 <AuthStateGuard>
-  <div class="container" in:fade={{ duration: 30 }}>
+  <div class="container">
     {#if appsArray.length}
       <div class="py-4">
         <h1 class="text-center">Your Apps</h1>

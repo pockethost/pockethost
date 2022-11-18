@@ -1,5 +1,4 @@
 <script>
-  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import Protect from '$components/helpers/Protect.svelte'
   import ThemeDetector from '$components/helpers/ThemeDetector.svelte'
@@ -14,9 +13,7 @@
 
 <Navbar />
 
-<AuthStateGuard>
-  <VerifyAccountBar />
-</AuthStateGuard>
+<VerifyAccountBar />
 
 <main data-sveltekit-prefetch>
   <slot />

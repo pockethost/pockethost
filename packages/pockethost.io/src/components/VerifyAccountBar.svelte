@@ -2,7 +2,8 @@
   import AlertBar from '$components/AlertBar.svelte'
   import { AlertTypes } from '$components/AlertBar.types'
   import { handleResendVerificationEmail } from '$util/database'
-  import { isUserLoggedIn, isUserVerified } from '$util/stores'
+  import { isUserLoggedIn, isUserVerified, isFirstTimeRegistration } from '$util/stores'
+  import AuthStateGuard from "$components/helpers/AuthStateGuard.svelte";
 
   let defaultAlertBarType: AlertTypes = AlertTypes.Warning
 
@@ -29,7 +30,8 @@
   }
 </script>
 
-{#if $isUserLoggedIn && !$isUserVerified}
+<AuthStateGuard>
+{#if $isUserLoggedIn && !$isUserVerified && !$isFirstTimeRegistration}
   <div class="container py-3">
     <AlertBar alertType={defaultAlertBarType}>
       <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
@@ -55,6 +57,7 @@
     </AlertBar>
   </div>
 {/if}
+</AuthStateGuard>
 
 <style>
   .success-icon {

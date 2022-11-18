@@ -15,15 +15,16 @@ if (browser) {
    * Listen for auth change events. When we get at least one, the auth state is initialized.
    */
   onAuthChange((authStoreProps) => {
-    console.log(`onAuthChange in store`, { ...authStoreProps })
     authStoreState.set(authStoreProps)
     isAuthStateInitialized.set(true)
   })
 
   // Update derived stores when authStore changes
   authStoreState.subscribe((authStoreProps) => {
-    console.log(`subscriber change`, authStoreProps)
     isUserLoggedIn.set(authStoreProps.isValid)
     isUserVerified.set(!!authStoreProps.model?.verified)
   })
 }
+
+// Handles the intro carousel for new users
+export const isFirstTimeRegistration = writable(false);

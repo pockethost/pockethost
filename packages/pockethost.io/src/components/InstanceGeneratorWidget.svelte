@@ -3,6 +3,8 @@
   import { handleInstanceGeneratorWidget } from '$util/database'
   import { getRandomElementFromArray } from '$util/utilities'
   import { generateSlug } from 'random-word-slugs'
+  import {isUserLoggedIn} from "$util/stores";
+  import AuthStateGuard from "$components/helpers/AuthStateGuard.svelte";
 
   // Controls the spin animation of the instance regeneration button
   let rotationCounter: number = 0
@@ -13,7 +15,13 @@
   let formError: string = ''
 
   let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled = email.length === 0 || password.length === 0 || instanceName.length === 0
+  $: {
+    if($isUserLoggedIn) {
+      isFormButtonDisabled = instanceName.length === 0
+    } else {
+      isFormButtonDisabled = email.length === 0 || password.length === 0 || instanceName.length === 0
+    }
+  }
 
   let isProcessing: boolean = false
 
@@ -38,95 +46,107 @@
       formError = error
     })
 
-    isFormButtonDisabled = false
+    // Don't enable the buttons immediately. Let the redirect kick in first
+    setTimeout(() => {
+      isFormButtonDisabled = false
 
-    isProcessing = false
+      isProcessing = false
+    }, 10000)
   }
 </script>
 
-{#if isProcessing}
-  <div class="d-flex align-items-center gap-3">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+<AuthStateGuard>
+  {#if isProcessing}
+    <div class="d-flex align-items-center gap-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
 
-    <div>
-      <h3 class="mb-1">Creating Your New Instance...</h3>
+      <div>
+        <h3 class="mb-1">Creating Your New Instance...</h3>
 
-      <p class="small text-muted mb-0">{processingQuote}</p>
-    </div>
-  </div>
-{:else}
-  <h3 class="mb-3">Create Your Instance Now</h3>
-
-  <form class="row align-items-center" on:submit={handleSubmit}>
-    <div class="col-lg-6 col-12">
-      <div class="form-floating mb-3 mb-lg-3">
-        <input
-          type="email"
-          class="form-control"
-          id="email"
-          placeholder="name@example.com"
-          autocomplete="email"
-          bind:value={email}
-          required
-        />
-        <label for="email">Email</label>
+        <p class="small text-muted mb-0">{processingQuote}</p>
       </div>
     </div>
-
-    <div class="col-lg-6 col-12">
-      <div class="form-floating mb-3 mb-lg-3">
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          placeholder="Password"
-          autocomplete="new-password"
-          bind:value={password}
-          required
-        />
-        <label for="password">Password</label>
-      </div>
-    </div>
-
-    <div class="col-lg-6 col-12">
-      <div class="form-floating mb-3 mb-lg-3">
-        <input
-          type="text"
-          class="form-control"
-          id="instance"
-          placeholder="Instance"
-          bind:value={instanceName}
-          required
-        />
-        <label for="instance">Instance Name</label>
-
-        <button
-          aria-label="Regenerate Instance Name"
-          type="button"
-          style="transform: rotate({rotationCounter}deg);"
-          class="btn btn-light rounded-circle regenerate-instance-name-btn"
-          on:click={handleInstanceNameRegeneration}
-        >
-          <i class="bi bi-arrow-repeat" />
-        </button>
-      </div>
-    </div>
-
-    <div class="col-lg-6 col-12">
-      <div class="mb-3 mb-lg-3 text-lg-start text-center">
-        <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
-          Create <i class="bi bi-arrow-right-short" />
-        </button>
-      </div>
-    </div>
-
-    {#if formError}
-      <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+  {:else}
+    {#if $isUserLoggedIn}
+      <h3 class="mb-3">Create a New Instance</h3>
+    {:else}
+      <h3 class="mb-3">Create Your Instance Now</h3>
     {/if}
-  </form>
-{/if}
+
+
+    <form class="row align-items-center" on:submit={handleSubmit}>
+      {#if !$isUserLoggedIn}
+        <div class="col-lg-6 col-12">
+          <div class="form-floating mb-3 mb-lg-3">
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              placeholder="name@example.com"
+              autocomplete="email"
+              bind:value={email}
+              required
+            />
+            <label for="email">Email</label>
+          </div>
+        </div>
+
+        <div class="col-lg-6 col-12">
+          <div class="form-floating mb-3 mb-lg-3">
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              placeholder="Password"
+              autocomplete="new-password"
+              bind:value={password}
+              required
+            />
+            <label for="password">Password</label>
+          </div>
+        </div>
+      {/if}
+
+      <div class="col-lg-6 col-12">
+        <div class="form-floating mb-3 mb-lg-3">
+          <input
+            type="text"
+            class="form-control"
+            id="instance"
+            placeholder="Instance"
+            bind:value={instanceName}
+            required
+          />
+          <label for="instance">Instance Name</label>
+
+          <button
+            aria-label="Regenerate Instance Name"
+            type="button"
+            style="transform: rotate({rotationCounter}deg);"
+            class="btn btn-light rounded-circle regenerate-instance-name-btn"
+            on:click={handleInstanceNameRegeneration}
+          >
+            <i class="bi bi-arrow-repeat" />
+          </button>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-12">
+        <div class="mb-3 mb-lg-3 text-lg-start text-center">
+          <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
+            Create <i class="bi bi-arrow-right-short" />
+          </button>
+        </div>
+      </div>
+
+      {#if formError}
+        <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+      {/if}
+    </form>
+  {/if}
+</AuthStateGuard>
 
 <style>
   form {

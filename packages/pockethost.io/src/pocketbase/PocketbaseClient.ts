@@ -191,7 +191,6 @@ export const createPocketbaseClient = (url: string) => {
      * watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
-      // console.log(`onAuthChange`, { ...authStore })
       const { model } = authStore
       if (!model) return
       if (model instanceof Admin) return
