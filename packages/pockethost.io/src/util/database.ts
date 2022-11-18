@@ -1,8 +1,8 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
+import { isFirstTimeRegistration, isUserLoggedIn } from '$util/stores'
 import { InstanceStatus, LATEST_PLATFORM, USE_LATEST_VERSION } from '@pockethost/common'
-import {isUserLoggedIn, isFirstTimeRegistration} from "$util/stores";
-import { get } from 'svelte/store';
+import { get } from 'svelte/store'
 
 export type FormErrorHandler = (value: string) => void
 
@@ -26,10 +26,10 @@ export const handleFormError = (error: any, setError?: FormErrorHandler) => {
  * @param shouldRedirect {boolean} This will redirect the user to the dashboard when they are logged in
  */
 export const handleLogin = async (
-    email: string,
-    password: string,
-    setError?: FormErrorHandler,
-    shouldRedirect: boolean = true
+  email: string,
+  password: string,
+  setError?: FormErrorHandler,
+  shouldRedirect: boolean = true
 ) => {
   const { authViaEmail } = client()
   // Reset the form error if the form is submitted
@@ -53,9 +53,9 @@ export const handleLogin = async (
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
 export const handleRegistration = async (
-    email: string,
-    password: string,
-    setError?: FormErrorHandler
+  email: string,
+  password: string,
+  setError?: FormErrorHandler
 ) => {
   const { createUser } = client()
   // Reset the form error if the form is submitted
@@ -98,8 +98,8 @@ export const handleAccountConfirmation = async (token: string, setError?: FormEr
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
 export const handleUnauthenticatedPasswordReset = async (
-    email: string,
-    setError?: FormErrorHandler
+  email: string,
+  setError?: FormErrorHandler
 ) => {
   const { requestPasswordReset } = client()
   // Reset the form error if the form is submitted
@@ -121,9 +121,9 @@ export const handleUnauthenticatedPasswordReset = async (
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
 export const handleUnauthenticatedPasswordResetConfirm = async (
-    token: string,
-    password: string,
-    setError?: FormErrorHandler
+  token: string,
+  password: string,
+  setError?: FormErrorHandler
 ) => {
   const { requestPasswordResetConfirm } = client()
   // Reset the form error if the form is submitted
@@ -141,8 +141,8 @@ export const handleUnauthenticatedPasswordResetConfirm = async (
 }
 
 export const handleCreateNewInstance = async (
-    instanceName: string,
-    setError?: FormErrorHandler
+  instanceName: string,
+  setError?: FormErrorHandler
 ) => {
   const { user, createInstance } = client()
   // Get the newly created user id
@@ -169,34 +169,34 @@ export const handleCreateNewInstance = async (
 }
 
 export const handleInstanceGeneratorWidget = async (
-    email: string,
-    password: string,
-    instanceName: string,
-    setError = (value: string) => {}
+  email: string,
+  password: string,
+  instanceName: string,
+  setError = (value: string) => {}
 ) => {
   const { user, parseError } = client()
 
-  const isUserLoggedInState = get(isUserLoggedIn);
+  const isUserLoggedInState = get(isUserLoggedIn)
 
   try {
     // Don't perform this part if the user is already logged in
-    if(!isUserLoggedInState) {
+    if (!isUserLoggedInState) {
       // Handle user creation / sign in
       // First, attempt to log in using the provided credentials.
       try {
         await handleLogin(email, password, undefined, false)
-      } catch(loginError) {
+      } catch (loginError) {
         // This means login has failed. Either their credentials were incorrect, or the account did not exist, or there is a system issue.
         // Try creating the account. This will fail if the email address is already in use.
         try {
           await handleLogin(email, password, undefined, false)
-        } catch(registrationError) {
+        } catch (registrationError) {
           await handleRegistration(email, password)
 
           try {
             // This means registration succeeded, so log in with the new credentials
             await handleLogin(email, password, undefined, false)
-          } catch(secondaryLoginError) {
+          } catch (secondaryLoginError) {
             // If login fails after registration, it's safe to assume that the PocketHost system is experiencing issues
             throw new Error(`Login system is currently down. Please contact us so we can fix this.`)
           }
@@ -208,9 +208,9 @@ export const handleInstanceGeneratorWidget = async (
     // We can only get here if we are successfully logged in using the credentials provided by the user.
     // Instance creation could still fail if the name is taken
     try {
-      await handleCreateNewInstance(instanceName);
-      await goto("/dashboard");
-    } catch(instanceError: any) {
+      await handleCreateNewInstance(instanceName)
+      await goto('/dashboard')
+    } catch (instanceError: any) {
       // The instance creation could most likely fail if the name is taken. In any case, bail out to show errors.
       if (instanceError.data?.data?.subdomain?.code === 'validation_not_unique') {
         // Handle this special and common case

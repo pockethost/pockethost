@@ -3,8 +3,8 @@
   import { handleInstanceGeneratorWidget } from '$util/database'
   import { getRandomElementFromArray } from '$util/utilities'
   import { generateSlug } from 'random-word-slugs'
-  import {isUserLoggedIn} from "$util/stores";
-  import AuthStateGuard from "$components/helpers/AuthStateGuard.svelte";
+  import { isUserLoggedIn } from '$util/stores'
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
 
   // Controls the spin animation of the instance regeneration button
   let rotationCounter: number = 0
@@ -16,10 +16,11 @@
 
   let isFormButtonDisabled: boolean = true
   $: {
-    if($isUserLoggedIn) {
+    if ($isUserLoggedIn) {
       isFormButtonDisabled = instanceName.length === 0
     } else {
-      isFormButtonDisabled = email.length === 0 || password.length === 0 || instanceName.length === 0
+      isFormButtonDisabled =
+        email.length === 0 || password.length === 0 || instanceName.length === 0
     }
   }
 
@@ -74,7 +75,6 @@
     {:else}
       <h3 class="mb-3">Create Your Instance Now</h3>
     {/if}
-
 
     <form class="row align-items-center" on:submit={handleSubmit}>
       {#if !$isUserLoggedIn}

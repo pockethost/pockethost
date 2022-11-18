@@ -9,8 +9,7 @@
   import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
-  import NewUserOnboarding from "$components/NewUserOnboarding.svelte";
-
+  import NewUserOnboarding from '$components/NewUserOnboarding.svelte'
 
   let apps: InstanceRecordById = {}
 
@@ -62,7 +61,6 @@
 <svelte:head>
   <title>Dashboard - PocketHost</title>
 </svelte:head>
-
 
 <NewUserOnboarding />
 
