@@ -26,5 +26,5 @@ if (browser) {
   })
 }
 
-// Handles the intro carousel for new users
-export const isFirstTimeRegistration = writable(false)
+// Handles the intro modal for new users
+export const isFirstTimeRegistration = writable(true)
