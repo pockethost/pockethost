@@ -164,6 +164,10 @@ h6 {
   --bs-navbar-hover-color: var(--bs-gray-500);
 }
 
+.modal {
+  --bs-modal-bg: var(--bs-body-bg);
+}
+
 /* Dark Mode */
 [data-theme='dark']:root {
   --bs-black: #fff;
