@@ -124,7 +124,7 @@
     }
 
     h1 {
-      font-size: 36px;
+      font-size: 28px;
       font-weight: 300;
       margin: 0;
       color: var(--bs-body-color);
@@ -168,6 +168,16 @@
   }
 
   @media screen and (min-width: 768px) {
+    .logo {
+      img {
+        max-width: 50px;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+    }
+
     .nav-github-link {
       display: none;
     }
