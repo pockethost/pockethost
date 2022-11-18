@@ -52,7 +52,7 @@
       isFormButtonDisabled = false
 
       isProcessing = false
-    }, 10000)
+    }, 2000)
   }
 </script>
 
