@@ -1,10 +1,10 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
-  import { handleAccountConfirmation } from '$util/database'
   import AlertBar from '$components/AlertBar.svelte'
+  import { handleAccountConfirmation } from '$util/database'
 
-  let token: string = ''
+  let token: string | null = ''
   let formError: string = ''
 
   // Check for a token in the URL
@@ -22,6 +22,9 @@
   }
 
   const handleLoad = async () => {
+    if (!token) {
+      throw new Error(`Expected valid token here`)
+    }
     await handleAccountConfirmation(token, (error) => {
       formError = error
     })

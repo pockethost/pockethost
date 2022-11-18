@@ -1,7 +1,7 @@
-import { DEVELOPMENT } from '../constants'
+import { DEBUG } from '../constants'
 
 export const dbg = (...args: any[]) => {
-  if (!DEVELOPMENT) return
+  if (!DEBUG) return
   console.log(...args)
 }
 

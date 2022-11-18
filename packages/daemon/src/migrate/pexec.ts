@@ -1,6 +1,7 @@
 import { exec } from 'child_process'
+import { safeCatch } from '../util/safeAsync'
 
-export const pexec = (cmd: string) => {
+export const pexec = safeCatch(`pexec`, (cmd: string) => {
   return new Promise<void>((resolve, reject) => {
     console.log(cmd)
     exec(cmd, (err, stdout, stderr) => {
@@ -13,4 +14,4 @@ export const pexec = (cmd: string) => {
       resolve()
     })
   })
-}
+})

@@ -1,10 +1,7 @@
 <script lang="ts">
+  import CodeSample from '$components/CodeSample.svelte'
   import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
-  import Backup from './Backup.svelte'
-  import Code from './Code.svelte'
-  import Overview from './Overview.svelte'
-  import Restore from './Restore.svelte'
   import { instance } from './store'
 
   const { subdomain, status, platform, version } = $instance
@@ -12,11 +9,10 @@
   const code = `const url = '${url}'\nconst client = new PocketBase(url)`
 </script>
 
-<svelte:head>
-  <title>{subdomain} details - PocketHost</title>
-</svelte:head>
-
-<Overview />
-<Code />
-<Backup />
-<Restore />
+<div class="py-4">
+  <h2>Code Samples</h2>
+  <div>
+    JavaScript:
+    <CodeSample {code} />
+  </div>
+</div>

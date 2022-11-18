@@ -4,16 +4,20 @@ import { AsyncReturnType } from 'type-fest'
 import { DAEMON_PB_BIN_DIR, DAEMON_PB_DATA_DIR } from '../constants'
 import { dbg } from './dbg'
 import { mkInternalAddress, mkInternalUrl } from './internal'
+import { safeCatch } from './safeAsync'
 import { tryFetch } from './tryFetch'
-export type PocketbaseProcess = AsyncReturnType<typeof _spawn>
+export type PocketbaseProcess = AsyncReturnType<typeof spawnInstance>
 
-export const _spawn = async (cfg: {
+export type Config = {
   subdomain: string
+  slug: string
   port: number
   bin: string
   onUnexpectedStop?: (code: number | null) => void
-}) => {
-  const { subdomain, port, bin, onUnexpectedStop } = cfg
+}
+
+export const spawnInstance = safeCatch(`spawnInstance`, async (cfg: Config) => {
+  const { subdomain, port, bin, onUnexpectedStop, slug } = cfg
   const cmd = `${DAEMON_PB_BIN_DIR}/${bin}`
   if (!existsSync(cmd)) {
     throw new Error(
@@ -24,7 +28,7 @@ export const _spawn = async (cfg: {
   const args = [
     `serve`,
     `--dir`,
-    `${DAEMON_PB_DATA_DIR}/${subdomain}/pb_data`,
+    `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
     `--http`,
     mkInternalAddress(port),
   ]
@@ -61,4 +65,4 @@ export const _spawn = async (cfg: {
     pid: ls.pid,
     kill: () => ls.kill(),
   }
-}
+})

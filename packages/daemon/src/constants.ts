@@ -49,4 +49,10 @@ export const DAEMON_PB_DATA_DIR = (() => {
   return v
 })()
 
-export const DEVELOPMENT = envb('DEBUG', false)
+export const DEBUG = envb('DEBUG', false)
+
+export const DAEMON_PB_BACKUP_SLEEP = envi(`DAEMON_PB_BACKUP_SLEEP`, 100)
+export const DAEMON_PB_BACKUP_PAGE_COUNT = envi(
+  `DAEMON_PB_BACKUP_PAGE_COUNT`,
+  5
+)
