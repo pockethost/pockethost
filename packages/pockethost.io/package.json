@@ -32,7 +32,7 @@
     "@types/js-cookie": "^3.0.2",
     "date-fns": "^2.29.3",
     "js-cookie": "^3.0.1",
-    "pocketbase": "^0.8.0-rc1",
+    "pocketbase": "^0.8.0",
     "pretty-bytes": "^6.0.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",

@@ -3091,10 +3091,10 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.3.1:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
-pocketbase@^0.8.0-rc1:
-  version "0.8.0-rc3"
-  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.8.0-rc3.tgz#4a2787000b0ebd3a5957d3ee0f82e11b9af28d2f"
-  integrity sha512-x3t1kxCvFXPx1J5ejXXJPqtW/gg3EIOxE11CpGpOITMysN5a6bS01lqiWvtL6v5JAbvfdUDin9SNGZy4MRA6ZQ==
+pocketbase@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.8.0.tgz#f2c8b1062169c183c16fbc48cbe31e93d9e4bb20"
+  integrity sha512-LMuV46YcuG4bDZ1DNeUkvbaS5MWLZ1gpmccn6rYIg50n1bQ/BZJ9ip6SMJqo7xRGkPSL4kk1RP/zCkiG6g37Lg==
 
 postcss-value-parser@^4.2.0:
   version "4.2.0"
