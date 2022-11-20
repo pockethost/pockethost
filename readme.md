@@ -136,6 +136,9 @@ open https://pockethost.io
 
 **next**
 
+- [x] Chore: move version number to base package.json
+- [ ] Chore: refactor logging and async helpers
+- [ ] Chore: restore autocancellation
 - [x] Chore: rebuild with go 1.19.3 and include in bin name
 - [ ] Bugfix: Disallow backups if data dir doesn't exist
 
