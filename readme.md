@@ -137,8 +137,11 @@ open https://pockethost.io
 **next**
 
 - [ ] Chore: rebuild with go 1.19.3 and include in bin name
-- [ ] Chore: rc3 support
 - [ ] Bugfix: Disallow backups if data dir doesn't exist
+
+**0.5.2**
+
+- [x] Chore: rc3, rc4, 0.8.0-final support
 - [x] Chore: dedupe yarn
 - [x] Fix: Account verification needs to hard-redirect
 - [x] Chore: improved bootstrap TS support

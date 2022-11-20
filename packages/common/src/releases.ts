@@ -8,7 +8,7 @@ export const RELEASES = {
   },
   lollipop: {
     weight: 2,
-    versions: ['0.8.0-rc1', '0.8.0-rc2'],
+    versions: ['0.8.0-rc1', '0.8.0-rc2', '0.8.0-rc3', '0.8.0-rc4', '0.8.0'],
   },
 }
 
