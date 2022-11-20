@@ -136,7 +136,7 @@ open https://pockethost.io
 
 **next**
 
-- [ ] Chore: rebuild with go 1.19.3 and include in bin name
+- [x] Chore: rebuild with go 1.19.3 and include in bin name
 - [ ] Bugfix: Disallow backups if data dir doesn't exist
 
 **0.5.2**
