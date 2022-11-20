@@ -21,9 +21,9 @@ import PocketBase, {
   BaseAuthStore,
   ClientResponseError,
   Record,
-  type RecordSubscription
+  type RecordSubscription,
+  type UnsubscribeFunc
 } from 'pocketbase'
-import type { Unsubscriber } from 'svelte/store'
 import { safeCatch } from '../util/safeCatch'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
@@ -115,7 +115,7 @@ export const createPocketbaseClient = (url: string) => {
   const watchInstanceById = async (
     id: InstanceId,
     cb: (data: RecordSubscription<InstancesRecord>) => void
-  ): Promise<Unsubscriber> => {
+  ): Promise<UnsubscribeFunc> => {
     getInstanceById(id).then((record) => {
       // console.log(`Got instnace`, record)
       assertExists(record, `Expected instance ${id} here`)
@@ -127,7 +127,7 @@ export const createPocketbaseClient = (url: string) => {
   const watchBackupsByInstanceId = async (
     id: InstanceId,
     cb: (data: RecordSubscription<BackupRecord>) => void
-  ): Promise<Unsubscriber> => {
+  ): Promise<UnsubscribeFunc> => {
     const unsub = client.collection('backups').subscribe<BackupRecord>('*', (e) => {
       // console.log(e.record.instanceId, id)
       if (e.record.instanceId !== id) return
