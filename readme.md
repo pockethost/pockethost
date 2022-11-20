@@ -136,23 +136,23 @@ open https://pockethost.io
 
 **next**
 
-- [x] Chore: move version number to base package.json
-- [ ] Chore: refactor logging and async helpers
-- [ ] Chore: restore autocancellation
-- [x] Chore: rebuild with go 1.19.3 and include in bin name
-- [ ] Bugfix: Disallow backups if data dir doesn't exist
+- [x] chore: move version number to base package.json
+- [ ] chore: refactor logging and async helpers
+- [ ] chore: restore autocancellation
+- [x] chore: rebuild with go 1.19.3 and include in bin name
+- [ ] fix: Disallow backups if data dir doesn't exist
 
 **0.5.2**
 
-- [x] Chore: rc3, rc4, 0.8.0-final support
-- [x] Chore: dedupe yarn
+- [x] chore: rc3, rc4, 0.8.0-final support
+- [x] chore: dedupe yarn
 - [x] Fix: Account verification needs to hard-redirect
-- [x] Chore: improved bootstrap TS support
+- [x] chore: improved bootstrap TS support
 
 **0.5.1**
 
-- [x] Bugfix: 404 after creating instance
-- [x] SQLite3 build fix
+- [x] fix: 404 after creating instance
+- [x] fix: SQLite3 build
 
 **0.5.0**
 
