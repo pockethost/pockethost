@@ -88,9 +88,16 @@ export const createBackupService = async (
         status: BackupStatus.FinishedSuccess,
       })
     } catch (e) {
+      const message = (() => {
+        const s = `${e}`
+        if (s.match(/ENOENT/)) {
+          return `Backup failed because instance has never been used. Go to the instance admin to use the instance for the first time.`
+        }
+        return s
+      })()
       await client.updateBackup(backupRec.id, {
         status: BackupStatus.FinishedError,
-        message: `${e}`,
+        message,
       })
     }
     return true
