@@ -24,11 +24,6 @@ export const createPbClient = (url: string) => {
   )
 
   const client = new PocketBase(url)
-  client.beforeSend = (url: string, reqConfig: { [_: string]: any }) => {
-    // dbg(reqConfig)
-    delete reqConfig.signal
-    return reqConfig
-  }
 
   const adminAuthViaEmail = safeCatch(
     `adminAuthViaEmail`,

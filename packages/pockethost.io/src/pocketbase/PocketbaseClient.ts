@@ -39,10 +39,6 @@ export type PocketbaseClientApi = ReturnType<typeof createPocketbaseClient>
 
 export const createPocketbaseClient = (url: string) => {
   const client = new PocketBase(url)
-  client.beforeSend = (url, reqConfig) => {
-    delete reqConfig.signal
-    return reqConfig
-  }
 
   const { authStore } = client
 

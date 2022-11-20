@@ -1,11 +1,13 @@
 import {
   assertTruthy,
+  BackupRecord,
   BackupStatus,
   createTimerManager,
   InstanceBackupJobPayload,
   InstanceRestoreJobPayload,
   JobCommands,
 } from '@pockethost/common'
+import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
 import { dbg } from '../util/dbg'
@@ -60,6 +62,7 @@ export const createBackupService = async (
   )
 
   const tm = createTimerManager({})
+  const limiter = new Bottleneck({ maxConcurrent: 1 })
   tm.repeat(async () => {
     const backupRec = await client.getNextBackupJob()
     if (!backupRec) {
@@ -67,8 +70,10 @@ export const createBackupService = async (
       return true
     }
     const instance = await client.getInstance(backupRec.instanceId)
+    const _update = (fields: Partial<BackupRecord>) =>
+      limiter.schedule(() => client.updateBackup(backupRec.id, fields))
     try {
-      await client.updateBackup(backupRec.id, {
+      await _update({
         status: BackupStatus.Running,
       })
       let progress = backupRec.progress || {}
@@ -78,12 +83,12 @@ export const createBackupService = async (
         (_progress) => {
           progress = { ...progress, ..._progress }
           dbg(_progress)
-          return client.updateBackup(backupRec.id, {
+          return _update({
             progress,
           })
         }
       )
-      await client.updateBackup(backupRec.id, {
+      await _update({
         bytes,
         status: BackupStatus.FinishedSuccess,
       })
@@ -95,7 +100,7 @@ export const createBackupService = async (
         }
         return s
       })()
-      await client.updateBackup(backupRec.id, {
+      await _update({
         status: BackupStatus.FinishedError,
         message,
       })
