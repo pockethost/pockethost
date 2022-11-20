@@ -1,5 +1,12 @@
 import { binFor } from '@pockethost/common'
-import { DAEMON_PB_PORT_BASE, PUBLIC_PB_SUBDOMAIN } from './constants'
+import {
+  DAEMON_PB_PASSWORD,
+  DAEMON_PB_PORT_BASE,
+  DAEMON_PB_USERNAME,
+  PUBLIC_PB_DOMAIN,
+  PUBLIC_PB_PROTOCOL,
+  PUBLIC_PB_SUBDOMAIN,
+} from './constants'
 import { createPbClient } from './db/PbClient'
 import { createBackupService } from './services/BackupService'
 import { createInstanceService } from './services/InstanceService'
@@ -27,6 +34,18 @@ global.EventSource = require('eventsource')
    */
   const client = createPbClient(coreInternalUrl)
   const instanceService = await createInstanceService(client)
+  try {
+    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
+    console.log(`Logged in`)
+  } catch (e) {
+    console.error(
+      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
+    )
+    console.error(
+      `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
+    )
+  }
+
   const proxyService = await createProxyService(instanceService)
   const jobService = await createJobService(client)
   const backupService = await createBackupService(client, jobService)

@@ -11,17 +11,12 @@ import getPort from 'get-port'
 import { AsyncReturnType } from 'type-fest'
 import {
   DAEMON_PB_IDLE_TTL,
-  DAEMON_PB_PASSWORD,
   DAEMON_PB_PORT_BASE,
-  DAEMON_PB_USERNAME,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
-  PUBLIC_PB_DOMAIN,
-  PUBLIC_PB_PROTOCOL,
-  PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
 import { PocketbaseClientApi } from '../db/PbClient'
-import { dbg, error } from '../util/dbg'
+import { dbg } from '../util/dbg'
 import { mkInternalUrl } from '../util/internal'
 import { now } from '../util/now'
 import { safeCatch } from '../util/safeAsync'
@@ -38,15 +33,6 @@ type InstanceApi = {
 export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
 export const createInstanceService = async (client: PocketbaseClientApi) => {
   const instances: { [_: string]: InstanceApi } = {}
-
-  try {
-    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-  } catch (e) {
-    error(
-      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
-    )
-    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
-  }
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 
