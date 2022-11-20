@@ -11,7 +11,7 @@ import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseClientApi } from '../db/PbClient'
-import { error } from '../util/dbg'
+import { dbg, error } from '../util/logger'
 
 export type JobServiceApi = AsyncReturnType<typeof createJobService>
 
@@ -46,7 +46,7 @@ export const createJobService = async (client: PocketbaseClientApi) => {
         if (!handler) {
           throw new Error(`Job handler ${cmd} is not registered`)
         }
-        console.log(`Running job ${job.id}`, job)
+        dbg(`Running job ${job.id}`, job)
         await client.setJobStatus(job, JobStatus.Running)
         await handler(job)
         await client.setJobStatus(job, JobStatus.FinishedSuccess)

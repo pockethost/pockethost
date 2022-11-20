@@ -8,8 +8,8 @@ import {
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { dbg } from '../util/dbg'
-import { safeCatch } from '../util/safeAsync'
+import { dbg } from '../util/logger'
+import { safeCatch } from '../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>

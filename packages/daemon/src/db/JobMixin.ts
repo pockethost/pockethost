@@ -1,5 +1,5 @@
 import { JobRecord, JobStatus } from '@pockethost/common'
-import { safeCatch } from '../util/safeAsync'
+import { safeCatch } from '../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export enum RecordSubscriptionActions {

@@ -3,7 +3,8 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import { assertExists } from '@pockethost/common/src/assert'
+  import { dbg } from '$util/logger'
+  import { assertExists } from '@pockethost/common'
   import { onDestroy, onMount } from 'svelte'
   import { instance } from './store'
 
@@ -14,7 +15,7 @@
   onMount(async () => {
     const { watchInstanceById } = client()
     watchInstanceById(instanceId, (r) => {
-      console.log(`Handling instance update`, r)
+      dbg(`Handling instance update`, r)
       const { action, record } = r
       assertExists(record, `Expected instance here`)
       instance.set(record)

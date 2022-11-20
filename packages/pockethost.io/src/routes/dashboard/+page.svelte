@@ -6,6 +6,7 @@
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
+  import { error } from '$util/logger'
   import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
@@ -51,7 +52,7 @@
         })
       })
       .catch((e) => {
-        console.error(`Failed to fetch instances`)
+        error(`Failed to fetch instances`)
       })
   })
 

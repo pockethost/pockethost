@@ -7,8 +7,8 @@ import {
   PUBLIC_APP_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { dbg, info } from '../util/dbg'
 import { mkInternalUrl } from '../util/internal'
+import { dbg, error, info } from '../util/logger'
 import { InstanceServiceApi } from './InstanceService'
 
 export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
@@ -22,7 +22,7 @@ export const createProxyService = async (
     dbg(`Incoming request ${req.headers.host}/${req.url}`)
 
     const die = (msg: string) => {
-      console.error(`ERROR: ${msg}`)
+      error(msg)
       res.writeHead(403, {
         'Content-Type': `text/plain`,
       })

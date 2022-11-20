@@ -6,7 +6,8 @@ import {
 } from 'pocketbase'
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { Collection_Serialized } from '../migrate/schema'
-import { safeCatch } from '../util/safeAsync'
+import { info } from '../util/logger'
+import { safeCatch } from '../util/promiseHelper'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'
@@ -18,7 +19,7 @@ export type PocketbaseClientApi = ReturnType<typeof createPbClient>
 export type MixinContext = { client: pocketbaseEs; rawDb: Knex }
 
 export const createPbClient = (url: string) => {
-  console.log(`Initializing client: ${url}`)
+  info(`Initializing client: ${url}`)
   const rawDb = createRawPbClient(
     `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}/pb_data/data.db`
   )

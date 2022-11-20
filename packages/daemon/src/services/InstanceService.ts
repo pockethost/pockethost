@@ -16,10 +16,10 @@ import {
   PUBLIC_APP_PROTOCOL,
 } from '../constants'
 import { PocketbaseClientApi } from '../db/PbClient'
-import { dbg } from '../util/dbg'
 import { mkInternalUrl } from '../util/internal'
+import { dbg, error, warn } from '../util/logger'
 import { now } from '../util/now'
-import { safeCatch } from '../util/safeAsync'
+import { safeCatch } from '../util/promiseHelper'
 import { PocketbaseProcess, spawnInstance } from '../util/spawnInstance'
 
 type InstanceApi = {
@@ -68,7 +68,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         port: DAEMON_PB_PORT_BASE,
         exclude,
       }).catch((e) => {
-        console.error(`Failed to get port for ${subdomain}`)
+        error(`Failed to get port for ${subdomain}`)
         throw e
       })
       dbg(`Found port for ${subdomain}: ${newPort}`)
@@ -81,7 +81,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         port: newPort,
         bin: binFor(instance.platform, instance.version),
         onUnexpectedStop: (code) => {
-          console.warn(`${subdomain} exited unexpectedly with ${code}`)
+          warn(`${subdomain} exited unexpectedly with ${code}`)
           api.shutdown()
         },
       })

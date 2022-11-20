@@ -1,6 +1,7 @@
 import { createGenericSyncEvent } from '$util/events'
 import {
   assertExists,
+  createWatchHelper,
   JobCommands,
   JobStatus,
   type BackupRecord,
@@ -13,6 +14,8 @@ import {
   type InstancesRecord_New,
   type JobRecord,
   type JobRecord_In,
+  type Logger,
+  type PromiseHelper,
   type UserRecord
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
@@ -24,7 +27,6 @@ import PocketBase, {
   type RecordSubscription,
   type UnsubscribeFunc
 } from 'pocketbase'
-import { safeCatch } from '../util/safeCatch'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
 
@@ -35,9 +37,18 @@ export type AuthStoreProps = {
   isValid: boolean
 }
 
+export type PocketbaseClientConfig = {
+  url: string
+  logger: Logger
+  promiseHelper: PromiseHelper
+}
 export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
-export const createPocketbaseClient = (url: string) => {
+export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
+  const { url, logger, promiseHelper } = config
+  const { dbg, error } = logger
+  const { safeCatch } = promiseHelper
+
   const client = new PocketBase(url)
 
   const { authStore } = client
@@ -57,7 +68,7 @@ export const createPocketbaseClient = (url: string) => {
         passwordConfirm: password
       })
       .then(() => {
-        // console.log(`Sending verification email to ${email}`)
+        // dbg(`Sending verification email to ${email}`)
         return client.collection('users').requestVerification(email)
       })
   )
@@ -99,6 +110,9 @@ export const createPocketbaseClient = (url: string) => {
     client.collection('users').authRefresh()
   )
 
+  const watchHelper = createWatchHelper({ client, promiseHelper, logger })
+  const { watchById, watchAllById } = watchHelper
+
   const createInstance = safeCatch(
     `createInstance`,
     (payload: InstancesRecord_New): Promise<InstancesRecord> => {
@@ -115,41 +129,15 @@ export const createPocketbaseClient = (url: string) => {
   const watchInstanceById = async (
     id: InstanceId,
     cb: (data: RecordSubscription<InstancesRecord>) => void
-  ): Promise<UnsubscribeFunc> => {
-    getInstanceById(id).then((record) => {
-      // console.log(`Got instnace`, record)
-      assertExists(record, `Expected instance ${id} here`)
-      cb({ action: 'init', record })
-    })
-    return client.collection('instances').subscribe<InstancesRecord>(id, cb)
-  }
+  ): Promise<UnsubscribeFunc> => watchById('instances', id, cb)
 
   const watchBackupsByInstanceId = async (
     id: InstanceId,
     cb: (data: RecordSubscription<BackupRecord>) => void
-  ): Promise<UnsubscribeFunc> => {
-    const unsub = client.collection('backups').subscribe<BackupRecord>('*', (e) => {
-      // console.log(e.record.instanceId, id)
-      if (e.record.instanceId !== id) return
-      cb(e)
-    })
-    const existingBackups = await client
-      .collection('backups')
-      .getFullList<BackupRecord>(100, { filter: `instanceId = '${id}'` })
-    existingBackups.forEach((record) => cb({ action: 'init', record }))
-    return unsub
-  }
+  ): Promise<UnsubscribeFunc> => watchAllById('backups', 'instanceId', id, cb)
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
-    (
-      await client
-        .collection('instances')
-        .getFullList()
-        .catch((e) => {
-          // console.error(`getAllInstancesById failed with ${e}`)
-          throw e
-        })
-    ).reduce((c, v) => {
+    (await client.collection('instances').getFullList()).reduce((c, v) => {
       c[v.id] = v
       return c
     }, {} as Record)
@@ -169,7 +157,7 @@ export const createPocketbaseClient = (url: string) => {
 
   const getAuthStoreProps = (): AuthStoreProps => {
     const { token, model, isValid } = client.authStore as AuthStoreProps
-    // console.log(`current authStore`, { token, model, isValid })
+    // dbg(`current authStore`, { token, model, isValid })
     if (model instanceof Admin) throw new Error(`Admin models not supported`)
     if (model && !model.email) throw new Error(`Expected model to be a user here`)
     return {
@@ -202,7 +190,7 @@ export const createPocketbaseClient = (url: string) => {
      */
     refreshAuthToken()
       .catch((e) => {
-        // console.error(`Clearing auth store: ${e}`)
+        dbg(`Clearing auth store: ${e}`)
         client.authStore.clear()
       })
       .finally(() => {
@@ -218,7 +206,7 @@ export const createPocketbaseClient = (url: string) => {
      * watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
-      // console.log(`onAuthChange`, { ...authStore })
+      // dbg(`onAuthChange`, { ...authStore })
       const { model } = authStore
       if (!model) return
       if (model instanceof Admin) return
@@ -230,9 +218,9 @@ export const createPocketbaseClient = (url: string) => {
       setTimeout(_check, 1000)
 
       // FIXME - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
-      // console.log(`watching _users`)
+      // dbg(`watching _users`)
       // unsub = subscribe<User>(`users/${model.id}`, (user) => {
-      //   console.log(`realtime _users change`, { ...user })
+      //   dbg(`realtime _users change`, { ...user })
       //   fireAuthChange({ ...authStore, model: user })
       // })
     })

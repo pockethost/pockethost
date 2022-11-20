@@ -10,7 +10,7 @@ import {
 import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
-import { dbg } from '../util/dbg'
+import { dbg } from '../util/logger'
 import { JobServiceApi } from './JobService'
 
 export const createBackupService = async (
@@ -66,7 +66,7 @@ export const createBackupService = async (
   tm.repeat(async () => {
     const backupRec = await client.getNextBackupJob()
     if (!backupRec) {
-      dbg(`No backups requested`)
+      // dbg(`No backups requested`)
       return true
     }
     const instance = await client.getInstance(backupRec.instanceId)

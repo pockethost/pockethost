@@ -23,7 +23,7 @@
   onMount(async () => {
     const { watchBackupsByInstanceId } = client()
     watchBackupsByInstanceId(instance.id, (r) => {
-      // console.log(`Handling backup update`, r)
+      // dbg(`Handling backup update`, r)
       const { action, record } = r
       const _backups = reduce(
         $backups,
@@ -43,7 +43,7 @@
           return Date.parse(e.created)
         }).reverse()
       )
-      // console.log(record.id)
+      // dbg(record.id)
     }).then(cm.add)
   })
   onDestroy(cm.cleanupAll)

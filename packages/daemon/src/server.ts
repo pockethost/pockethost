@@ -13,6 +13,7 @@ import { createInstanceService } from './services/InstanceService'
 import { createJobService } from './services/JobService'
 import { createProxyService } from './services/ProxyService'
 import { mkInternalUrl } from './util/internal'
+import { dbg, error, info } from './util/logger'
 import { spawnInstance } from './util/spawnInstance'
 // npm install eventsource --save
 global.EventSource = require('eventsource')
@@ -36,14 +37,12 @@ global.EventSource = require('eventsource')
   const instanceService = await createInstanceService(client)
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-    console.log(`Logged in`)
+    dbg(`Logged in`)
   } catch (e) {
-    console.error(
+    error(
       `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
     )
-    console.error(
-      `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
-    )
+    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
   }
 
   const proxyService = await createProxyService(instanceService)
@@ -51,7 +50,7 @@ global.EventSource = require('eventsource')
   const backupService = await createBackupService(client, jobService)
 
   process.once('SIGUSR2', async () => {
-    console.log(`SIGUSR2 detected`)
+    info(`SIGUSR2 detected`)
     proxyService.shutdown()
     instanceService.shutdown()
     jobService.shutdown()

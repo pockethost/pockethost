@@ -1,12 +1,13 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
 import { InstanceStatus, LATEST_PLATFORM, USE_LATEST_VERSION } from '@pockethost/common'
+import { dbg, error, warn } from './logger'
 
 export type FormErrorHandler = (value: string) => void
 
 export const handleFormError = (error: any, setError?: FormErrorHandler) => {
   const { parseError } = client()
-  console.error(`Form error: ${error}`, { error })
+  error(`Form error: ${error}`, { error })
 
   if (setError) {
     const message = parseError(error)[0]
@@ -177,10 +178,10 @@ export const handleInstanceGeneratorWidget = async (
     // populated the form with their existing login. Try using it.
     await handleLogin(email, password, undefined, false)
       .then(() => {
-        console.log(`Account ${email} already exists. Logged in.`)
+        dbg(`Account ${email} already exists. Logged in.`)
       })
       .catch((e) => {
-        console.warn(`Login failed, attempting account creation.`)
+        warn(`Login failed, attempting account creation.`)
         // This means login has failed.
         // Either their credentials were incorrect, or the account
         // did not exist, or there is a system issue.
@@ -188,15 +189,15 @@ export const handleInstanceGeneratorWidget = async (
         // is already in use.
         return handleRegistration(email, password)
           .then(() => {
-            console.log(`Account created, proceeding to log in.`)
+            dbg(`Account created, proceeding to log in.`)
             // This means registration succeeded. That's good.
             // Log in using the new credentials
             return handleLogin(email, password, undefined, false)
               .then(() => {
-                console.log(`Logged in after account creation`)
+                dbg(`Logged in after account creation`)
               })
               .catch((e) => {
-                console.error(`Panic, auth system down`)
+                error(`Panic, auth system down`)
                 // This should never happen.
                 // If registration succeeds, login should always succeed.
                 // If a login fails at this point, the system is broken.
@@ -206,7 +207,7 @@ export const handleInstanceGeneratorWidget = async (
               })
           })
           .catch((e) => {
-            console.warn(`User input error`)
+            warn(`User input error`)
             // This is just for clarity
             // If registration fails at this point, it means both
             // login and account creation failed.
@@ -218,16 +219,16 @@ export const handleInstanceGeneratorWidget = async (
           })
       })
 
-    console.log(`User before instance creation is `, user())
+    dbg(`User before instance creation is `, user())
     // We can only get here if we are successfully logged in using the credentials
     // provided by the user.
     // Instance creation could still fail if the name is taken
     await handleCreateNewInstance(instanceName)
       .then(() => {
-        console.log(`Creation of ${instanceName} succeeded`)
+        dbg(`Creation of ${instanceName} succeeded`)
       })
       .catch((e) => {
-        console.warn(`Creation of ${instanceName} failed`)
+        warn(`Creation of ${instanceName} failed`)
         // The instance creation could most likely fail if the name is taken.
         // In any case, bail out to show errors.
         if (e.data?.data?.subdomain?.code === 'validation_not_unique') {
@@ -240,7 +241,7 @@ export const handleInstanceGeneratorWidget = async (
         throw new Error(`Instance creation: ${messages[0]}`)
       })
   } catch (error: any) {
-    console.error(`Caught widget error`, { error })
+    error(`Caught widget error`, { error })
     handleFormError(error, setError)
   }
 }

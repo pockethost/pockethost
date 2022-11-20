@@ -2,9 +2,9 @@ import { spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { AsyncReturnType } from 'type-fest'
 import { DAEMON_PB_BIN_DIR, DAEMON_PB_DATA_DIR } from '../constants'
-import { dbg } from './dbg'
 import { mkInternalAddress, mkInternalUrl } from './internal'
-import { safeCatch } from './safeAsync'
+import { dbg, error } from './logger'
+import { safeCatch } from './promiseHelper'
 import { tryFetch } from './tryFetch'
 export type PocketbaseProcess = AsyncReturnType<typeof spawnInstance>
 
@@ -40,7 +40,7 @@ export const spawnInstance = safeCatch(`spawnInstance`, async (cfg: Config) => {
   })
 
   ls.stderr.on('data', (data) => {
-    console.error(`${subdomain} stderr: ${data}`)
+    error(`${subdomain} stderr: ${data}`)
   })
 
   ls.on('close', (code) => {

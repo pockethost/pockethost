@@ -6,9 +6,9 @@ import { Database } from 'sqlite3'
 import tmp from 'tmp'
 import { DAEMON_PB_DATA_DIR } from '../constants'
 import { pexec } from '../migrate/pexec'
-import { dbg, error } from './dbg'
 import { ensureDirExists } from './ensureDirExists'
-import { safeCatch } from './safeAsync'
+import { dbg, error } from './logger'
+import { safeCatch } from './promiseHelper'
 
 export type BackupProgress = {
   current: number
@@ -75,7 +75,7 @@ export const backupInstance = safeCatch(
       unsafeCleanup: true,
     })
     const backupTmpTargetRoot = resolve(tmpObj.name)
-    console.log({
+    dbg({
       instanceId,
       dataRoot,
       backupTgzRoot,
@@ -109,7 +109,7 @@ export const backupInstance = safeCatch(
       error(`${e}`)
       throw e
     } finally {
-      console.log(`Removing again ${backupTmpTargetRoot}`)
+      dbg(`Removing again ${backupTmpTargetRoot}`)
       tmpObj.removeCallback()
       chdir(_cwd)
     }

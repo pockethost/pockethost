@@ -7,7 +7,7 @@ import {
   InstanceId,
   InstancesRecord,
 } from '@pockethost/common'
-import { safeCatch } from '../util/safeAsync'
+import { safeCatch } from '../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export type BackupApi = ReturnType<typeof createBackupMixin>

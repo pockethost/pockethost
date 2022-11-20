@@ -1,13 +1,15 @@
 import { exec } from 'child_process'
-import { safeCatch } from '../util/safeAsync'
+import { dbg, error } from '../util/logger'
+import { safeCatch } from '../util/promiseHelper'
 
 export const pexec = safeCatch(`pexec`, (cmd: string) => {
   return new Promise<void>((resolve, reject) => {
-    console.log(cmd)
+    dbg(cmd)
     exec(cmd, (err, stdout, stderr) => {
-      console.log(stdout)
-      console.error(stderr)
+      dbg(stdout)
       if (err) {
+        error(`${err}`)
+        error(stderr)
         reject(err)
         return
       }
