@@ -12,10 +12,9 @@ import { mkInternalUrl } from '../util/internal'
 import { safeCatch } from '../util/safeAsync'
 import { spawnInstance } from '../util/spawnInstance'
 import { tryFetch } from '../util/tryFetch'
-import { schema } from './schema'
 
-export const applyDbMigrations = safeCatch(
-  `applyDbMigrations`,
+export const withInstance = safeCatch(
+  `withInstance`,
   async (cb: (client: PocketbaseClientApi) => Promise<void>) => {
     // Add `platform` and `bin` required columns (migrate db json)
     try {
@@ -30,7 +29,6 @@ export const applyDbMigrations = safeCatch(
         const client = createPbClient(coreInternalUrl)
         await tryFetch(coreInternalUrl)
         await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-        await client.applySchema(schema)
         await cb(client)
       } catch (e) {
         console.error(
