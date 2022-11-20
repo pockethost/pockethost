@@ -35,7 +35,7 @@ export type AuthStoreProps = {
   isValid: boolean
 }
 
-export type PocketbaseClientApi = ReturnType<typeof createPocketbaseClient>
+export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
 export const createPocketbaseClient = (url: string) => {
   const client = new PocketBase(url)
