@@ -136,6 +136,7 @@ open https://pockethost.io
 
 **next**
 
+- [x] fix: incorrect instance information displaying on dashboard details
 - [x] fix: more helpful error message when backup fails for nonexistent instance
 - [x] chore: move version number to base package.json
 - [ ] chore: refactor logging and async helpers

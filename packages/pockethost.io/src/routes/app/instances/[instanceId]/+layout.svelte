@@ -10,6 +10,7 @@
   const { instanceId } = $page.params
 
   const cm = createCleanupManagerSync()
+  instance.set(undefined)
   onMount(async () => {
     const { watchInstanceById } = client()
     watchInstanceById(instanceId, (r) => {
@@ -18,6 +19,9 @@
       assertExists(record, `Expected instance here`)
       instance.set(record)
     }).then(cm.add)
+  })
+  cm.add(() => {
+    instance.set(undefined)
   })
   onDestroy(cm.cleanupAll)
 </script>

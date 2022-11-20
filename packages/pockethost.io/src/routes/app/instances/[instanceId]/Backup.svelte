@@ -6,6 +6,7 @@
     BackupStatus,
     type BackupRecord,
     type BackupRecordId,
+    type InstancesRecord,
     type RecordId
   } from '@pockethost/common'
   import { reduce, sortBy } from '@s-libs/micro-dash'
@@ -13,14 +14,15 @@
   import prettyBytes from 'pretty-bytes'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
-  import { instance } from './store'
+
+  export let instance: InstancesRecord
 
   const cm = createCleanupManagerSync()
   const backups = writable<BackupRecord[]>([])
   let isBackingUp = false
   onMount(async () => {
     const { watchBackupsByInstanceId } = client()
-    watchBackupsByInstanceId($instance.id, (r) => {
+    watchBackupsByInstanceId(instance.id, (r) => {
       // console.log(`Handling backup update`, r)
       const { action, record } = r
       const _backups = reduce(
@@ -48,7 +50,7 @@
 
   const startBackup = () => {
     const { createInstanceBackupJob } = client()
-    createInstanceBackupJob($instance.id)
+    createInstanceBackupJob(instance.id)
   }
 
   const restoreBackup = (backupId: BackupRecordId) => {
