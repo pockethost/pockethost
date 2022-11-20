@@ -3,9 +3,11 @@ import { forEach } from '@s-libs/micro-dash'
 export type UnixTimestampMs = number
 export type TimerCanceler = () => void
 
-export type Config = {}
+export type TimeManagerConfig = {}
 
-export const createTimerManager = (config: Config) => {
+export type TimeManager = ReturnType<typeof createTimerManager>
+
+export const createTimerManager = (config: TimeManagerConfig) => {
   let i = 0
   const cleanups: any = {}
 
