@@ -49,7 +49,7 @@ Here's all the Linux/devops stuff that PocketHost does for you:
 - Volume mounts
 - Could computing or VPS deployment
 - CDN and static asset hosting
-- Aamzon AWS
+- Amazon AWS
 - Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on
 
 This monorepo contains the entire open source stack that powers pockethost.io. You can use it to run your own private or public multitenant platform.
@@ -75,7 +75,7 @@ That's it. You're in business. Your local Svelte build will talk to the `pocketh
 
 ## All our base
 
-The entire pockethost.io stack is dockerized to make it as easy as possible to mimic a production environment.
+The entire pockethost.io stack is Dockerized to make it as easy as possible to mimic a production environment.
 
 **Prerequisites**
 
@@ -139,8 +139,8 @@ open https://pockethost.io
 - [x] fix: incorrect instance information displaying on dashboard details
 - [x] fix: more helpful error message when backup fails for nonexistent instance
 - [x] chore: move version number to base package.json
-- [x] refctor: logging and async helpers
-- [x] chore: restore autocancellation
+- [x] refactor: logging and async helpers
+- [x] chore: restore auto-cancellation
 - [x] chore: rebuild with go 1.19.3 and include in bin name
 - [ ] fix: Disallow backups if data dir doesn't exist
 
