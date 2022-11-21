@@ -134,7 +134,7 @@ open https://pockethost.io
 
 # Release History
 
-**next**
+**0.5.3**
 
 - [x] fix: incorrect instance information displaying on dashboard details in some cases
 - [x] fix: more helpful error message when backup fails for nonexistent instance
