@@ -1,6 +1,8 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
-import { dbg, error, warn } from './logger'
+import { isFirstTimeRegistration, isUserLoggedIn } from '$util/stores'
+import { get } from 'svelte/store'
+import { error } from './logger'
 
 export type FormErrorHandler = (value: string) => void
 
@@ -48,7 +50,7 @@ export const handleLogin = async (
 }
 
 /**
- * This will register a new user into Pocketbase, and includes an optional error handler
+ * This will register a new user into Pocketbase, and includes an optional error handler. It also sets a global state `isFirstTimeRegistration` to show an intro screen for new users on the dashboard
  * @param email {string} The email of the user
  * @param password {string} The password of the user
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
@@ -64,6 +66,9 @@ export const handleRegistration = async (
 
   try {
     await createUser(email, password)
+
+    // Update new user state
+    isFirstTimeRegistration.set(true)
   } catch (error: any) {
     handleFormError(error, setError)
   }
@@ -169,75 +174,51 @@ export const handleInstanceGeneratorWidget = async (
   setError = (value: string) => {}
 ) => {
   const { user, parseError } = client()
-  try {
-    // Handle user creation/signin
-    // First, attempt to log in using the provided credentials.
-    // If they have a password manager or anything like that, it will have
-    // populated the form with their existing login. Try using it.
-    await handleLogin(email, password, undefined, false)
-      .then(() => {
-        dbg(`Account ${email} already exists. Logged in.`)
-      })
-      .catch((e) => {
-        warn(`Login failed, attempting account creation.`)
-        // This means login has failed.
-        // Either their credentials were incorrect, or the account
-        // did not exist, or there is a system issue.
-        // Try creating the account. This will fail if the email address
-        // is already in use.
-        return handleRegistration(email, password)
-          .then(() => {
-            dbg(`Account created, proceeding to log in.`)
-            // This means registration succeeded. That's good.
-            // Log in using the new credentials
-            return handleLogin(email, password, undefined, false)
-              .then(() => {
-                dbg(`Logged in after account creation`)
-              })
-              .catch((e) => {
-                error(`Panic, auth system down`)
-                // This should never happen.
-                // If registration succeeds, login should always succeed.
-                // If a login fails at this point, the system is broken.
-                throw new Error(
-                  `Login system is currently down. Please contact us so we can fix this.`
-                )
-              })
-          })
-          .catch((e) => {
-            warn(`User input error`)
-            // This is just for clarity
-            // If registration fails at this point, it means both
-            // login and account creation failed.
-            // This means there is something wrong with the user input.
-            // Bail out to show errors
-            // Transform the errors so they mention a problem with account creation.
-            const messages = parseError(e)
-            throw new Error(`Account creation: ${messages[0]}`)
-          })
-      })
 
-    dbg(`User before instance creation is `, user())
-    // We can only get here if we are successfully logged in using the credentials
-    // provided by the user.
-    // Instance creation could still fail if the name is taken
-    await handleCreateNewInstance(instanceName)
-      .then(() => {
-        dbg(`Creation of ${instanceName} succeeded`)
-      })
-      .catch((e) => {
-        warn(`Creation of ${instanceName} failed`)
-        // The instance creation could most likely fail if the name is taken.
-        // In any case, bail out to show errors.
-        if (e.data?.data?.subdomain?.code === 'validation_not_unique') {
-          // Handle this special and common case
-          throw new Error(`Instance name already taken.`)
+  const isUserLoggedInState = get(isUserLoggedIn)
+
+  try {
+    // Don't perform this part if the user is already logged in
+    if (!isUserLoggedInState) {
+      // Handle user creation / sign in
+      // First, attempt to log in using the provided credentials.
+      try {
+        await handleLogin(email, password, undefined, false)
+      } catch (loginError) {
+        // This means login has failed. Either their credentials were incorrect, or the account did not exist, or there is a system issue.
+        // Try creating the account. This will fail if the email address is already in use.
+        try {
+          await handleLogin(email, password, undefined, false)
+        } catch (registrationError) {
+          await handleRegistration(email, password)
+
+          try {
+            // This means registration succeeded, so log in with the new credentials
+            await handleLogin(email, password, undefined, false)
+          } catch (secondaryLoginError) {
+            // If login fails after registration, it's safe to assume that the PocketHost system is experiencing issues
+            throw new Error(`Login system is currently down. Please contact us so we can fix this.`)
+          }
         }
-        // The errors remaining errors are kind of generic, so transofrm them into something about
-        // the instance name.
-        const messages = parseError(e)
-        throw new Error(`Instance creation: ${messages[0]}`)
-      })
+      }
+    }
+
+    console.log(`User before instance creation is `, user())
+    // We can only get here if we are successfully logged in using the credentials provided by the user.
+    // Instance creation could still fail if the name is taken
+    try {
+      await handleCreateNewInstance(instanceName)
+      await goto('/dashboard')
+    } catch (instanceError: any) {
+      // The instance creation could most likely fail if the name is taken. In any case, bail out to show errors.
+      if (instanceError.data?.data?.subdomain?.code === 'validation_not_unique') {
+        // Handle this special and common case
+        throw new Error(`Instance name already taken.`)
+      }
+      // The errors remaining errors are kind of generic, so transform them into something about the instance name.
+      const messages = parseError(instanceError)
+      throw new Error(`Instance creation: ${messages[0]}`)
+    }
   } catch (error: any) {
     error(`Caught widget error`, { error })
     handleFormError(error, setError)

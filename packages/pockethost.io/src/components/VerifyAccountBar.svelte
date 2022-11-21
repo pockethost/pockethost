@@ -2,7 +2,8 @@
   import AlertBar from '$components/AlertBar.svelte'
   import { AlertTypes } from '$components/AlertBar.types'
   import { handleResendVerificationEmail } from '$util/database'
-  import { isUserLoggedIn, isUserVerified } from '$util/stores'
+  import { isUserLoggedIn, isUserVerified, isFirstTimeRegistration } from '$util/stores'
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
 
   let defaultAlertBarType: AlertTypes = AlertTypes.Warning
 
@@ -29,32 +30,34 @@
   }
 </script>
 
-{#if $isUserLoggedIn && !$isUserVerified}
-  <div class="container py-3">
-    <AlertBar alertType={defaultAlertBarType}>
-      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
-        <i class="bi bi-envelope-exclamation" />
+<AuthStateGuard>
+  {#if $isUserLoggedIn && !$isUserVerified && !$isFirstTimeRegistration}
+    <div class="container py-3">
+      <AlertBar alertType={defaultAlertBarType}>
+        <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
+          <i class="bi bi-envelope-exclamation" />
 
-        <div>Please verify your account by clicking the link in your email</div>
+          <div>Please verify your account by clicking the link in your email</div>
 
-        {#if isButtonProcessing}
-          <div class="success-icon">
-            <i class="bi bi-check-square" />
-            Sent!
-          </div>
-        {:else}
-          <button type="button" class="btn btn-outline-secondary" on:click={handleClick}
-            >Resend Email</button
-          >
+          {#if isButtonProcessing}
+            <div class="success-icon">
+              <i class="bi bi-check-square" />
+              Sent!
+            </div>
+          {:else}
+            <button type="button" class="btn btn-outline-secondary" on:click={handleClick}
+              >Resend Email</button
+            >
+          {/if}
+        </div>
+
+        {#if formError}
+          <div class="border-top text-center mt-2 pt-2">{formError}</div>
         {/if}
-      </div>
-
-      {#if formError}
-        <div class="border-top text-center mt-2 pt-2">{formError}</div>
-      {/if}
-    </AlertBar>
-  </div>
-{/if}
+      </AlertBar>
+    </div>
+  {/if}
+</AuthStateGuard>
 
 <style>
   .success-icon {
