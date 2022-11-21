@@ -119,8 +119,13 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
           api.shutdown()
         },
       })
+
       const { pid } = childProcess
       assertTruthy(pid, `Expected PID here but got ${pid}`)
+
+      if (!instance.isBackupAllowed) {
+        await client.updateInstance(instance.id, { isBackupAllowed: true })
+      }
 
       const invocation = await client.createInvocation(instance, pid)
       const tm = createTimerManager({})

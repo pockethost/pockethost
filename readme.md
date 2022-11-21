@@ -136,13 +136,13 @@ open https://pockethost.io
 
 **next**
 
-- [x] fix: incorrect instance information displaying on dashboard details
+- [x] fix: incorrect instance information displaying on dashboard details in some cases
 - [x] fix: more helpful error message when backup fails for nonexistent instance
 - [x] chore: move version number to base package.json
 - [x] refactor: logging and async helpers
 - [x] chore: restore auto-cancellation
 - [x] chore: rebuild with go 1.19.3 and include in bin name
-- [ ] fix: Disallow backups if data dir doesn't exist
+- [x] fix: Disallow backups if data dir doesn't exist
 
 **0.5.2**
 
