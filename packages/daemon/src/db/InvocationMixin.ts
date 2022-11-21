@@ -1,8 +1,4 @@
-import {
-  InstancesRecord,
-  InvocationRecord,
-  pocketNow,
-} from '@pockethost/common'
+import { InstanceFields, InvocationFields, pocketNow } from '@pockethost/common'
 import { dbg } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
 import { InstanceApi } from './InstanceMIxin'
@@ -16,8 +12,8 @@ export const createInvocationMixin = (
 
   const createInvocation = safeCatch(
     `createInvocation`,
-    async (instance: InstancesRecord, pid: number) => {
-      const init: Partial<InvocationRecord> = {
+    async (instance: InstanceFields, pid: number) => {
+      const init: Partial<InvocationFields> = {
         startedAt: pocketNow(),
         pid,
         instanceId: instance.id,
@@ -25,22 +21,22 @@ export const createInvocationMixin = (
       }
       const _inv = await client
         .collection('invocations')
-        .create<InvocationRecord>(init)
+        .create<InvocationFields>(init)
       return _inv
     }
   )
 
   const pingInvocation = safeCatch(
     `pingInvocation`,
-    async (invocation: InvocationRecord) => {
+    async (invocation: InvocationFields) => {
       const totalSeconds =
         (+new Date() - Date.parse(invocation.startedAt)) / 1000
-      const toUpdate: Partial<InvocationRecord> = {
+      const toUpdate: Partial<InvocationFields> = {
         totalSeconds,
       }
       const _inv = await client
         .collection('invocations')
-        .update<InvocationRecord>(invocation.id, toUpdate)
+        .update<InvocationFields>(invocation.id, toUpdate)
       await instanceApi.updateInstanceSeconds(invocation.instanceId)
       return _inv
     }
@@ -48,18 +44,18 @@ export const createInvocationMixin = (
 
   const finalizeInvocation = safeCatch(
     `finalizeInvocation`,
-    async (invocation: InvocationRecord) => {
+    async (invocation: InvocationFields) => {
       dbg('finalizing')
       const totalSeconds =
         (+new Date() - Date.parse(invocation.startedAt)) / 1000
-      const toUpdate: Partial<InvocationRecord> = {
+      const toUpdate: Partial<InvocationFields> = {
         endedAt: pocketNow(),
         totalSeconds,
       }
       dbg({ toUpdate })
       const _inv = await client
         .collection('invocations')
-        .update<InvocationRecord>(invocation.id, toUpdate)
+        .update<InvocationFields>(invocation.id, toUpdate)
       await instanceApi.updateInstanceSeconds(invocation.instanceId)
       return _inv
     }

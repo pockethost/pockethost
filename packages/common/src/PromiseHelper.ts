@@ -35,19 +35,17 @@ export const createPromiseHelper = (config: PromiseHelperConfig) => {
           return res
         })
         .catch((e: any) => {
+          error(pfx, JSON.stringify(e, null, 2))
           if (e instanceof ClientResponseError) {
-            error(pfx, `PocketBase API error ${e}`)
-            error(pfx, JSON.stringify(e.data, null, 2))
             if (e.status === 400) {
               error(
                 pfx,
-                `It looks like you don't have permission to make this request.`
+                `PocketBase API error: It looks like you don't have permission to make this request.`
               )
+            } else {
+              error(pfx, `Unknown PocketBase API error`)
             }
-          } else {
-            error(pfx, `failed: ${e}`)
           }
-          error(pfx, e)
           throw e
         })
     }

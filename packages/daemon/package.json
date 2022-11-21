@@ -13,6 +13,7 @@
     "@s-libs/micro-dash": "^14.1.0",
     "@types/http-proxy": "^1.17.9",
     "@types/node": "^18.11.9",
+    "ajv": "^8.11.2",
     "boolean": "^3.2.0",
     "bottleneck": "^2.19.5",
     "date-fns": "^2.29.3",

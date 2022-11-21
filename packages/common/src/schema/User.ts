@@ -1,7 +1,6 @@
-import { RecordId } from './types'
+import { BaseFields } from './types'
 
-export type UserRecord = {
-  id: RecordId
+export type UserFields = BaseFields & {
   email: string
   verified: boolean
 }

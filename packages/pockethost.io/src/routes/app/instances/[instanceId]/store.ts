@@ -1,4 +1,4 @@
-import type { InstancesRecord } from '@pockethost/common'
+import type { InstanceFields } from '@pockethost/common'
 import { writable } from 'svelte/store'
 
-export const instance = writable<InstancesRecord | undefined>()
+export const instance = writable<InstanceFields | undefined>()

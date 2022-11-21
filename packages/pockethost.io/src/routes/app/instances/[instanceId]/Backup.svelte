@@ -4,9 +4,8 @@
   import { createCleanupManagerSync } from '$util/CleanupManager'
   import {
     BackupStatus,
-    type BackupRecord,
-    type BackupRecordId,
-    type InstancesRecord,
+    type BackupFields,
+    type InstanceFields,
     type RecordId
   } from '@pockethost/common'
   import { reduce, sortBy } from '@s-libs/micro-dash'
@@ -15,10 +14,10 @@
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
 
-  export let instance: InstancesRecord
+  export let instance: InstanceFields
 
   const cm = createCleanupManagerSync()
-  const backups = writable<BackupRecord[]>([])
+  const backups = writable<BackupFields[]>([])
   let isBackingUp = false
   onMount(async () => {
     const { watchBackupsByInstanceId } = client()
@@ -31,7 +30,7 @@
           c[b.id] = b
           return c
         },
-        {} as { [_: RecordId]: BackupRecord }
+        {} as { [_: RecordId]: BackupFields }
       )
       _backups[record.id] = record
 
@@ -50,11 +49,9 @@
 
   const startBackup = () => {
     const { createInstanceBackupJob } = client()
-    createInstanceBackupJob(instance.id)
-  }
-
-  const restoreBackup = (backupId: BackupRecordId) => {
-    client().createInstanceRestoreJob(backupId)
+    createInstanceBackupJob({
+      instanceId: instance.id
+    })
   }
 </script>
 

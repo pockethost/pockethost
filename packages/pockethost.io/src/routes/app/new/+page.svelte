@@ -11,18 +11,23 @@
   let rotationCounter: number = 0
 
   let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled = instanceName.length === 0
+  $: isFormButtonDisabled = instanceName.length === 0 || isSubmitting
 
   const handleInstanceNameRegeneration = () => {
     rotationCounter = rotationCounter + 180
     instanceName = generateSlug(2)
   }
 
+  let isSubmitting = false
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
 
+    isSubmitting = true
+    formError = ''
     await handleCreateNewInstance(instanceName, (error) => {
       formError = error
+    }).finally(() => {
+      isSubmitting = false
     })
   }
 </script>
@@ -66,7 +71,8 @@
     {/if}
 
     <div class="text-center">
-      <a href="/dashboard" class="btn btn-light">Cancel</a>
+      <button href="/dashboard" class="btn btn-light" disabled={isFormButtonDisabled}>Cancel</button
+      >
 
       <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
         Create <i class="bi bi-arrow-right-short" />

@@ -1,4 +1,4 @@
-import { InstanceId, IsoDate, RecordId } from './types'
+import { BaseFields, InstanceId, RecordId } from './types'
 
 export enum BackupStatus {
   Queued = 'queued',
@@ -8,14 +8,12 @@ export enum BackupStatus {
 }
 
 export type BackupRecordId = RecordId
-export type BackupRecord = {
-  id: BackupRecordId
+
+export type BackupFields = BaseFields & {
   instanceId: InstanceId
   status: BackupStatus
   message: string
   bytes: number
-  created: IsoDate
-  updated: IsoDate
   platform: string
   version: string
   progress: {
@@ -23,14 +21,14 @@ export type BackupRecord = {
   }
 }
 
-export type BackupRecord_Create = Pick<
-  BackupRecord,
+export type BackupFields_Create = Pick<
+  BackupFields,
   'instanceId' | 'status' | 'platform' | 'version'
 >
 
-export type BackupRecord_Update = Partial<
+export type BackupFields_Update = Partial<
   Pick<
-    BackupRecord,
+    BackupFields,
     | 'instanceId'
     | 'status'
     | 'bytes'

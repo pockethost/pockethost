@@ -1,22 +1,21 @@
 import { createGenericSyncEvent } from '$util/events'
 import {
   assertExists,
+  createRpcHelper,
   createWatchHelper,
-  JobCommands,
-  JobStatus,
-  type BackupRecord,
-  type BackupRecordId,
-  type InstanceBackupJobPayload,
-  type InstanceBackupJobRecord,
+  RpcCommands,
+  type BackupFields,
+  type BackupInstancePayload,
+  type BackupInstanceResult,
+  type CreateInstancePayload,
+  type CreateInstanceResult,
+  type InstanceFields,
   type InstanceId,
-  type InstanceRestoreJobPayload,
-  type InstancesRecord,
-  type InstancesRecord_New,
-  type JobRecord,
-  type JobRecord_In,
   type Logger,
   type PromiseHelper,
-  type UserRecord
+  type RestoreInstancePayload,
+  type RestoreInstanceResult,
+  type UserFields
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, {
@@ -33,7 +32,7 @@ export type AuthChangeHandler = (user: BaseAuthStore) => void
 export type AuthToken = string
 export type AuthStoreProps = {
   token: AuthToken
-  model: UserRecord | null
+  model: UserFields | null
   isValid: boolean
 }
 
@@ -112,28 +111,34 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const watchHelper = createWatchHelper({ client, promiseHelper, logger })
   const { watchById, watchAllById } = watchHelper
+  const rpcMixin = createRpcHelper({ client, watchHelper, promiseHelper, logger })
+  const { mkRpc } = rpcMixin
 
-  const createInstance = safeCatch(
-    `createInstance`,
-    (payload: InstancesRecord_New): Promise<InstancesRecord> => {
-      return client.collection('instances').create<InstancesRecord>(payload)
-    }
+  const createInstance = mkRpc<CreateInstancePayload, CreateInstanceResult>(
+    RpcCommands.CreateInstance
+  )
+  const createInstanceBackupJob = mkRpc<BackupInstancePayload, BackupInstanceResult>(
+    RpcCommands.BackupInstance
+  )
+
+  const createInstanceRestoreJob = mkRpc<RestoreInstancePayload, RestoreInstanceResult>(
+    RpcCommands.RestoreInstance
   )
 
   const getInstanceById = safeCatch(
     `getInstanceById`,
-    (id: InstanceId): Promise<InstancesRecord | undefined> =>
-      client.collection('instances').getOne<InstancesRecord>(id)
+    (id: InstanceId): Promise<InstanceFields | undefined> =>
+      client.collection('instances').getOne<InstanceFields>(id)
   )
 
   const watchInstanceById = async (
     id: InstanceId,
-    cb: (data: RecordSubscription<InstancesRecord>) => void
+    cb: (data: RecordSubscription<InstanceFields>) => void
   ): Promise<UnsubscribeFunc> => watchById('instances', id, cb)
 
   const watchBackupsByInstanceId = async (
     id: InstanceId,
-    cb: (data: RecordSubscription<BackupRecord>) => void
+    cb: (data: RecordSubscription<BackupFields>) => void
   ): Promise<UnsubscribeFunc> => watchAllById('backups', 'instanceId', id, cb)
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
@@ -225,44 +230,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
       // })
     })
   }
-
-  const createInstanceBackupJob = safeCatch(
-    `createInstanceBackupJob`,
-    async (instanceId: InstanceId) => {
-      const _user = user()
-      assertExists(_user, `Expected user to exist here`)
-      const { id: userId } = _user
-      const job: JobRecord_In<InstanceBackupJobPayload> = {
-        userId,
-        status: JobStatus.New,
-        payload: {
-          cmd: JobCommands.BackupInstance,
-          instanceId
-        }
-      }
-      const rec = await client.collection('jobs').create<InstanceBackupJobRecord>(job)
-      return rec
-    }
-  )
-
-  const createInstanceRestoreJob = safeCatch(
-    `createInstanceRestoreJob`,
-    async (backupId: BackupRecordId) => {
-      const _user = user()
-      assertExists(_user, `Expected user to exist here`)
-      const { id: userId } = _user
-      const job: JobRecord_In<InstanceRestoreJobPayload> = {
-        userId,
-        status: JobStatus.New,
-        payload: {
-          cmd: JobCommands.RestoreInstance,
-          backupId
-        }
-      }
-      const rec = await client.collection('jobs').create<JobRecord<InstanceRestoreJobPayload>>(job)
-      return rec
-    }
-  )
 
   return {
     getAuthStoreProps,

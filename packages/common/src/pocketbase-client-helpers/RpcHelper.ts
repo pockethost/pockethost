@@ -1,10 +1,18 @@
+import { customAlphabet } from 'nanoid'
 import type pocketbaseEs from 'pocketbase'
-import type { RecordSubscription } from 'pocketbase'
+import {
+  ClientResponseError,
+  RecordSubscription,
+  UnsubscribeFunc,
+} from 'pocketbase'
 import type { JsonObject } from 'type-fest'
 import { Logger } from '../Logger'
 import { PromiseHelper } from '../PromiseHelper'
-import { RecordId, RpcCommands, UserId } from '../schema'
+import { BaseFields, RpcCommands, UserId } from '../schema'
 import type { WatchHelper } from './WatchHelper'
+
+export const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz')
+export const newId = () => nanoid(15)
 
 export type RpcHelperConfig = {
   client: pocketbaseEs
@@ -26,16 +34,15 @@ export enum RpcStatus {
 
 export type RpcPayloadBase = JsonObject
 
-export type RpcRecord_In<TRecord extends RpcRecord<any, any>> = Pick<
+export type RpcRecord_Create<TRecord extends RpcFields<any, any>> = Pick<
   TRecord,
-  'userId' | 'payload' | 'cmd'
+  'id' | 'userId' | 'payload' | 'cmd'
 >
 
-export type RpcRecord<
+export type RpcFields<
   TPayload extends RpcPayloadBase,
   TRes extends JsonObject
-> = {
-  id: RecordId
+> = BaseFields & {
   userId: UserId
   cmd: string
   payload: TPayload
@@ -51,12 +58,13 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
     client,
     watchHelper: { watchById },
     promiseHelper: { safeCatch },
+    logger: { dbg },
   } = config
 
   const mkRpc = <TPayload extends JsonObject, TResult extends JsonObject>(
     cmd: RpcCommands
   ) => {
-    type ConcreteRpcRecord = RpcRecord<TPayload, TResult>
+    type ConcreteRpcRecord = RpcFields<TPayload, TResult>
 
     return safeCatch(
       cmd,
@@ -69,39 +77,38 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
           throw new Error(`Expected authenticated user here.`)
         }
         const { id: userId } = _user
-        const rpcIn: RpcRecord_In<ConcreteRpcRecord> = {
+        const rpcIn: RpcRecord_Create<ConcreteRpcRecord> = {
+          id: newId(),
           cmd,
           userId,
           payload,
         }
-        const rec = await client
-          .collection(RPC_COLLECTION)
-          .create<ConcreteRpcRecord>(rpcIn)
+        dbg({ rpcIn })
+        let unsub: UnsubscribeFunc | undefined
         return new Promise<ConcreteRpcRecord['result']>(
           async (resolve, reject) => {
-            const unsub = watchById<ConcreteRpcRecord>(
+            unsub = await watchById<ConcreteRpcRecord>(
               RPC_COLLECTION,
-              rec.id,
+              rpcIn.id,
               (data) => {
+                dbg(`Got an RPC change`, data)
+                cb?.(data)
                 if (data.record.status === RpcStatus.FinishedSuccess) {
-                  unsub.then((u) => {
-                    u()
-                    resolve(data.record.result)
-                  })
+                  resolve(data.record.result)
                   return
                 }
                 if (data.record.status === RpcStatus.FinishedError) {
-                  unsub.then((u) => {
-                    reject(data.record.message)
-                    u()
-                  })
+                  reject(new ClientResponseError(data.record.result))
                   return
                 }
-                cb?.(data)
-              }
+              },
+              false
             )
+            await client.collection(RPC_COLLECTION).create(rpcIn)
           }
-        )
+        ).finally(async () => {
+          await unsub?.()
+        })
       }
     )
   }

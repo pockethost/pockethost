@@ -11,8 +11,8 @@ import { safeCatch } from '../util/promiseHelper'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'
-import { createJobMixin } from './JobMixin'
 import { createRawPbClient } from './RawPbClient'
+import { createRpcHelper } from './RpcHelper'
 
 export type PocketbaseClientApi = ReturnType<typeof createPbClient>
 
@@ -40,7 +40,7 @@ export const createPbClient = (url: string) => {
   )
 
   const context: MixinContext = { client, rawDb }
-  const jobsApi = createJobMixin(context)
+  const rpcApi = createRpcHelper(context)
   const instanceApi = createInstanceMixin(context)
   const backupApi = createBackupMixin(context)
   const invocationApi = createInvocationMixin(context, instanceApi)
@@ -50,7 +50,7 @@ export const createPbClient = (url: string) => {
     knex: rawDb,
     adminAuthViaEmail,
     applySchema,
-    ...jobsApi,
+    ...rpcApi,
     ...instanceApi,
     ...invocationApi,
     ...backupApi,

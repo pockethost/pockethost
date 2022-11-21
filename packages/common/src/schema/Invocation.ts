@@ -1,7 +1,6 @@
-import { IsoDate, RecordId } from './types'
+import { BaseFields, IsoDate, RecordId } from './types'
 
-export type InvocationRecord = {
-  id: RecordId
+export type InvocationFields = BaseFields & {
   instanceId: RecordId
   startedAt: IsoDate
   endedAt: IsoDate

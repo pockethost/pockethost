@@ -1,51 +1,56 @@
 import {
   assertTruthy,
-  BackupRecord,
+  BackupFields,
+  BackupInstancePayload,
+  BackupInstancePayloadSchema,
+  BackupInstanceResult,
   BackupStatus,
   createTimerManager,
-  InstanceBackupJobPayload,
-  InstanceRestoreJobPayload,
-  JobCommands,
+  RestoreInstancePayload,
+  RestoreInstancePayloadSchema,
+  RestoreInstanceResult,
+  RpcCommands,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
 import { dbg } from '../util/logger'
-import { JobServiceApi } from './JobService'
+import { RpcServiceApi } from './RpcService'
 
 export const createBackupService = async (
   client: PocketbaseClientApi,
-  jobService: JobServiceApi
+  jobService: RpcServiceApi
 ) => {
-  jobService.registerCommand<InstanceBackupJobPayload>(
-    JobCommands.BackupInstance,
-    async (unsafeJob) => {
-      const unsafePayload = unsafeJob.payload
-      const { instanceId } = unsafePayload
-      assertTruthy(instanceId, `Expected instanceId here`)
+  jobService.registerCommand<BackupInstancePayload, BackupInstanceResult>(
+    RpcCommands.BackupInstance,
+    BackupInstancePayloadSchema,
+    async (job) => {
+      const { payload } = job
+      const { instanceId } = payload
       const instance = await client.getInstance(instanceId)
       assertTruthy(instance, `Instance ${instanceId} not found`)
       assertTruthy(
-        instance.uid === unsafeJob.userId,
-        `Instance ${instanceId} is not owned by user ${unsafeJob.userId}`
+        instance.uid === job.userId,
+        `Instance ${instanceId} is not owned by user ${job.userId}`
       )
-      await client.createBackup(instance.id)
+      const backup = await client.createBackup(instance.id)
+      return { backupId: backup.id }
     }
   )
 
-  jobService.registerCommand<InstanceRestoreJobPayload>(
-    JobCommands.RestoreInstance,
-    async (unsafeJob) => {
-      const unsafePayload = unsafeJob.payload
-      const { backupId } = unsafePayload
-      assertTruthy(backupId, `Expected backupId here`)
+  jobService.registerCommand<RestoreInstancePayload, RestoreInstanceResult>(
+    RpcCommands.RestoreInstance,
+    RestoreInstancePayloadSchema,
+    async (job) => {
+      const { payload } = job
+      const { backupId } = payload
       const backup = await client.getBackupJob(backupId)
       assertTruthy(backup, `Backup ${backupId} not found`)
       const instance = await client.getInstance(backup.instanceId)
       assertTruthy(instance, `Instance ${backup.instanceId} not found`)
       assertTruthy(
-        instance.uid === unsafeJob.userId,
-        `Backup ${backupId} is not owned by user ${unsafeJob.userId}`
+        instance.uid === job.userId,
+        `Backup ${backupId} is not owned by user ${job.userId}`
       )
 
       /**
@@ -57,7 +62,8 @@ export const createBackupService = async (
        * 4. Restore
        * 5. Lift maintenance mode
        */
-      await client.createBackup(instance.id)
+      const restore = await client.createBackup(instance.id)
+      return { restoreId: restore.id }
     }
   )
 
@@ -70,7 +76,7 @@ export const createBackupService = async (
       return true
     }
     const instance = await client.getInstance(backupRec.instanceId)
-    const _update = (fields: Partial<BackupRecord>) =>
+    const _update = (fields: Partial<BackupFields>) =>
       limiter.schedule(() => client.updateBackup(backupRec.id, fields))
     try {
       await _update({

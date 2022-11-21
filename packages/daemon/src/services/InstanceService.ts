@@ -1,9 +1,15 @@
 import {
   assertTruthy,
   binFor,
+  CreateInstancePayload,
+  CreateInstancePayloadSchema,
+  CreateInstanceResult,
   createTimerManager,
   InstanceId,
   InstanceStatus,
+  LATEST_PLATFORM,
+  RpcCommands,
+  USE_LATEST_VERSION,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -21,6 +27,7 @@ import { dbg, error, warn } from '../util/logger'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'
 import { PocketbaseProcess, spawnInstance } from '../util/spawnInstance'
+import { RpcServiceApi } from './RpcService'
 
 type InstanceApi = {
   process: PocketbaseProcess
@@ -30,8 +37,35 @@ type InstanceApi = {
   startRequest: () => () => void
 }
 
+export type InstanceServiceConfig = {
+  client: PocketbaseClientApi
+  rpcService: RpcServiceApi
+}
+
 export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
-export const createInstanceService = async (client: PocketbaseClientApi) => {
+export const createInstanceService = async (config: InstanceServiceConfig) => {
+  const { client, rpcService } = config
+  const { registerCommand } = rpcService
+
+  registerCommand<CreateInstancePayload, CreateInstanceResult>(
+    RpcCommands.CreateInstance,
+    CreateInstancePayloadSchema,
+    async (rpc) => {
+      const { payload } = rpc
+      const { subdomain } = payload
+      const instance = await client.createInstance({
+        subdomain,
+        uid: rpc.userId,
+        version: USE_LATEST_VERSION,
+        status: InstanceStatus.Idle,
+        platform: LATEST_PLATFORM,
+        secondsThisMonth: 0,
+        isBackupAllowed: false,
+      })
+      return { instance }
+    }
+  )
+
   const instances: { [_: string]: InstanceApi } = {}
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })

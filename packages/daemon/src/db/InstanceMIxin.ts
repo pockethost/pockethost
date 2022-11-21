@@ -1,9 +1,10 @@
 import {
   assertExists,
+  InstanceFields,
+  InstanceFields_Create,
   InstanceId,
-  InstancesRecord,
   InstanceStatus,
-  UserRecord,
+  UserFields,
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -17,17 +18,24 @@ export type InstanceApi = ReturnType<typeof createInstanceMixin>
 export const createInstanceMixin = (context: MixinContext) => {
   const { client, rawDb } = context
 
+  const createInstance = safeCatch(
+    `createInstance`,
+    (payload: InstanceFields_Create): Promise<InstanceFields> => {
+      return client.collection('instances').create<InstanceFields>(payload)
+    }
+  )
+
   const getInstanceBySubdomain = safeCatch(
     `getInstanceBySubdomain`,
-    (subdomain: string): Promise<[InstancesRecord, UserRecord] | []> =>
+    (subdomain: string): Promise<[InstanceFields, UserFields] | []> =>
       client
         .collection('instances')
-        .getFirstListItem<InstancesRecord>(`subdomain = '${subdomain}'`)
+        .getFirstListItem<InstanceFields>(`subdomain = '${subdomain}'`)
         .then((instance) => {
           if (!instance) return []
           return client
             .collection('users')
-            .getOne<UserRecord>(instance.uid)
+            .getOne<UserFields>(instance.uid)
             .then((user) => {
               return [instance, user]
             })
@@ -36,7 +44,7 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const updateInstance = safeCatch(
     `updateInstance`,
-    async (instanceId: InstanceId, fields: Partial<InstancesRecord>) => {
+    async (instanceId: InstanceId, fields: Partial<InstanceFields>) => {
       await client.collection('instances').update(instanceId, fields)
     }
   )
@@ -51,16 +59,16 @@ export const createInstanceMixin = (context: MixinContext) => {
   const getInstance = safeCatch(
     `getInstance`,
     async (instanceId: InstanceId) => {
-      return client.collection('instances').getOne<InstancesRecord>(instanceId)
+      return client.collection('instances').getOne<InstanceFields>(instanceId)
     }
   )
 
   const updateInstances = safeCatch(
     'updateInstances',
-    async (cb: (rec: InstancesRecord) => Partial<InstancesRecord>) => {
+    async (cb: (rec: InstanceFields) => Partial<InstanceFields>) => {
       const res = await client
         .collection('instances')
-        .getFullList<InstancesRecord>(200)
+        .getFullList<InstanceFields>(200)
       const limiter = new Bottleneck({ maxConcurrent: 1 })
       const promises = reduce(
         res,
@@ -106,5 +114,6 @@ export const createInstanceMixin = (context: MixinContext) => {
     getInstance,
     updateInstanceSeconds,
     updateInstances,
+    createInstance,
   }
 }

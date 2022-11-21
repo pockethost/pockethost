@@ -2,10 +2,10 @@
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
-  import type { InstancesRecord } from '@pockethost/common'
+  import type { InstanceFields } from '@pockethost/common'
   import { humanVersion } from '@pockethost/common'
 
-  export let instance: InstancesRecord
+  export let instance: InstanceFields
 
   const { subdomain, status, platform, version } = instance
   const url = `${PUBLIC_PB_PROTOCOL}://${subdomain}.${PUBLIC_PB_DOMAIN}`

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { InstancesRecord } from '@pockethost/common'
+  import type { InstanceFields } from '@pockethost/common'
 
-  export let instance: InstancesRecord
+  export let instance: InstanceFields
 </script>
 
 <div class="py-4">

@@ -1,19 +1,18 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
-import { InstanceStatus, LATEST_PLATFORM, USE_LATEST_VERSION } from '@pockethost/common'
 import { dbg, error, warn } from './logger'
 
 export type FormErrorHandler = (value: string) => void
 
-export const handleFormError = (error: any, setError?: FormErrorHandler) => {
+export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
   const { parseError } = client()
-  error(`Form error: ${error}`, { error })
+  error(`Form error: ${e}`, { error: e })
 
   if (setError) {
-    const message = parseError(error)[0]
+    const message = parseError(e)[0]
     setError(message)
   } else {
-    throw error
+    throw e
   }
 }
 
@@ -40,7 +39,10 @@ export const handleLogin = async (
     if (shouldRedirect) {
       await goto('/dashboard')
     }
-  } catch (error: any) {
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      throw new Error(`Expected Error type here, but got ${typeof error}:${error}`)
+    }
     handleFormError(error, setError)
   }
 }
@@ -151,14 +153,10 @@ export const handleCreateNewInstance = async (
 
     // Create a new instance using the generated name
     const record = await createInstance({
-      subdomain: instanceName,
-      uid: id,
-      status: InstanceStatus.Idle,
-      platform: LATEST_PLATFORM,
-      version: USE_LATEST_VERSION
+      subdomain: instanceName
     })
 
-    await goto(`/app/instances/${record.id}`)
+    await goto(`/app/instances/${record.instance.id}`)
   } catch (error: any) {
     handleFormError(error, setError)
   }

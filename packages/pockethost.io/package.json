@@ -37,6 +37,7 @@
     "pretty-bytes": "^6.0.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
-    "svelte-highlight": "^6.2.1"
+    "svelte-highlight": "^6.2.1",
+    "type-fest": "^3.2.0"
   }
 }

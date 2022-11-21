@@ -10,8 +10,8 @@ import {
 import { createPbClient } from './db/PbClient'
 import { createBackupService } from './services/BackupService'
 import { createInstanceService } from './services/InstanceService'
-import { createJobService } from './services/JobService'
 import { createProxyService } from './services/ProxyService'
+import { createRpcService } from './services/RpcService'
 import { mkInternalUrl } from './util/internal'
 import { dbg, error, info } from './util/logger'
 import { spawnInstance } from './util/spawnInstance'
@@ -34,7 +34,6 @@ global.EventSource = require('eventsource')
    * Launch services
    */
   const client = createPbClient(coreInternalUrl)
-  const instanceService = await createInstanceService(client)
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
     dbg(`Logged in`)
@@ -45,15 +44,16 @@ global.EventSource = require('eventsource')
     error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
   }
 
+  const rpcService = await createRpcService({ client })
+  const instanceService = await createInstanceService({ client, rpcService })
   const proxyService = await createProxyService(instanceService)
-  const jobService = await createJobService(client)
-  const backupService = await createBackupService(client, jobService)
+  const backupService = await createBackupService(client, rpcService)
 
   process.once('SIGUSR2', async () => {
     info(`SIGUSR2 detected`)
     proxyService.shutdown()
     instanceService.shutdown()
-    jobService.shutdown()
+    rpcService.shutdown()
     backupService.shutdown()
   })
 })()
