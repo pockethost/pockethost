@@ -134,6 +134,10 @@ open https://pockethost.io
 
 # Release History
 
+**next**
+
+- [x] fix: create instance cancel button does not work
+
 **0.5.3**
 
 - [x] fix: incorrect instance information displaying on dashboard details in some cases
