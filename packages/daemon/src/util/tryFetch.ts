@@ -1,5 +1,5 @@
-import { dbg, error } from './dbg'
-import { safeCatch } from './safeAsync'
+import { dbg, error } from './logger'
+import { safeCatch } from './promiseHelper'
 
 export const tryFetch = safeCatch(
   `tryFetch`,

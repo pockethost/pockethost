@@ -1,6 +1,8 @@
 import { find, last } from '@s-libs/micro-dash'
 import { assertExists } from './assert'
 
+export const GO_VERSION = `1.19.3`
+
 export const RELEASES = {
   ermine: {
     weight: 1,
@@ -8,7 +10,7 @@ export const RELEASES = {
   },
   lollipop: {
     weight: 2,
-    versions: ['0.8.0-rc1', '0.8.0-rc2'],
+    versions: ['0.8.0-rc1', '0.8.0-rc2', '0.8.0-rc3', '0.8.0-rc4', '0.8.0'],
   },
 }
 
@@ -45,7 +47,7 @@ export const binFor = (
   version: VersionId = 'latest'
 ) => {
   const _version = versionFor(platformId, version)
-  return `pocketbase-${platformId}-${_version}`
+  return `pocketbase-go${GO_VERSION}-${platformId}-${_version}`
 }
 
 export const humanVersion = (platformId: PlatformId, version: VersionId) => {

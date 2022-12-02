@@ -30,12 +30,14 @@
     "@s-libs/micro-dash": "^14.1.0",
     "@types/bootstrap": "^5.2.6",
     "@types/js-cookie": "^3.0.2",
+    "boolean": "^3.2.0",
     "date-fns": "^2.29.3",
     "js-cookie": "^3.0.1",
-    "pocketbase": "^0.8.0-rc1",
+    "pocketbase": "^0.8.0",
     "pretty-bytes": "^6.0.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
-    "svelte-highlight": "^6.2.1"
+    "svelte-highlight": "^6.2.1",
+    "type-fest": "^3.2.0"
   }
 }

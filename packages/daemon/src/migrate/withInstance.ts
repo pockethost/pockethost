@@ -9,13 +9,13 @@ import {
 } from '../constants'
 import { createPbClient, PocketbaseClientApi } from '../db/PbClient'
 import { mkInternalUrl } from '../util/internal'
-import { safeCatch } from '../util/safeAsync'
+import { error, info } from '../util/logger'
+import { safeCatch } from '../util/promiseHelper'
 import { spawnInstance } from '../util/spawnInstance'
 import { tryFetch } from '../util/tryFetch'
-import { schema } from './schema'
 
-export const applyDbMigrations = safeCatch(
-  `applyDbMigrations`,
+export const withInstance = safeCatch(
+  `withInstance`,
   async (cb: (client: PocketbaseClientApi) => Promise<void>) => {
     // Add `platform` and `bin` required columns (migrate db json)
     try {
@@ -30,21 +30,18 @@ export const applyDbMigrations = safeCatch(
         const client = createPbClient(coreInternalUrl)
         await tryFetch(coreInternalUrl)
         await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-        await client.applySchema(schema)
         await cb(client)
       } catch (e) {
-        console.error(
+        error(
           `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
         )
-        console.error(
-          `***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`
-        )
+        error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
       } finally {
-        console.log(`Exiting process`)
+        info(`Exiting process`)
         mainProcess.kill()
       }
     } catch (e) {
-      console.error(`${e}`)
+      error(`${e}`)
     }
   }
 )

@@ -1,5 +1,5 @@
 diff --git a/node_modules/sqlite3/lib/sqlite3.d.ts b/node_modules/sqlite3/lib/sqlite3.d.ts
-index b27b0cf..b0086af 100644
+index b27b0cf..783a961 100644
 --- a/node_modules/sqlite3/lib/sqlite3.d.ts
 +++ b/node_modules/sqlite3/lib/sqlite3.d.ts
 @@ -139,6 +139,153 @@ export class Database extends events.EventEmitter {
@@ -111,7 +111,7 @@ index b27b0cf..b0086af 100644
 +    /**
 +     * Message failure string from sqlite3_errstr() if `Backup.failed` is `true`
 +     */
-+    readonly failed: boolean
++    readonly message: boolean
 +
 +    /**
 +     * The number of remaining pages after the last call to `step()`, 

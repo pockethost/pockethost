@@ -1,11 +1,19 @@
 import { binFor } from '@pockethost/common'
-import { DAEMON_PB_PORT_BASE, PUBLIC_PB_SUBDOMAIN } from './constants'
+import {
+  DAEMON_PB_PASSWORD,
+  DAEMON_PB_PORT_BASE,
+  DAEMON_PB_USERNAME,
+  PUBLIC_PB_DOMAIN,
+  PUBLIC_PB_PROTOCOL,
+  PUBLIC_PB_SUBDOMAIN,
+} from './constants'
 import { createPbClient } from './db/PbClient'
 import { createBackupService } from './services/BackupService'
 import { createInstanceService } from './services/InstanceService'
-import { createJobService } from './services/JobService'
 import { createProxyService } from './services/ProxyService'
+import { createRpcService } from './services/RpcService'
 import { mkInternalUrl } from './util/internal'
+import { dbg, error, info } from './util/logger'
 import { spawnInstance } from './util/spawnInstance'
 // npm install eventsource --save
 global.EventSource = require('eventsource')
@@ -26,16 +34,26 @@ global.EventSource = require('eventsource')
    * Launch services
    */
   const client = createPbClient(coreInternalUrl)
-  const instanceService = await createInstanceService(client)
+  try {
+    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
+    dbg(`Logged in`)
+  } catch (e) {
+    error(
+      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
+    )
+    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
+  }
+
+  const rpcService = await createRpcService({ client })
+  const instanceService = await createInstanceService({ client, rpcService })
   const proxyService = await createProxyService(instanceService)
-  const jobService = await createJobService(client)
-  const backupService = await createBackupService(client, jobService)
+  const backupService = await createBackupService(client, rpcService)
 
   process.once('SIGUSR2', async () => {
-    console.log(`SIGUSR2 detected`)
+    info(`SIGUSR2 detected`)
     proxyService.shutdown()
     instanceService.shutdown()
-    jobService.shutdown()
+    rpcService.shutdown()
     backupService.shutdown()
   })
 })()

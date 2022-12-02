@@ -10,3 +10,8 @@ export type Username = string
 export type Password = string
 export type CollectionName = string
 export type Seconds = number
+export type BaseFields = {
+  id: RecordId
+  created: IsoDate
+  updated: IsoDate
+}

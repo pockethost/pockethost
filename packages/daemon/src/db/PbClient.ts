@@ -6,29 +6,25 @@ import {
 } from 'pocketbase'
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { Collection_Serialized } from '../migrate/schema'
-import { safeCatch } from '../util/safeAsync'
+import { info } from '../util/logger'
+import { safeCatch } from '../util/promiseHelper'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'
-import { createJobMixin } from './JobMixin'
 import { createRawPbClient } from './RawPbClient'
+import { createRpcHelper } from './RpcHelper'
 
 export type PocketbaseClientApi = ReturnType<typeof createPbClient>
 
 export type MixinContext = { client: pocketbaseEs; rawDb: Knex }
 
 export const createPbClient = (url: string) => {
-  console.log(`Initializing client: ${url}`)
+  info(`Initializing client: ${url}`)
   const rawDb = createRawPbClient(
     `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}/pb_data/data.db`
   )
 
   const client = new PocketBase(url)
-  client.beforeSend = (url: string, reqConfig: { [_: string]: any }) => {
-    // dbg(reqConfig)
-    delete reqConfig.signal
-    return reqConfig
-  }
 
   const adminAuthViaEmail = safeCatch(
     `adminAuthViaEmail`,
@@ -44,7 +40,7 @@ export const createPbClient = (url: string) => {
   )
 
   const context: MixinContext = { client, rawDb }
-  const jobsApi = createJobMixin(context)
+  const rpcApi = createRpcHelper(context)
   const instanceApi = createInstanceMixin(context)
   const backupApi = createBackupMixin(context)
   const invocationApi = createInvocationMixin(context, instanceApi)
@@ -54,7 +50,7 @@ export const createPbClient = (url: string) => {
     knex: rawDb,
     adminAuthViaEmail,
     applySchema,
-    ...jobsApi,
+    ...rpcApi,
     ...instanceApi,
     ...invocationApi,
     ...backupApi,

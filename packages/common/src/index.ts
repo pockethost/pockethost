@@ -1,4 +1,7 @@
 export * from './assert'
+export * from './Logger'
+export * from './pocketbase-client-helpers'
+export * from './PromiseHelper'
 export * from './releases'
 export * from './schema'
 export * from './TimerManager'

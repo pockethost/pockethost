@@ -7,10 +7,11 @@ import {
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
 import { backupInstance } from '../util/backupInstance'
-import { error } from '../util/dbg'
-import { safeCatch } from '../util/safeAsync'
-import { applyDbMigrations } from './applyDbMigrations'
+import { dbg, error, info } from '../util/logger'
+import { safeCatch } from '../util/promiseHelper'
 import { pexec } from './pexec'
+import { schema } from './schema'
+import { withInstance } from './withInstance'
 
 const PB_BIN = resolve(DAEMON_PB_BIN_DIR, binFor('lollipop'))
 
@@ -19,14 +20,16 @@ safeCatch(`root`, async () => {
     PUBLIC_PB_SUBDOMAIN,
     `${+new Date()}`,
     async (progress) => {
-      console.log(progress)
+      dbg(progress)
     }
   )
 
-  console.log(`Upgrading`)
+  info(`Upgrading`)
   await pexec(`${PB_BIN} upgrade --dir=pb_data`)
 
-  await applyDbMigrations(async (client) => {
+  await withInstance(async (client) => {
+    await client.applySchema(schema)
+
     await client.updateInstances((instance) => {
       const src = resolve(DAEMON_PB_DATA_DIR, instance.subdomain)
       const dst = resolve(DAEMON_PB_DATA_DIR, instance.id)

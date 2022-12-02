@@ -1,5 +1,5 @@
 import { PlatformId, VersionId } from '../releases'
-import { RecordId, Seconds, Subdomain, UserId } from './types'
+import { BaseFields, RecordId, Seconds, Subdomain, UserId } from './types'
 
 export enum InstanceStatus {
   Unknown = '',
@@ -10,17 +10,16 @@ export enum InstanceStatus {
   Failed = 'failed',
 }
 
-export type InstancesRecord = {
-  id: RecordId
+export type InstanceFields = BaseFields & {
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
   platform: PlatformId
   version: VersionId
   secondsThisMonth: Seconds
+  isBackupAllowed: boolean
 }
 
-export type InstancesRecord_New = Omit<
-  InstancesRecord,
-  'id' | 'secondsThisMonth'
->
+export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
+
+export type InstanceRecordsById = { [_: RecordId]: InstanceFields }

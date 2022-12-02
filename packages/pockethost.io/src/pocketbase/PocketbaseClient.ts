@@ -1,19 +1,21 @@
 import { createGenericSyncEvent } from '$util/events'
 import {
   assertExists,
-  JobCommands,
-  JobStatus,
-  type BackupRecord,
-  type BackupRecordId,
-  type InstanceBackupJobPayload,
-  type InstanceBackupJobRecord,
+  createRpcHelper,
+  createWatchHelper,
+  RpcCommands,
+  type BackupFields,
+  type BackupInstancePayload,
+  type BackupInstanceResult,
+  type CreateInstancePayload,
+  type CreateInstanceResult,
+  type InstanceFields,
   type InstanceId,
-  type InstanceRestoreJobPayload,
-  type InstancesRecord,
-  type InstancesRecord_New,
-  type JobRecord,
-  type JobRecord_In,
-  type UserRecord
+  type Logger,
+  type PromiseHelper,
+  type RestoreInstancePayload,
+  type RestoreInstanceResult,
+  type UserFields
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, {
@@ -21,28 +23,32 @@ import PocketBase, {
   BaseAuthStore,
   ClientResponseError,
   Record,
-  type RecordSubscription
+  type RecordSubscription,
+  type UnsubscribeFunc
 } from 'pocketbase'
-import type { Unsubscriber } from 'svelte/store'
-import { safeCatch } from '../util/safeCatch'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
 
 export type AuthToken = string
 export type AuthStoreProps = {
   token: AuthToken
-  model: UserRecord | null
+  model: UserFields | null
   isValid: boolean
 }
 
-export type PocketbaseClientApi = ReturnType<typeof createPocketbaseClient>
+export type PocketbaseClientConfig = {
+  url: string
+  logger: Logger
+  promiseHelper: PromiseHelper
+}
+export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
-export const createPocketbaseClient = (url: string) => {
+export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
+  const { url, logger, promiseHelper } = config
+  const { dbg, error } = logger
+  const { safeCatch } = promiseHelper
+
   const client = new PocketBase(url)
-  client.beforeSend = (url, reqConfig) => {
-    delete reqConfig.signal
-    return reqConfig
-  }
 
   const { authStore } = client
 
@@ -61,7 +67,7 @@ export const createPocketbaseClient = (url: string) => {
         passwordConfirm: password
       })
       .then(() => {
-        // console.log(`Sending verification email to ${email}`)
+        // dbg(`Sending verification email to ${email}`)
         return client.collection('users').requestVerification(email)
       })
   )
@@ -103,57 +109,40 @@ export const createPocketbaseClient = (url: string) => {
     client.collection('users').authRefresh()
   )
 
-  const createInstance = safeCatch(
-    `createInstance`,
-    (payload: InstancesRecord_New): Promise<InstancesRecord> => {
-      return client.collection('instances').create<InstancesRecord>(payload)
-    }
+  const watchHelper = createWatchHelper({ client, promiseHelper, logger })
+  const { watchById, watchAllById } = watchHelper
+  const rpcMixin = createRpcHelper({ client, watchHelper, promiseHelper, logger })
+  const { mkRpc } = rpcMixin
+
+  const createInstance = mkRpc<CreateInstancePayload, CreateInstanceResult>(
+    RpcCommands.CreateInstance
+  )
+  const createInstanceBackupJob = mkRpc<BackupInstancePayload, BackupInstanceResult>(
+    RpcCommands.BackupInstance
+  )
+
+  const createInstanceRestoreJob = mkRpc<RestoreInstancePayload, RestoreInstanceResult>(
+    RpcCommands.RestoreInstance
   )
 
   const getInstanceById = safeCatch(
     `getInstanceById`,
-    (id: InstanceId): Promise<InstancesRecord | undefined> =>
-      client.collection('instances').getOne<InstancesRecord>(id)
+    (id: InstanceId): Promise<InstanceFields | undefined> =>
+      client.collection('instances').getOne<InstanceFields>(id)
   )
 
   const watchInstanceById = async (
     id: InstanceId,
-    cb: (data: RecordSubscription<InstancesRecord>) => void
-  ): Promise<Unsubscriber> => {
-    getInstanceById(id).then((record) => {
-      // console.log(`Got instnace`, record)
-      assertExists(record, `Expected instance ${id} here`)
-      cb({ action: 'init', record })
-    })
-    return client.collection('instances').subscribe<InstancesRecord>(id, cb)
-  }
+    cb: (data: RecordSubscription<InstanceFields>) => void
+  ): Promise<UnsubscribeFunc> => watchById('instances', id, cb)
 
   const watchBackupsByInstanceId = async (
     id: InstanceId,
-    cb: (data: RecordSubscription<BackupRecord>) => void
-  ): Promise<Unsubscriber> => {
-    const unsub = client.collection('backups').subscribe<BackupRecord>('*', (e) => {
-      // console.log(e.record.instanceId, id)
-      if (e.record.instanceId !== id) return
-      cb(e)
-    })
-    const existingBackups = await client
-      .collection('backups')
-      .getFullList<BackupRecord>(100, { filter: `instanceId = '${id}'` })
-    existingBackups.forEach((record) => cb({ action: 'init', record }))
-    return unsub
-  }
+    cb: (data: RecordSubscription<BackupFields>) => void
+  ): Promise<UnsubscribeFunc> => watchAllById('backups', 'instanceId', id, cb)
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
-    (
-      await client
-        .collection('instances')
-        .getFullList()
-        .catch((e) => {
-          // console.error(`getAllInstancesById failed with ${e}`)
-          throw e
-        })
-    ).reduce((c, v) => {
+    (await client.collection('instances').getFullList()).reduce((c, v) => {
       c[v.id] = v
       return c
     }, {} as Record)
@@ -173,7 +162,7 @@ export const createPocketbaseClient = (url: string) => {
 
   const getAuthStoreProps = (): AuthStoreProps => {
     const { token, model, isValid } = client.authStore as AuthStoreProps
-    // console.log(`current authStore`, { token, model, isValid })
+    // dbg(`current authStore`, { token, model, isValid })
     if (model instanceof Admin) throw new Error(`Admin models not supported`)
     if (model && !model.email) throw new Error(`Expected model to be a user here`)
     return {
@@ -206,7 +195,7 @@ export const createPocketbaseClient = (url: string) => {
      */
     refreshAuthToken()
       .catch((e) => {
-        // console.error(`Clearing auth store: ${e}`)
+        dbg(`Clearing auth store: ${e}`)
         client.authStore.clear()
       })
       .finally(() => {
@@ -222,6 +211,7 @@ export const createPocketbaseClient = (url: string) => {
      * watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
+      // dbg(`onAuthChange`, { ...authStore })
       const { model } = authStore
       if (!model) return
       if (model instanceof Admin) return
@@ -233,51 +223,13 @@ export const createPocketbaseClient = (url: string) => {
       setTimeout(_check, 1000)
 
       // FIXME - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
-      // console.log(`watching _users`)
+      // dbg(`watching _users`)
       // unsub = subscribe<User>(`users/${model.id}`, (user) => {
-      //   console.log(`realtime _users change`, { ...user })
+      //   dbg(`realtime _users change`, { ...user })
       //   fireAuthChange({ ...authStore, model: user })
       // })
     })
   }
-
-  const createInstanceBackupJob = safeCatch(
-    `createInstanceBackupJob`,
-    async (instanceId: InstanceId) => {
-      const _user = user()
-      assertExists(_user, `Expected user to exist here`)
-      const { id: userId } = _user
-      const job: JobRecord_In<InstanceBackupJobPayload> = {
-        userId,
-        status: JobStatus.New,
-        payload: {
-          cmd: JobCommands.BackupInstance,
-          instanceId
-        }
-      }
-      const rec = await client.collection('jobs').create<InstanceBackupJobRecord>(job)
-      return rec
-    }
-  )
-
-  const createInstanceRestoreJob = safeCatch(
-    `createInstanceRestoreJob`,
-    async (backupId: BackupRecordId) => {
-      const _user = user()
-      assertExists(_user, `Expected user to exist here`)
-      const { id: userId } = _user
-      const job: JobRecord_In<InstanceRestoreJobPayload> = {
-        userId,
-        status: JobStatus.New,
-        payload: {
-          cmd: JobCommands.RestoreInstance,
-          backupId
-        }
-      }
-      const rec = await client.collection('jobs').create<JobRecord<InstanceRestoreJobPayload>>(job)
-      return rec
-    }
-  )
 
   return {
     getAuthStoreProps,

@@ -1,12 +1,13 @@
 <script lang="ts">
+  import CopyButton from '$components/CopyButton.svelte'
+  import { dbg } from '$util/logger'
   import { Highlight } from 'svelte-highlight'
   import { typescript } from 'svelte-highlight/languages'
   import 'svelte-highlight/styles/github.css'
-  import CopyButton from '$components/CopyButton.svelte'
 
   export let code: string
   const handleCopy = () => {
-    console.log('copied')
+    dbg('copied')
   }
 </script>
 

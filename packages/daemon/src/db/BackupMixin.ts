@@ -1,13 +1,13 @@
 import {
-  BackupRecord,
+  BackupFields,
+  BackupFields_Create,
+  BackupFields_Update,
   BackupRecordId,
-  BackupRecord_Create,
-  BackupRecord_Update,
   BackupStatus,
+  InstanceFields,
   InstanceId,
-  InstancesRecord,
 } from '@pockethost/common'
-import { safeCatch } from '../util/safeAsync'
+import { safeCatch } from '../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export type BackupApi = ReturnType<typeof createBackupMixin>
@@ -20,12 +20,12 @@ export const createBackupMixin = (context: MixinContext) => {
     async (instanceId: InstanceId) => {
       const instance = await client
         .collection('instances')
-        .getOne<InstancesRecord>(instanceId)
+        .getOne<InstanceFields>(instanceId)
       if (!instance) {
         throw new Error(`Expected ${instanceId} to be a valid instance`)
       }
       const { platform, version } = instance
-      const rec: BackupRecord_Create = {
+      const rec: BackupFields_Create = {
         instanceId,
         status: BackupStatus.Queued,
         platform,
@@ -33,14 +33,14 @@ export const createBackupMixin = (context: MixinContext) => {
       }
       const created = await client
         .collection('backups')
-        .create<BackupRecord>(rec)
+        .create<BackupFields>(rec)
       return created
     }
   )
 
   const updateBackup = safeCatch(
     `updateBackup`,
-    async (backupId: BackupRecordId, fields: BackupRecord_Update) => {
+    async (backupId: BackupRecordId, fields: BackupFields_Update) => {
       await client.collection('backups').update(backupId, fields)
     }
   )
@@ -57,7 +57,7 @@ export const createBackupMixin = (context: MixinContext) => {
   const getNextBackupJob = safeCatch(`getNextBackupJob`, async () => {
     return client
       .collection('backups')
-      .getList<BackupRecord>(1, 1, {
+      .getList<BackupFields>(1, 1, {
         filter: `status = '${BackupStatus.Queued}'`,
       })
       .then((recs) => {
@@ -68,7 +68,7 @@ export const createBackupMixin = (context: MixinContext) => {
   const getBackupJob = safeCatch(
     `getBackupJob`,
     async (backupId: BackupRecordId) => {
-      return client.collection('backups').getOne<BackupRecord>(backupId)
+      return client.collection('backups').getOne<BackupFields>(backupId)
     }
   )
 

@@ -1,9 +1,15 @@
 import {
   assertTruthy,
   binFor,
+  CreateInstancePayload,
+  CreateInstancePayloadSchema,
+  CreateInstanceResult,
   createTimerManager,
   InstanceId,
   InstanceStatus,
+  LATEST_PLATFORM,
+  RpcCommands,
+  USE_LATEST_VERSION,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -11,21 +17,17 @@ import getPort from 'get-port'
 import { AsyncReturnType } from 'type-fest'
 import {
   DAEMON_PB_IDLE_TTL,
-  DAEMON_PB_PASSWORD,
   DAEMON_PB_PORT_BASE,
-  DAEMON_PB_USERNAME,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
-  PUBLIC_PB_DOMAIN,
-  PUBLIC_PB_PROTOCOL,
-  PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
 import { PocketbaseClientApi } from '../db/PbClient'
-import { dbg, error } from '../util/dbg'
 import { mkInternalUrl } from '../util/internal'
+import { dbg, error, warn } from '../util/logger'
 import { now } from '../util/now'
-import { safeCatch } from '../util/safeAsync'
+import { safeCatch } from '../util/promiseHelper'
 import { PocketbaseProcess, spawnInstance } from '../util/spawnInstance'
+import { RpcServiceApi } from './RpcService'
 
 type InstanceApi = {
   process: PocketbaseProcess
@@ -35,18 +37,36 @@ type InstanceApi = {
   startRequest: () => () => void
 }
 
-export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
-export const createInstanceService = async (client: PocketbaseClientApi) => {
-  const instances: { [_: string]: InstanceApi } = {}
+export type InstanceServiceConfig = {
+  client: PocketbaseClientApi
+  rpcService: RpcServiceApi
+}
 
-  try {
-    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-  } catch (e) {
-    error(
-      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
-    )
-    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
-  }
+export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
+export const createInstanceService = async (config: InstanceServiceConfig) => {
+  const { client, rpcService } = config
+  const { registerCommand } = rpcService
+
+  registerCommand<CreateInstancePayload, CreateInstanceResult>(
+    RpcCommands.CreateInstance,
+    CreateInstancePayloadSchema,
+    async (rpc) => {
+      const { payload } = rpc
+      const { subdomain } = payload
+      const instance = await client.createInstance({
+        subdomain,
+        uid: rpc.userId,
+        version: USE_LATEST_VERSION,
+        status: InstanceStatus.Idle,
+        platform: LATEST_PLATFORM,
+        secondsThisMonth: 0,
+        isBackupAllowed: false,
+      })
+      return { instance }
+    }
+  )
+
+  const instances: { [_: string]: InstanceApi } = {}
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 
@@ -82,7 +102,7 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         port: DAEMON_PB_PORT_BASE,
         exclude,
       }).catch((e) => {
-        console.error(`Failed to get port for ${subdomain}`)
+        error(`Failed to get port for ${subdomain}`)
         throw e
       })
       dbg(`Found port for ${subdomain}: ${newPort}`)
@@ -95,12 +115,17 @@ export const createInstanceService = async (client: PocketbaseClientApi) => {
         port: newPort,
         bin: binFor(instance.platform, instance.version),
         onUnexpectedStop: (code) => {
-          console.warn(`${subdomain} exited unexpectedly with ${code}`)
+          warn(`${subdomain} exited unexpectedly with ${code}`)
           api.shutdown()
         },
       })
+
       const { pid } = childProcess
       assertTruthy(pid, `Expected PID here but got ${pid}`)
+
+      if (!instance.isBackupAllowed) {
+        await client.updateInstance(instance.id, { isBackupAllowed: true })
+      }
 
       const invocation = await client.createInvocation(instance, pid)
       const tm = createTimerManager({})

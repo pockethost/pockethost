@@ -6,17 +6,18 @@
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
-  import { humanVersion, type InstanceRecordById, type InstancesRecord } from '@pockethost/common'
+  import { error } from '$util/logger'
+  import { humanVersion, type InstanceFields, type InstanceRecordsById } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import NewUserOnboarding from '$components/NewUserOnboarding.svelte'
 
-  let apps: InstanceRecordById = {}
+  let apps: InstanceRecordsById = {}
 
   // This will update when the `apps` value changes
   $: isFirstApplication = values(apps).length === 0
 
-  let appsArray: InstancesRecord[]
+  let appsArray: InstanceFields[]
   $: {
     appsArray = values(apps)
     // Tooltips must be manually initialized
@@ -30,7 +31,7 @@
   }
   const cm = createCleanupManagerSync()
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
-  const _update = (_apps: InstanceRecordById) => {
+  const _update = (_apps: InstanceRecordsById) => {
     apps = _apps
     _touch++
   }
@@ -51,7 +52,7 @@
         })
       })
       .catch((e) => {
-        console.error(`Failed to fetch instances`)
+        error(`Failed to fetch instances`)
       })
   })
 

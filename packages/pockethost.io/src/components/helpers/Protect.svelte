@@ -1,5 +1,6 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
+  import { warn } from '$util/logger'
   import publicRoutes from '$util/public-routes.json'
   import { getRouter } from '$util/utilities'
   import { onMount } from 'svelte'
@@ -11,7 +12,7 @@
 
     const { pathname } = router
     if (!publicRoutes.includes(pathname)) {
-      console.warn(`${pathname} is a private route`)
+      warn(`${pathname} is a private route`)
       window.location.href = '/'
     }
   })

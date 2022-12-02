@@ -5,7 +5,8 @@
   "license": "MIT",
   "dependencies": {
     "@s-libs/micro-dash": "^14.1.0",
+    "ajv": "^8.11.2",
     "nanoid": "^4.0.0",
-    "pocketbase": "^0.8.0-rc1"
+    "pocketbase": "^0.8.0"
   }
 }

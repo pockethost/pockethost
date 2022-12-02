@@ -1,20 +1,20 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
 import { isFirstTimeRegistration, isUserLoggedIn } from '$util/stores'
-import { InstanceStatus, LATEST_PLATFORM, USE_LATEST_VERSION } from '@pockethost/common'
 import { get } from 'svelte/store'
+import { error } from './logger'
 
 export type FormErrorHandler = (value: string) => void
 
-export const handleFormError = (error: any, setError?: FormErrorHandler) => {
+export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
   const { parseError } = client()
-  console.error(`Form error: ${error}`, { error })
+  error(`Form error: ${e}`, { error: e })
 
   if (setError) {
-    const message = parseError(error)[0]
+    const message = parseError(e)[0]
     setError(message)
   } else {
-    throw error
+    throw e
   }
 }
 
@@ -41,7 +41,10 @@ export const handleLogin = async (
     if (shouldRedirect) {
       await goto('/dashboard')
     }
-  } catch (error: any) {
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      throw new Error(`Expected Error type here, but got ${typeof error}:${error}`)
+    }
     handleFormError(error, setError)
   }
 }
@@ -155,14 +158,10 @@ export const handleCreateNewInstance = async (
 
     // Create a new instance using the generated name
     const record = await createInstance({
-      subdomain: instanceName,
-      uid: id,
-      status: InstanceStatus.Idle,
-      platform: LATEST_PLATFORM,
-      version: USE_LATEST_VERSION
+      subdomain: instanceName
     })
 
-    await goto(`/app/instances/${record.id}`)
+    await goto(`/app/instances/${record.instance.id}`)
   } catch (error: any) {
     handleFormError(error, setError)
   }
@@ -221,7 +220,7 @@ export const handleInstanceGeneratorWidget = async (
       throw new Error(`Instance creation: ${messages[0]}`)
     }
   } catch (error: any) {
-    console.error(`Caught widget error`, { error })
+    error(`Caught widget error`, { error })
     handleFormError(error, setError)
   }
 }
