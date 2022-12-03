@@ -12,7 +12,7 @@
 </script>
 
 <div class="copy-container">
-  <Highlight class="pre" language={typescript} {code} />
+  <Highlight language={typescript} {code} />
 
   <div class="copy-button">
     <CopyButton {code} copy={handleCopy} />
@@ -30,9 +30,5 @@
       top: 2px;
       right: 2px;
     }
-    
-    .pre{ 
-         margin-bottom: 0 ;
-      }
   }
 </style>
