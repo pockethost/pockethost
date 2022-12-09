@@ -61,7 +61,7 @@ export const createProxyService = async (
       )
 
       const endRequest = instance.startRequest()
-      req.on('close', endRequest)
+      res.on('close', endRequest)
       proxy.web(req, res, { target: instance.internalUrl })
     } catch (e) {
       die(`${e}`)
