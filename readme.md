@@ -103,6 +103,14 @@ open https://pockethost.test
 
 # Production Deployment
 
+**1. Release**
+
+- Update `readme.md` with latest relevant fixes.
+- Create a new discussion on PocketHost forum
+- If major or minor release, create announcement on PocketBase forum
+- Use `yarn version --patch` for patch releases
+- Tag version in git
+
 **1. Build**
 
 ```bash
