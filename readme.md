@@ -103,10 +103,6 @@ open https://pockethost.test
 
 # Production Deployment
 
-**1. Release**
-
-- Use `yarn version --patch` for patch releases
-
 **2. Build**
 
 ```bash
@@ -140,10 +136,16 @@ open https://pockethost.io
 
 If all goes well:
 
-- Tag and push tag in git
 - Update `readme.md` with latest relevant fixes.
 - Create a new discussion on PocketHost forum
 - If major or minor release, create announcement on PocketBase forum
+- Use `yarn version --patch` for patch release and tag with git
+
+**6. Prod Run**
+
+```bash
+nohup docker compose -f docker/prod.yaml up --remove-orphans &
+```
 
 # Release History
 
