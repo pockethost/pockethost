@@ -4,7 +4,7 @@ CGO_ENABLED=0
 
 SRC=src
 TARGET=build/$PLATFORM/$VERSION
-DIST=./dist
+DIST="${DIST:-./dist}"
 rm -rf $TARGET
 mkdir -p $TARGET
 mkdir -p $DIST

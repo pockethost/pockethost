@@ -5,7 +5,10 @@ import { exec } from 'child_process'
 import { existsSync } from 'fs'
 import Listr from 'listr'
 
-const limiter = new Bottleneck({ maxConcurrent: 10 })
+const DIST = process.env.DIST || `./dist`
+const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT || `1`, 10)
+
+const limiter = new Bottleneck({ maxConcurrent: MAX_CONCURRENT })
 
 const pexec = (cmd: string, cwd = __dirname) => {
   return new Promise<void>((resolve, reject) => {
@@ -26,12 +29,12 @@ const tasks = new Listr([], { concurrent: true })
 forEach(RELEASES, (info, platform) => {
   forEach(info.versions, (version) => {
     const bin = binFor(platform, version)
-    const cmd = `VERSION=${version} PLATFORM=${platform} BIN=${bin} ./build.sh`
+    const cmd = `VERSION=${version} PLATFORM=${platform} BIN=${bin} DIST=${DIST} ./build.sh`
     tasks.add({
-      title: `${platform}: ${version}`,
+      title: `${platform}: ${version} ${cmd}`,
       task: () =>
         limiter.schedule(async () => {
-          const path = `./dist/${bin}`
+          const path = `./${DIST}/${bin}`
           if (existsSync(path)) return
           await pexec(cmd)
         }),
