@@ -136,7 +136,11 @@ open https://pockethost.io
 
 **next**
 
-- [x] fix: create instance cancel button does not work
+**0.5.4**
+
+- [x] fix: Create Instance cancel button does not work
+- [x] fix: instances do not stay active for realtime events
+- [x] chore: support for PocketBase 0.9.0 and 0.9.1
 
 **0.5.3**
 
