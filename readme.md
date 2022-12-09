@@ -105,13 +105,9 @@ open https://pockethost.test
 
 **1. Release**
 
-- Update `readme.md` with latest relevant fixes.
-- Create a new discussion on PocketHost forum
-- If major or minor release, create announcement on PocketBase forum
 - Use `yarn version --patch` for patch releases
-- Tag version in git
 
-**1. Build**
+**2. Build**
 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
@@ -125,7 +121,7 @@ docker compose -f docker/install.yaml up --remove-orphans
 docker compose -f docker/prod.yaml up --remove-orphans
 ```
 
-**2. Refresh Certbot**
+**3. Refresh Certbot**
 
 ```bash
 ./scripts/certbot-refresh.sh
@@ -133,12 +129,21 @@ docker compose -f docker/prod.yaml up --remove-orphans
 
 Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/nginx/ssl`.
 
-**3. Run**
+**4. Run**
 
 ```bash
 nohup docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans &
 open https://pockethost.io
 ```
+
+**5. Test**
+
+If all goes well:
+
+- Tag and push tag in git
+- Update `readme.md` with latest relevant fixes.
+- Create a new discussion on PocketHost forum
+- If major or minor release, create announcement on PocketBase forum
 
 # Release History
 
