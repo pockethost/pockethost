@@ -151,6 +151,8 @@ nohup docker compose -f docker/prod.yaml up --remove-orphans &
 
 **next**
 
+- chore: PocketBase 0.9.2 update
+
 **0.5.4**
 
 - [x] fix: Create Instance cancel button does not work
