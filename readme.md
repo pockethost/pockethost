@@ -103,7 +103,7 @@ open https://pockethost.test
 
 # Production Deployment
 
-**2. Build**
+**1. Build**
 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
@@ -117,7 +117,7 @@ docker compose -f docker/install.yaml up --remove-orphans
 docker compose -f docker/prod.yaml up --remove-orphans
 ```
 
-**3. Refresh Certbot**
+**2. Refresh Certbot**
 
 ```bash
 ./scripts/certbot-refresh.sh
@@ -125,14 +125,14 @@ docker compose -f docker/prod.yaml up --remove-orphans
 
 Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/nginx/ssl`.
 
-**4. Run**
+**3. Run**
 
 ```bash
 nohup docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans &
 open https://pockethost.io
 ```
 
-**5. Test**
+**4. Test**
 
 If all goes well:
 
@@ -141,13 +141,15 @@ If all goes well:
 - If major or minor release, create announcement on PocketBase forum
 - Use `yarn version --patch` for patch release and tag with git
 
-**6. Prod Run**
+**5. Prod Run**
 
 ```bash
 nohup docker compose -f docker/prod.yaml up --remove-orphans &
 ```
 
 # Release History
+
+**next**
 
 **0.5.5**
 
