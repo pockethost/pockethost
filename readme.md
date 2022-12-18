@@ -149,9 +149,10 @@ nohup docker compose -f docker/prod.yaml up --remove-orphans &
 
 # Release History
 
-**next**
+**0.5.5**
 
 - chore: PocketBase 0.9.2 update
+- chore: PocketBase 0.10.0, 0.10.1, 0.10.2 updates
 
 **0.5.4**
 
