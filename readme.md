@@ -128,8 +128,7 @@ Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/n
 **3. Run**
 
 ```bash
-nohup docker-compose -f docker/docker-compose-prod.yaml --profile=serve up --remove-orphans &
-open https://pockethost.io
+sudo open https://pockethost.io
 ```
 
 **4. Test**
@@ -138,7 +137,7 @@ If all goes well:
 
 - Update `readme.md` with latest relevant fixes.
 - Create a new discussion on PocketHost forum
-- If major or minor release, create announcement on PocketBase forum
+- If major release, create announcement on PocketBase forum
 - Use `yarn version --patch` for patch release and tag with git
 
 **5. Prod Run**
@@ -154,7 +153,7 @@ nohup docker compose -f docker/prod.yaml up --remove-orphans &
 **0.5.5**
 
 - chore: PocketBase 0.9.2 update
-- chore: PocketBase 0.10.0, 0.10.1, 0.10.2 updates
+- chore: PocketBase 0.10.0, 0.10.1 updates
 
 **0.5.4**
 
