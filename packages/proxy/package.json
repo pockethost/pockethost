@@ -1,0 +1,15 @@
+{
+  "name": "@pockethost/proxy",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@types/node": "^18.11.17",
+    "http-proxy": "^1.18.1",
+    "tsx": "^3.12.1"
+  }
+}

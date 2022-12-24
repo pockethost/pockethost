@@ -10,7 +10,7 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check .",
     "format": "prettier --write .",
-    "start": "node dist-server/index.js",
+    "start": "HOST=localhost PORT=5173 node dist-server/index.js",
     "watch": "chokidar 'src/**' -c 'yarn build' --initial"
   },
   "devDependencies": {

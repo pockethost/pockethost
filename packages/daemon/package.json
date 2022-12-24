@@ -5,7 +5,7 @@
   "scripts": {
     "build": "echo 'Build complete' `date`",
     "dev": "DEBUG=1 tsx watch src/server.ts",
-    "start": "tsx  src/server.ts",
+    "start": "tsx src/server.ts",
     "migrate": "tsx src/migrate/migrate.ts"
   },
   "dependencies": {

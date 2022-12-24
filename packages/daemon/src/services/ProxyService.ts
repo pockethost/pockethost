@@ -2,20 +2,21 @@ import { createServer } from 'http'
 import httpProxy from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
 import {
-  DAEMON_PB_PORT_BASE,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { mkInternalUrl } from '../util/internal'
 import { dbg, error, info } from '../util/logger'
 import { InstanceServiceApi } from './InstanceService'
 
 export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
 
-export const createProxyService = async (
+export type ProxyServiceConfig = {
+  coreInternalUrl: string
   instanceManager: InstanceServiceApi
-) => {
+}
+export const createProxyService = async (config: ProxyServiceConfig) => {
+  const { instanceManager, coreInternalUrl } = config
   const proxy = httpProxy.createProxyServer({})
 
   const server = createServer(async (req, res) => {
@@ -39,7 +40,7 @@ export const createProxyService = async (
     }
     try {
       if (subdomain === PUBLIC_PB_SUBDOMAIN) {
-        const target = mkInternalUrl(DAEMON_PB_PORT_BASE)
+        const target = coreInternalUrl
         dbg(`Forwarding proxy request for ${req.url} to instance ${target}`)
         proxy.web(req, res, { target })
         return

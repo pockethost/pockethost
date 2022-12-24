@@ -1,4 +1,5 @@
 import { binFor } from '@pockethost/common'
+import getPort from 'get-port'
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_PORT_BASE,
@@ -18,7 +19,8 @@ import { spawnInstance } from './util/spawnInstance'
 // npm install eventsource --save
 global.EventSource = require('eventsource')
 ;(async () => {
-  const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
+  const port = await getPort({ port: DAEMON_PB_PORT_BASE })
+  const coreInternalUrl = mkInternalUrl(port)
 
   /**
    * Launch central database
@@ -26,7 +28,7 @@ global.EventSource = require('eventsource')
   const mainProcess = await spawnInstance({
     subdomain: PUBLIC_PB_SUBDOMAIN,
     slug: PUBLIC_PB_SUBDOMAIN,
-    port: DAEMON_PB_PORT_BASE,
+    port,
     bin: binFor('lollipop'),
   })
 
@@ -46,7 +48,10 @@ global.EventSource = require('eventsource')
 
   const rpcService = await createRpcService({ client })
   const instanceService = await createInstanceService({ client, rpcService })
-  const proxyService = await createProxyService(instanceService)
+  const proxyService = await createProxyService({
+    instanceManager: instanceService,
+    coreInternalUrl,
+  })
   const backupService = await createBackupService(client, rpcService)
 
   process.once('SIGUSR2', async () => {

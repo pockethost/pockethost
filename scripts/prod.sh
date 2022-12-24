@@ -4,4 +4,4 @@ set -a
 source .env
 set +a
 
-yarn dev
+yarn start

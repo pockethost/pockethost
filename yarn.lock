@@ -958,10 +958,10 @@
     "@types/node" "*"
     rxjs "^6.5.1"
 
-"@types/node@*", "@types/node@^18.11.9", "@types/node@^18.8.2":
-  version "18.11.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.9.tgz#02d013de7058cea16d36168ef2fc653464cfbad4"
-  integrity sha512-CRpX21/kGdzjOpFsZSkcrXMGIBWMGNIHXXBVFSH+ggkftxg+XYP20TESbh+zFvFj3EQOl5byk0HTRn1IL6hbqg==
+"@types/node@*", "@types/node@^18.11.17", "@types/node@^18.11.9", "@types/node@^18.8.2":
+  version "18.11.17"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.17.tgz#5c009e1d9c38f4a2a9d45c0b0c493fe6cdb4bcb5"
+  integrity sha512-HJSUJmni4BeDHhfzn6nF0sVmd1SMezP7/4F0Lq+aXzmp2xm9O7WXrUtHW/CHlYVtZUbByEvWidHqRtcJXGF2Ng==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -2791,11 +2791,6 @@ msgpackr@^1.5.4:
   optionalDependencies:
     msgpackr-extract "^2.2.0"
 
-nanoevents@^7.0.1:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/nanoevents/-/nanoevents-7.0.1.tgz#181580b47787688d8cac775b977b1cf24e26e570"
-  integrity sha512-o6lpKiCxLeijK4hgsqfR6CNToPyRU3keKyyI6uwuHRvpRTbZ0wXw51WRgyldVugZqoJfkGFrjrIenYH3bfEO3Q==
-
 nanoid@^3.3.4:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.4.tgz#730b67e3cd09e2deacf03c027c81c9d9dbc5e8ab"
@@ -3700,7 +3695,7 @@ svelte-preprocess@^4.0.0, svelte-preprocess@^4.10.6:
     sorcery "^0.10.0"
     strip-indent "^3.0.0"
 
-svelte@^3.44.0, svelte@^3.51.0:
+svelte@^3.44.0:
   version "3.53.1"
   resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.53.1.tgz#db9d7df7a8f570e8e22547444c149208b1914442"
   integrity sha512-Q4/hHkktZogGhN5iqxqSi9sjEVoe/NbIxX4hXEHoasTxj+TxEQVAq66LnDMdAZxjmsodkoI5F3slqsS68U7FNw==
@@ -3809,11 +3804,6 @@ tree-kill@^1.2.2:
   resolved "https://registry.yarnpkg.com/tree-kill/-/tree-kill-1.2.2.tgz#4ca09a9092c88b73a7cdc5e8a01b507b0790a0cc"
   integrity sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==
 
-ts-brand@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/ts-brand/-/ts-brand-0.0.2.tgz#b6cbca6ac94df1050a05844e23944eaeda1738a0"
-  integrity sha512-UhSzWY4On9ZHIj6DKkRYVN/8OaprbLAZ3b/Y2AJwdl6oozSABsQ0PvwDh4vOVdkvOtWQOkIrjctZ1kj8YfF3jA==
-
 tslib@^1.9.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
@@ -3824,7 +3814,7 @@ tslib@^2.1.0, tslib@^2.3.0, tslib@^2.3.1, tslib@^2.4.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.1.tgz#0d0bfbaac2880b91e22df0768e55be9753a5b17e"
   integrity sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==
 
-tsx@^3.11.0:
+tsx@^3.11.0, tsx@^3.12.1:
   version "3.12.1"
   resolved "https://registry.yarnpkg.com/tsx/-/tsx-3.12.1.tgz#d07532004c573bfea50a4ac687aa7270b3e34277"
   integrity sha512-Rcg1x+rNe7qwlP8j7kx4VjP/pJo/V57k+17hlrn6a7FuQLNwkaw5W4JF75tYornNVCxkXdSUnqlIT8JY/ttvIw==

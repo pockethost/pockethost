@@ -1,8 +1,0 @@
-**/node_modules
-**/.svelte-kit
-**/.parcel-cache
-**/dist
-**/dist-server
-**/*.log
-docker/mount/cache
-**/build
