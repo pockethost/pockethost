@@ -75,29 +75,20 @@ That's it. You're in business. Your local Svelte build will talk to the `pocketh
 
 ## All our base
 
-The entire pockethost.io stack is Dockerized to make it as easy as possible to mimic a production environment.
+The entire pockethost.io stack can be run locally.
 
 **Prerequisites**
 
-- Docker
 - Local SSL wildcard domain - [local domain setup instructions](./docs/local-domain-setup.md)
-
-_OS X Tip - In Docker Desktop > Beta Features, enable the Virtualization framework and VirtioFS. These settings make a huge performance difference with the volume mounts used frequently with development mode_
 
 **Running in dev mode**
 
-The following will run the Docker stack in dev mode. Dev mode links all code to the host repo and everything will rebuild/relaunch upon modification.
-
 ```bash
 git clone git@github.com:benallfree/pockethost.git
-cd pockethost/docker
-cp .env-template-dev .env.local  # Edit as needed - defaults should work
-cd ..
-docker build .
-docker compose -f docker/build.yaml up --remove-orphans
-docker compose -f docker/migrate.yaml up --remove-orphans
-docker compose -f docker/install.yaml up --remove-orphans
-docker compose -f docker/dev.yaml up --remove-orphans
+cd pockethost
+yarn
+cp .env-template .env # modify as needed
+scripts/dev.sh
 open https://pockethost.test
 ```
 
@@ -107,14 +98,10 @@ open https://pockethost.test
 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
-cd pockethost/docker
-cp .env-template-prod .env.local  # Edit as needed - defaults should work
-cd ..
-docker build .
-docker compose -f docker/build.yaml up --remove-orphans
-docker compose -f docker/migrate.yaml up --remove-orphans
-docker compose -f docker/install.yaml up --remove-orphans
-docker compose -f docker/prod.yaml up --remove-orphans
+cd pockethost
+yarn
+cp .env-template .env # modify as needed
+scripts/build.sh
 ```
 
 **2. Refresh Certbot**
@@ -149,6 +136,14 @@ nohup docker compose -f docker/prod.yaml up --remove-orphans &
 # Release History
 
 **next**
+
+- Proxy localhost paths to avoid local DNS setup
+- Query pocketbase versions from github instead
+
+**0.5.6**
+
+- Remove Docker
+- PocketBase 0.10.4 update
 
 **0.5.5**
 
