@@ -157,74 +157,74 @@ nohup docker compose -f docker/prod.yaml up --remove-orphans &
 
 **0.5.4**
 
-- [x] fix: Create Instance cancel button does not work
-- [x] fix: instances do not stay active for realtime events
-- [x] chore: support for PocketBase 0.9.0 and 0.9.1
+- fix: Create Instance cancel button does not work
+- fix: instances do not stay active for realtime events
+- chore: support for PocketBase 0.9.0 and 0.9.1
 
 **0.5.3**
 
-- [x] fix: incorrect instance information displaying on dashboard details in some cases
-- [x] fix: more helpful error message when backup fails for nonexistent instance
-- [x] chore: move version number to base package.json
-- [x] refactor: logging and async helpers
-- [x] chore: restore auto-cancellation
-- [x] chore: rebuild with go 1.19.3 and include in bin name
-- [x] fix: Disallow backups if data dir doesn't exist
+- fix: incorrect instance information displaying on dashboard details in some cases
+- fix: more helpful error message when backup fails for nonexistent instance
+- chore: move version number to base package.json
+- refactor: logging and async helpers
+- chore: restore auto-cancellation
+- chore: rebuild with go 1.19.3 and include in bin name
+- fix: Disallow backups if data dir doesn't exist
 
 **0.5.2**
 
-- [x] chore: rc3, rc4, 0.8.0-final support
-- [x] chore: dedupe yarn
-- [x] Fix: Account verification needs to hard-redirect
-- [x] chore: improved bootstrap TS support
+- chore: rc3, rc4, 0.8.0-final support
+- chore: dedupe yarn
+- Fix: Account verification needs to hard-redirect
+- chore: improved bootstrap TS support
 
 **0.5.1**
 
-- [x] fix: 404 after creating instance
-- [x] fix: SQLite3 build
+- fix: 404 after creating instance
+- fix: SQLite3 build
 
 **0.5.0**
 
-- [x] Create data backups
-- [x] Display version near PocketHost logo
-- [x] Account activation ux enhancements
-- [x] Password reset feature
-- [x] Menu ux refresh
-- [x] PocketBase instance version number now shows on dashboard
+- Create data backups
+- Display version near PocketHost logo
+- Account activation ux enhancements
+- Password reset feature
+- Menu ux refresh
+- PocketBase instance version number now shows on dashboard
 
 **0.4.2**
 
-- [x] Runtime metrics now show how many minutes per month an instance has used
+- Runtime metrics now show how many minutes per month an instance has used
 
 **0.4.1**
 
-- [x] Support for 0.7.10 and 0.8.0-rc2
-- [x] Update to go 1.19.3
-- [x] Docker build system updates
+- Support for 0.7.10 and 0.8.0-rc2
+- Update to go 1.19.3
+- Docker build system updates
 
 **0.4.0**
 
-- [x] PocketBase 0.8 support
-- [x] Introduced "platforms" concept for version control
+- PocketBase 0.8 support
+- Introduced "platforms" concept for version control
 
 **0.3.2**
 
-- [x] Migrated PBScript repository to here
-- [x] Accounts must now be verified before running an instance
+- Migrated PBScript repository to here
+- Accounts must now be verified before running an instance
 
 **0.3.1**
 
-- [x] OpenGraph support
-- [x] Darkmode enhancements
+- OpenGraph support
+- Darkmode enhancements
 
 **0.3.0**
 
-- [x] Improved realtime support in proxy
-- [x] Updated developer docs
-- [x] Improved Docker support for dev and prod
-- [x] Complete UX redesign
-- [x] Idle/running status for PB instance now shows in green
-- [x] Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
+- Improved realtime support in proxy
+- Updated developer docs
+- Improved Docker support for dev and prod
+- Complete UX redesign
+- Idle/running status for PB instance now shows in green
+- Ability to run separate versions of PocketBase per instance for custom cases including beta/dev
 
 **0.2.0**
 
