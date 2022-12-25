@@ -35,7 +35,6 @@ export const createPromiseHelper = (config: PromiseHelperConfig) => {
           return res
         })
         .catch((e: any) => {
-          error(pfx, JSON.stringify(e, null, 2))
           if (e instanceof ClientResponseError) {
             if (e.status === 400) {
               error(
@@ -45,6 +44,8 @@ export const createPromiseHelper = (config: PromiseHelperConfig) => {
             } else {
               error(pfx, `Unknown PocketBase API error`)
             }
+          } else {
+            error(pfx, JSON.stringify(e, null, 2))
           }
           throw e
         })

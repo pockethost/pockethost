@@ -16,7 +16,7 @@ proxy.on('error', (e) => {
 const server = createServer(options, async (req, res) => {
   const headers = {
     'Access-Control-Allow-Origin': '*' /* @dev First, read about security */,
-    'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+    'Access-Control-Allow-Methods': 'OPTIONS, POST, GET, PATCH, DELETE',
     'Access-Control-Max-Age': 2592000, // 30 days
     'Access-Control-Allow-Headers': `authorization,content-type`,
   }

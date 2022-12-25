@@ -1,4 +1,4 @@
-import { dbg, error } from './logger'
+import { dbg } from './logger'
 import { safeCatch } from './promiseHelper'
 
 export const tryFetch = safeCatch(
@@ -13,7 +13,7 @@ export const tryFetch = safeCatch(
             resolve()
           })
           .catch((e) => {
-            error(`Could not connect to ${url}`)
+            dbg(`Could not connect to ${url}`)
             setTimeout(tryFetch, 1000)
           })
       }
