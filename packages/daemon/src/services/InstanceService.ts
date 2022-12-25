@@ -191,12 +191,17 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
         }
 
         {
+          const uptime = safeCatch(`uptime`, async () => {
+            dbg(`${subdomain} uptime`)
+            await client.pingInvocation(invocation)
+            return true
+          })
           tm.repeat(
-            safeCatch(`uptime`, async () => {
-              dbg(`${subdomain} uptime`)
-              await client.pingInvocation(invocation)
-              return true
-            }),
+            () =>
+              uptime().catch((e) => {
+                dbg(`Ignoring error`)
+                return true
+              }),
             1000
           )
         }
