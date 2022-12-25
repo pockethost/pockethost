@@ -41,8 +41,10 @@ export const createPromiseHelper = (config: PromiseHelperConfig) => {
                 pfx,
                 `PocketBase API error: It looks like you don't have permission to make this request.`
               )
+            } else if (e.status === 0) {
+              dbg(pfx, `Client request aborted (duplicate)`)
             } else {
-              error(pfx, `Unknown PocketBase API error`)
+              error(pfx, `Unknown PocketBase API error`, JSON.stringify(e))
             }
           } else {
             error(pfx, JSON.stringify(e, null, 2))
