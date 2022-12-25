@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "pm2": "pm2 del proxy && pm2 start \"yarn start\" --name=proxy"
   },
   "dependencies": {
     "@types/node": "^18.11.17",

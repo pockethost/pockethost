@@ -114,6 +114,7 @@ Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/n
 **3. Run**
 
 ```bash
+sudo scripts/pm2.sh
 sudo open https://pockethost.io
 ```
 
@@ -125,12 +126,6 @@ If all goes well:
 - Create a new discussion on PocketHost forum
 - If major release, create announcement on PocketBase forum
 - Use `yarn version --patch` for patch release and tag with git
-
-**5. Prod Run**
-
-```bash
-nohup docker compose -f docker/prod.yaml up --remove-orphans &
-```
 
 # Release History
 
