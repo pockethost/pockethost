@@ -11,7 +11,7 @@
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "start": "HOST=localhost PORT=5173 node dist-server/index.js",
-    "pm2": "pm2 del www && pm2 start \"yarn start\" --name=www",
+    "pm2": "pm2 del www ; pm2 start \"yarn start\" --name=www",
     "watch": "chokidar 'src/**' -c 'yarn build' --initial"
   },
   "devDependencies": {
