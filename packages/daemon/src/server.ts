@@ -24,7 +24,6 @@ global.EventSource = require('eventsource')
   /**
    * Launch central database
    */
-
   const { url } = await pbService.spawn({
     command: 'serve',
     slug: PUBLIC_PB_SUBDOMAIN,
