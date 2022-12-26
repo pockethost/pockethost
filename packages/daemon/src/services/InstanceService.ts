@@ -54,7 +54,7 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
       const instance = await client.createInstance({
         subdomain,
         uid: rpc.userId,
-        version: (await pocketbase()).getLatestVersion,
+        version: (await pocketbase()).getLatestVersion(),
         status: InstanceStatus.Idle,
         platform: 'unused',
         secondsThisMonth: 0,
