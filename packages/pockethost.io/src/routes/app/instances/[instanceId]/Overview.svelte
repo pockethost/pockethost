@@ -3,11 +3,10 @@
   import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import type { InstanceFields } from '@pockethost/common'
-  import { humanVersion } from '@pockethost/common'
 
   export let instance: InstanceFields
 
-  const { subdomain, status, platform, version } = instance
+  const { subdomain, status, version } = instance
   const url = `${PUBLIC_PB_PROTOCOL}://${subdomain}.${PUBLIC_PB_DOMAIN}`
 </script>
 
@@ -15,8 +14,7 @@
   <h2>Overview</h2>
   <ProvisioningStatus {status} />
   <div>
-    Running {platform}
-    {humanVersion(platform, version)}
+    Running {version}
   </div>
   <div>
     Admin URL: <a href={`${url}/_`} target="_blank">{`${url}/_`}</a>

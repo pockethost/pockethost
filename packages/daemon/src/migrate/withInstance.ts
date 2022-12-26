@@ -1,34 +1,30 @@
-import { binFor } from '@pockethost/common'
 import {
   DAEMON_PB_PASSWORD,
-  DAEMON_PB_PORT_BASE,
   DAEMON_PB_USERNAME,
   PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
 import { createPbClient, PocketbaseClientApi } from '../db/PbClient'
-import { mkInternalUrl } from '../util/internal'
+import { pocketbase } from '../services/PocketBaseService'
 import { error, info } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
-import { spawnInstance } from '../util/spawnInstance'
-import { tryFetch } from '../util/tryFetch'
 
 export const withInstance = safeCatch(
   `withInstance`,
   async (cb: (client: PocketbaseClientApi) => Promise<void>) => {
     // Add `platform` and `bin` required columns (migrate db json)
     try {
-      const mainProcess = await spawnInstance({
-        subdomain: PUBLIC_PB_SUBDOMAIN,
+      const mainProcess = await (
+        await pocketbase()
+      ).spawn({
+        command: 'serve',
         slug: PUBLIC_PB_SUBDOMAIN,
-        port: DAEMON_PB_PORT_BASE,
-        bin: binFor('lollipop'),
       })
+
       try {
-        const coreInternalUrl = mkInternalUrl(DAEMON_PB_PORT_BASE)
-        const client = createPbClient(coreInternalUrl)
-        await tryFetch(coreInternalUrl)
+        const { url } = mainProcess
+        const client = createPbClient(url)
         await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
         await cb(client)
       } catch (e) {
@@ -39,6 +35,7 @@ export const withInstance = safeCatch(
       } finally {
         info(`Exiting process`)
         mainProcess.kill()
+        await mainProcess.exited
       }
     } catch (e) {
       error(`${e}`)

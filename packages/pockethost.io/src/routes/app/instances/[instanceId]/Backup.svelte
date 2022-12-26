@@ -66,22 +66,22 @@
     </div>
 
     <div>
-      {#each $backups as { id, bytes, updated, platform, version, status, message, progress }}
+      {#each $backups as { id, bytes, updated, version, status, message, progress }}
         <div>
           {#if status === BackupStatus.FinishedSuccess}
             <div class="text-success">
-              {platform}:{version} ({prettyBytes(bytes)}) - Finished {new Date(updated)}
+              {version} ({prettyBytes(bytes)}) - Finished {new Date(updated)}
             </div>
           {/if}
           {#if status === BackupStatus.FinishedError}
             <div class="text-danger">
-              {platform}:{version} - Finished {new Date(updated)}
+              {version} - Finished {new Date(updated)}
               <AlertBar icon="bi bi-exclamation-triangle-fill" text={message} />
             </div>
           {/if}
           {#if status !== BackupStatus.FinishedError && status !== BackupStatus.FinishedSuccess}
             <div class="text-warning">
-              {platform}:{version}
+              {version}
               {status}
               {#each Object.entries(progress || {}) as [src, pct]}
                 <div class="badge bg-secondary" style="margin-right: 3px">

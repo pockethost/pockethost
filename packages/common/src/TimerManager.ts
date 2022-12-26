@@ -1,4 +1,5 @@
 import { forEach } from '@s-libs/micro-dash'
+import { createLogger } from './Logger'
 
 export type UnixTimestampMs = number
 export type TimerCanceler = () => void
@@ -8,10 +9,13 @@ export type TimeManagerConfig = {}
 export type TimeManager = ReturnType<typeof createTimerManager>
 
 export const createTimerManager = (config: TimeManagerConfig) => {
+  const { dbg, error } = createLogger({ debug: true })
   let i = 0
   const cleanups: any = {}
+  let isShutDown = false
 
   const add = (cb: () => void, ms: UnixTimestampMs) => {
+    if (isShutDown) throw new Error(`Already shut down`)
     const idx = i++
     const tid = setTimeout(() => {
       cancel()
@@ -26,9 +30,11 @@ export const createTimerManager = (config: TimeManagerConfig) => {
   }
 
   const shutdown = () => {
-    // console.log(`Canceling all`, cleanups)
+    isShutDown = true
+
+    dbg(`Canceling all`, cleanups)
     forEach(cleanups, (c) => c())
-    // console.log(`done`, cleanups)
+    // dbg(`done`, cleanups)
   }
 
   const repeat = (
@@ -38,9 +44,9 @@ export const createTimerManager = (config: TimeManagerConfig) => {
     let _unsub: TimerCanceler | undefined = undefined
     const _again = async () => {
       const shouldRepeat = await cb()
-      if (shouldRepeat) _unsub = add(_again, ms)
+      if (shouldRepeat && !isShutDown) _unsub = add(_again, ms)
     }
-    _again()
+    _again().catch(error)
     return () => {
       _unsub?.()
       _unsub = undefined

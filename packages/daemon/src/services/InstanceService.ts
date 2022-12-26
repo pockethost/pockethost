@@ -1,15 +1,12 @@
 import {
   assertTruthy,
-  binFor,
   CreateInstancePayload,
   CreateInstancePayloadSchema,
   CreateInstanceResult,
   createTimerManager,
   InstanceId,
   InstanceStatus,
-  LATEST_PLATFORM,
   RpcCommands,
-  USE_LATEST_VERSION,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -26,7 +23,7 @@ import { mkInternalUrl } from '../util/internal'
 import { dbg, error, warn } from '../util/logger'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'
-import { PocketbaseProcess, spawnInstance } from '../util/spawnInstance'
+import { pocketbase, PocketbaseProcess } from './PocketBaseService'
 import { RpcServiceApi } from './RpcService'
 
 type InstanceApi = {
@@ -46,6 +43,7 @@ export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
 export const createInstanceService = async (config: InstanceServiceConfig) => {
   const { client, rpcService } = config
   const { registerCommand } = rpcService
+  const pbService = await pocketbase()
 
   registerCommand<CreateInstancePayload, CreateInstanceResult>(
     RpcCommands.CreateInstance,
@@ -56,9 +54,9 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
       const instance = await client.createInstance({
         subdomain,
         uid: rpc.userId,
-        version: USE_LATEST_VERSION,
+        version: (await pocketbase()).getLatestVersion,
         status: InstanceStatus.Idle,
-        platform: LATEST_PLATFORM,
+        platform: 'unused',
         secondsThisMonth: 0,
         isBackupAllowed: false,
       })
@@ -109,11 +107,11 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
 
       await client.updateInstanceStatus(instance.id, InstanceStatus.Starting)
 
-      const childProcess = await spawnInstance({
-        subdomain,
+      const childProcess = await pbService.spawn({
+        command: 'serve',
         slug: instance.id,
         port: newPort,
-        bin: binFor(instance.platform, instance.version),
+        version: instance.version,
         onUnexpectedStop: (code) => {
           warn(`${subdomain} exited unexpectedly with ${code}`)
           api.shutdown()

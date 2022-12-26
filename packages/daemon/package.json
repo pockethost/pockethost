@@ -14,7 +14,9 @@
     "@s-libs/micro-dash": "^14.1.0",
     "@types/http-proxy": "^1.17.9",
     "@types/node": "^18.11.9",
+    "@types/semver": "^7.3.13",
     "@types/tmp": "^0.2.1",
+    "@types/unzipper": "^0.10.5",
     "ajv": "^8.11.2",
     "boolean": "^3.2.0",
     "bottleneck": "^2.19.5",
@@ -24,11 +26,15 @@
     "get-port": "^6.1.2",
     "http-proxy": "^1.18.1",
     "knex": "^2.3.0",
-    "node-fetch": "^3.2.10",
+    "node-fetch": "^3.3.0",
     "pocketbase": "^0.8.0",
+    "semver": "^7.3.8",
     "sqlite3": "^5.1.2",
     "tmp": "^0.2.1",
     "type-fest": "^3.3.0",
+    "unzipper": "^0.10.11"
+  },
+  "devDependencies": {
     "tsx": "^3.11.0"
   }
 }

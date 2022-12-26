@@ -7,7 +7,7 @@
   import { client } from '$src/pocketbase'
   import { createCleanupManagerSync } from '$util/CleanupManager'
   import { error } from '$util/logger'
-  import { humanVersion, type InstanceFields, type InstanceRecordsById } from '@pockethost/common'
+  import type { InstanceFields, InstanceRecordsById } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
@@ -25,6 +25,7 @@
     if (browser) {
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
       const tooltipList = [...tooltipTriggerList].map(
+        //@ts-ignore
         (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
       )
     }
@@ -83,10 +84,7 @@
                   <i
                     class="bi bi-info-circle"
                     data-bs-toggle="tooltip"
-                    data-bs-title={`Running ${app.platform} ${humanVersion(
-                      app.platform,
-                      app.version
-                    )}`}
+                    data-bs-title={`Running ${app.version}`}
                   />
                   <ProvisioningStatus status={app.status} />
                 </div>

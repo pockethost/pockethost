@@ -9,7 +9,7 @@
   import { instance } from './store'
 
   assertExists($instance, `Expected instance here`)
-  const { subdomain, status, platform, version } = $instance
+  const { subdomain } = $instance
   const url = `${PUBLIC_PB_PROTOCOL}://${subdomain}.${PUBLIC_PB_DOMAIN}`
   const code = `const url = '${url}'\nconst client = new PocketBase(url)`
 </script>
