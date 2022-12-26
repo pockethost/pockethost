@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import fetch from 'node-fetch'
+import { dirname } from 'path'
 import { dbg } from './logger'
 
 export const smartFetch = async <TRet>(
@@ -15,6 +16,7 @@ export const smartFetch = async <TRet>(
     return JSON.parse(readFileSync(path).toString()) as TRet
   }
   const data = await res.json()
+  mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, JSON.stringify(data))
   return data as TRet
 }

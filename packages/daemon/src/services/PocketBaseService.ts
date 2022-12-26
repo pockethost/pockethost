@@ -1,7 +1,7 @@
 import { createTimerManager } from '@pockethost/common'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
-import { existsSync } from 'fs'
+import { chmodSync, existsSync } from 'fs'
 import getPort from 'get-port'
 import { type } from 'os'
 import { join } from 'path'
@@ -69,7 +69,7 @@ export const createPocketbaseService = async (
       `https://api.github.com/repos/pocketbase/pocketbase/releases`,
       join(cachePath, `releases.json`)
     )
-    dbg({ releases })
+    // dbg({ releases })
 
     const promises = releases.map(async (release) => {
       const { tag_name, prerelease, assets } = release
@@ -77,7 +77,7 @@ export const createPocketbaseService = async (
       if (prerelease) return
       const path = join(cachePath, tag_name)
       const url = assets.find((v) => {
-        dbg(v.name)
+        // dbg(v.name)
         return v.name.includes(osName) && v.name.includes(cpuArchitecture)
       })?.browser_download_url
       if (!url) return
@@ -85,6 +85,7 @@ export const createPocketbaseService = async (
       const p = new Promise<string>(async (resolve) => {
         const binPath = join(path, `pocketbase`)
         if (existsSync(binPath)) {
+          chmodSync(binPath, 0o775)
           resolve(binPath)
           versions[sanitizedTagName] = Promise.resolve('')
           return
@@ -104,6 +105,7 @@ export const createPocketbaseService = async (
       )
     }
     maxVersion = `^${rsort(keys(versions))[0]}`
+    dbg({ maxVersion })
     return true
   }
   await check().catch(error)
@@ -124,11 +126,15 @@ export const createPocketbaseService = async (
   }
 
   const _spawn = safeCatch(`spawnInstance`, async (cfg: SpawnConfig) => {
-    const { version, command, slug, port, onUnexpectedStop }: SpawnConfig = {
+    const _cfg: Required<SpawnConfig> = {
       version: '^0.10.0',
       port: await getPort(),
+      onUnexpectedStop: (code) => {
+        dbg(`Unexpected stop default handler. Exit code: ${code}`)
+      },
       ...cfg,
     }
+    const { version, command, slug, port, onUnexpectedStop } = _cfg
     const bin = (await getVersion(version)).binPath
     if (!existsSync(bin)) {
       throw new Error(
