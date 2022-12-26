@@ -2,15 +2,14 @@
   import { page } from '$app/stores'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import { client } from '$src/pocketbase'
-  import { createCleanupManagerSync } from '$util/CleanupManager'
   import { dbg } from '$util/logger'
-  import { assertExists } from '@pockethost/common'
+  import { assertExists, createCleanupManager } from '@pockethost/common'
   import { onDestroy, onMount } from 'svelte'
   import { instance } from './store'
 
   const { instanceId } = $page.params
 
-  const cm = createCleanupManagerSync()
+  const cm = createCleanupManager()
   instance.set(undefined)
   onMount(async () => {
     const { watchInstanceById } = client()
@@ -24,7 +23,7 @@
   cm.add(() => {
     instance.set(undefined)
   })
-  onDestroy(cm.cleanupAll)
+  onDestroy(() => cm.shutdown())
 </script>
 
 <AuthStateGuard>

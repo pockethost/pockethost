@@ -1,4 +1,5 @@
 export * from './assert'
+export * from './CleanupManager'
 export * from './Logger'
 export * from './pocketbase-client-helpers'
 export * from './PromiseHelper'

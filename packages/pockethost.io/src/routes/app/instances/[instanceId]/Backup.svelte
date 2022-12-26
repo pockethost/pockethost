@@ -1,9 +1,9 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase'
-  import { createCleanupManagerSync } from '$util/CleanupManager'
   import {
     BackupStatus,
+    createCleanupManager,
     type BackupFields,
     type InstanceFields,
     type RecordId
@@ -16,7 +16,7 @@
 
   export let instance: InstanceFields
 
-  const cm = createCleanupManagerSync()
+  const cm = createCleanupManager()
   const backups = writable<BackupFields[]>([])
   let isBackingUp = false
   onMount(async () => {
@@ -45,7 +45,7 @@
       // dbg(record.id)
     }).then(cm.add)
   })
-  onDestroy(cm.cleanupAll)
+  onDestroy(() => cm.shutdown())
 
   const startBackup = () => {
     const { createInstanceBackupJob } = client()

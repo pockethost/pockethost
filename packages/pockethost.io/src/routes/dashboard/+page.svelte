@@ -5,9 +5,12 @@
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_PB_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
-  import { createCleanupManagerSync } from '$util/CleanupManager'
   import { error } from '$util/logger'
-  import type { InstanceFields, InstanceRecordsById } from '@pockethost/common'
+  import {
+    createCleanupManager,
+    type InstanceFields,
+    type InstanceRecordsById
+  } from '@pockethost/common'
   import { forEach, values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { fade } from 'svelte/transition'
@@ -30,7 +33,7 @@
       )
     }
   }
-  const cm = createCleanupManagerSync()
+  const cm = createCleanupManager()
   let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
   const _update = (_apps: InstanceRecordsById) => {
     apps = _apps
@@ -57,7 +60,7 @@
       })
   })
 
-  onDestroy(cm.cleanupAll)
+  onDestroy(() => cm.shutdown())
 </script>
 
 <svelte:head>
