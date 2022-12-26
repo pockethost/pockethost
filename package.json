@@ -7,9 +7,7 @@
   "scripts": {
     "lint": "prettier -c \"./**/*.ts\"",
     "lint:fix": "prettier -w \"./**/*.ts\"",
-    "build": "concurrently 'yarn build:pocketbase' 'yarn build:daemon' 'yarn build:www'",
-    "build:pocketbase": "cd packages/pocketbase && yarn build",
-    "build:daemon": "cd packages/daemon && yarn build",
+    "build": "concurrently 'yarn:build:*'",
     "build:www": "cd packages/pockethost.io && yarn build",
     "dev": "concurrently 'yarn:dev:*'",
     "dev:proxy": "cd packages/proxy && yarn dev",
