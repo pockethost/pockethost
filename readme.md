@@ -130,10 +130,20 @@ If all goes well:
 
 # Release History
 
-**next**
+**soon**
 
 - Proxy localhost paths to avoid local DNS setup
-- Query pocketbase versions from github instead
+
+**next**
+
+- Cache pocketbase releases
+
+**0.5.7**
+
+- Fix various production errors
+- Support PATCH and DELETE CORS operations
+- Add pm2 production support
+- Implement auto-upgrade feature and semver tagging
 
 **0.5.6**
 

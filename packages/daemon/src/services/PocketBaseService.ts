@@ -1,18 +1,18 @@
 import { createTimerManager } from '@pockethost/common'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
-import { chmodSync, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import getPort from 'get-port'
-import fetch from 'node-fetch'
 import { type } from 'os'
-import { dirname, join } from 'path'
+import { join } from 'path'
 import { maxSatisfying, rsort } from 'semver'
 import { AsyncReturnType } from 'type-fest'
-import { Extract } from 'unzipper'
 import { DAEMON_PB_DATA_DIR } from '../constants'
+import { downloadAndExtract } from '../util/downloadAndExtract'
 import { mkInternalAddress, mkInternalUrl } from '../util/internal'
 import { dbg, error } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
+import { smartFetch } from '../util/smartFetch'
 import { tryFetch } from '../util/tryFetch'
 import { mkSingleton } from './mkSingleton'
 
@@ -50,31 +50,6 @@ export type Release = {
 }
 export type Releases = Release[]
 
-export const downloadAndExtract = async (url: string, binPath: string) => {
-  await new Promise<void>(async (resolve, reject) => {
-    dbg(`Fetching ${url}`)
-    const res = await fetch(url)
-    if (!res.body) {
-      throw new Error(`Body expected for ${url}`)
-    }
-    dbg(`Extracting ${url}`)
-    const stream = res.body.pipe(Extract({ path: dirname(binPath) }))
-    stream.on('close', () => {
-      dbg(`Close ${url}`)
-      resolve()
-    })
-    stream.on('error', (e) => {
-      error(`Error ${url} ${e}`)
-      reject()
-    })
-    stream.on('end', () => {
-      dbg(`End ${url}`)
-      resolve()
-    })
-  })
-  chmodSync(binPath, 0o775)
-}
-
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig
 ) => {
@@ -90,10 +65,11 @@ export const createPocketbaseService = async (
   let maxVersion = ''
 
   const check = async () => {
-    const res = await fetch(
-      `https://api.github.com/repos/pocketbase/pocketbase/releases`
+    const releases = await smartFetch<Releases>(
+      `https://api.github.com/repos/pocketbase/pocketbase/releases`,
+      join(cachePath, `releases.json`)
     )
-    const releases = (await res.json()) as Releases
+    dbg({ releases })
 
     const promises = releases.map(async (release) => {
       const { tag_name, prerelease, assets } = release
