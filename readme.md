@@ -115,6 +115,7 @@ Then, ensure keys named `fullchain.pem` and `privkey.key` are in `docker/mount/n
 
 ```bash
 sudo scripts/pm2.sh
+sudo pm2 dash
 sudo open https://pockethost.io
 ```
 
