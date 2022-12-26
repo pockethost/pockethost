@@ -36,7 +36,7 @@ export type PocketbaseServiceConfig = {
 export type PocketbaseProcess = {
   url: string
   pid: number | undefined
-  kill: () => void
+  kill: () => boolean
   exited: Promise<number | null>
 }
 
@@ -52,23 +52,23 @@ export type Releases = Release[]
 
 export const downloadAndExtract = async (url: string, binPath: string) => {
   await new Promise<void>(async (resolve, reject) => {
-    console.log(`Fetching ${url}`)
+    dbg(`Fetching ${url}`)
     const res = await fetch(url)
     if (!res.body) {
       throw new Error(`Body expected for ${url}`)
     }
-    console.log(`Extracting ${url}`)
+    dbg(`Extracting ${url}`)
     const stream = res.body.pipe(Extract({ path: dirname(binPath) }))
     stream.on('close', () => {
-      console.log(`Close ${url}`)
+      dbg(`Close ${url}`)
       resolve()
     })
     stream.on('error', (e) => {
-      console.error(`Error ${url} ${e}`)
+      error(`Error ${url} ${e}`)
       reject()
     })
     stream.on('end', () => {
-      console.log(`End ${url}`)
+      dbg(`End ${url}`)
       resolve()
     })
   })
@@ -83,9 +83,9 @@ export const createPocketbaseService = async (
   const tm = createTimerManager({})
 
   const osName = type().toLowerCase()
-  const cpuArchitecture = process.arch
+  const cpuArchitecture = process.arch === 'x64' ? 'amd64' : process.arch
 
-  console.log({ osName, cpuArchitecture })
+  dbg({ osName, cpuArchitecture })
   const versions: { [_: string]: Promise<string> } = {}
   let maxVersion = ''
 
@@ -100,9 +100,10 @@ export const createPocketbaseService = async (
       const sanitizedTagName = tag_name.slice(1)
       if (prerelease) return
       const path = join(cachePath, tag_name)
-      const url = assets.find(
-        (v) => v.name.includes(osName) && v.name.includes(cpuArchitecture)
-      )?.browser_download_url
+      const url = assets.find((v) => {
+        dbg(v.name)
+        return v.name.includes(osName) && v.name.includes(cpuArchitecture)
+      })?.browser_download_url
       if (!url) return
 
       const p = new Promise<string>(async (resolve) => {
@@ -119,12 +120,18 @@ export const createPocketbaseService = async (
       versions[sanitizedTagName] = p
     })
     await Promise.all(promises).catch((e) => {
-      console.error(e)
+      error(e)
     })
+    if (keys(versions).length === 0) {
+      throw new Error(
+        `No version found, probably mismatched architecture and OS (${osName}/${cpuArchitecture})`
+      )
+    }
     maxVersion = `^${rsort(keys(versions))[0]}`
     return true
   }
-  await check()
+  await check().catch(error)
+
   tm.repeat(check, checkIntervalMs)
 
   const getLatestVersion = () => maxVersion
@@ -176,7 +183,7 @@ export const createPocketbaseService = async (
     const exited = new Promise<number | null>((resolve) => {
       ls.on('exit', (code) => {
         dbg(`${slug} exited with code ${code}`)
-        onUnexpectedStop?.(code)
+        if (code) onUnexpectedStop?.(code)
         resolve(code)
       })
     })
