@@ -137,6 +137,7 @@ If all goes well:
 **next**
 
 - Cache pocketbase releases
+- Enhance instance uptime
 
 **0.5.7**
 
