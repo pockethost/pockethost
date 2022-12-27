@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_PB_PROTOCOL } from '$env/static/public'
-  import { PUBLIC_PB_DOMAIN } from '$src/env'
+  import { PUBLIC_PB_DOMAIN, PUBLIC_PB_PROTOCOL } from '$src/env'
   import { assertExists } from '@pockethost/common'
   import Backup from './Backup.svelte'
   import Code from './Code.svelte'
