@@ -66,10 +66,10 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
 
   const instances: { [_: string]: InstanceApi } = {}
 
-  const limiter = new Bottleneck({ maxConcurrent: 1 })
+  const instanceLimiter = new Bottleneck({ maxConcurrent: 1 })
 
   const getInstance = (subdomain: string) =>
-    limiter.schedule(async () => {
+    instanceLimiter.schedule(async () => {
       // dbg(`Getting instance ${subdomain}`)
       {
         const instance = instances[subdomain]
@@ -79,9 +79,13 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
         }
       }
 
+      const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
+
       dbg(`Checking ${subdomain} for permission`)
 
-      const [instance, owner] = await client.getInstanceBySubdomain(subdomain)
+      const [instance, owner] = await clientLimiter.schedule(() =>
+        client.getInstanceBySubdomain(subdomain)
+      )
       if (!instance) {
         dbg(`${subdomain} not found`)
         return
@@ -93,7 +97,9 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
         )
       }
 
-      await client.updateInstanceStatus(instance.id, InstanceStatus.Port)
+      await clientLimiter.schedule(() =>
+        client.updateInstanceStatus(instance.id, InstanceStatus.Port)
+      )
       dbg(`${subdomain} found in DB`)
       const exclude = map(instances, (i) => i.port)
       const newPort = await getPort({
@@ -105,7 +111,9 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
       })
       dbg(`Found port for ${subdomain}: ${newPort}`)
 
-      await client.updateInstanceStatus(instance.id, InstanceStatus.Starting)
+      await clientLimiter.schedule(() =>
+        client.updateInstanceStatus(instance.id, InstanceStatus.Starting)
+      )
 
       const childProcess = await pbService.spawn({
         command: 'serve',
@@ -125,7 +133,9 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
         await client.updateInstance(instance.id, { isBackupAllowed: true })
       }
 
-      const invocation = await client.createInvocation(instance, pid)
+      const invocation = await clientLimiter.schedule(() =>
+        client.createInvocation(instance, pid)
+      )
       const tm = createTimerManager({})
       const api: InstanceApi = (() => {
         let openRequestCount = 0
@@ -141,12 +151,13 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
             `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
             async () => {
               tm.shutdown()
-              await client.finalizeInvocation(invocation)
+              await clientLimiter.schedule(() =>
+                client.finalizeInvocation(invocation)
+              )
               const res = childProcess.kill()
               delete instances[subdomain]
-              await client.updateInstanceStatus(
-                instance.id,
-                InstanceStatus.Idle
+              await clientLimiter.schedule(() =>
+                client.updateInstanceStatus(instance.id, InstanceStatus.Idle)
               )
               assertTruthy(
                 res,
@@ -191,7 +202,9 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
         {
           const uptime = safeCatch(`uptime`, async () => {
             dbg(`${subdomain} uptime`)
-            await client.pingInvocation(invocation)
+            await clientLimiter.schedule(() =>
+              client.pingInvocation(invocation)
+            )
             return true
           })
           tm.repeat(
@@ -208,7 +221,9 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
       })()
 
       instances[subdomain] = api
-      await client.updateInstanceStatus(instance.id, InstanceStatus.Running)
+      await clientLimiter.schedule(() =>
+        client.updateInstanceStatus(instance.id, InstanceStatus.Running)
+      )
       dbg(`${api.internalUrl} is running`)
       return instances[subdomain]
     })
