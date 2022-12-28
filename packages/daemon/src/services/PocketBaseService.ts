@@ -1,4 +1,5 @@
-import { createTimerManager } from '@pockethost/common'
+import { createTimerManager, logger } from '@pockethost/common'
+import { mkSingleton } from '@pockethost/common/src/mkSingleton'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
 import { chmodSync, existsSync } from 'fs'
@@ -10,11 +11,9 @@ import { AsyncReturnType } from 'type-fest'
 import { DAEMON_PB_DATA_DIR } from '../constants'
 import { downloadAndExtract } from '../util/downloadAndExtract'
 import { mkInternalAddress, mkInternalUrl } from '../util/internal'
-import { dbg, error } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
 import { smartFetch } from '../util/smartFetch'
 import { tryFetch } from '../util/tryFetch'
-import { mkSingleton } from './mkSingleton'
 
 export type PocketbaseCommand = 'serve' | 'upgrade'
 export type SpawnConfig = {
@@ -53,6 +52,8 @@ export type Releases = Release[]
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig
 ) => {
+  const { dbg, error } = logger().create('PocketbaseService')
+
   const { cachePath, checkIntervalMs } = config
 
   const tm = createTimerManager({})

@@ -1,7 +1,9 @@
+import { logger } from '@pockethost/common'
 import { mkdirSync } from 'fs'
-import { dbg } from './logger'
 
 export const ensureDirExists = (path: string) => {
+  const { dbg } = logger().create(`ensureDirExists`)
+
   try {
     mkdirSync(path)
   } catch (e) {

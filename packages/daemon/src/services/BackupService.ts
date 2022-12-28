@@ -6,6 +6,7 @@ import {
   BackupInstanceResult,
   BackupStatus,
   createTimerManager,
+  logger,
   RestoreInstancePayload,
   RestoreInstancePayloadSchema,
   RestoreInstanceResult,
@@ -14,13 +15,14 @@ import {
 import Bottleneck from 'bottleneck'
 import { PocketbaseClientApi } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
-import { dbg } from '../util/logger'
 import { RpcServiceApi } from './RpcService'
 
 export const createBackupService = async (
   client: PocketbaseClientApi,
   jobService: RpcServiceApi
 ) => {
+  const { dbg } = logger().create('BackupService')
+
   jobService.registerCommand<BackupInstancePayload, BackupInstanceResult>(
     RpcCommands.BackupInstance,
     BackupInstancePayloadSchema,

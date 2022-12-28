@@ -1,3 +1,4 @@
+import { logger } from '@pockethost/common'
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
@@ -6,7 +7,6 @@ import {
   PUBLIC_APP_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { dbg, error, info } from '../util/logger'
 import { InstanceServiceApi } from './InstanceService'
 
 export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
@@ -16,6 +16,8 @@ export type ProxyServiceConfig = {
   instanceManager: InstanceServiceApi
 }
 export const createProxyService = async (config: ProxyServiceConfig) => {
+  const { dbg, error, info } = logger().create('ProxyService')
+
   const { instanceManager, coreInternalUrl } = config
   const proxy = httpProxy.createProxyServer({})
 

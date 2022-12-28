@@ -6,6 +6,7 @@ import {
   createTimerManager,
   InstanceId,
   InstanceStatus,
+  logger,
   RpcCommands,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
@@ -20,7 +21,6 @@ import {
 } from '../constants'
 import { PocketbaseClientApi } from '../db/PbClient'
 import { mkInternalUrl } from '../util/internal'
-import { dbg, error, warn } from '../util/logger'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'
 import { pocketbase, PocketbaseProcess } from './PocketBaseService'
@@ -41,6 +41,8 @@ export type InstanceServiceConfig = {
 
 export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
 export const createInstanceService = async (config: InstanceServiceConfig) => {
+  const { dbg, raw, error, warn } = logger().create('InstanceService')
+
   const { client, rpcService } = config
   const { registerCommand } = rpcService
   const pbService = await pocketbase()
@@ -180,7 +182,7 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
         {
           tm.repeat(
             safeCatch(`idleCheck`, async () => {
-              dbg(`${subdomain} idle check: ${openRequestCount} open requests`)
+              raw(`${subdomain} idle check: ${openRequestCount} open requests`)
               if (
                 openRequestCount === 0 &&
                 lastRequest + DAEMON_PB_IDLE_TTL < now()
@@ -191,7 +193,7 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
                 await _api.shutdown()
                 return false
               } else {
-                dbg(`${openRequestCount} requests remain open on ${subdomain}`)
+                raw(`${openRequestCount} requests remain open on ${subdomain}`)
               }
               return true
             }),
@@ -201,7 +203,7 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
 
         {
           const uptime = safeCatch(`uptime`, async () => {
-            dbg(`${subdomain} uptime`)
+            raw(`${subdomain} uptime`)
             await clientLimiter.schedule(() =>
               client.pingInvocation(invocation)
             )
@@ -210,7 +212,7 @@ export const createInstanceService = async (config: InstanceServiceConfig) => {
           tm.repeat(
             () =>
               uptime().catch((e) => {
-                dbg(`Ignoring error`)
+                warn(`Ignoring error`)
                 return true
               }),
             1000

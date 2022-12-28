@@ -1,10 +1,12 @@
+import { logger } from '@pockethost/common'
 import { chmodSync } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
 import { Extract } from 'unzipper'
-import { dbg, error } from './logger'
 
 export const downloadAndExtract = async (url: string, binPath: string) => {
+  const { dbg, error } = logger().create('downloadAndExtract')
+
   await new Promise<void>(async (resolve, reject) => {
     dbg(`Fetching ${url}`)
     const res = await fetch(url)

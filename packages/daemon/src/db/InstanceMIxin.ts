@@ -4,18 +4,20 @@ import {
   InstanceFields_Create,
   InstanceId,
   InstanceStatus,
+  logger,
   UserFields,
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { dbg } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
 
 export const createInstanceMixin = (context: MixinContext) => {
+  const { dbg, raw } = logger().create('InstanceMixin')
+
   const { client, rawDb } = context
 
   const createInstance = safeCatch(
@@ -98,7 +100,7 @@ export const createInstanceMixin = (context: MixinContext) => {
         .where('instanceId', instanceId)
         .where('startedAt', '>=', startIso)
         .where('startedAt', '<=', endIso)
-      dbg(query.toString())
+      raw(query.toString())
       const res = await query
       const [row] = res
       assertExists(row, `Expected row here`)

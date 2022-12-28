@@ -1,4 +1,4 @@
-import { BackupRecordId, InstanceId } from '@pockethost/common'
+import { BackupRecordId, InstanceId, logger } from '@pockethost/common'
 import { statSync } from 'fs'
 import { basename, resolve } from 'path'
 import { chdir, cwd } from 'process'
@@ -7,7 +7,6 @@ import tmp from 'tmp'
 import { DAEMON_PB_DATA_DIR } from '../constants'
 import { pexec } from '../migrate/pexec'
 import { ensureDirExists } from './ensureDirExists'
-import { dbg, error } from './logger'
 import { safeCatch } from './promiseHelper'
 
 export type BackupProgress = {
@@ -25,6 +24,8 @@ export const PB_DATA_DIR = `pb_data`
 export const execBackup = safeCatch(
   `execBackup`,
   (src: string, dst: string, progress?: ProgressCallback) => {
+    const { dbg, error } = logger().create('execBackup')
+
     const db = new Database(src)
     const backup = db.backup(dst)
     return new Promise<void>((resolve, reject) => {
@@ -68,6 +69,8 @@ export const backupInstance = safeCatch(
     backupId: BackupRecordId,
     progress?: ProgressCallback
   ) => {
+    const { dbg, error } = logger().create('backupInstance')
+
     const dataRoot = resolve(DAEMON_PB_DATA_DIR, instanceId)
     const backupTgzRoot = resolve(dataRoot, 'backup')
     const backupTgzFile = resolve(backupTgzRoot, `${backupId}.tgz`)

@@ -1,3 +1,4 @@
+import { logger } from '@pockethost/common'
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_USERNAME,
@@ -7,12 +8,13 @@ import {
 } from '../constants'
 import { createPbClient, PocketbaseClientApi } from '../db/PbClient'
 import { pocketbase } from '../services/PocketBaseService'
-import { error, info } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
 
 export const withInstance = safeCatch(
   `withInstance`,
   async (cb: (client: PocketbaseClientApi) => Promise<void>) => {
+    const { info, error } = logger().create('withInstance')
+
     // Add `platform` and `bin` required columns (migrate db json)
     try {
       const mainProcess = await (

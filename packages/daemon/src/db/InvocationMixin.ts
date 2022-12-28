@@ -1,5 +1,9 @@
-import { InstanceFields, InvocationFields, pocketNow } from '@pockethost/common'
-import { dbg } from '../util/logger'
+import {
+  InstanceFields,
+  InvocationFields,
+  logger,
+  pocketNow,
+} from '@pockethost/common'
 import { safeCatch } from '../util/promiseHelper'
 import { InstanceApi } from './InstanceMIxin'
 import { MixinContext } from './PbClient'
@@ -8,6 +12,8 @@ export const createInvocationMixin = (
   context: MixinContext,
   instanceApi: InstanceApi
 ) => {
+  const { dbg } = logger().create('InvocationMixin')
+
   const { client } = context
 
   const createInvocation = safeCatch(

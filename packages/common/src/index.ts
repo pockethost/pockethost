@@ -1,6 +1,7 @@
 export * from './assert'
 export * from './CleanupManager'
 export * from './Logger'
+export * from './mkSingleton'
 export * from './pocketbase-client-helpers'
 export * from './PromiseHelper'
 export * from './schema'

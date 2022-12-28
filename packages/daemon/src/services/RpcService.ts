@@ -1,5 +1,6 @@
 import {
   assertTruthy,
+  logger,
   RpcCommands,
   RpcFields,
   RpcStatus,
@@ -12,7 +13,6 @@ import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
 import { PocketbaseClientApi } from '../db/PbClient'
-import { dbg, error } from '../util/logger'
 
 export type RpcServiceApi = AsyncReturnType<typeof createRpcService>
 
@@ -31,6 +31,8 @@ export type RpcRunner<
 export type RpcServiceConfig = { client: PocketbaseClientApi }
 
 export const createRpcService = async (config: RpcServiceConfig) => {
+  const { dbg, error } = logger().create('RpcService')
+
   const { client } = config
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })

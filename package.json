@@ -9,7 +9,7 @@
     "lint:fix": "prettier -w \"./**/*.ts\"",
     "build": "concurrently 'yarn:build:*'",
     "build:www": "cd packages/pockethost.io && yarn build",
-    "dev": "concurrently 'yarn:dev:*'",
+    "dev": "NODE_ENV=development concurrently 'yarn:dev:*'",
     "dev:proxy": "cd packages/proxy && yarn dev",
     "dev:www": "cd packages/pockethost.io && yarn dev",
     "dev:daemon": "cd packages/daemon && yarn dev",

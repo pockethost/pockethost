@@ -1,6 +1,8 @@
+import { logger } from '@pockethost/common'
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_USERNAME,
+  DEBUG,
   PH_BIN_CACHE,
   PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
@@ -12,10 +14,13 @@ import { createInstanceService } from './services/InstanceService'
 import { pocketbase } from './services/PocketBaseService'
 import { createProxyService } from './services/ProxyService'
 import { createRpcService } from './services/RpcService'
-import { dbg, error, info } from './util/logger'
+
+logger({ debug: DEBUG })
+
 // npm install eventsource --save
 global.EventSource = require('eventsource')
 ;(async () => {
+  const { dbg, error, info } = logger().create(`server.ts`)
   const pbService = await pocketbase({
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,

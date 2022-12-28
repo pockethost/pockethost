@@ -1,11 +1,12 @@
-import { InstanceStatus } from '@pockethost/common'
+import { InstanceStatus, logger } from '@pockethost/common'
 import { PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { pocketbase } from '../services/PocketBaseService'
-import { info } from '../util/logger'
 import { safeCatch } from '../util/promiseHelper'
 import { schema } from './schema'
 import { withInstance } from './withInstance'
 ;(async () => {
+  const { info } = logger().create('migrate')
+
   const pbService = await pocketbase({
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 5 * 60 * 1000,

@@ -6,6 +6,7 @@ import {
   BackupStatus,
   InstanceFields,
   InstanceId,
+  logger,
 } from '@pockethost/common'
 import { safeCatch } from '../util/promiseHelper'
 import { MixinContext } from './PbClient'
@@ -13,6 +14,8 @@ import { MixinContext } from './PbClient'
 export type BackupApi = ReturnType<typeof createBackupMixin>
 
 export const createBackupMixin = (context: MixinContext) => {
+  const { dbg } = logger().create('BackupMixin')
+
   const { client, rawDb } = context
 
   const createBackup = safeCatch(
