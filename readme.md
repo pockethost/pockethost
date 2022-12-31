@@ -130,13 +130,14 @@ If all goes well:
 
 # Release History
 
-**soon**
-
 **next**
+
+**0.6.0**
 
 - FTP support
 - Cache pocketbase releases
 - Enhance instance uptime
+- CORS PUT fix
 
 **0.5.7**
 
