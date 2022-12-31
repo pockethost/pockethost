@@ -1,5 +1,7 @@
-import { PlatformId, VersionId } from '../releases'
 import { BaseFields, RecordId, Seconds, Subdomain, UserId } from './types'
+
+export type VersionId = string
+export type PlatformId = string
 
 export enum InstanceStatus {
   Unknown = '',

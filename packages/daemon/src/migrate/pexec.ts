@@ -1,6 +1,5 @@
-import { logger } from '@pockethost/common'
+import { logger, safeCatch } from '@pockethost/common'
 import { exec } from 'child_process'
-import { safeCatch } from '../util/promiseHelper'
 
 export const pexec = safeCatch(`pexec`, (cmd: string) => {
   const { dbg, error } = logger().create('pexec')

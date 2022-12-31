@@ -3,8 +3,8 @@ import {
   InvocationFields,
   logger,
   pocketNow,
+  safeCatch,
 } from '@pockethost/common'
-import { safeCatch } from '../../util/promiseHelper'
 import { InstanceApi } from './InstanceMIxin'
 import { MixinContext } from './PbClient'
 

@@ -1,7 +1,6 @@
 import { pocketbase } from '$services'
-import { InstanceStatus, logger } from '@pockethost/common'
+import { InstanceStatus, logger, safeCatch } from '@pockethost/common'
 import { PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from '../constants'
-import { safeCatch } from '../util/promiseHelper'
 import { schema } from './schema'
 import { withInstance } from './withInstance'
 ;(async () => {

@@ -1,4 +1,11 @@
-import { createTimerManager, logger } from '@pockethost/common'
+import {
+  downloadAndExtract,
+  mkInternalAddress,
+  mkInternalUrl,
+  smartFetch,
+  tryFetch,
+} from '$util'
+import { createTimerManager, logger, safeCatch } from '@pockethost/common'
 import { mkSingleton } from '@pockethost/common/src/mkSingleton'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
@@ -9,11 +16,6 @@ import { join } from 'path'
 import { maxSatisfying, rsort } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { DAEMON_PB_DATA_DIR } from '../constants'
-import { downloadAndExtract } from '../util/downloadAndExtract'
-import { mkInternalAddress, mkInternalUrl } from '../util/internal'
-import { safeCatch } from '../util/promiseHelper'
-import { smartFetch } from '../util/smartFetch'
-import { tryFetch } from '../util/tryFetch'
 
 export type PocketbaseCommand = 'serve' | 'upgrade'
 export type SpawnConfig = {

@@ -5,12 +5,12 @@ import {
   InstanceId,
   InstanceStatus,
   logger,
+  safeCatch,
   UserFields,
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { safeCatch } from '../../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>

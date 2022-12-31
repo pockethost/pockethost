@@ -1,4 +1,4 @@
-import { logger } from '@pockethost/common'
+import { logger, safeCatch } from '@pockethost/common'
 import { Knex } from 'knex'
 import {
   Collection,
@@ -7,7 +7,6 @@ import {
 } from 'pocketbase'
 import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../../constants'
 import { Collection_Serialized } from '../../migrate/schema'
-import { safeCatch } from '../../util/promiseHelper'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'

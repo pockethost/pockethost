@@ -16,7 +16,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "$util/*": ["src/util/*"],
+      "$util": ["src/util/index"],
       "$services": ["src/services/index"],
       "$src/*": ["src/*"]
     }

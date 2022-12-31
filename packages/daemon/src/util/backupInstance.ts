@@ -1,4 +1,9 @@
-import { BackupRecordId, InstanceId, logger } from '@pockethost/common'
+import {
+  BackupRecordId,
+  InstanceId,
+  logger,
+  safeCatch,
+} from '@pockethost/common'
 import { statSync } from 'fs'
 import { basename, resolve } from 'path'
 import { chdir, cwd } from 'process'
@@ -7,7 +12,6 @@ import tmp from 'tmp'
 import { DAEMON_PB_DATA_DIR } from '../constants'
 import { pexec } from '../migrate/pexec'
 import { ensureDirExists } from './ensureDirExists'
-import { safeCatch } from './promiseHelper'
 
 export type BackupProgress = {
   current: number

@@ -1,9 +1,5 @@
-import {
-  createPbClient,
-  PocketbaseClientApi,
-} from '$services/clientService/PbClient'
-import { pocketbase } from '$services/PocketBaseService'
-import { logger } from '@pockethost/common'
+import { createPbClient, pocketbase, PocketbaseClientApi } from '$services'
+import { logger, safeCatch } from '@pockethost/common'
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_USERNAME,
@@ -11,7 +7,6 @@ import {
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { safeCatch } from '../util/promiseHelper'
 
 export const withInstance = safeCatch(
   `withInstance`,

@@ -1,5 +1,4 @@
-import { logger } from '@pockethost/common'
-import { safeCatch } from './promiseHelper'
+import { logger, safeCatch } from '@pockethost/common'
 
 export const tryFetch = safeCatch(`tryFetch`, (url: string) => {
   const { dbg } = logger().create('tryFetch')
