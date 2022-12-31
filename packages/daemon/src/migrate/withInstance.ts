@@ -1,4 +1,5 @@
 import { logger } from '@pockethost/common'
+import { createPbClient, PocketbaseClientApi } from '../clientService/PbClient'
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_USERNAME,
@@ -6,7 +7,6 @@ import {
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { createPbClient, PocketbaseClientApi } from '../db/PbClient'
 import { pocketbase } from '../services/PocketBaseService'
 import { safeCatch } from '../util/promiseHelper'
 

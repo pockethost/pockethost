@@ -14,7 +14,7 @@ import {
   RpcCommands,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
-import { clientService } from '../db/clientService'
+import { clientService } from '../clientService/clientService'
 import { backupInstance } from '../util/backupInstance'
 import { rpcService } from './RpcService'
 

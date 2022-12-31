@@ -1,6 +1,6 @@
 import { logger } from '@pockethost/common'
+import { clientService } from './clientService/clientService'
 import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from './constants'
-import { clientService } from './db/clientService'
 import { backupService } from './services/BackupService'
 import { ftpService } from './services/FtpService/FtpService'
 import { instanceService } from './services/InstanceService'
