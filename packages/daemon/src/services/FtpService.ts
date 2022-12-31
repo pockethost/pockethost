@@ -279,6 +279,9 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     anonymous: false,
     log: log.create(`ftpServer`, { errorTrace: false }),
     tls,
+    pasv_url: `147.182.196.168`,
+    pasv_max: 20000,
+    pasv_min: 10000,
   })
 
   ftpServer.on(
