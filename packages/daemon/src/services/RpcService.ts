@@ -13,7 +13,7 @@ import Bottleneck from 'bottleneck'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
-import { clientService } from '../db/PbClient'
+import { clientService } from '../db/clientService'
 
 export type RpcServiceApi = AsyncReturnType<typeof rpcService>
 

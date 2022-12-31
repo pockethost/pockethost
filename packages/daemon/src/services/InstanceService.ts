@@ -20,7 +20,7 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from '../constants'
-import { clientService } from '../db/PbClient'
+import { clientService } from '../db/clientService'
 import { mkInternalUrl } from '../util/internal'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'

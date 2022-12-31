@@ -9,7 +9,8 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '../../constants'
-import { clientService, createPbClient } from '../../db/PbClient'
+import { clientService } from '../../db/clientService'
+import { createPbClient } from '../../db/PbClient'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = {}
