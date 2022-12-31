@@ -1,4 +1,4 @@
-import { logger } from '@pockethost/common'
+import { logger, mkSingleton } from '@pockethost/common'
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
@@ -9,12 +9,12 @@ import {
 } from '../constants'
 import { instanceService } from './InstanceService'
 
-export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
+export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
 export type ProxyServiceConfig = {
   coreInternalUrl: string
 }
-export const createProxyService = async (config: ProxyServiceConfig) => {
+export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   const { dbg, error, info } = logger().create('ProxyService')
 
   const { coreInternalUrl } = config
@@ -89,4 +89,4 @@ export const createProxyService = async (config: ProxyServiceConfig) => {
   }
 
   return { shutdown }
-}
+})

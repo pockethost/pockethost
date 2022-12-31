@@ -5,7 +5,7 @@ import { createBackupService } from './services/BackupService'
 import { ftpService } from './services/FtpService/FtpService'
 import { instanceService } from './services/InstanceService'
 import { pocketbase } from './services/PocketBaseService'
-import { createProxyService } from './services/ProxyService'
+import { proxyService } from './services/ProxyService'
 import { rpcService } from './services/RpcService'
 
 logger({ debug: DEBUG })
@@ -37,7 +37,7 @@ global.EventSource = require('eventsource')
   ftpService({})
   await rpcService({})
   await instanceService({})
-  const proxyService = await createProxyService({
+  await proxyService({
     coreInternalUrl: url,
   })
   const backupService = await createBackupService()
@@ -48,7 +48,7 @@ global.EventSource = require('eventsource')
     info(`Got signal ${signal}`)
     info(`Shutting down`)
     ftpService().shutdown()
-    proxyService.shutdown()
+    ;(await proxyService()).shutdown()
     ;(await instanceService()).shutdown()
     ;(await rpcService()).shutdown()
     pbService.shutdown()
