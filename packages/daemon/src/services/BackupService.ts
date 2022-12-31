@@ -7,6 +7,7 @@ import {
   BackupStatus,
   createTimerManager,
   logger,
+  mkSingleton,
   RestoreInstancePayload,
   RestoreInstancePayloadSchema,
   RestoreInstanceResult,
@@ -17,7 +18,7 @@ import { clientService } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
 import { rpcService } from './RpcService'
 
-export const createBackupService = async () => {
+export const backupService = mkSingleton(async () => {
   const { dbg } = logger().create('BackupService')
   const client = await clientService()
 
@@ -122,4 +123,4 @@ export const createBackupService = async () => {
   return {
     shutdown,
   }
-}
+})

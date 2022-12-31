@@ -1,7 +1,7 @@
 import { logger } from '@pockethost/common'
 import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from './constants'
 import { clientService } from './db/PbClient'
-import { createBackupService } from './services/BackupService'
+import { backupService } from './services/BackupService'
 import { ftpService } from './services/FtpService/FtpService'
 import { instanceService } from './services/InstanceService'
 import { pocketbase } from './services/PocketBaseService'
@@ -33,14 +33,13 @@ global.EventSource = require('eventsource')
    * Launch services
    */
   await clientService(url)
-
   ftpService({})
   await rpcService({})
   await instanceService({})
   await proxyService({
     coreInternalUrl: url,
   })
-  const backupService = await createBackupService()
+  await backupService({})
 
   info(`Hooking into process exit event`)
 
@@ -48,6 +47,7 @@ global.EventSource = require('eventsource')
     info(`Got signal ${signal}`)
     info(`Shutting down`)
     ftpService().shutdown()
+    ;(await backupService()).shutdown()
     ;(await proxyService()).shutdown()
     ;(await instanceService()).shutdown()
     ;(await rpcService()).shutdown()
