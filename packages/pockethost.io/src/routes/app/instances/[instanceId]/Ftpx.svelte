@@ -1,11 +1,17 @@
 <script lang="ts">
   import { PUBLIC_APP_DOMAIN } from '$src/env'
+  import { client } from '$src/pocketbase'
   import type { InstanceFields } from '@pockethost/common'
 
   export let instance: InstanceFields
 
+  const { user } = client()
   const { subdomain } = instance
-  const ftpUrl = `ftp://${subdomain}.${PUBLIC_APP_DOMAIN}`
+  const { email } = user() || {}
+  if (!email) {
+    throw new Error(`Email expected here`)
+  }
+  const ftpUrl = `ftp://${encodeURI(email)}@${PUBLIC_APP_DOMAIN}`
 </script>
 
 <div class="py-4">
