@@ -1,6 +1,6 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$src/env'
+  import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
   import { generateSlug } from 'random-word-slugs'
 
@@ -61,7 +61,7 @@
     </div>
 
     <div class="col-auto ps-0">
-      <span class="form-text">.{PUBLIC_PB_DOMAIN}</span>
+      <span class="form-text">.{PUBLIC_APP_DOMAIN}</span>
     </div>
   </div>
 

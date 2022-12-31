@@ -3,6 +3,7 @@ import { mkSingleton } from './mkSingleton'
 export type Config = {
   raw?: boolean
   debug: boolean
+  errorTrace?: boolean
   pfx?: string[]
 }
 
@@ -16,10 +17,11 @@ export const createLogger = (config: Partial<Config>) => {
   const _config: Required<Config> = {
     raw: false,
     debug: true,
+    errorTrace: true,
     pfx: [''],
     ...config,
   }
-  const { pfx } = _config
+  const { pfx, errorTrace } = _config
 
   const _pfx = (s: string) =>
     [s, ...pfx]
@@ -54,8 +56,13 @@ export const createLogger = (config: Partial<Config>) => {
     _log(true, _pfx(`INFO`), ...args)
   }
 
+  const trace = (...args: any[]) => {
+    _log(true, _pfx(`TRACE`), ...args)
+  }
+
   const error = (...args: any[]) => {
     _log(true, _pfx(`ERROR`), ...args)
+    if (!errorTrace) return
     console.error(`========================`)
     ;[..._buf.slice(_curIdx, MAX_BUF), ..._buf.slice(0, _curIdx)].forEach(
       (args) => {
@@ -65,13 +72,16 @@ export const createLogger = (config: Partial<Config>) => {
     console.error(`========================`)
   }
 
-  const create = (s: string) =>
+  const create = (s: string, configOverride?: Partial<Config>) =>
     createLogger({
       ..._config,
+      ...configOverride,
       pfx: [..._config.pfx, s],
     })
 
-  return { raw, dbg, warn, info, error, create }
+  const child = (extra: any) => create(JSON.stringify(extra))
+
+  return { raw, dbg, warn, info, error, create, child, trace, debug: dbg }
 }
 
 export const logger = mkSingleton((config: Config) => createLogger(config))

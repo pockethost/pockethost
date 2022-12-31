@@ -6,8 +6,8 @@ import {
   UnsubscribeFunc,
 } from 'pocketbase'
 import type { JsonObject } from 'type-fest'
-import { Logger } from '../Logger'
-import { PromiseHelper } from '../PromiseHelper'
+import { logger } from '../Logger'
+import { safeCatch } from '../safeCatch'
 import { BaseFields, RpcCommands, UserId } from '../schema'
 import type { WatchHelper } from './WatchHelper'
 
@@ -17,8 +17,6 @@ export const newId = () => nanoid(15)
 export type RpcHelperConfig = {
   client: pocketbaseEs
   watchHelper: WatchHelper
-  promiseHelper: PromiseHelper
-  logger: Logger
 }
 
 export type RpcHelper = ReturnType<typeof createRpcHelper>
@@ -57,14 +55,14 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
   const {
     client,
     watchHelper: { watchById },
-    promiseHelper: { safeCatch },
-    logger: { dbg },
   } = config
 
   const mkRpc = <TPayload extends JsonObject, TResult extends JsonObject>(
     cmd: RpcCommands
   ) => {
     type ConcreteRpcRecord = RpcFields<TPayload, TResult>
+
+    const { dbg } = logger().create('mkRpc')
 
     return safeCatch(
       cmd,

@@ -23,6 +23,7 @@
     "date-fns": "^2.29.3",
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
+    "ftp-srv": "^4.6.2",
     "get-port": "^6.1.2",
     "http-proxy": "^1.18.1",
     "knex": "^2.3.0",

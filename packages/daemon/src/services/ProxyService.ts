@@ -75,10 +75,16 @@ export const createProxyService = async (config: ProxyServiceConfig) => {
   info('daemon on port 3000')
   server.listen(3000)
 
-  const shutdown = () => {
+  const shutdown = async () => {
     info(`Shutting down proxy server`)
-    server.close()
-    instanceManager.shutdown()
+    return new Promise<void>((resolve) => {
+      server.close((err) => {
+        if (err) error(err)
+        resolve()
+      })
+      server.closeAllConnections()
+      instanceManager.shutdown()
+    })
   }
 
   return { shutdown }

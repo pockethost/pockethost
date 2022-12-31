@@ -1,15 +1,8 @@
 import { logger } from '@pockethost/common'
-import {
-  DAEMON_PB_PASSWORD,
-  DAEMON_PB_USERNAME,
-  DEBUG,
-  PH_BIN_CACHE,
-  PUBLIC_PB_DOMAIN,
-  PUBLIC_PB_PROTOCOL,
-  PUBLIC_PB_SUBDOMAIN,
-} from './constants'
-import { createPbClient } from './db/PbClient'
+import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from './constants'
+import { clientService } from './db/PbClient'
 import { createBackupService } from './services/BackupService'
+import { ftpService } from './services/FtpService'
 import { createInstanceService } from './services/InstanceService'
 import { pocketbase } from './services/PocketBaseService'
 import { createProxyService } from './services/ProxyService'
@@ -21,6 +14,8 @@ logger({ debug: DEBUG })
 global.EventSource = require('eventsource')
 ;(async () => {
   const { dbg, error, info } = logger().create(`server.ts`)
+  info(`Starting`)
+
   const pbService = await pocketbase({
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,
@@ -37,17 +32,9 @@ global.EventSource = require('eventsource')
   /**
    * Launch services
    */
-  const client = createPbClient(url)
-  try {
-    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-    dbg(`Logged in`)
-  } catch (e) {
-    error(
-      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
-    )
-    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
-  }
+  const client = await clientService(url)
 
+  ftpService({})
   const rpcService = await createRpcService({ client })
   const instanceService = await createInstanceService({ client, rpcService })
   const proxyService = await createProxyService({
@@ -56,12 +43,20 @@ global.EventSource = require('eventsource')
   })
   const backupService = await createBackupService(client, rpcService)
 
-  process.once('SIGUSR2', async () => {
-    info(`SIGUSR2 detected`)
+  info(`Hooking into process exit event`)
+
+  const shutdown = (signal: NodeJS.Signals) => {
+    info(`Got signal ${signal}`)
+    info(`Shutting down`)
+    ftpService().shutdown()
     proxyService.shutdown()
     instanceService.shutdown()
     rpcService.shutdown()
     backupService.shutdown()
     pbService.shutdown()
-  })
+  }
+
+  process.on('SIGTERM', shutdown)
+  process.on('SIGINT', shutdown)
+  process.on('SIGHUP', shutdown)
 })()

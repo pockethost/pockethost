@@ -1,6 +1,6 @@
 import { browser, dev } from '$app/environment'
-import { PUBLIC_PB_DOMAIN, PUBLIC_PB_SUBDOMAIN } from '$src/env'
-import { createLogger, createPromiseHelper } from '@pockethost/common'
+import { PUBLIC_APP_DB, PUBLIC_APP_DOMAIN } from '$src/env'
+import { logger } from '@pockethost/common'
 import { createPocketbaseClient, type PocketbaseClient } from './PocketbaseClient'
 
 export const client = (() => {
@@ -8,11 +8,10 @@ export const client = (() => {
   return () => {
     if (!browser) throw new Error(`PocketBase client not supported in SSR`)
     if (clientInstance) return clientInstance
-    const logger = createLogger({ debug: dev })
-    logger.info(`Initializing pocketbase client`)
-    const url = `https://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}`
-    const promiseHelper = createPromiseHelper({ logger })
-    clientInstance = createPocketbaseClient({ url, logger, promiseHelper })
+    const { info } = logger({ debug: dev })
+    info(`Initializing pocketbase client`)
+    const url = `https://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}`
+    clientInstance = createPocketbaseClient({ url })
     return clientInstance
   }
 })()

@@ -143,7 +143,13 @@ export const createPocketbaseService = async (
       )
     }
 
-    const args = [command, `--dir`, `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`]
+    const args = [
+      command,
+      `--dir`,
+      `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
+      `--publicDir`,
+      `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
+    ]
     if (command === 'serve') {
       args.push(`--http`)
       args.push(mkInternalAddress(port))

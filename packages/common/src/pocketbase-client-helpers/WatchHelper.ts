@@ -1,24 +1,18 @@
 import type { BaseFields, RecordId } from '@pockethost/common'
+import { logger, safeCatch } from '@pockethost/common'
 import type pocketbaseEs from 'pocketbase'
 import type { RecordSubscription, UnsubscribeFunc } from 'pocketbase'
-import { Logger } from '../Logger'
-import { PromiseHelper } from '../PromiseHelper'
 
 export type WatchHelperConfig = {
   client: pocketbaseEs
-  promiseHelper: PromiseHelper
-  logger: Logger
 }
 
 export type WatchHelper = ReturnType<typeof createWatchHelper>
 
 export const createWatchHelper = (config: WatchHelperConfig) => {
-  const {
-    client,
-    promiseHelper: { safeCatch },
-    logger: { dbg },
-  } = config
+  const { client } = config
 
+  const { dbg } = logger().create(`watchHelper`)
   const watchById = safeCatch(
     `watchById`,
     async <TRec>(

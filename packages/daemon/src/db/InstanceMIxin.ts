@@ -65,6 +65,10 @@ export const createInstanceMixin = (context: MixinContext) => {
     }
   )
 
+  const getInstances = safeCatch(`getInstances`, async () => {
+    return client.collection('instances').getFullList<InstanceFields>()
+  })
+
   const updateInstances = safeCatch(
     'updateInstances',
     async (cb: (rec: InstanceFields) => Partial<InstanceFields>) => {
@@ -110,6 +114,7 @@ export const createInstanceMixin = (context: MixinContext) => {
   )
 
   return {
+    getInstances,
     updateInstance,
     updateInstanceStatus,
     getInstanceBySubdomain,

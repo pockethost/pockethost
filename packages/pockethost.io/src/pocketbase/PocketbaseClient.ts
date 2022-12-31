@@ -3,7 +3,9 @@ import {
   assertExists,
   createRpcHelper,
   createWatchHelper,
+  logger,
   RpcCommands,
+  safeCatch,
   type BackupFields,
   type BackupInstancePayload,
   type BackupInstanceResult,
@@ -11,8 +13,6 @@ import {
   type CreateInstanceResult,
   type InstanceFields,
   type InstanceId,
-  type Logger,
-  type PromiseHelper,
   type RestoreInstancePayload,
   type RestoreInstanceResult,
   type UserFields
@@ -38,15 +38,12 @@ export type AuthStoreProps = {
 
 export type PocketbaseClientConfig = {
   url: string
-  logger: Logger
-  promiseHelper: PromiseHelper
 }
 export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
 export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
-  const { url, logger, promiseHelper } = config
-  const { dbg, error } = logger
-  const { safeCatch } = promiseHelper
+  const { url } = config
+  const { dbg, error } = logger()
 
   const client = new PocketBase(url)
 
@@ -109,9 +106,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     client.collection('users').authRefresh()
   )
 
-  const watchHelper = createWatchHelper({ client, promiseHelper, logger })
+  const watchHelper = createWatchHelper({ client })
   const { watchById, watchAllById } = watchHelper
-  const rpcMixin = createRpcHelper({ client, watchHelper, promiseHelper, logger })
+  const rpcMixin = createRpcHelper({ client, watchHelper })
   const { mkRpc } = rpcMixin
 
   const createInstance = mkRpc<CreateInstancePayload, CreateInstanceResult>(

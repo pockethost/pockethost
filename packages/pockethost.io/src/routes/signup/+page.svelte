@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { handleRegistration, handleLogin, handleFormError } from '$util/database'
   import AlertBar from '$components/AlertBar.svelte'
+  import { handleFormError, handleLogin, handleRegistration } from '$util/database'
 
   let email: string = ''
   let password: string = ''

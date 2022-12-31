@@ -13,9 +13,8 @@ export const envi = (name: string, _default: number) => parseInt(env(name, _defa
 
 export const envb = (name: string, _default: boolean) => boolean(env(name, _default.toString()))
 
-export const PUBLIC_PB_DOMAIN = env('PUBLIC_PB_DOMAIN', 'pockethost.io')
-export const PUBLIC_PB_SUBDOMAIN = env('PUBLIC_PB_SUBDOMAIN', 'pockethost-central')
-export const PUBLIC_APP_DOMAIN = env('PUBLIC_PB_SUBDOMAIN', 'localhost')
+export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', 'pockethost-central')
+export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', 'pockethost.io')
 export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
 export const PUBLIC_PB_PROTOCOL = env(
   'PUBLIC_PB_PROTOCOL',

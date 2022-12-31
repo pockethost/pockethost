@@ -1,11 +1,18 @@
-import { logger } from '@pockethost/common'
+import { logger, mkSingleton } from '@pockethost/common'
 import { Knex } from 'knex'
 import {
   Collection,
   default as PocketBase,
   default as pocketbaseEs,
 } from 'pocketbase'
-import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
+import {
+  DAEMON_PB_DATA_DIR,
+  DAEMON_PB_PASSWORD,
+  DAEMON_PB_USERNAME,
+  PUBLIC_PB_DOMAIN,
+  PUBLIC_PB_PROTOCOL,
+  PUBLIC_PB_SUBDOMAIN,
+} from '../constants'
 import { Collection_Serialized } from '../migrate/schema'
 import { safeCatch } from '../util/promiseHelper'
 import { createBackupMixin } from './BackupMixin'
@@ -49,6 +56,7 @@ export const createPbClient = (url: string) => {
 
   const api = {
     client,
+    url,
     knex: rawDb,
     adminAuthViaEmail,
     applySchema,
@@ -60,3 +68,18 @@ export const createPbClient = (url: string) => {
 
   return api
 }
+
+export const clientService = mkSingleton(async (url: string) => {
+  const { dbg, error } = logger().create(`client singleton`)
+  const client = createPbClient(url)
+  try {
+    await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
+    dbg(`Logged in`)
+  } catch (e) {
+    error(
+      `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
+    )
+    error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
+  }
+  return client
+})

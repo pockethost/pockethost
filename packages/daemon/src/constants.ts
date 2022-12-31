@@ -51,3 +51,8 @@ export const PH_BIN_CACHE = env(
   `PH_BIN_CACHE`,
   join(__dirname, `../../../.pbincache`)
 )
+
+export const PH_FTP_PORT = envi('PH_FTP_PORT', 21)
+
+export const SSL_KEY = env('SSL_KEY')
+export const SSL_CERT = env('SSL_CERT')

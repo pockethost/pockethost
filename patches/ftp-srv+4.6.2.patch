@@ -1,0 +1,46 @@
+diff --git a/node_modules/ftp-srv/ftp-srv.d.ts b/node_modules/ftp-srv/ftp-srv.d.ts
+index b14b113..15134cb 100644
+--- a/node_modules/ftp-srv/ftp-srv.d.ts
++++ b/node_modules/ftp-srv/ftp-srv.d.ts
+@@ -2,11 +2,19 @@ import * as tls from 'tls'
+ import { Stats } from 'fs'
+ import { EventEmitter } from 'events';
+ 
++export type FileStat= {
++    isDirectory(): boolean
++    mode: number
++    size: number
++    mtime: number
++    name: string
++}
++
+ export class FileSystem {
+ 
+ 	readonly connection: FtpConnection;
+ 	readonly root: string;
+-	readonly cwd: string;
++	cwd: string;
+ 
+     constructor(connection: FtpConnection, {root, cwd}?: {
+         root: any;
+@@ -15,9 +23,9 @@ export class FileSystem {
+ 
+     currentDirectory(): string;
+ 
+-    get(fileName: string): Promise<any>;
++    get(fileName: string): Promise<FileStat>;
+ 
+-    list(path?: string): Promise<any>;
++    list(path?: string): Promise<FileStat[]>;
+ 
+     chdir(path?: string): Promise<string>;
+ 
+@@ -28,7 +36,7 @@ export class FileSystem {
+ 
+     read(fileName: string, {start}?: {
+         start?: any;
+-    }): Promise<any>;
++    }): Promise<ReadableStream>;
+ 
+     delete(path: string): Promise<any>;
+ 

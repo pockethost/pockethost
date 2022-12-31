@@ -3,7 +3,7 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
-  import { PUBLIC_PB_DOMAIN } from '$src/env'
+  import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { error } from '$util/logger'
   import {
@@ -103,7 +103,7 @@
 
                 <a
                   class="btn btn-light pocketbase-button"
-                  href={`https://${app.subdomain}.${PUBLIC_PB_DOMAIN}/_`}
+                  href={`https://${app.subdomain}.${PUBLIC_APP_DOMAIN}/_`}
                   target="_blank"
                 >
                   <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
