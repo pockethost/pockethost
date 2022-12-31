@@ -12,7 +12,7 @@ import Bottleneck from 'bottleneck'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
-import { PocketbaseClientApi } from '../db/PbClient'
+import { clientService } from '../db/PbClient'
 
 export type RpcServiceApi = AsyncReturnType<typeof createRpcService>
 
@@ -28,12 +28,11 @@ export type RpcRunner<
   TResult extends JsonObject
 > = (job: RpcFields<TPayload, TResult>) => Promise<TResult>
 
-export type RpcServiceConfig = { client: PocketbaseClientApi }
+export type RpcServiceConfig = {}
 
 export const createRpcService = async (config: RpcServiceConfig) => {
   const { dbg, error } = logger().create('RpcService')
-
-  const { client } = config
+  const client = await clientService()
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 

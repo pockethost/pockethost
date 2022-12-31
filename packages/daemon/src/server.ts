@@ -35,7 +35,7 @@ global.EventSource = require('eventsource')
   const client = await clientService(url)
 
   ftpService({})
-  const rpcService = await createRpcService({ client })
+  const rpcService = await createRpcService({})
   const instanceService = await createInstanceService({ client, rpcService })
   const proxyService = await createProxyService({
     instanceManager: instanceService,
