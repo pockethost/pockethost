@@ -17,7 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "$util/*": ["src/util/*"],
-      "$services/*": ["src/services/*"],
+      "$services": ["src/services/index"],
       "$src/*": ["src/*"]
     }
   },

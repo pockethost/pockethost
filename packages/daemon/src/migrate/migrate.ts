@@ -1,4 +1,4 @@
-import { pocketbase } from '$services/PocketBaseService'
+import { pocketbase } from '$services'
 import { InstanceStatus, logger } from '@pockethost/common'
 import { PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from '../constants'
 import { safeCatch } from '../util/promiseHelper'

@@ -1,5 +1,4 @@
-import { createPbClient } from '$services/clientService/PbClient'
-import { clientService } from '$services/index'
+import { clientService, createPbClient } from '$services'
 import { logger, mkSingleton } from '@pockethost/common'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'

@@ -1,4 +1,4 @@
-import { clientService, rpcService } from '$services/index'
+import { clientService, rpcService } from '$services'
 import {
   assertTruthy,
   CreateInstancePayload,

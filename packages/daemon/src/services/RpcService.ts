@@ -1,4 +1,4 @@
-import { clientService } from '$services/index'
+import { clientService } from '$services'
 import {
   assertTruthy,
   logger,

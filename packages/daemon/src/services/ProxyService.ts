@@ -1,4 +1,4 @@
-import { instanceService } from '$services/index'
+import { instanceService } from '$services'
 import { logger, mkSingleton } from '@pockethost/common'
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
