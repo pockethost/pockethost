@@ -19,12 +19,12 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from '../constants'
-import { PocketbaseClientApi } from '../db/PbClient'
+import { clientService } from '../db/PbClient'
 import { mkInternalUrl } from '../util/internal'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'
 import { pocketbase, PocketbaseProcess } from './PocketBaseService'
-import { RpcServiceApi } from './RpcService'
+import { rpcService } from './RpcService'
 
 type InstanceApi = {
   process: PocketbaseProcess
@@ -34,17 +34,15 @@ type InstanceApi = {
   startRequest: () => () => void
 }
 
-export type InstanceServiceConfig = {
-  client: PocketbaseClientApi
-  rpcService: RpcServiceApi
-}
+export type InstanceServiceConfig = {}
 
 export type InstanceServiceApi = AsyncReturnType<typeof createInstanceService>
 export const createInstanceService = async (config: InstanceServiceConfig) => {
   const { dbg, raw, error, warn } = logger().create('InstanceService')
+  const client = await clientService()
 
-  const { client, rpcService } = config
-  const { registerCommand } = rpcService
+  const { registerCommand } = await rpcService()
+
   const pbService = await pocketbase()
 
   registerCommand<CreateInstancePayload, CreateInstanceResult>(

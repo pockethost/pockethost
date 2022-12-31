@@ -6,7 +6,7 @@ import { ftpService } from './services/FtpService/FtpService'
 import { createInstanceService } from './services/InstanceService'
 import { pocketbase } from './services/PocketBaseService'
 import { createProxyService } from './services/ProxyService'
-import { createRpcService } from './services/RpcService'
+import { rpcService } from './services/RpcService'
 
 logger({ debug: DEBUG })
 
@@ -32,27 +32,26 @@ global.EventSource = require('eventsource')
   /**
    * Launch services
    */
-  const client = await clientService(url)
+  await clientService(url)
 
   ftpService({})
-  const rpcService = await createRpcService({})
-  const instanceService = await createInstanceService({ client, rpcService })
+  await rpcService({})
+  const instanceService = await createInstanceService({})
   const proxyService = await createProxyService({
     instanceManager: instanceService,
     coreInternalUrl: url,
   })
-  const backupService = await createBackupService(rpcService)
+  const backupService = await createBackupService()
 
   info(`Hooking into process exit event`)
 
-  const shutdown = (signal: NodeJS.Signals) => {
+  const shutdown = async (signal: NodeJS.Signals) => {
     info(`Got signal ${signal}`)
     info(`Shutting down`)
     ftpService().shutdown()
     proxyService.shutdown()
     instanceService.shutdown()
-    rpcService.shutdown()
-    backupService.shutdown()
+    ;(await rpcService()).shutdown()
     pbService.shutdown()
   }
 

@@ -15,13 +15,15 @@ import {
 import Bottleneck from 'bottleneck'
 import { clientService } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
-import { RpcServiceApi } from './RpcService'
+import { rpcService } from './RpcService'
 
-export const createBackupService = async (jobService: RpcServiceApi) => {
+export const createBackupService = async () => {
   const { dbg } = logger().create('BackupService')
   const client = await clientService()
 
-  jobService.registerCommand<BackupInstancePayload, BackupInstanceResult>(
+  const { registerCommand } = await rpcService()
+
+  registerCommand<BackupInstancePayload, BackupInstanceResult>(
     RpcCommands.BackupInstance,
     BackupInstancePayloadSchema,
     async (job) => {
@@ -38,7 +40,7 @@ export const createBackupService = async (jobService: RpcServiceApi) => {
     }
   )
 
-  jobService.registerCommand<RestoreInstancePayload, RestoreInstanceResult>(
+  registerCommand<RestoreInstancePayload, RestoreInstanceResult>(
     RpcCommands.RestoreInstance,
     RestoreInstancePayloadSchema,
     async (job) => {

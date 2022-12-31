@@ -1,6 +1,7 @@
 import {
   assertTruthy,
   logger,
+  mkSingleton,
   RpcCommands,
   RpcFields,
   RpcStatus,
@@ -14,7 +15,7 @@ import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
 import { clientService } from '../db/PbClient'
 
-export type RpcServiceApi = AsyncReturnType<typeof createRpcService>
+export type RpcServiceApi = AsyncReturnType<typeof rpcService>
 
 export type KnexApi = ReturnType<typeof knexFactory>
 export type CommandModuleInitializer = (
@@ -30,7 +31,7 @@ export type RpcRunner<
 
 export type RpcServiceConfig = {}
 
-export const createRpcService = async (config: RpcServiceConfig) => {
+export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
   const { dbg, error } = logger().create('RpcService')
   const client = await clientService()
 
@@ -123,4 +124,4 @@ export const createRpcService = async (config: RpcServiceConfig) => {
     registerCommand,
     shutdown,
   }
-}
+})
