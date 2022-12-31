@@ -43,6 +43,25 @@ const server = createServer(options, async (req, res) => {
   }
 })
 
+//
+// Listen to the `upgrade` event and proxy the
+// WebSocket requests as well.
+//
+server.on('upgrade', function (req, socket, head) {
+  console.log(req.headers.host)
+  const { host } = req.headers
+
+  try {
+    if (host === process.env.PUBLIC_APP_DOMAIN) {
+      proxy.ws(req, socket, head, { target: `http://localhost:5173` })
+    } else {
+      proxy.ws(req, socket, head, { target: `http://localhost:3000` })
+    }
+  } catch (e) {
+    console.error(`Got an error ${e}`)
+  }
+})
+
 server.listen(443)
 
 const httpServer = http.createServer((req, res) => {
