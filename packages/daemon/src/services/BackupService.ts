@@ -13,15 +13,13 @@ import {
   RpcCommands,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
-import { PocketbaseClientApi } from '../db/PbClient'
+import { clientService } from '../db/PbClient'
 import { backupInstance } from '../util/backupInstance'
 import { RpcServiceApi } from './RpcService'
 
-export const createBackupService = async (
-  client: PocketbaseClientApi,
-  jobService: RpcServiceApi
-) => {
+export const createBackupService = async (jobService: RpcServiceApi) => {
   const { dbg } = logger().create('BackupService')
+  const client = await clientService()
 
   jobService.registerCommand<BackupInstancePayload, BackupInstanceResult>(
     RpcCommands.BackupInstance,

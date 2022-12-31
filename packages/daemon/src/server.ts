@@ -41,7 +41,7 @@ global.EventSource = require('eventsource')
     instanceManager: instanceService,
     coreInternalUrl: url,
   })
-  const backupService = await createBackupService(client, rpcService)
+  const backupService = await createBackupService(rpcService)
 
   info(`Hooking into process exit event`)
 
