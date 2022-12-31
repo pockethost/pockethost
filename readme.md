@@ -127,6 +127,8 @@ If all goes well:
 - Create a new discussion on PocketHost forum
 - If major release, create announcement on PocketBase forum
 - Use `yarn version --patch` for patch release and tag with git
+- Use `scripts/build.sh` to rebuild everything
+- Use `scripts/pm2.sh` to run in prod mode
 
 # Release History
 
