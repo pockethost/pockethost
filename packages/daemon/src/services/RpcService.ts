@@ -1,3 +1,4 @@
+import { clientService } from '$services/index'
 import {
   assertTruthy,
   logger,
@@ -13,7 +14,6 @@ import Bottleneck from 'bottleneck'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
-import { clientService } from './clientService/clientService'
 
 export type RpcServiceApi = AsyncReturnType<typeof rpcService>
 

@@ -1,3 +1,4 @@
+import { clientService, rpcService } from '$services/index'
 import {
   assertTruthy,
   CreateInstancePayload,
@@ -23,9 +24,7 @@ import {
 import { mkInternalUrl } from '../util/internal'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'
-import { clientService } from './clientService/clientService'
 import { pocketbase, PocketbaseProcess } from './PocketBaseService'
-import { rpcService } from './RpcService'
 
 type InstanceApi = {
   process: PocketbaseProcess

@@ -1,3 +1,4 @@
+import { instanceService } from '$services/index'
 import { logger, mkSingleton } from '@pockethost/common'
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
@@ -7,7 +8,6 @@ import {
   PUBLIC_APP_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { instanceService } from './InstanceService'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 

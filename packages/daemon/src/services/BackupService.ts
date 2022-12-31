@@ -1,3 +1,4 @@
+import { clientService, rpcService } from '$services/index'
 import {
   assertTruthy,
   BackupFields,
@@ -15,8 +16,6 @@ import {
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
 import { backupInstance } from '../util/backupInstance'
-import { clientService } from './clientService/clientService'
-import { rpcService } from './RpcService'
 
 export const backupService = mkSingleton(async () => {
   const { dbg } = logger().create('BackupService')
