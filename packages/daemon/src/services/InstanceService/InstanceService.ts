@@ -23,7 +23,7 @@ import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import getPort from 'get-port'
 import { AsyncReturnType } from 'type-fest'
-import { pocketbase, PocketbaseProcess } from './PocketBaseService'
+import { pocketbase, PocketbaseProcess } from '../PocketBaseService'
 
 type InstanceApi = {
   process: PocketbaseProcess
