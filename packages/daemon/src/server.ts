@@ -1,12 +1,12 @@
+import { backupService } from '$services/BackupService'
+import { clientService } from '$services/clientService/clientService'
+import { ftpService } from '$services/FtpService/FtpService'
+import { instanceService } from '$services/InstanceService'
+import { pocketbase } from '$services/PocketBaseService'
+import { proxyService } from '$services/ProxyService'
+import { rpcService } from '$services/RpcService'
 import { logger } from '@pockethost/common'
 import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from './constants'
-import { backupService } from './services/BackupService'
-import { clientService } from './services/clientService/clientService'
-import { ftpService } from './services/FtpService/FtpService'
-import { instanceService } from './services/InstanceService'
-import { pocketbase } from './services/PocketBaseService'
-import { proxyService } from './services/ProxyService'
-import { rpcService } from './services/RpcService'
 
 logger({ debug: DEBUG })
 

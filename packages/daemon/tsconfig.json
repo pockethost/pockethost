@@ -13,7 +13,13 @@
     "moduleResolution": "node",
     "noUncheckedIndexedAccess": true,
     "strictNullChecks": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "$util/*": ["src/util/*"],
+      "$services/*": ["src/services/*"],
+      "$src/*": ["src/*"]
+    }
   },
   "ts-node": {
     "esm": true
