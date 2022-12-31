@@ -3,7 +3,7 @@ import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from './constants'
 import { clientService } from './db/PbClient'
 import { createBackupService } from './services/BackupService'
 import { ftpService } from './services/FtpService/FtpService'
-import { createInstanceService } from './services/InstanceService'
+import { instanceService } from './services/InstanceService'
 import { pocketbase } from './services/PocketBaseService'
 import { createProxyService } from './services/ProxyService'
 import { rpcService } from './services/RpcService'
@@ -36,9 +36,8 @@ global.EventSource = require('eventsource')
 
   ftpService({})
   await rpcService({})
-  const instanceService = await createInstanceService({})
+  await instanceService({})
   const proxyService = await createProxyService({
-    instanceManager: instanceService,
     coreInternalUrl: url,
   })
   const backupService = await createBackupService()
@@ -50,7 +49,7 @@ global.EventSource = require('eventsource')
     info(`Shutting down`)
     ftpService().shutdown()
     proxyService.shutdown()
-    instanceService.shutdown()
+    ;(await instanceService()).shutdown()
     ;(await rpcService()).shutdown()
     pbService.shutdown()
   }

@@ -7,19 +7,21 @@ import {
   PUBLIC_APP_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
 } from '../constants'
-import { InstanceServiceApi } from './InstanceService'
+import { instanceService } from './InstanceService'
 
 export type ProxyServiceApi = AsyncReturnType<typeof createProxyService>
 
 export type ProxyServiceConfig = {
   coreInternalUrl: string
-  instanceManager: InstanceServiceApi
 }
 export const createProxyService = async (config: ProxyServiceConfig) => {
   const { dbg, error, info } = logger().create('ProxyService')
 
-  const { instanceManager, coreInternalUrl } = config
+  const { coreInternalUrl } = config
+
   const proxy = httpProxy.createProxyServer({})
+
+  const { getInstance } = await instanceService()
 
   const server = createServer(async (req, res) => {
     dbg(`Incoming request ${req.headers.host}/${req.url}`)
@@ -48,7 +50,7 @@ export const createProxyService = async (config: ProxyServiceConfig) => {
         return
       }
 
-      const instance = await instanceManager.getInstance(subdomain)
+      const instance = await getInstance(subdomain)
       if (!instance) {
         throw new Error(
           `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
@@ -83,7 +85,6 @@ export const createProxyService = async (config: ProxyServiceConfig) => {
         resolve()
       })
       server.closeAllConnections()
-      instanceManager.shutdown()
     })
   }
 
