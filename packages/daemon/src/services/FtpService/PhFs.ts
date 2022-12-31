@@ -1,49 +1,18 @@
-import { Logger, logger, mkSingleton } from '@pockethost/common'
-import { existsSync, mkdirSync, readFileSync } from 'fs'
-import { FileStat, FileSystem, FtpConnection, FtpSrv } from 'ftp-srv'
+import { Logger, logger } from '@pockethost/common'
+import { existsSync, mkdirSync } from 'fs'
+import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { join } from 'path'
 import { Readable } from 'stream'
+import { DAEMON_PB_DATA_DIR } from '../../constants'
+import { PocketbaseClientApi } from '../../db/PbClient'
 import {
-  DAEMON_PB_DATA_DIR,
-  PH_FTP_PORT,
-  SSL_CERT,
-  SSL_KEY,
-} from '../constants'
-import {
-  clientService,
-  createPbClient,
-  PocketbaseClientApi,
-} from '../db/PbClient'
+  FOLDER_NAMES,
+  isFolder,
+  README_CONTENTS,
+  README_NAME,
+} from './FtpService'
 
-export type FtpConfig = {}
-
-export enum FolderNames {
-  PbData = 'pb_data',
-  PbStatic = 'pb_static',
-  PbWorkers = 'workers',
-  PbBackup = 'backup',
-}
-
-const README_CONTENTS: { [_ in FolderNames]: string } = {
-  [FolderNames.PbBackup]: `This directory contains tgz backups of your data. PocketHost creates these automatically, or you can create them manually. For more information, see https://pockethost.io/docs/backups`,
-  [FolderNames.PbData]: `This directory contains your PocketBase data. For more information, see https://pockethost.io/docs/data`,
-  [FolderNames.PbStatic]: `This directory contains static files such as your web frontend. PocketHost will serve these when your instance URL receives a request. For more information, see https://pockethost.io/docs/static `,
-  [FolderNames.PbWorkers]: `This directory contains your Deno workers. For more information, see https://pockethost.io/docs/workers`,
-}
-const README_NAME = 'readme.md'
-
-const FOLDER_NAMES: FolderNames[] = [
-  FolderNames.PbBackup,
-  FolderNames.PbData,
-  FolderNames.PbStatic,
-  FolderNames.PbWorkers,
-]
-
-function isFolder(name: string): name is FolderNames {
-  return FOLDER_NAMES.includes(name as FolderNames)
-}
-
-class PhFs extends FileSystem {
+export class PhFs extends FileSystem {
   private log: Logger
   private client: PocketbaseClientApi
 
@@ -264,52 +233,3 @@ class PhFs extends FileSystem {
     throw new Error(`getUniqueName ${fileName}`)
   }
 }
-
-const tls = {
-  key: readFileSync(SSL_KEY || ''),
-  cert: readFileSync(SSL_CERT || ''),
-}
-
-export const ftpService = mkSingleton((config: FtpConfig) => {
-  const log = logger().create('FtpService')
-  const { dbg, info } = log
-
-  const ftpServer = new FtpSrv({
-    url: 'ftp://0.0.0.0:' + PH_FTP_PORT,
-    anonymous: false,
-    log: log.create(`ftpServer`, { errorTrace: false }),
-    tls,
-    pasv_url: `147.182.196.168`,
-    pasv_max: 20000,
-    pasv_min: 10000,
-  })
-
-  ftpServer.on(
-    'login',
-    async ({ connection, username, password }, resolve, reject) => {
-      const url = (await clientService()).url
-      const client = createPbClient(url)
-      try {
-        await client.client
-          .collection('users')
-          .authWithPassword(username, password)
-        dbg(`Logged in`)
-        const fs = new PhFs(connection, client)
-        resolve({ fs })
-      } catch (e) {
-        reject(new Error(`Invalid username or password`))
-      }
-    }
-  )
-
-  ftpServer.listen().then(() => {
-    info('Ftp server is starting...')
-  })
-
-  const shutdown = () => {
-    info(`Closing FTP server`)
-    ftpServer.close()
-  }
-
-  return { shutdown }
-})

@@ -56,3 +56,7 @@ export const PH_FTP_PORT = envi('PH_FTP_PORT', 21)
 
 export const SSL_KEY = env('SSL_KEY')
 export const SSL_CERT = env('SSL_CERT')
+
+export const PH_FTP_PASV_IP = env('PH_FTP_PASV_IP', '0.0.0.0')
+export const PH_FTP_PASV_PORT_MIN = envi('PH_FTP_PASV_PORT_MIN', 10000)
+export const PH_FTP_PASV_PORT_MAX = envi('PH_FTP_PASV_PORT_MAX', 20000)
