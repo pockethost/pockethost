@@ -4,6 +4,7 @@
   import { assertExists } from '@pockethost/common'
   import Backup from './Backup.svelte'
   import Code from './Code.svelte'
+  import Ftp from './Ftpx.svelte'
   import Overview from './Overview.svelte'
   import Restore from './Restore.svelte'
   import { instance } from './store'
@@ -19,6 +20,7 @@
 </svelte:head>
 {#if $instance}
   <Overview instance={$instance} />
+  <Ftp instance={$instance} />
   <Code instance={$instance} />
   <Backup instance={$instance} />
   <Restore instance={$instance} />

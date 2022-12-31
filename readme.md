@@ -132,10 +132,9 @@ If all goes well:
 
 **soon**
 
-- Proxy localhost paths to avoid local DNS setup
-
 **next**
 
+- FTP support
 - Cache pocketbase releases
 - Enhance instance uptime
 
