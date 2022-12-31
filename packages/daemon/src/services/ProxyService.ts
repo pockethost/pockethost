@@ -1,13 +1,13 @@
+import {
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_PROTOCOL,
+  PUBLIC_PB_SUBDOMAIN,
+} from '$constants'
 import { instanceService } from '$services'
 import { logger, mkSingleton } from '@pockethost/common'
 import { createServer } from 'http'
 import httpProxy from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
-import {
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
-  PUBLIC_PB_SUBDOMAIN,
-} from '../constants'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 

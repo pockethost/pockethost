@@ -1,7 +1,3 @@
-import { clientService, createPbClient } from '$services'
-import { logger, mkSingleton } from '@pockethost/common'
-import { readFileSync } from 'fs'
-import { FtpSrv } from 'ftp-srv'
 import {
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
@@ -9,7 +5,11 @@ import {
   PH_FTP_PORT,
   SSL_CERT,
   SSL_KEY,
-} from '../../constants'
+} from '$constants'
+import { clientService, createPbClient } from '$services'
+import { logger, mkSingleton } from '@pockethost/common'
+import { readFileSync } from 'fs'
+import { FtpSrv } from 'ftp-srv'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = {}

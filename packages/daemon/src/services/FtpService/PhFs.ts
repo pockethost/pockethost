@@ -1,9 +1,9 @@
+import { DAEMON_PB_DATA_DIR } from '$constants'
 import { Logger, logger } from '@pockethost/common'
 import { existsSync, mkdirSync } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { join } from 'path'
 import { Readable } from 'stream'
-import { DAEMON_PB_DATA_DIR } from '../../constants'
 import { PocketbaseClientApi } from '../clientService/PbClient'
 import {
   FOLDER_NAMES,

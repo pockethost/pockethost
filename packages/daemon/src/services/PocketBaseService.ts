@@ -1,3 +1,4 @@
+import { DAEMON_PB_DATA_DIR } from '$constants'
 import {
   downloadAndExtract,
   mkInternalAddress,
@@ -15,7 +16,6 @@ import { type } from 'os'
 import { join } from 'path'
 import { maxSatisfying, rsort } from 'semver'
 import { AsyncReturnType } from 'type-fest'
-import { DAEMON_PB_DATA_DIR } from '../constants'
 
 export type PocketbaseCommand = 'serve' | 'upgrade'
 export type SpawnConfig = {

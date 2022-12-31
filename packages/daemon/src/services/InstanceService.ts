@@ -1,3 +1,9 @@
+import {
+  DAEMON_PB_IDLE_TTL,
+  DAEMON_PB_PORT_BASE,
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_PROTOCOL,
+} from '$constants'
 import { clientService, rpcService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
@@ -17,12 +23,6 @@ import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import getPort from 'get-port'
 import { AsyncReturnType } from 'type-fest'
-import {
-  DAEMON_PB_IDLE_TTL,
-  DAEMON_PB_PORT_BASE,
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
-} from '../constants'
 import { pocketbase, PocketbaseProcess } from './PocketBaseService'
 
 type InstanceApi = {

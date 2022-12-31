@@ -1,11 +1,11 @@
-import { logger, mkSingleton } from '@pockethost/common'
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_USERNAME,
   PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
-} from '../../constants'
+} from '$constants'
+import { logger, mkSingleton } from '@pockethost/common'
 import { createPbClient } from './PbClient'
 
 export const clientService = mkSingleton(async (url: string) => {

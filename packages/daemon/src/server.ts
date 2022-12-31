@@ -1,3 +1,4 @@
+import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from '$constants'
 import {
   backupService,
   clientService,
@@ -8,7 +9,6 @@ import {
   rpcService,
 } from '$services'
 import { logger } from '@pockethost/common'
-import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from './constants'
 
 logger({ debug: DEBUG })
 

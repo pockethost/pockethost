@@ -18,6 +18,7 @@
     "paths": {
       "$util": ["src/util/index"],
       "$services": ["src/services/index"],
+      "$constants": ["src/constants"],
       "$src/*": ["src/*"]
     }
   },

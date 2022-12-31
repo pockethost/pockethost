@@ -1,3 +1,4 @@
+import { DAEMON_PB_DATA_DIR } from '$constants'
 import {
   BackupRecordId,
   InstanceId,
@@ -9,7 +10,6 @@ import { basename, resolve } from 'path'
 import { chdir, cwd } from 'process'
 import { Database } from 'sqlite3'
 import tmp from 'tmp'
-import { DAEMON_PB_DATA_DIR } from '../constants'
 import { pexec } from '../migrate/pexec'
 import { ensureDirExists } from './ensureDirExists'
 

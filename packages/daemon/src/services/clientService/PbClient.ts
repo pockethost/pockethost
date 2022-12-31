@@ -1,3 +1,4 @@
+import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '$constants'
 import { logger, safeCatch } from '@pockethost/common'
 import { Knex } from 'knex'
 import {
@@ -5,7 +6,6 @@ import {
   default as PocketBase,
   default as pocketbaseEs,
 } from 'pocketbase'
-import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../../constants'
 import { Collection_Serialized } from '../../migrate/schema'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
