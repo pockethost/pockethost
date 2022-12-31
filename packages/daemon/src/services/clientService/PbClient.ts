@@ -5,9 +5,9 @@ import {
   default as PocketBase,
   default as pocketbaseEs,
 } from 'pocketbase'
-import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../constants'
-import { Collection_Serialized } from '../migrate/schema'
-import { safeCatch } from '../util/promiseHelper'
+import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '../../constants'
+import { Collection_Serialized } from '../../migrate/schema'
+import { safeCatch } from '../../util/promiseHelper'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'

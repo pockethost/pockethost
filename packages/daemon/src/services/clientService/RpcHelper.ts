@@ -1,6 +1,6 @@
 import { RpcFields, RpcStatus, RPC_COLLECTION } from '@pockethost/common'
 import { JsonObject } from 'type-fest'
-import { safeCatch } from '../util/promiseHelper'
+import { safeCatch } from '../../util/promiseHelper'
 import { MixinContext } from './PbClient'
 
 export enum RecordSubscriptionActions {

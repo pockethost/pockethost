@@ -14,8 +14,8 @@ import {
   RpcCommands,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
-import { clientService } from '../clientService/clientService'
 import { backupInstance } from '../util/backupInstance'
+import { clientService } from './clientService/clientService'
 import { rpcService } from './RpcService'
 
 export const backupService = mkSingleton(async () => {

@@ -14,7 +14,6 @@ import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import getPort from 'get-port'
 import { AsyncReturnType } from 'type-fest'
-import { clientService } from '../clientService/clientService'
 import {
   DAEMON_PB_IDLE_TTL,
   DAEMON_PB_PORT_BASE,
@@ -24,6 +23,7 @@ import {
 import { mkInternalUrl } from '../util/internal'
 import { now } from '../util/now'
 import { safeCatch } from '../util/promiseHelper'
+import { clientService } from './clientService/clientService'
 import { pocketbase, PocketbaseProcess } from './PocketBaseService'
 import { rpcService } from './RpcService'
 

@@ -5,7 +5,7 @@ import {
   PUBLIC_PB_DOMAIN,
   PUBLIC_PB_PROTOCOL,
   PUBLIC_PB_SUBDOMAIN,
-} from '../constants'
+} from '../../constants'
 import { createPbClient } from './PbClient'
 
 export const clientService = mkSingleton(async (url: string) => {
