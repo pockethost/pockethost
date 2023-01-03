@@ -1,0 +1,30 @@
+diff --git a/node_modules/@microsoft/fetch-event-source/package.json b/node_modules/@microsoft/fetch-event-source/package.json
+index 8528735..2e9bac3 100644
+--- a/node_modules/@microsoft/fetch-event-source/package.json
++++ b/node_modules/@microsoft/fetch-event-source/package.json
+@@ -9,9 +9,9 @@
+   },
+   "author": "Microsoft",
+   "license": "MIT",
+-  "main": "lib/cjs/index.js",
+-  "module": "lib/esm/index.js",
+-  "types": "lib/cjs/index.d.ts",
++  "main": "src/index.ts",
++  "module": "src/index.ts",
++  "types": "src/index.ts",
+   "sideEffects": false,
+   "scripts": {
+     "clean": "rimraf ./lib ./coverage",
+diff --git a/node_modules/@microsoft/fetch-event-source/src/fetch.ts b/node_modules/@microsoft/fetch-event-source/src/fetch.ts
+index 1e2236c..ccfdf6d 100644
+--- a/node_modules/@microsoft/fetch-event-source/src/fetch.ts
++++ b/node_modules/@microsoft/fetch-event-source/src/fetch.ts
+@@ -84,7 +84,7 @@ export function fetchEventSource(input: RequestInfo, {
+         }
+ 
+         let retryInterval = DefaultRetryInterval;
+-        let retryTimer = 0;
++        let retryTimer : ReturnType<typeof globalThis['setTimeout']> | undefined = undefined;
+         function dispose() {
+             globalThis.document?.removeEventListener('visibilitychange', onVisibilityChange);
+             globalThis.clearTimeout(retryTimer);

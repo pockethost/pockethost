@@ -33,7 +33,7 @@ export type RpcServiceConfig = {}
 
 export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
   const { dbg, error } = logger().create('RpcService')
-  const client = await clientService()
+  const { client } = await clientService()
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 
@@ -84,6 +84,7 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
         if (!(e instanceof Error)) {
           throw new Error(`Expected Error here but got ${typeof e}:${e}`)
         }
+        dbg(`RPC failed with`, e)
         await client.rejectRpc(rpc, e).catch((e) => {
           error(`rpc ${rpc.id} failed to reject with ${e}`)
         })

@@ -19,7 +19,7 @@ import Bottleneck from 'bottleneck'
 
 export const backupService = mkSingleton(async () => {
   const { dbg } = logger().create('BackupService')
-  const client = await clientService()
+  const { client } = await clientService()
 
   const { registerCommand } = await rpcService()
 

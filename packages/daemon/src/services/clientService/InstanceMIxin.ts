@@ -44,6 +44,26 @@ export const createInstanceMixin = (context: MixinContext) => {
         })
   )
 
+  const getInstanceById = safeCatch(
+    `getInstanceById`,
+    async (
+      instanceId: InstanceId
+    ): Promise<[InstanceFields, UserFields] | []> => {
+      return client
+        .collection('instances')
+        .getOne<InstanceFields>(instanceId)
+        .then((instance) => {
+          if (!instance) return []
+          return client
+            .collection('users')
+            .getOne<UserFields>(instance.uid)
+            .then((user) => {
+              return [instance, user]
+            })
+        })
+    }
+  )
+
   const updateInstance = safeCatch(
     `updateInstance`,
     async (instanceId: InstanceId, fields: Partial<InstanceFields>) => {
@@ -114,6 +134,7 @@ export const createInstanceMixin = (context: MixinContext) => {
   )
 
   return {
+    getInstanceById,
     getInstances,
     updateInstance,
     updateInstanceStatus,

@@ -3,6 +3,7 @@ import { mkSingleton } from './mkSingleton'
 export type Config = {
   raw?: boolean
   debug: boolean
+  trace?: boolean
   errorTrace?: boolean
   pfx?: string[]
 }
@@ -17,7 +18,8 @@ export const createLogger = (config: Partial<Config>) => {
   const _config: Required<Config> = {
     raw: false,
     debug: true,
-    errorTrace: true,
+    trace: false,
+    errorTrace: false,
     pfx: [''],
     ...config,
   }
@@ -57,7 +59,7 @@ export const createLogger = (config: Partial<Config>) => {
   }
 
   const trace = (...args: any[]) => {
-    _log(true, _pfx(`TRACE`), ...args)
+    _log(_config.trace, _pfx(`TRACE`), ...args)
   }
 
   const error = (...args: any[]) => {
@@ -81,7 +83,20 @@ export const createLogger = (config: Partial<Config>) => {
 
   const child = (extra: any) => create(JSON.stringify(extra))
 
-  return { raw, dbg, warn, info, error, create, child, trace, debug: dbg }
+  return {
+    raw,
+    dbg,
+    warn,
+    info,
+    error,
+    create,
+    child,
+    trace,
+    debug: dbg,
+    shutdown() {
+      dbg(`Logger shutting down`)
+    },
+  }
 }
 
 export const logger = mkSingleton((config: Config) => createLogger(config))

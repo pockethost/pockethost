@@ -1,4 +1,4 @@
-import { DEBUG, PH_BIN_CACHE, PUBLIC_PB_SUBDOMAIN } from '$constants'
+import { DEBUG, PH_BIN_CACHE, PUBLIC_APP_DB } from '$constants'
 import {
   backupService,
   clientService,
@@ -6,9 +6,13 @@ import {
   instanceService,
   pocketbase,
   proxyService,
+  realtimeLog,
   rpcService,
+  sqliteService,
 } from '$services'
 import { logger } from '@pockethost/common'
+import { centralDbService } from './services/CentralDbService'
+import { instanceLoggerService } from './services/InstanceLoggerService'
 
 logger({ debug: DEBUG })
 
@@ -28,7 +32,7 @@ global.EventSource = require('eventsource')
    */
   const { url } = await pbService.spawn({
     command: 'serve',
-    slug: PUBLIC_PB_SUBDOMAIN,
+    slug: PUBLIC_APP_DB,
   })
 
   /**
@@ -37,10 +41,14 @@ global.EventSource = require('eventsource')
   await clientService(url)
   ftpService({})
   await rpcService({})
-  await instanceService({})
   await proxyService({
     coreInternalUrl: url,
   })
+  await instanceLoggerService({})
+  await sqliteService({})
+  await realtimeLog({})
+  await instanceService({})
+  await centralDbService({})
   await backupService({})
 
   info(`Hooking into process exit event`)
@@ -49,6 +57,7 @@ global.EventSource = require('eventsource')
     info(`Got signal ${signal}`)
     info(`Shutting down`)
     ftpService().shutdown()
+    ;(await realtimeLog()).shutdown()
     ;(await backupService()).shutdown()
     ;(await proxyService()).shutdown()
     ;(await instanceService()).shutdown()

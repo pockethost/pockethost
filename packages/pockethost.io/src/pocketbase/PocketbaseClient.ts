@@ -1,11 +1,16 @@
 import { createGenericSyncEvent } from '$util/events'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
   assertExists,
+  BackupInstancePayloadSchema,
+  CreateInstancePayloadSchema,
   createRpcHelper,
   createWatchHelper,
   logger,
+  RestoreInstancePayloadSchema,
   RpcCommands,
   safeCatch,
+  SaveSecretsPayloadSchema,
   type BackupFields,
   type BackupInstancePayload,
   type BackupInstanceResult,
@@ -15,7 +20,10 @@ import {
   type InstanceId,
   type RestoreInstancePayload,
   type RestoreInstanceResult,
-  type UserFields
+  type SaveSecretsPayload,
+  type SaveSecretsResult,
+  type UserFields,
+  type WorkerLogFields
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, {
@@ -112,14 +120,21 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const { mkRpc } = rpcMixin
 
   const createInstance = mkRpc<CreateInstancePayload, CreateInstanceResult>(
-    RpcCommands.CreateInstance
+    RpcCommands.CreateInstance,
+    CreateInstancePayloadSchema
   )
   const createInstanceBackupJob = mkRpc<BackupInstancePayload, BackupInstanceResult>(
-    RpcCommands.BackupInstance
+    RpcCommands.BackupInstance,
+    BackupInstancePayloadSchema
   )
 
   const createInstanceRestoreJob = mkRpc<RestoreInstancePayload, RestoreInstanceResult>(
-    RpcCommands.RestoreInstance
+    RpcCommands.RestoreInstance,
+    RestoreInstancePayloadSchema
+  )
+  const saveSecrets = mkRpc<SaveSecretsPayload, SaveSecretsResult>(
+    RpcCommands.SaveSecrets,
+    SaveSecretsPayloadSchema
   )
 
   const getInstanceById = safeCatch(
@@ -228,7 +243,57 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     })
   }
 
+  const watchInstanceLog = (
+    instanceId: InstanceId,
+    update: (log: WorkerLogFields) => void,
+    nInitial = 100
+  ): (() => void) => {
+    const auth = client.authStore.exportToCookie()
+
+    const controller = new AbortController()
+    const signal = controller.signal
+    const continuallyFetchFromEventSource = () => {
+      dbg(`Subscribing to ${url}`)
+      fetchEventSource(`${url}/logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          instanceId,
+          n: nInitial,
+          auth
+        }),
+        onmessage: (event) => {
+          // dbg(`Got stream event`, event)
+          const {} = event
+          const log = JSON.parse(event.data) as WorkerLogFields
+          // dbg(`Log is`, log)
+          update(log)
+        },
+        onopen: async (response) => {
+          dbg(`Stream is open`, response)
+        },
+        onerror: (e) => {
+          dbg(`Stream error`, e)
+        },
+        onclose: () => {
+          setTimeout(continuallyFetchFromEventSource, 100)
+          dbg(`Stream closed`)
+        },
+        signal
+      })
+    }
+    continuallyFetchFromEventSource()
+
+    return () => {
+      controller.abort()
+    }
+  }
+
   return {
+    saveSecrets,
+    watchInstanceLog,
     getAuthStoreProps,
     parseError,
     getInstanceById,

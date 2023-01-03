@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [],
+    "lib": ["ES2021.String"],
     "allowJs": true,
     "checkJs": true,
     "esModuleInterop": true,

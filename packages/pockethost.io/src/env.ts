@@ -1,4 +1,3 @@
-import { browser } from '$app/environment'
 import { env as _env } from '$env/dynamic/public'
 import { boolean } from 'boolean'
 import base from '../../../package.json'
@@ -16,10 +15,6 @@ export const envb = (name: string, _default: boolean) => boolean(env(name, _defa
 export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', 'pockethost-central')
 export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', 'pockethost.io')
 export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
-export const PUBLIC_PB_PROTOCOL = env(
-  'PUBLIC_PB_PROTOCOL',
-  browser ? window.location.protocol : 'https'
-)
 export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', false)
 
 export const PUBLIC_POCKETHOST_VERSION = base.version

@@ -1,9 +1,9 @@
 import {
   DAEMON_PB_PASSWORD,
   DAEMON_PB_USERNAME,
-  PUBLIC_PB_DOMAIN,
-  PUBLIC_PB_PROTOCOL,
-  PUBLIC_PB_SUBDOMAIN,
+  PUBLIC_APP_DB,
+  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_PROTOCOL,
 } from '$constants'
 import { createPbClient, pocketbase, PocketbaseClientApi } from '$services'
 import { logger, safeCatch } from '@pockethost/common'
@@ -19,7 +19,7 @@ export const withInstance = safeCatch(
         await pocketbase()
       ).spawn({
         command: 'serve',
-        slug: PUBLIC_PB_SUBDOMAIN,
+        slug: PUBLIC_APP_DB,
       })
 
       try {
@@ -29,7 +29,7 @@ export const withInstance = safeCatch(
         await cb(client)
       } catch (e) {
         error(
-          `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_PB_PROTOCOL}://${PUBLIC_PB_SUBDOMAIN}.${PUBLIC_PB_DOMAIN}/_/`
+          `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`
         )
         error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
       } finally {

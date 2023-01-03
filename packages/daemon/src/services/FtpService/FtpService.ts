@@ -17,7 +17,7 @@ export type FtpConfig = {}
 export enum FolderNames {
   PbData = 'pb_data',
   PbStatic = 'pb_static',
-  PbWorkers = 'workers',
+  PbWorker = 'worker',
   PbBackup = 'backup',
 }
 
@@ -25,7 +25,7 @@ export const README_CONTENTS: { [_ in FolderNames]: string } = {
   [FolderNames.PbBackup]: `This directory contains tgz backups of your data. PocketHost creates these automatically, or you can create them manually. For more information, see https://pockethost.io/docs/backups`,
   [FolderNames.PbData]: `This directory contains your PocketBase data. For more information, see https://pockethost.io/docs/data`,
   [FolderNames.PbStatic]: `This directory contains static files such as your web frontend. PocketHost will serve these when your instance URL receives a request. For more information, see https://pockethost.io/docs/static `,
-  [FolderNames.PbWorkers]: `This directory contains your Deno workers. For more information, see https://pockethost.io/docs/workers`,
+  [FolderNames.PbWorker]: `This directory contains your Deno worker. For more information, see https://pockethost.io/docs/workers`,
 }
 export const README_NAME = 'readme.md'
 
@@ -33,7 +33,7 @@ export const FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbBackup,
   FolderNames.PbData,
   FolderNames.PbStatic,
-  FolderNames.PbWorkers,
+  FolderNames.PbWorker,
 ]
 
 export function isFolder(name: string): name is FolderNames {
@@ -62,7 +62,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
   ftpServer.on(
     'login',
     async ({ connection, username, password }, resolve, reject) => {
-      const url = (await clientService()).url
+      const url = (await clientService()).client.url
       const client = createPbClient(url)
       try {
         await client.client

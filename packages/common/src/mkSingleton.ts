@@ -1,4 +1,10 @@
-export const mkSingleton = <TConfig, TApi>(
+export type SingletonApi = {
+  shutdown: () => void | Promise<void>
+}
+export const mkSingleton = <
+  TConfig,
+  TApi extends SingletonApi | Promise<SingletonApi>
+>(
   factory: (config: TConfig) => TApi
 ) => {
   let _service: TApi | undefined = undefined

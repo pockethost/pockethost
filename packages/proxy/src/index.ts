@@ -26,8 +26,8 @@ const server = createServer(options, async (req, res) => {
     res.end()
     return
   }
+  res.setHeader('Access-Control-Allow-Origin', '*')
 
-  console.log(req.headers.host)
   const { host } = req.headers
 
   try {

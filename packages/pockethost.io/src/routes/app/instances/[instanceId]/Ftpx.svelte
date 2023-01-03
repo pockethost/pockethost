@@ -31,7 +31,7 @@
         <th>backups</th><td>Location of tgz backups made using this UI</td>
       </tr>
       <tr>
-        <th>workers</th><td>Deno workers (cloud TS/JS functions)</td>
+        <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>
       </tr>
     </table>
   </div>

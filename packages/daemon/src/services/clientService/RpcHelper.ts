@@ -56,7 +56,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
     async (rpc: RpcFields<any, any>, err: Error) => {
       const fields: Partial<RpcFields<any, any>> = {
         status: RpcStatus.FinishedError,
-        result: JSON.stringify(err),
+        result: `${err}`,
       }
       return client
         .collection(RPC_COLLECTION)

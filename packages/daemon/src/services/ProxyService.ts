@@ -1,27 +1,37 @@
-import {
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
-  PUBLIC_PB_SUBDOMAIN,
-} from '$constants'
-import { instanceService } from '$services'
 import { logger, mkSingleton } from '@pockethost/common'
-import { createServer } from 'http'
-import httpProxy from 'http-proxy'
+import { isFunction } from '@s-libs/micro-dash'
+import {
+  createServer,
+  IncomingMessage,
+  RequestListener,
+  ServerResponse,
+} from 'http'
+import { default as httpProxy, default as Server } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
+import UrlPattern from 'url-pattern'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
+
+export type ProxyMiddleware = (
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>,
+  meta: {
+    subdomain: string
+    coreInternalUrl: string
+    proxy: Server
+    host: string
+  }
+) => void
 
 export type ProxyServiceConfig = {
   coreInternalUrl: string
 }
 export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
-  const { dbg, error, info } = logger().create('ProxyService')
+  const { dbg, error, info, trace } = logger().create('ProxyService')
 
   const { coreInternalUrl } = config
 
   const proxy = httpProxy.createProxyServer({})
-
-  const { getInstance } = await instanceService()
 
   const server = createServer(async (req, res) => {
     dbg(`Incoming request ${req.headers.host}/${req.url}`)
@@ -34,40 +44,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       res.end(msg)
     }
 
-    const host = req.headers.host
-    if (!host) {
-      throw new Error(`Host not found`)
-    }
-    const [subdomain, ...junk] = host.split('.')
-    if (!subdomain) {
-      throw new Error(`${host} has no subdomain.`)
-    }
     try {
-      if (subdomain === PUBLIC_PB_SUBDOMAIN) {
-        const target = coreInternalUrl
-        dbg(`Forwarding proxy request for ${req.url} to instance ${target}`)
-        proxy.web(req, res, { target })
-        return
-      }
-
-      const instance = await getInstance(subdomain)
-      if (!instance) {
-        throw new Error(
-          `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
-        )
-      }
-
-      if (req.closed) {
-        throw new Error(`Request already closed.`)
-      }
-
-      dbg(
-        `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
-      )
-
-      const endRequest = instance.startRequest()
-      res.on('close', endRequest)
-      proxy.web(req, res, { target: instance.internalUrl })
+      middleware.forEach((handler) => handler(req, res))
     } catch (e) {
       die(`${e}`)
       return
@@ -88,5 +66,57 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     })
   }
 
-  return { shutdown }
+  const middleware: RequestListener[] = []
+
+  const use = (
+    subdomainFilter: string | ((subdomain: string) => boolean),
+    urlFilters: string | string[],
+    handler: ProxyMiddleware
+  ) => {
+    const _urlFilters = Array.isArray(urlFilters)
+      ? urlFilters.map((f) => new UrlPattern(f))
+      : [new UrlPattern(urlFilters)]
+    const _subdomainFilter = isFunction(subdomainFilter)
+      ? subdomainFilter
+      : (subdomain: string) =>
+          subdomainFilter === '*' || subdomain === subdomainFilter
+
+    middleware.push((req, res) => {
+      const host = req.headers.host
+      if (!host) {
+        throw new Error(`Host not found`)
+      }
+      const [subdomain, ...junk] = host.split('.')
+      if (!subdomain) {
+        throw new Error(`${host} has no subdomain.`)
+      }
+      const { url } = req
+      if (!url) {
+        throw new Error(`Expected URL here`)
+      }
+      trace({ subdomainFilter, _urlFilters, host, url })
+      if (!_subdomainFilter(subdomain)) {
+        trace(`Subdomain ${subdomain} does not match filter ${subdomainFilter}`)
+        return
+      }
+      if (
+        !_urlFilters.find((u) => {
+          const isMatch = !!u.match(url)
+          if (isMatch) {
+            trace(`Matched ${url}`)
+          } else {
+            trace(`No match for ${url}`)
+          }
+          return isMatch
+        })
+      ) {
+        trace(`${url} does not match pattern ${urlFilters}`)
+        return
+      }
+      dbg(`${url} matches ${urlFilters}, sending to handler`)
+      handler(req, res, { host, subdomain, coreInternalUrl, proxy })
+    })
+  }
+
+  return { shutdown, use }
 })

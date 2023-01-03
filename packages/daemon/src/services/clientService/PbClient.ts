@@ -1,4 +1,4 @@
-import { DAEMON_PB_DATA_DIR, PUBLIC_PB_SUBDOMAIN } from '$constants'
+import { DAEMON_PB_DATA_DIR, PUBLIC_APP_DB } from '$constants'
 import { logger, safeCatch } from '@pockethost/common'
 import { Knex } from 'knex'
 import {
@@ -22,7 +22,7 @@ export const createPbClient = (url: string) => {
 
   info(`Initializing client: ${url}`)
   const rawDb = createRawPbClient(
-    `${DAEMON_PB_DATA_DIR}/${PUBLIC_PB_SUBDOMAIN}/pb_data/data.db`
+    `${DAEMON_PB_DATA_DIR}/${PUBLIC_APP_DB}/pb_data/data.db`
   )
 
   const client = new PocketBase(url)

@@ -2,13 +2,9 @@ import { existsSync } from 'fs'
 import { join } from 'path'
 import { env, envb, envi } from './util/env'
 export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
-export const PUBLIC_PB_PROTOCOL = env('PUBLIC_PB_PROTOCOL', `https`)
 export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `pockethost.test`)
-export const PUBLIC_PB_DOMAIN = env('PUBLIC_PB_DOMAIN', `pockethost.test`)
-export const PUBLIC_PB_SUBDOMAIN = env(
-  'PUBLIC_PB_SUBDOMAIN',
-  `pockethost-central`
-)
+export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', `pockethost-central`)
+
 export const DAEMON_PB_USERNAME = (() => {
   const v = env('DAEMON_PB_USERNAME')
   if (!v) {
@@ -60,3 +56,5 @@ export const SSL_CERT = env('SSL_CERT')
 export const PH_FTP_PASV_IP = env('PH_FTP_PASV_IP', '0.0.0.0')
 export const PH_FTP_PASV_PORT_MIN = envi('PH_FTP_PASV_PORT_MIN', 10000)
 export const PH_FTP_PASV_PORT_MAX = envi('PH_FTP_PASV_PORT_MAX', 20000)
+
+export const DENO_PATH = env('DENO_PATH', `deno`)

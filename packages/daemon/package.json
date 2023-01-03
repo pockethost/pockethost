@@ -30,10 +30,12 @@
     "node-fetch": "^3.3.0",
     "pocketbase": "^0.8.0",
     "semver": "^7.3.8",
+    "sqlite": "^4.1.2",
     "sqlite3": "^5.1.2",
     "tmp": "^0.2.1",
     "type-fest": "^3.3.0",
-    "unzipper": "^0.10.11"
+    "unzipper": "^0.10.11",
+    "url-pattern": "^1.0.3"
   },
   "devDependencies": {
     "tsx": "^3.11.0"

@@ -1,10 +1,12 @@
 import {
+  DAEMON_PB_DATA_DIR,
   DAEMON_PB_IDLE_TTL,
   DAEMON_PB_PORT_BASE,
+  PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from '$constants'
-import { clientService, rpcService } from '$services'
+import { clientService, proxyService, rpcService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
@@ -18,12 +20,19 @@ import {
   mkSingleton,
   RpcCommands,
   safeCatch,
+  SaveSecretsPayload,
+  SaveSecretsPayloadSchema,
+  SaveSecretsResult,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
+import { existsSync } from 'fs'
 import getPort from 'get-port'
+import { join } from 'path'
 import { AsyncReturnType } from 'type-fest'
+import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbase, PocketbaseProcess } from '../PocketBaseService'
+import { createDenoProcess } from './Deno/DenoProcess'
 
 type InstanceApi = {
   process: PocketbaseProcess
@@ -39,7 +48,7 @@ export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(
   async (config: InstanceServiceConfig) => {
     const { dbg, raw, error, warn } = logger().create('InstanceService')
-    const client = await clientService()
+    const { client } = await clientService()
 
     const { registerCommand } = await rpcService()
 
@@ -59,8 +68,20 @@ export const instanceService = mkSingleton(
           platform: 'unused',
           secondsThisMonth: 0,
           isBackupAllowed: false,
+          secrets: {},
         })
         return { instance }
+      }
+    )
+
+    registerCommand<SaveSecretsPayload, SaveSecretsResult>(
+      RpcCommands.SaveSecrets,
+      SaveSecretsPayloadSchema,
+      async (job) => {
+        const { payload } = job
+        const { instanceId, secrets } = payload
+        await client.updateInstance(instanceId, { secrets })
+        return { status: 'saved' }
       }
     )
 
@@ -70,24 +91,25 @@ export const instanceService = mkSingleton(
 
     const getInstance = (subdomain: string) =>
       instanceLimiter.schedule(async () => {
-        // dbg(`Getting instance ${subdomain}`)
+        const { dbg, warn, error } = logger().create(subdomain)
+        dbg(`Getting instance`)
         {
           const instance = instances[subdomain]
           if (instance) {
-            // dbg(`Found in cache: ${subdomain}`)
+            dbg(`Found in cache`)
             return instance
           }
         }
 
         const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
 
-        dbg(`Checking ${subdomain} for permission`)
+        dbg(`Checking for permission`)
 
         const [instance, owner] = await clientLimiter.schedule(() =>
           client.getInstanceBySubdomain(subdomain)
         )
         if (!instance) {
-          dbg(`${subdomain} not found`)
+          dbg(`Instance not found`)
           return
         }
 
@@ -100,7 +122,7 @@ export const instanceService = mkSingleton(
         await clientLimiter.schedule(() =>
           client.updateInstanceStatus(instance.id, InstanceStatus.Port)
         )
-        dbg(`${subdomain} found in DB`)
+        dbg(`Instance found`)
         const exclude = map(instances, (i) => i.port)
         const newPort = await getPort({
           port: DAEMON_PB_PORT_BASE,
@@ -109,12 +131,20 @@ export const instanceService = mkSingleton(
           error(`Failed to get port for ${subdomain}`)
           throw e
         })
-        dbg(`Found port for ${subdomain}: ${newPort}`)
+        dbg(`Found port: ${newPort}`)
 
-        await clientLimiter.schedule(() =>
-          client.updateInstanceStatus(instance.id, InstanceStatus.Starting)
-        )
+        const instanceLogger = await instanceLoggerService().get(instance.id)
 
+        await clientLimiter.schedule(() => {
+          dbg(`Instance status: starting`)
+          return client.updateInstanceStatus(
+            instance.id,
+            InstanceStatus.Starting
+          )
+        })
+
+        dbg(`Starting instance`)
+        await instanceLogger.write(`Starting instance`)
         const childProcess = await pbService.spawn({
           command: 'serve',
           slug: instance.id,
@@ -128,14 +158,44 @@ export const instanceService = mkSingleton(
 
         const { pid } = childProcess
         assertTruthy(pid, `Expected PID here but got ${pid}`)
+        dbg(`PocketBase instance PID: ${pid}`)
 
         if (!instance.isBackupAllowed) {
-          await client.updateInstance(instance.id, { isBackupAllowed: true })
+          dbg(`Backups are now allowed`)
+          await clientLimiter.schedule(() =>
+            client.updateInstance(instance.id, { isBackupAllowed: true })
+          )
         }
 
         const invocation = await clientLimiter.schedule(() =>
           client.createInvocation(instance, pid)
         )
+
+        /**
+         * Deno worker
+         */
+        const denoApi = await (async () => {
+          const workerPath = join(
+            DAEMON_PB_DATA_DIR,
+            instance.id,
+            `worker`,
+            `index.ts`
+          )
+          dbg(`Checking ${workerPath} for a worker entry point`)
+          if (existsSync(workerPath)) {
+            dbg(`Found worker ${workerPath}`)
+            await instanceLogger.write(`Starting worker`)
+            const api = await createDenoProcess({
+              path: workerPath,
+              port: newPort,
+              instance,
+            })
+            return api
+          } else {
+            dbg(`No worker found at ${workerPath}`)
+          }
+        })()
+
         const tm = createTimerManager({})
         const api: InstanceApi = (() => {
           let openRequestCount = 0
@@ -150,6 +210,10 @@ export const instanceService = mkSingleton(
             shutdown: safeCatch(
               `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
               async () => {
+                dbg(`Shutting down`)
+                await instanceLogger.write(`Shutting down instance`)
+                await instanceLogger.write(`Shutting down worker`)
+                await denoApi?.shutdown()
                 tm.shutdown()
                 await clientLimiter.schedule(() =>
                   client.finalizeInvocation(invocation)
@@ -238,6 +302,36 @@ export const instanceService = mkSingleton(
         instance.shutdown()
       })
     }
+
+    ;(await proxyService()).use(
+      (subdomain) => subdomain !== PUBLIC_APP_DB,
+      ['/api(/*)', '/_(/*)'],
+      async (req, res, meta) => {
+        const { subdomain, host, proxy } = meta
+
+        // Do not handle central db requests, that is handled separately
+        if (subdomain === PUBLIC_APP_DB) return
+
+        const instance = await getInstance(subdomain)
+        if (!instance) {
+          throw new Error(
+            `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
+          )
+        }
+
+        if (req.closed) {
+          throw new Error(`Request already closed.`)
+        }
+
+        dbg(
+          `Forwarding proxy request for ${req.url} to instance ${instance.internalUrl}`
+        )
+
+        const endRequest = instance.startRequest()
+        res.on('close', endRequest)
+        proxy.web(req, res, { target: instance.internalUrl })
+      }
+    )
 
     const maintenance = async (instanceId: InstanceId) => {}
     return { getInstance, shutdown, maintenance }
