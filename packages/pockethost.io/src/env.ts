@@ -1,5 +1,7 @@
 import { env as _env } from '$env/dynamic/public'
+import publicRoutes from '$util/public-routes.json'
 import { boolean } from 'boolean'
+import UrlPattern from 'url-pattern'
 import base from '../../../package.json'
 
 export const env = (name: string, _default: string = '') => {
@@ -18,3 +20,5 @@ export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
 export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', false)
 
 export const PUBLIC_POCKETHOST_VERSION = base.version
+
+export const PUBLIC_ROUTES = publicRoutes.map((pattern) => new UrlPattern(pattern))

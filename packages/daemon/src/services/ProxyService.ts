@@ -7,7 +7,7 @@ import {
   ServerResponse,
 } from 'http'
 import { default as httpProxy, default as Server } from 'http-proxy'
-import { AsyncReturnType } from 'type-fest'
+import { Asyncify, AsyncReturnType } from 'type-fest'
 import UrlPattern from 'url-pattern'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
@@ -45,7 +45,10 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     }
 
     try {
-      middleware.forEach((handler) => handler(req, res))
+      for (let i = 0; i < middleware.length; i++) {
+        const m = middleware[i]!
+        await m(req, res)
+      }
     } catch (e) {
       die(`${e}`)
       return
@@ -66,13 +69,18 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     })
   }
 
-  const middleware: RequestListener[] = []
+  type MiddlewareListener = RequestListener | Asyncify<RequestListener>
+  const middleware: MiddlewareListener[] = []
 
   const use = (
     subdomainFilter: string | ((subdomain: string) => boolean),
     urlFilters: string | string[],
-    handler: ProxyMiddleware
+    handler: ProxyMiddleware,
+    handlerName: string
   ) => {
+    const { dbg, trace } = logger().create(`ProxyService:${handlerName}`)
+    dbg({ subdomainFilter, urlFilters })
+
     const _urlFilters = Array.isArray(urlFilters)
       ? urlFilters.map((f) => new UrlPattern(f))
       : [new UrlPattern(urlFilters)]
@@ -110,7 +118,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
           return isMatch
         })
       ) {
-        trace(`${url} does not match pattern ${urlFilters}`)
+        dbg(`${url} does not match pattern ${urlFilters}`)
         return
       }
       dbg(`${url} matches ${urlFilters}, sending to handler`)

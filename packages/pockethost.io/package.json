@@ -27,6 +27,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@dansvel/vite-plugin-markdown": "^2.0.5",
     "@microsoft/fetch-event-source": "https://github.com/Almar/fetch-event-source.git#pr/make_web_worker_friendly",
     "@pockethost/common": "0.0.1",
     "@s-libs/micro-dash": "^14.1.0",
@@ -34,16 +35,21 @@
     "@types/d3-scale": "^4.0.3",
     "@types/d3-scale-chromatic": "^3.0.0",
     "@types/js-cookie": "^3.0.2",
+    "@types/marked": "^4.0.8",
     "boolean": "^3.2.0",
     "d3-scale": "^4.0.2",
     "d3-scale-chromatic": "^3.0.0",
     "date-fns": "^2.29.3",
+    "highlight.js": "^11.7.0",
     "js-cookie": "^3.0.1",
+    "marked": "^4.2.5",
     "pocketbase": "^0.8.0",
     "pretty-bytes": "^6.0.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.54.9",
     "svelte-highlight": "^6.2.1",
-    "type-fest": "^3.3.0"
+    "type-fest": "^3.3.0",
+    "url-pattern": "^1.0.3",
+    "vite-plugin-markdown": "^2.1.0"
   }
 }

@@ -1,0 +1,15 @@
+diff --git a/node_modules/@dansvel/vite-plugin-markdown/dist/cjs/index.d.ts b/node_modules/@dansvel/vite-plugin-markdown/dist/cjs/index.d.ts
+index a5f9715..d84ae89 100644
+--- a/node_modules/@dansvel/vite-plugin-markdown/dist/cjs/index.d.ts
++++ b/node_modules/@dansvel/vite-plugin-markdown/dist/cjs/index.d.ts
+@@ -4,8 +4,8 @@ export interface PluginOptions {
+     markedOptions?: marked.options;
+     withOrigin?: boolean;
+ }
+-export interface Metadata {
+-    attributes: {};
++export interface Metadata<TAttributes extends {} = {}> {
++    attributes: TAttributes;
+     body: string;
+ }
+ export interface Result extends Metadata {

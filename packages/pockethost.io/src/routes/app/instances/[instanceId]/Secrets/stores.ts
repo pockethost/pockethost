@@ -39,6 +39,9 @@ function createItems(initialItems: SecretsArray) {
 
   return {
     subscribe,
+    clear: () => {
+      set([])
+    },
     // create: add an object for the item at the end of the store's array
     create: (item: SecretItem) => {
       const { name, value } = sanitize(item)

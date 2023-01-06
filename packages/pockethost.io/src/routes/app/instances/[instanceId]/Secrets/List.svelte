@@ -8,7 +8,7 @@
   <section>
     <!-- display the articles in a grid, specifying the name and numerical values in a column -->
     <main>
-      {#each $items as item (item.name)}
+      {#each $items as item}
         <article style="border-color: {item.color}">
           <h2>{item.name}</h2>
           <div class="value">

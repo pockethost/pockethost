@@ -89,6 +89,14 @@
           >
         </li>
 
+        <li class="nav-item text-center">
+          <a
+            href="/docs"
+            class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
+            rel="noreferrer">Docs</a
+          >
+        </li>
+
         <li class="nav-item">
           <a
             class="nav-link text-md-start text-center"

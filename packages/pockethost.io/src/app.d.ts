@@ -7,3 +7,9 @@ declare namespace App {
   // interface Error {}
   // interface Platform {}
 }
+
+type DocPage = Metadata<{ title: string }>
+declare module '*.md' {
+  const content: DocPage
+  export = content
+}

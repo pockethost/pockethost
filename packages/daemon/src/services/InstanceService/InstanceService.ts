@@ -330,7 +330,8 @@ export const instanceService = mkSingleton(
         const endRequest = instance.startRequest()
         res.on('close', endRequest)
         proxy.web(req, res, { target: instance.internalUrl })
-      }
+      },
+      `InstanceService`
     )
 
     const maintenance = async (instanceId: InstanceId) => {}

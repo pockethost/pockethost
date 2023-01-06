@@ -138,7 +138,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
           `Dispatching SSE log event from ${instance.subdomain} (${instance.id})`,
           evt
         )
-        limiter.schedule(() => write(evt))
+        limiter.schedule(() => write(evt)).catch(error)
       })
       req.on('close', () => {
         limiter.stop()
@@ -157,24 +157,32 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
         recs
           .sort((a, b) => (a.created < b.created ? -1 : 1))
           .forEach((rec) => {
-            limiter.schedule(async () => {
-              if (_seenIds?.[rec.id]) return // Skip if update already emitted
-              const evt = mkEvent(`log`, rec)
-              // dbg(
-              //   `Dispatching SSE initial log event from ${instance.subdomain} (${instance.id})`,
-              //   evt
-              // )
-              return write(evt)
-            })
+            limiter
+              .schedule(async () => {
+                if (_seenIds?.[rec.id]) {
+                  trace(`Record ${rec.id} already sent `)
+                  return
+                } // Skip if update already emitted
+                const evt = mkEvent(`log`, rec)
+                trace(
+                  `Dispatching SSE initial log event from ${instance.subdomain} (${instance.id})`,
+                  evt
+                )
+                return write(evt)
+              })
+              .catch(error)
           })
-        limiter.schedule(async () => {
-          // Set seenIds to `undefined` so the subscribe listener stops tracking them.
-          _seenIds = undefined
-        })
+        limiter
+          .schedule(async () => {
+            // Set seenIds to `undefined` so the subscribe listener stops tracking them.
+            _seenIds = undefined
+          })
+          .catch(error)
       }
 
       return true
-    }
+    },
+    `RealtimeLogService`
   )
 
   return {

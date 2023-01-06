@@ -12,6 +12,7 @@
 <div class="py-4">
   <h2>Overview</h2>
   <ProvisioningStatus {status} />
+  Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
   <div>
     Running {version}
   </div>

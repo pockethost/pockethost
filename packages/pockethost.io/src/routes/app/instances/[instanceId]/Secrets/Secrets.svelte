@@ -14,6 +14,7 @@
 
   const cm = createCleanupManager()
   onMount(() => {
+    items.clear()
     forEach(instance.secrets || {}, (value, name) => {
       items.create({ name, value })
     })

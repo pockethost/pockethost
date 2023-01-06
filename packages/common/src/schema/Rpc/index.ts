@@ -6,7 +6,7 @@ export const RPC_COLLECTION = 'rpc'
 export enum RpcCommands {
   CreateInstance = 'create-instance',
   BackupInstance = 'backup-instance',
-  RestoreInstance = 'restore-instance',
+  // RestoreInstance = 'restore-instance',
   SaveSecrets = 'save-secrets',
   // gen:enum
 }
@@ -14,7 +14,7 @@ export enum RpcCommands {
 export const RPC_COMMANDS = [
   RpcCommands.CreateInstance,
   RpcCommands.BackupInstance,
-  RpcCommands.RestoreInstance,
+  // RpcCommands.RestoreInstance,
   RpcCommands.SaveSecrets,
 ]
 

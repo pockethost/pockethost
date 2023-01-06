@@ -222,3 +222,33 @@ h6 {
 
   --soft-box-shadow: rgba(0, 0, 0, 0.3) 0px 7px 29px 0px;
 }
+
+.docs {
+  color: var(--bs-gray-700);
+}
+
+.docs img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--bs-gray-500);
+  padding: 15px;
+}
+
+.docs h1 {
+  border-bottom: 1px solid var(--bs-gray-900);
+  padding-bottom: 10px;
+  margin-bottom: 40px;
+  color: var(--bs-gray-900);
+}
+
+.docs h2 {
+  padding-bottom: 10px;
+  margin-top: 40px;
+}
+
+.docs blockquote {
+  border-left: 3px solid var(--bs-gray-200);
+  padding: 10px;
+  background-color: var(--bs-gray-100);
+  padding-left: 20px;
+}

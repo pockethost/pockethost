@@ -7,7 +7,7 @@ export const centralDbService = mkSingleton(async () => {
 
   ;(await proxyService()).use(
     PUBLIC_APP_DB,
-    ['/api(/*)', '_(/*)'],
+    ['/api(/*)', '/_(/*)'],
     (req, res, meta) => {
       const { subdomain, coreInternalUrl, proxy } = meta
 
@@ -18,7 +18,8 @@ export const centralDbService = mkSingleton(async () => {
         `Forwarding proxy request for ${req.url} to central instance ${target}`
       )
       proxy.web(req, res, { target })
-    }
+    },
+    `CentralDbService`
   )
 
   return {

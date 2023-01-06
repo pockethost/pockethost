@@ -107,7 +107,7 @@ export const createPocketbaseService = async (
         `No version found, probably mismatched architecture and OS (${osName}/${cpuArchitecture})`
       )
     }
-    maxVersion = `^${rsort(keys(versions))[0]}`
+    maxVersion = `~${rsort(keys(versions))[0]}`
     dbg({ maxVersion })
     return true
   }

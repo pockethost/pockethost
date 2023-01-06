@@ -1,4 +1,4 @@
-import { DEBUG, PH_BIN_CACHE, PUBLIC_APP_DB } from '$constants'
+import { DEBUG, PH_BIN_CACHE, PUBLIC_APP_DB, TRACE } from '$constants'
 import {
   backupService,
   clientService,
@@ -14,7 +14,7 @@ import { logger } from '@pockethost/common'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
 
-logger({ debug: DEBUG })
+logger({ debug: DEBUG, trace: TRACE })
 
 // npm install eventsource --save
 global.EventSource = require('eventsource')
