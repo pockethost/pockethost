@@ -134,6 +134,10 @@ If all goes well:
 
 **next**
 
+**0.6.1**
+
+- Fixed semver locking error
+
 **0.6.0**
 
 - FTP support
