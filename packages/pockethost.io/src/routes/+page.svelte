@@ -3,6 +3,7 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import InstanceGeneratorWidget from '$components/InstanceGeneratorWidget.svelte'
+	import FrequentlyAskedQuestions from '$components/FrequentlyAskedQuestions.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { isUserLoggedIn } from '$util/stores'
 </script>
@@ -145,6 +146,10 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="container">
+  <FrequentlyAskedQuestions />
 </div>
 
 <style>
