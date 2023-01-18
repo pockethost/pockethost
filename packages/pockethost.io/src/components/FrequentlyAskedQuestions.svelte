@@ -1,5 +1,11 @@
-<script>
-	const questions = [
+<script lang="ts">
+	interface Question {
+		title: string,
+		answer: string,
+		collapsed: boolean
+	}
+
+	const questions: Question[] = [
 		{
 			title: "How many instances can I create ?",
 			answer: "For now, you can create an unlimited number of PocketBase instances.",
