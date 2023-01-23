@@ -4,7 +4,8 @@ import { logger } from './Logger'
 let c = 0
 export const safeCatch = <TIn extends any[], TOut>(
   name: string,
-  cb: (...args: TIn) => Promise<TOut>
+  cb: (...args: TIn) => Promise<TOut>,
+  timeoutMs = 5000
 ) => {
   return (...args: TIn) => {
     const _c = c++
@@ -13,8 +14,8 @@ export const safeCatch = <TIn extends any[], TOut>(
     const { raw, error, warn } = logger().create(pfx)
     raw(`args`, args)
     const tid = setTimeout(() => {
-      warn(`timeout waiting for ${pfx}`)
-    }, 100)
+      error(`timeout ${timeoutMs}ms waiting for ${pfx}`)
+    }, timeoutMs)
 
     return cb(...args)
       .then((res) => {
