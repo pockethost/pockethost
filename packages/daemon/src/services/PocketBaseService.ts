@@ -130,7 +130,7 @@ export const createPocketbaseService = async (
 
   const _spawn = safeCatch(`spawnInstance`, async (cfg: SpawnConfig) => {
     const _cfg: Required<SpawnConfig> = {
-      version: '^0.10.0',
+      version: '~0.11.0',
       port: await getPort(),
       onUnexpectedStop: (code) => {
         dbg(`Unexpected stop default handler. Exit code: ${code}`)
