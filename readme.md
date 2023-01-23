@@ -139,6 +139,7 @@ If all goes well:
 - Fix: requests for instances not ending in `pockethost.io` now rejected
 - Fix: realtime logging API requests no longer intercepted by PocketBase
 - Fix: potential timer memory leak
+- Fix: proper handling of http-proxy error conditions
 - Chore: various internal error trapping and logging
 
 **0.6.1**

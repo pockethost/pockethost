@@ -33,6 +33,9 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   const { coreInternalUrl } = config
 
   const proxy = httpProxy.createProxyServer({})
+  proxy.on('error', (err, req, res, target) => {
+    warn(`Proxy error ${err} on ${req.url} (${req.headers.host})`)
+  })
 
   const server = createServer(async (req, res) => {
     dbg(`Incoming request ${req.headers.host}/${req.url}`)
