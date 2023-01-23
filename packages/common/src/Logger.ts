@@ -65,13 +65,13 @@ export const createLogger = (config: Partial<Config>) => {
   const error = (...args: any[]) => {
     _log(true, _pfx(`ERROR`), ...args)
     if (!errorTrace) return
-    console.error(`========================`)
+    console.error(`========== ERROR TRACEBACK BEGIN ==============`)
     ;[..._buf.slice(_curIdx, MAX_BUF), ..._buf.slice(0, _curIdx)].forEach(
       (args) => {
         console.error(...args)
       }
     )
-    console.error(`========================`)
+    console.error(`========== ERROR TRACEBACK END ==============`)
   }
 
   const create = (s: string, configOverride?: Partial<Config>) =>
@@ -81,6 +81,7 @@ export const createLogger = (config: Partial<Config>) => {
       pfx: [..._config.pfx, s],
     })
 
+  // Compatibility func
   const child = (extra: any) => create(JSON.stringify(extra))
 
   return {
