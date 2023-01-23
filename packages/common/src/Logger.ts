@@ -26,7 +26,7 @@ export const createLogger = (config: Partial<Config>) => {
   const { pfx, errorTrace } = _config
 
   const _pfx = (s: string) =>
-    [s, ...pfx]
+    [new Date().toISOString(), s, ...pfx]
       .filter((v) => !!v)
       .map((p) => `[${p}]`)
       .join(' ')
