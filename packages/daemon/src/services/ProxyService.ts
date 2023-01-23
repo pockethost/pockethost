@@ -1,3 +1,4 @@
+import { PUBLIC_APP_DOMAIN } from '$constants'
 import { logger, mkSingleton } from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
@@ -27,7 +28,7 @@ export type ProxyServiceConfig = {
   coreInternalUrl: string
 }
 export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
-  const { dbg, error, info, trace } = logger().create('ProxyService')
+  const { dbg, error, info, trace, warn } = logger().create('ProxyService')
 
   const { coreInternalUrl } = config
 
@@ -35,13 +36,15 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
 
   const server = createServer(async (req, res) => {
     dbg(`Incoming request ${req.headers.host}/${req.url}`)
-
-    const die = (msg: string) => {
-      error(msg)
-      res.writeHead(403, {
+    if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
+      warn(
+        `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`
+      )
+      res.writeHead(502, {
         'Content-Type': `text/plain`,
       })
-      res.end(msg)
+      res.end(`${req.headers.host || `Domain`} was rejected.`)
+      return
     }
 
     try {
@@ -50,7 +53,12 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         await m(req, res)
       }
     } catch (e) {
-      die(`${e}`)
+      const msg = `${e}`
+      error(msg)
+      res.writeHead(403, {
+        'Content-Type': `text/plain`,
+      })
+      res.end(msg)
       return
     }
   })
