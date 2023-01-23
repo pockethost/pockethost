@@ -305,7 +305,7 @@ export const instanceService = mkSingleton(
 
     ;(await proxyService()).use(
       (subdomain) => subdomain !== PUBLIC_APP_DB,
-      ['/api(/*)', '/_(/*)'],
+      ['/api(/*)', '/_(/*)', '(/*)'],
       async (req, res, meta) => {
         const { subdomain, host, proxy } = meta
 
