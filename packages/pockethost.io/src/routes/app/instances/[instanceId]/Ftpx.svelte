@@ -11,7 +11,7 @@
   if (!email) {
     throw new Error(`Email expected here`)
   }
-  const ftpUrl = `ftp://${encodeURI(email)}@${PUBLIC_APP_DOMAIN}`
+  const ftpUrl = `ftp://${encodeURIComponent(email)}@${PUBLIC_APP_DOMAIN}`
 </script>
 
 <div class="py-4">
