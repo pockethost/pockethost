@@ -3,7 +3,7 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import HomepageHeroAnimation from '$components/HomepageHeroAnimation.svelte'
   import InstanceGeneratorWidget from '$components/InstanceGeneratorWidget.svelte'
-	import FrequentlyAskedQuestions from '$components/FrequentlyAskedQuestions.svelte'
+  import FrequentlyAskedQuestions from '$components/FrequentlyAskedQuestions.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { isUserLoggedIn } from '$util/stores'
 </script>
@@ -43,7 +43,7 @@
   </div>
 </div>
 
-<div class="features">
+<div class="section features">
   <div class="container">
     <h2 class="mb-5">Features</h2>
 
@@ -148,7 +148,8 @@
   </div>
 </div>
 
-<div class="container">
+<div class="section container">
+  <h2 class="mb-5">Frequently asked questions</h2>
   <FrequentlyAskedQuestions />
 </div>
 
@@ -173,10 +174,12 @@
 
   .features {
     background-image: var(--gradient-white-lime);
-    padding: 120px 0;
   }
 
-  .features h2 {
+  .section{
+    padding: 120px 0;
+  }
+  .section h2 {
     font-size: 56px;
   }
 
