@@ -134,6 +134,13 @@ If all goes well:
 
 **next**
 
+- Fix: FTP username link is now properly URLencoded
+- Fix: static asset requests are routed to PocketBase instance
+- Fix: requests for instances not ending in `pockethost.io` now rejected
+- Fix: realtime logging API requests no longer intercepted by PocketBase
+- Fix: potential timer memory leak
+- Chore: various internal error trapping and logging
+
 **0.6.1**
 
 - Fixed semver locking error
