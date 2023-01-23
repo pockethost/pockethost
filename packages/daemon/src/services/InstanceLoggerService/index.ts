@@ -29,6 +29,7 @@ const mkApi = async (logDbPath: string) => {
     connection: {
       filename: logDbPath,
     },
+    useNullAsDefault: true,
   })
 
   const write = safeCatch(
