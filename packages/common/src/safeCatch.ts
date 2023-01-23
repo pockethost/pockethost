@@ -39,5 +39,8 @@ export const safeCatch = <TIn extends any[], TOut>(
         }
         throw e
       })
+      .finally(() => {
+        clearTimeout(tid)
+      })
   }
 }
