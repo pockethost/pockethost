@@ -6,7 +6,12 @@ import {
   smartFetch,
   tryFetch,
 } from '$util'
-import { createTimerManager, logger, safeCatch } from '@pockethost/common'
+import {
+  createCleanupManager,
+  createTimerManager,
+  logger,
+  safeCatch,
+} from '@pockethost/common'
 import { mkSingleton } from '@pockethost/common/src/mkSingleton'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
@@ -58,6 +63,7 @@ export const createPocketbaseService = async (
 
   const { cachePath, checkIntervalMs } = config
 
+  const cm = createCleanupManager()
   const tm = createTimerManager({})
 
   const osName = type().toLowerCase()
@@ -158,6 +164,7 @@ export const createPocketbaseService = async (
     }
     dbg(`Spawning ${slug}`, { bin, args })
     const ls = spawn(bin, args)
+    cm.add(() => ls.kill())
 
     ls.stdout.on('data', (data) => {
       dbg(`${slug} stdout: ${data}`)
@@ -199,6 +206,7 @@ export const createPocketbaseService = async (
   const shutdown = () => {
     dbg(`Shutting down pocketbaseService`)
     tm.shutdown()
+    cm.shutdown()
   }
 
   return {
