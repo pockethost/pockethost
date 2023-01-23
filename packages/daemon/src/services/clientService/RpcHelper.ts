@@ -38,8 +38,9 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
         RpcStatus.FinishedError,
         RpcStatus.FinishedSuccess,
       ])
-      .update({
-        status: RpcStatus.New,
+      .update<RpcFields<any, any>>({
+        status: RpcStatus.FinishedError,
+        result: `Canceled by reset`,
       })
   )
 
