@@ -1,10 +1,12 @@
 <script lang="ts">
+  // ts interface for the Question type
   interface Question {
     title: string,
     answer: string,
     collapsed: boolean
   }
 
+  // Array of Questions, if the boolean <collapsed> is set to false, the answer is displayed
   const questions: Question[] = [
     {
       title: "How many instances can I create ?",
