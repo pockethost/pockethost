@@ -7,7 +7,7 @@ export const centralDbService = mkSingleton(async () => {
 
   ;(await proxyService()).use(
     PUBLIC_APP_DB,
-    ['/api(/*)', '/_(/*)'],
+    ['/api(/*)', '/_(/*)', '/'],
     (req, res, meta) => {
       const { subdomain, coreInternalUrl, proxy } = meta
 
