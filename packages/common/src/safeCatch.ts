@@ -32,10 +32,10 @@ export const safeCatch = <TIn extends any[], TOut>(
           } else if (e.status === 0) {
             warn(`Client request aborted (duplicate)`)
           } else {
-            warn(`Unknown PocketBase API error`, JSON.stringify(e))
+            warn(`Unknown PocketBase API error`, JSON.stringify({ args, e }))
           }
         } else {
-          warn(JSON.stringify(e, null, 2))
+          warn(JSON.stringify({ args, e }, null, 2))
         }
         throw e
       })
