@@ -90,211 +90,218 @@ export const instanceService = mkSingleton(
     const instanceLimiter = new Bottleneck({ maxConcurrent: 1 })
 
     const getInstance = (subdomain: string) =>
-      instanceLimiter.schedule(async () => {
-        const { dbg, warn, error } = logger().create(subdomain)
-        dbg(`Getting instance`)
-        {
-          const instance = instances[subdomain]
-          if (instance) {
-            dbg(`Found in cache`)
-            return instance
-          }
-        }
-
-        const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
-
-        dbg(`Checking for permission`)
-
-        const [instance, owner] = await clientLimiter.schedule(() =>
-          client.getInstanceBySubdomain(subdomain)
-        )
-        if (!instance) {
-          dbg(`Instance not found`)
-          return
-        }
-
-        if (!owner?.verified) {
-          throw new Error(
-            `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`
-          )
-        }
-
-        await clientLimiter.schedule(() =>
-          client.updateInstanceStatus(instance.id, InstanceStatus.Port)
-        )
-        dbg(`Instance found`)
-        const exclude = map(instances, (i) => i.port)
-        const newPort = await getPort({
-          port: DAEMON_PB_PORT_BASE,
-          exclude,
-        }).catch((e) => {
-          error(`Failed to get port for ${subdomain}`)
-          throw e
-        })
-        dbg(`Found port: ${newPort}`)
-
-        const instanceLogger = await instanceLoggerService().get(instance.id)
-
-        await clientLimiter.schedule(() => {
-          dbg(`Instance status: starting`)
-          return client.updateInstanceStatus(
-            instance.id,
-            InstanceStatus.Starting
-          )
-        })
-
-        dbg(`Starting instance`)
-        await instanceLogger.write(`Starting instance`)
-        const childProcess = await pbService.spawn({
-          command: 'serve',
-          slug: instance.id,
-          port: newPort,
-          version: instance.version,
-          onUnexpectedStop: (code) => {
-            warn(`${subdomain} exited unexpectedly with ${code}`)
-            api.shutdown()
-          },
-        })
-
-        const { pid } = childProcess
-        assertTruthy(pid, `Expected PID here but got ${pid}`)
-        dbg(`PocketBase instance PID: ${pid}`)
-
-        if (!instance.isBackupAllowed) {
-          dbg(`Backups are now allowed`)
-          await clientLimiter.schedule(() =>
-            client.updateInstance(instance.id, { isBackupAllowed: true })
-          )
-        }
-
-        const invocation = await clientLimiter.schedule(() =>
-          client.createInvocation(instance, pid)
-        )
-
-        /**
-         * Deno worker
-         */
-        const denoApi = await (async () => {
-          const workerPath = join(
-            DAEMON_PB_DATA_DIR,
-            instance.id,
-            `worker`,
-            `index.ts`
-          )
-          dbg(`Checking ${workerPath} for a worker entry point`)
-          if (existsSync(workerPath)) {
-            dbg(`Found worker ${workerPath}`)
-            await instanceLogger.write(`Starting worker`)
-            const api = await createDenoProcess({
-              path: workerPath,
-              port: newPort,
-              instance,
-            })
-            return api
-          } else {
-            dbg(`No worker found at ${workerPath}`)
-          }
-        })()
-
-        const tm = createTimerManager({})
-        const api: InstanceApi = (() => {
-          let openRequestCount = 0
-          let lastRequest = now()
-          const internalUrl = mkInternalUrl(newPort)
-
-          const RECHECK_TTL = 1000 // 1 second
-          const _api: InstanceApi = {
-            process: childProcess,
-            internalUrl,
-            port: newPort,
-            shutdown: safeCatch(
-              `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
-              async () => {
-                dbg(`Shutting down`)
-                await instanceLogger.write(`Shutting down instance`)
-                await instanceLogger.write(`Shutting down worker`)
-                await denoApi?.shutdown()
-                tm.shutdown()
-                await clientLimiter.schedule(() =>
-                  client.finalizeInvocation(invocation)
-                )
-                const res = childProcess.kill()
-                delete instances[subdomain]
-                await clientLimiter.schedule(() =>
-                  client.updateInstanceStatus(instance.id, InstanceStatus.Idle)
-                )
-                assertTruthy(
-                  res,
-                  `Expected child process to exit gracefully but got ${res}`
-                )
-              }
-            ),
-            startRequest: () => {
-              lastRequest = now()
-              openRequestCount++
-              const id = openRequestCount
-              dbg(`${subdomain} started new request ${id}`)
-              return () => {
-                openRequestCount--
-                dbg(`${subdomain} ended request ${id}`)
-              }
-            },
-          }
-
+      instanceLimiter
+        .schedule(async () => {
+          const { dbg, warn, error } = logger().create(subdomain)
+          dbg(`Getting instance`)
           {
-            tm.repeat(
-              safeCatch(`idleCheck`, async () => {
-                raw(
-                  `${subdomain} idle check: ${openRequestCount} open requests`
-                )
-                if (
-                  openRequestCount === 0 &&
-                  lastRequest + DAEMON_PB_IDLE_TTL < now()
-                ) {
-                  dbg(
-                    `${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`
+            const instance = instances[subdomain]
+            if (instance) {
+              dbg(`Found in cache`)
+              return instance
+            }
+          }
+
+          const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
+
+          dbg(`Checking for permission`)
+
+          const [instance, owner] = await clientLimiter.schedule(() =>
+            client.getInstanceBySubdomain(subdomain)
+          )
+          if (!instance) {
+            dbg(`Instance not found`)
+            return
+          }
+
+          if (!owner?.verified) {
+            throw new Error(
+              `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`
+            )
+          }
+
+          await clientLimiter.schedule(() =>
+            client.updateInstanceStatus(instance.id, InstanceStatus.Port)
+          )
+          dbg(`Instance found`)
+          const exclude = map(instances, (i) => i.port)
+          const newPort = await getPort({
+            port: DAEMON_PB_PORT_BASE,
+            exclude,
+          }).catch((e) => {
+            error(`Failed to get port for ${subdomain}`)
+            throw e
+          })
+          dbg(`Found port: ${newPort}`)
+
+          const instanceLogger = await instanceLoggerService().get(instance.id)
+
+          await clientLimiter.schedule(() => {
+            dbg(`Instance status: starting`)
+            return client.updateInstanceStatus(
+              instance.id,
+              InstanceStatus.Starting
+            )
+          })
+
+          dbg(`Starting instance`)
+          await instanceLogger.write(`Starting instance`)
+          const childProcess = await pbService.spawn({
+            command: 'serve',
+            slug: instance.id,
+            port: newPort,
+            version: instance.version,
+            onUnexpectedStop: (code) => {
+              warn(`${subdomain} exited unexpectedly with ${code}`)
+              api.shutdown()
+            },
+          })
+
+          const { pid } = childProcess
+          assertTruthy(pid, `Expected PID here but got ${pid}`)
+          dbg(`PocketBase instance PID: ${pid}`)
+
+          if (!instance.isBackupAllowed) {
+            dbg(`Backups are now allowed`)
+            await clientLimiter.schedule(() =>
+              client.updateInstance(instance.id, { isBackupAllowed: true })
+            )
+          }
+
+          const invocation = await clientLimiter.schedule(() =>
+            client.createInvocation(instance, pid)
+          )
+
+          /**
+           * Deno worker
+           */
+          const denoApi = await (async () => {
+            const workerPath = join(
+              DAEMON_PB_DATA_DIR,
+              instance.id,
+              `worker`,
+              `index.ts`
+            )
+            dbg(`Checking ${workerPath} for a worker entry point`)
+            if (existsSync(workerPath)) {
+              dbg(`Found worker ${workerPath}`)
+              await instanceLogger.write(`Starting worker`)
+              const api = await createDenoProcess({
+                path: workerPath,
+                port: newPort,
+                instance,
+              })
+              return api
+            } else {
+              dbg(`No worker found at ${workerPath}`)
+            }
+          })()
+
+          const tm = createTimerManager({})
+          const api: InstanceApi = (() => {
+            let openRequestCount = 0
+            let lastRequest = now()
+            const internalUrl = mkInternalUrl(newPort)
+
+            const RECHECK_TTL = 1000 // 1 second
+            const _api: InstanceApi = {
+              process: childProcess,
+              internalUrl,
+              port: newPort,
+              shutdown: safeCatch(
+                `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
+                async () => {
+                  dbg(`Shutting down`)
+                  await instanceLogger.write(`Shutting down instance`)
+                  await instanceLogger.write(`Shutting down worker`)
+                  await denoApi?.shutdown()
+                  tm.shutdown()
+                  await clientLimiter.schedule(() =>
+                    client.finalizeInvocation(invocation)
                   )
-                  await _api.shutdown()
-                  return false
-                } else {
-                  raw(
-                    `${openRequestCount} requests remain open on ${subdomain}`
+                  const res = childProcess.kill()
+                  delete instances[subdomain]
+                  await clientLimiter.schedule(() =>
+                    client.updateInstanceStatus(
+                      instance.id,
+                      InstanceStatus.Idle
+                    )
+                  )
+                  assertTruthy(
+                    res,
+                    `Expected child process to exit gracefully but got ${res}`
                   )
                 }
-                return true
-              }),
-              RECHECK_TTL
-            )
-          }
+              ),
+              startRequest: () => {
+                lastRequest = now()
+                openRequestCount++
+                const id = openRequestCount
+                dbg(`${subdomain} started new request ${id}`)
+                return () => {
+                  openRequestCount--
+                  dbg(`${subdomain} ended request ${id}`)
+                }
+              },
+            }
 
-          {
-            const uptime = safeCatch(`uptime`, async () => {
-              raw(`${subdomain} uptime`)
-              await clientLimiter.schedule(() =>
-                client.pingInvocation(invocation)
-              )
-              return true
-            })
-            tm.repeat(
-              () =>
-                uptime().catch((e) => {
-                  warn(`Ignoring error`)
+            {
+              tm.repeat(
+                safeCatch(`idleCheck`, async () => {
+                  raw(
+                    `${subdomain} idle check: ${openRequestCount} open requests`
+                  )
+                  if (
+                    openRequestCount === 0 &&
+                    lastRequest + DAEMON_PB_IDLE_TTL < now()
+                  ) {
+                    dbg(
+                      `${subdomain} idle for ${DAEMON_PB_IDLE_TTL}, shutting down`
+                    )
+                    await _api.shutdown()
+                    return false
+                  } else {
+                    raw(
+                      `${openRequestCount} requests remain open on ${subdomain}`
+                    )
+                  }
                   return true
                 }),
-              1000
-            )
-          }
+                RECHECK_TTL
+              )
+            }
 
-          return _api
-        })()
+            {
+              const uptime = safeCatch(`uptime`, async () => {
+                raw(`${subdomain} uptime`)
+                await clientLimiter.schedule(() =>
+                  client.pingInvocation(invocation)
+                )
+                return true
+              })
+              tm.repeat(
+                () =>
+                  uptime().catch((e) => {
+                    warn(`Ignoring error`)
+                    return true
+                  }),
+                1000
+              )
+            }
 
-        instances[subdomain] = api
-        await clientLimiter.schedule(() =>
-          client.updateInstanceStatus(instance.id, InstanceStatus.Running)
-        )
-        dbg(`${api.internalUrl} is running`)
-        return instances[subdomain]
-      })
+            return _api
+          })()
+
+          instances[subdomain] = api
+          await clientLimiter.schedule(() =>
+            client.updateInstanceStatus(instance.id, InstanceStatus.Running)
+          )
+          dbg(`${api.internalUrl} is running`)
+          return instances[subdomain]
+        })
+        .catch((e) => {
+          warn(`Failed to fetch ${subdomain} with ${e}`)
+        })
 
     const shutdown = () => {
       dbg(`Shutting down instance manager`)
