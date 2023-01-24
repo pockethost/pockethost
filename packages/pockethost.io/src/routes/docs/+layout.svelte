@@ -8,6 +8,7 @@
       {#each Object.entries(pages) as [v, k], i}
         <div><a class="nav-link" href={`/docs/${v}`}>{k.attributes.title}</a></div>
       {/each}
+        <div><a class="nav-link" href={`/docs/faq`}>FAQ</a></div>
     </div>
     <div class="body">
       <slot />
