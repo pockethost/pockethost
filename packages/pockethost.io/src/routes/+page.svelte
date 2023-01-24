@@ -42,7 +42,7 @@
   </div>
 </div>
 
-<div class="features">
+<div class="section features">
   <div class="container">
     <h2 class="mb-5">Features</h2>
 
@@ -168,10 +168,12 @@
 
   .features {
     background-image: var(--gradient-white-lime);
-    padding: 120px 0;
   }
 
-  .features h2 {
+  .section{
+    padding: 120px 0;
+  }
+  .section h2 {
     font-size: 56px;
   }
 
