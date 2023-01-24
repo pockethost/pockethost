@@ -17,4 +17,7 @@
   }
 </script>
 
+{#if !md.attributes.published}
+  <div class="text-danger">Draft</div>
+{/if}
 {@html md.body}

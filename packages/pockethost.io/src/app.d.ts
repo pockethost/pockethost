@@ -8,7 +8,14 @@ declare namespace App {
   // interface Platform {}
 }
 
-type DocPage = Metadata<{ title: string }>
+/**
+ * Taken from markdown plugin. For some reason importing here causes ts errors
+ */
+interface Metadata<TAttributes extends {} = {}> {
+  attributes: TAttributes
+  body: string
+}
+type DocPage = Metadata<{ title: string; published: boolean }>
 declare module '*.md' {
   const content: DocPage
   export = content

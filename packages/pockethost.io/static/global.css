@@ -230,6 +230,7 @@ h6 {
 .docs img {
   max-width: 100%;
   height: auto;
+  transform: scale(0.5); /* Sangit is taking 2x pixel denisty images */
   border: 1px solid var(--bs-gray-500);
   padding: 15px;
 }
