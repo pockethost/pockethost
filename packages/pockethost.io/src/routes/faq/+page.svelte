@@ -3,7 +3,10 @@
 
 </script>
 
+
+
 <div class="container">
+  <h2 class="mb-5">Frequently asked questions</h2>
   <FrequentlyAskedQuestions />
 </div>
 
