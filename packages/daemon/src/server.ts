@@ -11,6 +11,7 @@ import {
   sqliteService,
 } from '$services'
 import { logger } from '@pockethost/common'
+import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
 
@@ -19,8 +20,22 @@ logger({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 // npm install eventsource --save
 global.EventSource = require('eventsource')
 ;(async () => {
-  const { dbg, error, info } = logger().create(`server.ts`)
+  const { dbg, error, info, warn } = logger().create(`server.ts`)
   info(`Starting`)
+
+  /**
+   * Temporary fix until we can figure out why child processes are not
+   * being killed when the node process exits.
+   */
+  await new Promise<void>((resolve) => {
+    exec(`pkill -f 'pocketbase serve'`, (error, stdout, stderr) => {
+      if (error && error.signal !== 'SIGTERM') {
+        console.log({ error, stderr, stdout })
+        warn(`pkill failed with ${error}: ${stderr}`)
+      }
+      resolve()
+    })
+  })
 
   const pbService = await pocketbase({
     cachePath: PH_BIN_CACHE,
