@@ -4,10 +4,88 @@ title: Frequently Asked Questions
 
 # Frequently Asked Questions
 
-## Question 1
+## What is PocketHost?
 
-answer 2
+PocketHost is a hosting provider for PocketBase projects. Our aim is to create a Firebase/Supabase style experience where you can create an account and instantly provision a new PocketBase instance for yourself.
 
-## Question 2
+PocketHost also supports related services such as backup, restore, SFTP access, static hosting, and Deno cloud workers.
 
-answer 2
+Hopefully, PocketHost provides a turnkey solution for creating and deploying small and medium-sized PocketBase projects quickly and with zero setup.
+
+## Are we allowed to have multiple projects running on Pockethost? How many instances can I create?
+
+YES! That is exactly the point of PocketHost. Provision as many PocketBase instances as you desire.
+
+At some point, this may need to be restricted if abuse happens.
+
+## How do I migrate away from PocketHost and host PocketBase on my own?
+
+PocketHost has a backup feature you can access from the dashboard. Also, you have direct SFTP access to your instances data. Download it any time you want.
+
+## How often does my data get backed up?
+
+Every day by us. Any time by you, via SFTP.
+
+## What versions of PocketBase do you support?
+
+All of them. Any time a new version comes out, our systems pick it up automatically.
+
+Your instance is automatically upgraded with patch releases, but is locked to minor releases. Please contact us if you wish to upgrade to a different minor or major release.
+
+## Can I import data into PocketHost?
+
+Restoring a data backup is not supported yet. There are many considerations, such as:
+
+1. Shutting down the instance
+2. Preserving data integrity
+3. Restoring the correct database version and/or applying migrations so the data matches the PocketBase version
+
+For now, we are keeping this as a manual process. Contact support if you need to restore instance data.
+
+## Who runs PocketHost and why was it made?
+
+PocketHost is a community project headed by [benallfree](https://github.com/benallfree). He made PocketHost to host his personal and client projects so it was easy to provision a new PocketBase instance without having to set up any servers.
+
+## What are the long-term plans for PocketHost? How does it make money?
+
+PocketHost was created as a service to the PocketBase community because we love the sovereignty principle of PocketBase, but also don’t always want to self host.
+
+The features and priorities in development are balanced between benallfree's personal needs and things requested by the community.
+
+PocketHost has a 10-year endowment. Depending on how it grows, it might turn into a nonprofit company.
+
+Other options for future revenue include professional services such as enterprise setups, customization, and priority support.
+
+For now, you are invited to enjoy PocketHost with the understanding that you can always export your instance data and self host if things ever change.
+
+## What about data privacy, encryption, and security?
+
+Your data is as safe on PocketHost as it is on your own server Probably safer, only because the infrastructure is tested and stressed a lot daily.
+
+The only way to access the PocketHost infrastructure is via SSH with RSA-2048 encryption.
+
+Your data on the volume is NOT encrypted at an operating system level (see [#143](https://github.com/benallfree/pockethost/issues/143) for discussion), but the VPS itself is of course encrypted by Digital Ocean.
+
+You can also back up and download all your data at any time. Access your own data via SFTP using your PocketHost account login.
+
+## How stable is PocketHost?
+
+PocketHost is very stable. Outages are documented in [our discussions area](https://github.com/benallfree/pockethost/discussions).
+
+## How much does the PocketHost service cost?
+
+The PocketHost service is free until we reach v1.0.
+
+At that point, we will likely introduce a free tier based on "run time" minutes per month.
+
+## What is the PocketHost free tier and restrictions?
+
+PocketHost is free for unrestricted use until v1.0. After we reach v1.0, the free tier will likely be restricted to a certain number of "run time" minutes per month (ie, number of minutes your PocketBase instance is actually running and in use). The goal is to give the free tier enough to cover development and low-traffic projects.
+
+The free tier will probably not be enough for a realtime application because realtime applications require the PocketBase instance to run continuously.
+
+## What paid plans are there?
+
+PocketHost is free until v1.0. Plans are being discussed in [#44](https://github.com/benallfree/pockethost/issues/44).
+
+Overall, the goal is to provide on-demand instances with realtime capabilities for around $20/mo.
