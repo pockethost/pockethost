@@ -9,7 +9,7 @@
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled = email.length === 0 || password.length === 0
 
-  const handleSubmit = async (e: SubmitEvent) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
     isFormButtonDisabled = true
