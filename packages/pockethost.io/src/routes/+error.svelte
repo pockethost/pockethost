@@ -7,7 +7,7 @@
 </svelte:head>
 
 <div class="container text-center py-4">
-  <h1 class="mb-5">{$page.status}: {$page.error.message}</h1>
+  <h1 class="mb-5">{$page.status}: {$page.error?.message}</h1>
 
   <div class="gif mb-5">
     <img
@@ -17,9 +17,7 @@
     />
   </div>
 
-  <a href="/dashboard" class="btn btn-light"
-    ><i class="bi bi-arrow-left-short" /> Back to the Dashboard</a
-  >
+  <a href="/" class="btn btn-light"><i class="bi bi-arrow-left-short" /> Back to Home</a>
 </div>
 
 <style>
