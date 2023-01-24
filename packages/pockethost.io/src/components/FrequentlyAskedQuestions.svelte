@@ -1,39 +1,19 @@
 <script lang="ts">
+  import { faq } from '$src/docs'
   // ts interface for the Question type
   interface Question {
     title: string,
-    answer: string,
+    body: string,
     collapsed: boolean
   }
 
+  interface rawQ {
+    title: string,
+    body: string
+  }
+
   // Array of Questions, if the boolean <collapsed> is set to false, the answer is displayed
-  const questions: Question[] = [
-    {
-      title: "How many instances can I create ?",
-      answer: "For now, you can create an unlimited number of PocketBase instances.",
-      collapsed: false
-    },
-    {
-      title: "How do I migrate away from pockethost.io and host pocketbase on my own ?",
-      answer: "We're planning on letting users download their data as an archive.",
-      collapsed: true
-    },
-    {
-      title: "How often does my data get backed up ?",
-      answer: "Every day.",
-      collapsed: true
-    },
-    {
-      title: "What versions of PocketBase do you support ?",
-      answer: "Pocketbase up to version 0.10.4 has been tested and is supported.",
-      collapsed: true
-    },
-    {
-      title: "Can I import data from my local into pockethost ?",
-      answer: "Yes.",
-      collapsed: true
-    }
-  ]
+  const questions: Question[] = faq.outline.map((q: rawQ) => ({...q, collapsed: true}))
 </script>
 
 <div class="accordion w-100">
@@ -52,7 +32,7 @@
       class="accordion-collapse {question.collapsed ? "collapse" : ""}"
     >
       <div class="accordion-body">
-        {question.answer}
+        {@html question.body}
       </div>
     </div>
   </div>
