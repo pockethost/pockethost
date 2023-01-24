@@ -30,7 +30,7 @@
     "@dansvel/vite-plugin-markdown": "^2.0.5",
     "@microsoft/fetch-event-source": "https://github.com/Almar/fetch-event-source.git#pr/make_web_worker_friendly",
     "@pockethost/common": "0.0.1",
-    "@s-libs/micro-dash": "^14.1.0",
+    "@s-libs/micro-dash": "^15.1.0",
     "@types/bootstrap": "^5.2.6",
     "@types/d3-scale": "^4.0.3",
     "@types/d3-scale-chromatic": "^3.0.0",

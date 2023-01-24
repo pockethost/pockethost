@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@pockethost/common": "0.0.1",
-    "@s-libs/micro-dash": "^14.1.0",
+    "@s-libs/micro-dash": "^15.1.0",
     "@types/http-proxy": "^1.17.9",
     "@types/node": "^18.11.9",
     "@types/semver": "^7.3.13",
