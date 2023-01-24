@@ -22,7 +22,7 @@ export type ProxyMiddleware = (
     proxy: Server
     host: string
   }
-) => void
+) => void | Promise<void>
 
 export type ProxyServiceConfig = {
   coreInternalUrl: string
@@ -56,8 +56,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         await m(req, res)
       }
     } catch (e) {
-      const msg = `${e}`
-      error(msg)
+      const msg = (() => (e instanceof Error ? e.message : `${e}`))()
+      warn(msg)
       res.writeHead(403, {
         'Content-Type': `text/plain`,
       })
@@ -133,7 +133,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         return
       }
       dbg(`${url} matches ${urlFilters}, sending to handler`)
-      handler(req, res, { host, subdomain, coreInternalUrl, proxy })
+      return handler(req, res, { host, subdomain, coreInternalUrl, proxy })
     })
   }
 
