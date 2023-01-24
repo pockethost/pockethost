@@ -4,6 +4,8 @@ import { logger } from './Logger'
 export type UnixTimestampMs = number
 export type TimerCanceler = () => void
 
+export type RepeatableTimerCallback = () => boolean | Promise<boolean>
+export type TimerCallback = () => void | Promise<void>
 export type TimeManagerConfig = {}
 
 export type TimeManager = ReturnType<typeof createTimerManager>
@@ -14,12 +16,16 @@ export const createTimerManager = (config: TimeManagerConfig) => {
   const cleanups: any = {}
   let isShutDown = false
 
-  const add = (cb: () => void, ms: UnixTimestampMs) => {
+  const add = (cb: TimerCallback, ms: UnixTimestampMs) => {
     if (isShutDown) throw new Error(`Already shut down`)
     const idx = i++
-    const tid = setTimeout(() => {
+    const tid = setTimeout(async () => {
       cancel()
-      cb()
+      try {
+        await cb()
+      } catch (e) {
+        error(e)
+      }
     }, ms)
     const cancel = () => {
       clearTimeout(tid)
@@ -37,10 +43,7 @@ export const createTimerManager = (config: TimeManagerConfig) => {
     dbg(`done`, cleanups)
   }
 
-  const repeat = (
-    cb: () => Promise<boolean> | boolean,
-    ms: UnixTimestampMs
-  ) => {
+  const repeat = (cb: RepeatableTimerCallback, ms: UnixTimestampMs) => {
     let _unsub: TimerCanceler | undefined = undefined
     const _again = async () => {
       const shouldRepeat = await cb()
