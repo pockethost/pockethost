@@ -26,7 +26,7 @@ PocketHost has a backup feature you can access from the dashboard. Also, you hav
 
 Every day by us. Any time by you, via SFTP.
 
-## What versions of PocketBase do you support?
+## What versions of PocketBase do you support, and how do I upgrade?
 
 All of them. Any time a new version comes out, our systems pick it up automatically.
 
@@ -89,3 +89,17 @@ The free tier will probably not be enough for a realtime application because rea
 PocketHost is free until v1.0. Plans are being discussed in [#44](https://github.com/benallfree/pockethost/issues/44).
 
 Overall, the goal is to provide on-demand instances with realtime capabilities for around $20/mo.
+
+## What happens when I reach my minutes / rate / something?
+
+Until v1.0, nothing happens.
+
+## How does outgoing email work?
+
+For now, you have to set up your own outgoing email (SES recommended). [#24](https://github.com/benallfree/pockethost/issues/24) is tracking our long-term plan for supporting outgoing SMTP with zero configuration. See [#154](https://github.com/benallfree/pockethost/discussions/154) for more discussion.
+
+## How does S3 storage work?
+
+PocketHost doesn't do anything special for S3. If you want to use S3 for your instance, you can set it up just as you would with a normal PocketBase setup. That said, you probably don't need to because our infrastructure already hosts your static assets efficiently.
+
+Depending on user demand, PocketHost may even push static assets out to a CDN automatically. We will probably support this at some point.
