@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { pages } from './pages'
+  import { pages } from '../../docs'
 </script>
 
 <div class="docs">

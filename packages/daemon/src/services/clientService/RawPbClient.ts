@@ -15,6 +15,7 @@ export const createRawPbClient = (filename: string) => {
     connection: {
       filename,
     },
+    useNullAsDefault: true,
   })
 
   return conn

@@ -14,7 +14,7 @@ import { logger } from '@pockethost/common'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
 
-logger({ debug: DEBUG, trace: TRACE })
+logger({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
 global.EventSource = require('eventsource')
