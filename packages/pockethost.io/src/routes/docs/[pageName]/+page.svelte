@@ -1,9 +1,9 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { page } from '$app/stores'
+  import { pages, type PageName } from '$src/docs'
   import hljs from 'highlight.js'
   import { tick } from 'svelte'
-  import { pages, type PageName } from '../pages'
 
   let md: DocPage
   $: {
