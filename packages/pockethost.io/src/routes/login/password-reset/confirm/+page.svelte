@@ -1,10 +1,10 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { handleUnauthenticatedPasswordResetConfirm } from '$util/database'
   import AlertBar from '$components/AlertBar.svelte'
+  import { handleUnauthenticatedPasswordResetConfirm } from '$util/database'
 
   let password: string = ''
-  let token: string = ''
+  let token: string | null = ''
   let formError: string = ''
 
   // Check for a token in the URL
@@ -13,10 +13,11 @@
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled = password.length === 0
 
-  const handleSubmit = async (e: SubmitEvent) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
     isFormButtonDisabled = true
+    if (!token) return
 
     await handleUnauthenticatedPasswordResetConfirm(token, password, (error) => {
       formError = error
