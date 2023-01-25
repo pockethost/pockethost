@@ -110,8 +110,9 @@ export const instanceService = mkSingleton(
             client.getInstanceBySubdomain(subdomain)
           )
           if (!instance) {
-            dbg(`Instance not found`)
-            return
+            throw new Error(
+              `Instance ${subdomain} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
+            )
           }
 
           if (!owner?.verified) {
@@ -297,10 +298,11 @@ export const instanceService = mkSingleton(
             client.updateInstanceStatus(instance.id, InstanceStatus.Running)
           )
           dbg(`${api.internalUrl} is running`)
-          return instances[subdomain]
+          return api
         })
         .catch((e) => {
           warn(`Failed to fetch ${subdomain} with ${e}`)
+          throw e
         })
 
     const shutdown = () => {
@@ -320,11 +322,6 @@ export const instanceService = mkSingleton(
         if (subdomain === PUBLIC_APP_DB) return
 
         const instance = await getInstance(subdomain)
-        if (!instance) {
-          throw new Error(
-            `${host} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
-          )
-        }
 
         if (req.closed) {
           throw new Error(`Request already closed.`)
