@@ -1,12 +1,17 @@
 <script lang="ts">
+  import { PUBLIC_DEBUG } from '$src/env'
   import { pages } from '../../docs'
 </script>
 
 <div class="docs">
   <div class="container">
     <div class="toc">
-      {#each Object.entries(pages) as [v, k], i}
-        <div><a class="nav-link" href={`/docs/${v}`}>{k.attributes.title}</a></div>
+      {#each Object.entries(pages).filter(([k, p]) => p.attributes.published || PUBLIC_DEBUG) as [v, k], i}
+        <div>
+          <a class={`nav-link ${k.attributes.published ? '' : 'text-danger'}`} href={`/docs/${v}`}
+            >{k.attributes.title}</a
+          >
+        </div>
       {/each}
     </div>
     <div class="body">

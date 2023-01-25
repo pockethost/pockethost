@@ -1,5 +1,6 @@
 ---
-title: Frequently Asked Questions
+title: FAQ
+published: false
 ---
 
 # Frequently Asked Questions

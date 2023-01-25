@@ -1,5 +1,6 @@
 ---
 title: Managing Your Instance
+published: true
 ---
 
 # Managing your Instance
