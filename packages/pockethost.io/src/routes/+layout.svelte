@@ -1,4 +1,5 @@
 <script>
+  import '../app.css'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import Protect from '$components/helpers/Protect.svelte'
