@@ -1,3 +1,21 @@
-:root {
-  --color-gray-base: #f8f9fa;
+body {
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--baseRadius);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #a9b4bc80;
+  border-radius: 15px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: var(--baseRadius);
 }
