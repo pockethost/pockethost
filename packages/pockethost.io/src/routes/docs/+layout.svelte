@@ -57,6 +57,7 @@
       padding: 1rem;
 
       .sidebar {
+        position: static;
         padding: 1rem;
         height: 30vh;
         overflow-y: auto;

@@ -5,7 +5,7 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
-  border-radius: var(--baseRadius);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -17,5 +17,5 @@ body {
 
 ::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: var(--baseRadius);
+  border-radius: 10px;
 }
