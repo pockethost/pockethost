@@ -32,7 +32,8 @@
     .sidebar {
       min-width: 280px;
       position: sticky;
-      top: 0;
+      top: 0px;
+      left: 0;
       height: 100vh;
       background: #f8f9fa;
       padding: 2rem;
