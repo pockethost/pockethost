@@ -34,15 +34,16 @@
       position: sticky;
       inset: 0 auto;
       height: 100vh;
-      background: #f8f9fa;
+      background: var(--bs-body-bg);
       padding: 1rem;
+      border-right: 1px solid var(--bs-gray-300);
     }
     .sidebar > a {
       padding: 8px 16px;
       font-size: 15px;
     }
     .sidebar > a.active {
-      background-color: #ebeff2;
+      background-color: var(--bs-gray-200);
     }
     .body {
       padding: 1rem;
@@ -54,6 +55,7 @@
         position: static;
         height: 30vh;
         overflow-y: auto;
+        border: 1px solid var(--bs-gray-300);
       }
     }
     ::-webkit-scrollbar {
