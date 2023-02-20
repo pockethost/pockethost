@@ -33,6 +33,11 @@ export const createPbClient = (url: string) => {
       client.admins.authWithPassword(email, password)
   )
 
+  const createFirstAdmin = safeCatch(
+    `createFirstAdmin`,
+    (email: string, password: string) => client.admins.create(email, password)
+  )
+
   const applySchema = safeCatch(
     `applySchema`,
     async (collections: Collection_Serialized[]) => {
@@ -50,6 +55,7 @@ export const createPbClient = (url: string) => {
     client,
     url,
     knex: rawDb,
+    createFirstAdmin,
     adminAuthViaEmail,
     applySchema,
     ...rpcApi,
