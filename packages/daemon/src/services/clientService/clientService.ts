@@ -14,21 +14,32 @@ export const clientService = mkSingleton(async (url: string) => {
   const client = createPbClient(url)
 
   try {
-    await client.applySchema(schema)
-
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
     dbg(`Logged in`)
   } catch (e) {
+    dbg(`Creating first admin account`)
+
     try {
       await client.createFirstAdmin(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
       await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
+      dbg(`Logged in`)
     } catch (e) {
       error(
-        `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`
+        `CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`
       )
       process.exit(-1)
     }
   }
+
+  try {
+    dbg(`Applying schema`)
+    await client.applySchema(schema)
+    dbg(`Schema applied`)
+  } catch (e) {
+    error(`Failed to apply base migration schema`)
+    process.exit(-1)
+  }
+
   return {
     client,
     shutdown() {

@@ -30,7 +30,6 @@ global.EventSource = require('eventsource')
   await new Promise<void>((resolve) => {
     exec(`pkill -f 'pocketbase serve'`, (error, stdout, stderr) => {
       if (error && error.signal !== 'SIGTERM') {
-        console.log({ error, stderr, stdout })
         warn(`pkill failed with ${error}: ${stderr}`)
       }
       resolve()
