@@ -162,7 +162,7 @@ export const createPocketbaseService = async (
       args.push(`--http`)
       args.push(mkInternalAddress(port))
     }
-    dbg(`Spawning ${slug}`, { bin, args })
+    dbg(`Spawning ${slug}`, { bin, args, cli: [bin, ...args].join(' ') })
     const ls = spawn(bin, args)
     cm.add(() => ls.kill())
 
