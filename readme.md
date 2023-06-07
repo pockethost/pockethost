@@ -82,6 +82,8 @@ The entire pockethost.io stack can be run locally.
 
 **Running in dev mode**
 
+Note for OS X users: if `pocketbase` does not run, it's probably your [security settings](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac).
+
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
