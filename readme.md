@@ -61,7 +61,7 @@ Join us in the discussion area.
 
 ## Just the frontend (Svelte)
 
-This is the easiest setup.
+Just want to work with the UI and frontend?
 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
