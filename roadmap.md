@@ -90,3 +90,4 @@ Planned, in no particular order...
 - [fly.io support](https://github.com/benallfree/pockethost/issues/20)
 - [new logo](https://github.com/benallfree/pockethost/issues/39)
 - [when daemon boots, all instance statuses should be set to Idle](https://github.com/benallfree/pockethost/issues/61)
+- [Showcase page](https://github.com/benallfree/pockethost/discussions/180)
