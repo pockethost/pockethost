@@ -5,7 +5,7 @@ This document covers how to set up your local development environment to recongi
 **1. Generate a root certificate for self-signing.**
 
 ```bash
-cd docker/mount/nginx/ssl
+cd ssl
 ./create-ca.sh
 ```
 
