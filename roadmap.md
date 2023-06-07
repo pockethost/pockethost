@@ -4,10 +4,16 @@ This document attempts to outline all known/planned issues.
 
 Cleanup effort: In some cases, if a ticket has already been created, it is linked. The ticket will remain closed until active work begins. This better reflects the health of the repository because open issues creates the appearance of instability or lack of attention.
 
-# Icebox
+# In Development
 
-Planned, in no particular order...
+- [Turn instances on and off](https://github.com/benallfree/pockethost/discussions/204)
 
+# Ideas
+
+Ideas, in no particular order...
+
+- [Delete an account](https://github.com/benallfree/pockethost/issues/172)
+- Permanently delete an instance
 - [Documentation](https://github.com/benallfree/pockethost/issues/174)
   - daily usage
   - FTP
@@ -15,7 +21,6 @@ Planned, in no particular order...
   - backups
   - usage limits and metering
   - environment variables and secrets
-- [Delete an account](https://github.com/benallfree/pockethost/issues/172)
 - [Disallow instance creation before email verification](https://github.com/benallfree/pockethost/issues/163)
 - [Change email address](https://github.com/benallfree/pockethost/issues/162)
 
@@ -40,7 +45,7 @@ Planned, in no particular order...
 - [Clone instance, copy instance data, restore backup to new instance](https://github.com/benallfree/pockethost/issues/88)
 - [Scheduled backups and rotation](https://github.com/benallfree/pockethost/issues/84)
 - [Upload size limits](https://github.com/benallfree/pockethost/issues/117)
-- [Update readme with dev instructions][https://github.com/benallfree/pockethost/issues/184]
+- [Update readme with dev instructions](https://github.com/benallfree/pockethost/issues/184)
 
 - Cloud functions
   - [add fetch() polyfill](https://github.com/benallfree/pockethost/issues/80)
@@ -62,7 +67,6 @@ Planned, in no particular order...
 
 - [Cron jobs](https://github.com/benallfree/pockethost/issues/47)
 - [move to pnpm](https://github.com/benallfree/pockethost/issues/46)
--
 
 - Paid tiers
 
@@ -76,7 +80,6 @@ Planned, in no particular order...
 - [Deleting an Instance](https://github.com/benallfree/pockethost/issues/35)
 - [show Dart and REST samples on details page](https://github.com/benallfree/pockethost/issues/33)
 - [Webmail](https://github.com/benallfree/pockethost/issues/29)
--
 
 - Repo
   - [Is it possible to turn the Github announcements feed into a blog](https://github.com/benallfree/pockethost/issues/62)
