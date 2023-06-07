@@ -1,19 +1,6 @@
 <h1>pockethost.io</h1>
 
-This is the open source monorepo for pockethost.io, the hosting platform for PocketBase.
-
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [Introduction](#introduction)
-- [Development](#development)
-  - [Just the frontend (Svelte)](#just-the-frontend-svelte)
-  - [All our base](#all-our-base)
-- [Production Deployment](#production-deployment)
-- [Release History](#release-history)
-
-<!-- /code_chunk_output -->
+This is the open source monorepo for pockethost.io, the cloud hosting platform for PocketBase.
 
 # Introduction
 
