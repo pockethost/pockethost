@@ -32,6 +32,7 @@ export const withInstance = safeCatch(
           `***WARNING*** CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`
         )
         error(`***WARNING*** LOG IN MANUALLY, ADJUST .env, AND RESTART DOCKER`)
+        process.exit(-1)
       } finally {
         info(`Exiting process`)
         mainProcess.kill()

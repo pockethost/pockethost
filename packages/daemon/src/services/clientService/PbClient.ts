@@ -33,10 +33,22 @@ export const createPbClient = (url: string) => {
       client.admins.authWithPassword(email, password)
   )
 
+  const createFirstAdmin = safeCatch(
+    `createFirstAdmin`,
+    (email: string, password: string) =>
+      client.admins
+        .create({ email, password, passwordConfirm: password })
+        .catch((res) => {
+          console.log({ email, password })
+          console.log(JSON.stringify(res, null, 2))
+          return res
+        })
+  )
+
   const applySchema = safeCatch(
     `applySchema`,
     async (collections: Collection_Serialized[]) => {
-      await client.collections.import(collections as Collection[])
+      await client.collections.import(collections as Collection[], false)
     }
   )
 
@@ -50,6 +62,7 @@ export const createPbClient = (url: string) => {
     client,
     url,
     knex: rawDb,
+    createFirstAdmin,
     adminAuthViaEmail,
     applySchema,
     ...rpcApi,

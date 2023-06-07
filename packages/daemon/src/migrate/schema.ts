@@ -33,7 +33,7 @@ export const schema: Collection_Serialized[] = [
         unique: false,
         options: {
           maxSelect: 1,
-          collectionId: 'systemprofiles0',
+          collectionId: '_pb_users_auth_',
           cascadeDelete: false,
         },
       },
@@ -104,62 +104,6 @@ export const schema: Collection_Serialized[] = [
     updateRule: null,
     deleteRule: null,
     options: {},
-  },
-  {
-    id: 'systemprofiles0',
-    name: 'users',
-    type: 'auth',
-    system: false,
-    schema: [
-      {
-        id: 'pbfieldname',
-        name: 'name',
-        type: 'text',
-        system: false,
-        required: false,
-        unique: false,
-        options: {
-          min: null,
-          max: null,
-          pattern: '',
-        },
-      },
-      {
-        id: 'pbfieldavatar',
-        name: 'avatar',
-        type: 'file',
-        system: false,
-        required: false,
-        unique: false,
-        options: {
-          maxSelect: 1,
-          maxSize: 5242880,
-          mimeTypes: [
-            'image/jpg',
-            'image/jpeg',
-            'image/png',
-            'image/svg+xml',
-            'image/gif',
-          ],
-          thumbs: null,
-        },
-      },
-    ],
-    listRule: 'id = @request.auth.id',
-    viewRule: 'id = @request.auth.id',
-    createRule: '',
-    updateRule: 'id = @request.auth.id',
-    deleteRule: null,
-    options: {
-      allowEmailAuth: true,
-      allowOAuth2Auth: true,
-      allowUsernameAuth: false,
-      exceptEmailDomains: null,
-      manageRule: null,
-      minPasswordLength: 8,
-      onlyEmailDomains: null,
-      requireEmail: true,
-    },
   },
   {
     id: 'aiw8te7y7atklwn',
@@ -251,7 +195,7 @@ export const schema: Collection_Serialized[] = [
         unique: false,
         options: {
           maxSelect: 1,
-          collectionId: 'systemprofiles0',
+          collectionId: '_pb_users_auth_',
           cascadeDelete: false,
         },
       },
@@ -409,3 +353,5 @@ export const schema: Collection_Serialized[] = [
     options: {},
   },
 ]
+
+console.log(JSON.stringify(schema))

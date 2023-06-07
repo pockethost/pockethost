@@ -91,7 +91,7 @@
           <p>
             Email and oAuth authentication options work out of the box. Send transactional email to
             your users from our verified domain and your custom address <code
-              >yoursubdomin@{PUBLIC_APP_DOMAIN}</code
+              >yoursubdomain@{PUBLIC_APP_DOMAIN}</code
             >.
           </p>
         </FeatureCard>

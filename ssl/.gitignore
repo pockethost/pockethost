@@ -2,3 +2,5 @@
 *.crt
 *.key
 *.srl
+!pockethost.test.crt
+!pockethost.test.key

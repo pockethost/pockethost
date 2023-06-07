@@ -11,7 +11,7 @@ export const safeCatch = <TIn extends any[], TOut>(
     const _c = c++
     const uuid = `${name}:${_c}`
     const pfx = `safeCatch:${uuid}`
-    const { raw, error, warn } = logger().create(pfx)
+    const { raw, error, warn, dbg } = logger().create(pfx)
     raw(`args`, args)
     const tid = setTimeout(() => {
       error(`timeout ${timeoutMs}ms waiting for ${pfx}`)
@@ -29,6 +29,7 @@ export const safeCatch = <TIn extends any[], TOut>(
             warn(
               `PocketBase API error: It looks like you don't have permission to make this request.`
             )
+            dbg(JSON.stringify(e, null, 2))
           } else if (e.status === 0) {
             warn(`Client request aborted (duplicate)`)
           } else {
