@@ -21,8 +21,6 @@
     "pm2:proxy": "cd packages/proxy && yarn pm2",
     "pm2:www": "cd packages/pockethost.io && yarn pm2",
     "pm2:daemon": "cd packages/daemon && yarn pm2",
-    "migrate": "yarn migrate:daemon",
-    "migrate:daemon": "cd packages/daemon && yarn migrate",
     "postinstall": "patch-package"
   },
   "workspaces": {

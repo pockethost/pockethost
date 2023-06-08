@@ -5,7 +5,6 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from '$constants'
-import { schema } from '$src/migrate/schema'
 import { logger, mkSingleton } from '@pockethost/common'
 import { createPbClient } from './PbClient'
 
@@ -29,15 +28,6 @@ export const clientService = mkSingleton(async (url: string) => {
       )
       process.exit(-1)
     }
-  }
-
-  try {
-    dbg(`Applying schema`)
-    await client.applySchema(schema)
-    dbg(`Schema applied`)
-  } catch (e) {
-    error(`Failed to apply base migration schema`)
-    process.exit(-1)
   }
 
   return {

@@ -50,8 +50,22 @@ global.EventSource = require('eventsource')
   /**
    * Launch central database
    */
+  {
+    info(`Migrating mothership`)
+    await (
+      await pbService.spawn({
+        command: 'migrate',
+        isMothership: true,
+        version: DAEMON_PB_SEMVER,
+        slug: PUBLIC_APP_DB,
+      })
+    ).exited
+    info(`Migrating done`)
+  }
+  info(`Serving`)
   const { url } = await pbService.spawn({
     command: 'serve',
+    isMothership: true,
     version: DAEMON_PB_SEMVER,
     slug: PUBLIC_APP_DB,
   })

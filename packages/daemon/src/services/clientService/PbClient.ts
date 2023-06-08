@@ -1,12 +1,7 @@
 import { DAEMON_PB_DATA_DIR, PUBLIC_APP_DB } from '$constants'
 import { logger, safeCatch } from '@pockethost/common'
 import { Knex } from 'knex'
-import {
-  Collection,
-  default as PocketBase,
-  default as pocketbaseEs,
-} from 'pocketbase'
-import { Collection_Serialized } from '../../migrate/schema'
+import { default as PocketBase, default as pocketbaseEs } from 'pocketbase'
 import { createBackupMixin } from './BackupMixin'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createInvocationMixin } from './InvocationMixin'
@@ -45,13 +40,6 @@ export const createPbClient = (url: string) => {
         })
   )
 
-  const applySchema = safeCatch(
-    `applySchema`,
-    async (collections: Collection_Serialized[]) => {
-      await client.collections.import(collections as Collection[], false)
-    }
-  )
-
   const context: MixinContext = { client, rawDb }
   const rpcApi = createRpcHelper(context)
   const instanceApi = createInstanceMixin(context)
@@ -64,7 +52,6 @@ export const createPbClient = (url: string) => {
     knex: rawDb,
     createFirstAdmin,
     adminAuthViaEmail,
-    applySchema,
     ...rpcApi,
     ...instanceApi,
     ...invocationApi,

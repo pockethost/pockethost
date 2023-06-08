@@ -21,6 +21,19 @@ export const DAEMON_PB_PASSWORD = (() => {
 })()
 export const DAEMON_PB_PORT_BASE = envi('DAEMON_PB_PORT_BASE', 8090)
 export const DAEMON_PB_IDLE_TTL = envi('DAEMON_PB_IDLE_TTL', 5000)
+export const DAEMON_PB_MIGRATIONS_DIR = (() => {
+  const v = env('DAEMON_PB_MIGRATIONS_DIR')
+  if (!v) {
+    throw new Error(
+      `DAEMON_PB_MIGRATIONS_DIR (${v}) environment variable must be specified`
+    )
+  }
+  if (!existsSync(v)) {
+    throw new Error(`DAEMON_PB_MIGRATIONS_DIR (${v}) path must exist`)
+  }
+  return v
+})()
+
 export const DAEMON_PB_DATA_DIR = (() => {
   const v = env('DAEMON_PB_DATA_DIR')
   if (!v) {
@@ -68,6 +81,7 @@ console.log({
   PUBLIC_APP_DB,
   DAEMON_PB_USERNAME,
   DAEMON_PB_PASSWORD,
+  DAEMON_PB_MIGRATIONS_DIR,
   DAEMON_PB_SEMVER,
   DENO_PATH,
   PH_FTP_PASV_IP,

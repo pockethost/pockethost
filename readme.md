@@ -128,6 +128,11 @@ By default, PocketHost will download and run the latest version of PocketBase. I
 
 # Release History
 
+**0.7.0**
+
+- PocketHost will now always select and run the latest version of PocketBase for new instances and for the PocketHost central database. This was previously restricted until PocketBase matured more, but we think it is safe now.
+- Now using native PocketBase migrations to manage PocketHost central database migrations. Roadmap has been updated with task to allow end users to put their PocketBase instance in maintenance mode and run migrations.
+
 **0.6.1**
 
 - Fixed semver locking error

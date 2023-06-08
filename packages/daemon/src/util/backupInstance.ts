@@ -10,8 +10,8 @@ import { basename, resolve } from 'path'
 import { chdir, cwd } from 'process'
 import { Database } from 'sqlite3'
 import tmp from 'tmp'
-import { pexec } from '../migrate/pexec'
 import { ensureDirExists } from './ensureDirExists'
+import { pexec } from './pexec'
 
 export type BackupProgress = {
   current: number

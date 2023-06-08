@@ -1,4 +1,4 @@
-import { DAEMON_PB_DATA_DIR } from '$constants'
+import { DAEMON_PB_DATA_DIR, DAEMON_PB_MIGRATIONS_DIR } from '$constants'
 import {
   downloadAndExtract,
   mkInternalAddress,
@@ -22,12 +22,13 @@ import { join } from 'path'
 import { maxSatisfying, rsort } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 
-export type PocketbaseCommand = 'serve' | 'upgrade'
+export type PocketbaseCommand = 'serve' | 'migrate'
 export type SpawnConfig = {
   command: PocketbaseCommand
   slug: string
   version?: string
   port?: number
+  isMothership?: boolean
   onUnexpectedStop?: (code: number | null) => void
 }
 export type PocketbaseServiceApi = AsyncReturnType<
@@ -138,11 +139,14 @@ export const createPocketbaseService = async (
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
       port: await getPort(),
+      isMothership: false,
       onUnexpectedStop: (code) => {
         dbg(`Unexpected stop default handler. Exit code: ${code}`)
       },
       ...cfg,
     }
+    const { version, command, slug, port, onUnexpectedStop, isMothership } =
+      _cfg
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const bin = (await getVersion(_version)).binPath
     if (!existsSync(bin)) {
@@ -157,6 +161,10 @@ export const createPocketbaseService = async (
       `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
       `--publicDir`,
       `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
+      `--migrationsDir`,
+      isMothership
+        ? DAEMON_PB_MIGRATIONS_DIR
+        : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`,
     ]
     if (command === 'serve') {
       args.push(`--http`)
