@@ -17,6 +17,7 @@ export type FtpConfig = {}
 export enum FolderNames {
   PbData = 'pb_data',
   PbStatic = 'pb_static',
+  PbMigrations = 'pb_migrations',
   PbWorker = 'worker',
   PbBackup = 'backup',
 }
@@ -26,6 +27,7 @@ export const README_CONTENTS: { [_ in FolderNames]: string } = {
   [FolderNames.PbData]: `This directory contains your PocketBase data. For more information, see https://pockethost.io/docs/data`,
   [FolderNames.PbStatic]: `This directory contains static files such as your web frontend. PocketHost will serve these when your instance URL receives a request. For more information, see https://pockethost.io/docs/static `,
   [FolderNames.PbWorker]: `This directory contains your Deno worker. For more information, see https://pockethost.io/docs/workers`,
+  [FolderNames.PbMigrations]: `This directory contains your migrations. For more information, see https://pockethost.io/docs/migrations`,
 }
 export const README_NAME = 'readme.md'
 
@@ -34,6 +36,7 @@ export const FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbData,
   FolderNames.PbStatic,
   FolderNames.PbWorker,
+  FolderNames.PbMigrations,
 ]
 
 export function isFolder(name: string): name is FolderNames {

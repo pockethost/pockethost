@@ -47,8 +47,8 @@ export class PhFs extends FileSystem {
       throw new Error(`Expected path`)
     }
     const _path = path.startsWith('/') ? path : join(this.cwd, path)
-    const [empty, subdomain, folderName] = _path.split('/')
-    this.log.dbg({ _path, subdomain, folderName })
+    const [empty, subdomain, folderName, ...restOfPath] = _path.split('/')
+    this.log.dbg({ _path, subdomain, folderName, restOfPath })
 
     if (subdomain === '') {
       const instances = await this.client.getInstances()
@@ -62,49 +62,48 @@ export class PhFs extends FileSystem {
         }
       })
     }
-    if (subdomain) {
-      const [instance, user] = await this.client.getInstanceBySubdomain(
-        subdomain
-      )
-      if (!instance) {
-        throw new Error(`Expected instance here`)
-      }
-      if (!folderName) {
-        return FOLDER_NAMES.map((name) => ({
-          isDirectory: () => true,
-          mode: 0o755,
-          size: 0,
-          mtime: Date.parse(instance.updated),
-          name: name,
-        }))
-      }
-      if (isFolder(folderName)) {
-        const dir = join(DAEMON_PB_DATA_DIR, instance.id, folderName)
-        this.log.dbg({ dir, exists: existsSync(dir) })
-        return [
-          {
-            isDirectory: () => false,
-            mode: 0o444,
-            size: README_CONTENTS[folderName].length,
-            mtime: Date.parse(instance.updated),
-            name: README_NAME,
-          },
-          ...(existsSync(dir)
-            ? await super.list(
-                join(DAEMON_PB_DATA_DIR, instance.id, folderName)
-              )
-            : []),
-        ]
-      }
+    if (!subdomain) {
+      throw new Error(`Subdomain expected in ${_path}`)
     }
-    throw new Error(`Error parsing ${_path}`)
+    const [instance, user] = await this.client.getInstanceBySubdomain(subdomain)
+    if (!instance) {
+      throw new Error(`Expected instance here`)
+    }
+    if (!folderName) {
+      return FOLDER_NAMES.map((name) => ({
+        isDirectory: () => true,
+        mode: 0o755,
+        size: 0,
+        mtime: Date.parse(instance.updated),
+        name: name,
+      }))
+    }
+    if (!isFolder(folderName)) {
+      throw new Error(`Top level folder name ${folderName} not allowed.`)
+    }
+    const dir = join(DAEMON_PB_DATA_DIR, instance.id, folderName, ...restOfPath)
+    this.log.dbg({ dir, exists: existsSync(dir) })
+    return [
+      ...(restOfPath.length === 0
+        ? [
+            {
+              isDirectory: () => false,
+              mode: 0o444,
+              size: README_CONTENTS[folderName].length,
+              mtime: Date.parse(instance.updated),
+              name: README_NAME,
+            },
+          ]
+        : []),
+      ...(existsSync(dir) ? await super.list(dir) : []),
+    ]
   }
 
   async get(fileName: string): Promise<FileStat> {
-    const _path = fileName.startsWith('/') ? fileName : join(this.cwd, fileName)
-    const [empty, subdomain, folderName, ...fNames] = _path.split('/')
+    const path = fileName.startsWith('/') ? fileName : join(this.cwd, fileName)
+    const [empty, subdomain, folderName, ...fNames] = path.split('/')
     const fName = fNames.join('/')
-    this.log.dbg(`get`, { _path, subdomain, folderName, fName, fileName })
+    this.log.dbg(`get`, { _path: path, subdomain, folderName, fName, fileName })
 
     if (!subdomain) {
       return {
@@ -140,7 +139,15 @@ export class PhFs extends FileSystem {
         name: folderName,
       }
     }
-    return super.get(_path)
+    const physicalPath = join(
+      DAEMON_PB_DATA_DIR,
+      instance.id,
+      folderName,
+      fName
+    )
+    this.log.dbg({ physicalPath, exists: existsSync(physicalPath) })
+
+    return super.get(physicalPath)
   }
 
   async write(
