@@ -253,3 +253,16 @@ h6 {
   background-color: var(--bs-gray-100);
   padding-left: 20px;
 }
+
+.copy-container {
+  min-height: 60px;
+}
+
+.copy-container pre {
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+
+.copy-container code {
+  min-height: 60px;
+}

@@ -7,8 +7,8 @@
   import { onDestroy, onMount } from 'svelte'
   import Form from './Form.svelte'
   import List from './List.svelte'
-  import { items } from './stores'
   import SvgIcons from './SvgIcons.svelte'
+  import { items } from './stores'
 
   export let instance: InstanceFields
 
@@ -61,8 +61,6 @@
     margin: 0;
   }
   .secrets {
-    color: hsl(240, 25%, 95%);
-
     h2 {
       position: relative;
       padding: 0.25rem;
