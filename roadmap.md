@@ -97,3 +97,4 @@ Ideas, in no particular order...
 - [new logo](https://github.com/benallfree/pockethost/issues/39)
 - [when daemon boots, all instance statuses should be set to Idle](https://github.com/benallfree/pockethost/issues/61)
 - [Showcase page](https://github.com/benallfree/pockethost/discussions/180)
+- [One-click PocketApps](https://github.com/benallfree/awesome-pocketbase/pull/20#issuecomment-1582052953)
