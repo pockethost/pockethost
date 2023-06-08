@@ -60,12 +60,15 @@ export const PH_FTP_PASV_PORT_MAX = envi('PH_FTP_PASV_PORT_MAX', 20000)
 
 export const DENO_PATH = env('DENO_PATH', `deno`)
 
+export const DAEMON_PB_SEMVER = env('DAEMON_PB_SEMVER', '') // This will default always to the max version
+
 console.log({
   PUBLIC_APP_PROTOCOL,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_DB,
   DAEMON_PB_USERNAME,
   DAEMON_PB_PASSWORD,
+  DAEMON_PB_SEMVER,
   DENO_PATH,
   PH_FTP_PASV_IP,
   PH_FTP_PORT,

@@ -122,9 +122,9 @@ If all goes well:
 - Use `scripts/build.sh` to rebuild everything
 - Use `scripts/pm2.sh` to run in prod mode
 
-# Release History
+## Updating the max PocketBase semver
 
-**next**
+By default, PocketHost will download and run the latest version of PocketBase. If you need to limit or lock the PocketBase versions(s) available, edit the `DAEMON_PB_SEMVER` variable in `.env`.
 
 # Release History
 

@@ -136,15 +136,15 @@ export const createPocketbaseService = async (
 
   const _spawn = safeCatch(`spawnInstance`, async (cfg: SpawnConfig) => {
     const _cfg: Required<SpawnConfig> = {
-      version: '~0.11.0',
+      version: maxVersion,
       port: await getPort(),
       onUnexpectedStop: (code) => {
         dbg(`Unexpected stop default handler. Exit code: ${code}`)
       },
       ...cfg,
     }
-    const { version, command, slug, port, onUnexpectedStop } = _cfg
-    const bin = (await getVersion(version)).binPath
+    const _version = version || maxVersion // If _version is blank, we use the max version available
+    const bin = (await getVersion(_version)).binPath
     if (!existsSync(bin)) {
       throw new Error(
         `PocketBase binary (${bin}) not found. Contact pockethost.io.`

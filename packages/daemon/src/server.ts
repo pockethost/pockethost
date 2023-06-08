@@ -1,4 +1,10 @@
-import { DEBUG, PH_BIN_CACHE, PUBLIC_APP_DB, TRACE } from '$constants'
+import {
+  DAEMON_PB_SEMVER,
+  DEBUG,
+  PH_BIN_CACHE,
+  PUBLIC_APP_DB,
+  TRACE,
+} from '$constants'
 import {
   backupService,
   clientService,
@@ -46,6 +52,7 @@ global.EventSource = require('eventsource')
    */
   const { url } = await pbService.spawn({
     command: 'serve',
+    version: DAEMON_PB_SEMVER,
     slug: PUBLIC_APP_DB,
   })
 
