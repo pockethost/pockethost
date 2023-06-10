@@ -4,9 +4,9 @@
 
 ## Overview
 
-- [Getting Help](usage/help.md)
-- [FAQ](usage/faq.md)
-- [Roadmap](development/roadmap.md)
+- [Getting Help](overview/help.md)
+- [FAQ](overview/faq.md)
+- [Roadmap](overview/roadmap.md)
 
 ## Daily Usage
 
