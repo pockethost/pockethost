@@ -2,12 +2,10 @@
   import { PUBLIC_APP_DOMAIN } from '$env/static/public'
   import { PUBLIC_APP_PROTOCOL } from '$src/env'
   import { assertExists } from '@pockethost/common'
-  import Backup from './Backup.svelte'
   import Code from './Code.svelte'
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Overview from './Overview.svelte'
-  import Restore from './Restore.svelte'
   import Secrets from './Secrets/Secrets.svelte'
   import { instance } from './store'
 
@@ -26,6 +24,4 @@
   <Code instance={$instance} />
   <Secrets instance={$instance} />
   <Logging instance={$instance} />
-  <Backup instance={$instance} />
-  <Restore instance={$instance} />
 {/if}

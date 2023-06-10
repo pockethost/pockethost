@@ -2,17 +2,19 @@
   import CopyButton from '$components/CopyButton.svelte'
   import { dbg } from '$util/logger'
   import { Highlight } from 'svelte-highlight'
-  import { typescript } from 'svelte-highlight/languages'
+  import { typescript, type LanguageType } from 'svelte-highlight/languages'
   import 'svelte-highlight/styles/github.css'
 
   export let code: string
+  export let language: LanguageType<'typescript' | 'bash'> = typescript
+
   const handleCopy = () => {
     dbg('copied')
   }
 </script>
 
 <div class="copy-container">
-  <Highlight language={typescript} {code} />
+  <Highlight {language} {code} />
 
   <div class="copy-button">
     <CopyButton {code} copy={handleCopy} />

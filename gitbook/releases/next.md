@@ -12,3 +12,4 @@
 - Fix: FTP now accesses `pb_migrations`
 - Fix: Secrets CSS light/dark mode fixes
 - Chore: remove `platform` field from instances and backups
+- Docs: converted to GitBook
