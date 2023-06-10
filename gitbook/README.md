@@ -40,5 +40,3 @@ Here's all the Linux/devops stuff that PocketHost does for you:
 - CDN and static asset hosting
 - Amazon AWS
 - Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on
-
-This monorepo contains the entire open source stack that powers pockethost.io. You can use it to run your own private or public multitenant platform.

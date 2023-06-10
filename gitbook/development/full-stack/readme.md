@@ -4,7 +4,7 @@ The entire pockethost.io stack can be run locally.
 
 **Prerequisites**
 
-- Local SSL wildcard domain - [local domain setup instructions](./docs/local-domain-setup.md)
+- Local SSL wildcard domain - [local domain setup instructions](local-domain-setup.md)
 
 **Running in dev mode**
 

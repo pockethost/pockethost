@@ -4,13 +4,14 @@
 
 ## Development
 
+- [Overview](development/overview.md)
+- [Roadmap](development/roadmap.md)
 - [Running Just the Frontend](development/frontend.md)
-- [Running Everything](development/full-stack.md)
+- [Running Everything](development/full-stack/readme.md)
 - [Production Deployment](development/production.md)
 
 ## Release History
 
-- [Roadmap](development/roadmap.md)
 - [next](releases/next.md)
 - [0.7.0](releases/0.7.0.md)
 - [0.6.1](releases/0.6.1.md)
