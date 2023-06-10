@@ -1,12 +1,27 @@
-# 👋 Welcome to A Product
+---
+description: The zero-config, up-in-seconds, hosting platform for PocketBase
+---
 
-{% hint style="info" %}
-**GitBook tip:** your product docs aren't just a reference of all your features! use them to encourage folks to perform certain actions and discover the value in your product.
-{% endhint %}
+# 👋 Welcome to PocketHost
 
 ## Overview
 
-Here are a couple of example overviews from products with really great docs:
+PocketHost ([https://pockethost.io](https://pockethost.io)) is a cloud hosting platform for [PocketBase](https://pocketbase.io). You can use it to instantly provision a PocketBase backend for your latest project.
+
+Features include:
+
+* Create unlimited PocketBase projects, each with a custom subdomain
+* Access your PocketBase instance using the PocketBase JavaScript SDK as easily as new `PocketBase('https://my-project.pockethost.io')`
+
+
+
+
+
+
+
+This book contains all the documentation for using, contributing to, and deploying PocketHost.
+
+> tester
 
 > Loom is a video messaging tool that helps you get your message across through instantly shareable videos.
 >
