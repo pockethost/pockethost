@@ -82,7 +82,7 @@
 
         <li class="nav-item text-center">
           <a
-            href="/faq"
+            href="https://pockethost.gitbook.io/manual/daily-usage/faq"
             class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
             rel="noreferrer">FAQ</a
           >
@@ -99,7 +99,7 @@
 
         <li class="nav-item text-center">
           <a
-            href="/docs"
+            href="https://pockethost.gitbook.io/manual/"
             class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
             rel="noreferrer">Docs</a
           >

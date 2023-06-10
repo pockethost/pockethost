@@ -5,13 +5,15 @@
 ## Daily Usage
 
 - [Getting Help](usage/help.md)
+- [FAQ](usage/faq.md)
 - [Creating an Instance](usage/create.md)
 - [Instance Details](usage/instance-details/index.md)
 - [FTP Access](usage/ftp.md)
 - [Backup & Restore](usage/backup-and-restore.md)
+- [Cloud Functions](usage/cloud.md)
 - [Upgrading](usage/upgrading.md)
 
-## Development
+## Contributing
 
 - [Overview](development/overview.md)
 - [Roadmap](development/roadmap.md)
