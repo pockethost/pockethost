@@ -1,24 +1,33 @@
 # Table of contents
 
-* [👋 Welcome to PocketHost](README.md)
+- [👋 Welcome to PocketHost](README.md)
 
-## Overview
+## Development
 
-* [💡 What we do](overview/what-we-do.md)
-* [✨ Our Features](overview/our-features.md)
+- [Running Just the Frontend](development/frontend.md)
+- [Running Everything](development/full-stack.md)
+- [Production Deployment](development/production.md)
 
-## Product Guides
+## Release History
 
-* [📪 Making a post](product-guides/making-a-post.md)
-* [📎 Understanding Projects](product-guides/understanding-projects.md)
-
-## Fundamentals
-
-* [🛠 Getting set up](fundamentals/getting-set-up/README.md)
-  * [📝 Setting permissions](fundamentals/getting-set-up/setting-permissions.md)
-  * [🧑 Inviting Members](fundamentals/getting-set-up/inviting-members.md)
-
-## Use Cases
-
-* [🎨 For Designers](use-cases/for-designers.md)
-* [🖥 For Developers](use-cases/for-developers.md)
+- [Roadmap](development/roadmap.md)
+- [next](releases/next.md)
+- [0.7.0](releases/0.7.0.md)
+- [0.6.1](releases/0.6.1.md)
+- [0.6.0](releases/0.6.0.md)
+- [0.5.7](releases/0.5.7.md)
+- [0.5.6](releases/0.5.6.md)
+- [0.5.5](releases/0.5.5.md)
+- [0.5.4](releases/0.5.4.md)
+- [0.5.3](releases/0.5.3.md)
+- [0.5.2](releases/0.5.2.md)
+- [0.5.1](releases/0.5.1.md)
+- [0.5.0](releases/0.5.0.md)
+- [0.4.2](releases/0.4.2.md)
+- [0.4.1](releases/0.4.1.md)
+- [0.4.0](releases/0.4.0.md)
+- [0.3.2](releases/0.3.2.md)
+- [0.3.1](releases/0.3.1.md)
+- [0.3.0](releases/0.3.0.md)
+- [0.2.0](releases/0.2.0.md)
+- [0.0.1](releases/0.0.1md)
