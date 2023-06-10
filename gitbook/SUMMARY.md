@@ -2,10 +2,14 @@
 
 - [👋 Welcome to PocketHost](README.md)
 
-## Daily Usage
+## Overview
 
 - [Getting Help](usage/help.md)
 - [FAQ](usage/faq.md)
+- [Roadmap](development/roadmap.md)
+
+## Daily Usage
+
 - [Creating an Instance](usage/create.md)
 - [Instance Details](usage/instance-details/index.md)
 - [FTP Access](usage/ftp.md)
@@ -16,7 +20,6 @@
 ## Contributing
 
 - [Overview](development/overview.md)
-- [Roadmap](development/roadmap.md)
 - [Running Just the Frontend](development/frontend.md)
 - [Running Everything](development/full-stack/index.md)
 - [Production Deployment](development/production.md)

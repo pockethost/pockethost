@@ -44,23 +44,15 @@ You can also back up and download all your data at any time. Access your own dat
 
 ##### Can I import data into PocketHost?
 
-Yes, but it's a manual process. You have to contact us.
-
-Self-service data restoration carries many considerations, such as:
-
-1. Shutting down the instance
-2. Preserving data integrity
-3. Restoring the correct database version and/or applying migrations so the data matches the PocketBase version
-
-For now, we are keeping this as a manual process. Contact support if you need to restore instance data.
+Yes, [via FTP](../usage/ftp.md).
 
 ##### How often does my data get backed up?
 
-Every day by us. Any time by you, via SFTP.
+Every day by us. Any time by you, via FTP.
 
 ##### How do I migrate away from PocketHost and host PocketBase on my own?
 
-PocketHost has a backup feature you can access from the dashboard. Also, you have direct SFTP access to your instances data. Download it any time you want.
+Use the FTP feature to transfer all your data.
 
 ## Pricing, Limits, and Usage Restrictions
 
