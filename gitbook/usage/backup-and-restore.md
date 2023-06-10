@@ -11,3 +11,5 @@ Make sure your PocketHost instance status is [idle](instance-details/index.md).
 ## Restoring
 
 ## Synchronizing
+
+- [SO article about using lftp to sync](https://askubuntu.com/questions/758640/how-to-automatically-sync-the-contents-of-a-local-folder-with-the-contents-of-a)

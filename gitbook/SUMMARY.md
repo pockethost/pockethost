@@ -11,7 +11,7 @@
 ## Daily Usage
 
 - [Creating an Instance](usage/create.md)
-- [Instance Details](usage/instance-details/index.md)
+- [Instance Details](usage/instances/index.md)
 - [FTP Access](usage/ftp.md)
 - [Backup & Restore](usage/backup-and-restore.md)
 - [Cloud Functions](usage/cloud.md)
