@@ -1,7 +1,6 @@
 import { BaseFields, RecordId, Seconds, Subdomain, UserId } from './types'
 
 export type VersionId = string
-export type PlatformId = string
 
 export enum InstanceStatus {
   Unknown = '',
@@ -22,7 +21,6 @@ export type InstanceFields = BaseFields & {
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
-  platform: PlatformId
   version: VersionId
   secondsThisMonth: Seconds
   isBackupAllowed: boolean
