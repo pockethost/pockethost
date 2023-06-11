@@ -76,7 +76,7 @@ export const createPocketbaseService = async (
 
   const check = async () => {
     const releases = await smartFetch<Releases>(
-      `https://api.github.com/repos/pocketbase/pocketbase/releases`,
+      `https://api.github.com/repos/pocketbase/pocketbase/releases?per_page=100`,
       join(cachePath, `releases.json`)
     )
     // dbg({ releases })
@@ -126,7 +126,10 @@ export const createPocketbaseService = async (
 
   const getVersion = async (semVer = maxVersion) => {
     const version = maxSatisfying(keys(versions), semVer)
-    if (!version) throw new Error(`No version satisfies ${semVer}`)
+    if (!version)
+      throw new Error(
+        `No version satisfies ${semVer} (${keys(versions).join(', ')})`
+      )
     const binPath = await versions[version]
     if (!binPath) throw new Error(`binPath for ${version} not found`)
     return {
