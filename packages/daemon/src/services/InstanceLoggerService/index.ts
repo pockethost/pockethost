@@ -19,7 +19,7 @@ import { AsyncReturnType } from 'type-fest'
 
 export type InstanceLogger = AsyncReturnType<typeof mkApi>
 const mkApi = async (logDbPath: string) => {
-  const { dbg } = logger().create(logDbPath)
+  const { dbg } = logger().create(`InstanceLogger ${logDbPath}`)
 
   const { getDatabase } = sqliteService()
   const db = await getDatabase(logDbPath)

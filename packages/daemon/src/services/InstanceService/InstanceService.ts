@@ -4,7 +4,7 @@ import {
   DAEMON_PB_PORT_BASE,
   PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL
+  PUBLIC_APP_PROTOCOL,
 } from '$constants'
 import { clientService, proxyService, rpcService } from '$services'
 import { mkInternalUrl, now } from '$util'
@@ -22,7 +22,7 @@ import {
   safeCatch,
   SaveSecretsPayload,
   SaveSecretsPayloadSchema,
-  SaveSecretsResult
+  SaveSecretsResult,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -91,7 +91,9 @@ export const instanceService = mkSingleton(
     const getInstance = (subdomain: string) =>
       instanceLimiter
         .schedule(async () => {
-          const { dbg, warn, error } = logger().create(subdomain)
+          const { dbg, warn, error } = logger().create(
+            `InstanceService ${subdomain}`
+          )
           dbg(`Getting instance`)
           {
             const instance = instances[subdomain]
@@ -100,11 +102,7 @@ export const instanceService = mkSingleton(
               return instance
             }
           }
-
           const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
-
-          dbg(`Checking for permission`)
-
           const [instance, owner] = await clientLimiter.schedule(() =>
             client.getInstanceBySubdomain(subdomain)
           )
@@ -113,17 +111,19 @@ export const instanceService = mkSingleton(
               `Instance ${subdomain} not found. Please check the instance URL and try again, or create one at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}.`
             )
           }
+          dbg(`Instance found`)
 
+          dbg(`Checking for verified account`)
           if (!owner?.verified) {
             throw new Error(
               `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`
             )
           }
 
+          dbg(`Obtaining port`)
           await clientLimiter.schedule(() =>
             client.updateInstanceStatus(instance.id, InstanceStatus.Port)
           )
-          dbg(`Instance found`)
           const exclude = map(instances, (i) => i.port)
           const newPort = await getPort({
             port: DAEMON_PB_PORT_BASE,
