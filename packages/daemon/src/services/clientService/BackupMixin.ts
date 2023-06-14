@@ -27,11 +27,10 @@ export const createBackupMixin = (context: MixinContext) => {
       if (!instance) {
         throw new Error(`Expected ${instanceId} to be a valid instance`)
       }
-      const { platform, version } = instance
+      const { version } = instance
       const rec: BackupFields_Create = {
         instanceId,
         status: BackupStatus.Queued,
-        platform,
         version,
       }
       const created = await client

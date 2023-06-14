@@ -1,7 +1,9 @@
 <script lang="ts">
+  import CodeSample from '$components/CodeSample.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import type { InstanceFields } from '@pockethost/common'
+  import { bash } from 'svelte-highlight/languages'
 
   export let instance: InstanceFields
 
@@ -17,8 +19,11 @@
 <div class="py-4">
   <h2>FTP Access</h2>
   <div>
-    Securely access your instance files via <a href={ftpUrl}>{ftpUrl}</a>. Use your PocketHost
-    account login and password.
+    Securely access your instance files via <code><a href={ftpUrl}>{ftpUrl}</a></code>. Use your
+    PocketHost account login and password.
+    <p>Recommended FTP client: <a href="https://filezilla-project.org/">FileZilla</a></p>
+    <p>Bash:</p>
+    <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
     <table>
       <thead><tr><th>Directory</th><th>Description</th></tr></thead>
       <tr>
@@ -28,7 +33,7 @@
         <th>pb_static</th><td>Static files, such as a web frontend</td>
       </tr>
       <tr>
-        <th>backups</th><td>Location of tgz backups made using this UI</td>
+        <th>pb_migrations</th><td>The PocketBase migrations directory</td>
       </tr>
       <tr>
         <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>

@@ -14,7 +14,6 @@ export type BackupFields = BaseFields & {
   status: BackupStatus
   message: string
   bytes: number
-  platform: string
   version: string
   progress: {
     [_: string]: number
@@ -23,18 +22,12 @@ export type BackupFields = BaseFields & {
 
 export type BackupFields_Create = Pick<
   BackupFields,
-  'instanceId' | 'status' | 'platform' | 'version'
+  'instanceId' | 'status' | 'version'
 >
 
 export type BackupFields_Update = Partial<
   Pick<
     BackupFields,
-    | 'instanceId'
-    | 'status'
-    | 'bytes'
-    | 'message'
-    | 'platform'
-    | 'version'
-    | 'progress'
+    'instanceId' | 'status' | 'bytes' | 'message' | 'version' | 'progress'
   >
 >

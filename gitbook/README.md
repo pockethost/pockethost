@@ -1,18 +1,21 @@
-<h1>pockethost.io</h1>
+---
+description: The zero-config, up-in-seconds, hosting platform for PocketBase
+---
 
-This is the open source monorepo for pockethost.io, the cloud hosting platform for PocketBase.
+# 👋 Welcome to PocketHost
 
-# Introduction
+## Overview
 
-https://pockethost.io hosts your PocketBase projects so you don't have to. Create a project like you would in Firebase and Supabase and let PocketHost do the rest.
+PocketHost ([https://pockethost.io](https://pockethost.io) hosts your [PocketBase](https://pocketbase.io) projects so you don't have to. Create a project like you would in Firebase and Supabase and let PocketHost do the rest.
 
-Features:
+PocketHost is a cloud hosting platform for PocketBase. You can use it to instantly provision a PocketBase backend for your latest project. Features include:
 
-- Create unlimited PocketBase instances
+- Create unlimited PocketBase projects, each with a custom subdomain
 - Each instance runs on a subdomain of `pockethost.io`
+- Access your PocketBase instance using the PocketBase JavaScript SDK as easily as new `PocketBase('https://my-project.pockethost.io')`
 - Run your instance in an ultra-beefy shared environment
 
-**Focus on your app**
+## Focus on your app
 
 Get a live PocketBase instance in 10 seconds with no backend setup:
 
@@ -24,7 +27,7 @@ Get a live PocketBase instance in 10 seconds with no backend setup:
 const client = new PocketBase(`https://harvest.pockethost.io`)
 ```
 
-**Batteries Included**
+## Batteries Included
 
 Here's all the Linux/devops stuff that PocketHost does for you:
 
@@ -37,9 +40,3 @@ Here's all the Linux/devops stuff that PocketHost does for you:
 - CDN and static asset hosting
 - Amazon AWS
 - Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on
-
-This monorepo contains the entire open source stack that powers pockethost.io. You can use it to run your own private or public multitenant platform.
-
-**Questions?**
-
-Join us in the discussion area.
