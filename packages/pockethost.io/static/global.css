@@ -67,7 +67,6 @@ h6 {
 .btn.btn-primary,
 .btn.btn-outline-primary,
 .btn.btn-light {
-  --bs-btn-border-radius: 50px;
   --bs-btn-padding-x: 24px;
   --bs-btn-padding-y: 8px;
 }
