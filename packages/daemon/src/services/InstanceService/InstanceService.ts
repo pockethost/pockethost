@@ -32,6 +32,7 @@ import Bottleneck from 'bottleneck'
 import { existsSync } from 'fs'
 import getPort from 'get-port'
 import { join } from 'path'
+import { valid, validRange } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbase, PocketbaseProcess } from '../PocketBaseService'
@@ -86,8 +87,11 @@ export const instanceService = mkSingleton(
       async (rpc) => {
         const { payload } = rpc
         const { instanceId, version } = payload
-        if (version.match(SEMVER_RE) === null) {
-          return { status: `error`, message: `Semver must be a regex` }
+        if (valid(version) === null && validRange(version) === null) {
+          return {
+            status: `error`,
+            message: `Version must be a valid semver or semver range`,
+          }
         }
         await client.updateInstance(instanceId, { version })
         return { status: 'ok' }
