@@ -5,16 +5,12 @@ import { BaseFields, UserId } from '../types'
 export const RPC_COLLECTION = 'rpc'
 export enum RpcCommands {
   CreateInstance = 'create-instance',
-  BackupInstance = 'backup-instance',
-  // RestoreInstance = 'restore-instance',
   SaveSecrets = 'save-secrets',
   // gen:enum
 }
 
 export const RPC_COMMANDS = [
   RpcCommands.CreateInstance,
-  RpcCommands.BackupInstance,
-  // RpcCommands.RestoreInstance,
   RpcCommands.SaveSecrets,
 ]
 
@@ -48,8 +44,6 @@ export type RpcRecord_Create<TRecord extends RpcFields<any, any>> = Pick<
 
 export const ajv = new Ajv()
 
-export * from './BackupInstance'
 export * from './CreateInstance'
-export * from './RestoreInstance'
 export * from './SaveSecrets'
 // gen:export
