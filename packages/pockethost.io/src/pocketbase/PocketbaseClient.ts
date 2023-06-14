@@ -2,24 +2,17 @@ import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
   assertExists,
-  BackupInstancePayloadSchema,
   CreateInstancePayloadSchema,
   createRpcHelper,
   createWatchHelper,
   logger,
-  RestoreInstancePayloadSchema,
   RpcCommands,
   safeCatch,
   SaveSecretsPayloadSchema,
-  type BackupFields,
-  type BackupInstancePayload,
-  type BackupInstanceResult,
   type CreateInstancePayload,
   type CreateInstanceResult,
   type InstanceFields,
   type InstanceId,
-  type RestoreInstancePayload,
-  type RestoreInstanceResult,
   type SaveSecretsPayload,
   type SaveSecretsResult,
   type UserFields,
@@ -123,15 +116,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     RpcCommands.CreateInstance,
     CreateInstancePayloadSchema
   )
-  const createInstanceBackupJob = mkRpc<BackupInstancePayload, BackupInstanceResult>(
-    RpcCommands.BackupInstance,
-    BackupInstancePayloadSchema
-  )
-
-  const createInstanceRestoreJob = mkRpc<RestoreInstancePayload, RestoreInstanceResult>(
-    RpcCommands.RestoreInstance,
-    RestoreInstancePayloadSchema
-  )
   const saveSecrets = mkRpc<SaveSecretsPayload, SaveSecretsResult>(
     RpcCommands.SaveSecrets,
     SaveSecretsPayloadSchema
@@ -148,12 +132,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     cb: (data: RecordSubscription<InstanceFields>) => void
   ): Promise<UnsubscribeFunc> => watchById('instances', id, cb)
 
-  const watchBackupsByInstanceId = async (
-    id: InstanceId,
-    cb: (data: RecordSubscription<BackupFields>) => void
-  ): Promise<UnsubscribeFunc> => watchAllById('backups', 'instanceId', id, cb)
-
-  const getAllInstancesById = safeCatch(`getAllInstancesById`, async () =>
+  const getAllInstancesById = safeCatch(`getAllInstancesById`, _logger, async () =>
     (await client.collection('instances').getFullList()).reduce((c, v) => {
       c[v.id] = v
       return c
@@ -309,9 +288,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     user,
     watchInstanceById,
     getAllInstancesById,
-    resendVerificationEmail,
-    watchBackupsByInstanceId,
-    createInstanceBackupJob,
-    createInstanceRestoreJob
+    resendVerificationEmail
   }
 }
