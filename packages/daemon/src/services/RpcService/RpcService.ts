@@ -95,7 +95,6 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
 
   const unsub = await client.onNewRpc(run)
   await client.resetRpcs()
-  await client.resetBackups()
   const rpcs = await client.incompleteRpcs()
   rpcs.forEach(run)
 
