@@ -1,9 +1,9 @@
-import { logger } from '@pockethost/common'
+import { Logger } from '@pockethost/common'
 import { existsSync } from 'fs'
 import knex from 'knex'
 
-export const createRawPbClient = (filename: string) => {
-  const { dbg } = logger().create(`rawPbClient`)
+export const createRawPbClient = (filename: string, logger: Logger) => {
+  const { dbg } = logger.create(`rawPbClient`)
   dbg(filename)
 
   if (!existsSync(filename)) {

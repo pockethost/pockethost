@@ -1,7 +1,6 @@
 import {
   InstanceFields,
   InvocationFields,
-  logger,
   pocketNow,
   safeCatch,
 } from '@pockethost/common'
@@ -12,12 +11,14 @@ export const createInvocationMixin = (
   context: MixinContext,
   instanceApi: InstanceApi
 ) => {
-  const { dbg } = logger().create('InvocationMixin')
+  const { logger } = context
+  const { dbg } = logger.create('InvocationMixin')
 
   const { client } = context
 
   const createInvocation = safeCatch(
     `createInvocation`,
+    logger,
     async (instance: InstanceFields, pid: number) => {
       const init: Partial<InvocationFields> = {
         startedAt: pocketNow(),
@@ -34,6 +35,7 @@ export const createInvocationMixin = (
 
   const pingInvocation = safeCatch(
     `pingInvocation`,
+    logger,
     async (invocation: InvocationFields) => {
       const totalSeconds =
         (+new Date() - Date.parse(invocation.startedAt)) / 1000
@@ -50,6 +52,7 @@ export const createInvocationMixin = (
 
   const finalizeInvocation = safeCatch(
     `finalizeInvocation`,
+    logger,
     async (invocation: InvocationFields) => {
       dbg('finalizing')
       const totalSeconds =

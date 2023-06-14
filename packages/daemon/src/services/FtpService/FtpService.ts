@@ -7,12 +7,12 @@ import {
   SSL_KEY,
 } from '$constants'
 import { clientService, createPbClient } from '$services'
-import { logger, mkSingleton } from '@pockethost/common'
+import { mkSingleton, SingletonBaseConfig } from '@pockethost/common'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import { PhFs } from './PhFs'
 
-export type FtpConfig = {}
+export type FtpConfig = SingletonBaseConfig & {}
 
 export enum FolderNames {
   PbData = 'pb_data',
@@ -49,13 +49,14 @@ const tls = {
 }
 
 export const ftpService = mkSingleton((config: FtpConfig) => {
-  const log = logger().create('FtpService')
-  const { dbg, info } = log
+  const { logger } = config
+  const _ftpServiceLogger = logger.create('FtpService')
+  const { dbg, info } = _ftpServiceLogger
 
   const ftpServer = new FtpSrv({
     url: 'ftp://0.0.0.0:' + PH_FTP_PORT,
     anonymous: false,
-    log: log.create(`ftpServer`, { errorTrace: false }),
+    log: _ftpServiceLogger.create(`ftpServer`, { errorTrace: false }),
     tls,
     pasv_url: PH_FTP_PASV_IP,
     pasv_max: PH_FTP_PASV_PORT_MAX,
@@ -66,13 +67,13 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     'login',
     async ({ connection, username, password }, resolve, reject) => {
       const url = (await clientService()).client.url
-      const client = createPbClient(url)
+      const client = createPbClient(url, _ftpServiceLogger)
       try {
         await client.client
           .collection('users')
           .authWithPassword(username, password)
         dbg(`Logged in`)
-        const fs = new PhFs(connection, client)
+        const fs = new PhFs(connection, client, _ftpServiceLogger)
         resolve({ fs })
       } catch (e) {
         reject(new Error(`Invalid username or password`))

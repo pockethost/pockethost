@@ -1,5 +1,5 @@
 import { DAEMON_PB_DATA_DIR, DENO_PATH } from '$constants'
-import { InstanceFields, logger, StreamNames } from '@pockethost/common'
+import { InstanceFields, Logger, StreamNames } from '@pockethost/common'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
 import { join } from 'path'
@@ -11,12 +11,15 @@ export type DenoProcessConfig = {
   path: string
   port: number
   instance: InstanceFields
+  logger: Logger
 }
 
 export type DenoApi = AsyncReturnType<typeof createDenoProcess>
 
 export const createDenoProcess = async (config: DenoProcessConfig) => {
-  const { dbg, error } = logger().create(`DenoProcess.ts`)
+  const { logger } = config
+  const _denoLogger = logger.create(`DenoProcess.ts`)
+  const { dbg, error } = _denoLogger
 
   const { instance, port, path } = config
   const internalUrl = mkInternalUrl(port)
@@ -34,7 +37,9 @@ export const createDenoProcess = async (config: DenoProcessConfig) => {
     path,
   ]
 
-  const denoLogger = await instanceLoggerService().get(instance.id)
+  const denoLogger = await instanceLoggerService().get(instance.id, {
+    parentLogger: _denoLogger,
+  })
 
   const denoWrite = (
     message: string,

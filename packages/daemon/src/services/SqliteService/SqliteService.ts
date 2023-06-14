@@ -1,8 +1,8 @@
 import {
   createCleanupManager,
   createEvent,
-  logger,
   mkSingleton,
+  SingletonBaseConfig,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
 import { Database as SqliteDatabase, open } from 'sqlite'
@@ -28,12 +28,13 @@ export type SqliteServiceApi = {
     cb: SqliteChangeHandler<TRecord>
   ) => SqliteUnsubscribe
 }
-export type SqliteServiceConfig = {}
+export type SqliteServiceConfig = SingletonBaseConfig & {}
 
 export type SqliteService = ReturnType<typeof sqliteService>
 
 export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
-  const { dbg, trace } = logger().create(`sqliteService`)
+  const { logger } = config
+  const { dbg, trace } = logger.create(`sqliteService`)
   const connections: { [_: string]: Promise<SqliteServiceApi> } = {}
 
   const cm = createCleanupManager()
@@ -41,7 +42,8 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
   const limiter = new Bottleneck({ maxConcurrent: 1 })
 
   const getDatabase = async (filename: string): Promise<SqliteServiceApi> => {
-    const { dbg } = logger().create(`sqliteService:${filename}`)
+    const _dbLogger = logger.create(`${filename}`)
+    const { dbg } = _dbLogger
 
     trace(`Fetching database for ${filename}`, connections)
     if (!connections[filename]) {

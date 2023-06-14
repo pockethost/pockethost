@@ -1,28 +1,34 @@
 import { PUBLIC_APP_DB } from '$constants'
-import { logger, mkSingleton } from '@pockethost/common'
+import { mkSingleton, SingletonBaseConfig } from '@pockethost/common'
 import { proxyService } from './ProxyService'
 
-export const centralDbService = mkSingleton(async () => {
-  const { dbg } = logger().create(`centralDbService`)
+export type CentralDbServiceConfig = SingletonBaseConfig
 
-  ;(await proxyService()).use(
-    PUBLIC_APP_DB,
-    ['/api(/*)', '/_(/*)', '/'],
-    (req, res, meta) => {
-      const { subdomain, coreInternalUrl, proxy } = meta
+export const centralDbService = mkSingleton(
+  async (config: CentralDbServiceConfig) => {
+    const { logger } = config
+    const { dbg } = logger.create(`centralDbService`)
 
-      if (subdomain !== PUBLIC_APP_DB) return
+    ;(await proxyService()).use(
+      PUBLIC_APP_DB,
+      ['/api(/*)', '/_(/*)', '/'],
+      (req, res, meta, logger) => {
+        const { dbg } = logger
+        const { subdomain, coreInternalUrl, proxy } = meta
 
-      const target = coreInternalUrl
-      dbg(
-        `Forwarding proxy request for ${req.url} to central instance ${target}`
-      )
-      proxy.web(req, res, { target })
-    },
-    `CentralDbService`
-  )
+        if (subdomain !== PUBLIC_APP_DB) return
 
-  return {
-    shutdown() {},
+        const target = coreInternalUrl
+        dbg(
+          `Forwarding proxy request for ${req.url} to central instance ${target}`
+        )
+        proxy.web(req, res, { target })
+      },
+      `CentralDbService`
+    )
+
+    return {
+      shutdown() {},
+    }
   }
-})
+)

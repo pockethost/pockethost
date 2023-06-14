@@ -1,4 +1,3 @@
-export * from './backupInstance'
 export * from './downloadAndExtract'
 export * from './ensureDirExists'
 export * from './env'

@@ -9,10 +9,12 @@ import {
 import {
   createCleanupManager,
   createTimerManager,
-  logger,
   safeCatch,
 } from '@pockethost/common'
-import { mkSingleton } from '@pockethost/common/src/mkSingleton'
+import {
+  mkSingleton,
+  SingletonBaseConfig,
+} from '@pockethost/common/src/mkSingleton'
 import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
 import { chmodSync, existsSync } from 'fs'
@@ -35,7 +37,7 @@ export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
 >
 
-export type PocketbaseServiceConfig = {
+export type PocketbaseServiceConfig = SingletonBaseConfig & {
   cachePath: string
   checkIntervalMs: number
 }
@@ -60,7 +62,9 @@ export type Releases = Release[]
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig
 ) => {
-  const { dbg, error } = logger().create('PocketbaseService')
+  const { logger } = config
+  const _serviceLogger = logger.create('PocketbaseService')
+  const { dbg, error } = _serviceLogger
 
   const { cachePath, checkIntervalMs } = config
 
@@ -100,7 +104,7 @@ export const createPocketbaseService = async (
           versions[sanitizedTagName] = Promise.resolve('')
           return
         }
-        await downloadAndExtract(url, binPath)
+        await downloadAndExtract(url, binPath, _serviceLogger)
 
         resolve(binPath)
       })
@@ -138,85 +142,89 @@ export const createPocketbaseService = async (
     }
   }
 
-  const _spawn = safeCatch(`spawnInstance`, async (cfg: SpawnConfig) => {
-    const _cfg: Required<SpawnConfig> = {
-      version: maxVersion,
-      port: await getPort(),
-      isMothership: false,
-      onUnexpectedStop: (code) => {
-        dbg(`Unexpected stop default handler. Exit code: ${code}`)
-      },
-      ...cfg,
-    }
-    const { version, command, slug, port, onUnexpectedStop, isMothership } =
-      _cfg
-    const _version = version || maxVersion // If _version is blank, we use the max version available
-    const bin = (await getVersion(_version)).binPath
-    if (!existsSync(bin)) {
-      throw new Error(
-        `PocketBase binary (${bin}) not found. Contact pockethost.io.`
-      )
-    }
+  const _spawn = safeCatch(
+    `spawnInstance`,
+    _serviceLogger,
+    async (cfg: SpawnConfig) => {
+      const _cfg: Required<SpawnConfig> = {
+        version: maxVersion,
+        port: await getPort(),
+        isMothership: false,
+        onUnexpectedStop: (code) => {
+          dbg(`Unexpected stop default handler. Exit code: ${code}`)
+        },
+        ...cfg,
+      }
+      const { version, command, slug, port, onUnexpectedStop, isMothership } =
+        _cfg
+      const _version = version || maxVersion // If _version is blank, we use the max version available
+      const bin = (await getVersion(_version)).binPath
+      if (!existsSync(bin)) {
+        throw new Error(
+          `PocketBase binary (${bin}) not found. Contact pockethost.io.`
+        )
+      }
 
-    const args = [
-      command,
-      `--dir`,
-      `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
-      `--publicDir`,
-      `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
-      `--migrationsDir`,
-      isMothership
-        ? DAEMON_PB_MIGRATIONS_DIR
-        : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`,
-    ]
-    if (command === 'serve') {
-      args.push(`--http`)
-      args.push(mkInternalAddress(port))
-    }
+      const args = [
+        command,
+        `--dir`,
+        `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
+        `--publicDir`,
+        `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
+        `--migrationsDir`,
+        isMothership
+          ? DAEMON_PB_MIGRATIONS_DIR
+          : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`,
+      ]
+      if (command === 'serve') {
+        args.push(`--http`)
+        args.push(mkInternalAddress(port))
+      }
 
-    let isRunning = true
+      let isRunning = true
 
-    dbg(`Spawning ${slug}`, { bin, args, cli: [bin, ...args].join(' ') })
-    const ls = spawn(bin, args)
-    cm.add(() => ls.kill())
+      dbg(`Spawning ${slug}`, { bin, args, cli: [bin, ...args].join(' ') })
+      const ls = spawn(bin, args)
+      cm.add(() => ls.kill())
 
-    ls.stdout.on('data', (data) => {
-      dbg(`${slug} stdout: ${data}`)
-    })
-
-    ls.stderr.on('data', (data) => {
-      error(`${slug} stderr: ${data}`)
-    })
-
-    ls.on('close', (code) => {
-      dbg(`${slug} closed with code ${code}`)
-    })
-
-    const exited = new Promise<number | null>((resolve) => {
-      ls.on('exit', (code) => {
-        dbg(`${slug} exited with code ${code}`)
-        isRunning = false
-        if (code) onUnexpectedStop?.(code)
-        resolve(code)
+      ls.stdout.on('data', (data) => {
+        dbg(`${slug} stdout: ${data}`)
       })
-    })
 
-    ls.on('error', (err) => {
-      dbg(`${slug} had error ${err}`)
-    })
+      ls.stderr.on('data', (data) => {
+        error(`${slug} stderr: ${data}`)
+      })
 
-    const url = mkInternalUrl(port)
-    if (command === 'serve') {
-      await tryFetch(url, async () => isRunning)
+      ls.on('close', (code) => {
+        dbg(`${slug} closed with code ${code}`)
+      })
+
+      const exited = new Promise<number | null>((resolve) => {
+        ls.on('exit', (code) => {
+          dbg(`${slug} exited with code ${code}`)
+          isRunning = false
+          if (code) onUnexpectedStop?.(code)
+          resolve(code)
+        })
+      })
+
+      ls.on('error', (err) => {
+        dbg(`${slug} had error ${err}`)
+      })
+
+      const url = mkInternalUrl(port)
+      if (command === 'serve') {
+        await tryFetch(_serviceLogger)(url, async () => isRunning)
+      }
+      const api: PocketbaseProcess = {
+        url,
+        exited,
+        pid: ls.pid,
+        kill: () => ls.kill(),
+      }
+      return api
     }
-    const api: PocketbaseProcess = {
-      url,
-      exited,
-      pid: ls.pid,
-      kill: () => ls.kill(),
-    }
-    return api
-  })
+  )
 
   const shutdown = () => {
     dbg(`Shutting down pocketbaseService`)

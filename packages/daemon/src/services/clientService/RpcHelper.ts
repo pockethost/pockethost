@@ -18,9 +18,10 @@ export type RpcHelperConfig = MixinContext
 export type RpcHelper = ReturnType<typeof createRpcHelper>
 
 export const createRpcHelper = (config: RpcHelperConfig) => {
-  const { client, rawDb } = config
+  const { client, rawDb, logger } = config
   const onNewRpc = safeCatch(
     `onNewRpc`,
+    logger,
     async (cb: (e: RpcFields<any, any>) => void) => {
       const unsub = await client
         .collection(RPC_COLLECTION)
@@ -32,7 +33,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
     }
   )
 
-  const resetRpcs = safeCatch(`resetRpcs`, async () =>
+  const resetRpcs = safeCatch(`resetRpcs`, logger, async () =>
     rawDb(RPC_COLLECTION)
       .whereNotIn('status', [
         RpcStatus.FinishedError,
@@ -44,7 +45,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
       })
   )
 
-  const incompleteRpcs = safeCatch(`incompleteRpcs`, async () => {
+  const incompleteRpcs = safeCatch(`incompleteRpcs`, logger, async () => {
     return client
       .collection(RPC_COLLECTION)
       .getFullList<RpcFields<any, any>>(100, {
@@ -54,6 +55,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
 
   const rejectRpc = safeCatch(
     `rejectRpc`,
+    logger,
     async (rpc: RpcFields<any, any>, err: Error) => {
       const fields: Partial<RpcFields<any, any>> = {
         status: RpcStatus.FinishedError,
@@ -67,6 +69,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
 
   const setRpcStatus = safeCatch(
     `setRpcStatus`,
+    logger,
     async (
       rpc: RpcFields<any, any>,
       status: RpcStatus,

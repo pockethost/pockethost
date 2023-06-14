@@ -4,7 +4,6 @@ import {
   InstanceFields_Create,
   InstanceId,
   InstanceStatus,
-  logger,
   safeCatch,
   UserFields,
 } from '@pockethost/common'
@@ -16,12 +15,14 @@ import { MixinContext } from './PbClient'
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
 
 export const createInstanceMixin = (context: MixinContext) => {
-  const { dbg, raw } = logger().create('InstanceMixin')
+  const { logger } = context
+  const { dbg, raw } = logger.create('InstanceMixin')
 
   const { client, rawDb } = context
 
   const createInstance = safeCatch(
     `createInstance`,
+    logger,
     (payload: InstanceFields_Create): Promise<InstanceFields> => {
       return client.collection('instances').create<InstanceFields>(payload)
     }
@@ -29,6 +30,7 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const getInstanceBySubdomain = safeCatch(
     `getInstanceBySubdomain`,
+    logger,
     (subdomain: string): Promise<[InstanceFields, UserFields] | []> =>
       client
         .collection('instances')
@@ -46,6 +48,7 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const getInstanceById = safeCatch(
     `getInstanceById`,
+    logger,
     async (
       instanceId: InstanceId
     ): Promise<[InstanceFields, UserFields] | []> => {
@@ -66,6 +69,7 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const updateInstance = safeCatch(
     `updateInstance`,
+    logger,
     async (instanceId: InstanceId, fields: Partial<InstanceFields>) => {
       await client.collection('instances').update(instanceId, fields)
     }
@@ -73,6 +77,7 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const updateInstanceStatus = safeCatch(
     `updateInstanceStatus`,
+    logger,
     async (instanceId: InstanceId, status: InstanceStatus) => {
       await updateInstance(instanceId, { status })
     }
@@ -80,17 +85,19 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const getInstance = safeCatch(
     `getInstance`,
+    logger,
     async (instanceId: InstanceId) => {
       return client.collection('instances').getOne<InstanceFields>(instanceId)
     }
   )
 
-  const getInstances = safeCatch(`getInstances`, async () => {
+  const getInstances = safeCatch(`getInstances`, logger, async () => {
     return client.collection('instances').getFullList<InstanceFields>()
   })
 
   const updateInstances = safeCatch(
     'updateInstances',
+    logger,
     async (cb: (rec: InstanceFields) => Partial<InstanceFields>) => {
       const res = await client
         .collection('instances')
@@ -116,6 +123,7 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const updateInstanceSeconds = safeCatch(
     `updateInstanceSeconds`,
+    logger,
     async (instanceId: InstanceId, forPeriod = new Date()) => {
       const startIso = startOfMonth(forPeriod).toISOString()
       const endIso = endOfMonth(forPeriod).toISOString()

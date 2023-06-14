@@ -1,5 +1,5 @@
 import { DAEMON_PB_DATA_DIR } from '$constants'
-import { Logger, logger } from '@pockethost/common'
+import { Logger } from '@pockethost/common'
 import { existsSync, mkdirSync } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { join } from 'path'
@@ -16,10 +16,14 @@ export class PhFs extends FileSystem {
   private log: Logger
   private client: PocketbaseClientApi
 
-  constructor(connection: FtpConnection, client: PocketbaseClientApi) {
+  constructor(
+    connection: FtpConnection,
+    client: PocketbaseClientApi,
+    logger: Logger
+  ) {
     super(connection, { root: '/', cwd: '/' })
     this.client = client
-    this.log = logger().create(`PhFs`)
+    this.log = logger.create(`PhFs`)
   }
 
   async chdir(path?: string | undefined): Promise<string> {

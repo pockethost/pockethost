@@ -1,9 +1,10 @@
 import { ClientResponseError } from 'pocketbase'
-import { logger } from './Logger'
+import { Logger } from './Logger'
 
 let c = 0
 export const safeCatch = <TIn extends any[], TOut>(
   name: string,
+  logger: Logger,
   cb: (...args: TIn) => Promise<TOut>,
   timeoutMs = 5000
 ) => {
@@ -11,7 +12,7 @@ export const safeCatch = <TIn extends any[], TOut>(
     const _c = c++
     const uuid = `${name}:${_c}`
     const pfx = `safeCatch:${uuid}`
-    const { raw, error, warn, dbg } = logger().create(pfx)
+    const { raw, error, warn, dbg } = logger.create(pfx)
     raw(`args`, args)
     const tid = setTimeout(() => {
       error(`timeout ${timeoutMs}ms waiting for ${pfx}`)

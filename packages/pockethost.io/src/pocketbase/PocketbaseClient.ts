@@ -44,7 +44,8 @@ export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
 export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const { url } = config
-  const { dbg, error } = logger()
+  const _logger = logger()
+  const { dbg, error } = _logger
 
   const client = new PocketBase(url)
 
@@ -56,7 +57,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const logOut = () => authStore.clear()
 
-  const createUser = safeCatch(`createUser`, (email: string, password: string) =>
+  const createUser = safeCatch(`createUser`, _logger, (email: string, password: string) =>
     client
       .collection('users')
       .create({
@@ -70,7 +71,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
       })
   )
 
-  const confirmVerification = safeCatch(`confirmVerification`, (token: string) =>
+  const confirmVerification = safeCatch(`confirmVerification`, _logger, (token: string) =>
     client
       .collection('users')
       .confirmVerification(token)
@@ -79,7 +80,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
       })
   )
 
-  const requestPasswordReset = safeCatch(`requestPasswordReset`, (email: string) =>
+  const requestPasswordReset = safeCatch(`requestPasswordReset`, _logger, (email: string) =>
     client
       .collection('users')
       .requestPasswordReset(email)
@@ -90,6 +91,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const requestPasswordResetConfirm = safeCatch(
     `requestPasswordResetConfirm`,
+    _logger,
     (token: string, password: string) =>
       client
         .collection('users')
@@ -99,11 +101,11 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         })
   )
 
-  const authViaEmail = safeCatch(`authViaEmail`, (email: string, password: string) =>
+  const authViaEmail = safeCatch(`authViaEmail`, _logger, (email: string, password: string) =>
     client.collection('users').authWithPassword(email, password)
   )
 
-  const refreshAuthToken = safeCatch(`refreshAuthToken`, () =>
+  const refreshAuthToken = safeCatch(`refreshAuthToken`, _logger, () =>
     client.collection('users').authRefresh()
   )
 
@@ -123,6 +125,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const getInstanceById = safeCatch(
     `getInstanceById`,
+    _logger,
     (id: InstanceId): Promise<InstanceFields | undefined> =>
       client.collection('instances').getOne<InstanceFields>(id)
   )
@@ -145,7 +148,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter((v) => !!v)
   }
 
-  const resendVerificationEmail = safeCatch(`resendVerificationEmail`, async () => {
+  const resendVerificationEmail = safeCatch(`resendVerificationEmail`, _logger, async () => {
     const user = client.authStore.model
     assertExists(user, `Login required`)
     await client.collection('users').requestVerification(user.email)
@@ -210,7 +213,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         unsub()
         return
       }
-      const _check = safeCatch(`_checkVerified`, refreshAuthToken)
+      const _check = safeCatch(`_checkVerified`, _logger, refreshAuthToken)
       setTimeout(_check, 1000)
 
       // FIXME - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8

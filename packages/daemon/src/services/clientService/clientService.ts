@@ -5,12 +5,19 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from '$constants'
-import { logger, mkSingleton } from '@pockethost/common'
+import { Logger, mkSingleton } from '@pockethost/common'
 import { createPbClient } from './PbClient'
 
-export const clientService = mkSingleton(async (url: string) => {
-  const { dbg, error } = logger().create(`client singleton`)
-  const client = createPbClient(url)
+export type ClientServiceConfig = {
+  logger: Logger
+  url: string
+}
+
+export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
+  const { logger, url } = cfg
+  const _clientLogger = logger.create(`client singleton`)
+  const { dbg, error } = _clientLogger
+  const client = createPbClient(url, _clientLogger)
 
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)

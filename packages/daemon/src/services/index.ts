@@ -1,4 +1,3 @@
-export * from './BackupService'
 export * from './clientService/clientService'
 export * from './clientService/PbClient'
 export * from './FtpService/FtpService'

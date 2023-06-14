@@ -21,6 +21,7 @@ export const createWatchHelper = (config: WatchHelperConfig) => {
 
   const watchById = safeCatch(
     `watchById`,
+    logger(),
     async <TRec>(
       collectionName: string,
       id: RecordId,
@@ -93,6 +94,7 @@ export const createWatchHelper = (config: WatchHelperConfig) => {
 
   const watchAllById = safeCatch(
     `watchAllById`,
+    logger(),
     async <TRec extends BaseFields>(
       collectionName: string,
       idName: keyof TRec,

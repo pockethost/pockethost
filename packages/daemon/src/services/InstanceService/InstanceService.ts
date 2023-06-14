@@ -16,13 +16,13 @@ import {
   createTimerManager,
   InstanceId,
   InstanceStatus,
-  logger,
   mkSingleton,
   RpcCommands,
   safeCatch,
   SaveSecretsPayload,
   SaveSecretsPayloadSchema,
   SaveSecretsResult,
+  SingletonBaseConfig,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -42,12 +42,14 @@ type InstanceApi = {
   startRequest: () => () => void
 }
 
-export type InstanceServiceConfig = {}
+export type InstanceServiceConfig = SingletonBaseConfig & {}
 
 export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(
   async (config: InstanceServiceConfig) => {
-    const { dbg, raw, error, warn } = logger().create('InstanceService')
+    const { logger } = config
+    const _instanceLogger = logger.create('InstanceService')
+    const { dbg, raw, error, warn } = _instanceLogger
     const { client } = await clientService()
 
     const { registerCommand } = await rpcService()
@@ -91,9 +93,8 @@ export const instanceService = mkSingleton(
     const getInstance = (subdomain: string) =>
       instanceLimiter
         .schedule(async () => {
-          const { dbg, warn, error } = logger().create(
-            `InstanceService ${subdomain}`
-          )
+          const _subdomainLogger = _instanceLogger.create(subdomain)
+          const { dbg, warn, error } = _subdomainLogger
           dbg(`Getting instance`)
           {
             const instance = instances[subdomain]
@@ -112,6 +113,7 @@ export const instanceService = mkSingleton(
             )
           }
           dbg(`Instance found`)
+          _subdomainLogger.breadcrumb(instance.id)
 
           dbg(`Checking for verified account`)
           if (!owner?.verified) {
@@ -132,9 +134,13 @@ export const instanceService = mkSingleton(
             error(`Failed to get port for ${subdomain}`)
             throw e
           })
+          _subdomainLogger.breadcrumb(newPort.toString())
           dbg(`Found port: ${newPort}`)
 
-          const instanceLogger = await instanceLoggerService().get(instance.id)
+          const instanceLogger = await instanceLoggerService().get(
+            instance.id,
+            { parentLogger: _subdomainLogger }
+          )
 
           await clientLimiter.schedule(() => {
             dbg(`Instance status: starting`)
@@ -146,16 +152,25 @@ export const instanceService = mkSingleton(
 
           dbg(`Starting instance`)
           await instanceLogger.write(`Starting instance`)
-          const childProcess = await pbService.spawn({
-            command: 'serve',
-            slug: instance.id,
-            port: newPort,
-            version: instance.version,
-            onUnexpectedStop: (code) => {
-              warn(`${subdomain} exited unexpectedly with ${code}`)
-              api.shutdown()
-            },
-          })
+          const childProcess = await (async () => {
+            try {
+              const cp = await pbService.spawn({
+                command: 'serve',
+                slug: instance.id,
+                port: newPort,
+                version: instance.version,
+                onUnexpectedStop: (code) => {
+                  warn(`${subdomain} exited unexpectedly with ${code}`)
+                  api.shutdown()
+                },
+              })
+              return cp
+            } catch (e) {
+              throw new Error(
+                `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`
+              )
+            }
+          })()
 
           const { pid } = childProcess
           assertTruthy(pid, `Expected PID here but got ${pid}`)
@@ -190,6 +205,7 @@ export const instanceService = mkSingleton(
                 path: workerPath,
                 port: newPort,
                 instance,
+                logger: _instanceLogger,
               })
               return api
             } else {
@@ -210,6 +226,7 @@ export const instanceService = mkSingleton(
               port: newPort,
               shutdown: safeCatch(
                 `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
+                _subdomainLogger,
                 async () => {
                   dbg(`Shutting down`)
                   await instanceLogger.write(`Shutting down instance`)
@@ -247,7 +264,7 @@ export const instanceService = mkSingleton(
 
             {
               tm.repeat(
-                safeCatch(`idleCheck`, async () => {
+                safeCatch(`idleCheck`, _subdomainLogger, async () => {
                   raw(
                     `${subdomain} idle check: ${openRequestCount} open requests`
                   )
@@ -272,7 +289,7 @@ export const instanceService = mkSingleton(
             }
 
             {
-              const uptime = safeCatch(`uptime`, async () => {
+              const uptime = safeCatch(`uptime`, _subdomainLogger, async () => {
                 raw(`${subdomain} uptime`)
                 await clientLimiter.schedule(() =>
                   client.pingInvocation(invocation)
@@ -314,7 +331,7 @@ export const instanceService = mkSingleton(
     ;(await proxyService()).use(
       (subdomain) => subdomain !== PUBLIC_APP_DB,
       ['/api(/*)', '/_(/*)', '(/*)'],
-      async (req, res, meta) => {
+      async (req, res, meta, logger) => {
         const { subdomain, host, proxy } = meta
 
         // Do not handle central db requests, that is handled separately

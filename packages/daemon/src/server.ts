@@ -16,17 +16,18 @@ import {
   rpcService,
   sqliteService,
 } from '$services'
-import { logger } from '@pockethost/common'
+import { logger as loggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
 
-logger({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
+loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
 global.EventSource = require('eventsource')
 ;(async () => {
-  const { dbg, error, info, warn } = logger().create(`server.ts`)
+  const logger = loggerService().create(`server.ts`)
+  const { dbg, error, info, warn } = logger
   info(`Starting`)
 
   /**
@@ -45,6 +46,7 @@ global.EventSource = require('eventsource')
   const pbService = await pocketbase({
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,
+    logger,
   })
 
   /**
@@ -73,18 +75,18 @@ global.EventSource = require('eventsource')
   /**
    * Launch services
    */
-  await clientService(url)
-  ftpService({})
-  await rpcService({})
+  await clientService({ url, logger })
+  ftpService({ logger })
+  await rpcService({ logger })
   await proxyService({
+    logger,
     coreInternalUrl: url,
   })
-  await instanceLoggerService({})
-  await sqliteService({})
-  await realtimeLog({})
-  await instanceService({})
-  await centralDbService({})
-  await backupService({})
+  await instanceLoggerService({ logger })
+  await sqliteService({ logger })
+  await realtimeLog({ logger })
+  await instanceService({ logger })
+  await centralDbService({ logger })
 
   info(`Hooking into process exit event`)
 

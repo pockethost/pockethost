@@ -1,12 +1,12 @@
 import { clientService } from '$services'
 import {
   assertTruthy,
-  logger,
   mkSingleton,
   RpcCommands,
   RpcFields,
   RpcStatus,
   RPC_COMMANDS,
+  SingletonBaseConfig,
 } from '@pockethost/common'
 import { isObject } from '@s-libs/micro-dash'
 import Ajv, { JSONSchemaType, ValidateFunction } from 'ajv'
@@ -29,10 +29,11 @@ export type RpcRunner<
   TResult extends JsonObject
 > = (job: RpcFields<TPayload, TResult>) => Promise<TResult>
 
-export type RpcServiceConfig = {}
+export type RpcServiceConfig = SingletonBaseConfig & {}
 
 export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
-  const { dbg, error } = logger().create('RpcService')
+  const { logger } = config
+  const { dbg, error } = logger.create('RpcService')
   const { client } = await clientService()
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
