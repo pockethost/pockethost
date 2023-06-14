@@ -6,7 +6,6 @@ import {
   TRACE,
 } from '$constants'
 import {
-  backupService,
   clientService,
   ftpService,
   instanceService,
@@ -95,7 +94,6 @@ global.EventSource = require('eventsource')
     info(`Shutting down`)
     ftpService().shutdown()
     ;(await realtimeLog()).shutdown()
-    ;(await backupService()).shutdown()
     ;(await proxyService()).shutdown()
     ;(await instanceService()).shutdown()
     ;(await rpcService()).shutdown()
