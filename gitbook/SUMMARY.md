@@ -22,6 +22,7 @@
 - [Overview](development/overview.md)
 - [Running Just the Frontend](development/frontend.md)
 - [Running Everything](development/full-stack/index.md)
+- [Creating RPC Calls](development/rpc.md)
 - [Production Deployment](development/production.md)
 
 ## Release History

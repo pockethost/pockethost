@@ -39,6 +39,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
     const validator = new Ajv().compile(schema)
     return safeCatch(
       cmd,
+      logger(),
       async (
         payload: TPayload,
         cb?: (data: RecordSubscription<ConcreteRpcRecord>) => void

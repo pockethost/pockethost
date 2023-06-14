@@ -6,12 +6,14 @@ export const RPC_COLLECTION = 'rpc'
 export enum RpcCommands {
   CreateInstance = 'create-instance',
   SaveSecrets = 'save-secrets',
+  SaveVersion = 'save-version',
   // gen:enum
 }
 
 export const RPC_COMMANDS = [
   RpcCommands.CreateInstance,
   RpcCommands.SaveSecrets,
+  RpcCommands.SaveVersion,
 ]
 
 export enum RpcStatus {
@@ -46,4 +48,5 @@ export const ajv = new Ajv()
 
 export * from './CreateInstance'
 export * from './SaveSecrets'
+export * from './SaveVersion'
 // gen:export

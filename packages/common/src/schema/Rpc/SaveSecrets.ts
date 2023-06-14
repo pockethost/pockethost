@@ -9,7 +9,8 @@ export type SaveSecretsPayload = {
 }
 
 export type SaveSecretsResult = {
-  status: 'saved'
+  status: 'ok' | 'error'
+  message?: string
 }
 
 export const SECRET_KEY_REGEX = /^[A-Z][A-Z0-9_]*$/

@@ -2,6 +2,7 @@
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import type { InstanceFields } from '@pockethost/common'
+  import RunningStatus from './RunningStatus.svelte'
 
   export let instance: InstanceFields
 
@@ -13,9 +14,7 @@
   <h2>Overview</h2>
   <ProvisioningStatus {status} />
   Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
-  <div>
-    Running {version}
-  </div>
+  <RunningStatus {instance} />
   <div>
     Admin URL: <a href={`${url}/_`} target="_blank">{`${url}/_`}</a>
   </div>

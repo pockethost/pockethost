@@ -1,6 +1,7 @@
 export type RecordId = string
 export type UserId = RecordId
 export type InstanceId = RecordId
+export type Semver = string
 export type InternalInstanceId = RecordId
 export type Subdomain = string
 export type Port = number

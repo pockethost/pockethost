@@ -22,6 +22,9 @@ import {
   SaveSecretsPayload,
   SaveSecretsPayloadSchema,
   SaveSecretsResult,
+  SaveVersionPayload,
+  SaveVersionPayloadSchema,
+  SaveVersionResult,
   SingletonBaseConfig,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
@@ -75,6 +78,22 @@ export const instanceService = mkSingleton(
       }
     )
 
+    const SEMVER_RE =
+      /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
+    registerCommand<SaveVersionPayload, SaveVersionResult>(
+      RpcCommands.SaveVersion,
+      SaveVersionPayloadSchema,
+      async (rpc) => {
+        const { payload } = rpc
+        const { instanceId, version } = payload
+        if (version.match(SEMVER_RE) === null) {
+          return { status: `error`, message: `Semver must be a regex` }
+        }
+        await client.updateInstance(instanceId, { version })
+        return { status: 'ok' }
+      }
+    )
+
     registerCommand<SaveSecretsPayload, SaveSecretsResult>(
       RpcCommands.SaveSecrets,
       SaveSecretsPayloadSchema,
@@ -82,7 +101,7 @@ export const instanceService = mkSingleton(
         const { payload } = job
         const { instanceId, secrets } = payload
         await client.updateInstance(instanceId, { secrets })
-        return { status: 'saved' }
+        return { status: 'ok' }
       }
     )
 

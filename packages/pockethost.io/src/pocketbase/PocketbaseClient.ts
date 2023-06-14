@@ -9,12 +9,15 @@ import {
   RpcCommands,
   safeCatch,
   SaveSecretsPayloadSchema,
+  SaveVersionPayloadSchema,
   type CreateInstancePayload,
   type CreateInstanceResult,
   type InstanceFields,
   type InstanceId,
   type SaveSecretsPayload,
   type SaveSecretsResult,
+  type SaveVersionPayload,
+  type SaveVersionResult,
   type UserFields,
   type WorkerLogFields
 } from '@pockethost/common'
@@ -121,6 +124,11 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const saveSecrets = mkRpc<SaveSecretsPayload, SaveSecretsResult>(
     RpcCommands.SaveSecrets,
     SaveSecretsPayloadSchema
+  )
+
+  const saveVersion = mkRpc<SaveVersionPayload, SaveVersionResult>(
+    RpcCommands.SaveVersion,
+    SaveVersionPayloadSchema
   )
 
   const getInstanceById = safeCatch(
@@ -291,6 +299,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     user,
     watchInstanceById,
     getAllInstancesById,
-    resendVerificationEmail
+    resendVerificationEmail,
+    saveVersion
   }
 }
