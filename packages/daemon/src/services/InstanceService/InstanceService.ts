@@ -4,7 +4,7 @@ import {
   DAEMON_PB_PORT_BASE,
   PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
+  PUBLIC_APP_PROTOCOL
 } from '$constants'
 import { clientService, proxyService, rpcService } from '$services'
 import { mkInternalUrl, now } from '$util'
@@ -22,7 +22,7 @@ import {
   safeCatch,
   SaveSecretsPayload,
   SaveSecretsPayloadSchema,
-  SaveSecretsResult,
+  SaveSecretsResult
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -65,7 +65,6 @@ export const instanceService = mkSingleton(
           uid: rpc.userId,
           version: (await pocketbase()).getLatestVersion(),
           status: InstanceStatus.Idle,
-          platform: 'unused',
           secondsThisMonth: 0,
           isBackupAllowed: false,
           secrets: {},
