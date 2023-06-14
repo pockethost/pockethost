@@ -7,11 +7,16 @@ Cleanup effort: In some cases, if a ticket has already been created, it is linke
 # In Development
 
 - [Turn instances on and off](https://github.com/benallfree/pockethost/discussions/204)
+- Allow instance to be placed into maintenance mode
+- Allow maintenance mode instance to run migrations (check automigrate first?)
+- Allow instance to be shut down and restarted
+- Disallow sqlite downloads if not in maintenance mode
 
 # Ideas
 
 Ideas, in no particular order...
 
+- default
 - [Delete an account](https://github.com/benallfree/pockethost/issues/172)
 - Permanently delete an instance
 - [Documentation](https://github.com/benallfree/pockethost/issues/174)
@@ -61,9 +66,6 @@ Ideas, in no particular order...
 
 - Version upgrades/downgrades
 
-  - Allow instance to be placed into maintenance mode
-  - Allow maintenance mode instance to run migrations (check automigrate first?)
-  - Allow instance to be shut down and restarted
   - [Allow user to move to platform that requires migrations](https://github.com/benallfree/pockethost/issues/72)
   - [Allow user to move between platforms that don't require migrations](https://github.com/benallfree/pockethost/issues/60)
   - [Allow user to move between versions on a given pocketbase platform](https://github.com/benallfree/pockethost/issues/59)
@@ -98,3 +100,6 @@ Ideas, in no particular order...
 - [when daemon boots, all instance statuses should be set to Idle](https://github.com/benallfree/pockethost/issues/61)
 - [Showcase page](https://github.com/benallfree/pockethost/discussions/180)
 - [One-click PocketApps](https://github.com/benallfree/awesome-pocketbase/pull/20#issuecomment-1582052953)
+- SSH access instead of FTP
+- CPU, I/O, and disk limits per user (per project)
+- Show ping status
