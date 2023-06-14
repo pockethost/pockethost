@@ -173,6 +173,9 @@ export const createPocketbaseService = async (
       args.push(`--http`)
       args.push(mkInternalAddress(port))
     }
+
+    let isRunning = true
+
     dbg(`Spawning ${slug}`, { bin, args, cli: [bin, ...args].join(' ') })
     const ls = spawn(bin, args)
     cm.add(() => ls.kill())
@@ -192,6 +195,7 @@ export const createPocketbaseService = async (
     const exited = new Promise<number | null>((resolve) => {
       ls.on('exit', (code) => {
         dbg(`${slug} exited with code ${code}`)
+        isRunning = false
         if (code) onUnexpectedStop?.(code)
         resolve(code)
       })
@@ -203,7 +207,7 @@ export const createPocketbaseService = async (
 
     const url = mkInternalUrl(port)
     if (command === 'serve') {
-      await tryFetch(url)
+      await tryFetch(url, async () => isRunning)
     }
     const api: PocketbaseProcess = {
       url,
