@@ -1,5 +1,20 @@
 # Production Deployment
 
+## Summary
+
+- `sudo crontab -e`
+- `sudo pm2 stop all`
+- `sudo ./scripts/dev.sh`
+- `sudo ./scripts/build.sh`
+- `sudo ./scripts/prod.sh`
+- Finalize readme
+- `yarn version --patch`
+- `sudo ./scripts/pm2.sh`
+- `sudo crontab -e`
+- Create new discussion in PocketHost and PocketBase
+
+## Detailed steps
+
 **1. Build**
 
 ```bash
