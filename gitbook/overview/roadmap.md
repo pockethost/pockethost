@@ -4,19 +4,12 @@ This document attempts to outline all known/planned issues.
 
 Cleanup effort: In some cases, if a ticket has already been created, it is linked. The ticket will remain closed until active work begins. This better reflects the health of the repository because open issues creates the appearance of instability or lack of attention.
 
-# In Development
+Ideas, in no particular order...
 
 - [Turn instances on and off](https://github.com/benallfree/pockethost/discussions/204)
 - Allow instance to be placed into maintenance mode
-- Allow maintenance mode instance to run migrations (check automigrate first?)
 - Allow instance to be shut down and restarted
 - Disallow sqlite downloads if not in maintenance mode
-
-# Ideas
-
-Ideas, in no particular order...
-
-- default
 - [Delete an account](https://github.com/benallfree/pockethost/issues/172)
 - Permanently delete an instance
 - [Documentation](https://github.com/benallfree/pockethost/issues/174)
@@ -63,12 +56,6 @@ Ideas, in no particular order...
   - [Creating a Svelte app](https://github.com/benallfree/pockethost/issues/73)
   - [TS/JS cloud function integration](https://github.com/benallfree/pockethost/issues/60)
   -
-
-- Version upgrades/downgrades
-
-  - [Allow user to move to platform that requires migrations](https://github.com/benallfree/pockethost/issues/72)
-  - [Allow user to move between platforms that don't require migrations](https://github.com/benallfree/pockethost/issues/60)
-  - [Allow user to move between versions on a given pocketbase platform](https://github.com/benallfree/pockethost/issues/59)
 
 - [Cron jobs](https://github.com/benallfree/pockethost/issues/47)
 - [move to pnpm](https://github.com/benallfree/pockethost/issues/46)
