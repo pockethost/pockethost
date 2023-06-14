@@ -1,6 +1,13 @@
+import { Logger } from './Logger'
+
 export type SingletonApi = {
   shutdown: () => void | Promise<void>
 }
+
+export type SingletonBaseConfig = {
+  logger: Logger
+}
+
 export const mkSingleton = <
   TConfig,
   TApi extends SingletonApi | Promise<SingletonApi>
