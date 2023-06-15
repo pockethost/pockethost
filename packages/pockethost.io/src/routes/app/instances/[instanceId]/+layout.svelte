@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
+  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
   import { dbg } from '$util/logger'
   import { assertExists, createCleanupManager } from '@pockethost/common'
@@ -29,7 +30,14 @@
 <AuthStateGuard>
   <div class="container">
     {#if $instance}
-      <h2>{$instance.subdomain}</h2>
+      <h2>
+        {$instance.subdomain}
+        <a
+          href="https://{$instance.subdomain}.{PUBLIC_APP_DOMAIN}/_"
+          target="_blank"
+          rel="noreferrer"><i class="bi bi-box-arrow-up-right" /></a
+        >
+      </h2>
       <slot />
       <div class="text-center py-5">
         <a href="/dashboard" class="btn btn-light"
