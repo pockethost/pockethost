@@ -83,8 +83,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    color: hsl(240, 25%, 20%);
-    background: hsla(240, 25%, 95%, 1);
+    color: var(--bs-gray-600);
+    background: var(--bs-gray-100);
     padding: 0.75rem 1rem;
     border-radius: 5px;
     margin-bottom: 20px;
