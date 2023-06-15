@@ -36,7 +36,7 @@
 </script>
 
 <div>
-  Running {#if !editMode}
+  Version {#if !editMode}
     {_version}
     <TinyButton click={startEdit}>edit</TinyButton>
     {msg}
