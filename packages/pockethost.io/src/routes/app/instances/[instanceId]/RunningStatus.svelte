@@ -1,4 +1,5 @@
 <script lang="ts">
+  import TinyButton from '$components/helpers/TinyButton.svelte'
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import { client } from '$src/pocketbase'
   import type { InstanceFields } from '@pockethost/common'
@@ -37,33 +38,12 @@
 <div>
   Running {#if !editMode}
     {_version}
-    <button
-      type="button"
-      class="btn btn-primary"
-      style="--bs-btn-padding-y: .05rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
-      on:click={startEdit}
-    >
-      edit
-    </button>
+    <TinyButton click={startEdit}>edit</TinyButton>
     {msg}
   {/if}
   {#if editMode}
     <input type="text" bind:value={_version} />
-    <button
-      type="button"
-      class="btn btn-success"
-      style="--bs-btn-padding-y: .05rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
-      on:click={saveEdit}
-    >
-      save
-    </button>
-    <button
-      type="button"
-      class="btn btn-danger"
-      style="--bs-btn-padding-y: .05rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
-      on:click={cancelEdit}
-    >
-      cancel
-    </button>
+    <TinyButton style="success" click={saveEdit}>save</TinyButton>
+    <TinyButton style="danger" click={cancelEdit}>cancel</TinyButton>
   {/if}
 </div>

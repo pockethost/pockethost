@@ -1,5 +1,6 @@
 <script lang="ts">
   import Clipboard from '$components/Clipboard.svelte'
+  import TinyButton from './helpers/TinyButton.svelte'
 
   let isCopied = false
   export let code: string
@@ -12,5 +13,7 @@
 </script>
 
 <Clipboard text={code} let:copy on:copy={handleCopy}>
-  <button class="btn btn-primary btn-sm" on:click={copy}>{isCopied ? 'Copied!' : 'Copy'}</button>
+  <TinyButton click={copy} style={isCopied ? 'success' : 'primary'}
+    >{isCopied ? 'Copied!' : 'Copy'}</TinyButton
+  >
 </Clipboard>
