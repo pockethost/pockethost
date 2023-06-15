@@ -174,6 +174,7 @@ export const instanceService = mkSingleton(
           })
 
           dbg(`Starting instance`)
+          let api: InstanceApi | undefined = undefined
           await instanceLogger.write(`Starting instance`)
           const childProcess = await (async () => {
             try {
@@ -182,9 +183,9 @@ export const instanceService = mkSingleton(
                 slug: instance.id,
                 port: newPort,
                 version: instance.version,
-                onUnexpectedStop: (code) => {
-                  warn(`${subdomain} exited unexpectedly with ${code}`)
-                  api.shutdown()
+                onUnexpectedStop: async (code) => {
+                  await api?.shutdown()
+                  error(`${subdomain} exited unexpectedly with ${code}`)
                 },
               })
               return cp
@@ -194,6 +195,12 @@ export const instanceService = mkSingleton(
               )
             }
           })()
+
+          if (!childProcess) {
+            throw new Error(
+              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`
+            )
+          }
 
           const { pid } = childProcess
           assertTruthy(pid, `Expected PID here but got ${pid}`)
@@ -237,7 +244,7 @@ export const instanceService = mkSingleton(
           })()
 
           const tm = createTimerManager({})
-          const api: InstanceApi = (() => {
+          api = (() => {
             let openRequestCount = 0
             let lastRequest = now()
             const internalUrl = mkInternalUrl(newPort)

@@ -21,7 +21,7 @@ import { chmodSync, existsSync } from 'fs'
 import getPort from 'get-port'
 import { type } from 'os'
 import { join } from 'path'
-import { maxSatisfying, rsort } from 'semver'
+import { gte, maxSatisfying, rsort } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
@@ -158,7 +158,8 @@ export const createPocketbaseService = async (
       const { version, command, slug, port, onUnexpectedStop, isMothership } =
         _cfg
       const _version = version || maxVersion // If _version is blank, we use the max version available
-      const bin = (await getVersion(_version)).binPath
+      const realVersion = await getVersion(_version)
+      const bin = realVersion.binPath
       if (!existsSync(bin)) {
         throw new Error(
           `PocketBase binary (${bin}) not found. Contact pockethost.io.`
@@ -171,11 +172,15 @@ export const createPocketbaseService = async (
         `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
         `--publicDir`,
         `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
-        `--migrationsDir`,
-        isMothership
-          ? DAEMON_PB_MIGRATIONS_DIR
-          : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`,
       ]
+      if (gte(realVersion.version, `0.9.0`)) {
+        args.push(`--migrationsDir`)
+        args.push(
+          isMothership
+            ? DAEMON_PB_MIGRATIONS_DIR
+            : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`
+        )
+      }
       if (command === 'serve') {
         args.push(`--http`)
         args.push(mkInternalAddress(port))
