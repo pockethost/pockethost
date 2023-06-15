@@ -113,6 +113,8 @@ export const instanceService = mkSingleton(
 
     const instanceLimiter = new Bottleneck({ maxConcurrent: 1 })
 
+    client.resetInstances()
+
     const getInstance = (subdomain: string) =>
       instanceLimiter
         .schedule(async () => {

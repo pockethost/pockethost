@@ -13,6 +13,7 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
+export const INSTANCE_COLLECTION = 'instances'
 
 export const createInstanceMixin = (context: MixinContext) => {
   const { logger } = context
@@ -20,11 +21,19 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const { client, rawDb } = context
 
+  const resetInstances = safeCatch(`resetRpcs`, logger, async () =>
+    rawDb(INSTANCE_COLLECTION).update<InstanceFields>({
+      status: InstanceStatus.Idle,
+    })
+  )
+
   const createInstance = safeCatch(
     `createInstance`,
     logger,
     (payload: InstanceFields_Create): Promise<InstanceFields> => {
-      return client.collection('instances').create<InstanceFields>(payload)
+      return client
+        .collection(INSTANCE_COLLECTION)
+        .create<InstanceFields>(payload)
     }
   )
 
@@ -33,7 +42,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     logger,
     (subdomain: string): Promise<[InstanceFields, UserFields] | []> =>
       client
-        .collection('instances')
+        .collection(INSTANCE_COLLECTION)
         .getFirstListItem<InstanceFields>(`subdomain = '${subdomain}'`)
         .then((instance) => {
           if (!instance) return []
@@ -53,7 +62,7 @@ export const createInstanceMixin = (context: MixinContext) => {
       instanceId: InstanceId
     ): Promise<[InstanceFields, UserFields] | []> => {
       return client
-        .collection('instances')
+        .collection(INSTANCE_COLLECTION)
         .getOne<InstanceFields>(instanceId)
         .then((instance) => {
           if (!instance) return []
@@ -71,7 +80,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     `updateInstance`,
     logger,
     async (instanceId: InstanceId, fields: Partial<InstanceFields>) => {
-      await client.collection('instances').update(instanceId, fields)
+      await client.collection(INSTANCE_COLLECTION).update(instanceId, fields)
     }
   )
 
@@ -87,12 +96,14 @@ export const createInstanceMixin = (context: MixinContext) => {
     `getInstance`,
     logger,
     async (instanceId: InstanceId) => {
-      return client.collection('instances').getOne<InstanceFields>(instanceId)
+      return client
+        .collection(INSTANCE_COLLECTION)
+        .getOne<InstanceFields>(instanceId)
     }
   )
 
   const getInstances = safeCatch(`getInstances`, logger, async () => {
-    return client.collection('instances').getFullList<InstanceFields>()
+    return client.collection(INSTANCE_COLLECTION).getFullList<InstanceFields>()
   })
 
   const updateInstances = safeCatch(
@@ -100,7 +111,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     logger,
     async (cb: (rec: InstanceFields) => Partial<InstanceFields>) => {
       const res = await client
-        .collection('instances')
+        .collection(INSTANCE_COLLECTION)
         .getFullList<InstanceFields>(200)
       const limiter = new Bottleneck({ maxConcurrent: 1 })
       const promises = reduce(
@@ -110,7 +121,9 @@ export const createInstanceMixin = (context: MixinContext) => {
             limiter.schedule(() => {
               const toUpdate = cb(r)
               dbg(`Updating instance ${r.id} with ${JSON.stringify(toUpdate)}`)
-              return client.collection('instances').update(r.id, toUpdate)
+              return client
+                .collection(INSTANCE_COLLECTION)
+                .update(r.id, toUpdate)
             })
           )
           return c
@@ -151,5 +164,6 @@ export const createInstanceMixin = (context: MixinContext) => {
     updateInstanceSeconds,
     updateInstances,
     createInstance,
+    resetInstances,
   }
 }
