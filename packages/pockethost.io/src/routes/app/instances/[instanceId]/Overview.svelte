@@ -12,7 +12,13 @@
 </script>
 
 <AccordionItem title="Overview" show={true}>
-  <ProvisioningStatus {status} />
-  Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
-  <RunningStatus {instance} />
+  <div>
+    Status: <ProvisioningStatus {status} />
+  </div>
+  <div>
+    Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
+  </div>
+  <div>
+    <RunningStatus {instance} />
+  </div>
 </AccordionItem>
