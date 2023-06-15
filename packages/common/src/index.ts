@@ -8,5 +8,3 @@ export * from './pocketbase-client-helpers'
 export * from './safeCatch'
 export * from './schema'
 export * from './TimerManager'
-
-export type WorkerLogFields = {}
