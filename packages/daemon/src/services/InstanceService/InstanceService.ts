@@ -10,6 +10,7 @@ import { clientService, proxyService, rpcService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
+  createCleanupManager,
   CreateInstancePayload,
   CreateInstancePayloadSchema,
   CreateInstanceResult,
@@ -120,6 +121,16 @@ export const instanceService = mkSingleton(
         .schedule(async () => {
           const _subdomainLogger = _instanceLogger.create(subdomain)
           const { dbg, warn, error } = _subdomainLogger
+
+          const shutdownManager = createCleanupManager()
+          shutdownManager.add(async () => {
+            dbg(`Shutting down`)
+            await clientLimiter.schedule(() =>
+              client.finalizeInvocation(invocation)
+            )
+            delete instances[subdomain]
+          })
+
           dbg(`Getting instance`)
           {
             const instance = instances[subdomain]
@@ -139,6 +150,11 @@ export const instanceService = mkSingleton(
           }
           dbg(`Instance found`)
           _subdomainLogger.breadcrumb(instance.id)
+          shutdownManager.add(async () => {
+            await clientLimiter.schedule(() =>
+              client.updateInstanceStatus(instance.id, InstanceStatus.Idle)
+            )
+          })
 
           dbg(`Checking for verified account`)
           if (!owner?.verified) {
@@ -166,6 +182,9 @@ export const instanceService = mkSingleton(
             instance.id,
             { parentLogger: _subdomainLogger }
           )
+          shutdownManager.add(() =>
+            instanceLogger.write(`Shutting down instance`)
+          )
 
           await clientLimiter.schedule(() => {
             dbg(`Instance status: starting`)
@@ -186,8 +205,13 @@ export const instanceService = mkSingleton(
                 port: newPort,
                 version: instance.version,
                 onUnexpectedStop: async (code) => {
-                  await api?.shutdown()
-                  error(`${subdomain} exited unexpectedly with ${code}`)
+                  try {
+                    await shutdownManager.shutdown()
+                  } catch (e) {
+                    error(`${subdomain} exited unexpectedly with ${e}`)
+                  } finally {
+                    error(`${subdomain} exited unexpectedly with ${code}`)
+                  }
                 },
               })
               return cp
@@ -197,6 +221,12 @@ export const instanceService = mkSingleton(
               )
             }
           })()
+          shutdownManager.add(() => {
+            const res = childProcess.kill()
+            if (!res) {
+              error(`Expected child process to exit gracefully but got ${res}`)
+            }
+          })
 
           if (!childProcess) {
             throw new Error(
@@ -244,8 +274,14 @@ export const instanceService = mkSingleton(
               dbg(`No worker found at ${workerPath}`)
             }
           })()
+          shutdownManager.add(async () => {
+            await instanceLogger.write(`Shutting down worker`)
+            await denoApi?.shutdown()
+          })
 
           const tm = createTimerManager({})
+          shutdownManager.add(() => tm.shutdown())
+
           api = (() => {
             let openRequestCount = 0
             let lastRequest = now()
@@ -260,26 +296,7 @@ export const instanceService = mkSingleton(
                 `Instance ${subdomain} invocation ${invocation.id} pid ${pid} shutdown`,
                 _subdomainLogger,
                 async () => {
-                  dbg(`Shutting down`)
-                  await instanceLogger.write(`Shutting down instance`)
-                  await instanceLogger.write(`Shutting down worker`)
-                  await denoApi?.shutdown()
-                  tm.shutdown()
-                  await clientLimiter.schedule(() =>
-                    client.finalizeInvocation(invocation)
-                  )
-                  const res = childProcess.kill()
-                  delete instances[subdomain]
-                  await clientLimiter.schedule(() =>
-                    client.updateInstanceStatus(
-                      instance.id,
-                      InstanceStatus.Idle
-                    )
-                  )
-                  assertTruthy(
-                    res,
-                    `Expected child process to exit gracefully but got ${res}`
-                  )
+                  await shutdownManager.shutdown()
                 }
               ),
               startRequest: () => {
