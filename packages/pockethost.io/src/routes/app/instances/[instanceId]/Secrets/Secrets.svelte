@@ -5,6 +5,7 @@
   import { createCleanupManager } from '@pockethost/common'
   import { forEach, reduce } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
+  import AccordionItem from '../AccordionItem.svelte'
   import Form from './Form.svelte'
   import List from './List.svelte'
   import SvgIcons from './SvgIcons.svelte'
@@ -38,21 +39,18 @@
   onDestroy(cm.shutdown)
 </script>
 
-<div class="py-4">
-  <div class="secrets">
-    <h2>Secrets</h2>
-    <p>These secrets are passed into your Deno cloud worker as environment variables.</p>
-    <CodeSample
-      code={$items
-        .map((secret) => `const ${secret.name} = Deno.env.get('${secret.name}')`)
-        .join('\n')}
-    />
+<AccordionItem title="Secrets">
+  <p>These secrets are passed into your Deno cloud worker as environment variables.</p>
+  <CodeSample
+    code={$items
+      .map((secret) => `const ${secret.name} = Deno.env.get('${secret.name}')`)
+      .join('\n')}
+  />
 
-    <SvgIcons />
-    <Form />
-    <List />
-  </div>
-</div>
+  <SvgIcons />
+  <Form />
+  <List />
+</AccordionItem>
 
 <style lang="scss">
   .secrets {

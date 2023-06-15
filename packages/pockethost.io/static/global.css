@@ -72,7 +72,7 @@ h6 {
 }
 
 .btn.btn-primary {
-  --bs-btn-bg: #965de9;
+  /* --bs-btn-bg: #965de9; */
 }
 
 .btn.btn-outline-primary {
@@ -220,6 +220,9 @@ h6 {
   );
 
   --soft-box-shadow: rgba(0, 0, 0, 0.3) 0px 7px 29px 0px;
+
+  --bs-primary-bg-subtle: #292f37;
+  --bs-primary-text-emphasis: #a2c8ff;
 }
 
 .copy-container {

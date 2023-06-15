@@ -4,6 +4,7 @@
   import { client } from '$src/pocketbase'
   import type { InstanceFields } from '@pockethost/common'
   import { bash } from 'svelte-highlight/languages'
+  import AccordionItem from './AccordionItem.svelte'
 
   export let instance: InstanceFields
 
@@ -16,31 +17,28 @@
   const ftpUrl = `ftp://${encodeURIComponent(email)}@${PUBLIC_APP_DOMAIN}`
 </script>
 
-<div class="py-4">
-  <h2>FTP Access</h2>
-  <div>
-    Securely access your instance files via <code><a href={ftpUrl}>{ftpUrl}</a></code>. Use your
-    PocketHost account login and password.
-    <p>Recommended FTP client: <a href="https://filezilla-project.org/">FileZilla</a></p>
-    <p>Bash:</p>
-    <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
-    <table>
-      <thead><tr><th>Directory</th><th>Description</th></tr></thead>
-      <tr>
-        <th>pb_data</th><td>The PocketBase data directory</td>
-      </tr>
-      <tr>
-        <th>pb_static</th><td>Static files, such as a web frontend</td>
-      </tr>
-      <tr>
-        <th>pb_migrations</th><td>The PocketBase migrations directory</td>
-      </tr>
-      <tr>
-        <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>
-      </tr>
-    </table>
-  </div>
-</div>
+<AccordionItem title="FTP Access">
+  Securely access your instance files via <code><a href={ftpUrl}>{ftpUrl}</a></code>. Use your
+  PocketHost account login and password.
+  <p>Recommended FTP client: <a href="https://filezilla-project.org/">FileZilla</a></p>
+  <p>Bash:</p>
+  <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
+  <table>
+    <thead><tr><th>Directory</th><th>Description</th></tr></thead>
+    <tr>
+      <th>pb_data</th><td>The PocketBase data directory</td>
+    </tr>
+    <tr>
+      <th>pb_static</th><td>Static files, such as a web frontend</td>
+    </tr>
+    <tr>
+      <th>pb_migrations</th><td>The PocketBase migrations directory</td>
+    </tr>
+    <tr>
+      <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>
+    </tr>
+  </table>
+</AccordionItem>
 
 <style lang="scss">
   table {

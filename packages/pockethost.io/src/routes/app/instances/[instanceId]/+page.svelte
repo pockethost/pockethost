@@ -19,9 +19,11 @@
   <title>{subdomain} details - PocketHost</title>
 </svelte:head>
 {#if $instance}
-  <Overview instance={$instance} />
-  <Ftp instance={$instance} />
-  <Code instance={$instance} />
-  <Secrets instance={$instance} />
-  <Logging instance={$instance} />
+  <div class="accordion" id="accordionExample">
+    <Overview instance={$instance} />
+    <Ftp instance={$instance} />
+    <Code instance={$instance} />
+    <Secrets instance={$instance} />
+    <Logging instance={$instance} />
+  </div>
 {/if}

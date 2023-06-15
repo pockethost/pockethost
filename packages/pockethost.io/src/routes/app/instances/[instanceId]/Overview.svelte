@@ -2,6 +2,7 @@
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import type { InstanceFields } from '@pockethost/common'
+  import AccordionItem from './AccordionItem.svelte'
   import RunningStatus from './RunningStatus.svelte'
 
   export let instance: InstanceFields
@@ -10,12 +11,8 @@
   const url = `${PUBLIC_APP_PROTOCOL}://${subdomain}.${PUBLIC_APP_DOMAIN}`
 </script>
 
-<div class="py-4">
-  <h2>Overview</h2>
+<AccordionItem title="Overview" show={true}>
   <ProvisioningStatus {status} />
   Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
   <RunningStatus {instance} />
-  <div>
-    Admin URL: <a href={`${url}/_`} target="_blank">{`${url}/_`}</a>
-  </div>
-</div>
+</AccordionItem>

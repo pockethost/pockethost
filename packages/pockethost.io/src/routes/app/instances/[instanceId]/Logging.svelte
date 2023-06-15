@@ -6,6 +6,7 @@
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
+  import AccordionItem from './AccordionItem.svelte'
 
   export let instance: InstanceFields
 
@@ -33,30 +34,31 @@
   onDestroy(cm.shutdown)
 </script>
 
-<h2>Instance Logging</h2>
-<p>
-  Instance logs appear here in realtime. They include instance events and errors, and Deno worker
-  events and errors.
-</p>
-<div class="log-window">
-  {#each logsArray as log}
-    <div class="log">
-      <div class="time">{log.created}</div>
+<AccordionItem title="Instance Logging">
+  <p>
+    Instance logs appear here in realtime. They include instance events and errors, and Deno worker
+    events and errors.
+  </p>
+  <div class="log-window">
+    {#each logsArray as log}
+      <div class="log">
+        <div class="time">{log.created}</div>
 
-      <div class={`stream ${log.stream}`}>{log.stream}</div>
-      <div class={`message  ${log.stream}`}>
-        {(() => {
-          try {
-            const parsed = JSON.parse(log.message)
-            return `<pre><code>${parsed}</code></pre>`
-          } catch (e) {
-            return log.message
-          }
-        })()}
+        <div class={`stream ${log.stream}`}>{log.stream}</div>
+        <div class={`message  ${log.stream}`}>
+          {(() => {
+            try {
+              const parsed = JSON.parse(log.message)
+              return `<pre><code>${parsed}</code></pre>`
+            } catch (e) {
+              return log.message
+            }
+          })()}
+        </div>
       </div>
-    </div>
-  {/each}
-</div>
+    {/each}
+  </div></AccordionItem
+>
 
 <style lang="scss">
   .log-window {
