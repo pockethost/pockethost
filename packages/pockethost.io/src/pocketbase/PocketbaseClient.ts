@@ -14,12 +14,12 @@ import {
   type CreateInstanceResult,
   type InstanceFields,
   type InstanceId,
+  type InstanceLogFields,
   type SaveSecretsPayload,
   type SaveSecretsResult,
   type SaveVersionPayload,
   type SaveVersionResult,
-  type UserFields,
-  type WorkerLogFields
+  type UserFields
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, {
@@ -235,7 +235,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const watchInstanceLog = (
     instanceId: InstanceId,
-    update: (log: WorkerLogFields) => void,
+    update: (log: InstanceLogFields) => void,
     nInitial = 100
   ): (() => void) => {
     const auth = client.authStore.exportToCookie()
@@ -257,7 +257,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         onmessage: (event) => {
           // dbg(`Got stream event`, event)
           const {} = event
-          const log = JSON.parse(event.data) as WorkerLogFields
+          const log = JSON.parse(event.data) as InstanceLogFields
           // dbg(`Log is`, log)
           update(log)
         },
