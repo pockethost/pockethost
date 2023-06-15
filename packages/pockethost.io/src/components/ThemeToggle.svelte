@@ -1,38 +1,13 @@
 <script lang="ts">
   import { browser } from '$app/environment'
-  import { assertTruthy } from '@pockethost/common'
-  import { find } from '@s-libs/micro-dash'
-  import Cookies from 'js-cookie'
   import { onMount } from 'svelte'
-
-  // Set some default values to be referenced later
-  enum ThemeNames {
-    Light = 'light',
-    Dark = 'dark'
-  }
-  const ALLOWED_THEMES: ThemeNames[] = [ThemeNames.Light, ThemeNames.Dark]
-  const DEFAULT_THEME: ThemeNames = ThemeNames.Light
-  const STORAGE_NAME: string = 'theme'
-  const THEME_ATTRIBUTE: string = 'data-theme'
-  const THEME_ICONS: { [_ in ThemeNames]: string } = {
-    [ThemeNames.Light]: 'bi bi-moon-stars',
-    [ThemeNames.Dark]: 'bi bi-brightness-high'
-  }
-
-  const html = () => {
-    const htmlElement = document.querySelector('html')
-    assertTruthy(htmlElement, `Expected <html> element to exist`)
-    return htmlElement
-  }
-  const currentTheme = () => {
-    const htmlElement = html()
-    const _att = htmlElement.getAttribute(THEME_ATTRIBUTE)
-    const currentTheme = find(ALLOWED_THEMES, (v) => _att === v) || DEFAULT_THEME
-    return currentTheme
-  }
-  const currentIcon = () => {
-    return THEME_ICONS[currentTheme()]
-  }
+  import {
+    THEME_ICONS,
+    ThemeNames,
+    currentIcon,
+    getCurrentTheme,
+    setCurrentTheme
+  } from './helpers/theme'
 
   // This can change the CSS a bit depending on where the theme toggle is rendered
   export let navLink: boolean = false
@@ -42,25 +17,20 @@
 
   // Wait for the DOM to be available
   onMount(() => {
-    updateTheme(currentTheme())
+    updateTheme(getCurrentTheme())
   })
 
   // Alternate the theme values on toggle click
   const handleClick = () => {
-    const newTheme = currentTheme() === ThemeNames.Light ? ThemeNames.Dark : ThemeNames.Light
+    const newTheme = getCurrentTheme() === ThemeNames.Light ? ThemeNames.Dark : ThemeNames.Light
     updateTheme(newTheme)
   }
 
   const updateTheme = (themeName: ThemeNames) => {
-    const htmlElement = html()
-
     // Update the icon class name to toggle between light and dark mode
     iconClass = THEME_ICONS[themeName]
 
-    // Update the HTML element to have the right data-theme value
-    htmlElement.setAttribute(THEME_ATTRIBUTE, themeName)
-
-    Cookies.set(STORAGE_NAME, themeName)
+    setCurrentTheme(themeName)
   }
 </script>
 

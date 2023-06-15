@@ -164,7 +164,7 @@ h6 {
 }
 
 /* Dark Mode */
-[data-theme='dark']:root {
+[data-bs-theme='dark']:root {
   --bs-black: #fff;
   --bs-white: #000;
   --bs-gray: #6c757d;

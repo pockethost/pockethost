@@ -3,7 +3,6 @@
   import { dbg } from '$util/logger'
   import { Highlight } from 'svelte-highlight'
   import { typescript, type LanguageType } from 'svelte-highlight/languages'
-  import 'svelte-highlight/styles/github.css'
 
   export let code: string
   export let language: LanguageType<'typescript' | 'bash'> = typescript
