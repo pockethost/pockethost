@@ -1,4 +1,4 @@
-import { forEach } from '@s-libs/micro-dash'
+import { forEach, values } from '@s-libs/micro-dash'
 import { logger } from './Logger'
 
 export type UnixTimestampMs = number
@@ -38,7 +38,7 @@ export const createTimerManager = (config: TimeManagerConfig) => {
   const shutdown = () => {
     isShutDown = true
 
-    dbg(`Canceling  ${cleanups.length} timers`)
+    dbg(`Canceling  ${values(cleanups.length).length} timers`)
     forEach(cleanups, (c) => c())
     dbg(`done`, cleanups)
   }
