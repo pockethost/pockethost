@@ -21,7 +21,7 @@ export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
 
   try {
     await client.adminAuthViaEmail(DAEMON_PB_USERNAME, DAEMON_PB_PASSWORD)
-    dbg(`Logged in`)
+    dbg(`Logged in as admin`)
   } catch (e) {
     dbg(`Creating first admin account`)
 
