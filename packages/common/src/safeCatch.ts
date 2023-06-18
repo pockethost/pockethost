@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { ClientResponseError } from 'pocketbase'
 import { Logger } from './Logger'
 
@@ -11,11 +12,11 @@ export const safeCatch = <TIn extends any[], TOut>(
   return (...args: TIn) => {
     const _c = c++
     const uuid = `${name}:${_c}`
-    const pfx = `safeCatch:${uuid}`
+    const pfx = chalk.red(`safeCatch:${uuid}`)
     const { raw, error, warn, dbg } = logger.create(pfx)
     raw(`args`, args)
     const tid = setTimeout(() => {
-      error(`timeout ${timeoutMs}ms waiting for ${pfx}`)
+      warn(`timeout ${timeoutMs}ms waiting for ${pfx}`)
     }, timeoutMs)
 
     return cb(...args)
@@ -25,19 +26,25 @@ export const safeCatch = <TIn extends any[], TOut>(
         return res
       })
       .catch((e: any) => {
+        const payload = JSON.stringify(args)
         if (e instanceof ClientResponseError) {
           if (e.status === 400) {
-            warn(
-              `PocketBase API error: It looks like you don't have permission to make this request.`
+            dbg(
+              `PocketBase API error: It looks like you don't have permission to make this request. Raw error: ${e}. Payload: ${payload}`
             )
-            dbg(JSON.stringify(e, null, 2))
           } else if (e.status === 0) {
-            warn(`Client request aborted (duplicate)`)
+            dbg(
+              `Client request aborted (duplicate). Raw error: ${e}. Payload: ${payload}`
+            )
+          } else if (e.status === 404) {
+            dbg(`Record not found. Raw error: ${e}. Payload: ${payload}`)
           } else {
-            warn(`Unknown PocketBase API error`, JSON.stringify({ args, e }))
+            dbg(
+              `Unknown PocketBase API error. Raw error: ${e}. Payload: ${payload}`
+            )
           }
         } else {
-          warn(JSON.stringify({ args, e }, null, 2))
+          dbg(`Caught an unknown error. Raw error: ${e}. Payload: ${payload}`)
         }
         throw e
       })
