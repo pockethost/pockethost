@@ -3,22 +3,27 @@ import { chmodSync } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
 import { Extract } from 'unzipper'
+import { serialAsyncExecutionGuard } from './serialAsyncExecutionGuard'
 
-export const downloadAndExtract = async (
+const _unsafe_downloadAndExtract = async (
   url: string,
   binPath: string,
   logger: Logger
 ) => {
   const { dbg, error } = logger.create('downloadAndExtract')
 
-  await new Promise<void>(async (resolve, reject) => {
-    dbg(`Fetching ${url}`)
-    const res = await fetch(url)
-    if (!res.body) {
-      throw new Error(`Body expected for ${url}`)
-    }
+  dbg(`Fetching ${url}`)
+  const res = await fetch(url)
+  const { body } = res
+  if (!body) {
+    throw new Error(`Body expected for ${url}`)
+  }
+  await new Promise<void>((resolve, reject) => {
     dbg(`Extracting ${url}`)
-    const stream = res.body.pipe(Extract({ path: dirname(binPath) }))
+    const stream = body.pipe(Extract({ path: dirname(binPath) }))
+    stream.on('data', (e) => {
+      dbg(e)
+    })
     stream.on('close', () => {
       dbg(`Close ${url}`)
       resolve()
@@ -34,3 +39,8 @@ export const downloadAndExtract = async (
   })
   chmodSync(binPath, 0o775)
 }
+
+export const downloadAndExtract = serialAsyncExecutionGuard(
+  _unsafe_downloadAndExtract,
+  (url) => url
+)
