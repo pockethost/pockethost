@@ -77,12 +77,13 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
         resolve({ fs })
       } catch (e) {
         reject(new Error(`Invalid username or password`))
+        return
       }
     }
   )
 
   ftpServer.listen().then(() => {
-    info('Ftp server is starting...')
+    info('Ftp server started...')
   })
 
   const shutdown = () => {
