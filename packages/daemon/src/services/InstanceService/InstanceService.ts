@@ -6,26 +6,16 @@ import {
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
 } from '$constants'
-import { clientService, proxyService, rpcService } from '$services'
+import { clientService, proxyService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
   createCleanupManager,
-  CreateInstancePayload,
-  CreateInstancePayloadSchema,
-  CreateInstanceResult,
   createTimerManager,
   InstanceId,
   InstanceStatus,
   mkSingleton,
-  RpcCommands,
   safeCatch,
-  SaveSecretsPayload,
-  SaveSecretsPayloadSchema,
-  SaveSecretsResult,
-  SaveVersionPayload,
-  SaveVersionPayloadSchema,
-  SaveVersionResult,
   SingletonBaseConfig,
 } from '@pockethost/common'
 import { forEachRight, map } from '@s-libs/micro-dash'
@@ -33,7 +23,6 @@ import Bottleneck from 'bottleneck'
 import { existsSync } from 'fs'
 import getPort from 'get-port'
 import { join } from 'path'
-import { valid, validRange } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbase, PocketbaseProcess } from '../PocketBaseService'
@@ -57,58 +46,7 @@ export const instanceService = mkSingleton(
     const { dbg, raw, error, warn } = _instanceLogger
     const { client } = await clientService()
 
-    const { registerCommand } = await rpcService()
-
     const pbService = await pocketbase()
-
-    registerCommand<CreateInstancePayload, CreateInstanceResult>(
-      RpcCommands.CreateInstance,
-      CreateInstancePayloadSchema,
-      async (rpc) => {
-        const { payload } = rpc
-        const { subdomain } = payload
-        const instance = await client.createInstance({
-          subdomain,
-          uid: rpc.userId,
-          version: (await pocketbase()).getLatestVersion(),
-          status: InstanceStatus.Idle,
-          secondsThisMonth: 0,
-          isBackupAllowed: false,
-          secrets: {},
-        })
-        return { instance }
-      }
-    )
-
-    const SEMVER_RE =
-      /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
-    registerCommand<SaveVersionPayload, SaveVersionResult>(
-      RpcCommands.SaveVersion,
-      SaveVersionPayloadSchema,
-      async (rpc) => {
-        const { payload } = rpc
-        const { instanceId, version } = payload
-        if (valid(version) === null && validRange(version) === null) {
-          return {
-            status: `error`,
-            message: `Version must be a valid semver or semver range`,
-          }
-        }
-        await client.updateInstance(instanceId, { version })
-        return { status: 'ok' }
-      }
-    )
-
-    registerCommand<SaveSecretsPayload, SaveSecretsResult>(
-      RpcCommands.SaveSecrets,
-      SaveSecretsPayloadSchema,
-      async (job) => {
-        const { payload } = job
-        const { instanceId, secrets } = payload
-        await client.updateInstance(instanceId, { secrets })
-        return { status: 'ok' }
-      }
-    )
 
     const instances: { [_: string]: InstanceApi } = {}
 

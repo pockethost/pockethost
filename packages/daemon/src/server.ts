@@ -102,6 +102,7 @@ global.EventSource = require('eventsource')
     pbService.shutdown()
   }
 
+  await (await rpcService()).initRpcs()
   process.on('SIGTERM', shutdown)
   process.on('SIGINT', shutdown)
   process.on('SIGHUP', shutdown)

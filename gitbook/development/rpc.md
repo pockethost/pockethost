@@ -10,9 +10,9 @@ Therefore, PocketHost uses an RPC pattern instead.
 
 ## Creating a new RPC Call
 
-1. Create a new RPC call in `./packages/common/schema/Rpc`
-2. Add frontend support in `./packages/pockethost.io/src/pocketbase/PocketbaseClient.ts` using the `mkRpc` command
-3. Add backend support in (for example) `./packages/daemon/src/services/InstanceService/InstanceService.ts` using `registerCommand`
+1. From the command line, run `npx hygen rpc new <FunctionName>`. This will generate all necessary files for both frontend and backend support of your RPC call.
+2. Edit `./packages/common/src/schema/Rpc/<FunctionName>.ts` to suit the schema you want.
+3. Edit `./packages/daemon/services/RpcService/commands.ts` to respond to the RPC command
 
 ## Getting the result from an RPC call
 

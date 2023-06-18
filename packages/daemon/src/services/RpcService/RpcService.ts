@@ -14,6 +14,7 @@ import Bottleneck from 'bottleneck'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
+import { registerRpcCommands } from './commands'
 
 export type RpcServiceApi = AsyncReturnType<typeof rpcService>
 
@@ -33,7 +34,8 @@ export type RpcServiceConfig = SingletonBaseConfig & {}
 
 export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
   const { logger } = config
-  const { dbg, error } = logger.create('RpcService')
+  const rpcServiceLogger = logger.create('RpcService')
+  const { dbg, error } = rpcServiceLogger
   const { client } = await clientService()
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
@@ -93,10 +95,17 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
     })
   }
 
+  dbg(`Starting RPC service...`)
+
+  const initRpcs = async () => {
+    dbg(`Initializing RPCs...`)
+    await registerRpcCommands(rpcServiceLogger)
+    await client.resetRpcs()
+    const rpcs = await client.incompleteRpcs()
+    rpcs.forEach(run)
+  }
+
   const unsub = await client.onNewRpc(run)
-  await client.resetRpcs()
-  const rpcs = await client.incompleteRpcs()
-  rpcs.forEach(run)
 
   const shutdown = () => {
     unsub()
@@ -123,6 +132,7 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
 
   return {
     registerCommand,
+    initRpcs,
     shutdown,
   }
 })
