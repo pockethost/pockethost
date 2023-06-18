@@ -159,8 +159,8 @@ export const instanceService = mkSingleton(
               )
             }
           })()
-          shutdownManager.add(() => {
-            const res = childProcess.kill()
+          shutdownManager.add(async () => {
+            const res = await childProcess.kill()
             if (!res) {
               error(`Expected child process to exit gracefully but got ${res}`)
             }
@@ -175,13 +175,6 @@ export const instanceService = mkSingleton(
           const { pid } = childProcess
           assertTruthy(pid, `Expected PID here but got ${pid}`)
           dbg(`PocketBase instance PID: ${pid}`)
-
-          if (!instance.isBackupAllowed) {
-            dbg(`Backups are now allowed`)
-            await clientLimiter.schedule(() =>
-              client.updateInstance(instance.id, { isBackupAllowed: true })
-            )
-          }
 
           const invocation = await clientLimiter.schedule(() =>
             client.createInvocation(instance, pid)

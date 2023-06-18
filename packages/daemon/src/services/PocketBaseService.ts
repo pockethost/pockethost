@@ -31,7 +31,11 @@ export type SpawnConfig = {
   version?: string
   port?: number
   isMothership?: boolean
-  onUnexpectedStop?: (code: number | null) => void
+  onUnexpectedStop?: (
+    code: number | null,
+    stdout: string[],
+    stderr: string[]
+  ) => void
 }
 export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
@@ -45,7 +49,7 @@ export type PocketbaseServiceConfig = SingletonBaseConfig & {
 export type PocketbaseProcess = {
   url: string
   pid: number | undefined
-  kill: () => boolean
+  kill: () => Promise<boolean>
   exited: Promise<number | null>
 }
 
@@ -58,6 +62,15 @@ export type Release = {
   }[]
 }
 export type Releases = Release[]
+
+function pidIsRunning(pid: number) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    return false
+  }
+}
 
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig
@@ -184,14 +197,22 @@ export const createPocketbaseService = async (
 
       dbg(`Spawning ${slug}`, { bin, args, cli: [bin, ...args].join(' ') })
       const ls = spawn(bin, args)
-      cm.add(() => ls.kill())
-
-      ls.stdout.on('data', (data) => {
-        dbg(`${slug} stdout: ${data}`)
+      cm.add(() => {
+        ls.kill()
       })
 
-      ls.stderr.on('data', (data) => {
-        error(`${slug} stderr: ${data}`)
+      const stdout: string[] = []
+      ls.stdout.on('data', (data: Buffer) => {
+        dbg(`${slug} stdout: ${data}`)
+        stdout.push(data.toString())
+        if (stdout.length > 100) stdout.pop()
+      })
+
+      const stderr: string[] = []
+      ls.stderr.on('data', (data: Buffer) => {
+        warn(`${slug} stderr: ${data}`)
+        stderr.push(data.toString())
+        if (stderr.length > 100) stderr.pop()
       })
 
       ls.on('close', (code) => {
@@ -202,7 +223,9 @@ export const createPocketbaseService = async (
         ls.on('exit', (code) => {
           dbg(`${slug} exited with code ${code}`)
           isRunning = false
-          if (code) onUnexpectedStop?.(code)
+          if (code || stderr.length > 0) {
+            onUnexpectedStop?.(code, stdout, stderr)
+          }
           resolve(code)
         })
       })
@@ -219,7 +242,36 @@ export const createPocketbaseService = async (
         url,
         exited,
         pid: ls.pid,
-        kill: () => ls.kill(),
+        kill: async () => {
+          const { pid } = ls
+          if (!pid) {
+            throw new Error(
+              `Attempt to kill a PocketBase process that was never running.`
+            )
+          }
+          const p = new Promise<boolean>((resolve, reject) => {
+            let cid: NodeJS.Timeout
+            const tid = setTimeout(() => {
+              clearTimeout(cid)
+              reject(new Error(`Timeout waiting for pid:${pid} to die`))
+            }, 1000)
+            const _check = () => {
+              dbg(`Checking to see if pid:${pid} is running`)
+              if (pidIsRunning(pid)) {
+                dbg(`pid:${pid} is still running`)
+                ls.kill()
+                cid = setTimeout(_check, 50)
+              } else {
+                dbg(`pid:${pid} is not running`)
+                clearTimeout(tid)
+
+                resolve(true)
+              }
+            }
+            _check()
+          })
+          return p
+        },
       }
       return api
     }
