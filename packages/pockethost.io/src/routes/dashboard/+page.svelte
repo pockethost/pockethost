@@ -6,61 +6,42 @@
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { error } from '$util/logger'
-  import {
-    createCleanupManager,
-    type InstanceFields,
-    type InstanceRecordsById
-  } from '@pockethost/common'
-  import { forEach, values } from '@s-libs/micro-dash'
+  import type { InstanceFields, InstanceId, InstanceRecordsById } from '@pockethost/common'
+  import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
+  import { writable } from 'svelte/store'
   import { fade } from 'svelte/transition'
 
   let apps: InstanceRecordsById = {}
 
-  // This will update when the `apps` value changes
-  $: isFirstApplication = values(apps).length === 0
-
-  let appsArray: InstanceFields[]
-  $: {
-    appsArray = values(apps)
-    // Tooltips must be manually initialized
-    // https://getbootstrap.com/docs/5.2/components/tooltips/#enable-tooltips
-    if (browser) {
-      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-      const tooltipList = [...tooltipTriggerList].map(
-        //@ts-ignore
-        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
-      )
-    }
-  }
-  const cm = createCleanupManager()
-  let _touch = 0 // This is a fake var because without it the watcher callback will not update UI when the apps object changes
-  const _update = (_apps: InstanceRecordsById) => {
-    apps = _apps
-    _touch++
-  }
+  const instancesStore = writable<{ [_: InstanceId]: InstanceFields }>({})
+  $: isFirstApplication = values($instancesStore).length === 0
 
   onMount(() => {
-    const { getAllInstancesById, watchInstanceById } = client()
-    getAllInstancesById()
-      .then((instances) => {
-        _update(instances)
+    if (browser) {
+      ;(async () => {
+        const { getAllInstancesById } = client()
+        const instances = await getAllInstancesById()
+        instancesStore.set(instances)
 
-        forEach(apps, (app) => {
-          const instanceId = app.id
-
-          watchInstanceById(instanceId, (r) => {
-            const { action, record } = r
-            _update({ ...apps, [record.id]: record })
-          }).then(cm.add)
-        })
-      })
-      .catch((e) => {
-        error(`Failed to fetch instances`)
-      })
+        console.log({ instances })
+        client()
+          .client.collection('instances')
+          .subscribe<InstanceFields>('*', (data) => {
+            instancesStore.update((instances) => {
+              instances[data.record.id] = data.record
+              return instances
+            })
+          })
+      })().catch(error)
+    }
   })
 
-  onDestroy(() => cm.shutdown())
+  onDestroy(() => {
+    if (browser) {
+      client().client.collection('instances').unsubscribe('*').catch(error)
+    }
+  })
 </script>
 
 <svelte:head>
@@ -69,13 +50,13 @@
 
 <AuthStateGuard>
   <div class="container" in:fade={{ duration: 30 }}>
-    {#if appsArray.length}
+    {#if !isFirstApplication}
       <div class="py-4">
         <h1 class="text-center">Your Apps</h1>
       </div>
 
       <div class="row justify-content-center">
-        {#each appsArray as app}
+        {#each values($instancesStore) as app}
           <div class="col-xl-4 col-md-6 col-12 mb-5">
             <div class="card">
               <div class="server-status d-flex align-items-center justify-content-between">

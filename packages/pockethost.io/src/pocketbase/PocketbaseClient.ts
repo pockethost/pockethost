@@ -33,7 +33,6 @@ import PocketBase, {
   Admin,
   BaseAuthStore,
   ClientResponseError,
-  Record,
   type RecordSubscription,
   type UnsubscribeFunc
 } from 'pocketbase'
@@ -164,9 +163,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const getAllInstancesById = safeCatch(`getAllInstancesById`, _logger, async () =>
     (await client.collection('instances').getFullList()).reduce((c, v) => {
-      c[v.id] = v
+      c[v.id] = v as unknown as InstanceFields
       return c
-    }, {} as Record)
+    }, {} as { [_: InstanceId]: InstanceFields })
   )
 
   const parseError = (e: Error): string[] => {
@@ -301,6 +300,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   return {
+    client,
     saveSecrets,
     watchInstanceLog,
     getAuthStoreProps,
