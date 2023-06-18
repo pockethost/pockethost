@@ -12,19 +12,20 @@ import { DaemonContext } from './DaemonContext'
 import { createSqliteLogger, SqliteLogger } from './SqliteLogger'
 
 const instances: {
-  [instanceId: InstanceId]: Promise<SqliteLogger>
+  [instanceId: InstanceId]: SqliteLogger
 } = {}
 
-export const createInstanceLogger = (
+export const createInstanceLogger = async (
   instanceId: InstanceId,
   context: DaemonContext
 ) => {
   const { parentLogger } = context
+  const _instanceLogger = parentLogger.create(`InstanceLogger`)
 
   if (!instances[instanceId]) {
-    instances[instanceId] = new Promise<SqliteLogger>(async (resolve) => {
-      const _instanceLogger = parentLogger.create(`InstanceLogger`)
-      const { dbg } = _instanceLogger
+    const loggerApi = await (async () => {
+      const _thisLogger = _instanceLogger.create(instanceId)
+      const { dbg } = _thisLogger
 
       const logDbPath = join(
         DAEMON_PB_DATA_DIR,
@@ -47,8 +48,9 @@ export const createInstanceLogger = (
         parentLogger: _instanceLogger,
       })
       await api.write(`Ran migrations`, StreamNames.System)
-      resolve(api)
-    })
+      return api
+    })()
+    instances[instanceId] = loggerApi
   }
 
   return instances[instanceId]!
