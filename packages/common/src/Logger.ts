@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { mkSingleton } from './mkSingleton'
 
 export type Config = {
@@ -47,15 +48,15 @@ export const createLogger = (config: Partial<Config>) => {
   }
 
   const dbg = (...args: any[]) => {
-    _log(_config.debug, _pfx('DBG'), ...args)
+    _log(_config.debug, _pfx(chalk.blueBright('DBG')), ...args)
   }
 
   const warn = (...args: any[]) => {
-    _log(true, _pfx('WARN'), ...args)
+    _log(true, _pfx(chalk.yellow(chalk.cyanBright('WARN'))), ...args)
   }
 
   const info = (...args: any[]) => {
-    _log(true, _pfx(`INFO`), ...args)
+    _log(true, _pfx(chalk.gray(`INFO`)), ...args)
   }
 
   const trace = (...args: any[]) => {
@@ -63,7 +64,7 @@ export const createLogger = (config: Partial<Config>) => {
   }
 
   const error = (...args: any[]) => {
-    _log(true, _pfx(`ERROR`), ...args)
+    _log(true, _pfx(chalk.bgRed(`ERROR`)), ...args)
     if (!errorTrace) return
     console.error(`========== ERROR TRACEBACK BEGIN ==============`)
     ;[..._buf.slice(_curIdx, MAX_BUF), ..._buf.slice(0, _curIdx)].forEach(
@@ -72,6 +73,11 @@ export const createLogger = (config: Partial<Config>) => {
       }
     )
     console.error(`========== ERROR TRACEBACK END ==============`)
+  }
+
+  const abort = (...args: any[]): never => {
+    _log(true, _pfx(chalk.bgRed(`ABORT`)), ...args)
+    throw new Error(`Fatal error: ${JSON.stringify(args)}`)
   }
 
   const create = (s: string, configOverride?: Partial<Config>) =>
@@ -97,6 +103,7 @@ export const createLogger = (config: Partial<Config>) => {
     trace,
     debug: dbg,
     breadcrumb,
+    abort,
     shutdown() {
       dbg(`Logger shutting down`)
     },

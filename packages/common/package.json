@@ -6,6 +6,7 @@
   "dependencies": {
     "@s-libs/micro-dash": "^15.1.0",
     "ajv": "^8.11.2",
+    "chalk": "^5.2.0",
     "nanoid": "^4.0.0",
     "pocketbase": "^0.8.0",
     "type-fest": "^3.3.0"
