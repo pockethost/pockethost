@@ -64,7 +64,7 @@ export const createPocketbaseService = async (
 ) => {
   const { logger } = config
   const _serviceLogger = logger.create('PocketbaseService')
-  const { dbg, error } = _serviceLogger
+  const { dbg, error, warn, abort } = _serviceLogger
 
   const { cachePath, checkIntervalMs } = config
 
@@ -75,7 +75,7 @@ export const createPocketbaseService = async (
   const cpuArchitecture = process.arch === 'x64' ? 'amd64' : process.arch
 
   dbg({ osName, cpuArchitecture })
-  const versions: { [_: string]: Promise<string> } = {}
+  const binPaths: { [_: string]: string } = {}
   let maxVersion = ''
 
   const check = async () => {
@@ -96,45 +96,39 @@ export const createPocketbaseService = async (
       })?.browser_download_url
       if (!url) return
 
-      const p = new Promise<string>(async (resolve) => {
-        const binPath = join(path, `pocketbase`)
-        if (existsSync(binPath)) {
-          chmodSync(binPath, 0o775)
-          resolve(binPath)
-          versions[sanitizedTagName] = Promise.resolve('')
-          return
-        }
-        await downloadAndExtract(url, binPath, _serviceLogger)
+      const binPath = join(path, `pocketbase`)
+      dbg(`Checking ${binPath}`)
 
-        resolve(binPath)
-      })
-      versions[sanitizedTagName] = p
+      if (existsSync(binPath)) {
+        chmodSync(binPath, 0o775)
+      } else {
+        await downloadAndExtract(url, binPath, _serviceLogger)
+      }
+      binPaths[sanitizedTagName] = binPath
     })
-    await Promise.all(promises).catch((e) => {
-      error(e)
-    })
-    if (keys(versions).length === 0) {
+    await Promise.all(promises)
+    if (keys(binPaths).length === 0) {
       throw new Error(
         `No version found, probably mismatched architecture and OS (${osName}/${cpuArchitecture})`
       )
     }
-    maxVersion = `~${rsort(keys(versions))[0]}`
+    maxVersion = `~${rsort(keys(binPaths))[0]}`
     dbg({ maxVersion })
     return true
   }
-  await check().catch(error)
+  await check().catch(abort)
 
   tm.repeat(check, checkIntervalMs)
 
   const getLatestVersion = () => maxVersion
 
   const getVersion = async (semVer = maxVersion) => {
-    const version = maxSatisfying(keys(versions), semVer)
+    const version = maxSatisfying(keys(binPaths), semVer)
     if (!version)
       throw new Error(
-        `No version satisfies ${semVer} (${keys(versions).join(', ')})`
+        `No version satisfies ${semVer} (${keys(binPaths).join(', ')})`
       )
-    const binPath = await versions[version]
+    const binPath = binPaths[version]
     if (!binPath) throw new Error(`binPath for ${version} not found`)
     return {
       version,
