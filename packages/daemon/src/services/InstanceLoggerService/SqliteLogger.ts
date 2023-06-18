@@ -19,7 +19,7 @@ export const createSqliteLogger = async (
 ) => {
   const { parentLogger } = context
   const _dbLogger = parentLogger.create(`${logDbPath}`)
-  const { dbg } = _dbLogger
+  const { dbg, trace } = _dbLogger
 
   const { getDatabase } = sqliteService()
   const db = await getDatabase(logDbPath)
@@ -44,7 +44,7 @@ export const createSqliteLogger = async (
         updated: pocketNow(),
       }
       const sql = conn('logs').insert(_in).toString()
-      dbg(`Writing log ${JSON.stringify(_in)} ${sql}`)
+      trace(`Writing log ${JSON.stringify(_in)} ${sql}`)
       await db.exec(sql)
     }
   )
