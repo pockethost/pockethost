@@ -7,13 +7,18 @@ export enum RpcCommands {
   CreateInstance = 'create-instance',
   SaveSecrets = 'save-secrets',
   SaveVersion = 'save-version',
+  SetInstanceMaintenance = 'set-instance-maintenance',
   // gen:enum
+  RenameInstance = 'rename-instance',
 }
 
 export const RPC_COMMANDS = [
   RpcCommands.CreateInstance,
   RpcCommands.SaveSecrets,
   RpcCommands.SaveVersion,
+  RpcCommands.SetInstanceMaintenance,
+  // gen:commandlist
+  RpcCommands.RenameInstance,
 ]
 
 export enum RpcStatus {
@@ -47,6 +52,8 @@ export type RpcRecord_Create<TRecord extends RpcFields<any, any>> = Pick<
 export const ajv = new Ajv()
 
 export * from './CreateInstance'
+export * from './RenameInstance'
 export * from './SaveSecrets'
 export * from './SaveVersion'
+export * from './SetInstanceMaintenance'
 // gen:export

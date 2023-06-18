@@ -6,19 +6,26 @@ import {
   createRpcHelper,
   createWatchHelper,
   logger,
+  RenameInstancePayloadSchema,
   RpcCommands,
   safeCatch,
   SaveSecretsPayloadSchema,
   SaveVersionPayloadSchema,
+  SetInstanceMaintenancePayloadSchema,
   type CreateInstancePayload,
   type CreateInstanceResult,
   type InstanceFields,
   type InstanceId,
   type InstanceLogFields,
+  type RenameInstancePayload,
+  type RenameInstanceResult,
   type SaveSecretsPayload,
   type SaveSecretsResult,
   type SaveVersionPayload,
   type SaveVersionResult,
+  type SetInstanceMaintenancePayload,
+  type SetInstanceMaintenanceResult,
+  // gen:import
   type UserFields
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
@@ -130,6 +137,18 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     RpcCommands.SaveVersion,
     SaveVersionPayloadSchema
   )
+
+  const renameInstance = mkRpc<RenameInstancePayload, RenameInstanceResult>(
+    RpcCommands.RenameInstance,
+    RenameInstancePayloadSchema
+  )
+
+  const setInstanceMaintenance = mkRpc<SetInstanceMaintenancePayload, SetInstanceMaintenanceResult>(
+    RpcCommands.SetInstanceMaintenance,
+    SetInstanceMaintenancePayloadSchema
+  )
+
+  // gen:mkRpc
 
   const getInstanceById = safeCatch(
     `getInstanceById`,
@@ -300,6 +319,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     watchInstanceById,
     getAllInstancesById,
     resendVerificationEmail,
+    renameInstance,
+    setInstanceMaintenance,
+    // gen:export
     saveVersion
   }
 }

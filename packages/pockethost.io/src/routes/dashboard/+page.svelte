@@ -81,14 +81,13 @@
               <div class="server-status d-flex align-items-center justify-content-between">
                 <div class="server-status-minutes">
                   Usage: {Math.ceil(app.secondsThisMonth / 60)} mins
+                  {#if app.maintenance}
+                    <span class="text-warning">Maintenance Mode</span>
+                  {/if}
                 </div>
 
-                <div class="d-flex align-items-center gap-3">
-                  <i
-                    class="bi bi-info-circle"
-                    data-bs-toggle="tooltip"
-                    data-bs-title={`Running ${app.version}`}
-                  />
+                <div class="d-flex align-items-center gap-3 server-status-minutes">
+                  {app.version}
                   <ProvisioningStatus status={app.status} />
                 </div>
               </div>

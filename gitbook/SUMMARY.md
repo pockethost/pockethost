@@ -11,7 +11,10 @@
 ## Daily Usage
 
 - [Creating an Instance](usage/create.md)
+- [Accessing an Instance](usage/accessing-instance.md)
 - [Instance Details](usage/instances/index.md)
+- [Renaming an Instance](usage/rename-instance.md)
+- [Maintenance Mode](usage/maintenance.md)
 - [FTP Access](usage/ftp.md)
 - [Backup & Restore](usage/backup-and-restore.md)
 - [Cloud Functions](usage/cloud.md)

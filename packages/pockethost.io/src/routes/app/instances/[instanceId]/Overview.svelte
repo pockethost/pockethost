@@ -3,7 +3,6 @@
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import type { InstanceFields } from '@pockethost/common'
   import AccordionItem from './AccordionItem.svelte'
-  import RunningStatus from './RunningStatus.svelte'
 
   export let instance: InstanceFields
 
@@ -19,6 +18,6 @@
     Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
   </div>
   <div>
-    <RunningStatus {instance} />
+    Version: {version} (change in Danger Zone)
   </div>
 </AccordionItem>

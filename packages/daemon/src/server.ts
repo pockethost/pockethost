@@ -86,7 +86,11 @@ global.EventSource = require('eventsource')
   await instanceLoggerService({ logger })
   await sqliteService({ logger })
   await realtimeLog({ logger })
-  await instanceService({ logger })
+  await instanceService({
+    logger,
+    instanceApiCheckIntervalMs: 50,
+    instanceApiTimeoutMs: 1000,
+  })
   await centralDbService({ logger })
 
   info(`Hooking into process exit event`)

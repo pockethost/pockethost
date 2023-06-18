@@ -23,8 +23,8 @@ export type InstanceFields = BaseFields & {
   status: InstanceStatus
   version: VersionId
   secondsThisMonth: Seconds
-  isBackupAllowed: boolean
   secrets: InstanceSecretCollection | null
+  maintenance: boolean
 }
 
 export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
