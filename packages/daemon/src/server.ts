@@ -1,4 +1,5 @@
 import {
+  DAEMON_PB_PORT_BASE,
   DAEMON_PB_SEMVER,
   DEBUG,
   PH_BIN_CACHE,
@@ -69,6 +70,7 @@ global.EventSource = require('eventsource')
     isMothership: true,
     version: DAEMON_PB_SEMVER,
     slug: PUBLIC_APP_DB,
+    port: DAEMON_PB_PORT_BASE,
   })
 
   /**
