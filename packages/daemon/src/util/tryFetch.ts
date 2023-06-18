@@ -1,5 +1,6 @@
 import { Logger, safeCatch } from '@pockethost/common'
 
+const TRYFETCH_RETRY_MS = 50
 export const tryFetch = (logger: Logger) =>
   safeCatch(
     `tryFetch`,
@@ -10,9 +11,14 @@ export const tryFetch = (logger: Logger) =>
         const tryFetch = async () => {
           if (preflight) {
             dbg(`Checking preflight`)
-            const shouldFetch = await preflight()
-            if (!shouldFetch) {
-              reject(new Error(`tryFetch failed preflight, aborting`))
+            try {
+              const shouldFetch = await preflight()
+              if (!shouldFetch) {
+                reject(new Error(`failed preflight, aborting`))
+                return
+              }
+            } catch (e) {
+              reject(new Error(`preflight threw error, aborting`))
               return
             }
           }
@@ -22,8 +28,10 @@ export const tryFetch = (logger: Logger) =>
             dbg(`Fetch ${url} successful`)
             resolve()
           } catch (e) {
-            dbg(`Could not fetch ${url}, trying again in 1s`)
-            setTimeout(tryFetch, 1000)
+            dbg(
+              `Could not fetch ${url}, trying again in ${TRYFETCH_RETRY_MS}ms. Raw error ${e}`
+            )
+            setTimeout(tryFetch, TRYFETCH_RETRY_MS)
           }
         }
         tryFetch()
