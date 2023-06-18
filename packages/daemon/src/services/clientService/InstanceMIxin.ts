@@ -43,12 +43,16 @@ export const createInstanceMixin = (context: MixinContext) => {
     (subdomain: string): Promise<[InstanceFields, UserFields] | []> =>
       client
         .collection(INSTANCE_COLLECTION)
-        .getFirstListItem<InstanceFields>(`subdomain = '${subdomain}'`)
+        .getFirstListItem<InstanceFields>(`subdomain = '${subdomain}'`, {
+          $autoCancel: false,
+        })
         .then((instance) => {
           if (!instance) return []
           return client
             .collection('users')
-            .getOne<UserFields>(instance.uid)
+            .getOne<UserFields>(instance.uid, {
+              $autoCancel: false,
+            })
             .then((user) => {
               return [instance, user]
             })
@@ -63,12 +67,16 @@ export const createInstanceMixin = (context: MixinContext) => {
     ): Promise<[InstanceFields, UserFields] | []> => {
       return client
         .collection(INSTANCE_COLLECTION)
-        .getOne<InstanceFields>(instanceId)
+        .getOne<InstanceFields>(instanceId, {
+          $autoCancel: false,
+        })
         .then((instance) => {
           if (!instance) return []
           return client
             .collection('users')
-            .getOne<UserFields>(instance.uid)
+            .getOne<UserFields>(instance.uid, {
+              $autoCancel: false,
+            })
             .then((user) => {
               return [instance, user]
             })
