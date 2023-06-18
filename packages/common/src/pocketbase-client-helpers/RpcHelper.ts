@@ -44,7 +44,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
         payload: TPayload,
         cb?: (data: RecordSubscription<ConcreteRpcRecord>) => void
       ) => {
-        const { dbg } = logger().create(cmd)
+        const { dbg, error } = logger().create(cmd)
 
         const _user = client.authStore.model
         if (!_user) {
@@ -62,40 +62,32 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
         }
         dbg({ rpcIn })
         let unsub: UnsubscribeFunc | undefined
-        return new Promise<ConcreteRpcRecord['result']>(
-          async (resolve, reject) => {
-            try {
-              dbg(`Watching ${rpcIn.id}`)
-              unsub = await watchById<ConcreteRpcRecord>(
-                RPC_COLLECTION,
-                rpcIn.id,
-                (data) => {
-                  dbg(`Got an RPC change`, data)
-                  cb?.(data)
-                  if (data.record.status === RpcStatus.FinishedSuccess) {
-                    resolve(data.record.result)
-                    return
-                  }
-                  if (data.record.status === RpcStatus.FinishedError) {
-                    reject(new ClientResponseError(data.record.result))
-                    return
-                  }
-                },
-                { initialFetch: false, pollIntervalMs: 100 }
-              )
-              dbg(`Creating ${rpcIn.id}`)
-              const newRpc = await client
-                .collection(RPC_COLLECTION)
-                .create(rpcIn)
-              dbg(`Created ${newRpc.id}`)
-            } catch (e) {
-              reject(e)
-            }
-          }
-        ).finally(async () => {
-          dbg(`Unwatching ${rpcIn.id}`)
-          await unsub?.()
-        })
+        return (async () => {
+          dbg(`Watching ${rpcIn.id}`)
+          unsub = await watchById<ConcreteRpcRecord>(
+            RPC_COLLECTION,
+            rpcIn.id,
+            (data) => {
+              dbg(`Got an RPC change`, data)
+              cb?.(data)
+              if (data.record.status === RpcStatus.FinishedSuccess) {
+                return data.record.result
+              }
+              if (data.record.status === RpcStatus.FinishedError) {
+                throw new ClientResponseError(data.record.result)
+              }
+            },
+            { initialFetch: false, pollIntervalMs: 100 }
+          )
+          dbg(`Creating ${rpcIn.id}`)
+          const newRpc = await client.collection(RPC_COLLECTION).create(rpcIn)
+          dbg(`Created ${newRpc.id}`)
+        })()
+          .catch(error)
+          .finally(async () => {
+            dbg(`Unwatching ${rpcIn.id}`)
+            await unsub?.()
+          })
       }
     )
   }
