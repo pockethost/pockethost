@@ -12,7 +12,7 @@ import { isObject } from '@s-libs/micro-dash'
 import Ajv, { JSONSchemaType, ValidateFunction } from 'ajv'
 import Bottleneck from 'bottleneck'
 import { default as knexFactory } from 'knex'
-import pocketbaseEs from 'pocketbase'
+import pocketbaseEs, { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
 import { registerRpcCommands } from './commands'
 
@@ -88,7 +88,7 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
           throw new Error(`Expected Error here but got ${typeof e}:${e}`)
         }
         dbg(`RPC failed with`, e)
-        await client.rejectRpc(rpc, e).catch((e) => {
+        await client.rejectRpc(rpc, new ClientResponseError(e)).catch((e) => {
           error(`rpc ${rpc.id} failed to reject with ${e}`)
         })
       }
