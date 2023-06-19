@@ -6,12 +6,7 @@ export type RenameInstancePayload = {
   subdomain: string
 }
 
-export type RenameInstanceResult = {
-  status: 'ok' | 'error'
-  message?: string
-}
-
-export const RENAME_INSTANCE_REGEX = /^[A-Z][A-Z0-9_]*$/
+export type RenameInstanceResult = {}
 
 export const RenameInstancePayloadSchema: JSONSchemaType<RenameInstancePayload> =
   {

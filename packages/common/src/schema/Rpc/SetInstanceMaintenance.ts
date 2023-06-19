@@ -6,10 +6,7 @@ export type SetInstanceMaintenancePayload = {
   maintenance: boolean
 }
 
-export type SetInstanceMaintenanceResult = {
-  status: 'ok' | 'error'
-  message?: string
-}
+export type SetInstanceMaintenanceResult = {}
 
 export const SetInstanceMaintenancePayloadSchema: JSONSchemaType<SetInstanceMaintenancePayload> =
   {
