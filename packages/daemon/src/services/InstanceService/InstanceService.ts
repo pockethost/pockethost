@@ -145,7 +145,7 @@ export const instanceService = mkSingleton(
           }
           return startRequest()
         },
-        shutdown: () => {
+        shutdown: async () => {
           if (status !== InstanceApiStatus.Healthy) {
             throw new Error(
               `Attempt to shut down an instance request when instance is not in a healthy state.`
