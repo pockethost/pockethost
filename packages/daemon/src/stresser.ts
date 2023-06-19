@@ -4,13 +4,14 @@ import { InstanceStatus, logger as loggerService } from '@pockethost/common'
 import { random, range, shuffle } from '@s-libs/micro-dash'
 import { customAlphabet } from 'nanoid'
 import fetch from 'node-fetch'
-import { singletonPromiseGuard } from './util/singletonPromiseGuard'
+import { serialAsyncExecutionGuard } from './util/serialAsyncExecutionGuard'
 
 const nanoid = customAlphabet(`abcdefghijklmnop`)
 
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
+//@ts-ignore
 global.EventSource = require('eventsource')
 ;(async () => {
   const logger = loggerService().create(`stresser.ts`)
@@ -34,7 +35,7 @@ global.EventSource = require('eventsource')
       maintenance: false,
     })
   }
-  const createInstance = singletonPromiseGuard(_unsafe_createInstance)
+  const createInstance = serialAsyncExecutionGuard(_unsafe_createInstance)
 
   /**
    * Create instances
