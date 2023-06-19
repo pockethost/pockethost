@@ -3,9 +3,9 @@
   import { client } from '$src/pocketbase'
   import { instance } from '../store'
 
-  const { renameInstance, setInstanceMaintenance } = client()
+  const { setInstanceMaintenance } = client()
 
-  $: ({ subdomain, id, maintenance } = $instance)
+  $: ({ id, maintenance } = $instance)
 
   const onMaintenance = (maintenance: boolean) =>
     setInstanceMaintenance({ instanceId: id, maintenance }).then(() => 'saved')
