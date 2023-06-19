@@ -4,6 +4,7 @@ import {
   RPC_COLLECTION,
   safeCatch,
 } from '@pockethost/common'
+import { ClientResponseError } from 'pocketbase'
 import { JsonObject } from 'type-fest'
 import { MixinContext } from './PbClient'
 
@@ -56,10 +57,10 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
   const rejectRpc = safeCatch(
     `rejectRpc`,
     logger,
-    async (rpc: RpcFields<any, any>, err: Error) => {
+    async (rpc: RpcFields<any, any>, err: ClientResponseError) => {
       const fields: Partial<RpcFields<any, any>> = {
         status: RpcStatus.FinishedError,
-        result: `${err}`,
+        result: err,
       }
       return client
         .collection(RPC_COLLECTION)
