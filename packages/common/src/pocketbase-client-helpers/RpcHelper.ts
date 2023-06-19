@@ -1,10 +1,6 @@
 import Ajv, { JSONSchemaType } from 'ajv'
 import type pocketbaseEs from 'pocketbase'
-import {
-  ClientResponseError,
-  RecordSubscription,
-  UnsubscribeFunc,
-} from 'pocketbase'
+import { ClientResponseError, RecordSubscription } from 'pocketbase'
 import type { JsonObject } from 'type-fest'
 import { logger } from '../Logger'
 import { newId } from '../newId'
@@ -65,33 +61,37 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
         }
         _rpcLogger.breadcrumb(rpcIn.id)
         dbg({ rpcIn })
-        let unsub: UnsubscribeFunc | undefined
-        return (async () => {
-          dbg(`Watching ${rpcIn.id}`)
-          unsub = await watchById<ConcreteRpcRecord>(
-            RPC_COLLECTION,
-            rpcIn.id,
-            (data) => {
-              dbg(`Got an RPC change`, data)
-              cb?.(data)
-              if (data.record.status === RpcStatus.FinishedSuccess) {
-                return data.record.result
-              }
-              if (data.record.status === RpcStatus.FinishedError) {
-                throw new ClientResponseError(data.record.result)
-              }
-            },
-            { initialFetch: false, pollIntervalMs: 100 }
-          )
-          dbg(`Creating ${rpcIn.id}`)
-          const newRpc = await client.collection(RPC_COLLECTION).create(rpcIn)
-          dbg(`Created ${newRpc.id}`)
-        })()
-          .catch(error)
-          .finally(async () => {
-            dbg(`Unwatching ${rpcIn.id}`)
-            await unsub?.()
+
+        return new Promise<TResult>((resolve, reject) => {
+          ;(async () => {
+            dbg(`Watching ${rpcIn.id}`)
+            await watchById<ConcreteRpcRecord>(
+              RPC_COLLECTION,
+              rpcIn.id,
+              (data, unsub) => {
+                dbg(`Got an RPC change`, data)
+                cb?.(data)
+                if (data.record.status === RpcStatus.FinishedSuccess) {
+                  dbg(`RPC finished successfully`, data)
+                  unsub()
+                  resolve(data.record.result)
+                }
+                if (data.record.status === RpcStatus.FinishedError) {
+                  dbg(`RPC finished unsuccessfully`, data)
+                  unsub()
+                  reject(new ClientResponseError(data.record.result))
+                }
+              },
+              { initialFetch: false, pollIntervalMs: 100 }
+            )
+            dbg(`Creating ${rpcIn.id}`)
+            const newRpc = await client.collection(RPC_COLLECTION).create(rpcIn)
+            dbg(`Created ${newRpc.id}`)
+          })().catch((e) => {
+            error(e)
+            reject(e)
           })
+        })
       }
     )
   }
