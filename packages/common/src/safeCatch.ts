@@ -33,7 +33,7 @@ export const safeCatch = <TIn extends any[], TOut>(
           )
         } else if (e.status === 0) {
           dbg(
-            `Client request aborted (duplicate). Raw error: ${e}. Payload: ${payload}`
+            `Client request aborted (possible duplicate request or real error). Raw error: ${e}. Payload: ${payload}`
           )
         } else if (e.status === 404) {
           dbg(`Record not found. Raw error: ${e}. Payload: ${payload}`)
