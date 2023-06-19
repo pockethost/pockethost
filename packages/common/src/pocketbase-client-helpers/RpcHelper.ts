@@ -26,6 +26,7 @@ export type RpcHelperConfig = {
 export type RpcHelper = ReturnType<typeof createRpcHelper>
 
 export const createRpcHelper = (config: RpcHelperConfig) => {
+  const _logger = logger().create(`RpcHelper`)
   const {
     client,
     watchHelper: { watchById },
@@ -44,8 +45,10 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
         payload: TPayload,
         cb?: (data: RecordSubscription<ConcreteRpcRecord>) => void
       ) => {
-        const { dbg, error } = logger().create(cmd)
+        const _rpcLogger = _logger.create(cmd)
+        const { dbg, error } = _rpcLogger
 
+        dbg(`Executing RPC`)
         const _user = client.authStore.model
         if (!_user) {
           throw new Error(`Expected authenticated user here.`)
@@ -60,6 +63,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
           userId,
           payload,
         }
+        _rpcLogger.breadcrumb(rpcIn.id)
         dbg({ rpcIn })
         let unsub: UnsubscribeFunc | undefined
         return (async () => {
