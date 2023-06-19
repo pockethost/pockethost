@@ -52,15 +52,18 @@ global.EventSource = require('eventsource')
    * Stress test
    */
   const stress = async () => {
-    const instance = shuffle(instances)
-      .filter((v) => !excluded[v.id])
-      .pop()!
-    const { subdomain, id } = instance
-    dbg(`Fetching instance ${subdomain}:${id}`)
-    const url = `https://${subdomain}.pockethost.test`
     try {
+      const instance = shuffle(instances)
+        .filter((v) => !excluded[v.id])
+        .pop()
+      if (!instance) throw new Error(`No instance to grab`)
+
+      const { subdomain, id } = instance
+      dbg(`Fetching instance ${subdomain}:${id}`)
+      const url = `https://${subdomain}.pockethost.test/_`
       const res = await fetch(url)
       if (res.status !== 200) {
+        dbg(`${url} failed with ${res.status}`)
         excluded[id] = true
       }
     } catch (e) {
