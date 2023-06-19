@@ -3,20 +3,18 @@
   import {
     createCleanupManager,
     logger,
-    type InstanceFields,
     type InstanceLogFields,
     type RecordId
   } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
-  import AccordionItem from './AccordionItem.svelte'
+  import AccordionItem from '../../../../components/AccordionItem.svelte'
+  import { instance } from './store'
 
   const { dbg } = logger()
 
-  export let instance: InstanceFields
-
-  const { id } = instance
+  $: ({ id } = $instance)
 
   const logs = writable<{ [_: RecordId]: InstanceLogFields }>({})
   let logsArray: InstanceLogFields[] = []

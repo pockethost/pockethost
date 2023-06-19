@@ -1,17 +1,15 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
-  import type { InstanceFields } from '@pockethost/common'
-  import MiniEdit from './MiniEdit.svelte'
+  import MiniEdit from '../../../../components/MiniEdit.svelte'
+  import { instance } from './store'
 
-  export let instance: InstanceFields
+  $: ({ id, maintenance } = $instance)
 
-  const { version } = instance
-
-  let _version = version
+  let _version = $instance.version
 
   const saveEdit = async (newValue: string) =>
     client()
-      .saveVersion({ instanceId: instance.id, version: newValue })
+      .saveVersion({ instanceId: id, version: newValue })
       .then(() => {
         _version = newValue
         return 'saved'
@@ -28,5 +26,5 @@
       href="https://pockethost.gitbook.com/manual/usage/upgrading.md">upgrading</a
     > for more information. name.
   </p>
-  Version <MiniEdit value={_version} save={saveEdit} />
+  Version <MiniEdit value={_version} save={saveEdit} disabled={!maintenance} />
 </div>

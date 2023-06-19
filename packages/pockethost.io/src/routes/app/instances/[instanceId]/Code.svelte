@@ -1,12 +1,11 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
-  import type { InstanceFields } from '@pockethost/common'
-  import AccordionItem from './AccordionItem.svelte'
+  import AccordionItem from '../../../../components/AccordionItem.svelte'
+  import { instance } from './store'
 
-  export let instance: InstanceFields
+  $: ({ subdomain } = $instance)
 
-  const { subdomain } = instance
   const url = `${PUBLIC_APP_PROTOCOL}://${subdomain}.${PUBLIC_APP_DOMAIN}`
   const code = `const url = '${url}'\nconst client = new PocketBase(url)`
 </script>

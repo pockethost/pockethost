@@ -1,15 +1,14 @@
 <script lang="ts">
+  import MiniToggle from '$components/MiniToggle.svelte'
   import { client } from '$src/pocketbase'
-  import type { InstanceFields } from '@pockethost/common'
-  import AccordionItem from './AccordionItem.svelte'
-  import MiniEdit from './MiniEdit.svelte'
-  import MiniToggle from './MiniToggle.svelte'
+  import AccordionItem from '../../../../components/AccordionItem.svelte'
+  import MiniEdit from '../../../../components/MiniEdit.svelte'
   import Version from './Version.svelte'
-
-  export let instance: InstanceFields
+  import { instance } from './store'
 
   const { renameInstance, setInstanceMaintenance } = client()
-  const { subdomain, id, maintenance } = instance
+
+  $: ({ subdomain, id, maintenance } = $instance)
 
   const onRename = (subdomain: string) =>
     renameInstance({ instanceId: id, subdomain }).then(() => 'saved')
@@ -39,5 +38,5 @@
     </p>
     <MiniToggle value={maintenance} save={onMaintenance}>Maintenance Mode</MiniToggle>
   </div>
-  <Version {instance} />
+  <Version />
 </AccordionItem>

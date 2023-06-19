@@ -1,27 +1,28 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import { client } from '$src/pocketbase'
-  import type { InstanceFields, SaveSecretsPayload } from '@pockethost/common'
+  import type { SaveSecretsPayload } from '@pockethost/common'
   import { createCleanupManager } from '@pockethost/common'
   import { forEach, reduce } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
-  import AccordionItem from '../AccordionItem.svelte'
+  import AccordionItem from '../../../../../components/AccordionItem.svelte'
+  import { instance } from '../store'
   import Form from './Form.svelte'
   import List from './List.svelte'
   import SvgIcons from './SvgIcons.svelte'
   import { items } from './stores'
 
-  export let instance: InstanceFields
+  $: ({ id, secrets } = $instance)
 
   const cm = createCleanupManager()
   onMount(() => {
     items.clear()
-    forEach(instance.secrets || {}, (value, name) => {
+    forEach(secrets || {}, (value, name) => {
       items.create({ name, value })
     })
     const unsub = items.subscribe(async (secrets) => {
       await client().saveSecrets({
-        instanceId: instance.id,
+        instanceId: id,
         secrets: reduce(
           secrets,
           (c, v) => {

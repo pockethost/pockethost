@@ -2,14 +2,12 @@
   import CodeSample from '$components/CodeSample.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
-  import type { InstanceFields } from '@pockethost/common'
   import { bash } from 'svelte-highlight/languages'
-  import AccordionItem from './AccordionItem.svelte'
-
-  export let instance: InstanceFields
+  import AccordionItem from '../../../../components/AccordionItem.svelte'
+  import { instance } from './store'
 
   const { user } = client()
-  const { subdomain } = instance
+  $: ({ subdomain } = $instance)
   const { email } = user() || {}
   if (!email) {
     throw new Error(`Email expected here`)

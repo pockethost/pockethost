@@ -1,12 +1,11 @@
 <script lang="ts">
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
-  import type { InstanceFields } from '@pockethost/common'
-  import AccordionItem from './AccordionItem.svelte'
+  import AccordionItem from '../../../../components/AccordionItem.svelte'
+  import { instance } from './store'
 
-  export let instance: InstanceFields
+  $: ({ subdomain, status, version, secondsThisMonth } = $instance)
 
-  const { subdomain, status, version } = instance
   const url = `${PUBLIC_APP_PROTOCOL}://${subdomain}.${PUBLIC_APP_DOMAIN}`
 </script>
 
@@ -15,7 +14,7 @@
     Status: <ProvisioningStatus {status} />
   </div>
   <div>
-    Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
+    Usage: {Math.ceil(secondsThisMonth / 60)} mins
   </div>
   <div>
     Version: {version} (change in Danger Zone)

@@ -26,11 +26,11 @@
     </div>
   {/if}
   <div class="accordion" id="accordionExample">
-    <Overview instance={$instance} />
-    <Ftp instance={$instance} />
-    <Code instance={$instance} />
-    <Secrets instance={$instance} />
-    <Logging instance={$instance} />
-    <Danger instance={$instance} />
+    <Overview />
+    <Ftp />
+    <Code />
+    <Secrets />
+    <Logging />
+    <Danger />
   </div>
 {/if}
