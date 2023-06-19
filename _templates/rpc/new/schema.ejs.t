@@ -38,18 +38,26 @@ h.replace('./packages/daemon/src/services/RpcService/commands.ts', /\/\/ gen:imp
 // gen:import`);
 
 h.replace('./packages/daemon/src/services/RpcService/commands.ts', /\/\/ gen:command/, `
+
+/*
+Write an async command here.
+
+To return an error, simply throw an exception. That will propagate back 
+up through the RPC stack and return an error to the client.
+*/
 registerCommand<${NameName}Payload, ${NameName}Result>(
   RpcCommands.${NameName},
   ${NameName}PayloadSchema,
   async (job) => {
     const { payload } = job
     const { instanceId, items } = payload
-    try {
-      await client.updateInstance(instanceId, {  })
-      return { status: 'ok' }
-    } catch (e) {
-      return { status: 'error', message: \`\${e}\` }
-    }
+
+    await client.updateInstance(instanceId, { 
+      /* Whatever fields you want to update */ 
+    })
+
+    // Return anything you'd like here, it must be compatible with the ${NameName}Result type.
+    return { } 
   }
 )
 
@@ -66,9 +74,10 @@ export type <%=NameName%>Payload = {
   }
 }
 
+/*
+This result can stay empty, it is intended only to hold the result of a successful RPC
+*/
 export type <%=NameName%>Result = {
-  status: 'ok' | 'error'
-  message?: string
 }
 
 export const <%=NAME_NAME%>_REGEX = /^[A-Z][A-Z0-9_]*$/
