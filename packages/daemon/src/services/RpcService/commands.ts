@@ -83,14 +83,13 @@ export const registerRpcCommands = async (logger: Logger) => {
     RpcCommands.RenameInstance,
     RenameInstancePayloadSchema,
     async (job) => {
+      const { dbg, error } = _rpcCommandLogger.create(`renameInstance`)
       const { payload } = job
       const { instanceId, subdomain } = payload
-      try {
-        await client.updateInstance(instanceId, { subdomain })
-        return { status: 'ok' }
-      } catch (e) {
-        return { status: 'error', message: `${e}` }
-      }
+      dbg(`Updating instance`)
+      await client.updateInstance(instanceId, { subdomain })
+      dbg(`Instance updated successfully `)
+      return {}
     }
   )
 
@@ -100,23 +99,19 @@ export const registerRpcCommands = async (logger: Logger) => {
     async (job) => {
       const { payload } = job
       const { instanceId, maintenance } = payload
-      try {
-        dbg(`Updating to maintenance mode ${instanceId}`)
-        await client.updateInstance(instanceId, { maintenance })
-        if (maintenance) {
-          try {
-            dbg(`Shutting down instance ${instanceId}`)
-            const is = await instanceService()
-            const api = is.getInstanceApiIfExistsById(instanceId)
-            await api?.shutdown()
-          } catch (e) {
-            warn(e)
-          }
+      dbg(`Updating to maintenance mode ${instanceId}`)
+      await client.updateInstance(instanceId, { maintenance })
+      if (maintenance) {
+        try {
+          dbg(`Shutting down instance ${instanceId}`)
+          const is = await instanceService()
+          const api = is.getInstanceApiIfExistsById(instanceId)
+          await api?.shutdown()
+        } catch (e) {
+          warn(e)
         }
-        return { status: 'ok' }
-      } catch (e) {
-        return { status: 'error', message: `${e}` }
       }
+      return {}
     }
   )
 
