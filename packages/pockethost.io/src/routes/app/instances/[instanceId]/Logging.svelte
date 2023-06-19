@@ -12,7 +12,7 @@
   import AccordionItem from '../../../../components/AccordionItem.svelte'
   import { instance } from './store'
 
-  const { dbg } = logger()
+  const { dbg, trace } = logger().create(`Logging.svelte`)
 
   $: ({ id } = $instance)
 
@@ -23,7 +23,7 @@
   onMount(async () => {
     dbg(`Watching instance log`)
     const unsub = client().watchInstanceLog(id, (newLog) => {
-      dbg(`Got new log`, newLog)
+      trace(`Got new log`, newLog)
       logs.update((currentLogs) => {
         return { ...currentLogs, [newLog.id]: newLog }
       })
