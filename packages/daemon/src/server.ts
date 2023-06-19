@@ -20,6 +20,7 @@ import { logger as loggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
+// gen:import
 
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
@@ -92,6 +93,7 @@ global.EventSource = require('eventsource')
     instanceApiTimeoutMs: 1000,
   })
   await centralDbService({ logger })
+  // gen:service
 
   info(`Hooking into process exit event`)
 
