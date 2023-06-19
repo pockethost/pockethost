@@ -256,6 +256,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     update: (log: InstanceLogFields) => void,
     nInitial = 100
   ): (() => void) => {
+    const { dbg } = _logger.create('watchInstanceLog')
     const auth = client.authStore.exportToCookie()
 
     const controller = new AbortController()
@@ -273,10 +274,10 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
           auth
         }),
         onmessage: (event) => {
-          // dbg(`Got stream event`, event)
+          dbg(`Got stream event`, event)
           const {} = event
           const log = JSON.parse(event.data) as InstanceLogFields
-          // dbg(`Log is`, log)
+          dbg(`Log is`, log)
           update(log)
         },
         onopen: async (response) => {
