@@ -1,11 +1,12 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase'
-import { dbg, error, warn } from './logger'
+import { logger } from '@pockethost/common'
 
 export type FormErrorHandler = (value: string) => void
 
 export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
   const { parseError } = client()
+  const { dbg, error, warn } = logger()
   error(`Form error: ${e}`, { error: e })
 
   if (setError) {
@@ -168,6 +169,8 @@ export const handleInstanceGeneratorWidget = async (
   instanceName: string,
   setError = (value: string) => {}
 ) => {
+  const { dbg, error, warn } = logger()
+
   const { user, parseError } = client()
   try {
     // Handle user creation/signin

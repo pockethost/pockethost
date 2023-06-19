@@ -3,8 +3,7 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import { PUBLIC_APP_DOMAIN } from '$env/static/public'
   import { client } from '$src/pocketbase'
-  import { dbg } from '$util/logger'
-  import { assertExists, createCleanupManager } from '@pockethost/common'
+  import { assertExists, createCleanupManager, logger } from '@pockethost/common'
   import { onDestroy, onMount } from 'svelte'
   import { instance } from './store'
 
@@ -13,6 +12,7 @@
   const cm = createCleanupManager()
   instance.set(undefined)
   onMount(async () => {
+    const { dbg } = logger()
     const { watchInstanceById } = client()
     watchInstanceById(instanceId, (r) => {
       dbg(`Handling instance update`, r)

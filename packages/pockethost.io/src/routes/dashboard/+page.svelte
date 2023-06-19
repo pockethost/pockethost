@@ -5,13 +5,18 @@
   import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
-  import { error } from '$util/logger'
-  import type { InstanceFields, InstanceId, InstanceRecordsById } from '@pockethost/common'
+  import {
+    logger,
+    type InstanceFields,
+    type InstanceId,
+    type InstanceRecordsById
+  } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
   import { fade } from 'svelte/transition'
 
+  const { error } = logger()
   let apps: InstanceRecordsById = {}
 
   const instancesStore = writable<{ [_: InstanceId]: InstanceFields }>({})

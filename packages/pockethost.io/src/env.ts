@@ -1,6 +1,7 @@
 import { dev } from '$app/environment'
 import { env as _env } from '$env/dynamic/public'
 import publicRoutes from '$util/public-routes.json'
+import { logger } from '@pockethost/common'
 import { boolean } from 'boolean'
 import UrlPattern from 'url-pattern'
 import base from '../../../package.json'
@@ -24,3 +25,9 @@ export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', dev)
 export const PUBLIC_POCKETHOST_VERSION = base.version
 
 export const PUBLIC_ROUTES = publicRoutes.map((pattern) => new UrlPattern(pattern))
+
+try {
+  logger()
+} catch {
+  logger({ debug: PUBLIC_DEBUG, trace: false, errorTrace: false })
+}

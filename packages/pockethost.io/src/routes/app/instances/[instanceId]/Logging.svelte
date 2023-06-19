@@ -1,12 +1,18 @@
 <script lang="ts">
   import { client } from '$src/pocketbase'
-  import { dbg } from '$util/logger'
-  import type { InstanceFields, InstanceLogFields, RecordId } from '@pockethost/common'
-  import { createCleanupManager } from '@pockethost/common'
+  import {
+    createCleanupManager,
+    logger,
+    type InstanceFields,
+    type InstanceLogFields,
+    type RecordId
+  } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
   import AccordionItem from './AccordionItem.svelte'
+
+  const { dbg } = logger()
 
   export let instance: InstanceFields
 
