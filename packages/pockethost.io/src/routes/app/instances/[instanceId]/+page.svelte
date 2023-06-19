@@ -3,7 +3,7 @@
   import { PUBLIC_APP_PROTOCOL } from '$src/env'
   import { assertExists } from '@pockethost/common'
   import Code from './Code.svelte'
-  import Danger from './Danger.svelte'
+  import Danger from './Danger/Danger.svelte'
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Overview from './Overview.svelte'

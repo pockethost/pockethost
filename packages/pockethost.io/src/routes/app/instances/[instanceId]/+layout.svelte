@@ -10,19 +10,17 @@
   const { instanceId } = $page.params
 
   const cm = createCleanupManager()
-  instance.set(undefined)
   onMount(async () => {
-    const { dbg } = logger()
+    const { dbg, error } = logger().create(`layout.svelte`)
     const { watchInstanceById } = client()
     watchInstanceById(instanceId, (r) => {
       dbg(`Handling instance update`, r)
       const { action, record } = r
       assertExists(record, `Expected instance here`)
       instance.set(record)
-    }).then(cm.add)
-  })
-  cm.add(() => {
-    instance.set(undefined)
+    })
+      .then(cm.add)
+      .catch(error)
   })
   onDestroy(() => cm.shutdown())
 </script>
