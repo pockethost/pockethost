@@ -1,7 +1,11 @@
 import { DEBUG, TRACE } from '$constants'
 import { clientService } from '$services'
-import { InstanceStatus, logger as loggerService } from '@pockethost/common'
-import { random, range, shuffle } from '@s-libs/micro-dash'
+import {
+  InstanceId,
+  InstanceStatus,
+  logger as loggerService,
+} from '@pockethost/common'
+import { random, range, shuffle, values } from '@s-libs/micro-dash'
 import { customAlphabet } from 'nanoid'
 import fetch from 'node-fetch'
 import { serialAsyncExecutionGuard } from './util/serialAsyncExecutionGuard'
@@ -48,6 +52,14 @@ global.EventSource = require('eventsource')
   dbg(`Instances ${instances.length}`)
 
   const excluded: { [_: string]: boolean } = {}
+  const resetInstance = serialAsyncExecutionGuard(
+    async (instanceId: InstanceId) => {
+      if (excluded[instanceId]) return
+      await client.updateInstance(instanceId, { maintenance: false })
+    },
+    (id) => `reset:${id}`
+  )
+
   /**
    * Stress test
    */
@@ -56,18 +68,37 @@ global.EventSource = require('eventsource')
       const instance = shuffle(instances)
         .filter((v) => !excluded[v.id])
         .pop()
+      dbg(
+        `There are ${instances.length} instances and ${
+          values(excluded).length
+        } excluded`
+      )
       if (!instance) throw new Error(`No instance to grab`)
+      {
+        const { subdomain, id } = instance
+        const thisLogger = logger.create(subdomain)
+        thisLogger.breadcrumb(id)
+        const { dbg } = thisLogger
 
-      const { subdomain, id } = instance
-      dbg(`Fetching instance ${subdomain}:${id}`)
-      const url = `https://${subdomain}.pockethost.test/_`
-      const res = await fetch(url)
-      if (res.status !== 200) {
-        dbg(`${url} failed with ${res.status}`)
-        excluded[id] = true
+        await resetInstance(instance.id)
+
+        const url = `https://${subdomain}.pockethost.test/_`
+        dbg(`Fetching ${url}`)
+        const res = await fetch(url)
+        if (res.status !== 200) {
+          const body = res.body?.read().toString()
+          dbg(`${url} response error ${res.status} ${body}`)
+          if (body?.match(/maintenance/i)) {
+            dbg(`Maintenance mode detected. Excluding`)
+            excluded[id] = true
+          }
+          if (res.status === 403 && !!body?.match(/Timeout/)) {
+            return // Timeout
+          }
+        }
       }
     } catch (e) {
-      error(`${url} failed with: ${e}`)
+      error(`${url} failed with: ${e}`, JSON.stringify(e))
     } finally {
       setTimeout(stress, random(50, 500))
     }
