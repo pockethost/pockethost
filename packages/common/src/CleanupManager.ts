@@ -8,6 +8,9 @@ type CleanupRec = {
   priority: number
 }
 export const CLEANUP_DEFAULT_PRIORITY = 10
+export const CLEANUP_PRIORITY_HIGH = 1
+export const CLEANUP_PRIORITY_LOW = 20
+export const CLEANUP_PRIORITY_LAST = 1000
 
 export const createCleanupManager = (slug?: string) => {
   const _slug = slug || nanoid()
