@@ -11,6 +11,7 @@ import { serialAsyncExecutionGuard } from '$src/util/serialAsyncExecutionGuard'
 import { mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
+  CLEANUP_PRIORITY_LAST,
   createCleanupManager,
   createTimerManager,
   InstanceFields,
@@ -21,7 +22,7 @@ import {
   SingletonBaseConfig,
   StreamNames,
 } from '@pockethost/common'
-import { map, values } from '@s-libs/micro-dash'
+import { map, remove, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { existsSync } from 'fs'
 import getPort from 'get-port'
@@ -164,7 +165,7 @@ export const instanceService = mkSingleton(
         dbg(`Deleting from cache`)
         delete instanceApis[id]
         dbg(`There are ${values(instanceApis).length} still in cache`)
-      }, 1000) // Make this the very last thing that happens
+      }, CLEANUP_PRIORITY_LAST) // Make this the very last thing that happens
       shutdownManager.add(async () => {
         dbg(`Shutting down`)
         status = InstanceApiStatus.ShuttingDown
@@ -194,7 +195,12 @@ export const instanceService = mkSingleton(
         */
         dbg(`Obtaining port`)
         await _updateInstanceStatus(instance.id, InstanceStatus.Port)
-        const newPort = await getNextPort()
+        const [newPort, releasePort] = await getNextPort()
+        shutdownManager.add(() => {
+          dbg(`Releasing port`)
+          releasePort()
+        }, CLEANUP_PRIORITY_LAST)
+
         systemInstanceLogger.breadcrumb(`port:${newPort}`)
         dbg(`Found port`)
 
@@ -476,16 +482,37 @@ export const instanceService = mkSingleton(
       `InstanceService`
     )
 
-    const getNextPort = async () => {
-      dbg(`Getting free port`)
-      const newPort = await getPort({
-        port: DAEMON_PB_PORT_BASE,
-        exclude: [],
-      }).catch((e) => {
-        throw new Error(`Failed to get free port with ${e}`)
-      })
-      return newPort
-    }
+    const getNextPort = (() => {
+      const { dbg } = instanceServiceLogger.create(`getNextPort`)
+      let exclude: number[] = []
+
+      return serialAsyncExecutionGuard(
+        async (): Promise<[number, () => void]> => {
+          dbg(`Getting free port`)
+          try {
+            const newPort = await getPort({
+              port: DAEMON_PB_PORT_BASE,
+              exclude,
+            })
+            exclude.push(newPort)
+            dbg(`Currently excluded ports: ${exclude.join(',')}`)
+            return [
+              newPort,
+              () => {
+                const removed = remove(exclude, (v) => v === newPort)
+                dbg(
+                  `Removed ${removed.join(
+                    ','
+                  )} from excluded ports: ${exclude.join(',')}`
+                )
+              },
+            ]
+          } catch (e) {
+            throw new Error(`Failed to get free port with ${e}`)
+          }
+        }
+      )
+    })()
 
     const shutdown = async () => {
       dbg(`Shutting down instance manager`)
