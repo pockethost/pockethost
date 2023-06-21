@@ -26,6 +26,7 @@ import { instanceLoggerService } from './services/InstanceLoggerService'
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
+// @ts-ignore
 global.EventSource = require('eventsource')
 ;(async () => {
   const logger = loggerService().create(`server.ts`)
