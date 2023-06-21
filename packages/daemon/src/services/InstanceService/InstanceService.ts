@@ -1,7 +1,6 @@
 import {
   DAEMON_PB_DATA_DIR,
   DAEMON_PB_IDLE_TTL,
-  DAEMON_PB_PORT_BASE,
   PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_PROTOCOL,
@@ -22,16 +21,16 @@ import {
   SingletonBaseConfig,
   StreamNames,
 } from '@pockethost/common'
-import { map, remove, values } from '@s-libs/micro-dash'
+import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { existsSync } from 'fs'
-import getPort from 'get-port'
 import { join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbase } from '../PocketBaseService'
 import { createDenoProcess } from './Deno/DenoProcess'
+import { portManager } from './PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -206,7 +205,7 @@ export const instanceService = mkSingleton(
         healthyGuard()
         await updateInstanceStatus(instance.id, InstanceStatus.Port)
         healthyGuard()
-        const [newPort, releasePort] = await getNextPort()
+        const [newPort, releasePort] = getNextPort()
         shutdownManager.add(() => {
           dbg(`Releasing port`)
           releasePort()
@@ -508,37 +507,7 @@ export const instanceService = mkSingleton(
       `InstanceService`
     )
 
-    const getNextPort = (() => {
-      const { dbg } = instanceServiceLogger.create(`getNextPort`)
-      let exclude: number[] = []
-
-      return serialAsyncExecutionGuard(
-        async (): Promise<[number, () => void]> => {
-          dbg(`Getting free port`)
-          try {
-            const newPort = await getPort({
-              port: DAEMON_PB_PORT_BASE,
-              exclude,
-            })
-            exclude.push(newPort)
-            dbg(`Currently excluded ports: ${exclude.join(',')}`)
-            return [
-              newPort,
-              () => {
-                const removed = remove(exclude, (v) => v === newPort)
-                dbg(
-                  `Removed ${removed.join(
-                    ','
-                  )} from excluded ports: ${exclude.join(',')}`
-                )
-              },
-            ]
-          } catch (e) {
-            throw new Error(`Failed to get free port with ${e}`)
-          }
-        }
-      )
-    })()
+    const { getNextPort } = await portManager({})
 
     const shutdown = async () => {
       dbg(`Shutting down instance manager`)
