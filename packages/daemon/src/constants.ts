@@ -51,6 +51,8 @@ export const NODE_ENV = env('NODE_ENV', '')
 export const DEBUG = envb('DEBUG', NODE_ENV === 'development')
 export const TRACE = envb('TRACE', false)
 
+export const DAEMON_MAX_PORTS = envi(`DAEMON_MAX_PORTS`, 500)
+
 export const DAEMON_PB_BACKUP_SLEEP = envi(`DAEMON_PB_BACKUP_SLEEP`, 100)
 export const DAEMON_PB_BACKUP_PAGE_COUNT = envi(
   `DAEMON_PB_BACKUP_PAGE_COUNT`,

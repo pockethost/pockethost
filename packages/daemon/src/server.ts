@@ -1,4 +1,5 @@
 import {
+  DAEMON_MAX_PORTS,
   DAEMON_PB_PORT_BASE,
   DAEMON_PB_SEMVER,
   DEBUG,
@@ -102,7 +103,8 @@ global.EventSource = require('eventsource')
   await instanceService({
     logger,
     instanceApiCheckIntervalMs: 50,
-    instanceApiTimeoutMs: 1000,
+    instanceApiTimeoutMs: 5000,
+    maxPorts: DAEMON_MAX_PORTS,
   })
   await centralDbService({ logger })
   // gen:service

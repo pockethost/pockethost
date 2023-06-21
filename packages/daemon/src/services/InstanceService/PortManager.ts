@@ -6,7 +6,12 @@ import getPort from 'get-port'
 
 export type PortResult = [number, () => void]
 
-export const portManager = mkSingleton(async () => {
+export type PortManagerConfig = {
+  maxPorts: number
+}
+
+export const portManager = mkSingleton(async (cfg: PortManagerConfig) => {
+  const { maxPorts } = cfg
   const _logger = logger().create(`PortManager`)
   const { dbg, error } = _logger
 
@@ -41,7 +46,7 @@ export const portManager = mkSingleton(async () => {
   })()
 
   const ports = await (
-    await Promise.all<PortResult>(range(500).map(getNextPort))
+    await Promise.all<PortResult>(range(maxPorts).map(getNextPort))
   ).map((portInfo) => portInfo[0])
 
   return {

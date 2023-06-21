@@ -30,7 +30,7 @@ import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbase } from '../PocketBaseService'
 import { createDenoProcess } from './Deno/DenoProcess'
-import { portManager } from './PortManager'
+import { portManager, PortManagerConfig } from './PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -48,12 +48,17 @@ type InstanceApi = {
 export type InstanceServiceConfig = SingletonBaseConfig & {
   instanceApiTimeoutMs: number
   instanceApiCheckIntervalMs: number
-}
+} & PortManagerConfig
 
 export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(
   async (config: InstanceServiceConfig) => {
-    const { logger, instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
+    const {
+      logger,
+      instanceApiTimeoutMs,
+      instanceApiCheckIntervalMs,
+      maxPorts,
+    } = config
     const instanceServiceLogger = logger.create('InstanceService')
     const { dbg, raw, error, warn } = instanceServiceLogger
     const { client } = await clientService()
@@ -202,9 +207,6 @@ export const instanceService = mkSingleton(
         Obtain empty port
         */
         dbg(`Obtaining port`)
-        healthyGuard()
-        await updateInstanceStatus(instance.id, InstanceStatus.Port)
-        healthyGuard()
         const [newPort, releasePort] = getNextPort()
         shutdownManager.add(() => {
           dbg(`Releasing port`)
@@ -507,7 +509,7 @@ export const instanceService = mkSingleton(
       `InstanceService`
     )
 
-    const { getNextPort } = await portManager({})
+    const { getNextPort } = await portManager({ maxPorts })
 
     const shutdown = async () => {
       dbg(`Shutting down instance manager`)
