@@ -43,7 +43,7 @@ type InstanceApi = {
   status: () => InstanceApiStatus
   internalUrl: () => string
   startRequest: () => () => void
-  shutdown: () => Promise<void>
+  shutdown: (reason?: Error) => Promise<void>
 }
 
 export type InstanceServiceConfig = SingletonBaseConfig & {
@@ -116,16 +116,30 @@ export const instanceService = mkSingleton(
         )
       }
 
+      /*
+      Initialize shutdown manager
+      */
+      const shutdownManager = createCleanupManager()
+      shutdownManager.add(async () => {
+        dbg(`Deleting from cache`)
+        delete instanceApis[id]
+        dbg(`There are ${values(instanceApis).length} still in cache`)
+      }, CLEANUP_PRIORITY_LAST) // Make this the very last thing that happens
+      shutdownManager.add(async () => {
+        dbg(`Shutting down`)
+        status = InstanceApiStatus.ShuttingDown
+      })
+
       info(`Starting`)
       let status = InstanceApiStatus.Starting
       let internalUrl = ''
       let startRequest: InstanceApi['startRequest'] = () => {
         throw new Error(`Not ready yet`)
       }
-      let shutdown: InstanceApi['shutdown'] = () => {
-        throw new Error(`Not ready yet`)
-      }
 
+      /*
+      Initialize API
+      */
       const api: InstanceApi = {
         status: () => {
           return status
@@ -146,43 +160,38 @@ export const instanceService = mkSingleton(
           }
           return startRequest()
         },
-        shutdown: async () => {
-          if (status !== InstanceApiStatus.Healthy) {
-            throw new Error(
-              `Attempt to shut down an instance request when instance is not in a healthy state.`
-            )
+        shutdown: async (reason) => {
+          if (reason) {
+            error(`Panic shutdown for ${reason}`)
+          } else {
+            dbg(`Graceful shutdown`)
           }
-          return shutdown()
+          if (api.status() === InstanceApiStatus.ShuttingDown) {
+            throw new Error(`Already shutting down`)
+          }
+          return shutdownManager.shutdown()
         },
       }
+      const _safeShutdown = async (reason?: Error) =>
+        api.status() === InstanceApiStatus.ShuttingDown || api.shutdown(reason)
       instanceApis[id] = api
 
-      /*
-        Initialize shutdown manager
-        */
-      const shutdownManager = createCleanupManager()
-      shutdownManager.add(async () => {
-        dbg(`Deleting from cache`)
-        delete instanceApis[id]
-        dbg(`There are ${values(instanceApis).length} still in cache`)
-      }, CLEANUP_PRIORITY_LAST) // Make this the very last thing that happens
-      shutdownManager.add(async () => {
-        dbg(`Shutting down`)
-        status = InstanceApiStatus.ShuttingDown
-      })
-      shutdown = () => shutdownManager.shutdown()
+      const healthyGuard = () => {
+        if (api.status() !== InstanceApiStatus.ShuttingDown) return
+        throw new Error(`Instance is shutting down. Aborting.`)
+      }
 
       /*
         Create serialized client communication functions to prevent race conditions
         */
       const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
-      const _updateInstanceStatus = clientLimiter.wrap(
+      const updateInstanceStatus = clientLimiter.wrap(
         client.updateInstanceStatus
       )
-      const _updateInstance = clientLimiter.wrap(client.updateInstance)
-      const _createInvocation = clientLimiter.wrap(client.createInvocation)
-      const _pingInvocation = clientLimiter.wrap(client.pingInvocation)
-      const _finalizeInvocation = clientLimiter.wrap(client.finalizeInvocation)
+      const updateInstance = clientLimiter.wrap(client.updateInstance)
+      const createInvocation = clientLimiter.wrap(client.createInvocation)
+      const pingInvocation = clientLimiter.wrap(client.pingInvocation)
+      const finalizeInvocation = clientLimiter.wrap(client.finalizeInvocation)
 
       /*
       Handle async setup
@@ -194,29 +203,34 @@ export const instanceService = mkSingleton(
         Obtain empty port
         */
         dbg(`Obtaining port`)
-        await _updateInstanceStatus(instance.id, InstanceStatus.Port)
+        healthyGuard()
+        await updateInstanceStatus(instance.id, InstanceStatus.Port)
+        healthyGuard()
         const [newPort, releasePort] = await getNextPort()
         shutdownManager.add(() => {
           dbg(`Releasing port`)
           releasePort()
         }, CLEANUP_PRIORITY_LAST)
-
         systemInstanceLogger.breadcrumb(`port:${newPort}`)
         dbg(`Found port`)
 
         /*
         Create the user instance logger
         */
+        healthyGuard()
         const userInstanceLogger = await instanceLoggerService().get(
           instance.id,
-          { parentLogger: systemInstanceLogger }
+          {
+            parentLogger: systemInstanceLogger,
+          }
         )
-        const _writeUserLog = serialAsyncExecutionGuard(
+
+        const writeUserLog = serialAsyncExecutionGuard(
           userInstanceLogger.write,
           () => `${instance.id}:userLog`
         )
         shutdownManager.add(() =>
-          _writeUserLog(`Shutting down instance`).catch(error)
+          writeUserLog(`Shutting down instance`).catch(error)
         )
 
         /*
@@ -224,12 +238,14 @@ export const instanceService = mkSingleton(
         */
         dbg(`Starting instance`)
         dbg(`Set instance status: starting`)
-        await _updateInstanceStatus(instance.id, InstanceStatus.Starting)
+        healthyGuard()
+        await updateInstanceStatus(instance.id, InstanceStatus.Starting)
         shutdownManager.add(async () => {
           dbg(`Set instance status: idle`)
-          await _updateInstanceStatus(id, InstanceStatus.Idle).catch(error)
+          await updateInstanceStatus(id, InstanceStatus.Idle).catch(error)
         })
-        await _writeUserLog(`Starting instance`)
+        healthyGuard()
+        await writeUserLog(`Starting instance`)
 
         /*
         Spawn the child process
@@ -241,33 +257,37 @@ export const instanceService = mkSingleton(
               slug: instance.id,
               port: newPort,
               version,
-              onUnexpectedStop: async (code, stdout, stderr) => {
+              onUnexpectedStop: (code, stdout, stderr) => {
                 warn(
                   `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`
                 )
                 warn(stdout)
                 warn(stderr)
                 shutdownManager.add(async () => {
-                  await _updateInstance(instance.id, {
+                  await updateInstance(instance.id, {
                     maintenance: true,
                   })
-                  await _writeUserLog(
+                  await writeUserLog(
                     `Putting instance in maintenance mode because it shut down with return code ${code}. `,
                     StreamNames.Error
                   )
                   await Promise.all(
                     stdout.map((data) =>
-                      _writeUserLog(data, StreamNames.Error).catch(error)
+                      writeUserLog(data, StreamNames.Error).catch(error)
                     )
                   )
                   await Promise.all(
                     stderr.map((data) =>
-                      _writeUserLog(data, StreamNames.Error).catch(error)
+                      writeUserLog(data, StreamNames.Error).catch(error)
                     )
                   )
                 })
                 setImmediate(() => {
-                  api.shutdown().catch(error)
+                  _safeShutdown(
+                    new Error(
+                      `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`
+                    )
+                  ).catch(error)
                 })
               },
             })
@@ -292,14 +312,16 @@ export const instanceService = mkSingleton(
         /*
         Create the invocation record
         */
-        const invocation = await _createInvocation(instance, pid)
+        healthyGuard()
+        const invocation = await createInvocation(instance, pid)
         shutdownManager.add(async () => {
-          await _finalizeInvocation(invocation).catch(error)
+          await finalizeInvocation(invocation).catch(error)
         })
 
         /**
          * Deno worker
          */
+        healthyGuard()
         const denoApi = await (async () => {
           const workerPath = join(
             DAEMON_PB_DATA_DIR,
@@ -310,7 +332,9 @@ export const instanceService = mkSingleton(
           dbg(`Checking ${workerPath} for a worker entry point`)
           if (existsSync(workerPath)) {
             dbg(`Found worker ${workerPath}`)
-            await _writeUserLog(`Starting worker`)
+            healthyGuard()
+            await writeUserLog(`Starting worker`)
+            healthyGuard()
             const api = await createDenoProcess({
               path: workerPath,
               port: newPort,
@@ -323,7 +347,7 @@ export const instanceService = mkSingleton(
           }
         })()
         shutdownManager.add(async () => {
-          await _writeUserLog(`Shutting down worker`).catch(error)
+          await writeUserLog(`Shutting down worker`).catch(error)
           await denoApi?.shutdown().catch(error)
         })
 
@@ -355,7 +379,8 @@ export const instanceService = mkSingleton(
                 lastRequest + DAEMON_PB_IDLE_TTL < now()
               ) {
                 dbg(`idle for ${DAEMON_PB_IDLE_TTL}, shutting down`)
-                await shutdown()
+                healthyGuard()
+                await _safeShutdown().catch(error)
                 return false
               } else {
                 raw(`${openRequestCount} requests remain open`)
@@ -369,7 +394,7 @@ export const instanceService = mkSingleton(
         {
           tm.repeat(
             () =>
-              _pingInvocation(invocation)
+              pingInvocation(invocation)
                 .then(() => true)
                 .catch((e) => {
                   warn(`_pingInvocation failed with ${e}`)
@@ -381,10 +406,11 @@ export const instanceService = mkSingleton(
 
         dbg(`${internalUrl} is running`)
         status = InstanceApiStatus.Healthy
-        await _updateInstanceStatus(instance.id, InstanceStatus.Running)
+        healthyGuard()
+        await updateInstanceStatus(instance.id, InstanceStatus.Running)
       })().catch((e) => {
         warn(`Instance failed to start with ${e}`)
-        shutdown().catch(e)
+        _safeShutdown(e).catch(error)
       })
 
       return api

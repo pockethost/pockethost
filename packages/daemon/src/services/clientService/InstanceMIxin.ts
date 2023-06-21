@@ -10,6 +10,7 @@ import {
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { endOfMonth, startOfMonth } from 'date-fns'
+import { AsyncContext } from '../../util/AsyncContext'
 import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
@@ -59,30 +60,26 @@ export const createInstanceMixin = (context: MixinContext) => {
         })
   )
 
-  const getInstanceById = safeCatch(
-    `getInstanceById`,
-    logger,
-    async (
-      instanceId: InstanceId
-    ): Promise<[InstanceFields, UserFields] | []> => {
-      return client
-        .collection(INSTANCE_COLLECTION)
-        .getOne<InstanceFields>(instanceId, {
-          $autoCancel: false,
-        })
-        .then((instance) => {
-          if (!instance) return []
-          return client
-            .collection('users')
-            .getOne<UserFields>(instance.uid, {
-              $autoCancel: false,
-            })
-            .then((user) => {
-              return [instance, user]
-            })
-        })
-    }
-  )
+  const getInstanceById = async (
+    instanceId: InstanceId,
+    context?: AsyncContext
+  ): Promise<[InstanceFields, UserFields] | []> =>
+    client
+      .collection(INSTANCE_COLLECTION)
+      .getOne<InstanceFields>(instanceId, {
+        $autoCancel: false,
+      })
+      .then((instance) => {
+        if (!instance) return []
+        return client
+          .collection('users')
+          .getOne<UserFields>(instance.uid, {
+            $autoCancel: false,
+          })
+          .then((user) => {
+            return [instance, user]
+          })
+      })
 
   const updateInstance = safeCatch(
     `updateInstance`,
