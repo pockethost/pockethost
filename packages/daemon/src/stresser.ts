@@ -12,6 +12,9 @@ import { serialAsyncExecutionGuard } from './util/serialAsyncExecutionGuard'
 
 const nanoid = customAlphabet(`abcdefghijklmnop`)
 
+const THREAD_COUNT = 1
+const REQUESTS_PER_THREAD = 1
+
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
@@ -74,28 +77,33 @@ global.EventSource = require('eventsource')
         } excluded`
       )
       if (!instance) throw new Error(`No instance to grab`)
+
       {
         const { subdomain, id } = instance
+        await resetInstance(id)
         const thisLogger = logger.create(subdomain)
         thisLogger.breadcrumb(id)
-        const { dbg } = thisLogger
 
-        await resetInstance(instance.id)
-
-        const url = `https://${subdomain}.pockethost.test/_`
-        dbg(`Fetching ${url}`)
-        const res = await fetch(url)
-        if (res.status !== 200) {
-          const body = res.body?.read().toString()
-          dbg(`${url} response error ${res.status} ${body}`)
-          if (body?.match(/maintenance/i)) {
-            dbg(`Maintenance mode detected. Excluding`)
-            excluded[id] = true
-          }
-          if (res.status === 403 && !!body?.match(/Timeout/)) {
-            return // Timeout
-          }
-        }
+        await Promise.all(
+          range(REQUESTS_PER_THREAD).map(async (i) => {
+            const requestLogger = thisLogger.create(`${i}`)
+            const { dbg } = requestLogger
+            const url = `https://${subdomain}.pockethost.test/_`
+            dbg(`Fetching ${url}`)
+            const res = await fetch(url)
+            if (res.status !== 200) {
+              const body = res.body?.read().toString()
+              dbg(`${url} response error ${res.status} ${body}`)
+              if (body?.match(/maintenance/i)) {
+                dbg(`Maintenance mode detected. Excluding`)
+                excluded[id] = true
+              }
+              if (res.status === 403 && !!body?.match(/Timeout/)) {
+                return // Timeout
+              }
+            }
+          })
+        )
       }
     } catch (e) {
       error(`${url} failed with: ${e}`, JSON.stringify(e))
@@ -103,7 +111,7 @@ global.EventSource = require('eventsource')
       setTimeout(stress, random(50, 500))
     }
   }
-  range(500).forEach(() => {
+  range(THREAD_COUNT).forEach(() => {
     stress()
   })
 })()
