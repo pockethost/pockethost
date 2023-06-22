@@ -4,6 +4,7 @@ import {
   InstanceFields_Create,
   InstanceId,
   InstanceStatus,
+  INSTANCE_COLLECTION,
   safeCatch,
   UserFields,
 } from '@pockethost/common'
@@ -14,7 +15,6 @@ import { AsyncContext } from '../../util/AsyncContext'
 import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
-export const INSTANCE_COLLECTION = 'instances'
 
 export const createInstanceMixin = (context: MixinContext) => {
   const { logger } = context
