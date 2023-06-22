@@ -2,6 +2,8 @@ import { BaseFields, RecordId, Seconds, Subdomain, UserId } from './types'
 
 export type VersionId = string
 
+export const INSTANCE_COLLECTION = 'instances'
+
 export enum InstanceStatus {
   Unknown = '',
   Idle = 'idle',
