@@ -44,7 +44,22 @@ export const createLogger = (config: Partial<Config>) => {
       _curIdx++
       if (_curIdx === MAX_BUF) _curIdx = 0
     }
-    if (shouldDisplay) console[fn](...args)
+    if (shouldDisplay)
+      console[fn](
+        ...args.map((arg) => {
+          const t = typeof arg
+          if (t === 'string' && !!arg.match(/\n/)) {
+            return JSON.stringify(arg)
+          }
+          if (t === 'function') {
+            return `<<function ${JSON.stringify(arg.toString())}>>`
+          }
+          if (t === 'object') {
+            return JSON.stringify(arg)
+          }
+          return arg
+        })
+      )
   }
 
   const raw = (...args: any[]) => {
