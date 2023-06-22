@@ -1,6 +1,9 @@
 import { DAEMON_PB_PORT_BASE } from '$constants'
-import { serialAsyncExecutionGuard } from '$src/util/serialAsyncExecutionGuard'
-import { logger, mkSingleton } from '@pockethost/common'
+import {
+  logger,
+  mkSingleton,
+  serialAsyncExecutionGuard,
+} from '@pockethost/common'
 import { range, remove } from '@s-libs/micro-dash'
 import getPort from 'get-port'
 

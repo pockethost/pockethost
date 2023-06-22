@@ -6,7 +6,6 @@ import {
   PUBLIC_APP_PROTOCOL,
 } from '$constants'
 import { clientService, proxyService } from '$services'
-import { serialAsyncExecutionGuard } from '$src/util/serialAsyncExecutionGuard'
 import { mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
@@ -18,6 +17,7 @@ import {
   InstanceStatus,
   mkSingleton,
   safeCatch,
+  serialAsyncExecutionGuard,
   SingletonBaseConfig,
   StreamNames,
 } from '@pockethost/common'

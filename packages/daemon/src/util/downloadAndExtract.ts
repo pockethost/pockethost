@@ -1,9 +1,8 @@
-import { Logger } from '@pockethost/common'
+import { Logger, singletonAsyncExecutionGuard } from '@pockethost/common'
 import { chmodSync } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
 import { Extract } from 'unzipper'
-import { serialAsyncExecutionGuard } from './serialAsyncExecutionGuard'
 
 const _unsafe_downloadAndExtract = async (
   url: string,
@@ -40,7 +39,7 @@ const _unsafe_downloadAndExtract = async (
   chmodSync(binPath, 0o775)
 }
 
-export const downloadAndExtract = serialAsyncExecutionGuard(
+export const downloadAndExtract = singletonAsyncExecutionGuard(
   _unsafe_downloadAndExtract,
   (url) => url
 )

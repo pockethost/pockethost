@@ -1,4 +1,5 @@
 export * from './assert'
+export * from './asyncExecutionGuard'
 export * from './CleanupManager'
 export * from './events'
 export * from './Logger'

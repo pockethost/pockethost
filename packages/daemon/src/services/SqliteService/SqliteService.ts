@@ -2,12 +2,12 @@ import {
   createCleanupManager,
   createEvent,
   mkSingleton,
+  serialAsyncExecutionGuard,
   SingletonBaseConfig,
 } from '@pockethost/common'
 import { Database as SqliteDatabase, open } from 'sqlite'
 import { Database } from 'sqlite3'
 import { JsonObject } from 'type-fest'
-import { serialAsyncExecutionGuard } from '../../util/serialAsyncExecutionGuard'
 
 export type SqliteUnsubscribe = () => void
 export type SqliteChangeHandler<TRecord extends JsonObject> = (
