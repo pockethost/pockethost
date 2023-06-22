@@ -176,13 +176,20 @@ export const instanceService = mkSingleton(
           return shutdownManager.shutdown()
         },
       }
-      const _safeShutdown = async (reason?: Error) =>
-        api.status() === InstanceApiStatus.ShuttingDown || api.shutdown(reason)
+      const _safeShutdown = async (reason?: Error) => {
+        if (api.status() === InstanceApiStatus.ShuttingDown) {
+          warn(`Already shutting down, ${reason} will not be reported.`)
+          return
+        }
+        return api.shutdown(reason)
+      }
       instanceApis[id] = api
 
       const healthyGuard = () => {
         if (api.status() !== InstanceApiStatus.ShuttingDown) return
-        throw new Error(`Instance is shutting down. Aborting.`)
+        throw new Error(
+          `HealthyGuard detected instance is shutting down. Aborting further initialization.`
+        )
       }
 
       /*
