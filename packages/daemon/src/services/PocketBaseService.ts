@@ -286,4 +286,4 @@ export const createPocketbaseService = async (
   }
 }
 
-export const pocketbase = mkSingleton(createPocketbaseService)
+export const pocketbaseService = mkSingleton(createPocketbaseService)
