@@ -1,28 +1,24 @@
-import { DEBUG, TRACE } from '$constants'
+import { DEBUG } from '$constants'
 import { clientService } from '$services'
 import {
   InstanceId,
   InstanceStatus,
-  logger as loggerService,
+  serialAsyncExecutionGuard,
 } from '@pockethost/common'
 import { random, range, shuffle, values } from '@s-libs/micro-dash'
 import { customAlphabet } from 'nanoid'
 import fetch from 'node-fetch'
-import { serialAsyncExecutionGuard } from './util/serialAsyncExecutionGuard'
 
 const nanoid = customAlphabet(`abcdefghijklmnop`)
 
 const THREAD_COUNT = 1
 const REQUESTS_PER_THREAD = 1
-
-loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
+const CLEANUP = true
 
 // npm install eventsource --save
 //@ts-ignore
 global.EventSource = require('eventsource')
 ;(async () => {
-  const logger = loggerService().create(`stresser.ts`)
-  const { dbg, error, info, warn } = logger
   info(`Starting`)
   info(DEBUG)
 
@@ -44,14 +40,17 @@ global.EventSource = require('eventsource')
   }
   const createInstance = serialAsyncExecutionGuard(_unsafe_createInstance)
 
-  /**
-   * Create instances
-   */
   const { client } = await clientService({ url, logger })
   const users = await client.client.collection('users').getFullList()
   dbg(users)
+
+  /**
+   * Create instances
+   */
   await Promise.all(range(10).map(() => createInstance()))
   const instances = await client.getInstances()
+  if (CLEANUP) {
+  }
   dbg(`Instances ${instances.length}`)
 
   const excluded: { [_: string]: boolean } = {}

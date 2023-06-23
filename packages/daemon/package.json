@@ -5,7 +5,7 @@
   "scripts": {
     "build": "echo 'Build complete' `date`",
     "dev": "tsx watch src/server.ts",
-    "ddos": "NODE_ENV=development tsx watch src/stresser.ts",
+    "ddos": "NODE_ENV=development tsx watch src/stresser/index.ts",
     "start": "tsx src/server.ts",
     "pm2": "pm2 del daemon ; pm2 start \"yarn start\" --name=daemon -o ~/logs/daemon.log -e ~/logs/daemon.log",
     "migrate": "tsx src/migrate/migrate.ts"
@@ -21,6 +21,7 @@
     "ajv": "^8.11.2",
     "boolean": "^3.2.0",
     "bottleneck": "^2.19.5",
+    "commander": "^11.0.0",
     "date-fns": "^2.29.3",
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
