@@ -11,7 +11,7 @@ import {
   clientService,
   ftpService,
   instanceService,
-  pocketbase,
+  pocketbaseService,
   proxyService,
   realtimeLog,
   rpcService,
@@ -21,6 +21,7 @@ import { logger as loggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
+import { updaterService } from './services/UpdaterService'
 // gen:import
 
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
@@ -46,9 +47,13 @@ global.EventSource = require('eventsource')
     })
   })
 
-  const pbService = await pocketbase({
+  const udService = await updaterService({
+    logger,
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,
+  })
+
+  const pbService = await pocketbaseService({
     logger,
   })
 

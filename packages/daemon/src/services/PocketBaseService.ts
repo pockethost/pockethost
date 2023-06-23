@@ -1,25 +1,17 @@
 import { DAEMON_PB_DATA_DIR, DAEMON_PB_MIGRATIONS_DIR } from '$constants'
-import {
-  downloadAndExtract,
-  mkInternalAddress,
-  mkInternalUrl,
-  smartFetch,
-  tryFetch,
-} from '$util'
+import { mkInternalAddress, mkInternalUrl, tryFetch } from '$util'
 import { createCleanupManager, createTimerManager } from '@pockethost/common'
 import {
   mkSingleton,
   SingletonBaseConfig,
 } from '@pockethost/common/src/mkSingleton'
-import { keys } from '@s-libs/micro-dash'
 import { spawn } from 'child_process'
-import { chmodSync, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import getPort from 'get-port'
-import { type } from 'os'
-import { join } from 'path'
-import { gte, maxSatisfying, rsort } from 'semver'
+import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { AsyncContext } from '../util/AsyncContext'
+import { updaterService } from './UpdaterService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type SpawnConfig = {
@@ -38,10 +30,7 @@ export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
 >
 
-export type PocketbaseServiceConfig = SingletonBaseConfig & {
-  cachePath: string
-  checkIntervalMs: number
-}
+export type PocketbaseServiceConfig = SingletonBaseConfig & {}
 
 export type PocketbaseProcess = {
   url: string
@@ -49,16 +38,6 @@ export type PocketbaseProcess = {
   kill: () => Promise<boolean>
   exited: Promise<number | null>
 }
-
-export type Release = {
-  tag_name: string
-  prerelease: string
-  assets: {
-    name: string
-    browser_download_url: string
-  }[]
-}
-export type Releases = Release[]
 
 function pidIsRunning(pid: number) {
   try {
@@ -76,75 +55,11 @@ export const createPocketbaseService = async (
   const _serviceLogger = logger.create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
-  const { cachePath, checkIntervalMs } = config
+  const { getLatestVersion, getVersion } = await updaterService()
+  const maxVersion = getLatestVersion()
 
   const cm = createCleanupManager()
   const tm = createTimerManager({})
-
-  const osName = type().toLowerCase()
-  const cpuArchitecture = process.arch === 'x64' ? 'amd64' : process.arch
-
-  dbg({ osName, cpuArchitecture })
-  const binPaths: { [_: string]: string } = {}
-  let maxVersion = ''
-
-  const check = async () => {
-    const releases = await smartFetch<Releases>(
-      `https://api.github.com/repos/pocketbase/pocketbase/releases?per_page=100`,
-      join(cachePath, `releases.json`)
-    )
-    // dbg({ releases })
-
-    const promises = releases.map(async (release) => {
-      const { tag_name, prerelease, assets } = release
-      const sanitizedTagName = tag_name.slice(1)
-      if (prerelease) return
-      const path = join(cachePath, tag_name)
-      const url = assets.find((v) => {
-        // dbg(v.name)
-        return v.name.includes(osName) && v.name.includes(cpuArchitecture)
-      })?.browser_download_url
-      if (!url) return
-
-      const binPath = join(path, `pocketbase`)
-      dbg(`Checking ${binPath}`)
-
-      if (existsSync(binPath)) {
-        chmodSync(binPath, 0o775)
-      } else {
-        await downloadAndExtract(url, binPath, _serviceLogger)
-      }
-      binPaths[sanitizedTagName] = binPath
-    })
-    await Promise.all(promises)
-    if (keys(binPaths).length === 0) {
-      throw new Error(
-        `No version found, probably mismatched architecture and OS (${osName}/${cpuArchitecture})`
-      )
-    }
-    maxVersion = `~${rsort(keys(binPaths))[0]}`
-    dbg({ maxVersion })
-    return true
-  }
-  await check().catch(abort)
-
-  tm.repeat(check, checkIntervalMs)
-
-  const getLatestVersion = () => maxVersion
-
-  const getVersion = async (semVer = maxVersion) => {
-    const version = maxSatisfying(keys(binPaths), semVer)
-    if (!version)
-      throw new Error(
-        `No version satisfies ${semVer} (${keys(binPaths).join(', ')})`
-      )
-    const binPath = binPaths[version]
-    if (!binPath) throw new Error(`binPath for ${version} not found`)
-    return {
-      version,
-      binPath,
-    }
-  }
 
   const _spawn = async (cfg: SpawnConfig, context?: AsyncContext) => {
     const logger = (context?.logger || _serviceLogger).create('spawn')
@@ -280,8 +195,6 @@ export const createPocketbaseService = async (
 
   return {
     spawn: _spawn,
-    getVersion,
-    getLatestVersion,
     shutdown,
   }
 }
