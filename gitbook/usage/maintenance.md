@@ -12,8 +12,8 @@ Maintenance Mode is helpful for the following tasks:
 
 To activate Maintenance Mode, navigate to your instance dashboard and head for the Danger Zone.
 
-![Danger Zone](./danger-zone.png)
+<img src="./danger-zone.png" style="max-width: 350px; border: 1px solid gray; margin: 20px"/>
 
 Then, switch the instance to Maintenance Mode.
 
-![Maintenance Mode](./maintenance-mode.png)
+<img src="./maintenance-mode.png" style="max-width: 350px; border: 1px solid gray; margin: 20px"/>
