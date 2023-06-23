@@ -111,8 +111,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       }
       const _requestLogger = _handlerLogger.create(host)
       const { dbg, trace } = _requestLogger
-      _requestLogger.breadcrumb(req.method)
-      _requestLogger.breadcrumb(req.url)
+      _requestLogger.breadcrumb(req.method || 'unknown http method')
+      _requestLogger.breadcrumb(req.url || 'unknown url')
       const [subdomain, ...junk] = host.split('.')
       if (!subdomain) {
         throw new Error(`${host} has no subdomain.`)
