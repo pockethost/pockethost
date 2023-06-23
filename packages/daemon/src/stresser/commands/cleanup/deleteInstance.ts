@@ -4,10 +4,13 @@ import {
   INSTANCE_COLLECTION,
   InvocationFields,
   INVOCATION_COLLECTION,
+  logger,
   RpcFields,
   RPC_COLLECTION,
   singletonAsyncExecutionGuard,
 } from '@pockethost/common'
+import Bottleneck from 'bottleneck'
+import { ClientResponseError } from 'pocketbase'
 
 export const deleteInvocation = singletonAsyncExecutionGuard(
   async (invocation: InvocationFields) => {
@@ -20,6 +23,9 @@ export const deleteInvocation = singletonAsyncExecutionGuard(
 export const deleteInvocationsForInstance = singletonAsyncExecutionGuard(
   async (instance: InstanceFields) => {
     const { client } = await clientService()
+    const { dbg, error } = logger()
+      .create(`deleteInvocationsForInstance`)
+      .breadcrumb(instance.id)
     const { id } = instance
     while (true) {
       try {
@@ -33,10 +39,13 @@ export const deleteInvocationsForInstance = singletonAsyncExecutionGuard(
           .delete(invocation.id)
         console.log(`Invocation deleted ${id}`)
       } catch (e) {
-        console.error(
-          `deleteInvocationsForInstance error`,
-          JSON.stringify(e, null, 2)
-        )
+        if (e instanceof ClientResponseError) {
+          if (e.status === 404) {
+            dbg(`No more invocations`)
+            return
+          }
+        }
+        error(e)
         break
       }
     }
@@ -110,7 +119,12 @@ export const deleteInstancesByFilter = singletonAsyncExecutionGuard(
     const instances = await client.client
       .collection(INSTANCE_COLLECTION)
       .getFullList<InstanceFields>(0, { filter })
-    await Promise.all(instances.map(deleteInstance))
+    const limiter = new Bottleneck({ maxConcurrent: 50 })
+    await Promise.all(
+      instances.map((instance) =>
+        limiter.schedule(() => deleteInstance(instance))
+      )
+    )
   },
   (filter) => `deleteInstancesByFilter:${filter}`
 )
