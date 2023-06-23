@@ -16,31 +16,20 @@ export type FtpConfig = SingletonBaseConfig & {}
 
 export enum FolderNames {
   PbData = 'pb_data',
-  PbStatic = 'pb_static',
+  // PbStatic = 'pb_static',
   PbMigrations = 'pb_migrations',
   PbWorker = 'worker',
-  PbBackup = 'backup',
 }
 
-export const README_CONTENTS: { [_ in FolderNames]: string } = {
-  [FolderNames.PbBackup]: `This directory contains tgz backups of your data. PocketHost creates these automatically, or you can create them manually. For more information, see https://pockethost.io/docs/backups`,
-  [FolderNames.PbData]: `This directory contains your PocketBase data. For more information, see https://pockethost.io/docs/data`,
-  [FolderNames.PbStatic]: `This directory contains static files such as your web frontend. PocketHost will serve these when your instance URL receives a request. For more information, see https://pockethost.io/docs/static `,
-  [FolderNames.PbWorker]: `This directory contains your Deno worker. For more information, see https://pockethost.io/docs/workers`,
-  [FolderNames.PbMigrations]: `This directory contains your migrations. For more information, see https://pockethost.io/docs/migrations`,
-}
-export const README_NAME = 'readme.md'
-
-export const FOLDER_NAMES: FolderNames[] = [
-  FolderNames.PbBackup,
+export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbData,
-  FolderNames.PbStatic,
+  // FolderNames.PbStatic,
   FolderNames.PbWorker,
   FolderNames.PbMigrations,
 ]
 
-export function isFolder(name: string): name is FolderNames {
-  return FOLDER_NAMES.includes(name as FolderNames)
+export function isInstanceRootFolder(name: string): name is FolderNames {
+  return INSTANCE_ROOT_FOLDER_NAMES.includes(name as FolderNames)
 }
 
 const tls = {

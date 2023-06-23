@@ -9,6 +9,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
     "noUncheckedIndexedAccess": true,
