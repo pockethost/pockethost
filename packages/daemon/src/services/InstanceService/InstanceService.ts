@@ -94,9 +94,15 @@ export const instanceService = mkSingleton(
             retry(0)
             return
           }
-          if (instanceApi.status() === InstanceApiStatus.Healthy) {
-            dbg(`API found and healthy, returning`)
-            resolve(instanceApi)
+          try {
+            if (instanceApi.status() === InstanceApiStatus.Healthy) {
+              dbg(`API found and healthy, returning`)
+              resolve(instanceApi)
+              return
+            }
+          } catch (e) {
+            dbg(`Instance is in an error state, returning error`)
+            reject(e)
             return
           }
           dbg(`API found but not healthy, waiting`)
@@ -144,8 +150,10 @@ export const instanceService = mkSingleton(
       /*
       Initialize API
       */
+      let _shutdownReason: Error | undefined
       const api: InstanceApi = {
         status: () => {
+          if (_shutdownReason) throw _shutdownReason
           return status
         },
         internalUrl: () => {
@@ -166,18 +174,20 @@ export const instanceService = mkSingleton(
         },
         shutdown: async (reason) => {
           if (reason) {
+            _shutdownReason = reason
             error(`Panic shutdown for ${reason}`)
           } else {
             dbg(`Graceful shutdown`)
           }
-          if (api.status() === InstanceApiStatus.ShuttingDown) {
-            throw new Error(`Already shutting down`)
+          if (status === InstanceApiStatus.ShuttingDown) {
+            warn(`Already shutting down`)
+            return
           }
           return shutdownManager.shutdown()
         },
       }
       const _safeShutdown = async (reason?: Error) => {
-        if (api.status() === InstanceApiStatus.ShuttingDown) {
+        if (status === InstanceApiStatus.ShuttingDown) {
           warn(`Already shutting down, ${reason} will not be reported.`)
           return
         }
@@ -186,7 +196,7 @@ export const instanceService = mkSingleton(
       instanceApis[id] = api
 
       const healthyGuard = () => {
-        if (api.status() !== InstanceApiStatus.ShuttingDown) return
+        if (status !== InstanceApiStatus.ShuttingDown) return
         throw new Error(
           `HealthyGuard detected instance is shutting down. Aborting further initialization.`
         )
