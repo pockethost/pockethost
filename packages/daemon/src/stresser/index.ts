@@ -4,6 +4,7 @@ import { logger as loggerService } from '@pockethost/common'
 import { Command } from 'commander'
 import { createCleanup } from './commands/cleanup'
 import { createSeed } from './commands/seed'
+import { createStress } from './commands/stress'
 const program = new Command()
 
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
@@ -26,25 +27,7 @@ program
 
 createCleanup({ program, logger })
 
-const stressCmd = program.command('stress')
-stressCmd
-  .description('Stress the system')
-  .option(
-    '-ic, --instance-count <number>',
-    `Number of simultaneous instances to hit`,
-    parseInt,
-    100
-  )
-  .option(
-    '-rc, --request-count <number>',
-    `Number of simultaneous requests per instance`,
-    parseInt,
-    50
-  )
-  .action(async () => {
-    const options = stressCmd.optsWithGlobals()
-    dbg(options)
-  })
+createStress({ program, logger })
 
 createSeed({ program, logger })
 program.parse()
