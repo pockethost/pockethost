@@ -45,7 +45,7 @@ sudo open https://pockethost.io
 
 If all goes well:
 
-- Update `readme.md` with latest relevant fixes.
+- Update `./gitbook/releases` with latest relevant fixes.
 - Create a new discussion on PocketHost forum
 - If major release, create announcement on PocketBase forum
 - Use `yarn version --patch` for patch release and tag with git
