@@ -22,7 +22,7 @@ import {
 import { valid, validRange } from 'semver'
 import { clientService } from '../clientService/clientService'
 import { instanceService } from '../InstanceService/InstanceService'
-import { pocketbase } from '../PocketBaseService'
+import { updaterService } from '../UpdaterService'
 import { rpcService } from './RpcService'
 
 export const registerRpcCommands = async (logger: Logger) => {
@@ -41,7 +41,7 @@ export const registerRpcCommands = async (logger: Logger) => {
       const instance = await client.createInstance({
         subdomain,
         uid: rpc.userId,
-        version: (await pocketbase()).getLatestVersion(),
+        version: (await updaterService()).getLatestVersion(),
         status: InstanceStatus.Idle,
         secondsThisMonth: 0,
         secrets: {},

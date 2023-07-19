@@ -16,14 +16,14 @@ export type FtpConfig = SingletonBaseConfig & {}
 
 export enum FolderNames {
   PbData = 'pb_data',
-  // PbStatic = 'pb_static',
+  PbStatic = 'pb_static',
   PbMigrations = 'pb_migrations',
   PbWorker = 'worker',
 }
 
 export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbData,
-  // FolderNames.PbStatic,
+  FolderNames.PbStatic,
   FolderNames.PbWorker,
   FolderNames.PbMigrations,
 ]

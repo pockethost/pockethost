@@ -28,7 +28,7 @@ import { join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
-import { pocketbase } from '../PocketBaseService'
+import { pocketbaseService } from '../PocketBaseService'
 import { createDenoProcess } from './Deno/DenoProcess'
 import { portManager, PortManagerConfig } from './PortManager'
 
@@ -63,7 +63,7 @@ export const instanceService = mkSingleton(
     const { dbg, raw, error, warn } = instanceServiceLogger
     const { client } = await clientService()
 
-    const pbService = await pocketbase()
+    const pbService = await pocketbaseService()
 
     const instanceApis: { [_: InstanceId]: InstanceApi } = {}
 

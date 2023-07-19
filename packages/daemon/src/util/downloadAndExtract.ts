@@ -1,8 +1,29 @@
 import { Logger, singletonAsyncExecutionGuard } from '@pockethost/common'
-import { chmodSync } from 'fs'
+import decompress from 'decompress'
+import decompressUnzip from 'decompress-unzip'
+import { chmodSync, createWriteStream } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
-import { Extract } from 'unzipper'
+
+export function assert<T>(
+  v: T | undefined | void | null,
+  msg?: string
+): asserts v is T {
+  if (!v) {
+    throw new Error(msg || `Assertion failure`)
+  }
+}
+
+const downloadFile = async (url: string, path: string) => {
+  const { body } = await fetch(url)
+  assert(body, `Body is null`)
+  const fileStream = createWriteStream(path)
+  await new Promise<void>((resolve, reject) => {
+    body.pipe(fileStream)
+    body.on('error', reject)
+    fileStream.on('finish', resolve)
+  })
+}
 
 const _unsafe_downloadAndExtract = async (
   url: string,
@@ -17,25 +38,11 @@ const _unsafe_downloadAndExtract = async (
   if (!body) {
     throw new Error(`Body expected for ${url}`)
   }
-  await new Promise<void>((resolve, reject) => {
-    dbg(`Extracting ${url}`)
-    const stream = body.pipe(Extract({ path: dirname(binPath) }))
-    stream.on('data', (e) => {
-      dbg(e)
-    })
-    stream.on('close', () => {
-      dbg(`Close ${url}`)
-      resolve()
-    })
-    stream.on('error', (e) => {
-      error(`Error ${url} ${e}`)
-      reject()
-    })
-    stream.on('end', () => {
-      dbg(`End ${url}`)
-      resolve()
-    })
-  })
+  const versionPath = dirname(binPath)
+  const zipPath = `${versionPath}.zip`
+  dbg(`Extracting ${url} to ${zipPath}`)
+  await downloadFile(url, zipPath)
+  await decompress(zipPath, versionPath, { plugins: [decompressUnzip()] })
   chmodSync(binPath, 0o775)
 }
 
