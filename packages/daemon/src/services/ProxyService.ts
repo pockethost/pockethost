@@ -52,20 +52,24 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       res.end(`${req.headers.host || `Domain`} was rejected.`)
       return
     }
-
-    try {
-      for (let i = 0; i < middleware.length; i++) {
-        const m = middleware[i]!
-        await m(req, res)
+    {
+      const { warn } = _proxyLogger.create(
+        `${req.method} ${req.headers.host}/${req.url}`
+      )
+      try {
+        for (let i = 0; i < middleware.length; i++) {
+          const m = middleware[i]!
+          await m(req, res)
+        }
+      } catch (e) {
+        const msg = (() => (e instanceof Error ? e.message : `${e}`))()
+        warn(msg)
+        res.writeHead(403, {
+          'Content-Type': `text/plain`,
+        })
+        res.end(msg)
+        return
       }
-    } catch (e) {
-      const msg = (() => (e instanceof Error ? e.message : `${e}`))()
-      warn(msg)
-      res.writeHead(403, {
-        'Content-Type': `text/plain`,
-      })
-      res.end(msg)
-      return
     }
   })
 
