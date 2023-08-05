@@ -10,9 +10,9 @@ Ideas, in no particular order...
 - Allow instance to be placed into maintenance mode
 - Allow instance to be shut down and restarted
 - Disallow sqlite downloads if not in maintenance mode
-- [Delete an account](https://github.com/benallfree/pockethost/issues/172)
+- Delete an account
 - Permanently delete an instance
-- [Documentation](https://github.com/benallfree/pockethost/issues/174)
+- Documentation
   - daily usage
   - FTP
   - workers
