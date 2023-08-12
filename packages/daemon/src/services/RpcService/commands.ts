@@ -22,7 +22,7 @@ import {
 import { valid, validRange } from 'semver'
 import { clientService } from '../clientService/clientService'
 import { instanceService } from '../InstanceService/InstanceService'
-import { updaterService } from '../UpdaterService'
+import { updaterService } from '../UpdaterService/UpdaterService'
 import { rpcService } from './RpcService'
 
 export const registerRpcCommands = async (logger: Logger) => {

@@ -21,7 +21,7 @@ import { logger as loggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
-import { updaterService } from './services/UpdaterService'
+import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })

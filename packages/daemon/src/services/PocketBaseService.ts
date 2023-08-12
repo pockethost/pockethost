@@ -11,7 +11,7 @@ import getPort from 'get-port'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { AsyncContext } from '../util/AsyncContext'
-import { updaterService } from './UpdaterService'
+import { updaterService } from './UpdaterService/UpdaterService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type SpawnConfig = {
