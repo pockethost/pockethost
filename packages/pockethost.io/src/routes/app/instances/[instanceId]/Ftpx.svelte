@@ -33,6 +33,9 @@
       <th>pb_migrations</th><td>The PocketBase migrations directory</td>
     </tr>
     <tr>
+      <th>pb_hooks</th><td>The PocketBase hooks directory</td>
+    </tr>
+    <tr>
       <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>
     </tr>
   </table>
