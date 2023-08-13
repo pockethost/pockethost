@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "ddos": "NODE_ENV=development tsx watch src/stresser/index.ts",
     "start": "tsx src/server.ts",
-    "pm2": "pm2 stop all; pm2 del daemon ; pm2 start \"yarn start\" --name=daemon -l /home/pockethost/logs/daemon.log",
+    "pm2": "pm2 stop all; pm2 del daemon ; pm2 start \"yarn start\" --name=daemon -l /home/pockethost/logs/daemon-`date +%s`.log",
     "migrate": "tsx src/migrate/migrate.ts"
   },
   "dependencies": {
