@@ -86,7 +86,7 @@ export const createPocketbaseService = async (
       `--dir`,
       `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
       `--publicDir`,
-      `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
+      `${DAEMON_PB_DATA_DIR}/${slug}/pb_public`,
     ]
     if (gte(realVersion.version, `0.9.0`)) {
       args.push(`--migrationsDir`)

@@ -16,9 +16,12 @@
 </script>
 
 <AccordionItem title="FTP Access">
-  Securely access your instance files via <code><a href={ftpUrl}>{ftpUrl}</a></code>. Use your
-  PocketHost account login and password.
-  <p>Recommended FTP client: <a href="https://filezilla-project.org/">FileZilla</a></p>
+  <p>
+    Securely access your instance files via FTPS. Use your PocketHost account login and password.
+  </p>
+  <p>
+    <a href="https://pockethost.gitbook.io/manual/daily-usage/ftp">Full documentation</a>
+  </p>
   <p>Bash:</p>
   <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
   <table>
@@ -27,13 +30,13 @@
       <th>pb_data</th><td>The PocketBase data directory</td>
     </tr>
     <tr>
-      <th>pb_static</th><td>Static files, such as a web frontend</td>
+      <th>pb_public</th><td>Public files, such as a web frontend</td>
     </tr>
     <tr>
       <th>pb_migrations</th><td>The PocketBase migrations directory</td>
     </tr>
     <tr>
-      <th>pb_hooks</th><td>The PocketBase hooks directory</td>
+      <th>pb_hooks</th><td>The PocketBase JS hooks directory</td>
     </tr>
     <tr>
       <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>

@@ -1,5 +1,6 @@
 import { DAEMON_PB_DATA_DIR } from '$constants'
-import { Logger } from '@pockethost/common'
+import { assert } from '$util'
+import { InstanceFields, Logger } from '@pockethost/common'
 import { compact, map } from '@s-libs/micro-dash'
 import {
   constants,
@@ -155,7 +156,7 @@ export class PhFs implements FileSystem {
       clientPath,
       fsPath,
       subdomain,
-      rootFolderName,
+      rootFolderName: rootFolderName as FolderNames | undefined,
       pathFromRootFolder,
       instance,
     }
@@ -329,9 +330,10 @@ export class PhFs implements FileSystem {
       .breadcrumb(fileName)
     dbg(`write`)
 
-    const { fsPath, clientPath, pathFromRootFolder } = await this._resolvePath(
-      fileName
-    )
+    const { fsPath, clientPath, rootFolderName, pathFromRootFolder, instance } =
+      await this._resolvePath(fileName)
+    assert(instance, `Instance expected here`)
+
     const { append, start } = options || {}
 
     /*
@@ -345,8 +347,17 @@ export class PhFs implements FileSystem {
       flags: !append ? 'w+' : 'a+',
       start,
     })
-    stream.once('error', () => fsAsync.unlink(fsPath))
-    stream.once('close', () => stream.end())
+
+    stream.once('error', (e) => {
+      error(`write(${fileName}) error`)
+      error(e)
+      fsAsync.unlink(fsPath)
+    })
+    stream.once('close', async () => {
+      dbg(`write(${fileName}) closing`)
+      stream.end()
+      await this.restartInstanceGuard(rootFolderName, instance)
+    })
     return {
       stream,
       clientPath,
@@ -397,9 +408,9 @@ export class PhFs implements FileSystem {
       .breadcrumb(path)
     dbg(`delete`)
 
-    const { fsPath, clientPath, pathFromRootFolder } = await this._resolvePath(
-      path
-    )
+    const { fsPath, clientPath, pathFromRootFolder, rootFolderName, instance } =
+      await this._resolvePath(path)
+    assert(instance, `Instance expected here`)
 
     /*
     Disallow deleting if not inside root folder
@@ -409,8 +420,9 @@ export class PhFs implements FileSystem {
     }
 
     return fsAsync.stat(fsPath).then((stat) => {
-      if (stat.isDirectory()) return fsAsync.rmdir(fsPath)
-      else return fsAsync.unlink(fsPath)
+      const _cleanup = () => this.restartInstanceGuard(rootFolderName, instance)
+      if (stat.isDirectory()) return fsAsync.rmdir(fsPath).then(_cleanup)
+      else return fsAsync.unlink(fsPath).then(_cleanup)
     })
   }
 
@@ -443,12 +455,20 @@ export class PhFs implements FileSystem {
       .breadcrumb(to)
     dbg(`rename`)
 
-    const { fsPath: fromPath, pathFromRootFolder: fromPathFromRootFolder } =
-      await this._resolvePath(from)
+    const {
+      fsPath: fromPath,
+      pathFromRootFolder: fromPathFromRootFolder,
+      rootFolderName: fromRootFolderName,
+      instance,
+    } = await this._resolvePath(from)
 
-    const { fsPath: toPath, pathFromRootFolder: toPathFromRootFolder } =
-      await this._resolvePath(from)
+    const {
+      fsPath: toPath,
+      pathFromRootFolder: toPathFromRootFolder,
+      rootFolderName: toRootFolderName,
+    } = await this._resolvePath(to)
 
+    assert(instance, `Instance expected here`)
     /*
     Disallow making directories if not inside root folder
     */
@@ -459,7 +479,14 @@ export class PhFs implements FileSystem {
       throw new Error(`rename not allowed at this level`)
     }
 
-    return fsAsync.rename(fromPath, toPath)
+    return fsAsync
+      .rename(fromPath, toPath)
+      .then(() =>
+        Promise.all([
+          this.restartInstanceGuard(fromRootFolderName, instance),
+          this.restartInstanceGuard(toRootFolderName, instance),
+        ])
+      )
   }
 
   async chmod(path: string, mode: Mode) {
@@ -486,5 +513,23 @@ export class PhFs implements FileSystem {
 
   getUniqueName() {
     return nanoid(30)
+  }
+
+  async restartInstanceGuard(
+    rootFolderName: FolderNames | undefined,
+    instance: InstanceFields
+  ) {
+    // Not needed?
+    // const { dbg, error } = this.log
+    // if (rootFolderName && includes(RESTART_ON_WRITE, rootFolderName)) {
+    //   try {
+    //     dbg(`Restarting instance`)
+    //     const is = await instanceService()
+    //     const api = is.getInstanceApiIfExistsById(instance.id)
+    //     await api?.shutdown()
+    //   } catch (e) {
+    //     error(e)
+    //   }
+    // }
   }
 }
