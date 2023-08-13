@@ -18,6 +18,7 @@ export enum FolderNames {
   PbData = 'pb_data',
   PbStatic = 'pb_static',
   PbMigrations = 'pb_migrations',
+  PbHooks = 'pb_hooks',
   PbWorker = 'worker',
 }
 
@@ -26,6 +27,7 @@ export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbStatic,
   FolderNames.PbWorker,
   FolderNames.PbMigrations,
+  FolderNames.PbHooks,
 ]
 
 export function isInstanceRootFolder(name: string): name is FolderNames {
