@@ -14,7 +14,12 @@ import { customAlphabet } from 'nanoid'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
 import { PocketbaseClientApi } from '../clientService/PbClient'
 import * as fsAsync from './fs-async'
-import { INSTANCE_ROOT_FOLDER_NAMES, isInstanceRootFolder } from './FtpService'
+import {
+  FolderNames,
+  INSTANCE_ROOT_FOLDER_NAMES,
+  isInstanceRootFolder,
+  MAINTENANCE_ONLY_FOLDER_NAMES,
+} from './FtpService'
 
 const nanoid = customAlphabet(`abcdefghijklmnop`)
 
@@ -100,6 +105,17 @@ export class PhFs implements FileSystem {
         }
         fsPathParts.push(instance.id)
         if (rootFolderName) {
+          dbg({ rootFolderName, instance })
+          if (
+            MAINTENANCE_ONLY_FOLDER_NAMES.includes(
+              rootFolderName as FolderNames
+            ) &&
+            !instance.maintenance
+          ) {
+            throw new Error(
+              `Instance must be in maintenance mode to access ${rootFolderName}`
+            )
+          }
           fsPathParts.push(rootFolderName)
           // Ensure folder exists
           const rootFolderFsPath = resolve(
