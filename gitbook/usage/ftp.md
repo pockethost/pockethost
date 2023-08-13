@@ -15,6 +15,7 @@ Inside each instance directory, you will find:
 | pb_data        | The PocketBase data directory                                                 |
 | pb_static      | The location from which static files are served                               |
 | pb_migrations  | The PocketBase [migrations](https://pocketbase.io/docs/migrations/) directory |
+| pb_hooks       | The PocketBase [hooks](https://pocketbase.io/docs/js-overview/) directory     |
 | worker         | The Deno-based cloud worker                                                   |
 
 ## Recommended Clients

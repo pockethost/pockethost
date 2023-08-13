@@ -18,6 +18,7 @@
 * [FTP Access](usage/ftp.md)
 * [Backup & Restore](usage/backup-and-restore.md)
 * [Cloud Functions](usage/cloud.md)
+* [PocketBase Hooks](usage/hooks.md)
 * [Upgrading](usage/upgrading.md)
 
 ## Contributing
