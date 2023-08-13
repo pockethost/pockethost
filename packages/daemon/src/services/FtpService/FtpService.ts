@@ -16,16 +16,25 @@ export type FtpConfig = SingletonBaseConfig & {}
 
 export enum FolderNames {
   PbData = 'pb_data',
-  PbStatic = 'pb_static',
+  PbPublic = 'pb_public',
   PbMigrations = 'pb_migrations',
+  PbHooks = 'pb_hooks',
   PbWorker = 'worker',
 }
 
+export const MAINTENANCE_ONLY_FOLDER_NAMES: FolderNames[] = [FolderNames.PbData]
+export const RESTART_ON_WRITE: FolderNames[] = [
+  FolderNames.PbMigrations,
+  FolderNames.PbHooks,
+  FolderNames.PbWorker,
+]
+
 export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbData,
-  FolderNames.PbStatic,
+  FolderNames.PbPublic,
   FolderNames.PbWorker,
   FolderNames.PbMigrations,
+  FolderNames.PbHooks,
 ]
 
 export function isInstanceRootFolder(name: string): name is FolderNames {

@@ -11,7 +11,7 @@ import getPort from 'get-port'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { AsyncContext } from '../util/AsyncContext'
-import { updaterService } from './UpdaterService'
+import { updaterService } from './UpdaterService/UpdaterService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type SpawnConfig = {
@@ -86,7 +86,7 @@ export const createPocketbaseService = async (
       `--dir`,
       `${DAEMON_PB_DATA_DIR}/${slug}/pb_data`,
       `--publicDir`,
-      `${DAEMON_PB_DATA_DIR}/${slug}/pb_static`,
+      `${DAEMON_PB_DATA_DIR}/${slug}/pb_public`,
     ]
     if (gte(realVersion.version, `0.9.0`)) {
       args.push(`--migrationsDir`)

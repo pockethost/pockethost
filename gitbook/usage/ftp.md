@@ -10,12 +10,13 @@ The initial directory listing contains a directory for each instance associated 
 
 Inside each instance directory, you will find:
 
-| Directory Name | Description                                                                   |
-| -------------- | ----------------------------------------------------------------------------- |
-| pb_data        | The PocketBase data directory                                                 |
-| pb_static      | The location from which static files are served                               |
-| pb_migrations  | The PocketBase [migrations](https://pocketbase.io/docs/migrations/) directory |
-| worker         | The Deno-based cloud worker                                                   |
+| Directory Name | Description                                     | Instructions                                            |
+| -------------- | ----------------------------------------------- | ------------------------------------------------------- |
+| pb_data        | The PocketBase data directory                   | [view](https://pocketbase.io/docs/going-to-production/) |
+| pb_public      | The location from which public files are served | [view](https://pocketbase.io/docs)                      |
+| pb_migrations  | The PocketBase migrations directory             | [view](https://pocketbase.io/docs/migrations/)          |
+| pb_hooks       | The PocketBase JS hooks directory               | [view](https://pocketbase.io/docs/js-overview/)         |
+| worker         | The Deno-based cloud worker                     | [view](./worker.md)                                     |
 
 ## Recommended Clients
 
