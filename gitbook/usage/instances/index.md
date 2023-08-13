@@ -1,4 +1,4 @@
-# Managing your Instance
+# Instance Details
 
 PocketHost provides a simple dashboard where you can manage your instance.
 
@@ -44,7 +44,7 @@ The PocketHost dashboard also provides a handy link to do this.
 
 ## Secrets
 
-Instance secrets are defined as environment variables when a [PocketHost Cloud Function Deno worker](../cloud.md) is launched. Every secret you specify here will be made available as an environment variable to the Deno process:
+Instance secrets are defined as environment variables when a [PocketHost Cloud Function Deno worker](broken-reference) is launched. Every secret you specify here will be made available as an environment variable to the Deno process:
 
 ```ts
 const MY_SECRET = Deno.env.get('MY_SECRET') || ''
