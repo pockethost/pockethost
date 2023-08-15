@@ -22,6 +22,7 @@ const server = createServer(options, async (req, res) => {
   }
 
   if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Headers', '*')
     res.writeHead(204, headers)
     res.end()
     return
