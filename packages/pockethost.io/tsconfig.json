@@ -11,11 +11,11 @@
     "sourceMap": true,
     "strict": true,
     "paths": {
-      "$util/*": ["src/util/*"],
-      "$components/*": ["src/components/*"],
-      "$src/*": ["src/*"]
+      "$util/*": ["./src/util/*"],
+      "$components/*": ["./src/components/*"],
+      "$src/*": ["./src/*"]
     },
-    "types": ["src/global.d.ts"]
+    "types": ["./src/global.d.ts"]
   }
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //
