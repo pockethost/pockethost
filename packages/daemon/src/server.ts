@@ -24,6 +24,12 @@ import { instanceLoggerService } from './services/InstanceLoggerService'
 import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
+const [major, minor, patch] = process.versions.node.split('.').map(Number)
+
+if ((major || 0) < 18) {
+  throw new Error(`Node 18 or higher required.`)
+}
+
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
