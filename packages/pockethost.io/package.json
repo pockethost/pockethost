@@ -3,9 +3,9 @@
   "version": "0.4.1",
   "private": true,
   "scripts": {
-    "dev": "dotenv -e ../../.env vite -- dev --force",
-    "build": "dotenv -e ../../.env vite -- build",
-    "preview": "dotenv -e ../../.env vite -- preview",
+    "dev": "vite dev --force",
+    "build": "vite build",
+    "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check .",
