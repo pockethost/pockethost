@@ -38,12 +38,14 @@
     ]
   },
   "devDependencies": {
+    "chokidar-cli": "^3.0.0",
     "concurrently": "^7.4.0",
     "patch-package": "^6.5.0",
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^3.1.1",
     "prettier-plugin-svelte": "^2.7.0",
-    "typescript": "^4.8.3"
+    "tslib": "^2.6.2",
+    "typescript": "^5.0"
   },
   "dependencies": {
     "postinstall-postinstall": "^2.1.0",
