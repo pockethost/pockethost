@@ -1,7 +1,7 @@
 import {
+  RPC_COLLECTION,
   RpcFields,
   RpcStatus,
-  RPC_COLLECTION,
   safeCatch,
 } from '@pockethost/common'
 import { ClientResponseError } from 'pocketbase'
@@ -31,7 +31,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
           cb(e.record)
         })
       return unsub
-    }
+    },
   )
 
   const resetRpcs = safeCatch(`resetRpcs`, logger, async () =>
@@ -43,7 +43,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
       .update<RpcFields<any, any>>({
         status: RpcStatus.FinishedError,
         result: `Canceled by reset`,
-      })
+      }),
   )
 
   const incompleteRpcs = safeCatch(`incompleteRpcs`, logger, async () => {
@@ -65,7 +65,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
       return client
         .collection(RPC_COLLECTION)
         .update<RpcFields<any, any>>(rpc.id, fields)
-    }
+    },
   )
 
   const setRpcStatus = safeCatch(
@@ -74,12 +74,12 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
     async (
       rpc: RpcFields<any, any>,
       status: RpcStatus,
-      result: JsonObject = {}
+      result: JsonObject = {},
     ) => {
       return client
         .collection(RPC_COLLECTION)
         .update(rpc.id, { status, result })
-    }
+    },
   )
 
   return {

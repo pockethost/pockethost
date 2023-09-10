@@ -28,7 +28,9 @@ export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', dev)
 
 export const PUBLIC_POCKETHOST_VERSION = base.version
 
-export const PUBLIC_ROUTES = publicRoutes.map((pattern) => new UrlPattern(pattern))
+export const PUBLIC_ROUTES = publicRoutes.map(
+  (pattern) => new UrlPattern(pattern),
+)
 
 try {
   logger()

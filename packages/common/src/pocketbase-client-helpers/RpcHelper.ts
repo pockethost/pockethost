@@ -6,11 +6,11 @@ import { logger } from '../Logger'
 import { newId } from '../newId'
 import { safeCatch } from '../safeCatch'
 import {
+  RPC_COLLECTION,
   RpcCommands,
   RpcFields,
   RpcRecord_Create,
   RpcStatus,
-  RPC_COLLECTION,
 } from '../schema'
 import type { WatchHelper } from './WatchHelper'
 
@@ -30,7 +30,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
 
   const mkRpc = <TPayload extends JsonObject, TResult extends JsonObject>(
     cmd: RpcCommands,
-    schema: JSONSchemaType<TPayload>
+    schema: JSONSchemaType<TPayload>,
   ) => {
     type ConcreteRpcRecord = RpcFields<TPayload, TResult>
     const validator = new Ajv().compile(schema)
@@ -39,7 +39,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
       logger(),
       async (
         payload: TPayload,
-        cb?: (data: RecordSubscription<ConcreteRpcRecord>) => void
+        cb?: (data: RecordSubscription<ConcreteRpcRecord>) => void,
       ) => {
         const _rpcLogger = _logger.create(cmd)
         const { dbg, error } = _rpcLogger
@@ -82,7 +82,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
                   reject(new ClientResponseError(data.record.result))
                 }
               },
-              { initialFetch: false, pollIntervalMs: 100 }
+              { initialFetch: false, pollIntervalMs: 100 },
             )
             dbg(`Creating ${rpcIn.id}`)
             const newRpc = await client.collection(RPC_COLLECTION).create(rpcIn)
@@ -92,7 +92,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
             reject(e)
           })
         })
-      }
+      },
     )
   }
 

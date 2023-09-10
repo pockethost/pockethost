@@ -10,7 +10,7 @@
 </script>
 
 <div class="accordion-item">
-  <h2 class="accordion-header " id={headerId}>
+  <h2 class="accordion-header" id={headerId}>
     <button
       class="accordion-button {show ? '' : 'collapsed'} text-bg-{header} "
       type="button"

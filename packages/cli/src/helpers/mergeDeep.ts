@@ -6,14 +6,14 @@ export const mergeDeep = <TObject>(dst: any, src: TObject) => {
       if (dst[k] === undefined) dst[k] = {}
       if (!isObject(dst[k])) {
         throw new Error(
-          `${k.toString()} is an object in default, but not in target`
+          `${k.toString()} is an object in default, but not in target`,
         )
       }
       dst[k] = mergeDeep(dst[k], v)
     } else {
       if (isObject(dst[k])) {
         throw new Error(
-          `${k.toString()} is an object in target, but not in default`
+          `${k.toString()} is an object in target, but not in default`,
         )
       }
       // The magic: if the target has no value for this field, use the

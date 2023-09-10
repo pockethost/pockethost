@@ -22,7 +22,7 @@ export const addDevCommand = (program: Command) => {
     .description('Watch for source code changes in development mode')
     .option(
       '--src <path>',
-      `Path to source (default: <project>/src/index.{ts|js})`
+      `Path to source (default: <project>/src/index.{ts|js})`,
     )
     .option('--dist <path>', `Path to dist (default: <project>/dist/index.js)`)
     .option('--host', 'PocketBase host', DEFAULT_PB_DEV_URL)

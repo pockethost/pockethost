@@ -5,14 +5,14 @@ import {
   Pb_Any_Record_Db,
   Pb_Untrusted_Db,
 } from '../schema/base'
-import { buildQueryFilter, FieldStruct } from './buildQueryFilter'
+import { FieldStruct, buildQueryFilter } from './buildQueryFilter'
 
 export const getOne = async <
   TRec extends Pb_Any_Record_Db,
-  TFields extends FieldStruct<TRec> = FieldStruct<TRec>
+  TFields extends FieldStruct<TRec> = FieldStruct<TRec>,
 >(
   collectionName: Pb_Any_Collection_Name,
-  fields: TFields
+  fields: TFields,
 ) => {
   const queryParams = buildQueryFilter(fields)
   const recs = await client.records.getList(collectionName, 1, 2, queryParams)

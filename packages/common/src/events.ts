@@ -3,15 +3,15 @@ import { values } from '@s-libs/micro-dash'
 export type Unsubscribe = () => void
 
 export type EventSubscriber<TPayload> = (
-  cb: EventHandler<TPayload>
+  cb: EventHandler<TPayload>,
 ) => Unsubscribe
 export type EventEmitter<TPayload> = (
   payload: TPayload,
-  stopOnHandled?: boolean
+  stopOnHandled?: boolean,
 ) => Promise<boolean>
 export type EventHandler<TPayload> = (
   payload: TPayload,
-  isHandled: boolean
+  isHandled: boolean,
 ) => boolean | void | Promise<boolean | void>
 
 /**
@@ -20,7 +20,7 @@ export type EventHandler<TPayload> = (
  * @returns void
  */
 export const createEvent = <TPayload>(
-  defaultHandler?: EventHandler<TPayload>
+  defaultHandler?: EventHandler<TPayload>,
 ): [EventSubscriber<TPayload>, EventEmitter<TPayload>] => {
   let i = 0
   const callbacks: any = {}

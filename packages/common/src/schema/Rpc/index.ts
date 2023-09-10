@@ -34,7 +34,7 @@ export type RpcPayloadBase = JsonObject
 
 export type RpcFields<
   TPayload extends RpcPayloadBase,
-  TRes extends JsonObject
+  TRes extends JsonObject,
 > = BaseFields & {
   userId: UserId
   cmd: string

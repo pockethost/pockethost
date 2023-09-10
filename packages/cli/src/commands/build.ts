@@ -18,7 +18,7 @@ export const addDevCommand = (program: Command) => {
     .description('Build the JS bundle')
     .option(
       '--src <path>',
-      `Path to source (default: <project>/src/index.{ts|js})`
+      `Path to source (default: <project>/src/index.{ts|js})`,
     )
     .option('--dist <path>', `Path to dist (default: <project>/dist/index.js)`)
     .action(async (options) => {

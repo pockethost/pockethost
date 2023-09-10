@@ -1,12 +1,12 @@
 import { clientService } from '$services'
 import {
-  InstanceFields,
   INSTANCE_COLLECTION,
-  InvocationFields,
   INVOCATION_COLLECTION,
-  logger,
-  RpcFields,
+  InstanceFields,
+  InvocationFields,
   RPC_COLLECTION,
+  RpcFields,
+  logger,
   singletonAsyncExecutionGuard,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
@@ -17,7 +17,7 @@ export const deleteInvocation = singletonAsyncExecutionGuard(
     const { client } = await clientService()
     await client.client.collection(INVOCATION_COLLECTION).delete(invocation.id)
   },
-  (invocation) => `deleteInvocation:${invocation.id}`
+  (invocation) => `deleteInvocation:${invocation.id}`,
 )
 
 export const deleteInvocationsForInstance = singletonAsyncExecutionGuard(
@@ -50,7 +50,7 @@ export const deleteInvocationsForInstance = singletonAsyncExecutionGuard(
       }
     }
   },
-  (instance) => `deleteInvocationsForInstance:${instance.id}`
+  (instance) => `deleteInvocationsForInstance:${instance.id}`,
 )
 
 export const deleteRpc = singletonAsyncExecutionGuard(
@@ -58,7 +58,7 @@ export const deleteRpc = singletonAsyncExecutionGuard(
     const { client } = await clientService()
     await client.client.collection(RPC_COLLECTION).delete(rpc.id)
   },
-  (rpc) => `deleteRpc:${rpc.id}`
+  (rpc) => `deleteRpc:${rpc.id}`,
 )
 
 export const getAllRpcs = singletonAsyncExecutionGuard(
@@ -70,7 +70,7 @@ export const getAllRpcs = singletonAsyncExecutionGuard(
     console.log(`Loaded rpcs`)
     return rpcs
   },
-  () => `getAllRpcs`
+  () => `getAllRpcs`,
 )
 
 export const deleteRpcsForInstance = singletonAsyncExecutionGuard(
@@ -80,7 +80,7 @@ export const deleteRpcsForInstance = singletonAsyncExecutionGuard(
     const instanceRpcs = allRpcs.filter((rpc) => rpc.payload?.instanceId === id)
     await Promise.all(instanceRpcs.map(deleteRpc))
   },
-  (instance) => `deleteRpcsForInstance:${instance.id}`
+  (instance) => `deleteRpcsForInstance:${instance.id}`,
 )
 
 export const deleteInstance = singletonAsyncExecutionGuard(
@@ -95,7 +95,7 @@ export const deleteInstance = singletonAsyncExecutionGuard(
     await deleteInvocationsForInstance(instance).catch((e) => {
       console.error(
         `deleteInvocationsForInstance error`,
-        JSON.stringify(e, null, 2)
+        JSON.stringify(e, null, 2),
       )
       throw e
     })
@@ -110,7 +110,7 @@ export const deleteInstance = singletonAsyncExecutionGuard(
       })
     console.log(`Instance deleted ${id}`)
   },
-  (instance) => `deleteInstance:${instance.id}`
+  (instance) => `deleteInstance:${instance.id}`,
 )
 
 export const deleteInstancesByFilter = singletonAsyncExecutionGuard(
@@ -122,9 +122,9 @@ export const deleteInstancesByFilter = singletonAsyncExecutionGuard(
     const limiter = new Bottleneck({ maxConcurrent: 50 })
     await Promise.all(
       instances.map((instance) =>
-        limiter.schedule(() => deleteInstance(instance))
-      )
+        limiter.schedule(() => deleteInstance(instance)),
+      ),
     )
   },
-  (filter) => `deleteInstancesByFilter:${filter}`
+  (filter) => `deleteInstancesByFilter:${filter}`,
 )

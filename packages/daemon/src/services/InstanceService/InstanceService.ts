@@ -8,18 +8,18 @@ import {
 import { clientService, proxyService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
-  assertTruthy,
   CLEANUP_PRIORITY_LAST,
-  createCleanupManager,
-  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
+  SingletonBaseConfig,
+  StreamNames,
+  assertTruthy,
+  createCleanupManager,
+  createTimerManager,
   mkSingleton,
   safeCatch,
   serialAsyncExecutionGuard,
-  SingletonBaseConfig,
-  StreamNames,
 } from '@pockethost/common'
 import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -30,7 +30,7 @@ import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbaseService } from '../PocketBaseService'
 import { createDenoProcess } from './Deno/DenoProcess'
-import { portManager, PortManagerConfig } from './PortManager'
+import { PortManagerConfig, portManager } from './PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -116,13 +116,13 @@ export const instanceService = mkSingleton(
       const { id, subdomain, version } = instance
 
       const systemInstanceLogger = instanceServiceLogger.create(
-        `${subdomain}:${id}:${version}`
+        `${subdomain}:${id}:${version}`,
       )
       const { dbg, warn, error, info } = systemInstanceLogger
 
       if (instanceApis[id]) {
         throw new Error(
-          `Attempted to create an instance API when one is already available for ${id}`
+          `Attempted to create an instance API when one is already available for ${id}`,
         )
       }
 
@@ -159,7 +159,7 @@ export const instanceService = mkSingleton(
         internalUrl: () => {
           if (status !== InstanceApiStatus.Healthy) {
             throw new Error(
-              `Attempt to access instance URL when instance is not in a healthy state.`
+              `Attempt to access instance URL when instance is not in a healthy state.`,
             )
           }
           return internalUrl
@@ -167,7 +167,7 @@ export const instanceService = mkSingleton(
         startRequest: () => {
           if (status !== InstanceApiStatus.Healthy) {
             throw new Error(
-              `Attempt to start an instance request when instance is not in a healthy state.`
+              `Attempt to start an instance request when instance is not in a healthy state.`,
             )
           }
           return startRequest()
@@ -198,7 +198,7 @@ export const instanceService = mkSingleton(
       const healthyGuard = () => {
         if (status !== InstanceApiStatus.ShuttingDown) return
         throw new Error(
-          `HealthyGuard detected instance is shutting down. Aborting further initialization.`
+          `HealthyGuard detected instance is shutting down. Aborting further initialization.`,
         )
       }
 
@@ -207,7 +207,7 @@ export const instanceService = mkSingleton(
         */
       const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
       const updateInstanceStatus = clientLimiter.wrap(
-        client.updateInstanceStatus
+        client.updateInstanceStatus,
       )
       const updateInstance = clientLimiter.wrap(client.updateInstance)
       const createInvocation = clientLimiter.wrap(client.createInvocation)
@@ -240,15 +240,15 @@ export const instanceService = mkSingleton(
           instance.id,
           {
             parentLogger: systemInstanceLogger,
-          }
+          },
         )
 
         const writeUserLog = serialAsyncExecutionGuard(
           userInstanceLogger.write,
-          () => `${instance.id}:userLog`
+          () => `${instance.id}:userLog`,
         )
         shutdownManager.add(() =>
-          writeUserLog(`Shutting down instance`).catch(error)
+          writeUserLog(`Shutting down instance`).catch(error),
         )
 
         /*
@@ -277,7 +277,7 @@ export const instanceService = mkSingleton(
               version,
               onUnexpectedStop: (code, stdout, stderr) => {
                 warn(
-                  `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`
+                  `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
                 )
                 warn(stdout)
                 warn(stderr)
@@ -287,24 +287,24 @@ export const instanceService = mkSingleton(
                   })
                   await writeUserLog(
                     `Putting instance in maintenance mode because it shut down with return code ${code}. `,
-                    StreamNames.Error
+                    StreamNames.Error,
                   )
                   await Promise.all(
                     stdout.map((data) =>
-                      writeUserLog(data, StreamNames.Error).catch(error)
-                    )
+                      writeUserLog(data, StreamNames.Error).catch(error),
+                    ),
                   )
                   await Promise.all(
                     stderr.map((data) =>
-                      writeUserLog(data, StreamNames.Error).catch(error)
-                    )
+                      writeUserLog(data, StreamNames.Error).catch(error),
+                    ),
                   )
                 })
                 setImmediate(() => {
                   _safeShutdown(
                     new Error(
-                      `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`
-                    )
+                      `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
+                    ),
                   ).catch(error)
                 })
               },
@@ -313,7 +313,7 @@ export const instanceService = mkSingleton(
           } catch (e) {
             warn(`Error spawning: ${e}`)
             throw new Error(
-              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`
+              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
             )
           }
         })()
@@ -345,7 +345,7 @@ export const instanceService = mkSingleton(
             DAEMON_PB_DATA_DIR,
             instance.id,
             `worker`,
-            `index.ts`
+            `index.ts`,
           )
           dbg(`Checking ${workerPath} for a worker entry point`)
           if (existsSync(workerPath)) {
@@ -405,7 +405,7 @@ export const instanceService = mkSingleton(
               }
               return true
             }),
-            RECHECK_TTL
+            RECHECK_TTL,
           )
         }
 
@@ -418,7 +418,7 @@ export const instanceService = mkSingleton(
                   warn(`_pingInvocation failed with ${e}`)
                   return true
                 }),
-            1000
+            1000,
           )
         }
 
@@ -442,7 +442,7 @@ export const instanceService = mkSingleton(
           .catch((e: ClientResponseError) => {
             if (e.status !== 404) {
               throw new Error(
-                `Unexpected response ${JSON.stringify(e)} from mothership`
+                `Unexpected response ${JSON.stringify(e)} from mothership`,
               )
             }
             return []
@@ -454,9 +454,8 @@ export const instanceService = mkSingleton(
       }
       {
         dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const [instance, owner] = await client.getInstanceBySubdomain(
-          idOrSubdomain
-        )
+        const [instance, owner] =
+          await client.getInstanceBySubdomain(idOrSubdomain)
         if (instance && owner) {
           dbg(`${idOrSubdomain} is a subdomain`)
           return { instance, owner }
@@ -477,14 +476,14 @@ export const instanceService = mkSingleton(
         if (instanceIdOrSubdomain === PUBLIC_APP_DB) return
 
         const { instance, owner } = await getInstanceByIdOrSubdomain(
-          instanceIdOrSubdomain
+          instanceIdOrSubdomain,
         )
         if (!owner) {
           throw new Error(`Instance owner is invalid`)
         }
         if (!instance) {
           throw new Error(
-            `Subdomain ${instanceIdOrSubdomain} does not resolve to an instance`
+            `Subdomain ${instanceIdOrSubdomain} does not resolve to an instance`,
           )
         }
 
@@ -494,7 +493,7 @@ export const instanceService = mkSingleton(
         dbg(`Checking for maintenance mode`)
         if (instance.maintenance) {
           throw new Error(
-            `This instance is in Maintenance Mode. See https://pockethost.gitbook.io/manual/daily-usage/maintenance for more information.`
+            `This instance is in Maintenance Mode. See https://pockethost.gitbook.io/manual/daily-usage/maintenance for more information.`,
           )
         }
 
@@ -504,7 +503,7 @@ export const instanceService = mkSingleton(
         dbg(`Checking for verified account`)
         if (!owner?.verified) {
           throw new Error(
-            `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`
+            `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`,
           )
         }
 
@@ -518,12 +517,12 @@ export const instanceService = mkSingleton(
         dbg(
           `Forwarding proxy request for ${
             req.url
-          } to instance ${api.internalUrl()}`
+          } to instance ${api.internalUrl()}`,
         )
 
         proxy.web(req, res, { target: api.internalUrl() })
       },
-      `InstanceService`
+      `InstanceService`,
     )
 
     const { getNextPort } = await portManager({ maxPorts })
@@ -537,5 +536,5 @@ export const instanceService = mkSingleton(
     const getInstanceApiIfExistsById = (id: InstanceId) => instanceApis[id]
 
     return { shutdown, getInstanceApiIfExistsById }
-  }
+  },
 )

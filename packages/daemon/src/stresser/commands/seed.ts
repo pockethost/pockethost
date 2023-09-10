@@ -38,7 +38,7 @@ export const createSeed = (context: { program: Command } & ContextBase) => {
       `-c, --count`,
       `Number of new seed instances to create`,
       parseInt,
-      10
+      10,
     )
     .action(async () => {
       const options = seedCmd.optsWithGlobals<SeedOptions>()

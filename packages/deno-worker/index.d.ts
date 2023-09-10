@@ -19,7 +19,7 @@ declare class EventSource {
 
   constructor(
     url: string,
-    eventSourceInitDict?: EventSource.EventSourceInitDict
+    eventSourceInitDict?: EventSource.EventSourceInitDict,
   )
 
   readonly CLOSED: number

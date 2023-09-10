@@ -1,12 +1,12 @@
 import { clientService } from '$services'
 import {
-  assertTruthy,
-  mkSingleton,
+  RPC_COMMANDS,
   RpcCommands,
   RpcFields,
   RpcStatus,
-  RPC_COMMANDS,
   SingletonBaseConfig,
+  assertTruthy,
+  mkSingleton,
 } from '@pockethost/common'
 import { isObject } from '@s-libs/micro-dash'
 import Ajv, { JSONSchemaType, ValidateFunction } from 'ajv'
@@ -22,12 +22,12 @@ export type KnexApi = ReturnType<typeof knexFactory>
 export type CommandModuleInitializer = (
   register: RpcServiceApi['registerCommand'],
   client: pocketbaseEs,
-  knex: KnexApi
+  knex: KnexApi,
 ) => void
 
 export type RpcRunner<
   TPayload extends JsonObject,
-  TResult extends JsonObject
+  TResult extends JsonObject,
 > = (job: RpcFields<TPayload, TResult>) => Promise<TResult>
 
 export type RpcServiceConfig = SingletonBaseConfig & {}
@@ -58,8 +58,8 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
           if (!RPC_COMMANDS.find((c) => c === cmd)) {
             throw new Error(
               `RPC command '${cmd}' is invalid. It must be one of: ${RPC_COMMANDS.join(
-                '|'
-              )}.`
+                '|',
+              )}.`,
             )
           }
           return cmd as RpcCommands
@@ -76,7 +76,7 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
         const { validate, run } = handler
         if (!validate(payload)) {
           throw new Error(
-            `Payload for ${cmd} fails validation: ${JSON.stringify(payload)}`
+            `Payload for ${cmd} fails validation: ${JSON.stringify(payload)}`,
           )
         }
         dbg(`Running RPC ${rpc.id}`, rpc)
@@ -115,11 +115,11 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
 
   const registerCommand = <
     TPayload extends JsonObject,
-    TResult extends JsonObject
+    TResult extends JsonObject,
   >(
     commandName: RpcCommands,
     schema: JSONSchemaType<TPayload>,
-    runner: RpcRunner<TPayload, TResult>
+    runner: RpcRunner<TPayload, TResult>,
   ) => {
     if (jobHandlers[commandName]) {
       throw new Error(`${commandName} job handler already registered.`)

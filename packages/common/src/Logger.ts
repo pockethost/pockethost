@@ -58,7 +58,7 @@ export const createLogger = (config: Partial<Config>) => {
             return JSON.stringify(arg)
           }
           return arg
-        })
+        }),
       )
   }
 
@@ -89,7 +89,7 @@ export const createLogger = (config: Partial<Config>) => {
     ;[..._buf.slice(_curIdx, MAX_BUF), ..._buf.slice(0, _curIdx)].forEach(
       (args) => {
         console.error(...args)
-      }
+      },
     )
     console.error(`========== ERROR TRACEBACK END ==============`)
   }

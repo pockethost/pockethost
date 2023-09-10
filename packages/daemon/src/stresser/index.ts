@@ -22,7 +22,7 @@ program
   .option(
     '-u, --mothership-url',
     'URL to central database',
-    'http://127.0.0.1:8090'
+    'http://127.0.0.1:8090',
   )
 
 createCleanup({ program, logger })

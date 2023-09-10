@@ -24,25 +24,25 @@ export const createStress = (context: { program: Command } & ContextBase) => {
       '-ic, --instance-count <number>',
       `Number of simultaneous instances to hit`,
       parseInt,
-      100
+      100,
     )
     .option(
       '-rc, --requests-per-instance <number>',
       `Number of simultaneous requests per instance`,
       parseInt,
-      50
+      50,
     )
     .option(
       '-mind, --min-delay <number>',
       `Minimum number of milliseconds to delay before sending another request`,
       parseInt,
-      50
+      50,
     )
     .option(
       '-maxd, --max-delay <number>',
       `Maximum number of milliseconds to delay before sending another request`,
       parseInt,
-      500
+      500,
     )
     .action(async () => {
       const options = seedCmd.optsWithGlobals<StressOptions>()
@@ -63,7 +63,7 @@ export const createStress = (context: { program: Command } & ContextBase) => {
           if (excluded[instanceId]) return
           await client.updateInstance(instanceId, { maintenance: false })
         },
-        (id) => `reset:${id}`
+        (id) => `reset:${id}`,
       )
 
       const instances = await client.getInstances()
@@ -80,7 +80,7 @@ export const createStress = (context: { program: Command } & ContextBase) => {
           dbg(
             `There are ${instances.length} instances and ${
               values(excluded).length
-            } excluded`
+            } excluded`,
           )
           if (!instance) throw new Error(`No instance to grab`)
 
@@ -108,7 +108,7 @@ export const createStress = (context: { program: Command } & ContextBase) => {
                     return // Timeout
                   }
                 }
-              })
+              }),
             )
           }
         } catch (e) {

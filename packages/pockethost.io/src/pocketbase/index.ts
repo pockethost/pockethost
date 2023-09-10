@@ -1,7 +1,10 @@
 import { browser } from '$app/environment'
 import { PUBLIC_APP_DB, PUBLIC_APP_DOMAIN } from '$src/env'
 import { logger } from '@pockethost/common'
-import { createPocketbaseClient, type PocketbaseClient } from './PocketbaseClient'
+import {
+  createPocketbaseClient,
+  type PocketbaseClient,
+} from './PocketbaseClient'
 
 export const client = (() => {
   let clientInstance: PocketbaseClient | undefined

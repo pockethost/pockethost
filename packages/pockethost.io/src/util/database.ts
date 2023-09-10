@@ -28,7 +28,7 @@ export const handleLogin = async (
   email: string,
   password: string,
   setError?: FormErrorHandler,
-  shouldRedirect: boolean = true
+  shouldRedirect: boolean = true,
 ) => {
   const { authViaEmail } = client()
   // Reset the form error if the form is submitted
@@ -42,7 +42,9 @@ export const handleLogin = async (
     }
   } catch (error) {
     if (!(error instanceof Error)) {
-      throw new Error(`Expected Error type here, but got ${typeof error}:${error}`)
+      throw new Error(
+        `Expected Error type here, but got ${typeof error}:${error}`,
+      )
     }
     handleFormError(error, setError)
   }
@@ -57,7 +59,7 @@ export const handleLogin = async (
 export const handleRegistration = async (
   email: string,
   password: string,
-  setError?: FormErrorHandler
+  setError?: FormErrorHandler,
 ) => {
   const { createUser } = client()
   // Reset the form error if the form is submitted
@@ -75,7 +77,10 @@ export const handleRegistration = async (
  * @param token {string} The token from the verification email
  * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
-export const handleAccountConfirmation = async (token: string, setError?: FormErrorHandler) => {
+export const handleAccountConfirmation = async (
+  token: string,
+  setError?: FormErrorHandler,
+) => {
   const { confirmVerification } = client()
   // Reset the form error if the form is submitted
   setError?.('')
@@ -98,7 +103,7 @@ export const handleAccountConfirmation = async (token: string, setError?: FormEr
  */
 export const handleUnauthenticatedPasswordReset = async (
   email: string,
-  setError?: FormErrorHandler
+  setError?: FormErrorHandler,
 ) => {
   const { requestPasswordReset } = client()
   // Reset the form error if the form is submitted
@@ -122,7 +127,7 @@ export const handleUnauthenticatedPasswordReset = async (
 export const handleUnauthenticatedPasswordResetConfirm = async (
   token: string,
   password: string,
-  setError?: FormErrorHandler
+  setError?: FormErrorHandler,
 ) => {
   const { requestPasswordResetConfirm } = client()
   // Reset the form error if the form is submitted
@@ -141,7 +146,7 @@ export const handleUnauthenticatedPasswordResetConfirm = async (
 
 export const handleCreateNewInstance = async (
   instanceName: string,
-  setError?: FormErrorHandler
+  setError?: FormErrorHandler,
 ) => {
   const { user, createInstance } = client()
   // Get the newly created user id
@@ -154,7 +159,7 @@ export const handleCreateNewInstance = async (
 
     // Create a new instance using the generated name
     const record = await createInstance({
-      subdomain: instanceName
+      subdomain: instanceName,
     })
 
     await goto(`/app/instances/${record.instance.id}`)
@@ -167,7 +172,7 @@ export const handleInstanceGeneratorWidget = async (
   email: string,
   password: string,
   instanceName: string,
-  setError = (value: string) => {}
+  setError = (value: string) => {},
 ) => {
   const { dbg, error, warn } = logger()
 
@@ -203,7 +208,7 @@ export const handleInstanceGeneratorWidget = async (
                 // If registration succeeds, login should always succeed.
                 // If a login fails at this point, the system is broken.
                 throw new Error(
-                  `Login system is currently down. Please contact us so we can fix this.`
+                  `Login system is currently down. Please contact us so we can fix this.`,
                 )
               })
           })
@@ -247,7 +252,9 @@ export const handleInstanceGeneratorWidget = async (
   }
 }
 
-export const handleResendVerificationEmail = async (setError = (value: string) => {}) => {
+export const handleResendVerificationEmail = async (
+  setError = (value: string) => {},
+) => {
   const { resendVerificationEmail } = client()
   try {
     await resendVerificationEmail()

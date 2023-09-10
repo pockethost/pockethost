@@ -9,13 +9,13 @@ import { ConnectionConfig } from './ensureAdminClient'
 
 export const pbClient = (
   config: ConnectionConfig,
-  saver: SessionStateSaver
+  saver: SessionStateSaver,
 ) => {
   const { host, session } = config
   const client = new PocketBase(
     host,
     'en-US',
-    new CustomAuthStore(session, saver)
+    new CustomAuthStore(session, saver),
   )
   return client
 }
@@ -31,7 +31,7 @@ export const isAdmin = async (client: pocketbaseEs) => {
 
 export const adminPbClient = async (
   config: ConnectionConfig,
-  saver: SessionStateSaver
+  saver: SessionStateSaver,
 ) => {
   const client = pbClient(config, saver)
   if (!client.authStore.isValid) {

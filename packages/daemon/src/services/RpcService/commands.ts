@@ -20,9 +20,9 @@ import {
   type SetInstanceMaintenanceResult,
 } from '@pockethost/common'
 import { valid, validRange } from 'semver'
-import { clientService } from '../clientService/clientService'
 import { instanceService } from '../InstanceService/InstanceService'
 import { updaterService } from '../UpdaterService/UpdaterService'
+import { clientService } from '../clientService/clientService'
 import { rpcService } from './RpcService'
 
 export const registerRpcCommands = async (logger: Logger) => {
@@ -48,7 +48,7 @@ export const registerRpcCommands = async (logger: Logger) => {
         maintenance: false,
       })
       return { instance }
-    }
+    },
   )
 
   registerCommand<SaveVersionPayload, SaveVersionResult>(
@@ -65,7 +65,7 @@ export const registerRpcCommands = async (logger: Logger) => {
       }
       await client.updateInstance(instanceId, { version })
       return { status: 'ok' }
-    }
+    },
   )
 
   registerCommand<SaveSecretsPayload, SaveSecretsResult>(
@@ -76,7 +76,7 @@ export const registerRpcCommands = async (logger: Logger) => {
       const { instanceId, secrets } = payload
       await client.updateInstance(instanceId, { secrets })
       return { status: 'ok' }
-    }
+    },
   )
 
   registerCommand<RenameInstancePayload, RenameInstanceResult>(
@@ -90,7 +90,7 @@ export const registerRpcCommands = async (logger: Logger) => {
       await client.updateInstance(instanceId, { subdomain })
       dbg(`Instance updated successfully `)
       return {}
-    }
+    },
   )
 
   registerCommand<SetInstanceMaintenancePayload, SetInstanceMaintenanceResult>(
@@ -112,7 +112,7 @@ export const registerRpcCommands = async (logger: Logger) => {
         }
       }
       return {}
-    }
+    },
   )
 
   // gen:command

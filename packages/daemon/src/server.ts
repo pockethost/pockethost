@@ -79,7 +79,7 @@ global.EventSource = require('eventsource')
             error(`migrate had an unexpected stop. Check it out`)
           },
         },
-        { logger }
+        { logger },
       )
     ).exited
     info(`Migrating done`)
@@ -96,7 +96,7 @@ global.EventSource = require('eventsource')
         error(`migrate had an unexpected stop. Check it out`)
       },
     },
-    { logger }
+    { logger },
   )
 
   /**

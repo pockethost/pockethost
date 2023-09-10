@@ -9,7 +9,7 @@ export const safeCatch = <TIn extends any[], TOut>(
   name: string,
   logger: Logger,
   cb: (...args: TIn) => Promise<TOut>,
-  timeoutMs = SAFECATCH_TTL_MS
+  timeoutMs = SAFECATCH_TTL_MS,
 ): ((...args: TIn) => Promise<TOut>) => {
   return async (...args: TIn) => {
     const uuid = `${name}:${nanoid()}`
@@ -29,17 +29,17 @@ export const safeCatch = <TIn extends any[], TOut>(
       if (e instanceof ClientResponseError) {
         if (e.status === 400) {
           dbg(
-            `PocketBase API error: It looks like you don't have permission to make this request. Raw error: ${e}. Payload: ${payload}`
+            `PocketBase API error: It looks like you don't have permission to make this request. Raw error: ${e}. Payload: ${payload}`,
           )
         } else if (e.status === 0) {
           dbg(
-            `Client request aborted (possible duplicate request or real error). Raw error: ${e}. Payload: ${payload}`
+            `Client request aborted (possible duplicate request or real error). Raw error: ${e}. Payload: ${payload}`,
           )
         } else if (e.status === 404) {
           dbg(`Record not found. Raw error: ${e}. Payload: ${payload}`)
         } else {
           dbg(
-            `Unknown PocketBase API error. Raw error: ${e}. Payload: ${payload}`
+            `Unknown PocketBase API error. Raw error: ${e}. Payload: ${payload}`,
           )
         }
       } else {

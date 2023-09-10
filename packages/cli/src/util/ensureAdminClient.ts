@@ -20,11 +20,11 @@ export type ConnectionConfig = {
 
 export const ensureAdminClient = async (
   slug: string,
-  config: ConnectionConfig
+  config: ConnectionConfig,
 ) => {
   const saver = mkProjectSaver<ConnectionConfig>(slug)
   const client = pbClient(config, (session) =>
-    saver((config) => ({ ...config, session }))
+    saver((config) => ({ ...config, session })),
   )
   const _isAdmin = await isAdmin(client)
   if (_isAdmin) {
@@ -34,7 +34,7 @@ export const ensureAdminClient = async (
   const { host } = config
 
   console.log(
-    `You must be logged in to ${host}/_ as a PocketBase admin to continue.`
+    `You must be logged in to ${host}/_ as a PocketBase admin to continue.`,
   )
 
   while (true) {
@@ -55,7 +55,7 @@ export const ensureAdminClient = async (
             value.length > 0 ? true : `Enter a password`,
         },
       ],
-      { onCancel: () => die(`Exited.`) }
+      { onCancel: () => die(`Exited.`) },
     )
     const { username, password } = response
     try {

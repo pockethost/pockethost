@@ -1,12 +1,12 @@
 import {
-  assertExists,
+  INSTANCE_COLLECTION,
   InstanceFields,
   InstanceFields_Create,
   InstanceId,
   InstanceStatus,
-  INSTANCE_COLLECTION,
-  safeCatch,
   UserFields,
+  assertExists,
+  safeCatch,
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -25,7 +25,7 @@ export const createInstanceMixin = (context: MixinContext) => {
   const resetInstances = safeCatch(`resetRpcs`, logger, async () =>
     rawDb(INSTANCE_COLLECTION).update<InstanceFields>({
       status: InstanceStatus.Idle,
-    })
+    }),
   )
 
   const createInstance = safeCatch(
@@ -35,7 +35,7 @@ export const createInstanceMixin = (context: MixinContext) => {
       return client
         .collection(INSTANCE_COLLECTION)
         .create<InstanceFields>(payload)
-    }
+    },
   )
 
   const getInstanceBySubdomain = safeCatch(
@@ -57,12 +57,12 @@ export const createInstanceMixin = (context: MixinContext) => {
             .then((user) => {
               return [instance, user]
             })
-        })
+        }),
   )
 
   const getInstanceById = async (
     instanceId: InstanceId,
-    context?: AsyncContext
+    context?: AsyncContext,
   ): Promise<[InstanceFields, UserFields] | []> =>
     client
       .collection(INSTANCE_COLLECTION)
@@ -86,7 +86,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     logger,
     async (instanceId: InstanceId, fields: Partial<InstanceFields>) => {
       await client.collection(INSTANCE_COLLECTION).update(instanceId, fields)
-    }
+    },
   )
 
   const updateInstanceStatus = safeCatch(
@@ -94,7 +94,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     logger,
     async (instanceId: InstanceId, status: InstanceStatus) => {
       await updateInstance(instanceId, { status })
-    }
+    },
   )
 
   const getInstance = safeCatch(
@@ -104,7 +104,7 @@ export const createInstanceMixin = (context: MixinContext) => {
       return client
         .collection(INSTANCE_COLLECTION)
         .getOne<InstanceFields>(instanceId)
-    }
+    },
   )
 
   const getInstances = safeCatch(`getInstances`, logger, async () => {
@@ -129,14 +129,14 @@ export const createInstanceMixin = (context: MixinContext) => {
               return client
                 .collection(INSTANCE_COLLECTION)
                 .update(r.id, toUpdate)
-            })
+            }),
           )
           return c
         },
-        [] as Promise<void>[]
+        [] as Promise<void>[],
       )
       await Promise.all(promises)
-    }
+    },
   )
 
   const updateInstanceSeconds = safeCatch(
@@ -156,7 +156,7 @@ export const createInstanceMixin = (context: MixinContext) => {
       assertExists(row, `Expected row here`)
       const secondsThisMonth = row.t
       await updateInstance(instanceId, { secondsThisMonth })
-    }
+    },
   )
 
   return {

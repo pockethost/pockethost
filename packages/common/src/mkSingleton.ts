@@ -10,9 +10,9 @@ export type SingletonBaseConfig = {
 
 export const mkSingleton = <
   TConfig,
-  TApi extends SingletonApi | Promise<SingletonApi>
+  TApi extends SingletonApi | Promise<SingletonApi>,
 >(
-  factory: (config: TConfig) => TApi
+  factory: (config: TConfig) => TApi,
 ) => {
   let _service: TApi | undefined = undefined
   return (config?: TConfig) => {

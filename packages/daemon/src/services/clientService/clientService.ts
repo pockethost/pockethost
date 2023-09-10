@@ -31,7 +31,7 @@ export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
       dbg(`Logged in`)
     } catch (e) {
       error(
-        `CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`
+        `CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`,
       )
       process.exit(-1)
     }

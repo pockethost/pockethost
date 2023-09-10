@@ -16,7 +16,7 @@ export const createCleanup = (context: { program: Command } & ContextBase) => {
     .option(
       `-f, --filter <filter>`,
       `Filter to use when deleting instances`,
-      `stress-%`
+      `stress-%`,
     )
     .action(async () => {
       const options = cleanupCmd.optsWithGlobals<CleanupOptions>()

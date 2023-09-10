@@ -1,17 +1,17 @@
 import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
-  assertExists,
   CreateInstancePayloadSchema,
-  createRpcHelper,
-  createWatchHelper,
-  logger,
   RenameInstancePayloadSchema,
   RpcCommands,
-  safeCatch,
   SaveSecretsPayloadSchema,
   SaveVersionPayloadSchema,
   SetInstanceMaintenancePayloadSchema,
+  assertExists,
+  createRpcHelper,
+  createWatchHelper,
+  logger,
+  safeCatch,
   type CreateInstancePayload,
   type CreateInstanceResult,
   type InstanceFields,
@@ -26,7 +26,7 @@ import {
   type SetInstanceMaintenancePayload,
   type SetInstanceMaintenanceResult,
   // gen:import
-  type UserFields
+  type UserFields,
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, {
@@ -34,7 +34,7 @@ import PocketBase, {
   BaseAuthStore,
   ClientResponseError,
   type RecordSubscription,
-  type UnsubscribeFunc
+  type UnsubscribeFunc,
 } from 'pocketbase'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
@@ -66,36 +66,45 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const logOut = () => authStore.clear()
 
-  const createUser = safeCatch(`createUser`, _logger, (email: string, password: string) =>
-    client
-      .collection('users')
-      .create({
-        email,
-        password,
-        passwordConfirm: password
-      })
-      .then(() => {
-        // dbg(`Sending verification email to ${email}`)
-        return client.collection('users').requestVerification(email)
-      })
+  const createUser = safeCatch(
+    `createUser`,
+    _logger,
+    (email: string, password: string) =>
+      client
+        .collection('users')
+        .create({
+          email,
+          password,
+          passwordConfirm: password,
+        })
+        .then(() => {
+          // dbg(`Sending verification email to ${email}`)
+          return client.collection('users').requestVerification(email)
+        }),
   )
 
-  const confirmVerification = safeCatch(`confirmVerification`, _logger, (token: string) =>
-    client
-      .collection('users')
-      .confirmVerification(token)
-      .then((response) => {
-        return response
-      })
+  const confirmVerification = safeCatch(
+    `confirmVerification`,
+    _logger,
+    (token: string) =>
+      client
+        .collection('users')
+        .confirmVerification(token)
+        .then((response) => {
+          return response
+        }),
   )
 
-  const requestPasswordReset = safeCatch(`requestPasswordReset`, _logger, (email: string) =>
-    client
-      .collection('users')
-      .requestPasswordReset(email)
-      .then(() => {
-        return true
-      })
+  const requestPasswordReset = safeCatch(
+    `requestPasswordReset`,
+    _logger,
+    (email: string) =>
+      client
+        .collection('users')
+        .requestPasswordReset(email)
+        .then(() => {
+          return true
+        }),
   )
 
   const requestPasswordResetConfirm = safeCatch(
@@ -107,15 +116,18 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         .confirmPasswordReset(token, password, password)
         .then((response) => {
           return response
-        })
+        }),
   )
 
-  const authViaEmail = safeCatch(`authViaEmail`, _logger, (email: string, password: string) =>
-    client.collection('users').authWithPassword(email, password)
+  const authViaEmail = safeCatch(
+    `authViaEmail`,
+    _logger,
+    (email: string, password: string) =>
+      client.collection('users').authWithPassword(email, password),
   )
 
   const refreshAuthToken = safeCatch(`refreshAuthToken`, _logger, () =>
-    client.collection('users').authRefresh()
+    client.collection('users').authRefresh(),
   )
 
   const watchHelper = createWatchHelper({ client })
@@ -125,27 +137,27 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const createInstance = mkRpc<CreateInstancePayload, CreateInstanceResult>(
     RpcCommands.CreateInstance,
-    CreateInstancePayloadSchema
+    CreateInstancePayloadSchema,
   )
   const saveSecrets = mkRpc<SaveSecretsPayload, SaveSecretsResult>(
     RpcCommands.SaveSecrets,
-    SaveSecretsPayloadSchema
+    SaveSecretsPayloadSchema,
   )
 
   const saveVersion = mkRpc<SaveVersionPayload, SaveVersionResult>(
     RpcCommands.SaveVersion,
-    SaveVersionPayloadSchema
+    SaveVersionPayloadSchema,
   )
 
   const renameInstance = mkRpc<RenameInstancePayload, RenameInstanceResult>(
     RpcCommands.RenameInstance,
-    RenameInstancePayloadSchema
+    RenameInstancePayloadSchema,
   )
 
-  const setInstanceMaintenance = mkRpc<SetInstanceMaintenancePayload, SetInstanceMaintenanceResult>(
-    RpcCommands.SetInstanceMaintenance,
-    SetInstanceMaintenancePayloadSchema
-  )
+  const setInstanceMaintenance = mkRpc<
+    SetInstanceMaintenancePayload,
+    SetInstanceMaintenanceResult
+  >(RpcCommands.SetInstanceMaintenance, SetInstanceMaintenancePayloadSchema)
 
   // gen:mkRpc
 
@@ -153,42 +165,56 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     `getInstanceById`,
     _logger,
     (id: InstanceId): Promise<InstanceFields | undefined> =>
-      client.collection('instances').getOne<InstanceFields>(id)
+      client.collection('instances').getOne<InstanceFields>(id),
   )
 
   const watchInstanceById = async (
     id: InstanceId,
-    cb: (data: RecordSubscription<InstanceFields>) => void
+    cb: (data: RecordSubscription<InstanceFields>) => void,
   ): Promise<UnsubscribeFunc> => watchById('instances', id, cb)
 
-  const getAllInstancesById = safeCatch(`getAllInstancesById`, _logger, async () =>
-    (await client.collection('instances').getFullList()).reduce((c, v) => {
-      c[v.id] = v as unknown as InstanceFields
-      return c
-    }, {} as { [_: InstanceId]: InstanceFields })
+  const getAllInstancesById = safeCatch(
+    `getAllInstancesById`,
+    _logger,
+    async () =>
+      (await client.collection('instances').getFullList()).reduce(
+        (c, v) => {
+          c[v.id] = v as unknown as InstanceFields
+          return c
+        },
+        {} as { [_: InstanceId]: InstanceFields },
+      ),
   )
 
   const parseError = (e: Error): string[] => {
     if (!(e instanceof ClientResponseError)) return [e.message]
-    if (e.data.message && keys(e.data.data).length === 0) return [e.data.message]
-    return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter((v) => !!v)
+    if (e.data.message && keys(e.data.data).length === 0)
+      return [e.data.message]
+    return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter(
+      (v) => !!v,
+    )
   }
 
-  const resendVerificationEmail = safeCatch(`resendVerificationEmail`, _logger, async () => {
-    const user = client.authStore.model
-    assertExists(user, `Login required`)
-    await client.collection('users').requestVerification(user.email)
-  })
+  const resendVerificationEmail = safeCatch(
+    `resendVerificationEmail`,
+    _logger,
+    async () => {
+      const user = client.authStore.model
+      assertExists(user, `Login required`)
+      await client.collection('users').requestVerification(user.email)
+    },
+  )
 
   const getAuthStoreProps = (): AuthStoreProps => {
     const { token, model, isValid } = client.authStore as AuthStoreProps
     // dbg(`current authStore`, { token, model, isValid })
     if (model instanceof Admin) throw new Error(`Admin models not supported`)
-    if (model && !model.email) throw new Error(`Expected model to be a user here`)
+    if (model && !model.email)
+      throw new Error(`Expected model to be a user here`)
     return {
       token,
       model,
-      isValid
+      isValid,
     }
   }
 
@@ -196,7 +222,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
    * Use synthetic event for authStore changers so we can broadcast just
    * the props we want and not the actual authStore object.
    */
-  const [onAuthChange, fireAuthChange] = createGenericSyncEvent<AuthStoreProps>()
+  const [onAuthChange, fireAuthChange] =
+    createGenericSyncEvent<AuthStoreProps>()
 
   /**
    * This section is for initialization
@@ -254,7 +281,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const watchInstanceLog = (
     instanceId: InstanceId,
     update: (log: InstanceLogFields) => void,
-    nInitial = 100
+    nInitial = 100,
   ): (() => void) => {
     const { dbg, trace } = _logger.create('watchInstanceLog')
     const auth = client.authStore.exportToCookie()
@@ -266,12 +293,12 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
       fetchEventSource(`${url}/logs`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           instanceId,
           n: nInitial,
-          auth
+          auth,
         }),
         onmessage: (event) => {
           trace(`Got stream event`, event)
@@ -290,7 +317,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
           setTimeout(continuallyFetchFromEventSource, 100)
           dbg(`Stream closed`)
         },
-        signal
+        signal,
       })
     }
     continuallyFetchFromEventSource()
@@ -323,6 +350,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     renameInstance,
     setInstanceMaintenance,
     // gen:export
-    saveVersion
+    saveVersion,
   }
 }

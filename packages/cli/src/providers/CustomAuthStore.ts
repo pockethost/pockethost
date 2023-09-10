@@ -50,7 +50,7 @@ export class CustomAuthStore extends BaseAuthStore {
   }
   exportToCookie(
     options?: SerializeOptions | undefined,
-    key?: string | undefined
+    key?: string | undefined,
   ): string {
     throw new Error(`Unsupported exportToCookie()`)
   }

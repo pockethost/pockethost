@@ -38,10 +38,10 @@ export const createCleanupManager = (slug?: string) => {
       (c, v) => {
         return c.then(() => v())
       },
-      Promise.resolve()
+      Promise.resolve(),
     ).catch((e) => {
       error(
-        `Cleanup functions are failing. This should never happen, check all cleanup functions to make sure they are trapping their exceptions.`
+        `Cleanup functions are failing. This should never happen, check all cleanup functions to make sure they are trapping their exceptions.`,
       )
       throw e
     })

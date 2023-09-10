@@ -22,7 +22,7 @@ export type ProxyMiddleware = (
     proxy: Server
     host: string
   },
-  logger: Logger
+  logger: Logger,
 ) => void | Promise<void>
 
 export type ProxyServiceConfig = SingletonBaseConfig & {
@@ -44,7 +44,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     dbg(`Incoming request ${req.method} ${req.headers.host}/${req.url}`)
     if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
       warn(
-        `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`
+        `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`,
       )
       res.writeHead(502, {
         'Content-Type': `text/plain`,
@@ -54,7 +54,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     }
     {
       const { warn } = _proxyLogger.create(
-        `${req.method} ${req.headers.host}/${req.url}`
+        `${req.method} ${req.headers.host}/${req.url}`,
       )
       try {
         for (let i = 0; i < middleware.length; i++) {
@@ -94,7 +94,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     subdomainFilter: string | ((subdomain: string) => boolean),
     urlFilters: string | string[],
     handler: ProxyMiddleware,
-    handlerName: string
+    handlerName: string,
   ) => {
     const _handlerLogger = _proxyLogger.create(`${handlerName}`)
     const { dbg, trace } = _handlerLogger
@@ -149,7 +149,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         req,
         res,
         { host, subdomain, coreInternalUrl, proxy },
-        _requestLogger
+        _requestLogger,
       )
     })
   }

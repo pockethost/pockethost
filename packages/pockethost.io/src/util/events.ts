@@ -4,7 +4,7 @@ export type Unsubscribe = () => void
 
 export const createGenericAsyncEvent = <TPayload>(): [
   (cb: (payload: TPayload) => Promise<void>) => Unsubscribe,
-  (payload: TPayload) => Promise<void>
+  (payload: TPayload) => Promise<void>,
 ] => {
   let i = 0
   const callbacks: any = {}
@@ -22,7 +22,7 @@ export const createGenericAsyncEvent = <TPayload>(): [
       (c, cb) => {
         return c.then(cb(payload))
       },
-      Promise.resolve()
+      Promise.resolve(),
     )
 
   return [onEvent, fireEvent]
@@ -30,7 +30,7 @@ export const createGenericAsyncEvent = <TPayload>(): [
 
 export const createGenericSyncEvent = <TPayload>(): [
   (cb: (payload: TPayload) => void) => Unsubscribe,
-  (payload: TPayload) => void
+  (payload: TPayload) => void,
 ] => {
   let i = 0
   const callbacks: any = {}

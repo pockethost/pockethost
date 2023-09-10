@@ -70,7 +70,7 @@ export const addPublishCommand = (program: Command) => {
     .description('Publish JS bundle to PBScript-enabled PocketBase instance')
     .option(
       '--dist <src>',
-      `Path to dist bundle (default: <project>/dist/index.js)`
+      `Path to dist bundle (default: <project>/dist/index.js)`,
     )
     .option('--host <host>', `PocketBase host (default: ${DEFAULT_PB_DEV_URL})`)
     .action(async (options) => {
