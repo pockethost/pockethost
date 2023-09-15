@@ -16,6 +16,8 @@ Instances are placed in hibernation after 5 seconds of idle time.
 
 ## Usage Metering
 
+_Note: Usage Metering is not active until PocketHost reaches v1.0. There is no planned timeline for when or if PocketHost will reach v1.0_
+
 The free tier of PocketHost provides 100 _active minutes_ per month.
 
 ![](2023-01-05-23-02-49.png)
