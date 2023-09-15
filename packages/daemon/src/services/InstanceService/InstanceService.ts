@@ -8,18 +8,18 @@ import {
 import { clientService, proxyService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
-  assertTruthy,
   CLEANUP_PRIORITY_LAST,
-  createCleanupManager,
-  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
+  SingletonBaseConfig,
+  StreamNames,
+  assertTruthy,
+  createCleanupManager,
+  createTimerManager,
   mkSingleton,
   safeCatch,
   serialAsyncExecutionGuard,
-  SingletonBaseConfig,
-  StreamNames,
 } from '@pockethost/common'
 import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -449,9 +449,8 @@ export const instanceService = mkSingleton(
       }
       {
         dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const [instance, owner] = await client.getInstanceBySubdomain(
-          idOrSubdomain,
-        )
+        const [instance, owner] =
+          await client.getInstanceBySubdomain(idOrSubdomain)
         if (instance && owner) {
           dbg(`${idOrSubdomain} is a subdomain`)
           return { instance, owner }
