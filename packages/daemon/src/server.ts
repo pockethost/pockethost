@@ -97,7 +97,7 @@ global.EventSource = require('eventsource')
    * Launch services
    */
   await clientService({ url, logger })
-  ftpService({ logger })
+  await ftpService({ logger })
   await rpcService({ logger })
   await proxyService({
     logger,
