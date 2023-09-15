@@ -66,7 +66,7 @@ export const createPocketbaseService = async (
     const { dbg, warn, error } = logger
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-      port: await getPort(),
+      port: cfg.port || (await getPort()),
       isMothership: false,
       ...cfg,
     }
