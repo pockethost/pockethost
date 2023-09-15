@@ -49,13 +49,13 @@ export const createLogger = (config: Partial<Config>) => {
         ...args.map((arg) => {
           const t = typeof arg
           if (t === 'string' && !!arg.match(/\n/)) {
-            return JSON.stringify(arg)
+            return JSON.stringify(arg, null, 2)
           }
           if (t === 'function') {
             return `<<function ${JSON.stringify(arg.toString())}>>`
           }
           if (t === 'object') {
-            return JSON.stringify(arg)
+            return JSON.stringify(arg, null, 2)
           }
           return arg
         }),

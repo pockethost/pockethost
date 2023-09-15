@@ -9,6 +9,7 @@ import {
   SingletonBaseConfig,
   mkSingleton,
 } from '@pockethost/common/src/mkSingleton'
+import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
 import getPort from 'get-port'
@@ -20,12 +21,16 @@ import { AsyncContext } from '../../util/AsyncContext'
 import { updaterService } from '../UpdaterService/UpdaterService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
+export type Env = { [_: string]: string }
 export type SpawnConfig = {
   command: PocketbaseCommand
   slug: string
   version?: string
   port?: number
   isMothership?: boolean
+  env?: Env
+  stdout?: MemoryStream
+  stderr?: MemoryStream
   onUnexpectedStop: (
     code: number | null,
     stdout: string[],
@@ -65,10 +70,22 @@ export const createPocketbaseService = async (
       version: maxVersion,
       port: cfg.port || (await getPort()),
       isMothership: false,
+      env: {},
+      stderr: new MemoryStream(),
+      stdout: new MemoryStream(),
       ...cfg,
     }
-    const { version, command, slug, port, onUnexpectedStop, isMothership } =
-      _cfg
+    const {
+      version,
+      command,
+      slug,
+      port,
+      onUnexpectedStop,
+      isMothership,
+      env,
+      stderr,
+      stdout,
+    } = _cfg
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await getVersion(_version)
     const binPath = realVersion.binPath
@@ -106,21 +123,22 @@ export const createPocketbaseService = async (
     const docker = new Docker()
     const stdoutHistory: string[] = []
     const stderrHistory: string[] = []
-    const stdout = new MemoryStream()
-    stdout.on('data', (data: Buffer) => {
+    const _stdoutData = (data: Buffer) => {
       dbg(`${slug} stdout: ${data}`)
       stdoutHistory.push(data.toString())
       if (stdoutHistory.length > 100) stdoutHistory.pop()
-    })
-    const stderr = new MemoryStream()
-    stderr.on('data', (data: Buffer) => {
+    }
+    stdout.on('data', _stdoutData)
+    const _stdErrData = (data: Buffer) => {
       warn(`${slug} stderr: ${data}`)
       stderrHistory.push(data.toString())
       if (stderrHistory.length > 100) stderrHistory.pop()
-    })
+    }
+    stderr.on('data', _stdErrData)
     const createOptions: ContainerCreateOptions = {
       Image: `pockethost/pocketbase`,
       Cmd: args,
+      Env: map(env, (v, k) => `${k}=${v}`),
       HostConfig: {
         CpuPercent: 10,
         PortBindings: {
@@ -171,6 +189,8 @@ export const createPocketbaseService = async (
       cm.add(async () => {
         dbg(`Stopping ${slug} for cleanup`)
         await container?.stop().catch(warn)
+        stderr.off('data', _stdErrData)
+        stdout.off('data', _stdoutData)
       })
     })
 

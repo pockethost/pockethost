@@ -12,20 +12,19 @@ Inside each instance directory, you will find:
 
 | Directory Name | Description                                     | Instructions                                            |
 | -------------- | ----------------------------------------------- | ------------------------------------------------------- |
-| pb\_data       | The PocketBase data directory                   | [view](https://pocketbase.io/docs/going-to-production/) |
-| pb\_public     | The location from which public files are served | [view](https://pocketbase.io/docs)                      |
-| pb\_migrations | The PocketBase migrations directory             | [view](https://pocketbase.io/docs/migrations/)          |
-| pb\_hooks      | The PocketBase JS hooks directory               | [view](https://pocketbase.io/docs/js-overview/)         |
-| worker         | The Deno-based cloud worker                     | [view](../daily-usage/worker.md)                        |
+| pb_data        | The PocketBase data directory                   | [view](https://pocketbase.io/docs/going-to-production/) |
+| pb_public      | The location from which public files are served | [view](https://pocketbase.io/docs)                      |
+| pb_migrations  | The PocketBase migrations directory             | [view](https://pocketbase.io/docs/migrations/)          |
+| pb_hooks       | The PocketBase JS hooks directory               | [view](https://pocketbase.io/docs/js-overview/)         |
 
 ## Recommended Clients
 
 ### GUI
 
-* [FileZilla](https://filezilla-project.org/) is a great GUI frontend available for all platforms.
+- [FileZilla](https://filezilla-project.org/) is a great GUI frontend available for all platforms.
 
 ### CLI
 
-* [ftp](https://ftp.gnu.org/)
-* [wget](https://www.gnu.org/software/wget/) \[[homebrew](https://formulae.brew.sh/formula/wget)]
-* [lftp](https://lftp.yar.ru/) \[[homebrew](https://formulae.brew.sh/formula/lftp)]
+- [ftp](https://ftp.gnu.org/)
+- [wget](https://www.gnu.org/software/wget/) \[[homebrew](https://formulae.brew.sh/formula/wget)]
+- [lftp](https://lftp.yar.ru/) \[[homebrew](https://formulae.brew.sh/formula/lftp)]

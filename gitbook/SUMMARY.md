@@ -17,7 +17,6 @@
 - [Maintenance Mode](usage/maintenance.md)
 - [FTP Access](usage/ftp.md)
 - [Backup & Restore](usage/backup-and-restore.md)
-- [Worker](daily-usage/worker.md)
 - [PocketBase Hooks](usage/hooks.md)
 - [Upgrading](usage/upgrading.md)
 

@@ -15,7 +15,6 @@ Ideas, in no particular order...
 - [Documentation](https://github.com/benallfree/pockethost/issues/174)
   - daily usage
   - FTP
-  - workers
   - backups
   - usage limits and metering
   - environment variables and secrets

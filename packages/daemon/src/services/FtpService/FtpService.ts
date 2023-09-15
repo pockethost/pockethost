@@ -19,20 +19,17 @@ export enum FolderNames {
   PbPublic = 'pb_public',
   PbMigrations = 'pb_migrations',
   PbHooks = 'pb_hooks',
-  PbWorker = 'worker',
 }
 
 export const MAINTENANCE_ONLY_FOLDER_NAMES: FolderNames[] = [FolderNames.PbData]
 export const RESTART_ON_WRITE: FolderNames[] = [
   FolderNames.PbMigrations,
   FolderNames.PbHooks,
-  FolderNames.PbWorker,
 ]
 
 export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbData,
   FolderNames.PbPublic,
-  FolderNames.PbWorker,
   FolderNames.PbMigrations,
   FolderNames.PbHooks,
 ]

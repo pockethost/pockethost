@@ -4,7 +4,7 @@
     createCleanupManager,
     logger,
     type InstanceLogFields,
-    type RecordId
+    type RecordId,
   } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
@@ -40,8 +40,8 @@
 
 <AccordionItem title="Instance Logging">
   <p>
-    Instance logs appear here in realtime. They include instance events and errors, and Deno worker
-    events and errors.
+    Instance logs appear here in realtime, including <code>console.log</code> from
+    JavaScript hooks.
   </p>
   <div class="log-window">
     {#each logsArray as log}

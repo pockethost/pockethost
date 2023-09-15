@@ -1,5 +1,4 @@
 import {
-  DAEMON_PB_DATA_DIR,
   DAEMON_PB_IDLE_TTL,
   PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
@@ -23,14 +22,12 @@ import {
 } from '@pockethost/common'
 import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { existsSync } from 'fs'
-import { join } from 'path'
+import MemoryStream from 'memorystream'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbaseService } from '../PocketBaseService/PocketBaseService'
 import { portManager } from '../PortManager'
-import { createDenoProcess } from './Deno/DenoProcess'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -263,13 +260,30 @@ export const instanceService = mkSingleton(
         /*
         Spawn the child process
         */
+        const stdout = new MemoryStream()
+        stdout.on('data', (data: Buffer) => {
+          data
+            .toString()
+            .split(/\n/)
+            .forEach((line) => writeUserLog(line))
+        })
+        const stderr = new MemoryStream()
+        stderr.on('data', (data: Buffer) => {
+          data
+            .toString()
+            .split(/\n/)
+            .forEach((line) => writeUserLog(line, StreamNames.Error))
+        })
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
               command: 'serve',
               slug: instance.id,
               port: newPort,
+              env: instance.secrets || {},
               version,
+              stdout,
+              stderr,
               onUnexpectedStop: (code, stdout, stderr) => {
                 warn(
                   `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
@@ -329,39 +343,6 @@ export const instanceService = mkSingleton(
         const invocation = await createInvocation(instance, pid())
         shutdownManager.add(async () => {
           await finalizeInvocation(invocation).catch(error)
-        })
-
-        /**
-         * Deno worker
-         */
-        healthyGuard()
-        const denoApi = await (async () => {
-          const workerPath = join(
-            DAEMON_PB_DATA_DIR,
-            instance.id,
-            `worker`,
-            `index.ts`,
-          )
-          dbg(`Checking ${workerPath} for a worker entry point`)
-          if (existsSync(workerPath)) {
-            dbg(`Found worker ${workerPath}`)
-            healthyGuard()
-            await writeUserLog(`Starting worker`)
-            healthyGuard()
-            const api = await createDenoProcess({
-              path: workerPath,
-              port: newPort,
-              instance,
-              logger: instanceServiceLogger,
-            })
-            return api
-          } else {
-            dbg(`No worker found at ${workerPath}`)
-          }
-        })()
-        shutdownManager.add(async () => {
-          await writeUserLog(`Shutting down worker`).catch(error)
-          await denoApi?.shutdown().catch(error)
         })
 
         /*

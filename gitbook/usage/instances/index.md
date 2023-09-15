@@ -46,10 +46,11 @@ The PocketHost dashboard also provides a handy link to do this.
 
 ## Secrets
 
-Instance secrets are defined as environment variables when a [PocketHost Cloud Function Deno worker](broken-reference) is launched. Every secret you specify here will be made available as an environment variable to the Deno process:
+Instance secrets are exposed as environment variables when your `pocketbase` executable launches. Every secret you specify here will be made available as an environment variable to the `pocketbase` process.
 
 ```ts
-const MY_SECRET = Deno.env.get('MY_SECRET') || ''
+// pb_hooks
+$app.getEnv('FOO')
 ```
 
 ## Realtime log

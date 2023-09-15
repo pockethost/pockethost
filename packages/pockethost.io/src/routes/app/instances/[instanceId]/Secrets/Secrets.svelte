@@ -1,7 +1,11 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import { client } from '$src/pocketbase'
-  import { createCleanupManager, logger, type SaveSecretsPayload } from '@pockethost/common'
+  import {
+    createCleanupManager,
+    logger,
+    type SaveSecretsPayload,
+  } from '@pockethost/common'
   import { forEach, reduce } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import AccordionItem from '../../../../../components/AccordionItem.svelte'
@@ -19,7 +23,7 @@
   onMount(() => {
     items.clear()
     forEach(secrets || {}, (value, name) => {
-      items.create({ name, value })
+      items.upsert({ name, value })
     })
     let initial = false
     const unsub = items.subscribe(async (secrets) => {
@@ -37,8 +41,8 @@
             c[name] = value
             return c
           },
-          {} as SaveSecretsPayload['secrets']
-        )
+          {} as SaveSecretsPayload['secrets'],
+        ),
       })
     })
     cm.add(unsub)
@@ -48,10 +52,13 @@
 </script>
 
 <AccordionItem title="Secrets">
-  <p>These secrets are passed into your Deno cloud worker as environment variables.</p>
+  <p>
+    These secrets are passed into your <code>pocketbase</code> executable and
+    can be accessed from <code>pb_hooks</code> JS hooks.
+  </p>
   <CodeSample
     code={$items
-      .map((secret) => `const ${secret.name} = Deno.env.get('${secret.name}')`)
+      .map((secret) => `const ${secret.name} = process.env.${secret.name}`)
       .join('\n')}
   />
 

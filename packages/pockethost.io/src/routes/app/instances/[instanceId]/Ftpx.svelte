@@ -17,10 +17,13 @@
 
 <AccordionItem title="FTP Access">
   <p>
-    Securely access your instance files via FTPS. Use your PocketHost account login and password.
+    Securely access your instance files via FTPS. Use your PocketHost account
+    login and password.
   </p>
   <p>
-    <a href="https://pockethost.gitbook.io/manual/daily-usage/ftp">Full documentation</a>
+    <a href="https://pockethost.gitbook.io/manual/daily-usage/ftp"
+      >Full documentation</a
+    >
   </p>
   <p>Bash:</p>
   <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
@@ -37,9 +40,6 @@
     </tr>
     <tr>
       <th>pb_hooks</th><td>The PocketBase JS hooks directory</td>
-    </tr>
-    <tr>
-      <th>worker</th><td>Deno worker (cloud TS/JS functions)</td>
     </tr>
   </table>
 </AccordionItem>

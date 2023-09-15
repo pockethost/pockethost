@@ -40,24 +40,20 @@ function createItems(initialItems: SecretsArray) {
 
   const { subscribe, set, update } = writable(initialItems)
 
-  return {
+  const api = {
     subscribe,
     clear: () => {
       set([])
     },
     // create: add an object for the item at the end of the store's array
-    create: (item: SecretItem) => {
-      dbg(`Creating`, item)
+    upsert: (item: SecretItem) => {
+      dbg(`Upserting`, item)
       const { name, value } = sanitize(item)
       return update((n) => {
-        n = [
-          ...n,
-          {
-            name,
-            value,
-          },
-        ]
-        return formatInput(n)
+        return formatInput([
+          ...n.filter((i) => i.name !== name),
+          { name, value },
+        ])
       })
     },
 
@@ -71,6 +67,8 @@ function createItems(initialItems: SecretsArray) {
       })
     },
   }
+
+  return api
 }
 
 export const items = createItems(formatInput([]))
