@@ -21,7 +21,8 @@
     "pm2:proxy": "cd packages/proxy && yarn pm2",
     "pm2:www": "cd packages/pockethost.io && yarn pm2",
     "pm2:daemon": "cd packages/daemon && yarn pm2",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "prepare": "husky install"
   },
   "workspaces": {
     "packages": [
@@ -47,7 +48,8 @@
     "prettier-plugin-svelte": "^3.0.3",
     "tslib": "^2.6.2",
     "tsx": "^3.12.8",
-    "typescript": "^5.0"
+    "typescript": "^5.0",
+    "husky": "^8.0.0"
   },
   "dependencies": {
     "postinstall-postinstall": "^2.1.0",
