@@ -40,7 +40,7 @@ export const tryFetch = async (url: string, config?: Partial<Config>) => {
         resolve()
       } catch (e) {
         dbg(
-          `Could not fetch ${url}, trying again in ${retryMs}ms. Raw error ${e}`
+          `Could not fetch ${url}, trying again in ${retryMs}ms. Raw error ${e}`,
         )
         setTimeout(tryFetch, retryMs)
       }

@@ -38,8 +38,8 @@ export const portManager = mkSingleton(async (cfg: PortManagerConfig) => {
             const removed = remove(exclude, (v) => v === newPort)
             dbg(
               `Removed ${removed.join(',')} from excluded ports: ${exclude.join(
-                ','
-              )}`
+                ',',
+              )}`,
             )
           },
         ]

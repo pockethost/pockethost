@@ -43,7 +43,7 @@ export const createDenoProcess = async (config: DenoProcessConfig) => {
 
   const denoWrite = (
     message: string,
-    stream: StreamNames = StreamNames.Info
+    stream: StreamNames = StreamNames.Info,
   ) => {
     dbg(`[${instance.id}:${path}:${stream}] ${message}`)
     return denoLogger.write(message, stream)
@@ -76,12 +76,12 @@ export const createDenoProcess = async (config: DenoProcessConfig) => {
       if (code) {
         await denoWrite(
           `Unexpected 'deno' exit code: ${code}.`,
-          StreamNames.Error
+          StreamNames.Error,
         )
       } else {
         await denoWrite(
           `Worker has exited with code ${code}`,
-          StreamNames.System
+          StreamNames.System,
         )
       }
       resolve()

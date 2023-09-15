@@ -25,6 +25,12 @@ import { portManager } from './services/PortManager'
 import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
+const [major, minor, patch] = process.versions.node.split('.').map(Number)
+
+if ((major || 0) < 18) {
+  throw new Error(`Node 18 or higher required.`)
+}
+
 loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
@@ -74,7 +80,7 @@ global.EventSource = require('eventsource')
             error(`migrate had an unexpected stop. Check it out`)
           },
         },
-        { logger }
+        { logger },
       )
     ).exited
     info(`Migrating done`)
@@ -91,7 +97,7 @@ global.EventSource = require('eventsource')
         error(`migrate had an unexpected stop. Check it out`)
       },
     },
-    { logger }
+    { logger },
   )
 
   /**

@@ -25,7 +25,7 @@ export const DAEMON_PB_MIGRATIONS_DIR = (() => {
   const v = env('DAEMON_PB_MIGRATIONS_DIR')
   if (!v) {
     throw new Error(
-      `DAEMON_PB_MIGRATIONS_DIR (${v}) environment variable must be specified`
+      `DAEMON_PB_MIGRATIONS_DIR (${v}) environment variable must be specified`,
     )
   }
   if (!existsSync(v)) {
@@ -38,7 +38,7 @@ export const DAEMON_PB_DATA_DIR = (() => {
   const v = env('DAEMON_PB_DATA_DIR')
   if (!v) {
     throw new Error(
-      `DAEMON_PB_DATA_DIR (${v}) environment variable must be specified`
+      `DAEMON_PB_DATA_DIR (${v}) environment variable must be specified`,
     )
   }
   if (!existsSync(v)) {
@@ -56,12 +56,12 @@ export const DAEMON_MAX_PORTS = envi(`DAEMON_MAX_PORTS`, 500)
 export const DAEMON_PB_BACKUP_SLEEP = envi(`DAEMON_PB_BACKUP_SLEEP`, 100)
 export const DAEMON_PB_BACKUP_PAGE_COUNT = envi(
   `DAEMON_PB_BACKUP_PAGE_COUNT`,
-  5
+  5,
 )
 
 export const PH_BIN_CACHE = env(
   `PH_BIN_CACHE`,
-  join(__dirname, `../../../.pbincache`)
+  join(__dirname, `../../../.pbincache`),
 )
 
 export const PH_FTP_PORT = envi('PH_FTP_PORT', 21)

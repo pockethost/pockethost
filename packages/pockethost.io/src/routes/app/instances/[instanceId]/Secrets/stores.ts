@@ -23,14 +23,14 @@ function formatInput(input: SecretsArray): SecretsArray {
     .map(({ name, value }, index) => ({
       name,
       value,
-      color: colorScale(index.toString())
+      color: colorScale(index.toString()),
     }))
 }
 
 const sanitize = (item: SecretItem) => {
   return {
     name: item.name.toUpperCase().trim(),
-    value: item.value.trim()
+    value: item.value.trim(),
   }
 }
 
@@ -54,8 +54,8 @@ function createItems(initialItems: SecretsArray) {
           ...n,
           {
             name,
-            value
-          }
+            value,
+          },
         ]
         return formatInput(n)
       })
@@ -69,7 +69,7 @@ function createItems(initialItems: SecretsArray) {
         n = [...n.slice(0, index), ...n.slice(index + 1)]
         return formatInput(n)
       })
-    }
+    },
   }
 }
 

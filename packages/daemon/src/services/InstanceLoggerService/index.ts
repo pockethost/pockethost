@@ -17,7 +17,7 @@ const instances: {
 
 export const createInstanceLogger = async (
   instanceId: InstanceId,
-  context: DaemonContext
+  context: DaemonContext,
 ) => {
   const { parentLogger } = context
   const _instanceLogger = parentLogger.create(`InstanceLogger`)
@@ -31,7 +31,7 @@ export const createInstanceLogger = async (
         DAEMON_PB_DATA_DIR,
         instanceId,
         'pb_data',
-        'instance_logs.db'
+        'instance_logs.db',
       )
 
       dbg(`logs path`, logDbPath)
@@ -69,5 +69,5 @@ export const instanceLoggerService = mkSingleton(
         dbg(`Shutting down`)
       },
     }
-  }
+  },
 )

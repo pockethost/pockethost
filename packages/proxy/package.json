@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@types/node": "^18.11.17",
-    "http-proxy": "^1.18.1",
-    "tsx": "^3.12.1"
+    "http-proxy": "^1.18.1"
   }
 }

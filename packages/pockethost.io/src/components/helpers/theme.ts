@@ -5,13 +5,13 @@ import Cookies from 'js-cookie'
 // Set some default values to be referenced later
 export enum ThemeNames {
   Light = 'light',
-  Dark = 'dark'
+  Dark = 'dark',
 }
 export const HLJS_THEMES = {
   [ThemeNames.Light]:
     'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css',
   [ThemeNames.Dark]:
-    'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css'
+    'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css',
 }
 export const ALLOWED_THEMES: ThemeNames[] = [ThemeNames.Light, ThemeNames.Dark]
 export const DEFAULT_THEME: ThemeNames = ThemeNames.Light
@@ -19,7 +19,7 @@ export const STORAGE_NAME: string = 'theme'
 export const THEME_ATTRIBUTE: string = 'data-bs-theme'
 export const THEME_ICONS: { [_ in ThemeNames]: string } = {
   [ThemeNames.Light]: 'bi bi-moon-stars',
-  [ThemeNames.Dark]: 'bi bi-brightness-high'
+  [ThemeNames.Dark]: 'bi bi-brightness-high',
 }
 
 export const html = () => {
@@ -30,7 +30,8 @@ export const html = () => {
 
 export const getCurrentTheme = () => {
   const savedTheme = Cookies.get(STORAGE_NAME)
-  const currentTheme = find(ALLOWED_THEMES, (v) => savedTheme === v) || DEFAULT_THEME
+  const currentTheme =
+    find(ALLOWED_THEMES, (v) => savedTheme === v) || DEFAULT_THEME
   return currentTheme
 }
 

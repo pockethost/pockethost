@@ -7,7 +7,7 @@ import {
   SSL_KEY,
 } from '$constants'
 import { clientService, createPbClient } from '$services'
-import { mkSingleton, SingletonBaseConfig } from '@pockethost/common'
+import { SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import { PhFs } from './PhFs'
@@ -77,7 +77,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
         reject(new Error(`Invalid username or password`))
         return
       }
-    }
+    },
   )
 
   ftpServer.listen().then(() => {

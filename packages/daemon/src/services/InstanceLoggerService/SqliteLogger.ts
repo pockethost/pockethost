@@ -2,11 +2,11 @@ import { SqliteChangeEvent, sqliteService } from '$services'
 import {
   InstanceLogFields,
   InstanceLogFields_Create,
+  RecordId,
+  StreamNames,
   newId,
   pocketNow,
-  RecordId,
   safeCatch,
-  StreamNames,
 } from '@pockethost/common'
 import knex from 'knex'
 import { AsyncReturnType } from 'type-fest'
@@ -15,7 +15,7 @@ import { DaemonContext } from './DaemonContext'
 export type SqliteLogger = AsyncReturnType<typeof createSqliteLogger>
 export const createSqliteLogger = async (
   logDbPath: string,
-  context: DaemonContext
+  context: DaemonContext,
 ) => {
   const { parentLogger } = context
   const _dbLogger = parentLogger.create(`${logDbPath}`)
@@ -46,7 +46,7 @@ export const createSqliteLogger = async (
       const sql = conn('logs').insert(_in).toString()
       trace(`Writing log ${JSON.stringify(_in)} ${sql}`)
       await db.exec(sql)
-    }
+    },
   )
 
   const subscribe = (cb: (e: SqliteChangeEvent<InstanceLogFields>) => void) => {
@@ -66,7 +66,7 @@ export const createSqliteLogger = async (
 
   const fetch = async (limit: number = 100) => {
     return db.all<InstanceLogFields[]>(
-      `select * from logs order by created desc limit ${limit}`
+      `select * from logs order by created desc limit ${limit}`,
     )
   }
 

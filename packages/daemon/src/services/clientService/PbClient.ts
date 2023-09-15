@@ -18,7 +18,7 @@ export const createPbClient = (url: string, logger: Logger) => {
   info(`Initializing client: ${url}`)
   const rawDb = createRawPbClient(
     `${DAEMON_PB_DATA_DIR}/${PUBLIC_APP_DB}/pb_data/data.db`,
-    _clientLogger
+    _clientLogger,
   )
 
   const client = new PocketBase(url)
@@ -27,7 +27,7 @@ export const createPbClient = (url: string, logger: Logger) => {
     `adminAuthViaEmail`,
     _clientLogger,
     (email: string, password: string) =>
-      client.admins.authWithPassword(email, password)
+      client.admins.authWithPassword(email, password),
   )
 
   const createFirstAdmin = safeCatch(
@@ -40,7 +40,7 @@ export const createPbClient = (url: string, logger: Logger) => {
           console.log({ email, password })
           console.log(JSON.stringify(res, null, 2))
           return res
-        })
+        }),
   )
 
   const context: MixinContext = { client, rawDb, logger: _clientLogger }

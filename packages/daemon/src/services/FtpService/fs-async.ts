@@ -10,4 +10,4 @@ const mkdir = promisify(fs.mkdir)
 const rename = promisify(fs.rename)
 const chmod = promisify(fs.chmod)
 
-export { stat, readdir, access, unlink, rmdir, mkdir, rename, chmod }
+export { access, chmod, mkdir, readdir, rename, rmdir, stat, unlink }

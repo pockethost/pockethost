@@ -23,7 +23,7 @@ export const init = (klass: typeof PocketBase) => {
 
   const adminAuthWithPassword = async (
     login = ADMIN_LOGIN,
-    password = ADMIN_PASSWORD
+    password = ADMIN_PASSWORD,
   ) => {
     console.log(`Connecting to ${POCKETBASE_URL} with ${ADMIN_LOGIN}`)
     await client.admins.authWithPassword(login, password)

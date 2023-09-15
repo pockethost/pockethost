@@ -6,7 +6,7 @@ export type FieldStruct<TRec extends Pb_Any_Record_Db> = Partial<{
 }>
 
 export const buildQueryFilter = <TRec extends Pb_Any_Record_Db>(
-  fields: FieldStruct<TRec>
+  fields: FieldStruct<TRec>,
 ): Pb_QueryParams => {
   const filter = map(fields, (v, k) => `${k.toString()} = "${v}"`).join(' and ')
   return { filter }

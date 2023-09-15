@@ -7,7 +7,7 @@ import { dirname } from 'path'
 
 export function assert<T>(
   v: T | undefined | void | null,
-  msg?: string
+  msg?: string,
 ): asserts v is T {
   if (!v) {
     throw new Error(msg || `Assertion failure`)
@@ -28,7 +28,7 @@ const downloadFile = async (url: string, path: string) => {
 const _unsafe_downloadAndExtract = async (
   url: string,
   binPath: string,
-  logger: Logger
+  logger: Logger,
 ) => {
   const { dbg, error } = logger.create('downloadAndExtract')
 
@@ -48,5 +48,5 @@ const _unsafe_downloadAndExtract = async (
 
 export const downloadAndExtract = singletonAsyncExecutionGuard(
   _unsafe_downloadAndExtract,
-  (url) => url
+  (url) => url,
 )

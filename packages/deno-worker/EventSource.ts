@@ -250,7 +250,7 @@ export class EventSource extends EventTarget {
       await new Promise<void>((res) => {
         const id = setTimeout(
           () => res(clearTimeout(id)),
-          this.#settings.reconnectionTime
+          this.#settings.reconnectionTime,
         )
       })
 

@@ -2,8 +2,8 @@ import { DAEMON_PB_DATA_DIR, DAEMON_PB_MIGRATIONS_DIR } from '$constants'
 import { mkInternalAddress, mkInternalUrl, tryFetch } from '$util'
 import { createCleanupManager, createTimerManager } from '@pockethost/common'
 import {
-  mkSingleton,
   SingletonBaseConfig,
+  mkSingleton,
 } from '@pockethost/common/src/mkSingleton'
 import { spawn } from 'child_process'
 import { existsSync } from 'fs'
@@ -23,7 +23,7 @@ export type SpawnConfig = {
   onUnexpectedStop: (
     code: number | null,
     stdout: string[],
-    stderr: string[]
+    stderr: string[],
   ) => void
 }
 export type PocketbaseServiceApi = AsyncReturnType<
@@ -49,7 +49,7 @@ function pidIsRunning(pid: number) {
 }
 
 export const createPocketbaseService = async (
-  config: PocketbaseServiceConfig
+  config: PocketbaseServiceConfig,
 ) => {
   const { logger } = config
   const _serviceLogger = logger.create('PocketbaseService')
@@ -77,7 +77,7 @@ export const createPocketbaseService = async (
     const bin = realVersion.binPath
     if (!existsSync(bin)) {
       throw new Error(
-        `PocketBase binary (${bin}) not found. Contact pockethost.io.`
+        `PocketBase binary (${bin}) not found. Contact pockethost.io.`,
       )
     }
 
@@ -93,7 +93,7 @@ export const createPocketbaseService = async (
       args.push(
         isMothership
           ? DAEMON_PB_MIGRATIONS_DIR
-          : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`
+          : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`,
       )
     }
     if (command === 'serve') {
@@ -157,7 +157,7 @@ export const createPocketbaseService = async (
         const { pid } = ls
         if (!pid) {
           throw new Error(
-            `Attempt to kill a PocketBase process that was never running.`
+            `Attempt to kill a PocketBase process that was never running.`,
           )
         }
         const p = new Promise<boolean>((resolve, reject) => {

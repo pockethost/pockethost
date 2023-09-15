@@ -20,15 +20,15 @@ export const centralDbService = mkSingleton(
 
         const target = coreInternalUrl
         dbg(
-          `Forwarding proxy request for ${req.url} to central instance ${target}`
+          `Forwarding proxy request for ${req.url} to central instance ${target}`,
         )
         proxy.web(req, res, { target })
       },
-      `CentralDbService`
+      `CentralDbService`,
     )
 
     return {
       shutdown() {},
     }
-  }
+  },
 )

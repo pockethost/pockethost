@@ -8,14 +8,14 @@ import {
   Pb_Untrusted_Db,
   Pb_UserFields,
 } from '../schema/base'
-import { buildQueryFilter, FieldStruct } from './buildQueryFilter'
+import { FieldStruct, buildQueryFilter } from './buildQueryFilter'
 import { mergeDeep } from './mergeDeep'
 
 export const upsert = async <TRow extends Pb_Any_Record_Db>(
   collectionName: Pb_Any_Collection_Name,
   filterFields: FieldStruct<TRow>,
   mutate: (draft: Draft<Pb_UserFields<TRow>>) => void,
-  defaultRec: Pb_UserFields<TRow>
+  defaultRec: Pb_UserFields<TRow>,
 ) => {
   const queryParams = buildQueryFilter(filterFields)
   const recs = await client.records.getList(collectionName, 1, 2, queryParams)
@@ -42,7 +42,7 @@ export const upsert = async <TRow extends Pb_Any_Record_Db>(
         }
         return carry
       },
-      {} as Partial<Pb_UserFields<TRow>>
+      {} as Partial<Pb_UserFields<TRow>>,
     )
     client.records.update(collectionName, id, final)
   }

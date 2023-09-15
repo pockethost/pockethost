@@ -3,24 +3,24 @@ import { assert } from '$util'
 import { InstanceFields, Logger } from '@pockethost/common'
 import { compact, map } from '@s-libs/micro-dash'
 import {
+  Mode,
   constants,
   createReadStream,
   createWriteStream,
   existsSync,
   mkdirSync,
-  Mode,
 } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { customAlphabet } from 'nanoid'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
 import { PocketbaseClientApi } from '../clientService/PbClient'
-import * as fsAsync from './fs-async'
 import {
   FolderNames,
   INSTANCE_ROOT_FOLDER_NAMES,
-  isInstanceRootFolder,
   MAINTENANCE_ONLY_FOLDER_NAMES,
+  isInstanceRootFolder,
 } from './FtpService'
+import * as fsAsync from './fs-async'
 
 const nanoid = customAlphabet(`abcdefghijklmnop`)
 
@@ -51,7 +51,7 @@ export class PhFs implements FileSystem {
   constructor(
     connection: FtpConnection,
     client: PocketbaseClientApi,
-    logger: Logger
+    logger: Logger,
   ) {
     const cwd = `/`
     const root = DAEMON_PB_DATA_DIR
@@ -109,12 +109,12 @@ export class PhFs implements FileSystem {
           dbg({ rootFolderName, instance })
           if (
             MAINTENANCE_ONLY_FOLDER_NAMES.includes(
-              rootFolderName as FolderNames
+              rootFolderName as FolderNames,
             ) &&
             !instance.maintenance
           ) {
             throw new Error(
-              `Instance must be in maintenance mode to access ${rootFolderName}`
+              `Instance must be in maintenance mode to access ${rootFolderName}`,
             )
           }
           fsPathParts.push(rootFolderName)
@@ -122,7 +122,7 @@ export class PhFs implements FileSystem {
           const rootFolderFsPath = resolve(
             join(...fsPathParts)
               .replace(UNIX_SEP_REGEX, sep)
-              .replace(WIN_SEP_REGEX, sep)
+              .replace(WIN_SEP_REGEX, sep),
           )
           if (!existsSync(rootFolderFsPath)) {
             mkdirSync(rootFolderFsPath)
@@ -137,7 +137,7 @@ export class PhFs implements FileSystem {
     const fsPath = resolve(
       join(...fsPathParts)
         .replace(UNIX_SEP_REGEX, sep)
-        .replace(WIN_SEP_REGEX, sep)
+        .replace(WIN_SEP_REGEX, sep),
     )
 
     // Create FTP client path using unix separator
@@ -210,7 +210,7 @@ export class PhFs implements FileSystem {
     */
     if (!instance) {
       throw new Error(
-        `Something as gone wrong. An instance without a subdomain is not possible.`
+        `Something as gone wrong. An instance without a subdomain is not possible.`,
       )
     }
 
@@ -247,7 +247,7 @@ export class PhFs implements FileSystem {
                 })
               })
               .catch(() => null)
-          })
+          }),
         )
       })
       .then(compact)
@@ -322,7 +322,7 @@ export class PhFs implements FileSystem {
 
   async write(
     fileName: string,
-    options?: { append?: boolean | undefined; start?: any } | undefined
+    options?: { append?: boolean | undefined; start?: any } | undefined,
   ) {
     const { dbg, error } = this.log
       .create(`write`)
@@ -366,7 +366,7 @@ export class PhFs implements FileSystem {
 
   async read(
     fileName: string,
-    options: { start?: any } | undefined
+    options: { start?: any } | undefined,
   ): Promise<any> {
     const { dbg, error } = this.log
       .create(`read`)
@@ -374,9 +374,8 @@ export class PhFs implements FileSystem {
       .breadcrumb(fileName)
     dbg(`read`)
 
-    const { fsPath, clientPath, pathFromRootFolder } = await this._resolvePath(
-      fileName
-    )
+    const { fsPath, clientPath, pathFromRootFolder } =
+      await this._resolvePath(fileName)
 
     const { start } = options || {}
 
@@ -433,9 +432,8 @@ export class PhFs implements FileSystem {
       .breadcrumb(path)
     dbg(`mkdir`)
 
-    const { fsPath, clientPath, pathFromRootFolder } = await this._resolvePath(
-      path
-    )
+    const { fsPath, clientPath, pathFromRootFolder } =
+      await this._resolvePath(path)
 
     /*
     Disallow making directories if not inside root folder
@@ -485,7 +483,7 @@ export class PhFs implements FileSystem {
         Promise.all([
           this.restartInstanceGuard(fromRootFolderName, instance),
           this.restartInstanceGuard(toRootFolderName, instance),
-        ])
+        ]),
       )
   }
 
@@ -497,9 +495,8 @@ export class PhFs implements FileSystem {
       .breadcrumb(mode.toString())
     dbg(`chmod`)
 
-    const { fsPath, clientPath, pathFromRootFolder } = await this._resolvePath(
-      path
-    )
+    const { fsPath, clientPath, pathFromRootFolder } =
+      await this._resolvePath(path)
 
     /*
     Disallow making directories if not inside root folder
@@ -517,7 +514,7 @@ export class PhFs implements FileSystem {
 
   async restartInstanceGuard(
     rootFolderName: FolderNames | undefined,
-    instance: InstanceFields
+    instance: InstanceFields,
   ) {
     // Not needed?
     // const { dbg, error } = this.log

@@ -6,5 +6,5 @@ export enum AlertTypes {
   Warning = 'warning',
   Info = 'info',
   Light = 'light',
-  Dark = 'dark'
+  Dark = 'dark',
 }

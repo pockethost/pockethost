@@ -4,7 +4,11 @@ import type { AuthStoreProps } from '$src/pocketbase/PocketbaseClient'
 import { logger } from '@pockethost/common'
 import { writable } from 'svelte/store'
 
-export const authStoreState = writable<AuthStoreProps>({ isValid: false, model: null, token: '' })
+export const authStoreState = writable<AuthStoreProps>({
+  isValid: false,
+  model: null,
+  token: '',
+})
 export const isUserLoggedIn = writable(false)
 export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)

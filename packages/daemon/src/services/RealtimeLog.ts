@@ -59,7 +59,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
         res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
         res.setHeader(
           'Access-Control-Allow-Headers',
-          'authorization,content-type,cache-control'
+          'authorization,content-type,cache-control',
         )
         res.setHeader('Access-Control-Max-Age', 86400)
         res.statusCode = 204
@@ -106,7 +106,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
         .getOne<InstanceFields>(instanceId)
       if (!instance) {
         throw new Error(
-          `instanceId ${instanceId} not found for user ${user.id}`
+          `instanceId ${instanceId} not found for user ${user.id}`,
         )
       }
       dbg(`Instance is `, instance)
@@ -142,14 +142,14 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
         const evt = mkEvent(`log`, record)
         trace(
           `Dispatching SSE log event from ${instance.subdomain} (${instance.id})`,
-          evt
+          evt,
         )
         limiter.schedule(() => write(evt)).catch(error)
       })
       req.on('close', () => {
         limiter.stop()
         dbg(
-          `SSE request for ${instance.subdomain} (${instance.id}) closed. Unsubscribing.`
+          `SSE request for ${instance.subdomain} (${instance.id}) closed. Unsubscribing.`,
         )
         unsub()
       })
@@ -172,7 +172,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
                 const evt = mkEvent(`log`, rec)
                 trace(
                   `Dispatching SSE initial log event from ${instance.subdomain} (${instance.id})`,
-                  evt
+                  evt,
                 )
                 return write(evt)
               })
@@ -186,7 +186,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
           .catch(error)
       }
     },
-    `RealtimeLogService`
+    `RealtimeLogService`,
   )
 
   return {

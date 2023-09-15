@@ -5,13 +5,13 @@ import {
   serialAsyncExecutionGuard,
   SingletonBaseConfig,
 } from '@pockethost/common'
-import { Database as SqliteDatabase, open } from 'sqlite'
+import { open, Database as SqliteDatabase } from 'sqlite'
 import { Database } from 'sqlite3'
 import { JsonObject } from 'type-fest'
 
 export type SqliteUnsubscribe = () => void
 export type SqliteChangeHandler<TRecord extends JsonObject> = (
-  e: SqliteChangeEvent<TRecord>
+  e: SqliteChangeEvent<TRecord>,
 ) => void
 export type SqliteEventType = 'update' | 'insert' | 'delete'
 export type SqliteChangeEvent<TRecord extends JsonObject> = {
@@ -25,7 +25,7 @@ export type SqliteServiceApi = {
   migrate: SqliteDatabase['migrate']
   exec: SqliteDatabase['exec']
   subscribe: <TRecord extends JsonObject>(
-    cb: SqliteChangeHandler<TRecord>
+    cb: SqliteChangeHandler<TRecord>,
   ) => SqliteUnsubscribe
 }
 export type SqliteServiceConfig = SingletonBaseConfig & {}
@@ -43,7 +43,7 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
   This function 
   */
   const _unsafe_getDatabase = async (
-    filename: string
+    filename: string,
   ): Promise<SqliteServiceApi> => {
     const _dbLogger = logger.create(`SqliteService`)
     _dbLogger.breadcrumb(filename)
@@ -62,7 +62,7 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
             eventType: SqliteEventType,
             database: string,
             table: string,
-            rowId: number
+            rowId: number,
           ) => {
             trace(`Got a raw change event`, {
               eventType,
@@ -73,7 +73,7 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
             if (eventType === 'delete') return // Not supported
 
             const record = await db.get(
-              `select * from ${table} where rowid = '${rowId}'`
+              `select * from ${table} where rowid = '${rowId}'`,
             )
             const e: SqliteChangeEvent<any> = {
               table,
@@ -81,7 +81,7 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
               record,
             }
             fireChange(e)
-          }
+          },
         )
 
         cm.add(() => {
@@ -110,7 +110,7 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
   }
   const getDatabase = serialAsyncExecutionGuard(
     _unsafe_getDatabase,
-    (fileName) => fileName
+    (fileName) => fileName,
   )
 
   const shutdown = async () => {

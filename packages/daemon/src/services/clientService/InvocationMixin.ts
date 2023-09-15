@@ -9,7 +9,7 @@ import { MixinContext } from './PbClient'
 
 export const createInvocationMixin = (
   context: MixinContext,
-  instanceApi: InstanceApi
+  instanceApi: InstanceApi,
 ) => {
   const { logger } = context
   const { dbg } = logger.create('InvocationMixin')
@@ -32,7 +32,7 @@ export const createInvocationMixin = (
           $cancelKey: `createInvocation:${instance.id}:${pid}`,
         })
       return _inv
-    }
+    },
   )
 
   const pingInvocation = safeCatch(
@@ -49,7 +49,7 @@ export const createInvocationMixin = (
         .update<InvocationFields>(invocation.id, toUpdate)
       await instanceApi.updateInstanceSeconds(invocation.instanceId)
       return _inv
-    }
+    },
   )
 
   const finalizeInvocation = safeCatch(
@@ -69,7 +69,7 @@ export const createInvocationMixin = (
         .update<InvocationFields>(invocation.id, toUpdate)
       await instanceApi.updateInstanceSeconds(invocation.instanceId)
       return _inv
-    }
+    },
   )
 
   return { finalizeInvocation, pingInvocation, createInvocation }

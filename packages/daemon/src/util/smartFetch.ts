@@ -5,7 +5,7 @@ import { dirname } from 'path'
 
 export const smartFetch = async <TRet>(
   url: string,
-  path: string
+  path: string,
 ): Promise<TRet> => {
   const { dbg } = logger().create(`smartFetch`)
 
