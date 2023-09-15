@@ -1,6 +1,7 @@
 import {
   InstanceFields,
   InvocationFields,
+  InvocationPid,
   pocketNow,
   safeCatch,
 } from '@pockethost/common'
@@ -19,7 +20,7 @@ export const createInvocationMixin = (
   const createInvocation = safeCatch(
     `createInvocation`,
     logger,
-    async (instance: InstanceFields, pid: number) => {
+    async (instance: InstanceFields, pid: InvocationPid) => {
       const init: Partial<InvocationFields> = {
         startedAt: pocketNow(),
         pid,

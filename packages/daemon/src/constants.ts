@@ -77,6 +77,9 @@ export const DENO_PATH = env('DENO_PATH', `deno`)
 
 export const DAEMON_PB_SEMVER = env('DAEMON_PB_SEMVER', '') // This will default always to the max version
 
+export const HOST_OS = env('HOST_OS', 'darwin')
+export const DOCKER_ARCH = env('DOCKER_ARCH', 'arm64')
+
 console.log({
   PUBLIC_APP_PROTOCOL,
   PUBLIC_APP_DOMAIN,

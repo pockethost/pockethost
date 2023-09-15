@@ -1,0 +1,215 @@
+import { DAEMON_PB_DATA_DIR, DAEMON_PB_MIGRATIONS_DIR } from '$constants'
+import { assert, mkInternalUrl, tryFetch } from '$util'
+import {
+  InvocationPid,
+  createCleanupManager,
+  createTimerManager,
+} from '@pockethost/common'
+import {
+  SingletonBaseConfig,
+  mkSingleton,
+} from '@pockethost/common/src/mkSingleton'
+import Docker, { Container, ContainerCreateOptions } from 'dockerode'
+import { existsSync } from 'fs'
+import getPort from 'get-port'
+import MemoryStream from 'memorystream'
+import { dirname } from 'path'
+import { gte } from 'semver'
+import { AsyncReturnType } from 'type-fest'
+import { AsyncContext } from '../../util/AsyncContext'
+import { updaterService } from '../UpdaterService/UpdaterService'
+
+export type PocketbaseCommand = 'serve' | 'migrate'
+export type SpawnConfig = {
+  command: PocketbaseCommand
+  slug: string
+  version?: string
+  port?: number
+  isMothership?: boolean
+  onUnexpectedStop: (
+    code: number | null,
+    stdout: string[],
+    stderr: string[],
+  ) => void
+}
+export type PocketbaseServiceApi = AsyncReturnType<
+  typeof createPocketbaseService
+>
+
+export type PocketbaseServiceConfig = SingletonBaseConfig & {}
+
+export type PocketbaseProcess = {
+  url: string
+  pid: () => InvocationPid
+  kill: () => Promise<void>
+  exited: Promise<number | null>
+}
+
+export const createPocketbaseService = async (
+  config: PocketbaseServiceConfig,
+) => {
+  const { logger } = config
+  const _serviceLogger = logger.create('PocketbaseService')
+  const { dbg, error, warn, abort } = _serviceLogger
+
+  const { getLatestVersion, getVersion } = await updaterService()
+  const maxVersion = getLatestVersion()
+
+  const cm = createCleanupManager()
+  const tm = createTimerManager({})
+
+  const _spawn = async (cfg: SpawnConfig, context?: AsyncContext) => {
+    const logger = (context?.logger || _serviceLogger).create('spawn')
+    const { dbg, warn, error } = logger
+    const _cfg: Required<SpawnConfig> = {
+      version: maxVersion,
+      port: cfg.port || (await getPort()),
+      isMothership: false,
+      ...cfg,
+    }
+    const { version, command, slug, port, onUnexpectedStop, isMothership } =
+      _cfg
+    const _version = version || maxVersion // If _version is blank, we use the max version available
+    const realVersion = await getVersion(_version)
+    const binPath = realVersion.binPath
+    if (!existsSync(binPath)) {
+      throw new Error(
+        `PocketBase binary (${binPath}) not found. Contact pockethost.io.`,
+      )
+    }
+
+    const bin = `/host_bin/pocketbase`
+
+    const args = [
+      bin,
+      command,
+      `--dir`,
+      `/host_data/pb_data`,
+      `--publicDir`,
+      `/host_data/pb_public`,
+    ]
+    if (gte(realVersion.version, `0.9.0`)) {
+      args.push(`--migrationsDir`)
+      args.push(`/host_data/pb_migrations`)
+    }
+    if (gte(realVersion.version, `0.17.0`)) {
+      args.push(`--hooksDir`)
+      args.push(`/host_data/pb_hooks`)
+    }
+    if (command === 'serve') {
+      args.push(`--http`)
+      args.push(`0.0.0.0:8090`)
+    }
+
+    let isRunning = true
+
+    const docker = new Docker()
+    const stdoutHistory: string[] = []
+    const stderrHistory: string[] = []
+    const stdout = new MemoryStream()
+    stdout.on('data', (data: Buffer) => {
+      dbg(`${slug} stdout: ${data}`)
+      stdoutHistory.push(data.toString())
+      if (stdoutHistory.length > 100) stdoutHistory.pop()
+    })
+    const stderr = new MemoryStream()
+    stderr.on('data', (data: Buffer) => {
+      warn(`${slug} stderr: ${data}`)
+      stderrHistory.push(data.toString())
+      if (stderrHistory.length > 100) stderrHistory.pop()
+    })
+    const createOptions: ContainerCreateOptions = {
+      Image: `pockethost/pocketbase`,
+      Cmd: args,
+      HostConfig: {
+        CpuPercent: 10,
+        PortBindings: {
+          '8090/tcp': [{ HostPort: `${port}` }],
+        },
+        Binds: [
+          `${dirname(binPath)}:/host_bin`,
+          `${DAEMON_PB_DATA_DIR}/${slug}:/host_data`,
+          `${
+            isMothership
+              ? DAEMON_PB_MIGRATIONS_DIR
+              : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`
+          }:/host_data/pb_migrations`,
+        ],
+      },
+      Tty: false,
+      ExposedPorts: {
+        [`8090/tcp`]: {},
+      },
+    }
+    dbg(`Spawning ${slug}`, { args, createOptions })
+
+    let container: Container | undefined = undefined
+    const exited = new Promise<number>(async (resolveExit) => {
+      container = await new Promise<Container>((resolve) => {
+        docker
+          .run(
+            `pockethost/pocketbase`,
+            [bin, `--help`],
+            [stdout, stderr],
+            createOptions,
+            (err, data) => {
+              const { StatusCode } = data || {}
+              dbg(`${slug} closed with code ${StatusCode}`, { err, data })
+              isRunning = false
+              if (StatusCode > 0) {
+                dbg(`${slug} stopped unexpectedly with code ${err}`, data)
+                onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
+              }
+              resolveExit(0)
+            },
+          )
+          .on('container', (container: Container) => {
+            dbg(`Got container`, container)
+            resolve(container)
+          })
+      })
+      cm.add(async () => {
+        dbg(`Stopping ${slug} for cleanup`)
+        await container?.stop().catch(warn)
+      })
+    })
+
+    const url = mkInternalUrl(port)
+    if (command === 'serve') {
+      await tryFetch(url, {
+        preflight: async () => isRunning,
+        logger: _serviceLogger,
+      })
+    }
+    const api: PocketbaseProcess = {
+      url,
+      pid: () => {
+        assert(container)
+        return container.id
+      },
+      exited,
+      kill: async () => {
+        if (!container) {
+          throw new Error(
+            `Attempt to kill a PocketBase process that was never running.`,
+          )
+        }
+        await container.stop()
+      },
+    }
+    return api
+  }
+
+  const shutdown = () => {
+    dbg(`Shutting down pocketbaseService`)
+    tm.shutdown()
+    cm.shutdown()
+  }
+
+  return {
+    spawn: _spawn,
+    shutdown,
+  }
+}
+
+export const pocketbaseService = mkSingleton(createPocketbaseService)

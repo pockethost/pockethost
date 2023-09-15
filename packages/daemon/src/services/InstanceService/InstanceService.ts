@@ -28,7 +28,7 @@ import { join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
-import { pocketbaseService } from '../PocketBaseService'
+import { pocketbaseService } from '../PocketBaseService/PocketBaseService'
 import { portManager } from '../PortManager'
 import { createDenoProcess } from './Deno/DenoProcess'
 
@@ -326,7 +326,7 @@ export const instanceService = mkSingleton(
         Create the invocation record
         */
         healthyGuard()
-        const invocation = await createInvocation(instance, pid)
+        const invocation = await createInvocation(instance, pid())
         shutdownManager.add(async () => {
           await finalizeInvocation(invocation).catch(error)
         })

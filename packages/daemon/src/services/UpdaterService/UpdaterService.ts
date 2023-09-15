@@ -7,7 +7,6 @@ import {
 } from '@pockethost/common'
 import { keys } from '@s-libs/micro-dash'
 import { chmodSync, existsSync } from 'fs'
-import { type } from 'os'
 import { join } from 'path'
 import { maxSatisfying, rsort } from 'semver'
 
@@ -39,7 +38,7 @@ export const updaterService = mkSingleton(
     const cm = createCleanupManager()
     const tm = createTimerManager({})
 
-    const osName = type().toLowerCase()
+    const osName = 'linux' // type().toLowerCase()
     const cpuArchitecture = process.arch === 'x64' ? 'amd64' : process.arch
 
     dbg({ osName, cpuArchitecture })
