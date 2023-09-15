@@ -16,7 +16,8 @@ export type PortManagerConfig = {
 export const portManager = mkSingleton(async (cfg: PortManagerConfig) => {
   const { maxPorts } = cfg
   const _logger = logger().create(`PortManager`)
-  const { dbg, error } = _logger
+  const { dbg, error, info } = _logger
+  info(`Starting`)
 
   const getNextPort = (() => {
     const { dbg, error } = _logger.create(`getNextPort`)
@@ -48,9 +49,11 @@ export const portManager = mkSingleton(async (cfg: PortManagerConfig) => {
     })
   })()
 
-  const ports = await (
+  info(`Precaching ports`)
+  const ports = (
     await Promise.all<PortResult>(range(maxPorts).map(getNextPort))
   ).map((portInfo) => portInfo[0])
+  info(`Finished precaching ports`)
 
   return {
     getNextPort: (): PortResult => {

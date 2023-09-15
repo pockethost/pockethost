@@ -29,8 +29,8 @@ import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbaseService } from '../PocketBaseService'
+import { portManager } from '../PortManager'
 import { createDenoProcess } from './Deno/DenoProcess'
-import { portManager, PortManagerConfig } from './PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -48,17 +48,12 @@ type InstanceApi = {
 export type InstanceServiceConfig = SingletonBaseConfig & {
   instanceApiTimeoutMs: number
   instanceApiCheckIntervalMs: number
-} & PortManagerConfig
+}
 
 export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(
   async (config: InstanceServiceConfig) => {
-    const {
-      logger,
-      instanceApiTimeoutMs,
-      instanceApiCheckIntervalMs,
-      maxPorts,
-    } = config
+    const { logger, instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
     const instanceServiceLogger = logger.create('InstanceService')
     const { dbg, raw, error, warn } = instanceServiceLogger
     const { client } = await clientService()
@@ -526,7 +521,7 @@ export const instanceService = mkSingleton(
       `InstanceService`
     )
 
-    const { getNextPort } = await portManager({ maxPorts })
+    const { getNextPort } = await portManager()
 
     const shutdown = async () => {
       dbg(`Shutting down instance manager`)

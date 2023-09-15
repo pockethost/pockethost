@@ -21,6 +21,7 @@ import { logger as loggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
+import { portManager } from './services/PortManager'
 import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
@@ -96,6 +97,7 @@ global.EventSource = require('eventsource')
   /**
    * Launch services
    */
+  await portManager({ maxPorts: DAEMON_MAX_PORTS })
   await clientService({ url, logger })
   await ftpService({ logger })
   await rpcService({ logger })
@@ -110,7 +112,6 @@ global.EventSource = require('eventsource')
     logger,
     instanceApiCheckIntervalMs: 50,
     instanceApiTimeoutMs: 5000,
-    maxPorts: DAEMON_MAX_PORTS,
   })
   await centralDbService({ logger })
   // gen:service
