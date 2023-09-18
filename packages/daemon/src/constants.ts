@@ -53,12 +53,6 @@ export const TRACE = envb('TRACE', false)
 
 export const DAEMON_MAX_PORTS = envi(`DAEMON_MAX_PORTS`, 500)
 
-export const DAEMON_PB_BACKUP_SLEEP = envi(`DAEMON_PB_BACKUP_SLEEP`, 100)
-export const DAEMON_PB_BACKUP_PAGE_COUNT = envi(
-  `DAEMON_PB_BACKUP_PAGE_COUNT`,
-  5,
-)
-
 export const PH_BIN_CACHE = env(
   `PH_BIN_CACHE`,
   join(__dirname, `../../../.pbincache`),
@@ -96,8 +90,6 @@ console.log({
   SSL_KEY,
   SSL_CERT,
   PH_BIN_CACHE,
-  DAEMON_PB_BACKUP_SLEEP,
-  DAEMON_PB_BACKUP_PAGE_COUNT,
   NODE_ENV,
   DEBUG,
   TRACE,
