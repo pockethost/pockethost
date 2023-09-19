@@ -25,7 +25,7 @@ export const DAEMON_PB_MIGRATIONS_DIR = (() => {
   const v = env('DAEMON_PB_MIGRATIONS_DIR')
   if (!v) {
     throw new Error(
-      `DAEMON_PB_MIGRATIONS_DIR (${v}) environment variable must be specified`,
+      `DAEMON_PB_MIGRATIONS_DIR environment variable must be specified`,
     )
   }
   if (!existsSync(v)) {
