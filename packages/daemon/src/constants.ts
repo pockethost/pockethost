@@ -34,6 +34,19 @@ export const DAEMON_PB_MIGRATIONS_DIR = (() => {
   return v
 })()
 
+export const DAEMON_PB_HOOKS_DIR = (() => {
+  const v = env('DAEMON_PB_HOOKS_DIR')
+  if (!v) {
+    throw new Error(
+      `DAEMON_PB_HOOKS_DIR environment variable must be specified`,
+    )
+  }
+  if (!existsSync(v)) {
+    throw new Error(`DAEMON_PB_HOOKS_DIR (${v}) path must exist`)
+  }
+  return v
+})()
+
 export const DAEMON_PB_DATA_DIR = (() => {
   const v = env('DAEMON_PB_DATA_DIR')
   if (!v) {
@@ -82,6 +95,7 @@ console.log({
   DAEMON_PB_PASSWORD,
   DAEMON_PB_MIGRATIONS_DIR,
   DAEMON_PB_SEMVER,
+  DAEMON_PB_HOOKS_DIR,
   DENO_PATH,
   PH_FTP_PASV_IP,
   PH_FTP_PORT,

@@ -1,4 +1,8 @@
-import { DAEMON_PB_DATA_DIR, DAEMON_PB_MIGRATIONS_DIR } from '$constants'
+import {
+  DAEMON_PB_DATA_DIR,
+  DAEMON_PB_HOOKS_DIR,
+  DAEMON_PB_MIGRATIONS_DIR,
+} from '$constants'
 import { assert, mkInternalUrl, tryFetch } from '$util'
 import {
   InvocationPid,
@@ -152,6 +156,11 @@ export const createPocketbaseService = async (
               ? DAEMON_PB_MIGRATIONS_DIR
               : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`
           }:/host_data/pb_migrations`,
+          `${
+            isMothership
+              ? DAEMON_PB_HOOKS_DIR
+              : `${DAEMON_PB_DATA_DIR}/${slug}/pb_hooks`
+          }:/host_data/pb_hooks`,
         ],
       },
       Tty: false,
