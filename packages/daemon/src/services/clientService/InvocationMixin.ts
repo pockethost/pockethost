@@ -49,7 +49,6 @@ export const createInvocationMixin = (
       const _inv = await client
         .collection('invocations')
         .update<InvocationFields>(invocation.id, toUpdate)
-      await instanceApi.updateInstanceSeconds(invocation.instanceId)
       return _inv
     },
   )
@@ -69,7 +68,6 @@ export const createInvocationMixin = (
       const _inv = await client
         .collection('invocations')
         .update<InvocationFields>(invocation.id, toUpdate)
-      await instanceApi.updateInstanceSeconds(invocation.instanceId)
       return _inv
     },
   )

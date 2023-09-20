@@ -5,12 +5,10 @@ import {
   InstanceId,
   InstanceStatus,
   UserFields,
-  assertExists,
   safeCatch,
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { endOfMonth, startOfMonth } from 'date-fns'
 import { AsyncContext } from '../../util/AsyncContext'
 import { MixinContext } from './PbClient'
 
@@ -139,26 +137,6 @@ export const createInstanceMixin = (context: MixinContext) => {
     },
   )
 
-  const updateInstanceSeconds = safeCatch(
-    `updateInstanceSeconds`,
-    logger,
-    async (instanceId: InstanceId, forPeriod = new Date()) => {
-      const startIso = startOfMonth(forPeriod).toISOString()
-      const endIso = endOfMonth(forPeriod).toISOString()
-      const query = rawDb('invocations')
-        .sum('totalSeconds as t')
-        .where('instanceId', instanceId)
-        .where('startedAt', '>=', startIso)
-        .where('startedAt', '<=', endIso)
-      raw(query.toString())
-      const res = await query
-      const [row] = res
-      assertExists(row, `Expected row here`)
-      const secondsThisMonth = row.t
-      await updateInstance(instanceId, { secondsThisMonth })
-    },
-  )
-
   return {
     getInstanceById,
     getInstances,
@@ -166,7 +144,6 @@ export const createInstanceMixin = (context: MixinContext) => {
     updateInstanceStatus,
     getInstanceBySubdomain,
     getInstance,
-    updateInstanceSeconds,
     updateInstances,
     createInstance,
     resetInstances,

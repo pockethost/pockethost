@@ -3,9 +3,12 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "build": "yarn build:docker",
+    "build": "concurrently 'yarn:build:*'",
     "build:docker": "cd src/services/PocketBaseService && docker build -t pockethost/pocketbase .",
-    "dev": "tsx watch src/server.ts",
+    "build:hooks": "tsup --target es5 ./src/hooks/src/*.ts -d ./pb_hooks",
+    "dev": "concurrently 'yarn:dev:*'",
+    "dev:server": "tsx watch src/server.ts",
+    "dev:hooks": "chokidar './src/hooks/**' -c 'yarn build:hooks' --initial",
     "ddos": "NODE_ENV=development tsx watch src/stresser/index.ts",
     "start": "tsx src/server.ts",
     "pm2": "pm2 stop all; pm2 del daemon ; pm2 start \"yarn start\" --name=daemon -l /home/pockethost/logs/daemon-`date +%s`.log",
@@ -14,6 +17,7 @@
   "dependencies": {
     "@pockethost/common": "0.0.1",
     "@s-libs/micro-dash": "^15.1.0",
+    "@swc/core": "^1.3.86",
     "@types/decompress": "^4.2.4",
     "@types/dockerode": "^3.3.19",
     "@types/http-proxy": "^1.17.9",
@@ -43,8 +47,14 @@
     "sqlite": "^4.1.2",
     "sqlite3": "^5.1.6",
     "tmp": "^0.2.1",
+    "tsup": "^7.2.0",
     "tsx": "^3.11.0",
     "type-fest": "^3.3.0",
     "url-pattern": "^1.0.3"
+  },
+  "devDependencies": {
+    "@swc/cli": "^0.1.62",
+    "@swc/core": "^1.3.86",
+    "tsup": "^7.2.0"
   }
 }
