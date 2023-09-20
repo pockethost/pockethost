@@ -1,3 +1,4 @@
+export * from './assert'
 export * from './downloadAndExtract'
 export * from './ensureDirExists'
 export * from './env'

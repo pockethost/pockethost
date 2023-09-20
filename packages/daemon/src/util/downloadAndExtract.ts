@@ -4,15 +4,7 @@ import decompressUnzip from 'decompress-unzip'
 import { chmodSync, createWriteStream } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
-
-export function assert<T>(
-  v: T | undefined | void | null,
-  msg?: string,
-): asserts v is T {
-  if (!v) {
-    throw new Error(msg || `Assertion failure`)
-  }
-}
+import { assert } from './assert'
 
 const downloadFile = async (url: string, path: string) => {
   const { body } = await fetch(url)

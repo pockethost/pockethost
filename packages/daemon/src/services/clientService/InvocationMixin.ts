@@ -22,6 +22,7 @@ export const createInvocationMixin = (
     logger,
     async (instance: InstanceFields, pid: InvocationPid) => {
       const init: Partial<InvocationFields> = {
+        uid: instance.uid,
         startedAt: pocketNow(),
         pid,
         instanceId: instance.id,

@@ -25,11 +25,24 @@ export const DAEMON_PB_MIGRATIONS_DIR = (() => {
   const v = env('DAEMON_PB_MIGRATIONS_DIR')
   if (!v) {
     throw new Error(
-      `DAEMON_PB_MIGRATIONS_DIR (${v}) environment variable must be specified`,
+      `DAEMON_PB_MIGRATIONS_DIR environment variable must be specified`,
     )
   }
   if (!existsSync(v)) {
     throw new Error(`DAEMON_PB_MIGRATIONS_DIR (${v}) path must exist`)
+  }
+  return v
+})()
+
+export const DAEMON_PB_HOOKS_DIR = (() => {
+  const v = env('DAEMON_PB_HOOKS_DIR')
+  if (!v) {
+    throw new Error(
+      `DAEMON_PB_HOOKS_DIR environment variable must be specified`,
+    )
+  }
+  if (!existsSync(v)) {
+    throw new Error(`DAEMON_PB_HOOKS_DIR (${v}) path must exist`)
   }
   return v
 })()
@@ -52,12 +65,6 @@ export const DEBUG = envb('DEBUG', NODE_ENV === 'development')
 export const TRACE = envb('TRACE', false)
 
 export const DAEMON_MAX_PORTS = envi(`DAEMON_MAX_PORTS`, 500)
-
-export const DAEMON_PB_BACKUP_SLEEP = envi(`DAEMON_PB_BACKUP_SLEEP`, 100)
-export const DAEMON_PB_BACKUP_PAGE_COUNT = envi(
-  `DAEMON_PB_BACKUP_PAGE_COUNT`,
-  5,
-)
 
 export const PH_BIN_CACHE = env(
   `PH_BIN_CACHE`,
@@ -88,6 +95,7 @@ console.log({
   DAEMON_PB_PASSWORD,
   DAEMON_PB_MIGRATIONS_DIR,
   DAEMON_PB_SEMVER,
+  DAEMON_PB_HOOKS_DIR,
   DENO_PATH,
   PH_FTP_PASV_IP,
   PH_FTP_PORT,
@@ -96,8 +104,6 @@ console.log({
   SSL_KEY,
   SSL_CERT,
   PH_BIN_CACHE,
-  DAEMON_PB_BACKUP_SLEEP,
-  DAEMON_PB_BACKUP_PAGE_COUNT,
   NODE_ENV,
   DEBUG,
   TRACE,
