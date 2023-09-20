@@ -2,6 +2,7 @@ import {
   DAEMON_PB_DATA_DIR,
   DAEMON_PB_HOOKS_DIR,
   DAEMON_PB_MIGRATIONS_DIR,
+  DEBUG,
 } from '$constants'
 import { assert, mkInternalUrl, tryFetch } from '$util'
 import {
@@ -111,6 +112,9 @@ export const createPocketbaseService = async (
       `--publicDir`,
       `/host_data/pb_public`,
     ]
+    if (DEBUG) {
+      args.push(`--debug`)
+    }
     if (gte(realVersion.version, `0.9.0`)) {
       args.push(`--migrationsDir`)
       args.push(`/host_data/pb_migrations`)
