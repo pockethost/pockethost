@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  pb:
+    image: pockethost/pocketbase
+    ports:
+      - '8090:8090'
+    volumes:
+      - ../../../../../.pbincache/v0.18.6:/host_bin
+      - ../../../../../.data/pockethost-central:/host_data
+      - ../../../migrations:/host_data/pb_migrations
+      - ../../../pb_hooks:/host_data/pb_hooks
+    command: /host_bin/pocketbase serve --dir=/host_data --hooksDir=/host_data/pb_hooks --migrationsDir=/host_data/pb_migrations
