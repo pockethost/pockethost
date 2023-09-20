@@ -128,15 +128,21 @@ export const createPocketbaseService = async (
     const stdoutHistory: string[] = []
     const stderrHistory: string[] = []
     const _stdoutData = (data: Buffer) => {
-      dbg(`${slug} stdout: ${data}`)
-      stdoutHistory.push(data.toString())
-      if (stdoutHistory.length > 100) stdoutHistory.pop()
+      const lines = data.toString().split(/\n/)
+      lines.forEach((line) => {
+        dbg(`${slug} stdout: ${line}`)
+      })
+      stdoutHistory.push(...lines)
+      while (stdoutHistory.length > 100) stdoutHistory.shift()
     }
     stdout.on('data', _stdoutData)
     const _stdErrData = (data: Buffer) => {
-      warn(`${slug} stderr: ${data}`)
-      stderrHistory.push(data.toString())
-      if (stderrHistory.length > 100) stderrHistory.pop()
+      const lines = data.toString().split(/\n/)
+      lines.forEach((line) => {
+        warn(`${slug} stderr: ${line}`)
+      })
+      stderrHistory.push(...lines)
+      while (stderrHistory.length > 100) stderrHistory.shift()
     }
     stderr.on('data', _stdErrData)
     const createOptions: ContainerCreateOptions = {
