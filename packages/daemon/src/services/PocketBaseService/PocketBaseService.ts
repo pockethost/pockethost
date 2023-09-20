@@ -153,6 +153,7 @@ export const createPocketbaseService = async (
       Env: map(env, (v, k) => `${k}=${v}`),
       name: `${name}-${+new Date()}`,
       HostConfig: {
+        AutoRemove: true,
         CpuPercent: 10,
         PortBindings: {
           '8090/tcp': [{ HostPort: `${port}` }],
