@@ -4,13 +4,13 @@ migrate((db) => {
   const collection = dao.findCollectionByNameOrId("systemprofiles0")
 
   collection.indexes = [
-    "CREATE INDEX `idx_5qCe15w` ON `users` (`secondsThisMonth`)"
+    "CREATE INDEX `idx_q4Kji47` ON `users` (`secondsThisMonth`)"
   ]
 
   // add
   collection.schema.addField(new SchemaField({
     "system": false,
-    "id": "4xchr8ic",
+    "id": "qz4cjamg",
     "name": "secondsThisMonth",
     "type": "number",
     "required": false,
@@ -31,7 +31,7 @@ migrate((db) => {
   collection.indexes = []
 
   // remove
-  collection.schema.removeField("4xchr8ic")
+  collection.schema.removeField("qz4cjamg")
 
   return dao.saveCollection(collection)
 })
