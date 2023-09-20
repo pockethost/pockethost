@@ -4,6 +4,7 @@ export const INVOCATION_COLLECTION = 'invocations'
 
 export type InvocationPid = string
 export type InvocationFields = BaseFields & {
+  uid: RecordId
   instanceId: RecordId
   startedAt: IsoDate
   endedAt: IsoDate
