@@ -28,6 +28,7 @@ export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
   command: PocketbaseCommand
+  name: string
   slug: string
   version?: string
   port?: number
@@ -82,6 +83,7 @@ export const createPocketbaseService = async (
     const {
       version,
       command,
+      name,
       slug,
       port,
       onUnexpectedStop,
@@ -149,6 +151,7 @@ export const createPocketbaseService = async (
       Image: `pockethost/pocketbase`,
       Cmd: args,
       Env: map(env, (v, k) => `${k}=${v}`),
+      name: `${name}-${+new Date()}`,
       HostConfig: {
         CpuPercent: 10,
         PortBindings: {

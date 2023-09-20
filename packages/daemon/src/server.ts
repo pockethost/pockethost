@@ -75,6 +75,7 @@ global.EventSource = require('eventsource')
           command: 'migrate',
           isMothership: true,
           version: DAEMON_PB_SEMVER,
+          name: PUBLIC_APP_DB,
           slug: PUBLIC_APP_DB,
           onUnexpectedStop: () => {
             error(`migrate had an unexpected stop. Check it out`)
@@ -91,6 +92,7 @@ global.EventSource = require('eventsource')
       command: 'serve',
       isMothership: true,
       version: DAEMON_PB_SEMVER,
+      name: PUBLIC_APP_DB,
       slug: PUBLIC_APP_DB,
       port: DAEMON_PB_PORT_BASE,
       onUnexpectedStop: () => {

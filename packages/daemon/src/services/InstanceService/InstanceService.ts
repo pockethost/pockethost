@@ -278,6 +278,7 @@ export const instanceService = mkSingleton(
           try {
             const cp = await pbService.spawn({
               command: 'serve',
+              name: instance.subdomain,
               slug: instance.id,
               port: newPort,
               env: instance.secrets || {},
