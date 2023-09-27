@@ -7,7 +7,7 @@ const config = {
   // for more information about preprocessors
   preprocess: preprocess(),
   kit: {
-    adapter: adapter({ out: 'dist-server' }),
+    adapter: adapter({ out: 'dist-server', fallback: 'index.html' }),
     alias: {
       $components: './src/components',
       $util: './src/util',
