@@ -1,9 +1,13 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
+  import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
-  import { assertExists, createCleanupManager, logger } from '@pockethost/common'
+  import {
+    assertExists,
+    createCleanupManager,
+    logger,
+  } from '@pockethost/common'
   import { onDestroy, onMount } from 'svelte'
   import { instance } from './store'
 
