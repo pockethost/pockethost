@@ -5,14 +5,8 @@
   "scripts": {
     "dev": "vite dev --force",
     "build": "vite build",
-    "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check .",
-    "format": "prettier --write .",
-    "start": "HOST=localhost PORT=5173 node dist-server/index.js",
-    "pm2": "pm2 del www ; pm2 start \"yarn start\" --name=www -o ~/logs/www.log -e ~/logs/www.log",
-    "watch": "chokidar 'src/**' -c 'yarn build' --initial"
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^2.0.3",

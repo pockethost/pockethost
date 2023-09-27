@@ -16,11 +16,9 @@
     "dev:daemon": "cd packages/daemon && yarn dev",
     "start": "concurrently 'yarn:start:*'",
     "start:proxy": "cd packages/proxy && yarn start",
-    "start:www": "cd packages/pockethost.io && yarn start",
     "start:daemon": "cd packages/daemon && yarn start",
     "pm2": "concurrently 'yarn:pm2:*'",
     "pm2:proxy": "cd packages/proxy && yarn pm2",
-    "pm2:www": "cd packages/pockethost.io && yarn pm2",
     "pm2:daemon": "cd packages/daemon && yarn pm2",
     "postinstall": "patch-package",
     "prepare": "husky install"
