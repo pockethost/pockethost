@@ -25,7 +25,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          accountId: 345d27f80411fadbd59d484746d7352c
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: pockethost-dashboard
           directory: ./packages/dashboard/build
           branch: ${{ github.head_ref || github.ref_name }}
@@ -36,7 +36,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          accountId: 345d27f80411fadbd59d484746d7352c
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: pockethost
           directory: ./packages/www/_site
           branch: ${{ github.head_ref || github.ref_name }}
@@ -47,4 +47,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: 'https://pocketerhost.io and https://app.pocketerhost.io have been updated.'
+          args: '**BETA** https://pocketerhost.io and https://app.pocketerhost.io have been updated.'

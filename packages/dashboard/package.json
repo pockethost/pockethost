@@ -3,6 +3,7 @@
   "version": "0.4.1",
   "private": true,
   "scripts": {
+    "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
     "dev": "vite dev --force",
     "build": "vite build",
     "lint": "prettier --check .",
@@ -16,6 +17,7 @@
     "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.25.1",
+    "@tailwindcss/typography": "^0.5.10",
     "@types/bootstrap": "^5.2.6",
     "@types/d3-scale": "^4.0.3",
     "@types/d3-scale-chromatic": "^3.0.0",
