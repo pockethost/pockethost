@@ -15,8 +15,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
-        - run: yarn install
-        - run: yarn build:dashboard
+      - run: yarn install
+      - run: yarn build:dashboard
 
       - name: Publish dashboard to Cloudflare Pages
         uses: cloudflare/pages-action@v1
