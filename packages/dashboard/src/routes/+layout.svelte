@@ -5,12 +5,11 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import Protect from '$components/helpers/Protect.svelte'
-  import ThemeDetector from '$components/helpers/ThemeDetector.svelte'
+  import '../app.css'
 </script>
 
 <Meta />
 <Protect />
-<ThemeDetector />
 
 <Navbar />
 

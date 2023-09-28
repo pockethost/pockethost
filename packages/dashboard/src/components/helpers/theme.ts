@@ -5,7 +5,7 @@ import Cookies from 'js-cookie'
 // Set some default values to be referenced later
 export enum ThemeNames {
   Light = 'light',
-  Dark = 'dark',
+  Dark = 'forest',
 }
 export const HLJS_THEMES = {
   [ThemeNames.Light]:
@@ -16,7 +16,7 @@ export const HLJS_THEMES = {
 export const ALLOWED_THEMES: ThemeNames[] = [ThemeNames.Light, ThemeNames.Dark]
 export const DEFAULT_THEME: ThemeNames = ThemeNames.Light
 export const STORAGE_NAME: string = 'theme'
-export const THEME_ATTRIBUTE: string = 'data-bs-theme'
+export const THEME_ATTRIBUTE: string = 'data-theme'
 export const THEME_ICONS: { [_ in ThemeNames]: string } = {
   [ThemeNames.Light]: 'bi bi-moon-stars',
   [ThemeNames.Dark]: 'bi bi-brightness-high',
