@@ -22,6 +22,7 @@ jobs:
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           accountId: 345d27f80411fadbd59d484746d7352c
           projectName: pockethost-dashboard
           directory: ./packages/dashboard/build
