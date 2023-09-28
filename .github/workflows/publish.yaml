@@ -26,11 +26,5 @@ jobs:
           accountId: 345d27f80411fadbd59d484746d7352c
           projectName: pockethost-dashboard
           directory: ./packages/dashboard/build
-          # Optional: Enable this if you want to have GitHub Deployments triggered
-          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          # Optional: Switch what branch you are publishing to.
-          # By default this will be the branch which triggered this workflow
-          branch: static-build
-          # Optional: Change the working directory
-          # Optional: Change the Wrangler version, allows you to point to a specific version or a tag such as `beta`
+          branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
