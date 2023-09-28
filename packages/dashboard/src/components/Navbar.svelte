@@ -10,7 +10,11 @@
 <header class="container-fluid">
   <nav class="navbar navbar-expand-md">
     <a href="/" class="logo text-decoration-none d-flex align-items-center">
-      <img src="/images/logo-square.png" alt="PocketHost Logo" class="img-fluid" />
+      <img
+        src="/images/logo-square.png"
+        alt="PocketHost Logo"
+        class="img-fluid"
+      />
       <h1>Pocket<span>Host</span></h1>
       <sup class="">{PUBLIC_POCKETHOST_VERSION}</sup>
     </a>
@@ -51,8 +55,10 @@
 
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                      <button class="dropdown-item" type="button" on:click={handleLogoutAndRedirect}
-                        >Logout</button
+                      <button
+                        class="dropdown-item"
+                        type="button"
+                        on:click={handleLogoutAndRedirect}>Logout</button
                       >
                     </li>
                   </ul>
@@ -71,35 +77,31 @@
 
           {#if !$isUserLoggedIn}
             <li class="nav-item">
-              <a class="nav-link text-md-start text-center" href="/signup">Sign up</a>
+              <a class="nav-link text-md-start text-center" href="/signup"
+                >Sign up</a
+              >
             </li>
 
             <li class="nav-item">
-              <a class="nav-link text-md-start text-center" href="/login">Log in</a>
+              <a class="nav-link text-md-start text-center" href="/login"
+                >Log in</a
+              >
             </li>
           {/if}
         </AuthStateGuard>
 
         <li class="nav-item text-center">
           <a
-            href="https://pockethost.gitbook.io/manual/overview/faq"
-            class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
-            rel="noreferrer">FAQ</a
-          >
-        </li>
-
-        <li class="nav-item text-center">
-          <a
             href="https://github.com/benallfree/pockethost/discussions"
             class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
             target="_blank"
-            rel="noreferrer">Support</a
+            rel="noreferrer">Discussion</a
           >
         </li>
 
         <li class="nav-item text-center">
           <a
-            href="https://pockethost.gitbook.io/manual/"
+            href="https://pockethost.io/docs"
             class="nav-link btn btn-outline-dark rounded-1 d-inline-block px-3"
             rel="noreferrer">Docs</a
           >
@@ -114,7 +116,8 @@
             title="Link to our Github Project"
             rel="noopener"
           >
-            <i class="bi bi-github" /><span class="nav-github-link">Github</span>
+            <i class="bi bi-github" /><span class="nav-github-link">Github</span
+            >
           </a>
         </li>
 
