@@ -16,6 +16,6 @@
   <VerifyAccountBar />
 </AuthStateGuard>
 
-<main data-sveltekit-prefetch>
+<div class="container">
   <slot />
-</main>
+</div>

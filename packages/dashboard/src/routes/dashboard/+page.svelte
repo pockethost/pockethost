@@ -2,14 +2,13 @@
   import { browser } from '$app/environment'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
-  import RetroBoxContainer from '$components/RetroBoxContainer.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import {
     logger,
     type InstanceFields,
     type InstanceId,
-    type InstanceRecordsById
+    type InstanceRecordsById,
   } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
@@ -55,16 +54,19 @@
 
 <AuthStateGuard>
   <div class="container" in:fade={{ duration: 30 }}>
+    <a href="/app/new" class="btn btn-primary btn-lg"
+      ><i class="bi bi-plus" /> New App</a
+    >
     {#if !isFirstApplication}
-      <div class="py-4">
-        <h1 class="text-center">Your Apps</h1>
-      </div>
+      <h1>Your Apps</h1>
 
       <div class="row justify-content-center">
         {#each values($instancesStore) as app}
           <div class="col-xl-4 col-md-6 col-12 mb-5">
             <div class="card">
-              <div class="server-status d-flex align-items-center justify-content-between">
+              <div
+                class="server-status d-flex align-items-center justify-content-between"
+              >
                 <div class="server-status-minutes">
                   Usage: {Math.ceil(app.secondsThisMonth / 60)} mins
                   {#if app.maintenance}
@@ -72,7 +74,9 @@
                   {/if}
                 </div>
 
-                <div class="d-flex align-items-center gap-3 server-status-minutes">
+                <div
+                  class="d-flex align-items-center gap-3 server-status-minutes"
+                >
                   {app.version}
                   <ProvisioningStatus status={app.status} />
                 </div>
@@ -91,7 +95,11 @@
                   href={`https://${app.subdomain}.${PUBLIC_APP_DOMAIN}/_`}
                   target="_blank"
                 >
-                  <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="img-fluid" />
+                  <img
+                    src="/images/pocketbase-logo.svg"
+                    alt="PocketBase Logo"
+                    class="img-fluid"
+                  />
                   <span>Admin</span>
                 </a>
               </div>
@@ -100,54 +108,5 @@
         {/each}
       </div>
     {/if}
-
-    <div class="first-app-screen">
-      <RetroBoxContainer minHeight={isFirstApplication ? 500 : 0}>
-        <div class="px-lg-5">
-          <h2 class="mb-4">Create Your {isFirstApplication ? 'First' : 'Next'} App</h2>
-          <a href="/app/new" class="btn btn-primary btn-lg"><i class="bi bi-plus" /> New App</a>
-        </div>
-      </RetroBoxContainer>
-    </div>
-  </div>
-</AuthStateGuard>
-
-<style lang="scss">
-  .first-app-screen {
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 85px 0;
-  }
-
-  .card {
-    border: 0;
-    padding: 42px 24px 24px 24px;
-    box-shadow: var(--soft-box-shadow);
-  }
-
-  .server-status {
-    position: absolute;
-    top: 8px;
-    right: 16px;
-    width: calc(100% - 32px);
-  }
-
-  .server-status-minutes {
-    font-size: 13px;
-  }
-
-  .server-status-icons {
-  }
-
-  .pocketbase-button img {
-    max-width: 25px;
-  }
-
-  @media screen and (min-width: 768px) {
-    .first-app-screen {
-      min-height: 70vh;
-    }
-  }
-</style>
+  </div></AuthStateGuard
+>

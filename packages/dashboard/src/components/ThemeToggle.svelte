@@ -6,7 +6,7 @@
     ThemeNames,
     currentIcon,
     getCurrentTheme,
-    setCurrentTheme
+    setCurrentTheme,
   } from './helpers/theme'
 
   // This can change the CSS a bit depending on where the theme toggle is rendered
@@ -22,7 +22,10 @@
 
   // Alternate the theme values on toggle click
   const handleClick = () => {
-    const newTheme = getCurrentTheme() === ThemeNames.Light ? ThemeNames.Dark : ThemeNames.Light
+    const newTheme =
+      getCurrentTheme() === ThemeNames.Light
+        ? ThemeNames.Dark
+        : ThemeNames.Light
     updateTheme(newTheme)
   }
 
@@ -34,12 +37,11 @@
   }
 </script>
 
-<button
+<a
   type="button"
-  class="{navLink && 'nav-link'} btn border-0 d-inline-block"
   aria-label="Toggle the site theme"
   title="Toggle the site theme"
   on:click={handleClick}
 >
-  <i class={iconClass} />
-</button>
+  Theme
+</a>
