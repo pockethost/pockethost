@@ -24,7 +24,7 @@
       This instance is in Maintenance Mode and will not respond to requests.
     </div>
   {/if}
-  <div class="accordion" id="accordionExample">
+  <div>
     <Overview />
     <Ftp />
     <Code />

@@ -1,5 +1,4 @@
 <script>
-  import InitializeTooltips from '$components/InitializeTooltips.svelte'
   import Navbar from '$components/Navbar.svelte'
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
@@ -20,8 +19,3 @@
 <main data-sveltekit-prefetch>
   <slot />
 </main>
-
-<InitializeTooltips />
-
-<style lang="scss">
-</style>
