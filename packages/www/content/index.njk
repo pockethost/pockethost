@@ -1,0 +1,104 @@
+---
+layout: layouts/home.njk
+numberOfLatestPostsToShow: 3
+---
+
+{% import "components/buttons.njk" as Buttons %}
+
+<div class='container mx-auto text-white flex items-center'>
+    <div class='p-8 md:w-1/2'>
+        <h1 class='text-6xl font-bold mb-8'>Amazingly Simple PocketBase Hosting</h1>
+
+        <p class='text-2xl mb-12'>
+            Spend <b class='text-green-600 dark:text-green-400'>less time</b> on configuring your backend, and more time
+            building <b class='text-green-600 dark:text-green-400'>new features</b> for your web app.
+        </p>
+
+        {{ Buttons.PrimaryButton("Get Started", "#", "fa-solid fa-arrow-right") }}
+    </div>
+
+    <div class='w-full p-8 md:w-1/2'>
+        <img src='/img/futuristic-server-room.png'
+             alt='A series of tubes moving the data around to represent PocketHost'
+             class='rounded-[250px] mix-blend-lighten animated-hero-banner' />
+    </div>
+</div>
+
+<style>
+    .animated-hero-banner {
+        animation-name: heroAnimation;
+        animation-duration: 2s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate-reverse;
+
+    }
+
+    @keyframes heroAnimation {
+        0% {
+            transform: translateY(-10px)
+        }
+        100% {
+            transform: translateY(10px)
+        }
+    }
+</style>
+
+
+{% macro FeatureIcon(icon) %}
+    <div class='text-[32px] bg-primary w-[60px] h-[60px] flex items-center justify-center rounded-full text-white shadow-xl'>
+        <i class="fa-thin {{ icon }}"></i>
+    </div>
+{% endmacro %}
+
+
+{% macro MainFeatureBlock(icon, title, tagline, content, linkText, linkURL) %}
+    <div class='px-[75px] pt-[75px] pb-[75px]'>
+        <div class='mb-12'>{{ FeatureIcon(icon) }}</div>
+
+        <h3 class='text-green-400 uppercase font-bold mb-2'>{{ title }}</h3>
+
+        <p class='text-white font-bold text-3xl mb-4'>{{ tagline }}</p>
+
+        <p class='mb-12'>{{ content }}</p>
+
+        {{ Buttons.PrimaryButton(linkText, linkURL, "fa-solid fa-arrow-right") }}
+    </div>
+{% endmacro %}
+
+
+{% macro SubFeatureBlock(icon, title, content) %}
+    <div class='w-1/5'>
+        <div class='text-center flex flex-col items-center px-4'>
+            <div class='mb-4'>{{ FeatureIcon(icon) }}</div>
+
+            <p class='text-white font-bold text-xl mb-4'>{{ title }}</p>
+
+            <p class='break-words'>{{ content }}</p>
+        </div>
+    </div>
+{% endmacro %}
+
+
+<div class="container mx-auto bg-gradient-to-r from-zinc-900 to-zinc-800 border-zinc-700 border-2 rounded-[75px] flex flex-wrap mb-12 shadow-xl overflow-hidden">
+    <div class='bg-zinc-900 md:w-1/2'>
+        {{ MainFeatureBlock("fa-laptop-code", "Up in 30 seconds", "Work Smarter, Not Harder", "A backend for your next app is as fast as signing up. No provisioning servers, no Docker fiddling, just B(ad)aaS productivity. Pick a unique project name and connect with our JS Client.", "Create Your New Backend", "/") }}
+    </div>
+
+    <div class='bg-zinc-800 md:w-1/2'>
+        {{ MainFeatureBlock("fa-webhook", "Zero Config", "Move Fast, Build Fast", "With PocketHost, batteries are included. You get a database, outgoing email, SSL, authentication, cloud functions, and high concurrency all in one stop.", "Read the Documentation", "/docs/introduction") }}
+    </div>
+
+    <div class='w-full'>
+        <div class='bg-zinc-900 p-[75px] border-zinc-700 border-t-2 rounded-[75px] flex flex-wrap justify-center'>
+            {{ SubFeatureBlock("fa-server", "Database", "Your PocketHost instance is powered by its own internal SQLite instance. SQLite is more performant than mySQL or Postgres and is perfect for powering your next app.") }}
+
+            {{ SubFeatureBlock("fa-shield-keyhole", "Auth", "Email and oAuth authentication options work out of the box. Send transactional email to your users from our verified domain and your custom address.") }}
+
+            {{ SubFeatureBlock("fa-box", "Storage", "PocketHost securely stores your files on Amazon S3, or you can use your own key to manage your own storage.") }}
+
+            {{ SubFeatureBlock("fa-seedling", "Room to Grow", "PocketHost, and the underlying PocketBase, can scale to well over 10,000 simultaneous connections.") }}
+
+            {{ SubFeatureBlock("fa-transporter-3", "Self-host", "When you're ready to take your project in-house, we have you covered. You can export your entire PocketHost environment along with a Dockerfile to run it.") }}
+        </div>
+    </div>
+</div>

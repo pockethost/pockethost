@@ -1,0 +1,29 @@
+---
+layout: layouts/base.njk
+---
+
+<div class='prose mx-auto py-8'>
+	<h1 class='text-white font-bold'>{{ title }}</h1>
+
+	<div class='text-green-400 font-bold'>
+		<time datetime="{{ page.date | htmlDateString }}">{{ page.date | readableDate }}</time>
+	</div>
+
+	<div class='mb-36'>
+	{{ content | safe }}
+	</div>
+
+	{%- if collections.posts %}
+		{%- set previousPost = collections.posts | getPreviousCollectionItem %}
+		{%- set nextPost = collections.posts | getNextCollectionItem %}
+		{%- if nextPost or previousPost %}
+			<div class="flex items-center justify-between py-6">
+				{%- if previousPost %}
+					<div><a href="{{ previousPost.url }}" class='btn'><i class="fa-solid fa-arrow-left"></i> {{ previousPost.data.title }}</a></div>{% endif %}
+				{%- if nextPost %}
+					<div><a href="{{ nextPost.url }}"  class='btn'>{{ nextPost.data.title }} <i class="fa-solid fa-arrow-right"></i></a></div>{% endif %}
+			</div>
+		{%- endif %}
+	{%- endif %}
+
+</div>

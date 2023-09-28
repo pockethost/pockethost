@@ -1,0 +1,30 @@
+---
+layout: layouts/home.njk
+eleventyNavigation:
+  key: Archive
+  order: 2
+---
+
+<style>
+  .container {
+    max-width: 65ch;
+  }
+</style>
+
+<div class='container mx-auto py-8'>
+  <h1 class='text-4xl mb-8 font-bold'>Blog</h1>
+
+  {% for post in collections.posts | reverse %}
+    <div class="mb-8">
+      <a href="{{ post.url }}" class="">
+        <h2 class='text-white text-2xl font-bold'>{{ post.data.title }}</h2>
+
+        <div>
+          <time class="text-green-400 font-bold" datetime="{{ post.date | htmlDateString }}">{{ post.date | readableDate("LLL dd, yyyy") }}</time>
+        </div>
+
+        <p>{{ post.data.description }}</p>
+      </a>
+    </div>
+  {% endfor %}
+</div>

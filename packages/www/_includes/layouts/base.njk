@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="{{ metadata.language }}" data-theme="dark">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{{ title or metadata.title }}</title>
+		<meta name="description" content="{{ description or metadata.description }}">
+
+		<link rel="alternate" href="/feed/feed.xml" type="application/atom+xml" title="{{ metadata.title }}">
+		<link rel="alternate" href="/feed/feed.json" type="application/json" title="{{ metadata.title }}">
+
+		<link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet">
+
+		<link href="/icons/fontawesome.min.css" rel="stylesheet">
+		<link href="/icons/all.min.css" rel="stylesheet">
+		<link href="/icons/brands.min.css" rel="stylesheet">
+
+		{% set css %}
+			{% include "../../public/css/index.css" %}
+		{% endset %}
+		<style>
+			{{css | postcss | safe}}
+		</style>
+
+
+	</head>
+	<body>
+		{% include "../components/header.njk" %}
+
+		<main>
+			{{ content | safe }}
+		</main>
+
+		<footer></footer>
+
+		<!-- Current page: {{ page.url | htmlBaseUrl }} -->
+	</body>
+</html>
