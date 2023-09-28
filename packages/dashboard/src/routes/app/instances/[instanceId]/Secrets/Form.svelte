@@ -33,7 +33,7 @@
     introduce the component with a heading
     describe the form with input elements of type text and number
 -->
-<div class="container">
+<div>
   <h2>Add an Environment Variable</h2>
   <section>
     <!-- display a form with 2 fields

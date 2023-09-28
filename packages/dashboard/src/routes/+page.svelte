@@ -8,7 +8,7 @@
   <title>Home - PocketHost</title>
 </svelte:head>
 
-<div class="container">
+<div>
   <div class="row align-items-center justify-content-between hero">
     <div class="col-lg-6 mb-5 mb-lg-0">
       <AuthStateGuard>

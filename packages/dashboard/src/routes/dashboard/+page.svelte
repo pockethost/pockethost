@@ -53,17 +53,17 @@
 </svelte:head>
 
 <AuthStateGuard>
-  <div class="container" in:fade={{ duration: 30 }}>
-    <a href="/app/new" class="btn btn-primary btn-lg"
-      ><i class="bi bi-plus" /> New App</a
-    >
+  <div class="m-3" in:fade={{ duration: 30 }}>
     {#if !isFirstApplication}
-      <h1>Your Apps</h1>
+      <div class="text-4xl">Your Apps</div>
 
-      <div class="row justify-content-center">
+      <a href="/app/new" class="m-3 btn btn-primary btn-lg">+ New App</a>
+
+      <div class="flex flex-wrap">
         {#each values($instancesStore) as app}
-          <div class="col-xl-4 col-md-6 col-12 mb-5">
-            <div class="card">
+          <div class="card m-3 w-96 bg-base-100 shadow-xl">
+            <div class="card-body">
+              <h2 class="card-title">{app.subdomain}</h2>
               <div
                 class="server-status d-flex align-items-center justify-content-between"
               >
@@ -81,15 +81,11 @@
                   <ProvisioningStatus status={app.status} />
                 </div>
               </div>
-
-              <h2 class="mb-4 font-monospace">{app.subdomain}</h2>
-
-              <div class="d-flex justify-content-around">
+              <div class="card-actions justify-center">
                 <a href={`/app/instances/${app.id}`} class="btn btn-light">
                   <i class="bi bi-gear-fill" />
                   <span>Details</span>
                 </a>
-
                 <a
                   class="btn btn-light pocketbase-button"
                   href={`https://${app.subdomain}.${PUBLIC_APP_DOMAIN}/_`}

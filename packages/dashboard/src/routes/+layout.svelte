@@ -16,6 +16,6 @@
   <VerifyAccountBar />
 </AuthStateGuard>
 
-<div class="container">
+<div>
   <slot />
 </div>

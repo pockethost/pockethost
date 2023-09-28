@@ -30,7 +30,7 @@
 </script>
 
 <AuthStateGuard>
-  <div class="container">
+  <div>
     {#if $instance}
       <h2>
         {$instance.subdomain}
