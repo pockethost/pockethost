@@ -41,3 +41,10 @@ jobs:
           directory: ./packages/www/_site
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
+
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: 'https://pocketerhost.io and https://app.pocketerhost.io have been updated.'
