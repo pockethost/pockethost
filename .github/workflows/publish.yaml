@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: 20.x
       - run: yarn install
+      - run: yarn lint
       - run: yarn build:dashboard
 
       - name: Publish dashboard to Cloudflare Pages
@@ -26,5 +27,16 @@ jobs:
           accountId: 345d27f80411fadbd59d484746d7352c
           projectName: pockethost-dashboard
           directory: ./packages/dashboard/build
+          branch: ${{ github.head_ref || github.ref_name }}
+          wranglerVersion: '3'
+
+      - name: Publish www to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          accountId: 345d27f80411fadbd59d484746d7352c
+          projectName: pockethost
+          directory: ./packages/www/_site
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
