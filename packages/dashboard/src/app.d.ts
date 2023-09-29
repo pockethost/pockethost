@@ -9,7 +9,7 @@ declare namespace App {
 }
 
 /**
- * Taken from markdown plugin. For some reason importing here causes ts errors
+ * Taken from Markdown plugin. For some reason importing here causes ts errors
  */
 interface Metadata<TAttributes extends {} = {}> {
   attributes: TAttributes
