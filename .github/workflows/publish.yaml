@@ -47,4 +47,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**BETA** https://pocketerhost.io and https://app.pocketerhost.io have been updated.'
+          args: '**BETA** https://${{ github.head_ref || github.ref_name }}.pockethost.pages.dev and https://${{ github.head_ref || github.ref_name }}.pockethost-dashboard.pages.dev have been updated.'
