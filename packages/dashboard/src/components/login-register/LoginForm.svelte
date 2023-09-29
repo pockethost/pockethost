@@ -1,6 +1,7 @@
 <script lang="ts">
   import { slide } from 'svelte/transition';
   import { handleLogin } from '$util/database'
+  import { boolean } from 'boolean'
 
   export let isSignUpView: boolean = true;
 
@@ -14,6 +15,8 @@
   $: isFormButtonDisabled =
     email.length === 0 || password.length === 0;
 
+  let isButtonLoading: boolean = false;
+
   // Toggle between registration and login forms
   const handleLoginClick = () => {
     isSignUpView = !isSignUpView;
@@ -22,13 +25,15 @@
   // Handle the form submission
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
-    isFormButtonDisabled = true
+    isFormButtonDisabled = true;
+    isButtonLoading = true;
 
     await handleLogin(email, password, (error) => {
       formError = error
     })
 
     isFormButtonDisabled = false
+    isButtonLoading = false;
   }
 </script>
 
@@ -80,7 +85,7 @@
       class="btn btn-primary"
       disabled={isFormButtonDisabled}
     >
-      {#if isFormButtonDisabled}
+      {#if isButtonLoading}
         <span class="loading loading-spinner"></span>
       {:else}
         Log In <i class="fa-solid fa-arrow-right"></i>
