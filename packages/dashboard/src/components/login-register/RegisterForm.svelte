@@ -10,8 +10,8 @@
   let rotationCounter: number = 0;
 
   // Set up the variables to hold the form information
-  let email: string = 'test@test.com';
-  let password: string = '123';
+  let email: string = '';
+  let password: string = '';
   let instanceName: string = generateSlug(2);
   let formError: string = '';
 

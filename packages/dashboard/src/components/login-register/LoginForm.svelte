@@ -5,8 +5,8 @@
   export let isSignUpView: boolean = true;
 
   // Set up the variables to hold the form information
-  let email: string = 'test@test.com';
-  let password: string = '123';
+  let email: string = '';
+  let password: string = '';
   let formError: string = '';
 
   // Disable the form button until all fields are filled out
