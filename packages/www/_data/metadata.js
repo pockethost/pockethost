@@ -1,11 +1,6 @@
 module.exports = {
-	title: "Eleventy Base Blog v8",
-	url: "https://example.com/",
+	title: "PocketHost",
+	url: "https://pockethost.io/",
 	language: "en",
-	description: "I am writing about my experiences as a naval navel-gazer.",
-	author: {
-		name: "Your Name Here",
-		email: "youremailaddress@example.com",
-		url: "https://example.com/about-me/"
-	}
+	description: "Get a PocketBase backend for your next app in under 10 seconds."
 }
