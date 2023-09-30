@@ -15,3 +15,6 @@ yarn.lock
 # Source files
 /src/assets/_bootstrap.css
 dist-server
+
+# Ignore the static files
+static

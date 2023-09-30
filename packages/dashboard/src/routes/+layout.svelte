@@ -5,12 +5,17 @@
   import Meta from '$components/helpers/Meta.svelte'
   import Protect from '$components/helpers/Protect.svelte'
   import '../app.css'
+
+  import { isUserLoggedIn } from '$util/stores'
 </script>
 
 <Meta />
 <Protect />
 
-<Navbar />
+
+{#if $isUserLoggedIn}
+  <Navbar />
+{/if}
 
 <AuthStateGuard>
   <VerifyAccountBar />
