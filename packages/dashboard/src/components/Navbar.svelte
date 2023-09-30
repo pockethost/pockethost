@@ -1,102 +1,63 @@
 <script lang="ts">
+  import Logo from '$components/Logo.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
   import { PUBLIC_POCKETHOST_VERSION } from '$src/env'
   import { handleLogoutAndRedirect } from '$util/database'
-  import { isUserLoggedIn } from '$util/stores'
+  import { getInstances } from '$util/getInstances'
+  import { globalInstancesStore } from '$util/stores'
+  import { values } from '@s-libs/micro-dash'
+  import { page } from '$app/stores';
+
+  // This will query the database for all instances and then update the global state
+  getInstances();
+
+  const linkClasses = "font-medium text-xl text-base-content btn btn-ghost capitalize justify-start";
+  const subLinkClasses = "font-medium text-base-content btn btn-ghost btn-sm capitalize justify-start";
 </script>
 
-<div class="navbar bg-base-100">
-  <div class="flex-1">
-    <a href="/" class="logo text-decoration-none d-flex align-items-center">
-      <img
-        src="/images/logo-square.png"
-        alt="PocketHost Logo"
-        class="img-fluid"
-      />
-      <h1>Pocket<span>Host</span></h1>
-      <sup class="">{PUBLIC_POCKETHOST_VERSION}</sup>
-    </a>
-  </div>
-  <div class="flex-none">
-    <ul class="menu menu-horizontal px-1">
-      {#if !$isUserLoggedIn}
-        <li>
-          <a href="/signup">Sign up</a>
-        </li>
+<aside class='p-4 min-w-[250px] flex flex-col h-screen'>
+  <a href="/dashboard" class="flex gap-2 items-center justify-center">
+    <Logo hideLogoText={true} logoWidth="w-20" />
+  </a>
 
-        <li>
-          <a href="/login">Log in</a>
-        </li>
-      {/if}
-      <li>
-        <a
-          href="https://github.com/benallfree/pockethost/discussions"
-          target="_blank"
-          rel="noreferrer">Discussion</a
-        >
-      </li>
-      <li>
-        <a href="https://pockethost.io/docs" rel="noreferrer">Docs</a>
-      </li>
+  <div class='flex flex-col gap-2 mb-auto'>
+    <a
+      href='/dashboard'
+      class={linkClasses}><i class="fa-regular fa-table-columns {$page.url.pathname === '/dashboard' && 'text-primary'}"></i> Dashboard</a>
 
-      {#if $isUserLoggedIn}
-        <li>
-          <a type="button" on:click={handleLogoutAndRedirect}>Logout</a>
-        </li>
-      {/if}
-
-      <li>
-        <ThemeToggle navLink={true} />
-      </li>
-      <li>
-        <a
-          href="https://github.com/benallfree/pockethost"
-          target="_blank"
-          aria-label="Link to our Github Project"
-          title="Link to our Github Project"
-          rel="noopener"
-        >
-          github
+    <div class='pl-8 flex flex-col gap-4 mb-4'>
+      {#each values($globalInstancesStore) as app}
+        <a href={`/app/instances/${app.id}`} class={subLinkClasses}>
+          <i class="fa-regular fa-server {$page.url.pathname === `/app/instances/${app.id}` && 'text-primary'}"></i> {app.subdomain}
         </a>
-      </li>
-    </ul>
+      {/each}
+    </div>
+
+    <a
+      href='https://github.com/benallfree/pockethost/discussions'
+      class={linkClasses}
+      target="_blank"
+      rel="noreferrer"><i class="fa-regular fa-comment-code"></i> Discussion <i class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"></i></a>
+
+    <a
+      href='https://pockethost.io/docs'
+      class={linkClasses}
+      target="_blank"
+      rel="noreferrer">
+      <i class="fa-regular fa-webhook"></i> Docs <i class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"></i></a>
+
+    <a
+      href='https://github.com/pockethost/pockethost'
+      class={linkClasses}
+      target="_blank"
+      rel="noreferrer">
+      <i class="fa-brands fa-github"></i> GitHub <i class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"></i></a>
+
+    <button
+      type="button"
+      class={linkClasses}
+      on:click={handleLogoutAndRedirect}><i class="fa-regular fa-arrow-up-left-from-circle"></i> Logout</button>
   </div>
-</div>
 
-<style lang="scss">
-  .logo {
-    img {
-      max-width: 50px;
-      margin-right: 16px;
-      display: inline-block;
-    }
-
-    h1 {
-      font-size: 36px;
-      font-weight: 300;
-      margin: 0;
-      color: var(--bs-body-color);
-      display: inline-block;
-      position: relative;
-      top: 10px;
-
-      span {
-        font-weight: 700;
-        background-image: linear-gradient(
-          83.2deg,
-          rgba(150, 93, 233, 1) 10.8%,
-          rgba(99, 88, 238, 1) 94.3%
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-    }
-
-    sup {
-      margin-left: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--bs-gray-600);
-    }
-  }
-</style>
+  <ThemeToggle />
+</aside>
