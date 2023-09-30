@@ -1,47 +1,44 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
   import { onMount } from 'svelte'
   import {
-    THEME_ICONS,
     ThemeNames,
-    currentIcon,
     getCurrentTheme,
     setCurrentTheme,
   } from './helpers/theme'
 
-  // This can change the CSS a bit depending on where the theme toggle is rendered
-  export let navLink: boolean = false
-
-  // Set the default icon to be light mode
-  let iconClass: string = browser ? currentIcon() : ''
+  // This will keep track of the toggle's state
+  let isChecked = true;
 
   // Wait for the DOM to be available
   onMount(() => {
+    // Check what theme cookie is set
+    const currentTheme = getCurrentTheme();
+
+    // Set the toggle's state
+    isChecked = currentTheme === ThemeNames.Dark;
+
+    // Update the site's theme to match what the cookie has
     updateTheme(getCurrentTheme())
   })
 
   // Alternate the theme values on toggle click
-  const handleClick = () => {
-    const newTheme =
-      getCurrentTheme() === ThemeNames.Light
-        ? ThemeNames.Dark
-        : ThemeNames.Light
+  const handleChange = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    const isChecked = target.checked;
+
+    const newTheme = isChecked ? ThemeNames.Dark : ThemeNames.Light;
+
     updateTheme(newTheme)
   }
 
   const updateTheme = (themeName: ThemeNames) => {
-    // Update the icon class name to toggle between light and dark mode
-    iconClass = THEME_ICONS[themeName]
-
     setCurrentTheme(themeName)
   }
 </script>
 
-<a
-  type="button"
-  aria-label="Toggle the site theme"
-  title="Toggle the site theme"
-  on:click={handleClick}
->
-  Theme
-</a>
+<div class="form-control">
+  <label class="label cursor-pointer">
+    <span class="label-text">Dark Mode</span>
+    <input type="checkbox" class="toggle" bind:checked={isChecked} on:change={handleChange} />
+  </label>
+</div>

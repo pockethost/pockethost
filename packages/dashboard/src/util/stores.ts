@@ -1,7 +1,11 @@
 import { browser } from '$app/environment'
 import { client } from '$src/pocketbase'
 import type { AuthStoreProps } from '$src/pocketbase/PocketbaseClient'
-import { logger } from '@pockethost/common'
+import {
+  logger,
+  type InstanceFields,
+  type InstanceId,
+} from '@pockethost/common'
 import { writable } from 'svelte/store'
 
 export const authStoreState = writable<AuthStoreProps>({
@@ -20,7 +24,7 @@ if (browser) {
    * Listen for auth change events. When we get at least one, the auth state is initialized.
    */
   onAuthChange((authStoreProps) => {
-    const { dbg, error, warn } = logger()
+    const { dbg } = logger()
     dbg(`onAuthChange in store`, { ...authStoreProps })
     authStoreState.set(authStoreProps)
     isAuthStateInitialized.set(true)
@@ -28,9 +32,14 @@ if (browser) {
 
   // Update derived stores when authStore changes
   authStoreState.subscribe((authStoreProps) => {
-    const { dbg, error, warn } = logger()
+    const { dbg } = logger()
     dbg(`subscriber change`, authStoreProps)
     isUserLoggedIn.set(authStoreProps.isValid)
     isUserVerified.set(!!authStoreProps.model?.verified)
   })
 }
+
+// This holds an array of all the user's instances and their data
+export const globalInstancesStore = writable<{
+  [_: InstanceId]: InstanceFields
+}>({})

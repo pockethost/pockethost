@@ -1,22 +1,24 @@
 <script lang="ts">
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
-  import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import AccordionItem from '../../../../components/AccordionItem.svelte'
   import { instance } from './store'
 
-  $: ({ subdomain, status, version, secondsThisMonth } = $instance)
-
-  const url = `${PUBLIC_APP_PROTOCOL}://${subdomain}.${PUBLIC_APP_DOMAIN}`
+  $: ({ status, version, secondsThisMonth } = $instance)
 </script>
 
-<AccordionItem title="Overview" show={true}>
+
+<div class='card card-body bg-base-200'>
+  <h3 class='font-bold text-2xl'>Overview</h3>
+
   <div>
     Status: <ProvisioningStatus {status} />
   </div>
+
   <div>
     Usage: {Math.ceil(secondsThisMonth / 60)} mins
   </div>
+
   <div>
-    Version: {version} (change in Danger Zone)
+    Version: {version}
   </div>
-</AccordionItem>
+</div>

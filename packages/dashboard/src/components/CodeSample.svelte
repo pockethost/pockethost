@@ -26,12 +26,13 @@
   .copy-container {
     position: relative;
     margin: 5px;
-    border: 1px solid gray;
+    border-radius: 16px;
+    overflow: hidden;
 
     .copy-button {
       position: absolute;
-      top: 2px;
-      right: 2px;
+      top: 8px;
+      right: 8px;
     }
   }
 </style>
