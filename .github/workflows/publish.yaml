@@ -58,4 +58,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**PROD** ${{ steps.www_deploy.outputs.url }} and ${{ steps.dashboard_deploy.outputs.url }} were generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+          args: '**PROD** ${{ steps.www_deploy.outputs.alias }} (${{ steps.www_deploy.outputs.url }}) and ${{ steps.dashboard_deploy.outputs.alias }} (${{ steps.dashboard_deploy.outputs.url }}) were generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
