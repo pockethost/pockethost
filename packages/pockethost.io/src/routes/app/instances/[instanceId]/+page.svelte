@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_APP_DOMAIN } from '$env/static/public'
-  import { PUBLIC_APP_PROTOCOL } from '$src/env'
+  import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import { assertExists } from '@pockethost/common'
   import Code from './Code.svelte'
   import Danger from './Danger/Danger.svelte'
