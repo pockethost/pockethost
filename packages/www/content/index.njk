@@ -7,7 +7,7 @@ numberOfLatestPostsToShow: 3
 {% import "components/buttons.njk" as Buttons %}
 
 <div class='container mx-auto text-white flex items-center'>
-    <div class='p-8 md:w-1/2'>
+    <div class='p-8 lg:w-1/2'>
         <h1 class='text-6xl font-bold mb-8'>Amazingly Simple PocketBase Hosting</h1>
 
         <p class='text-2xl mb-12'>
@@ -18,7 +18,7 @@ numberOfLatestPostsToShow: 3
         {{ Buttons.PrimaryButton("Get Started", "#", "fa-solid fa-arrow-right") }}
     </div>
 
-    <div class='w-full p-8 md:w-1/2'>
+    <div class='w-full p-8 lg:w-1/2 lg:block hidden'>
         <img src='/img/futuristic-server-room.png'
              alt='A series of tubes moving the data around to represent PocketHost'
              class='rounded-[250px] mix-blend-lighten animated-hero-banner' />
@@ -68,7 +68,7 @@ numberOfLatestPostsToShow: 3
 
 
 {% macro SubFeatureBlock(icon, title, content) %}
-    <div class='w-1/5'>
+    <div class='xl:w-1/5 md:w-1/2 xl:mb-0 mb-12'>
         <div class='text-center flex flex-col items-center px-4'>
             <div class='mb-4'>{{ FeatureIcon(icon) }}</div>
 
@@ -80,7 +80,7 @@ numberOfLatestPostsToShow: 3
 {% endmacro %}
 
 
-<div class="container mx-auto bg-gradient-to-r from-zinc-900 to-zinc-800 border-zinc-700 border-2 rounded-[75px] flex flex-wrap mb-12 shadow-xl overflow-hidden">
+<div class="container mx-auto md:bg-gradient-to-r md:from-zinc-900 md:to-zinc-800 bg-zinc-800 border-zinc-700 border-2 rounded-[75px] flex flex-wrap mb-12 shadow-xl overflow-hidden">
     <div class='bg-zinc-900 md:w-1/2'>
         {{ MainFeatureBlock("fa-laptop-code", "Up in 30 seconds", "Work Smarter, Not Harder", "A backend for your next app is as fast as signing up. No provisioning servers, no Docker fiddling, just B(ad)aaS productivity. Pick a unique project name and connect with our JS Client.", "Create Your New Backend", "/") }}
     </div>

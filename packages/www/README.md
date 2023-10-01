@@ -1,61 +1,128 @@
-# eleventy-base-blog v8
+# Marketing, Blog, and Documentation for PocketHost
 
-A starter repository showing how to build a blog with the [Eleventy](https://www.11ty.dev/) site generator (using the [v2.0 release](https://www.11ty.dev/blog/eleventy-v2/)).
-
-[![Netlify Status](https://api.netlify.com/api/v1/badges/802669dd-d5f8-4d49-963d-6d57b257c2a2/deploy-status)](https://app.netlify.com/sites/eleventy-base-blog/deploys)
+Built with 11ty, Tailwind, Daisy UI, and Markdown
 
 ## Getting Started
 
-* [Want a more generic/detailed getting started guide?](https://www.11ty.dev/docs/getting-started/)
+- Clone the repo
+- Run `yarn install` at the project root
+- Navigate to `packages/www/`
+- Run `npx @11ty/eleventy --serve --quiet` to start the development server
+- Access the site at http://localhost:8080/
 
-1. Make a directory and navigate to it:
+## Development
 
-```
-mkdir my-blog-name
-cd my-blog-name
-```
+11ty can use a variety of file types to make content. It supports `.html`, `.njk`, and `.md` to name a few. All will be compiled normally without additional setup needed. Markdown is probably the best for blog posts or documentation pages.
 
-2. Clone this Repository
+### Creating Variables
 
-```
-git clone https://github.com/11ty/eleventy-base-blog.git .
-```
+You can use the `set` function from nunjucks to create variables. 
 
-_Optional:_ Review `eleventy.config.js` and `_data/metadata.js` to configure the site’s options and data.
+```twig
+{% set linkCSS = "block py-2 px-3 rounded hover:text-white hover:bg-zinc-800" %}
 
-3. Install dependencies
-
-```
-npm install
-```
-
-4. Run Eleventy
-
-Generate a production-ready build to the `_site` folder:
-
-```
-npx @11ty/eleventy
+<a href="#" class="{{ linkCSS }}">Link</a>
+<a href="#" class="{{ linkCSS }}">Link</a>
+<a href="#" class="{{ linkCSS }}">Link</a>
 ```
 
-Or build and host on a local development server:
+### Creating Reusable Components
 
+You can use the `macro` command to create reusable functions. An example looks like this:
+
+```twig
+{# /components/your-component-file.njk #}
+
+{# Reusable component for creating custom buttons #}
+{% macro PrimaryButton(text, url, icon = "") %}
+    <div class="relative inline-flex  group">
+        <div
+                class="absolute transition-all duration-1000 opacity-70 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200 animate-tilt">
+        </div>
+
+        <a href="{{ url }}"
+           class="relative inline-flex gap-4 items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-gray-900 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+           role="button">
+            {{ text }}
+            {% if icon %}
+                <i class="{{ icon }}"></i>
+            {% endif %}
+        </a>
+    </div>
+{% endmacro %}
 ```
-npx @11ty/eleventy --serve
+
+Now that your component has been built with the three properties: `text`, `url`, and the optional `icon`, you can import it wherever you want. Note that imports by default start in the `_includes` folder, so no need to reference through the folder tree to get to it. 
+
+```twig
+{# /content/about.njk #}
+
+{% import "components/buttons.njk" as Buttons %}
+
+{{ Buttons.PrimaryButton("Get Started", "#", "fa-solid fa-arrow-right") }}
 ```
 
-Or you can run [debug mode](https://www.11ty.dev/docs/debugging/) to see all the internals.
+You can also make macros, or reusable functions, within the page itself, as long as that component is only being used on that specific page. If you need to use it in multiple pages, it is best to put it in its own file in the `_includes/components` folder.
 
-## Features
 
+### Reference Page Data
+
+Within each page, you can add metadata at the very top like so:
+
+```md
+---
+title: My Cool Blog Post
+description: This is a cool blog post
+---
+```
+
+and reference it anywhere in the page with the `{{ }}` syntax. A full example looks like this:
+
+```md
+---
+title: My Cool Blog Post
+description: This is a cool blog post
+---
+
+# {{ title }}
+
+New post! Read the description below:
+
+{{ description }}
+```
+
+The metadata will be injected into the template, and rendered as static html. 
+
+### Folder Structure
+
+```bash
+_data/ # Data files like JSON and your global site metadata go here
+_includes/ # This is where your layouts, and reusable components go
+├── components/ # Any reusable components can go here
+└── layouts/ # Any reusable layout files can go here.
+_site/ # This is the static HTML output of your 11ty site
+content/ # This is where your pages, blog posts, and documentation pages go
+├── blog/ # This holds the list of all markdown blog posts
+├── docs/ # This holds the list of all markdown documentation posts
+├── feed/ # This automatically creates a feed of your blog posts
+└── sitemap/ # This automatically generates a sitemap of the marketing site, including blog and documentation pages
+public/ # This folder is copied into the _site folder at compile time. Images and static content go here
+├── css/ # This is only used to inject tailwind. All CSS should be developed using Tailwind and DaisyUI's utility classes
+├── icons/ # This holds the Font Awesome icon system
+└── img/ # All images used on the site should go in this folder
+└── webfonts # This holds the Font Awesome icon system
+```
+
+
+## 11ty Advanced Features
+
+- 11ty "Get Started" Documentation: https://www.11ty.dev/docs/getting-started/
 - Using [Eleventy v2.0](https://www.11ty.dev/blog/eleventy-v2/) with zero-JavaScript output.
 	- Content is exclusively pre-rendered (this is a static site).
 	- Can easily [deploy to a subfolder without changing any content](https://www.11ty.dev/docs/plugins/html-base/)
 	- All URLs are decoupled from the content’s location on the file system.
 	- Configure templates via the [Eleventy Data Cascade](https://www.11ty.dev/docs/data-cascade/)
-- **Performance focused**: four-hundos Lighthouse score out of the box!
-	- [View the Lighthouse report for the latest build](https://eleventy-base-blog.netlify.app/reports/lighthouse/) courtesy of the [Netlify Lighthouse plugin](https://github.com/netlify/netlify-plugin-lighthouse).
-	- _0 Cumulative Layout Shift_
-	- _0ms Total Blocking Time_
+- **Performance focused** with no client-side javascript
 - Local development live reload provided by [Eleventy Dev Server](https://www.11ty.dev/docs/dev-server/).
 - Content-driven [navigation menu](https://www.11ty.dev/docs/plugins/navigation/)
 - [Image optimization](https://www.11ty.dev/docs/plugins/image/) via the `{% image %}` shortcode.
@@ -80,45 +147,20 @@ Or you can run [debug mode](https://www.11ty.dev/docs/debugging/) to see all the
 	- `sitemap.xml`
 	- Zero-maintenance tag pages ([View on the Demo](https://eleventy-base-blog.netlify.app/tags/))
 	- Content not found (404) page
-
-## Demos
-
-- [Netlify](https://eleventy-base-blog.netlify.com/)
-- [GitHub Pages](https://11ty.github.io/eleventy-base-blog/)
-- [Remix on Glitch](https://glitch.com/~11ty-eleventy-base-blog)
-
-## Deploy this to your own site
-
-Deploy this Eleventy site in just a few clicks on these services:
-
-- [Get your own Eleventy web site on Netlify](https://app.netlify.com/start/deploy?repository=https://github.com/11ty/eleventy-base-blog)
-- If you run Eleventy locally you can drag your `_site` folder to [`drop.netlify.com`](https://drop.netlify.com/) to upload it without using `git`.
-- [Get your own Eleventy web site on Vercel](https://vercel.com/import/project?template=11ty%2Feleventy-base-blog)
-- [Try it out on Stackblitz](https://stackblitz.com/github/11ty/eleventy-base-blog)
-- Read more about [Deploying an Eleventy project](https://www.11ty.dev/docs/deployment/) to the web.
-
-### Implementation Notes
-
-- `content/about/index.md` is an example of a content page.
-- `content/blog/` has the blog posts but really they can live in any directory. They need only the `posts` tag to be included in the blog posts [collection](https://www.11ty.dev/docs/collections/).
-- Use the `eleventyNavigation` key (via the [Eleventy Navigation plugin](https://www.11ty.dev/docs/plugins/navigation/)) in your front matter to add a template to the top level site navigation. This is in use on `content/index.njk` and `content/about/index.md`.
+- `content/blog/` has the blog posts, but really they can live in any directory. They need only the `posts` tag to be included in the blog posts [collection](https://www.11ty.dev/docs/collections/).
 - Content can be in _any template format_ (blog posts needn’t exclusively be markdown, for example). Configure your project’s supported templates in `eleventy.config.js` -> `templateFormats`.
 - The `public` folder in your input directory will be copied to the output folder (via `addPassthroughCopy` in the `eleventy.config.js` file). This means `./public/css/*` will live at `./_site/css/*` after your build completes.
 - Provides two content feeds:
 	- `content/feed/feed.njk`
 	- `content/feed/json.njk`
-- This project uses three [Eleventy Layouts](https://www.11ty.dev/docs/layouts/):
-	- `_includes/layouts/base.njk`: the top level HTML structure
-	- `_includes/layouts/home.njk`: the home page template (wrapped into `base.njk`)
-	- `_includes/layouts/post.njk`: the blog post template (wrapped into `base.njk`)
-- `_includes/postslist.njk` is a Nunjucks include and is a reusable component used to display a list of all the posts. `content/index.njk` has an example of how to use it.
+- This project uses multiple [Eleventy Layouts](https://www.11ty.dev/docs/layouts/):
+- `_includes/components/postslist.njk` is a Nunjucks include and is a reusable component used to display a list of all the posts. `content/index.njk` has an example of how to use it.
 
-If your site enforces a Content Security Policy (as public-facing sites should), either, in `base.njk`, disable
-```html
-<style>{% getBundle "css" %}</style>
-```
-and enable
-```html
-<link rel="stylesheet" href="{% getBundleFileUrl "css" %}">
-```
-or configure the server with the CSP directive `style-src: 'unsafe-inline'` (which is less secure).
+## Helpful Links
+
+- [11ty Documentation](https://www.11ty.dev/docs/)
+- [Tailwind Documentation](https://tailwindcss.com/docs)
+- [Daisy UI Documentation](https://daisyui.com/)
+- [Font Awesome Documentation](https://fontawesome.com/v5.15/how-to-use/on-the-web/referencing-icons/basic-use)
+- [Markdown Cheatsheet](https://www.markdownguide.org/cheat-sheet/)
+- [Nunjucks Documentation](https://mozilla.github.io/nunjucks/templating.html)
