@@ -13,8 +13,6 @@
   // Run anytime the page params changes
   $: { getSingleInstance($page.params.instanceId) }
 
-  console.log(">>>$instance", $instance)
-
   onDestroy(() => cm.shutdown())
 </script>
 

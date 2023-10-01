@@ -2,6 +2,8 @@
   import CodeSample from '$components/CodeSample.svelte'
   import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import { instance } from './store'
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
 
   let installSnippet = `npm i pocketbase`;
 
@@ -16,8 +18,8 @@
 });`;
 </script>
 
-<div class='card card-body bg-base-200 h-full'>
-  <h3 class='text-xl font-bold mb-4'>Getting Started</h3>
+<Card>
+  <CardHeader>Getting Started</CardHeader>
 
   <div class='mb-4'>
     <p>Installing PocketBase</p>
@@ -39,4 +41,4 @@
     <li><a href='https://pocketbase.io/docs/api-records/' target='_blank' class='link'>PocketBase Web APIs</a></li>
     <li><a href='https://www.npmjs.com/package/pocketbase' target='_blank' class='link'>PocketBase NPM Package</a></li>
   </ul>
-</div>
+</Card>

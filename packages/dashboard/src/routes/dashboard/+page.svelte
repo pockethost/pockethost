@@ -20,7 +20,7 @@
       <a href="/app/new" class="m-3 btn btn-primary"><i class="fa-solid fa-plus"></i> New App</a>
     </div>
 
-    <UsageChartForAllInstances />
+    <!--<UsageChartForAllInstances />-->
 
     <InstanceList />
   {/if}
