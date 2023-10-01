@@ -7,7 +7,7 @@
   import Secrets from './Secrets/Secrets.svelte'
   import { instance } from './store'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
-  import DangerZoneTitle from '$src/routes/app/instances/[instanceId]/Danger/DangerZoneTitle.svelte'
+  import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
   import RenameInstance from './Danger/RenameInstance.svelte'
   import Maintenance from './Danger/Maintenance.svelte'
   import VersionChange from './Danger/VersionChange.svelte'
