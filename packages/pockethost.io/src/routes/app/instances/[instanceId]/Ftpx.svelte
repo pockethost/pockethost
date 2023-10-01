@@ -12,7 +12,9 @@
   if (!email) {
     throw new Error(`Email expected here`)
   }
-  const ftpUrl = `ftp://${encodeURIComponent(email)}@${PUBLIC_APP_DOMAIN}`
+  const ftpUrl = `ftp://${encodeURIComponent(
+    email,
+  )}@ftp.sfo-1.${PUBLIC_APP_DOMAIN}`
 </script>
 
 <AccordionItem title="FTP Access">
