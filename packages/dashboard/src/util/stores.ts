@@ -13,6 +13,7 @@ export const authStoreState = writable<AuthStoreProps>({
   model: null,
   token: '',
 })
+
 export const isUserLoggedIn = writable(false)
 export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)

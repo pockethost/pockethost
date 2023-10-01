@@ -13,6 +13,8 @@
     PointElement,
     CategoryScale,
   } from 'chart.js';
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
 
   ChartJS.register(
     Title,
@@ -91,10 +93,28 @@
   };
 </script>
 
-<div class='card card-body bg-base-200 h-full'>
-  <h3 class='text-xl font-bold mb-16'>Usage</h3>
+<Card block={false}>
+  <CardHeader>Usage</CardHeader>
 
-  <div class='h-full'>
-    <Line {data} {options}  />
+  <div class='h-full relative'>
+    <div class='h-full blur'>
+      <Line {data} {options}  />
+    </div>
+
+    <div class='inset-center z-10 border-info border-2 rounded-2xl mx-auto w-full'>
+      <div class="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Usage Charts Coming Soon</span>
+      </div>
+    </div>
   </div>
-</div>
+</Card>
+
+<style>
+    .inset-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>

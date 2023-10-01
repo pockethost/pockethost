@@ -2,7 +2,6 @@
   import { Line } from 'svelte-chartjs'
   import { subMonths, format } from 'date-fns';
   import { globalInstancesStore } from '$util/stores'
-  import { get } from 'svelte/store';
 
   import {
     Chart as ChartJS,
@@ -168,6 +167,7 @@
     }
   };
 </script>
+
 
 <div class='card card-body bg-base-200 h-[600px] mb-4'>
   <h3 class='text-xl font-bold mb-16'>Usage for All Instances</h3>

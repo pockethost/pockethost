@@ -1,12 +1,17 @@
 <script lang="ts">
-  import AccordionItem from '../../../../../components/AccordionItem.svelte'
-  import Version from '../Version.svelte'
+  import Version from './Version.svelte'
   import Maintenance from './Maintenance.svelte'
   import Rename from './Rename.svelte'
 </script>
 
-<AccordionItem title="Danger Zone" header="danger">
+
+
+<div class='card card-body bg-base-200 block'>
+  <h3 class='text-xl font-bold mb-4'>Danger Zone</h3>
+
   <Rename />
+
   <Maintenance />
+
   <Version />
-</AccordionItem>
+</div>
