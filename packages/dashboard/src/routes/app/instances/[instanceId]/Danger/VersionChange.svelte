@@ -36,10 +36,10 @@
     Version Change
   </CardHeader>
 
-  <p class='mb-8'>Changing your version can only be done when the instance is in maintenance mode. We recommend you do a full backup before making a change. The version number uses the semver syntax and any <a href='https://www.npmjs.com/package/pocketbase?activeTab=versions' class='link'>supported PocketBase version</a> should work.</p>
+  <p class='mb-8'>Changing your version can only be done when the instance is in maintenance mode. We recommend you <strong>do a full backup</strong> before making a change. The version number uses the semver syntax and any <a href='https://www.npmjs.com/package/pocketbase?activeTab=versions' class='link'>supported PocketBase version</a> should work.</p>
 
   <form class='flex' on:submit={handleSave}>
     <input type="text" bind:value={version} class="input input-bordered w-full" />
-    <button type='submit' class='btn btn-warning ml-4' disabled={!maintenance || isButtonDisabled}>Change Version</button>
+    <button type='submit' class='btn btn-error ml-4' disabled={!maintenance || isButtonDisabled}>Change Version</button>
   </form>
 </Card>

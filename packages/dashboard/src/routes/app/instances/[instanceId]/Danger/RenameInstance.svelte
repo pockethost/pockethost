@@ -36,10 +36,10 @@
     Rename Instance
   </CardHeader>
 
-  <p class='mb-8'>Renaming your instance will cause it to become <strong class='text-warning'>inaccessible</strong> by the old instance name. You also may not be able to change it back if someone else choose it.</p>
+  <p class='mb-8'>Renaming your instance will cause it to become <strong class='text-error'>inaccessible</strong> by the old instance name. You also may not be able to change it back if someone else choose it.</p>
 
   <form class='flex' on:submit={onRename}>
     <input type="text" bind:value={formSubdomain} class="input input-bordered w-full" />
-    <button type='submit' class='btn btn-warning ml-4' disabled={isButtonDisabled}>Rename Instance</button>
+    <button type='submit' class='btn btn-error ml-4' disabled={isButtonDisabled}>Rename Instance</button>
   </form>
 </Card>
