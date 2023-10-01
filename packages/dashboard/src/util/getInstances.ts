@@ -23,8 +23,6 @@ export const getInstances = async () => {
 
         globalInstancesStore.set(instances)
 
-        console.log({ instances })
-
         client()
           .client.collection('instances')
           .subscribe<InstanceFields>('*', (data) => {
