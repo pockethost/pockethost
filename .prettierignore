@@ -3,3 +3,4 @@ dist
 mount
 .data
 attic
+.dockercache

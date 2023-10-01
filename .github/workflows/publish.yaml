@@ -22,6 +22,7 @@ jobs:
 
       - name: Publish dashboard to Cloudflare Pages
         uses: cloudflare/pages-action@v1
+        id: dashboard_deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -33,6 +34,7 @@ jobs:
 
       - name: Publish www to Cloudflare Pages
         uses: cloudflare/pages-action@v1
+        id: www_deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -42,9 +44,18 @@ jobs:
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
 
-      - name: Discord notification
+      - name: Discord branch notification
+        if: github.ref_name != 'static-build'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**BETA** https://${{ github.head_ref || github.ref_name }}.pockethost.pages.dev and https://${{ github.head_ref || github.ref_name }}.pockethost-dashboard.pages.dev have been updated.'
+          args: '**DEV** ${{ steps.www_deploy.outputs.url }} and ${{ steps.dashboard_deploy.outputs.url }} were generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+
+      - name: Discord live notification
+        if: github.ref_name == 'static-build'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: '**PROD** ${{ steps.www_deploy.outputs.url }} and ${{ steps.dashboard_deploy.outputs.url }} were generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
