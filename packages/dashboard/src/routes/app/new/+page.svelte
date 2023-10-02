@@ -1,5 +1,7 @@
 <script lang="ts">
-  import AlertBar from '$components/AlertBar.svelte'
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
+  import { slide } from 'svelte/transition'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
   import { generateSlug } from 'random-word-slugs'
@@ -36,77 +38,42 @@
   <title>New Instance - PocketHost</title>
 </svelte:head>
 
-<div>
-  <div class="py-4">
-    <h1 class="text-center">Choose a name for your PocketBase app.</h1>
-  </div>
+<h2 class="text-4xl text-base-content font-bold capitalize mb-6">Create A New App</h2>
 
-  <div class="row g-3 align-items-center justify-content-center mb-4">
-    <div class="col-auto">
-      <label for="instance-name" class="col-form-label">Instance Name:</label>
-    </div>
+<div class='grid lg:grid-cols-2 grid-cols-1'>
+  <Card>
+    <form on:submit={handleSubmit}>
+      <CardHeader>Choose a name for your PocketBase app.</CardHeader>
 
-    <div class="col-auto pe-1 position-relative">
-      <input
-        type="text"
-        id="instance-name"
-        class="form-control"
-        bind:value={instanceName}
-      />
+      <div class='flex rename-instance-form-container-query gap-4'>
+        <input type="text" bind:value={instanceName} class="input input-bordered w-full" />
 
-      <button
-        aria-label="Regenerate Instance Name"
-        type="button"
-        style="transform: rotate({rotationCounter}deg);"
-        class="btn btn-light rounded-circle regenerate-instance-name-btn"
-        on:click={handleInstanceNameRegeneration}
-      >
-        <i class="bi bi-arrow-repeat" />
-      </button>
-    </div>
+        <button
+          type='button'
+          class='btn btn-outline btn-secondary'
+          aria-label="Regenerate Instance Name"
+          on:click={handleInstanceNameRegeneration}><i class="fa-regular fa-arrows-rotate"></i></button>
+      </div>
 
-    <div class="col-auto ps-0">
-      <span class="form-text">.{PUBLIC_APP_DOMAIN}</span>
-    </div>
-  </div>
+      <h4 class='text-center font-bold py-12'>https://{instanceName}.{PUBLIC_APP_DOMAIN}</h4>
 
-  {#if formError}
-    <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
-  {/if}
+      {#if formError}
+        <div transition:slide class="alert alert-error mb-5">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>{formError}</span>
+        </div>
+      {/if}
 
-  <div class="text-center">
-    <a href="/dashboard" class="btn btn-light" disabled={isFormButtonDisabled}
-      >Cancel</a
-    >
+      <div class="flex items-center justify-center gap-4">
+        <a href="/dashboard" class="btn">Cancel</a>
 
-    <button
-      class="btn btn-primary"
-      disabled={isFormButtonDisabled}
-      on:click={handleSubmit}
-    >
-      Create <i class="bi bi-arrow-right-short" />
-    </button>
-  </div>
+        <button
+          class="btn btn-primary"
+          disabled={isFormButtonDisabled}
+        >
+          Create <i class="bi bi-arrow-right-short" />
+        </button>
+      </div>
+    </form>
+  </Card>
 </div>
-
-<style lang="scss">
-  .container {
-    max-width: 600px;
-    min-height: 70vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-  }
-
-  .regenerate-instance-name-btn {
-    padding: 0;
-    width: 34px;
-    height: 34px;
-    position: absolute;
-    z-index: 500;
-    top: 2px;
-    right: 6px;
-    transition: all 200ms;
-  }
-</style>

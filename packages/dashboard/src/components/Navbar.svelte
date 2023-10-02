@@ -13,6 +13,7 @@
 
   const linkClasses = "font-medium text-xl text-base-content btn btn-ghost capitalize justify-start";
   const subLinkClasses = "font-medium text-base-content btn btn-ghost btn-sm capitalize justify-start";
+  const addNewAppClasses = "font-medium text-base-content btn btn-outline btn-primary btn-sm capitalize justify-start";
 
   const handleClick = () => {
     document.querySelector(".drawer-overlay")?.click();
@@ -41,6 +42,10 @@
           <i class="fa-regular fa-server {$page.url.pathname === `/app/instances/${app.id}` && 'text-primary'}"></i> {app.subdomain}
         </a>
       {/each}
+
+      <a href="/app/new" on:click={handleClick} class={addNewAppClasses}>
+        <i class="fa-regular fa-plus {$page.url.pathname === `/app/new` && 'text-primary'}"></i> Create A New App
+      </a>
     </div>
 
     <a
