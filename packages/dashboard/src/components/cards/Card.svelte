@@ -4,6 +4,7 @@
   export let marginBottom: string = '';
 </script>
 
-<div class='card card-body bg-base-200 {block ? "block" : ""} {height} {marginBottom}'>
+<!-- Setting the `container-type` allows us to use Container Queries -->
+<div class='card card-body bg-base-200 {block ? "block" : ""} {height} {marginBottom}' style='container-type: inline-size'>
   <slot />
 </div>

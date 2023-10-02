@@ -4,9 +4,12 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import Protect from '$components/helpers/Protect.svelte'
+  import MediaQuery from '$components/MediaQuery.svelte'
+  import MobileNavDrawer from '$components/MobileNavDrawer.svelte'
   import '../app.css'
 
   import { isUserLoggedIn } from '$util/stores'
+  import Logo from '$components/Logo.svelte'
 </script>
 
 <Meta />
@@ -18,11 +21,19 @@
     <VerifyAccountBar />
   </AuthStateGuard>
 
-  <div class='layout flex'>
-    <Navbar />
+  <div class='layout xl:flex'>
+    <MediaQuery query="(min-width: 1280px)" let:matches>
+      {#if matches}
+        <Navbar />
+      {:else}
+        <MobileNavDrawer>
+          <Navbar />
+        </MobileNavDrawer>
+      {/if}
+    </MediaQuery>
 
-    <div class='p-4 min-h-screen grow'>
-      <div class='bg-base-300 border-base-300 border-[16px] h-[calc(100vh-32px)] p-4 rounded-2xl overflow-hidden overflow-y-auto'>
+    <div class='lg:p-4 lg:pt-0 xl:pt-4 min-h-screen grow'>
+      <div class='bg-base-300 border-base-300 border-[16px] xl:h-[calc(100vh-32px)] lg:p-4 rounded-2xl xl:overflow-hidden xl:overflow-y-auto'>
         <slot />
       </div>
     </div>

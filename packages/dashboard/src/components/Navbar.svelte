@@ -1,7 +1,7 @@
 <script lang="ts">
   import Logo from '$components/Logo.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
-  import { PUBLIC_POCKETHOST_VERSION } from '$src/env'
+  import MediaQuery from '$components/MediaQuery.svelte'
   import { handleLogoutAndRedirect } from '$util/database'
   import { getInstances } from '$util/getInstances'
   import { globalInstancesStore } from '$util/stores'
@@ -13,21 +13,31 @@
 
   const linkClasses = "font-medium text-xl text-base-content btn btn-ghost capitalize justify-start";
   const subLinkClasses = "font-medium text-base-content btn btn-ghost btn-sm capitalize justify-start";
+
+  const handleClick = () => {
+    document.querySelector(".drawer-overlay")?.click();
+  }
 </script>
 
+
 <aside class='p-4 min-w-[250px] flex flex-col h-screen'>
-  <a href="/dashboard" class="flex gap-2 items-center justify-center">
-    <Logo hideLogoText={true} logoWidth="w-20" />
-  </a>
+  <MediaQuery query="(min-width: 1280px)" let:matches>
+    {#if matches}
+      <a href="/dashboard" class="flex gap-2 items-center justify-center">
+        <Logo hideLogoText={true} logoWidth="w-20" />
+      </a>
+    {/if}
+  </MediaQuery>
 
   <div class='flex flex-col gap-2 mb-auto'>
     <a
+      on:click={handleClick}
       href='/dashboard'
       class={linkClasses}><i class="fa-regular fa-table-columns {$page.url.pathname === '/dashboard' && 'text-primary'}"></i> Dashboard</a>
 
     <div class='pl-8 flex flex-col gap-4 mb-4'>
       {#each values($globalInstancesStore) as app}
-        <a href={`/app/instances/${app.id}`} class={subLinkClasses}>
+        <a href={`/app/instances/${app.id}`} on:click={handleClick} class={subLinkClasses}>
           <i class="fa-regular fa-server {$page.url.pathname === `/app/instances/${app.id}` && 'text-primary'}"></i> {app.subdomain}
         </a>
       {/each}

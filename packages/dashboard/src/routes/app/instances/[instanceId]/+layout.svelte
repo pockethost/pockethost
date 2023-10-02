@@ -13,8 +13,6 @@
     getSingleInstance($page.params.instanceId)
   }
 
-  console.log('>>>$instance', $instance)
-
   onDestroy(() => cm.shutdown())
 </script>
 
