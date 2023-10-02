@@ -4,7 +4,7 @@ category: development
 subcategory: full-stack
 ---
 
-> To setup your computer to work with \*.test domains, e.g. project.test, awesome.test and so on, without having to add to your hosts file each time.
+> To set up your computer to work with \*.test domains, e.g. project.test, awesome.test and so on, without having to add to your hosts file each time.
 
 ## Requirements
 
