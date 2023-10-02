@@ -5,13 +5,12 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "lint": "prettier -c \"./**/*.ts\"",
-    "lint:fix": "prettier -w \"./**/*.ts\"",
+    "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte}\"",
+    "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte}\"",
     "build": "concurrently 'yarn:build:*'",
     "build:dashboard": "cd packages/dashboard && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
     "build:www": "cd packages/www && yarn build",
-
     "local:dev": "NODE_ENV=development concurrently 'yarn:local:dev:*'",
     "local:dev:proxy": "cd packages/proxy && yarn dev",
     "local:dev:dashboard": "cd packages/dashboard && yarn dev",
