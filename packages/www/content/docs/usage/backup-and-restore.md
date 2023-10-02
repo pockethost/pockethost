@@ -3,11 +3,11 @@ title: Backup & Restore
 category: usage
 ---
 
-You can use [FTP](ftp.md) to perform backup and restore operations.
+You can use [FTP](/docs/usage/ftp/) to perform backup and restore operations.
 
 ## Before you Begin
 
-Make sure your PocketHost instance status is [idle](./instance-details/index.md).
+Make sure your PocketHost instance status is [idle](/docs/usage/instances/#on-demand-execution).
 
 ## Backing Up
 
