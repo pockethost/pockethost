@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase'
-  import { instance } from '../store'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
+  import { client } from '$src/pocketbase'
+  import { instance } from '../store'
 
   const { setInstanceMaintenance } = client()
 

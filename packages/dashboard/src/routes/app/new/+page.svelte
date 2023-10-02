@@ -1,10 +1,10 @@
 <script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { slide } from 'svelte/transition'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
   import { generateSlug } from 'random-word-slugs'
+  import { slide } from 'svelte/transition'
 
   let instanceName: string = generateSlug(2)
   let formError: string = ''

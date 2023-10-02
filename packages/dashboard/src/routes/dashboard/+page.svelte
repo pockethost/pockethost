@@ -1,8 +1,7 @@
 <script lang="ts">
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import { values } from '@s-libs/micro-dash'
   import { globalInstancesStore } from '$util/stores'
-  import UsageChartForAllInstances from './UsageChartForAllInstances.svelte'
+  import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
 
   $: isFirstApplication = values($globalInstancesStore).length === 0

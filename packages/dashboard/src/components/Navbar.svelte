@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { page } from '$app/stores'
   import Logo from '$components/Logo.svelte'
-  import ThemeToggle from '$components/ThemeToggle.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
+  import ThemeToggle from '$components/ThemeToggle.svelte'
   import { handleLogoutAndRedirect } from '$util/database'
   import { getInstances } from '$util/getInstances'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-  import { page } from '$app/stores'
 
   // This will query the database for all instances and then update the global state
   getInstances()
