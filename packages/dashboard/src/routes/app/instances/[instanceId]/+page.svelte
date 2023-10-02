@@ -25,11 +25,11 @@
   <title>{subdomain} details - PocketHost</title>
 </svelte:head>
 
-<div class='flex items-center justify-between mb-6'>
+<div class='flex md:flex-row flex-col items-center justify-between mb-6 gap-4'>
   <div>
-    <h2 class="text-4xl text-base-content font-bold capitalize mb-3">{$instance.subdomain}</h2>
+    <h2 class="text-4xl md:text-left text-center text-base-content font-bold capitalize mb-3 break-words">{$instance.subdomain}</h2>
 
-    <div class='flex gap-2'>
+    <div class='flex flex-wrap md:justify-start justify-center gap-2'>
       <div class="badge badge-accent badge-outline">Status: &nbsp;<span class='capitalize'>{status}</span></div>
       <div class="badge badge-accent badge-outline">Usage: {Math.ceil(secondsThisMonth / 60)} mins</div>
       <div class="badge badge-accent badge-outline">Version: {version}</div>
@@ -58,13 +58,13 @@
   </div>
 {/if}
 
-<div class='grid grid-cols-2 gap-4 mb-4'>
+<div class='grid lg:grid-cols-2 grid-cols-1 gap-4 mb-4'>
   <UsageChart />
 
   <Code />
 </div>
 
-<div class='grid grid-cols-3 gap-4 mb-16'>
+<div class='grid lg:grid-cols-3 grid-cols-1 gap-4 mb-16'>
   <Ftp />
 
   <Logging />
@@ -74,7 +74,7 @@
 
 <DangerZoneTitle />
 
-<div class='grid grid-cols-3 gap-4 mb-4'>
+<div class='grid lg:grid-cols-3 gap-4 mb-4'>
   <RenameInstance />
 
   <Maintenance />
