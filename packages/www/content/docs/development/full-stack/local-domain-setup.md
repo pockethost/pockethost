@@ -33,7 +33,7 @@ For other browsers and operating systems, follow the instructions here: https://
 
 **4. Configure your machine to recognize wildcard localhost domains.**
 
-If you are on OS X, follow the [dnsmasq instructions](dnsmasq.md) to set up your local machine for the ultimate local domain wildcard dev experience.
+If you are on OS X, follow the [dnsmasq instructions](/docs/development/full-stack/dnsmasq/) to set up your local machine for the ultimate local domain wildcard dev experience.
 
 Remember to start `dnsmasq` every time:
 
@@ -41,4 +41,4 @@ Remember to start `dnsmasq` every time:
 brew services restart dnsmasq
 ```
 
-If you don't want to use `dnsmasq`, follow the [manual /etc/hosts setup instructions](etc_hosts.md).
+If you don't want to use `dnsmasq`, follow the [manual /etc/hosts setup instructions](/docs/development/full-stack/etc_hosts/).

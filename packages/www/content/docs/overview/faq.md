@@ -7,9 +7,9 @@ category: getting-started
 
 ### What is pockethost.io?
 
-https://pockethost.io is a nonprofit hosting service powered by the PocketHost open source project. Also created and run by benallfree.
+https://pockethost.io is a nonprofit hosting service powered by the PocketHost open source project. Also created and run by b`enallfree`.
 
-[PocketHost](https://github.com/benallfree/pockethost) is an open source project licensed under the MIT open source license. It was created and is headed by [benallfree](https://github.com/benallfree). He made PocketHost to host his personal and client projects so it was easy to provision a new PocketBase instance without having to set up any servers.
+[PocketHost](https://github.com/benallfree/pockethost) is an open source project licensed under the MIT open source license. It was created and is headed by [benallfree](https://github.com/benallfree). He made PocketHost to host his personal and client projects, so it was easy to provision a new PocketBase instance without having to set up any servers.
 
 The goal of the project is to create a Firebase/Supabase style experience where you can create an account and instantly provision a new PocketBase instance for yourself.
 
@@ -21,7 +21,7 @@ Hopefully, PocketHost provides a turnkey solution for creating and deploying sma
 
 PocketHost was created as a service to the PocketBase community because we love the sovereignty principle of PocketBase, but also don’t always want to self host.
 
-The features and priorities in development are balanced between benallfree's personal needs and things requested by the community.
+The features and priorities in development are balanced between `benallfree`'s personal needs and things requested by the community.
 
 PocketHost has a 10-year endowment to offer a free tier of hosting for hobby projects and low to mid-volume projects.
 
@@ -51,7 +51,7 @@ You can also back up and download all your data at any time. Access your own dat
 
 ### Can I import data into PocketHost?
 
-Yes, [via FTP](../usage/ftp.md).
+Yes, [via FTP](/docs/usage/ftp/).
 
 ### How do I migrate away from PocketHost and host PocketBase on my own?
 
@@ -92,7 +92,7 @@ pockethost.io offers a one-size-fits-all paid plan. The paid plan includes:
 
 ### What happens when I reach my minutes / rate / something?
 
-Your instance will be placed into [Maintenance Mode](../daily-usage/maintenance-mode) until the problem is corrected.
+Your instance will be placed into [Maintenance Mode](/docs/usage/maintenance/) until the problem is corrected.
 
 ### Are we allowed to have multiple projects running on Pockethost? How many instances can I create?
 

@@ -5,7 +5,7 @@ category: getting-started
 
 ## Discussion Forum
 
-The fastest and easiest way to get help is to head over to the [PocketHost Discussions](https://github.com/benallfree/pockethost/discussions) forum. Please do not create github issues without initiating a discussion first.
+The fastest and easiest way to get help is to head over to the [PocketHost Discussions](https://github.com/benallfree/pockethost/discussions) forum. Please do not create GitHub issues without initiating a discussion first.
 
 ## Email
 
