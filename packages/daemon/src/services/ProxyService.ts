@@ -41,35 +41,36 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   const server = createServer(async (req, res) => {
-    dbg(`Incoming request ${req.method} ${req.headers.host}/${req.url}`)
-    if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
-      warn(
-        `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`,
-      )
-      res.writeHead(502, {
-        'Content-Type': `text/plain`,
-      })
-      res.end(`${req.headers.host || `Domain`} was rejected.`)
-      return
-    }
-    {
-      const { warn } = _proxyLogger.create(
-        `${req.method} ${req.headers.host}/${req.url}`,
-      )
-      try {
+    try {
+      dbg(`Incoming request ${req.method} ${req.headers.host}/${req.url}`)
+      if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
+        warn(
+          `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`,
+        )
+        res.writeHead(502, {
+          'Content-Type': `text/plain`,
+        })
+        res.end(`${req.headers.host || `Domain`} was rejected.`)
+        return
+      }
+
+      {
+        const { warn } = _proxyLogger.create(
+          `${req.method} ${req.headers.host}${req.url}`,
+        )
         for (let i = 0; i < middleware.length; i++) {
           const m = middleware[i]!
           await m(req, res)
         }
-      } catch (e) {
-        const msg = (() => (e instanceof Error ? e.message : `${e}`))()
-        warn(msg)
-        res.writeHead(403, {
-          'Content-Type': `text/plain`,
-        })
-        res.end(msg)
-        return
       }
+    } catch (e) {
+      const msg = (() => (e instanceof Error ? e.message : `${e}`))()
+      warn(msg)
+      res.writeHead(403, {
+        'Content-Type': `text/plain`,
+      })
+      res.end(msg)
+      return
     }
   })
 
