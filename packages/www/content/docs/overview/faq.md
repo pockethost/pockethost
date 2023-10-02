@@ -7,7 +7,7 @@ category: getting-started
 
 ### What is pockethost.io?
 
-https://pockethost.io is a nonprofit hosting service powered by the PocketHost open source project. Also created and run by b`enallfree`.
+https://pockethost.io is a nonprofit hosting service powered by the PocketHost open source project. Also created and run by `benallfree`.
 
 [PocketHost](https://github.com/benallfree/pockethost) is an open source project licensed under the MIT open source license. It was created and is headed by [benallfree](https://github.com/benallfree). He made PocketHost to host his personal and client projects, so it was easy to provision a new PocketBase instance without having to set up any servers.
 
