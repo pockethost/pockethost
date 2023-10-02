@@ -17,20 +17,7 @@ jobs:
           node-version: 20.x
       - run: yarn install
       - run: yarn lint
-      - run: yarn build:dashboard
-      - run: yarn build:www
-
-      - name: Publish dashboard to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        id: dashboard_deploy
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: pockethost-dashboard
-          directory: ./packages/dashboard/build
-          branch: ${{ github.head_ref || github.ref_name }}
-          wranglerVersion: '3'
+      - run: yarn build
 
       - name: Publish www to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -44,6 +31,18 @@ jobs:
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
 
+      - name: Publish dashboard to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        id: dashboard_deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: pockethost-dashboard
+          directory: ./packages/dashboard/build
+          branch: ${{ github.head_ref || github.ref_name }}
+          wranglerVersion: '3'
+
       - name: Discord feature branch notification
         if: github.ref_name != 'master'
         env:
@@ -52,10 +51,10 @@ jobs:
         with:
           args: '**PREVIEW** ${{ steps.www_deploy.outputs.url }} and ${{ steps.dashboard_deploy.outputs.url }} were generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
 
-      - name: Discord feature branch notification
+      - name: Discord live branch notification
         if: github.ref_name == 'master'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**LIVE** https://pockethost.io has been updated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+          args: '**LIVE** https://pockethost.io (${{ steps.www_deploy.outputs.url }}) has been updated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'

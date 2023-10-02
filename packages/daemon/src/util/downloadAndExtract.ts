@@ -22,9 +22,9 @@ const _unsafe_downloadAndExtract = async (
   binPath: string,
   logger: Logger,
 ) => {
-  const { dbg, error } = logger.create('downloadAndExtract')
+  const { info, error } = logger.create('downloadAndExtract')
 
-  dbg(`Fetching ${url}`)
+  info(`Fetching ${url}`)
   const res = await fetch(url)
   const { body } = res
   if (!body) {
@@ -32,9 +32,12 @@ const _unsafe_downloadAndExtract = async (
   }
   const versionPath = dirname(binPath)
   const zipPath = `${versionPath}.zip`
-  dbg(`Extracting ${url} to ${zipPath}`)
+  info(`Downloading ${url} to ${zipPath}`)
   await downloadFile(url, zipPath)
+  // const tmpPath = tmpNameSync({ dir: TMP_DIR })
+  info(`Extracting ${zipPath} to ${versionPath}`)
   await decompress(zipPath, versionPath, { plugins: [decompressUnzip()] })
+  // renameSync(tmpPath, versionPath)
   chmodSync(binPath, 0o775)
 }
 

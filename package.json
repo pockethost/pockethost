@@ -11,9 +11,12 @@
     "build:www": "cd packages/www && yarn build",
     "build:dashboard": "cd packages/dashboard && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
+    "local:dev": "NODE_ENV=development concurrently 'yarn:dev:*'",
+    "local:dev:proxy": "cd packages/proxy && yarn dev",
+    "local:dev:www": "cd packages/www && yarn start",
+    "local:dev:dashboard": "cd packages/dashboard && yarn dev",
     "dev": "NODE_ENV=development concurrently 'yarn:dev:*'",
     "dev:proxy": "cd packages/proxy && yarn dev",
-    "dev:dashboard": "cd packages/dashboard && yarn dev",
     "dev:daemon": "cd packages/daemon && yarn dev",
     "dev:www": "cd packages/www && yarn start",
     "start": "concurrently 'yarn:start:*'",
@@ -43,14 +46,14 @@
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.1",
+    "husky": "^8.0.0",
     "patch-package": "^8.0.0",
     "prettier": "^3.0.3",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-svelte": "^3.0.3",
     "tslib": "^2.6.2",
     "tsx": "^3.12.8",
-    "typescript": "^5.0",
-    "husky": "^8.0.0"
+    "typescript": "^5.0"
   },
   "dependencies": {
     "postinstall-postinstall": "^2.1.0",
