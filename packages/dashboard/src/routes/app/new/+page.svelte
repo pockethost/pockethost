@@ -38,24 +38,34 @@
   <title>New Instance - PocketHost</title>
 </svelte:head>
 
-<h2 class="text-4xl text-base-content font-bold capitalize mb-6">Create A New App</h2>
+<h2 class="text-4xl text-base-content font-bold capitalize mb-6">
+  Create A New App
+</h2>
 
-<div class='grid lg:grid-cols-2 grid-cols-1'>
+<div class="grid lg:grid-cols-2 grid-cols-1">
   <Card>
     <form on:submit={handleSubmit}>
       <CardHeader>Choose a name for your PocketBase app.</CardHeader>
 
-      <div class='flex rename-instance-form-container-query gap-4'>
-        <input type="text" bind:value={instanceName} class="input input-bordered w-full" />
+      <div class="flex rename-instance-form-container-query gap-4">
+        <input
+          type="text"
+          bind:value={instanceName}
+          class="input input-bordered w-full"
+        />
 
         <button
-          type='button'
-          class='btn btn-outline btn-secondary'
+          type="button"
+          class="btn btn-outline btn-secondary"
           aria-label="Regenerate Instance Name"
-          on:click={handleInstanceNameRegeneration}><i class="fa-regular fa-arrows-rotate"></i></button>
+          on:click={handleInstanceNameRegeneration}
+          ><i class="fa-regular fa-arrows-rotate"></i></button
+        >
       </div>
 
-      <h4 class='text-center font-bold py-12'>https://{instanceName}.{PUBLIC_APP_DOMAIN}</h4>
+      <h4 class="text-center font-bold py-12">
+        https://{instanceName}.{PUBLIC_APP_DOMAIN}
+      </h4>
 
       {#if formError}
         <div transition:slide class="alert alert-error mb-5">
@@ -67,10 +77,7 @@
       <div class="flex items-center justify-center gap-4">
         <a href="/dashboard" class="btn">Cancel</a>
 
-        <button
-          class="btn btn-primary"
-          disabled={isFormButtonDisabled}
-        >
+        <button class="btn btn-primary" disabled={isFormButtonDisabled}>
           Create <i class="bi bi-arrow-right-short" />
         </button>
       </div>

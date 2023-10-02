@@ -1,24 +1,24 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition';
+  import { slide } from 'svelte/transition'
   import { handleInstanceGeneratorWidget } from '$util/database'
   import { generateSlug } from 'random-word-slugs'
 
-  export let isProcessing: boolean = false;
-  export let isSignUpView: boolean = false;
+  export let isProcessing: boolean = false
+  export let isSignUpView: boolean = false
 
   // Controls the spin animation of the instance regeneration button
-  let rotationCounter: number = 0;
+  let rotationCounter: number = 0
 
   // Set up the variables to hold the form information
-  let email: string = '';
-  let password: string = '';
-  let instanceName: string = generateSlug(2);
-  let formError: string = '';
+  let email: string = ''
+  let password: string = ''
+  let instanceName: string = generateSlug(2)
+  let formError: string = ''
 
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled =
-    email.length === 0 || password.length === 0 || instanceName.length === 0;
+    email.length === 0 || password.length === 0 || instanceName.length === 0
 
   // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
@@ -28,7 +28,7 @@
 
   // Toggle between registration and login forms
   const handleLoginClick = () => {
-    isSignUpView = !isSignUpView;
+    isSignUpView = !isSignUpView
   }
 
   // Handle the form submission
@@ -54,9 +54,10 @@
   }
 </script>
 
-
-<form class='card-body' on:submit={handleSubmit}>
-  <h2 class="font-bold text-white mb-3 text-center text-2xl">Register and Create Your <br />First Instance</h2>
+<form class="card-body" on:submit={handleSubmit}>
+  <h2 class="font-bold text-white mb-3 text-center text-2xl">
+    Register and Create Your <br />First Instance
+  </h2>
 
   <div class="mb-3">
     <label class="label" for="id">
@@ -99,10 +100,15 @@
         type="text"
         placeholder="instance-name"
         bind:value={instanceName}
-        id='instance'
-        class="input input-bordered w-full" />
+        id="instance"
+        class="input input-bordered w-full"
+      />
 
-      <button type="button" class="btn btn-square" on:click={handleInstanceNameRegeneration}>
+      <button
+        type="button"
+        class="btn btn-square"
+        on:click={handleInstanceNameRegeneration}
+      >
         <i class="fa-solid fa-rotate"></i>
       </button>
     </div>
@@ -127,5 +133,9 @@
 </form>
 
 <div class="p-4 bg-zinc-800 text-center">
-  Already have an account? <button type="button" class="link font-bold" on:click={handleLoginClick}>Login</button>
+  Already have an account? <button
+    type="button"
+    class="link font-bold"
+    on:click={handleLoginClick}>Login</button
+  >
 </div>

@@ -10,11 +10,13 @@
 </script>
 
 <div class="card-body">
-  <div class='text-center'>
+  <div class="text-center">
     <span class="loading loading-spinner loading-lg mb-4"></span>
 
     <div>
-      <h2 class='mb-12 font-bold text-white text-2xl'>Creating Your New Instance...</h2>
+      <h2 class="mb-12 font-bold text-white text-2xl">
+        Creating Your New Instance...
+      </h2>
 
       <p class="italic">{processingQuote}</p>
     </div>

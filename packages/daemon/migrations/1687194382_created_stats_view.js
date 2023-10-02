@@ -170,5 +170,5 @@ migrate(
     const collection = dao.findCollectionByNameOrId('se6fljwhhc03k4q')
 
     return dao.deleteCollection(collection)
-  }
+  },
 )

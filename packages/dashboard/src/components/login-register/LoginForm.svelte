@@ -1,44 +1,42 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition';
+  import { slide } from 'svelte/transition'
   import { handleLogin } from '$util/database'
   import { boolean } from 'boolean'
 
-  export let isSignUpView: boolean = true;
+  export let isSignUpView: boolean = true
 
   // Set up the variables to hold the form information
-  let email: string = '';
-  let password: string = '';
-  let formError: string = '';
+  let email: string = ''
+  let password: string = ''
+  let formError: string = ''
 
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled =
-    email.length === 0 || password.length === 0;
+  $: isFormButtonDisabled = email.length === 0 || password.length === 0
 
-  let isButtonLoading: boolean = false;
+  let isButtonLoading: boolean = false
 
   // Toggle between registration and login forms
   const handleLoginClick = () => {
-    isSignUpView = !isSignUpView;
+    isSignUpView = !isSignUpView
   }
 
   // Handle the form submission
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
-    isFormButtonDisabled = true;
-    isButtonLoading = true;
+    isFormButtonDisabled = true
+    isButtonLoading = true
 
     await handleLogin(email, password, (error) => {
       formError = error
     })
 
     isFormButtonDisabled = false
-    isButtonLoading = false;
+    isButtonLoading = false
   }
 </script>
 
-
-<form class='card-body' on:submit={handleSubmit}>
+<form class="card-body" on:submit={handleSubmit}>
   <h2 class="font-bold text-white mb-3 text-center text-2xl">Log In</h2>
 
   <div class="mb-3">
@@ -95,5 +93,9 @@
 </form>
 
 <div class="p-4 bg-zinc-800 text-center">
-  Need to Register? <button type="button" class="link font-bold" on:click={handleLoginClick}>Create A New Account</button>
+  Need to Register? <button
+    type="button"
+    class="link font-bold"
+    on:click={handleLoginClick}>Create A New Account</button
+  >
 </div>

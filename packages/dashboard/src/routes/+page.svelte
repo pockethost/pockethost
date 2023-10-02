@@ -17,7 +17,7 @@
       {#if $isUserLoggedIn}
         <div class="">
           <a href="/dashboard" class="btn btn-primary"
-          >Go to Your Dashboard <i class="bi bi-arrow-right-short" /></a
+            >Go to Your Dashboard <i class="bi bi-arrow-right-short" /></a
           >
         </div>
       {/if}
@@ -28,4 +28,3 @@
     </AuthStateGuard>
   </div>
 </div>
-

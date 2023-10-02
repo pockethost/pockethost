@@ -6,9 +6,8 @@
   $: ({ status, version, secondsThisMonth } = $instance)
 </script>
 
-
-<div class='card card-body bg-base-200'>
-  <h3 class='font-bold text-2xl'>Overview</h3>
+<div class="card card-body bg-base-200">
+  <h3 class="font-bold text-2xl">Overview</h3>
 
   <div>
     Status: <ProvisioningStatus {status} />

@@ -6,7 +6,7 @@
   <input id="mobile-nav-drawer" type="checkbox" class="drawer-toggle" />
 
   <div class="drawer-content">
-    <div class='flex items-center justify-between px-8 pt-1'>
+    <div class="flex items-center justify-between px-8 pt-1">
       <a href="/dashboard" class="flex gap-2 items-center justify-center">
         <Logo hideLogoText={true} logoWidth="w-16" />
       </a>
@@ -18,13 +18,14 @@
   </div>
 
   <div class="drawer-side z-50">
-    <label for="mobile-nav-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+    <label
+      for="mobile-nav-drawer"
+      aria-label="close sidebar"
+      class="drawer-overlay"
+    ></label>
 
     <div class="bg-base-100 w-80 min-h-full">
       <slot />
     </div>
   </div>
 </div>
-
-
-

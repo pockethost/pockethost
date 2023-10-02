@@ -32,7 +32,9 @@
 {#if $isUserLoggedIn && !$isUserVerified}
   <div class="container py-3">
     <AlertBar alertType={defaultAlertBarType}>
-      <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
+      <div
+        class="d-flex flex-wrap align-items-center justify-content-center gap-3"
+      >
         <i class="bi bi-envelope-exclamation" />
 
         <div>Please verify your account by clicking the link in your email</div>
@@ -43,8 +45,10 @@
             Sent!
           </div>
         {:else}
-          <button type="button" class="btn btn-outline-secondary" on:click={handleClick}
-            >Resend Email</button
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            on:click={handleClick}>Resend Email</button
           >
         {/if}
       </div>

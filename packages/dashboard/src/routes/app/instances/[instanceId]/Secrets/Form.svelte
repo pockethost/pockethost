@@ -13,7 +13,7 @@
   let isFormValid = false
 
   // This will animate a success message when the key is saved
-  let successfulSave = false;
+  let successfulSave = false
 
   // Keep track of any error message
   let errorMessage: string = ''
@@ -28,15 +28,15 @@
   }
 
   // Submit the form to create the new environment variable
-  const handleSubmit = async(e: Event) => {
-    e.preventDefault();
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault()
 
     // Reset any messaging
-    errorMessage = '';
+    errorMessage = ''
 
     try {
       // Block the button from submitting more than once
-      isFormValid = false;
+      isFormValid = false
 
       // Save to the database
       items.upsert({ name: secretKey, value: secretValue })
@@ -46,54 +46,67 @@
       secretValue = ''
 
       // Enable the submit button
-      isFormValid = true;
+      isFormValid = true
 
       // Show the success message
-      successfulSave = true;
+      successfulSave = true
 
       // Remove the success toast after a few seconds
       setTimeout(() => {
-        successfulSave = false;
+        successfulSave = false
       }, 5000)
-    } catch(error: any) {
-      errorMessage = error.message;
+    } catch (error: any) {
+      errorMessage = error.message
     }
   }
 </script>
 
+<div class="mb-8">
+  <h4 class="flex items-center font-bold h-9 text-lg mb-3">
+    Add an Environment Variable
+  </h4>
 
-<div class='mb-8'>
-  <h4 class='flex items-center font-bold h-9 text-lg mb-3'>Add an Environment Variable</h4>
-
-  <form on:submit={handleSubmit} class='mb-4'>
-    <div class='grid grid-cols-2 gap-4 mb-4'>
+  <form on:submit={handleSubmit} class="mb-4">
+    <div class="grid grid-cols-2 gap-4 mb-4">
       <div>
-        <label class="label" for='secret-key'>
+        <label class="label" for="secret-key">
           <span class="label-text">Key</span>
         </label>
 
-        <input id='secret-key' type="text" bind:value={secretKey} class="input input-bordered w-full max-w-xs" />
+        <input
+          id="secret-key"
+          type="text"
+          bind:value={secretKey}
+          class="input input-bordered w-full max-w-xs"
+        />
       </div>
 
       <div>
-        <label class="label" for='secret-value'>
+        <label class="label" for="secret-value">
           <span class="label-text">Value</span>
         </label>
 
-        <input id='secret-value' type="text" bind:value={secretValue} class="input input-bordered w-full max-w-xs" />
+        <input
+          id="secret-value"
+          type="text"
+          bind:value={secretValue}
+          class="input input-bordered w-full max-w-xs"
+        />
       </div>
     </div>
 
     {#if !isKeyValid && secretKey.length > 0}
       <div in:slide class="alert alert-error mb-4">
         <i class="fa-regular fa-circle-exclamation"></i>
-        All key names must be upper case, alphanumeric, and may include
-        underscore (_).
+        All key names must be upper case, alphanumeric, and may include underscore
+        (_).
       </div>
     {/if}
 
-    <div class='text-right'>
-      <button type='submit' class='btn btn-primary' disabled={!isFormValid}>Add <i class="fa-regular fa-floppy-disk"></i></button>
+    <div class="text-right">
+      <button type="submit" class="btn btn-primary" disabled={!isFormValid}
+        >Add <i class="fa-regular fa-floppy-disk"></i></button
+      >
     </div>
   </form>
 

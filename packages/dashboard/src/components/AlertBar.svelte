@@ -7,7 +7,10 @@
   export let alertType: AlertTypes = AlertTypes.Warning
 </script>
 
-<div class="alert alert-{alertType} d-flex gap-3 align-items-center" role="alert">
+<div
+  class="alert alert-{alertType} d-flex gap-3 align-items-center"
+  role="alert"
+>
   {#if icon}
     <i class={icon} />
   {/if}

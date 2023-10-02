@@ -41,7 +41,9 @@
   $: if (status) handleBadgeColor()
 </script>
 
-<div class={`badge ${badgeColor} ${status === 'running' && 'pulse'}`}>{status}</div>
+<div class={`badge ${badgeColor} ${status === 'running' && 'pulse'}`}>
+  {status}
+</div>
 
 <style lang="scss">
   .pulse {
