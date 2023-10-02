@@ -17,11 +17,6 @@
     "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.25.1",
-    "@types/bootstrap": "^5.2.6",
-    "@types/d3-scale": "^4.0.3",
-    "@types/d3-scale-chromatic": "^3.0.0",
-    "@types/js-cookie": "^3.0.2",
-    "@types/marked": "^4.0.8",
     "autoprefixer": "^10.4.16",
     "boolean": "^3.2.0",
     "d3-scale": "^4.0.2",
@@ -41,5 +36,12 @@
     "type-fest": "^4.3.2",
     "url-pattern": "^1.0.3",
     "vite": "^4.4.9"
+  },
+  "devDependencies": {
+    "@types/bootstrap": "^5.2.6",
+    "@types/d3-scale": "^4.0.3",
+    "@types/d3-scale-chromatic": "^3.0.0",
+    "@types/js-cookie": "^3.0.2",
+    "@types/marked": "^4.0.8"
   }
 }
