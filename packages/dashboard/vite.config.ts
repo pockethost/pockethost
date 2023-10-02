@@ -6,6 +6,7 @@ const config: UserConfig = {
   optimizeDeps: {
     include: ['highlight.js', 'highlight.js/lib/core'],
   },
+  envDir: '../..',
 }
 
 export default config
