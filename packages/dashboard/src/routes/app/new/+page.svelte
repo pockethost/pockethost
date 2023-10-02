@@ -38,42 +38,42 @@
   <title>New Instance - PocketHost</title>
 </svelte:head>
 
-<Card>
-  <CardHeader>Choose a name for your PocketBase app.</CardHeader>
+<h2 class="text-4xl text-base-content font-bold capitalize mb-6">Create A New App</h2>
 
-  <form on:submit={handleSubmit}>
-    <div class='flex rename-instance-form-container-query gap-4'>
-      <input type="text" bind:value={instanceName} class="input input-bordered w-full" />
+<div class='grid lg:grid-cols-2 grid-cols-1'>
+  <Card>
+    <form on:submit={handleSubmit}>
+      <CardHeader>Choose a name for your PocketBase app.</CardHeader>
 
-      <button
-        type='button'
-        class='btn btn-error'
-        aria-label="Regenerate Instance Name"
-        on:click={handleInstanceNameRegeneration}><i class="fa-regular fa-arrows-rotate"></i></button>
-    </div>
+      <div class='flex rename-instance-form-container-query gap-4'>
+        <input type="text" bind:value={instanceName} class="input input-bordered w-full" />
 
-    <h4 class='text-center font-bold py-12'>https://{instanceName}.{PUBLIC_APP_DOMAIN}</h4>
-
-    {#if formError}
-      <div transition:slide class="alert alert-error mb-5">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span>{formError}</span>
+        <button
+          type='button'
+          class='btn btn-outline btn-secondary'
+          aria-label="Regenerate Instance Name"
+          on:click={handleInstanceNameRegeneration}><i class="fa-regular fa-arrows-rotate"></i></button>
       </div>
-    {/if}
 
+      <h4 class='text-center font-bold py-12'>https://{instanceName}.{PUBLIC_APP_DOMAIN}</h4>
 
-  </form>
+      {#if formError}
+        <div transition:slide class="alert alert-error mb-5">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>{formError}</span>
+        </div>
+      {/if}
 
+      <div class="flex items-center justify-center gap-4">
+        <a href="/dashboard" class="btn">Cancel</a>
 
-  <div class="flex items-center justify-center gap-4">
-    <a href="/dashboard" class="btn">Cancel</a>
-
-    <button
-      class="btn btn-primary"
-      disabled={isFormButtonDisabled}
-      on:click={handleSubmit}
-    >
-      Create <i class="bi bi-arrow-right-short" />
-    </button>
-  </div>
-</Card>
+        <button
+          class="btn btn-primary"
+          disabled={isFormButtonDisabled}
+        >
+          Create <i class="bi bi-arrow-right-short" />
+        </button>
+      </div>
+    </form>
+  </Card>
+</div>
