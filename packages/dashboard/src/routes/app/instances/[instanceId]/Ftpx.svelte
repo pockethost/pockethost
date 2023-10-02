@@ -1,14 +1,15 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
   import { client } from '$src/pocketbase'
   import { bash } from 'svelte-highlight/languages'
-  import AccordionItem from '../../../../components/AccordionItem.svelte'
-  import { instance } from './store'
 
   const { user } = client()
-  $: ({ subdomain } = $instance)
   const { email } = user() || {}
+
+  // This will hide the component if the email was not found
   if (!email) {
     throw new Error(`Email expected here`)
   }
@@ -17,43 +18,49 @@
   )}@ftp.sfo-1.${PUBLIC_APP_DOMAIN}`
 </script>
 
-<AccordionItem title="FTP Access">
-  <p>
+<Card>
+  <CardHeader
+    documentation="https://pockethost.gitbook.io/manual/daily-usage/ftp"
+  >
+    FTP Access
+  </CardHeader>
+
+  <p class="mb-8">
     Securely access your instance files via FTPS. Use your PocketHost account
     login and password.
   </p>
-  <p>
-    <a href="https://pockethost.gitbook.io/manual/daily-usage/ftp"
-      >Full documentation</a
-    >
-  </p>
-  <p>Bash:</p>
-  <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
-  <table>
-    <thead><tr><th>Directory</th><th>Description</th></tr></thead>
-    <tr>
-      <th>pb_data</th><td>The PocketBase data directory</td>
-    </tr>
-    <tr>
-      <th>pb_public</th><td>Public files, such as a web frontend</td>
-    </tr>
-    <tr>
-      <th>pb_migrations</th><td>The PocketBase migrations directory</td>
-    </tr>
-    <tr>
-      <th>pb_hooks</th><td>The PocketBase JS hooks directory</td>
-    </tr>
-  </table>
-</AccordionItem>
 
-<style lang="scss">
-  table {
-    margin: 10px;
-    td,
-    tr,
-    th {
-      border: 2px solid rgb(92, 92, 157);
-      padding: 5px;
-    }
-  }
-</style>
+  <p>Bash:</p>
+
+  <div class="mb-12">
+    <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="border-b-2 border-neutral">Directory</th>
+        <th class="border-b-2 border-neutral">Description</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <th>pb_data</th>
+        <td>The PocketBase data directory</td>
+      </tr>
+      <tr>
+        <th>pb_public</th>
+        <td>Public files, such as a web frontend</td>
+      </tr>
+      <tr>
+        <th>pb_migrations</th>
+        <td>The PocketBase migrations directory</td>
+      </tr>
+      <tr>
+        <th>pb_hooks</th>
+        <td>The PocketBase JS hooks directory</td>
+      </tr>
+    </tbody>
+  </table>
+</Card>

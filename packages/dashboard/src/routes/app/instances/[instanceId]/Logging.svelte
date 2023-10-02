@@ -9,93 +9,78 @@
   import { values } from '@s-libs/micro-dash'
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
-  import AccordionItem from '../../../../components/AccordionItem.svelte'
   import { instance } from './store'
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
 
   const { dbg, trace } = logger().create(`Logging.svelte`)
 
   $: ({ id } = $instance)
 
+  // This takes in a log type and returns a specific text color
+  const logColor = (type: string) => {
+    if(type === 'system') return 'text-success';
+    if(type === 'info') return 'text-info';
+    if(type === 'error') return 'text-error';
+
+    return 'text-info';
+  }
+
+  // This will take in the log message and return either the message or a string
+  const logText = (log: any) => {
+    try {
+      return JSON.parse(log.message)
+    } catch (e) {
+      return log.message
+    }
+  }
+
   const logs = writable<{ [_: RecordId]: InstanceLogFields }>({})
   let logsArray: InstanceLogFields[] = []
 
   const cm = createCleanupManager()
+
   onMount(async () => {
     dbg(`Watching instance log`)
+
     const unsub = client().watchInstanceLog(id, (newLog) => {
       trace(`Got new log`, newLog)
+
       logs.update((currentLogs) => {
         return { ...currentLogs, [newLog.id]: newLog }
       })
+
       logsArray = values($logs)
         .sort((a, b) => (a.created > b.created ? 1 : -1))
         .slice(0, 1000)
         .reverse()
     })
+
     cm.add(unsub)
   })
 
   onDestroy(cm.shutdown)
 </script>
 
-<AccordionItem title="Instance Logging">
-  <p>
+
+<Card>
+  <CardHeader>Instance Logging</CardHeader>
+
+  <p class='mb-4'>
     Instance logs appear here in realtime, including <code>console.log</code> from
     JavaScript hooks.
   </p>
-  <div class="log-window">
-    {#each logsArray as log}
-      <div class="log">
-        <div class="time">{log.created}</div>
 
-        <div class={`stream ${log.stream}`}>{log.stream}</div>
-        <div class={`message  ${log.stream}`}>
-          {(() => {
-            try {
-              const parsed = JSON.parse(log.message)
-              return `<pre><code>${parsed}</code></pre>`
-            } catch (e) {
-              return log.message
-            }
-          })()}
-        </div>
+  <div class="mockup-code">
+    <div class='h-[450px] flex flex-col-reverse overflow-y-scroll'>
+      {#each logsArray as log}
+      <div class='px-4' data-prefix=">">
+        <span class='text-xs mr-2'><i class="fa-regular fa-angle-right"></i></span>
+        <span class="text-xs mr-1">{log.created}</span>
+        <span class={`text-xs mr-1 font-bold ${logColor(log.stream)}`}>{log.stream}</span>
+        <span class='text-xs mr-1 text-base-content'>{logText(log)}</span>
       </div>
-    {/each}
-  </div></AccordionItem
->
-
-<style lang="scss">
-  .log-window {
-    border: 1px solid gray;
-    padding: 5px;
-    height: 500px;
-    overflow: auto;
-    display: flex;
-    flex-direction: column-reverse;
-    white-space: nowrap;
-    .log {
-      position: relative;
-      font-family: monospace;
-      .time {
-        color: gray;
-        display: inline-block;
-      }
-      .stream {
-        color: gray;
-        display: inline-block;
-        &.system {
-          color: orange;
-        }
-        &.info {
-          color: blue;
-        }
-        &.error {
-          color: red;
-        }
-      }
-      .message {
-        display: inline-block;
-      }
-    }
-  }
-</style>
+      {/each}
+    </div>
+  </div>
+</Card>

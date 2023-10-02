@@ -1,14 +1,17 @@
 <script lang="ts">
   import { assertExists } from '@pockethost/common'
-  import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import Code from './Code.svelte'
   import UsageChart from './UsageChart.svelte'
-  import Danger from './Danger/Danger.svelte'
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Secrets from './Secrets/Secrets.svelte'
   import { instance } from './store'
   import { PUBLIC_APP_DOMAIN } from '$src/env'
+  import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
+  import RenameInstance from './Danger/RenameInstance.svelte'
+  import Maintenance from './Danger/Maintenance.svelte'
+  import VersionChange from './Danger/VersionChange.svelte'
+  import { slide } from 'svelte/transition';
 
 
 
@@ -49,26 +52,32 @@
 </div>
 
 {#if $instance.maintenance}
-  <div class="alert alert-warning mb-6">
+  <div transition:slide class="alert alert-warning mb-6">
     <i class="fa-regular fa-triangle-person-digging"></i>
     <span>This instance is in Maintenance Mode and will not respond to requests</span>
   </div>
 {/if}
 
 <div class='grid grid-cols-2 gap-4 mb-4'>
-  <div class='grow'>
-    <UsageChart />
-  </div>
+  <UsageChart />
 
-  <div class='grow'>
-    <Code />
-  </div>
+  <Code />
 </div>
 
-<Ftp />
+<div class='grid grid-cols-3 gap-4 mb-16'>
+  <Ftp />
 
-<Secrets />
+  <Logging />
 
-<Logging />
+  <Secrets />
+</div>
 
-<Danger />
+<DangerZoneTitle />
+
+<div class='grid grid-cols-3 gap-4 mb-4'>
+  <RenameInstance />
+
+  <Maintenance />
+
+  <VersionChange />
+</div>
