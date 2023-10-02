@@ -13,13 +13,14 @@
   let formError: string = ''
 
   let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled = email.length === 0 || password.length === 0 || instanceName.length === 0
+  $: isFormButtonDisabled =
+    email.length === 0 || password.length === 0 || instanceName.length === 0
 
   let isProcessing: boolean = false
 
   // Fun quotes when waiting for the instance to load. This could take up to 10 seconds
   let processingQuotesArray = [
-    'Did you know it takes fourteen sentient robots to create each instance on PocketHost?'
+    'Did you know it takes fourteen sentient robots to create each instance on PocketHost?',
   ]
 
   let processingQuote = getRandomElementFromArray(processingQuotesArray)
@@ -34,9 +35,14 @@
     isFormButtonDisabled = true
     isProcessing = true
 
-    await handleInstanceGeneratorWidget(email, password, instanceName, (error) => {
-      formError = error
-    })
+    await handleInstanceGeneratorWidget(
+      email,
+      password,
+      instanceName,
+      (error) => {
+        formError = error
+      },
+    )
 
     isFormButtonDisabled = false
 
@@ -116,7 +122,11 @@
 
     <div class="col-lg-6 col-12">
       <div class="mb-3 mb-lg-3 text-lg-start text-center">
-        <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          disabled={isFormButtonDisabled}
+        >
           Create <i class="bi bi-arrow-right-short" />
         </button>
       </div>

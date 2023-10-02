@@ -47,7 +47,12 @@
     </div>
 
     <div class="col-auto pe-1 position-relative">
-      <input type="text" id="instance-name" class="form-control" bind:value={instanceName} />
+      <input
+        type="text"
+        id="instance-name"
+        class="form-control"
+        bind:value={instanceName}
+      />
 
       <button
         aria-label="Regenerate Instance Name"
@@ -70,9 +75,15 @@
   {/if}
 
   <div class="text-center">
-    <a href="/dashboard" class="btn btn-light" disabled={isFormButtonDisabled}>Cancel</a>
+    <a href="/dashboard" class="btn btn-light" disabled={isFormButtonDisabled}
+      >Cancel</a
+    >
 
-    <button class="btn btn-primary" disabled={isFormButtonDisabled} on:click={handleSubmit}>
+    <button
+      class="btn btn-primary"
+      disabled={isFormButtonDisabled}
+      on:click={handleSubmit}
+    >
       Create <i class="bi bi-arrow-right-short" />
     </button>
   </div>

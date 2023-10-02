@@ -33,7 +33,9 @@
     {#if userShouldCheckTheirEmail}
       <div class="text-center">
         <h2 class="mb-4">Check Your Email</h2>
-        <p>A verification link has been sent to <br /><strong>{email}</strong></p>
+        <p>
+          A verification link has been sent to <br /><strong>{email}</strong>
+        </p>
 
         <div class="display-1">
           <i class="bi bi-envelope-check" />
@@ -60,7 +62,11 @@
           <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
         {/if}
 
-        <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+        <button
+          type="submit"
+          class="btn btn-primary w-100"
+          disabled={isFormButtonDisabled}
+        >
           Send Verification Email <i class="bi bi-arrow-right-short" />
         </button>
       </form>

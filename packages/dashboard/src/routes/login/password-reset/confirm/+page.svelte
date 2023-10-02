@@ -19,9 +19,13 @@
     isFormButtonDisabled = true
     if (!token) return
 
-    await handleUnauthenticatedPasswordResetConfirm(token, password, (error) => {
-      formError = error
-    })
+    await handleUnauthenticatedPasswordResetConfirm(
+      token,
+      password,
+      (error) => {
+        formError = error
+      },
+    )
 
     isFormButtonDisabled = false
   }
@@ -53,7 +57,11 @@
         <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
       {/if}
 
-      <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        disabled={isFormButtonDisabled}
+      >
         Save <i class="bi bi-arrow-right-short" />
       </button>
     </form>

@@ -17,7 +17,9 @@
     />
   </div>
 
-  <a href="/" class="btn btn-light"><i class="bi bi-arrow-left-short" /> Back to Home</a>
+  <a href="/" class="btn btn-light"
+    ><i class="bi bi-arrow-left-short" /> Back to Home</a
+  >
 </div>
 
 <style>

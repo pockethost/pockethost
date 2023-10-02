@@ -11,7 +11,9 @@
           .find((row) => row.startsWith('theme='))
           ?.split('=')?.[1] || 'light'
 
-      document.querySelector('html')?.setAttribute(THEME_ATTRIBUTE, currentTheme)
+      document
+        .querySelector('html')
+        ?.setAttribute(THEME_ATTRIBUTE, currentTheme)
       const theme = document.querySelector('#hljs-link')
       if (currentTheme === 'light') {
         theme.href =

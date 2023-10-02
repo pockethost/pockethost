@@ -14,13 +14,19 @@
         </div>
 
         <div>
-          {#if title}<h5 class="card-title {!subtitle && 'mb-0'}">{title}</h5>{/if}
-          {#if subtitle}<h6 class="card-subtitle mb-0 text-muted">{subtitle}</h6>{/if}
+          {#if title}<h5 class="card-title {!subtitle && 'mb-0'}">
+              {title}
+            </h5>{/if}
+          {#if subtitle}<h6 class="card-subtitle mb-0 text-muted">
+              {subtitle}
+            </h6>{/if}
         </div>
       </div>
     {:else}
       {#if title}<h5 class="card-title">{title}</h5>{/if}
-      {#if subtitle}<h6 class="card-subtitle mb-2 text-muted">{subtitle}</h6>{/if}
+      {#if subtitle}<h6 class="card-subtitle mb-2 text-muted">
+          {subtitle}
+        </h6>{/if}
     {/if}
 
     <slot />

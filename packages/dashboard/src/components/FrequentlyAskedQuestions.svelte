@@ -13,7 +13,10 @@
   }
 
   // Array of Questions, if the boolean <collapsed> is set to false, the answer is displayed
-  const questions: Question[] = faq.outline.map((q: rawQ) => ({ ...q, collapsed: true }))
+  const questions: Question[] = faq.outline.map((q: rawQ) => ({
+    ...q,
+    collapsed: true,
+  }))
 </script>
 
 <div class="accordion w-100">

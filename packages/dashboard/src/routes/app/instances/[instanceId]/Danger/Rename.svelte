@@ -14,9 +14,11 @@
 <div>
   <h3>Rename Instance</h3>
   <p class="text-danger">
-    Warning - renaming your instance will cause it to become inaccessible by the old instance name.
-    You also may not be able to change it back if someone else choose it. See <a
-      href="https://pockethost.gitbook.io/manual/daily-usage/rename-instance">renaming</a
+    Warning - renaming your instance will cause it to become inaccessible by the
+    old instance name. You also may not be able to change it back if someone
+    else choose it. See <a
+      href="https://pockethost.gitbook.io/manual/daily-usage/rename-instance"
+      >renaming</a
     > for more information.
   </p>
   <MiniEdit value={subdomain} save={onRename} />

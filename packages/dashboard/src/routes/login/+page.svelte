@@ -65,7 +65,11 @@
         <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
       {/if}
 
-      <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        disabled={isFormButtonDisabled}
+      >
         Log In <i class="bi bi-arrow-right-short" />
       </button>
     </form>

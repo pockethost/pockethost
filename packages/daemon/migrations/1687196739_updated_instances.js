@@ -17,5 +17,5 @@ migrate(
     collection.indexes = []
 
     return dao.saveCollection(collection)
-  }
+  },
 )

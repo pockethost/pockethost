@@ -6,7 +6,7 @@
     ThemeNames,
     currentIcon,
     getCurrentTheme,
-    setCurrentTheme
+    setCurrentTheme,
   } from './helpers/theme'
 
   // This can change the CSS a bit depending on where the theme toggle is rendered
@@ -22,7 +22,10 @@
 
   // Alternate the theme values on toggle click
   const handleClick = () => {
-    const newTheme = getCurrentTheme() === ThemeNames.Light ? ThemeNames.Dark : ThemeNames.Light
+    const newTheme =
+      getCurrentTheme() === ThemeNames.Light
+        ? ThemeNames.Dark
+        : ThemeNames.Light
     updateTheme(newTheme)
   }
 
