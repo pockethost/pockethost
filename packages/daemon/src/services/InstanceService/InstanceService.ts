@@ -470,7 +470,7 @@ export const instanceService = mkSingleton(
         dbg(`Checking for maintenance mode`)
         if (instance.maintenance) {
           throw new Error(
-            `This instance is in Maintenance Mode. See https://pockethost.gitbook.io/manual/daily-usage/maintenance for more information.`,
+            `This instance is in Maintenance Mode. See https://pockethost.io/docs/usage/maintenance for more information.`,
           )
         }
 

@@ -57,4 +57,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**LIVE** https://pockethost.io (${{ steps.www_deploy.outputs.url }}) has been updated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+          args: '**LIVE** https://pockethost.io (${{ steps.www_deploy.outputs.url }}) and https://app.pockethost.io (${{ steps.dashboard_deploy.outputs.url }}) were updated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
