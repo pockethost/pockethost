@@ -1,0 +1,54 @@
+---
+layout: layouts/base.njk
+---
+
+{# Reusable component for creating the docs sidebar #}
+{% macro SidebarCategory(title, category) %}
+    <h2 class='text-lg font-bold py-2 px-4 text-white'>{{ title }}</h2>
+
+    <ul>
+        {% for post in collections.docs %}
+            {% if post.data.category === category %}
+                <li><a href='{{ post.url }}' class="block py-2 px-4">{{ post.data.title }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
+
+<div class='lg:grid lg:grid-cols-12 min-h-screen gap-12'>
+    <section class='py-6 mb-12 lg:col-span-8 px-4'>
+        <div class='prose max-w-full mb-36'>
+            <div class='flex items-center justify-between mb-8'>
+                <h1 class='text-white mb-0'>{{ title }}</h1>
+
+                <a href='#docs-navigation' class='lg:hidden flex btn btn-outline'>Docs List <i class="fa-regular fa-arrow-down"></i></a>
+            </div>
+
+
+            {{ content | safe }}
+        </div>
+
+        {%- if collections.docs %}
+            {%- set previousPost = collections.docs | getPreviousCollectionItem %}
+            {%- set nextPost = collections.docs | getNextCollectionItem %}
+            {%- if nextPost or previousPost %}
+                <ul class="flex items-center justify-between py-6">
+                    {%- if previousPost %}
+                        <li><a href="{{ previousPost.url }}" class='btn'><i class="fa-solid fa-arrow-left"></i> {{ previousPost.data.title }}</a></li>{% endif %}
+                    {%- if nextPost %}
+                        <li><a href="{{ nextPost.url }}"  class='btn'>{{ nextPost.data.title }} <i class="fa-solid fa-arrow-right"></i></a></li>{% endif %}
+                </ul>
+            {%- endif %}
+        {%- endif %}
+    </section>
+
+    <aside id='docs-navigation' class='bg-zinc-900 shadow-xl py-8 px-8 lg:px-4 lg:order-first lg:col-span-3'>
+        {{ SidebarCategory("Getting Started", "getting-started") }}
+        {{ SidebarCategory("Development", "development") }}
+        {{ SidebarCategory("Daily Usage", "usage") }}
+        {{ SidebarCategory("Self-hosting", "hosting") }}
+        {{ SidebarCategory("Contributing", "contributing") }}
+        {{ SidebarCategory("Release History", "release-history") }}
+    </aside>
+</div>

@@ -13,17 +13,17 @@ const dashName = dasherize(name_name)
 h.replace('./packages/common/src/schema/Rpc/index.ts', /\/\/ gen:enum/, `${NameName} = '${dashName}',\n  // gen:enum`);
 h.replace('./packages/common/src/schema/Rpc/index.ts', /\/\/ gen:commandlist/, `RpcCommands.${NameName},\n  // gen:commandlist`);
 h.replace('./packages/common/src/schema/Rpc/index.ts', /\/\/ gen:export/, `export * from './${NameName}'\n// gen:export`);
-h.replace('./packages/pockethost.io/src/pocketbase/PocketbaseClient.ts', /\/\/ gen:import/, `
+h.replace('./packages/dashboard/src/pocketbase/PocketbaseClient.ts', /\/\/ gen:import/, `
   ${NameName}PayloadSchema,
   type ${NameName}Payload,
   type ${NameName}Result,
   // gen:import
 `);
-h.replace('./packages/pockethost.io/src/pocketbase/PocketbaseClient.ts', /\/\/ gen:export/, `
+h.replace('./packages/dashboard/src/pocketbase/PocketbaseClient.ts', /\/\/ gen:export/, `
   ${nameName},
   // gen:export
 `);
-h.replace('./packages/pockethost.io/src/pocketbase/PocketbaseClient.ts', /\/\/ gen:mkRpc/, `
+h.replace('./packages/dashboard/src/pocketbase/PocketbaseClient.ts', /\/\/ gen:mkRpc/, `
 const ${nameName} = mkRpc<${NameName}Payload, ${NameName}Result>(
   RpcCommands.${NameName},
   ${NameName}PayloadSchema

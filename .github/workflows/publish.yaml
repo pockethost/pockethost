@@ -21,12 +21,24 @@ jobs:
 
       - name: Publish www to Cloudflare Pages
         uses: cloudflare/pages-action@v1
-        id: dashboard_deploy
+        id: www_deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: pockethost
+          directory: ./packages/www/_site
+          branch: ${{ github.head_ref || github.ref_name }}
+          wranglerVersion: '3'
+
+      - name: Publish dashboard to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        id: dashboard_deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: pockethost-dashboard
           directory: ./packages/dashboard/build
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
@@ -37,7 +49,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**PREVIEW** ${{ steps.dashboard_deploy.outputs.url }} was generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+          args: '**PREVIEW** ${{ steps.www_deploy.outputs.url }} and ${{ steps.dashboard_deploy.outputs.url }} were generated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
 
       - name: Discord live branch notification
         if: github.ref_name == 'master'
@@ -45,4 +57,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**LIVE** https://pockethost.io (${{ steps.dashboard_deploy.outputs.url }}) has been updated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+          args: '**LIVE** https://pockethost.io (${{ steps.www_deploy.outputs.url }}) and https://app.pockethost.io (${{ steps.dashboard_deploy.outputs.url }}) were updated from [commit ${{ github.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'

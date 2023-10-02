@@ -1,0 +1,59 @@
+<!doctype html>
+<html class='scroll-smooth' lang="{{ metadata.language }}" data-theme="dark">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{{ title }} - {{ metadata.title }}</title>
+		<meta name="description" content="{{ description or metadata.description }}">
+
+
+		<!-- HTML Meta Tags -->
+		<title>PocketHost</title>
+		<meta name="description" content="Get a PocketBase backend for your next app in under 10 seconds.">
+
+		<!-- Facebook Meta Tags -->
+		<meta property="og:url" content="https://pockethost.io/">
+		<meta property="og:type" content="website">
+		<meta property="og:title" content="PocketHost">
+		<meta property="og:description" content="Get a PocketBase backend for your next app in under 10 seconds.">
+		<meta property="og:image" content="https://pockethost.io/poster.png">
+
+		<!-- Twitter Meta Tags -->
+		<meta name="twitter:card" content="summary_large_image">
+		<meta property="twitter:domain" content="pockethost.io">
+		<meta property="twitter:url" content="https://pockethost.io/">
+		<meta name="twitter:title" content="PocketHost">
+		<meta name="twitter:description" content="Get a PocketBase backend for your next app in under 10 seconds.">
+		<meta name="twitter:image" content="https://pockethost.io/poster.png">
+
+		<!-- Meta Tags Generated via https://www.opengraph.xyz -->
+
+
+		<link rel="alternate" href="/feed/feed.xml" type="application/atom+xml" title="{{ metadata.title }}">
+		<link rel="alternate" href="/feed/feed.json" type="application/json" title="{{ metadata.title }}">
+
+		<link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet">
+
+		<link href="/icons/fontawesome.min.css" rel="stylesheet">
+		<link href="/icons/all.min.css" rel="stylesheet">
+		<link href="/icons/brands.min.css" rel="stylesheet">
+
+		{% set css %}
+			{% include "../../public/css/index.css" %}
+		{% endset %}
+		<style>
+			{{css | postcss | safe}}
+		</style>
+	</head>
+	<body>
+		{% include "components/header.njk" %}
+
+		<main>
+			{{ content | safe }}
+		</main>
+
+		<footer></footer>
+
+		<!-- Current page: {{ page.url | htmlBaseUrl }} -->
+	</body>
+</html>
