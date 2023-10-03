@@ -30,9 +30,7 @@ export const createInvocationMixin = (
       }
       const _inv = await client
         .collection('invocations')
-        .create<InvocationFields>(init, {
-          $cancelKey: `createInvocation:${instance.id}:${pid}`,
-        })
+        .create<InvocationFields>(init)
       return _inv
     },
   )

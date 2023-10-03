@@ -58,6 +58,6 @@
   },
   "dependencies": {
     "@s-libs/micro-dash": "^15.1.0",
-    "pocketbase": "^0.8.0"
+    "pocketbase": "^0.18.0"
   }
 }
