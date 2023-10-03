@@ -1,6 +1,7 @@
 ---
 title: FTP Access
 category: usage
+description: Accessing your PocketBase files via FTP
 ---
 
 PocketHost allows you to access all your PocketBase files via Secure FTP (FTPS).

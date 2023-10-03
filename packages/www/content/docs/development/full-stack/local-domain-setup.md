@@ -2,6 +2,7 @@
 title: Local Domain Setup Instructions
 category: development
 subcategory: full-stack
+description: How to set up your local development environment to recognize wildcard domains with SSL.
 ---
 
 This document covers how to set up your local development environment to recognize wildcard domains with SSL. Developing the full Dockerized stack for PocketHost requires these steps.

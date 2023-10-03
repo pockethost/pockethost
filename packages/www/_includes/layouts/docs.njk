@@ -16,7 +16,7 @@ layout: layouts/base.njk
 {% endmacro %}
 
 
-<div class='lg:grid lg:grid-cols-12 min-h-screen gap-12'>
+<div class='lg:grid lg:grid-cols-12 min-h-screen gap-12 relative'>
     <section class='py-6 mb-12 lg:col-span-8 px-4'>
         <div class='prose max-w-full mb-36'>
             <div class='flex items-center justify-between mb-8'>
@@ -32,18 +32,30 @@ layout: layouts/base.njk
         {%- if collections.docs %}
             {%- set previousPost = collections.docs | getPreviousCollectionItem %}
             {%- set nextPost = collections.docs | getNextCollectionItem %}
+
             {%- if nextPost or previousPost %}
                 <ul class="flex items-center justify-between py-6">
                     {%- if previousPost %}
-                        <li><a href="{{ previousPost.url }}" class='btn'><i class="fa-solid fa-arrow-left"></i> {{ previousPost.data.title }}</a></li>{% endif %}
+                        <li>
+                        <a href="{{ previousPost.url }}" class='btn'>
+                            <i class="fa-solid fa-arrow-left"></i> {{ previousPost.data.title }}
+                        </a>
+                        </li>
+                    {% endif %}
+
                     {%- if nextPost %}
-                        <li><a href="{{ nextPost.url }}"  class='btn'>{{ nextPost.data.title }} <i class="fa-solid fa-arrow-right"></i></a></li>{% endif %}
+                        <li>
+                        <a href="{{ nextPost.url }}" class='btn'>
+                            {{ nextPost.data.title }} <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        </li>
+                    {% endif %}
                 </ul>
             {%- endif %}
         {%- endif %}
     </section>
 
-    <aside id='docs-navigation' class='bg-zinc-900 shadow-xl py-8 px-8 lg:px-4 lg:order-first lg:col-span-3'>
+    <aside id='docs-navigation' class='bg-zinc-900 shadow-xl py-8 px-8 lg:px-4 lg:order-first lg:col-span-3 lg:overflow-y-scroll lg:h-screen lg:sticky top-0'>
         {{ SidebarCategory("Getting Started", "getting-started") }}
         {{ SidebarCategory("Development", "development") }}
         {{ SidebarCategory("Daily Usage", "usage") }}

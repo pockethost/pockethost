@@ -1,6 +1,7 @@
 ---
 title: Production Deployment
 category: development
+description: How to deploy PocketHost to production
 ---
 
 ## Summary

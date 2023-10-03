@@ -1,6 +1,7 @@
 ---
 title: Backup & Restore
 category: usage
+description: Backup and restore your PocketHost instance.
 ---
 
 You can use [FTP](/docs/usage/ftp/) to perform backup and restore operations.

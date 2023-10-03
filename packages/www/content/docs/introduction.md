@@ -1,6 +1,7 @@
 ---
 title: Introduction
 category: getting-started
+description: How to get started with PocketHost in a few easy steps.
 ---
 
 ## 👋 Welcome to PocketHost

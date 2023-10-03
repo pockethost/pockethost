@@ -1,6 +1,7 @@
 ---
 title: Maintenance Mode
 category: usage
+description: Maintenance Mode will prevent your instances pocketbase process from running. No requests are processed while your instance is in Maintenance Mode.
 ---
 
 Maintenance Mode will prevent your instances `pocketbase` process from running. No requests are processed while your instance is in Maintenance Mode.

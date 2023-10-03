@@ -3,30 +3,29 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!-- HTML Meta Tags -->
 		<title>{{ title }} - {{ metadata.title }}</title>
 		<meta name="description" content="{{ description or metadata.description }}">
 
-
-		<!-- HTML Meta Tags -->
-		<title>PocketHost</title>
-		<meta name="description" content="Get a PocketBase backend for your next app in under 10 seconds.">
-
 		<!-- Facebook Meta Tags -->
-		<meta property="og:url" content="https://pockethost.io/">
+		<meta property="og:url" content="{{ metadata.url + page.url }}">
 		<meta property="og:type" content="website">
-		<meta property="og:title" content="PocketHost">
-		<meta property="og:description" content="Get a PocketBase backend for your next app in under 10 seconds.">
-		<meta property="og:image" content="https://pockethost.io/poster.png">
+		<meta property="og:title" content="{{ title }} - PocketHost">
+		<meta property="og:description" content="{{ description or metadata.description }}">
+		<meta property="og:image" content="{{ metadata.url }}{{ poster or metadata.poster }}">
 
 		<!-- Twitter Meta Tags -->
 		<meta name="twitter:card" content="summary_large_image">
 		<meta property="twitter:domain" content="pockethost.io">
-		<meta property="twitter:url" content="https://pockethost.io/">
-		<meta name="twitter:title" content="PocketHost">
-		<meta name="twitter:description" content="Get a PocketBase backend for your next app in under 10 seconds.">
-		<meta name="twitter:image" content="https://pockethost.io/poster.png">
+		<meta property="twitter:url" content="{{ metadata.url + page.url }}">
+		<meta name="twitter:title" content="{{ title }} - PocketHost">
+		<meta name="twitter:description" content="{{ description or metadata.description }}">
+		<meta name="twitter:image" content="{{ metadata.url }}{{ poster or metadata.poster }}">
 
 		<!-- Meta Tags Generated via https://www.opengraph.xyz -->
+
+		<meta name="generator" content="{{ eleventy.generator }}">
 
 
 		<link rel="alternate" href="/feed/feed.xml" type="application/atom+xml" title="{{ metadata.title }}">

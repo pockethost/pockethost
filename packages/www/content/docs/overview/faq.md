@@ -1,6 +1,7 @@
 ---
 title: FAQ
 category: getting-started
+description: Frequently asked questions about PocketHost and pockethost.io
 ---
 
 ## About

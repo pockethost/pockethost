@@ -1,6 +1,7 @@
 ---
 title: Developing PocketHost
 category: development
+description: Overview of the PocketHost development process
 ---
 
 This monorepo contains the entire open source stack that powers pockethost.io. You can use it to run your own private or public multitenant platform.
