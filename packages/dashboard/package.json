@@ -14,7 +14,6 @@
     "@dansvel/vite-plugin-markdown": "^2.0.5",
     "@microsoft/fetch-event-source": "https://github.com/Almar/fetch-event-source.git#pr/make_web_worker_friendly",
     "@pockethost/common": "*",
-    "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.25.1",
     "autoprefixer": "^10.4.16",

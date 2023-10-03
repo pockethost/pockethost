@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@pockethost/common": "0.0.1",
-    "@s-libs/micro-dash": "^15.1.0",
     "@swc/core": "^1.3.86",
     "ajv": "^8.11.2",
     "boolean": "^3.2.0",
