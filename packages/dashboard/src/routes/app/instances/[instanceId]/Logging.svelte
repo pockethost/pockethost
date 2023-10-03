@@ -35,6 +35,14 @@
     }
   }
 
+  // This will open the full screen modal
+  const handleFullScreenModal = () => {
+    const modal = document.getElementById(
+      'loggingFullscreenModal',
+    ) as HTMLDialogElement
+    modal?.showModal()
+  }
+
   const logs = writable<{ [_: RecordId]: InstanceLogFields }>({})
   let logsArray: InstanceLogFields[] = []
 
@@ -70,18 +78,60 @@
     JavaScript hooks.
   </p>
 
+  <dialog id="loggingFullscreenModal" class="modal backdrop-blur">
+    <div class="modal-box max-w-[90vw] h-[90vh]">
+      <h3 class="font-bold text-lg">Instance Logging</h3>
+
+      <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col-reverse gap-3">
+        {#each logsArray as log}
+          <div
+            class="px-4 text-[11px] font-mono flex align-center"
+            data-prefix=">"
+          >
+            <span class="mr-2"
+              ><i class="fa-regular fa-angle-right text-accent"></i></span
+            >
+
+            <div>
+              <span class="mr-1 text-accent">{log.created}</span>
+              <span class={`mr-1 font-bold ${logColor(log.stream)}`}
+                >{log.stream}</span
+              >
+              <span class="mr-1 text-base-content block">{logText(log)}</span>
+            </div>
+          </div>
+        {/each}
+      </div>
+    </div>
+
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
   <div class="mockup-code">
-    <div class="h-[450px] flex flex-col-reverse overflow-y-scroll">
+    <button
+      class="btn btn-sm absolute top-[6px] right-[6px]"
+      on:click={handleFullScreenModal}
+      >Fullscreen <i class="fa-regular fa-arrows-maximize"></i></button
+    >
+    <div class="h-[450px] flex flex-col-reverse overflow-y-scroll gap-3">
       {#each logsArray as log}
-        <div class="px-4" data-prefix=">">
-          <span class="text-xs mr-2"
-            ><i class="fa-regular fa-angle-right"></i></span
+        <div
+          class="px-4 text-[11px] font-mono flex align-center"
+          data-prefix=">"
+        >
+          <span class="mr-2"
+            ><i class="fa-regular fa-angle-right text-accent"></i></span
           >
-          <span class="text-xs mr-1">{log.created}</span>
-          <span class={`text-xs mr-1 font-bold ${logColor(log.stream)}`}
-            >{log.stream}</span
-          >
-          <span class="text-xs mr-1 text-base-content">{logText(log)}</span>
+
+          <div>
+            <span class="mr-1 text-accent">{log.created}</span>
+            <span class={`mr-1 font-bold ${logColor(log.stream)}`}
+              >{log.stream}</span
+            >
+            <span class="mr-1 text-base-content block">{logText(log)}</span>
+          </div>
         </div>
       {/each}
     </div>
