@@ -46,6 +46,9 @@ jobs:
       - name: Add SHORT_SHA env property with commit short sha
         id: vars
         run: echo "sha=`echo ${GITHUB_SHA} | cut -c1-8`" >> "$GITHUB_OUTPUT"
+        run: echo "message=`${{ github.event.head_commit.message }}`" >> "$GITHUB_OUTPUT"
+        run: echo "author=`${{ github.event.head_commit.author.name }}`" >> "$GITHUB_OUTPUT"
+        run: echo "url=`${{ github.event.head_commit.url }}`" >> "$GITHUB_OUTPUT"
 
       - name: Discord feature branch notification
         if: github.ref_name != 'master'
@@ -61,4 +64,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '**LIVE** https://pockethost.io ([permalink](${{ steps.www_deploy.outputs.url }})) and https://app.pockethost.io ([permalink](${{ steps.dashboard_deploy.outputs.url }})) were updated from [${{ steps.vars.outputs.sha }}](https://github.com/${{ github.repository}}/commit/${{ github.sha }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }})'
+          args: '**LIVE** https://pockethost.io ([permalink](${{ steps.www_deploy.outputs.url }})) and https://app.pockethost.io ([permalink](${{ steps.dashboard_deploy.outputs.url }})) were updated by ${{ steps.vars.author }} in [${{ steps.vars.outputs.sha }}](${{ steps.var.outputs.url }}) on [${{ github.repository}}#${{ github.ref_name }}](https://github.com/${{ github.repository}}/tree/${{ github.ref_name }}): ${{ steps.vars.message }}'
