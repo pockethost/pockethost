@@ -23,9 +23,7 @@
     login and password.
   </p>
   <p>
-    <a href="https://pockethost.gitbook.io/manual/daily-usage/ftp"
-      >Full documentation</a
-    >
+    <a href="https://pockethost.io/docs/usage/ftp">Full documentation</a>
   </p>
   <p>Bash:</p>
   <CodeSample code={`ftp ${ftpUrl}`} language={bash} />

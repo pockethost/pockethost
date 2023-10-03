@@ -23,8 +23,7 @@
     is in maintenance mode and you have already done a fresh backup. Depending
     on the upgrade/downgrade you are performing, your instance may become
     inoperable. If that happens, you may need to manually upgrade your database
-    locally. See <a
-      href="https://pockethost.gitbook.io/manual/daily-usage/upgrading"
+    locally. See <a href="https://pockethost.io/docs/usage/upgrading"
       >upgrading</a
     > for more information. name.
   </p>

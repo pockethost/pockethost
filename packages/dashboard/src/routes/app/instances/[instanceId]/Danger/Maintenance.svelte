@@ -16,8 +16,7 @@
   <p class="text-danger">
     Your PocketHost instance will not be accessible while in maintenance mode.
     Use this when you are upgrading, downgrading, or backing up your data. See <a
-      href="https://pockethost.gitbook.io/manual/daily-usage/maintenance"
-      >Maintenance Mode</a
+      href="https://pockethost.io/docs/usage/maintenance">Maintenance Mode</a
     > for more information.
   </p>
   <MiniToggle value={maintenance} save={onMaintenance}
