@@ -37,20 +37,18 @@
     isFormButtonDisabled = true
     isProcessing = true
 
-    /*await handleInstanceGeneratorWidget(
+    await handleInstanceGeneratorWidget(
       email,
       password,
       instanceName,
       (error) => {
         formError = error
       },
-    )*/
+    )
 
-    setTimeout(() => {
-      isFormButtonDisabled = false
+    isFormButtonDisabled = false
 
-      isProcessing = false
-    }, 5000)
+    isProcessing = false
   }
 </script>
 
