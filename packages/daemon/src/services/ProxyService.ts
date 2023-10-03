@@ -1,14 +1,14 @@
-import { PUBLIC_APP_DOMAIN } from '$constants'
-import { Logger, mkSingleton, SingletonBaseConfig } from '@pockethost/common'
+import { DAEMON_PORT, PUBLIC_APP_DOMAIN } from '$constants'
+import { Logger, SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
-  createServer,
   IncomingMessage,
   RequestListener,
   ServerResponse,
+  createServer,
 } from 'http'
-import { default as httpProxy, default as Server } from 'http-proxy'
-import { Asyncify, AsyncReturnType } from 'type-fest'
+import { default as Server, default as httpProxy } from 'http-proxy'
+import { AsyncReturnType, Asyncify } from 'type-fest'
 import UrlPattern from 'url-pattern'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
@@ -74,8 +74,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     }
   })
 
-  info('daemon on port 3000')
-  server.listen(3000)
+  info(`daemon on port ${DAEMON_PORT}`)
+  server.listen(DAEMON_PORT)
 
   const shutdown = async () => {
     info(`Shutting down proxy server`)
