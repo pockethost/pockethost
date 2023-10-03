@@ -44,12 +44,16 @@
 			{{css | postcss | safe}}
 		</style>
 	</head>
-	<body>
+	<body id='body'>
 		{% include "components/header.njk" %}
 
 		<main>
 			{{ content | safe }}
 		</main>
+
+		<a href='#body' aria-label='Return to the top of the page' class='fixed bottom-4 right-4 btn btn-square'>
+			<i class="fa-regular fa-arrow-up"></i>
+		</a>
 
 		<footer></footer>
 
