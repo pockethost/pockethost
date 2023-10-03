@@ -21,6 +21,7 @@ import { logger as loggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
+import { ipWhitelistService } from './services/IpWhitelistService'
 import { portManager } from './services/PortManager'
 import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
@@ -113,6 +114,7 @@ global.EventSource = require('eventsource')
     logger,
     coreInternalUrl: url,
   })
+  await ipWhitelistService({ logger })
   await instanceLoggerService({ logger })
   await sqliteService({ logger })
   await realtimeLog({ logger })
