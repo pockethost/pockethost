@@ -35,7 +35,6 @@
     "knex": "^2.3.0",
     "memorystream": "^0.3.1",
     "node-fetch": "^3.3.0",
-    "pocketbase": "^0.8.0",
     "semver": "^7.3.8",
     "sqlite": "^4.1.2",
     "sqlite3": "^5.1.6",
