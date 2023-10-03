@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$src/env'
+  import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
   import { client } from '$src/pocketbase'
   import {
     assertExists,
@@ -35,7 +35,7 @@
       <h2>
         {$instance.subdomain}
         <a
-          href="https://{$instance.subdomain}.{PUBLIC_APP_DOMAIN}/_"
+          href="{PUBLIC_APP_PROTOCOL}://{$instance.subdomain}.{PUBLIC_APP_DOMAIN}/_"
           target="_blank"
           rel="noreferrer"><i class="bi bi-box-arrow-up-right" /></a
         >
