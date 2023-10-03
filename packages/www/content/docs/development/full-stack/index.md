@@ -2,6 +2,7 @@
 title: All our base
 category: development
 subcategory: full-stack
+description: How to run the pockethost.io stack locally
 ---
 
 The entire pockethost.io stack can be run locally.

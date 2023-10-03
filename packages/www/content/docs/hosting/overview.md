@@ -1,6 +1,7 @@
 ---
 title: Overview
 category: hosting
+description: How to set up a production hosting environment for PocketHost
 ---
 
 [UNDER CONSTRUCTION]

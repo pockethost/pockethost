@@ -1,6 +1,7 @@
 ---
 title: Accessing Your Instance
 category: usage
+description: How to access your PocketBase instance.
 ---
 
 Your PocketBase instance managed by PocketHost is accessible in two ways:

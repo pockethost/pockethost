@@ -2,6 +2,7 @@
 title: Instance Details
 category: usage
 subcategory: instances
+description: Details about PocketHost instances
 ---
 
 PocketHost provides a simple dashboard where you can manage your instance.

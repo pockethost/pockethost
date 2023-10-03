@@ -1,6 +1,7 @@
 ---
 title: Just the frontend (Svelte)
 category: development
+description: How to work with the frontend only
 ---
 
 Just want to work with the UI and frontend?

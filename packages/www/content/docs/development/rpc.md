@@ -1,6 +1,7 @@
 ---
 title: Creating RPC Calls
 category: development
+description: How to securely create RPC calls
 ---
 
 For security, PocketHost does not allow modification of records by the frontend PocketBase client. Instead, the frontend must send an RPC request which the backend will securely process. This allows for many security vulnerabilities to be addressed which PocketBase admin security rules cannot. In particular, PocketBase admin security rules fall short in these scenarios:

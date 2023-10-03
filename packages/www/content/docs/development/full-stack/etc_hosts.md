@@ -2,6 +2,7 @@
 title: Manually set up `/etc/hosts`
 category: development
 subcategory: full-stack
+description: If you can't use dnsmasq or equivalent, you can still configure hosts manually.
 ---
 
 If you can't use [dnsmasq](/docs/development/full-stack/dnsmasq/) or equivalent, you can still configure hosts manually. The dev experience will be slightly more limited, but it will still work.

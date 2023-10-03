@@ -1,6 +1,7 @@
 ---
 title: Upgrading your Instance Version
 category: usage
+description: How to upgrade your PocketHost instance to a new version of PocketBase
 ---
 
 PocketHost supports all versions of PocketBase.

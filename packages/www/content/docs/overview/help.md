@@ -1,6 +1,7 @@
 ---
 title: Getting Help
 category: getting-started
+description: Getting help with PocketHost development or usage.
 ---
 
 ## Discussion Forum

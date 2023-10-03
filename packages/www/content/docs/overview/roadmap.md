@@ -1,6 +1,7 @@
 ---
 title: Roadmap
 category: getting-started
+description: Planned features and known issues
 ---
 
 This document attempts to outline all known/planned issues.

@@ -9,19 +9,19 @@
 		<meta name="description" content="{{ description or metadata.description }}">
 
 		<!-- Facebook Meta Tags -->
-		<meta property="og:url" content="{{ metadata.url }}{{ page.url }}">
+		<meta property="og:url" content="{{ metadata.url + page.url }}">
 		<meta property="og:type" content="website">
 		<meta property="og:title" content="{{ title }} - PocketHost">
 		<meta property="og:description" content="{{ description or metadata.description }}">
-		<meta property="og:image" content="{{ metadata.url }}/poster.png">
+		<meta property="og:image" content="{{ metadata.url }}{{ poster or metadata.poster }}">
 
 		<!-- Twitter Meta Tags -->
 		<meta name="twitter:card" content="summary_large_image">
 		<meta property="twitter:domain" content="pockethost.io">
-		<meta property="twitter:url" content="{{ metadata.url }}{{ page.url }}">
+		<meta property="twitter:url" content="{{ metadata.url + page.url }}">
 		<meta name="twitter:title" content="{{ title }} - PocketHost">
 		<meta name="twitter:description" content="{{ description or metadata.description }}">
-		<meta name="twitter:image" content="{{ metadata.url }}/poster.png">
+		<meta name="twitter:image" content="{{ metadata.url }}{{ poster or metadata.poster }}">
 
 		<!-- Meta Tags Generated via https://www.opengraph.xyz -->
 
