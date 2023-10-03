@@ -19,6 +19,13 @@ export const DAEMON_PB_PASSWORD = (() => {
   }
   return v
 })()
+
+export const DAEMON_IPCIDR_LIST = env('DAEMON_IPCIDR_LIST', '')
+  .split(/,/)
+  .map((s) => s.trim())
+  .filter((v) => !!v)
+
+export const DAEMON_PORT = envi('DAEMON_PORT', 3000)
 export const DAEMON_PB_PORT_BASE = envi('DAEMON_PB_PORT_BASE', 8090)
 export const DAEMON_PB_IDLE_TTL = envi('DAEMON_PB_IDLE_TTL', 5000)
 export const DAEMON_PB_MIGRATIONS_DIR = (() => {
@@ -110,4 +117,5 @@ console.log({
   DAEMON_PB_PORT_BASE,
   DAEMON_PB_IDLE_TTL,
   DAEMON_PB_DATA_DIR,
+  DAEMON_IPCIDR_LIST,
 })

@@ -1,14 +1,14 @@
-import { PUBLIC_APP_DOMAIN } from '$constants'
-import { Logger, mkSingleton, SingletonBaseConfig } from '@pockethost/common'
+import { DAEMON_PORT, PUBLIC_APP_DOMAIN } from '$constants'
+import { Logger, SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
-  createServer,
   IncomingMessage,
   RequestListener,
   ServerResponse,
+  createServer,
 } from 'http'
-import { default as httpProxy, default as Server } from 'http-proxy'
-import { Asyncify, AsyncReturnType } from 'type-fest'
+import { default as Server, default as httpProxy } from 'http-proxy'
+import { AsyncReturnType, Asyncify } from 'type-fest'
 import UrlPattern from 'url-pattern'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
@@ -41,40 +41,41 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   const server = createServer(async (req, res) => {
-    dbg(`Incoming request ${req.method} ${req.headers.host}/${req.url}`)
-    if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
-      warn(
-        `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`,
-      )
-      res.writeHead(502, {
-        'Content-Type': `text/plain`,
-      })
-      res.end(`${req.headers.host || `Domain`} was rejected.`)
-      return
-    }
-    {
-      const { warn } = _proxyLogger.create(
-        `${req.method} ${req.headers.host}/${req.url}`,
-      )
-      try {
+    try {
+      dbg(`Incoming request ${req.method} ${req.headers.host}/${req.url}`)
+      if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
+        warn(
+          `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`,
+        )
+        res.writeHead(502, {
+          'Content-Type': `text/plain`,
+        })
+        res.end(`${req.headers.host || `Domain`} was rejected.`)
+        return
+      }
+
+      {
+        const { warn } = _proxyLogger.create(
+          `${req.method} ${req.headers.host}${req.url}`,
+        )
         for (let i = 0; i < middleware.length; i++) {
           const m = middleware[i]!
           await m(req, res)
         }
-      } catch (e) {
-        const msg = (() => (e instanceof Error ? e.message : `${e}`))()
-        warn(msg)
-        res.writeHead(403, {
-          'Content-Type': `text/plain`,
-        })
-        res.end(msg)
-        return
       }
+    } catch (e) {
+      const msg = (() => (e instanceof Error ? e.message : `${e}`))()
+      warn(msg)
+      res.writeHead(403, {
+        'Content-Type': `text/plain`,
+      })
+      res.end(msg)
+      return
     }
   })
 
-  info('daemon on port 3000')
-  server.listen(3000)
+  info(`daemon on port ${DAEMON_PORT}`)
+  server.listen(DAEMON_PORT)
 
   const shutdown = async () => {
     info(`Shutting down proxy server`)

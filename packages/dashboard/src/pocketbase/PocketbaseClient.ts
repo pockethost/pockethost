@@ -25,14 +25,12 @@ import {
   type SaveVersionResult,
   type SetInstanceMaintenancePayload,
   type SetInstanceMaintenanceResult,
-  // gen:import
-  type UserFields,
 } from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
 import PocketBase, {
-  Admin,
   BaseAuthStore,
   ClientResponseError,
+  type AuthModel,
   type RecordSubscription,
   type UnsubscribeFunc,
 } from 'pocketbase'
@@ -42,7 +40,7 @@ export type AuthChangeHandler = (user: BaseAuthStore) => void
 export type AuthToken = string
 export type AuthStoreProps = {
   token: AuthToken
-  model: UserFields | null
+  model: AuthModel | null
   isValid: boolean
 }
 
@@ -206,9 +204,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   )
 
   const getAuthStoreProps = (): AuthStoreProps => {
-    const { token, model, isValid } = client.authStore as AuthStoreProps
+    const { isAdmin, model, token, isValid } = client.authStore
     // dbg(`current authStore`, { token, model, isValid })
-    if (model instanceof Admin) throw new Error(`Admin models not supported`)
+    if (isAdmin) throw new Error(`Admin models not supported`)
     if (model && !model.email)
       throw new Error(`Expected model to be a user here`)
     return {
@@ -222,8 +220,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
    * Use synthetic event for authStore changers so we can broadcast just
    * the props we want and not the actual authStore object.
    */
-  const [onAuthChange, fireAuthChange] =
-    createGenericSyncEvent<AuthStoreProps>()
+  const [onAuthChange, fireAuthChange] = createGenericSyncEvent<BaseAuthStore>()
 
   /**
    * This section is for initialization
@@ -233,7 +230,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * Listen for native authStore changes and convert to synthetic event
      */
     client.authStore.onChange(() => {
-      fireAuthChange(getAuthStoreProps())
+      fireAuthChange(client.authStore)
     })
 
     /**
@@ -246,7 +243,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         client.authStore.clear()
       })
       .finally(() => {
-        fireAuthChange(getAuthStoreProps())
+        fireAuthChange(client.authStore)
       })
 
     /**
@@ -259,9 +256,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      */
     const unsub = onAuthChange((authStore) => {
       // dbg(`onAuthChange`, { ...authStore })
-      const { model } = authStore
+      const { model, isAdmin } = authStore
       if (!model) return
-      if (model instanceof Admin) return
+      if (isAdmin) return
       if (model.verified) {
         unsub()
         return

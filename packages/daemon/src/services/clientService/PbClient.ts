@@ -22,6 +22,7 @@ export const createPbClient = (url: string, logger: Logger) => {
   )
 
   const client = new PocketBase(url)
+  client.autoCancellation(false)
 
   const adminAuthViaEmail = safeCatch(
     `adminAuthViaEmail`,

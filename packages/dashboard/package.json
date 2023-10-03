@@ -14,15 +14,9 @@
     "@dansvel/vite-plugin-markdown": "^2.0.5",
     "@microsoft/fetch-event-source": "https://github.com/Almar/fetch-event-source.git#pr/make_web_worker_friendly",
     "@pockethost/common": "*",
-    "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.25.1",
     "@tailwindcss/typography": "^0.5.10",
-    "@types/bootstrap": "^5.2.6",
-    "@types/d3-scale": "^4.0.3",
-    "@types/d3-scale-chromatic": "^3.0.0",
-    "@types/js-cookie": "^3.0.2",
-    "@types/marked": "^4.0.8",
     "autoprefixer": "^10.4.16",
     "boolean": "^3.2.0",
     "d3-scale": "^4.0.2",
@@ -32,7 +26,6 @@
     "highlight.js": "^11.8.0",
     "js-cookie": "^3.0.5",
     "node-html-parser": "^6.1.8",
-    "pocketbase": "^0.8.0",
     "pretty-bytes": "^6.0.0",
     "random-word-slugs": "^0.1.6",
     "sass": "^1.68.0",
@@ -43,8 +36,14 @@
     "svelte-chartjs": "3.1.2",
     "chart.js": "4.4.0",
     "tailwindcss": "^3.3.3",
-    "type-fest": "^4.3.2",
     "url-pattern": "^1.0.3",
     "vite": "^4.4.9"
+  },
+  "devDependencies": {
+    "@types/bootstrap": "^5.2.6",
+    "@types/d3-scale": "^4.0.3",
+    "@types/d3-scale-chromatic": "^3.0.0",
+    "@types/js-cookie": "^3.0.2",
+    "@types/marked": "^4.0.8"
   }
 }
