@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { handleUnauthenticatedPasswordReset } from '$util/database'
   import AlertBar from '$components/AlertBar.svelte'
+  import { handleUnauthenticatedPasswordReset } from '$util/database'
 
   let email: string = ''
   let formError: string = ''
@@ -28,81 +28,52 @@
   <title>Password Reset - PocketHost</title>
 </svelte:head>
 
-<div class="page-bg">
-  <div class="card">
-    {#if userShouldCheckTheirEmail}
-      <div class="text-center">
-        <h2 class="mb-4">Check Your Email</h2>
-        <p>
-          A verification link has been sent to <br /><strong>{email}</strong>
-        </p>
+<div class="flex justify-center">
+  <div class="card w-96 bg-base-100 shadow-xl">
+    <div class="card-body">
+      {#if userShouldCheckTheirEmail}
+        <div class="text-center">
+          <h2 class="mb-4">Check Your Email</h2>
+          <p>
+            A verification link has been sent to <br /><strong>{email}</strong>
+          </p>
 
-        <div class="display-1">
-          <i class="bi bi-envelope-check" />
+          <div class="display-1">
+            <i class="bi bi-envelope-check" />
+          </div>
         </div>
-      </div>
-    {:else}
-      <h2 class="mb-4">Password Reset</h2>
+      {:else}
+        <h2 class="card-title mb-4">Password Reset</h2>
 
-      <form on:submit={handleSubmit}>
-        <div class="form-floating mb-3">
-          <input
-            type="email"
-            class="form-control"
-            id="email"
-            placeholder="name@example.com"
-            bind:value={email}
-            required
-            autocomplete="email"
-          />
-          <label for="email">Email address</label>
-        </div>
+        <form on:submit={handleSubmit}>
+          <div class="form-control w-full max-w-xs">
+            <label class="label" for="email">Email address</label>
+            <input
+              type="email"
+              class="input input-bordered w-full max-w-xs"
+              id="email"
+              placeholder="name@example.com"
+              bind:value={email}
+              required
+              autocomplete="email"
+            />
+          </div>
 
-        {#if formError}
-          <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
-        {/if}
+          {#if formError}
+            <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+          {/if}
 
-        <button
-          type="submit"
-          class="btn btn-primary w-100"
-          disabled={isFormButtonDisabled}
-        >
-          Send Verification Email <i class="bi bi-arrow-right-short" />
-        </button>
-      </form>
-    {/if}
-
-    <div class="py-4"><hr /></div>
-
-    <div class="text-center">
-      Need to <a href="/signup">create an account</a>?
+          <div class="mt-4 card-actions justify-end">
+            <button
+              type="submit"
+              class="btn btn-primary w-100"
+              disabled={isFormButtonDisabled}
+            >
+              Send Verification Email <i class="bi bi-arrow-right-short" />
+            </button>
+          </div>
+        </form>
+      {/if}
     </div>
   </div>
 </div>
-
-<style lang="scss">
-  .page-bg {
-    background-color: #222;
-    background-image: var(--gradient-light-soft-blue-vertical);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: calc(100vh - 91px);
-    padding: 0 18px;
-  }
-
-  .card {
-    border: 0;
-    box-shadow: var(--soft-box-shadow);
-    padding: 24px;
-    max-width: 425px;
-    width: 100%;
-    border-radius: 24px;
-  }
-
-  @media screen and (min-width: 768px) {
-    .card {
-      padding: 48px;
-    }
-  }
-</style>

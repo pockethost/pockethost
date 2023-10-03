@@ -14,13 +14,9 @@ export const HLJS_THEMES = {
     'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css',
 }
 export const ALLOWED_THEMES: ThemeNames[] = [ThemeNames.Light, ThemeNames.Dark]
-export const DEFAULT_THEME: ThemeNames = ThemeNames.Light
+export const DEFAULT_THEME: ThemeNames = ThemeNames.Dark
 export const STORAGE_NAME: string = 'theme'
-export const THEME_ATTRIBUTE: string = 'data-bs-theme'
-export const THEME_ICONS: { [_ in ThemeNames]: string } = {
-  [ThemeNames.Light]: 'bi bi-moon-stars',
-  [ThemeNames.Dark]: 'bi bi-brightness-high',
-}
+export const THEME_ATTRIBUTE: string = 'data-theme'
 
 export const html = () => {
   const htmlElement = document.querySelector('html')
@@ -35,16 +31,12 @@ export const getCurrentTheme = () => {
   return currentTheme
 }
 
-export const currentIcon = () => {
-  return THEME_ICONS[getCurrentTheme()]
-}
-
 export const setCurrentTheme = (themeName: ThemeNames) => {
   html().setAttribute(THEME_ATTRIBUTE, themeName)
   const theme = document.querySelector<HTMLLinkElement>('#hljs-link')
   if (theme) {
     theme.href = HLJS_THEMES[themeName]
   }
-  console.log(theme, themeName)
+
   Cookies.set(STORAGE_NAME, themeName)
 }

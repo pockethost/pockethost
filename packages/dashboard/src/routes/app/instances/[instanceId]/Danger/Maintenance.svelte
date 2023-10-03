@@ -1,5 +1,6 @@
 <script lang="ts">
-  import MiniToggle from '$components/MiniToggle.svelte'
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase'
   import { instance } from '../store'
 
@@ -7,19 +8,36 @@
 
   $: ({ id, maintenance } = $instance)
 
-  const onMaintenance = (maintenance: boolean) =>
-    setInstanceMaintenance({ instanceId: id, maintenance }).then(() => 'saved')
+  const handleChange = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const isChecked = target.checked
+
+    // Update the database with the new value
+    setInstanceMaintenance({ instanceId: id, maintenance: isChecked }).then(
+      () => 'saved',
+    )
+  }
 </script>
 
-<div>
-  <h3>Maintenance Mode</h3>
-  <p class="text-danger">
-    Your PocketHost instance will not be accessible while in maintenance mode.
-    Use this when you are upgrading, downgrading, or backing up your data. See <a
-      href="https://pockethost.io/docs/usage/maintenance">Maintenance Mode</a
-    > for more information.
-  </p>
-  <MiniToggle value={maintenance} save={onMaintenance}
-    >Maintenance Mode</MiniToggle
+<Card>
+  <CardHeader
+    documentation="https://pockethost.gitbook.io/manual/daily-usage/maintenance"
   >
-</div>
+    Maintenance Mode
+  </CardHeader>
+
+  <p class="mb-8">
+    Your PocketHost instance will not be accessible while in maintenance mode.
+    Use this when you are upgrading, downgrading, or backing up your data.
+  </p>
+
+  <label class="label cursor-pointer justify-center gap-4">
+    <span class="label-text">Maintenance Mode</span>
+    <input
+      type="checkbox"
+      class="toggle toggle-warning"
+      checked={!!maintenance}
+      on:change={handleChange}
+    />
+  </label>
+</Card>

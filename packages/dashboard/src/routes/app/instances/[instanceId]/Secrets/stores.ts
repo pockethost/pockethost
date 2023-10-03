@@ -48,7 +48,9 @@ function createItems(initialItems: SecretsArray) {
     // create: add an object for the item at the end of the store's array
     upsert: (item: SecretItem) => {
       dbg(`Upserting`, item)
+
       const { name, value } = sanitize(item)
+
       return update((n) => {
         return formatInput([
           ...n.filter((i) => i.name !== name),

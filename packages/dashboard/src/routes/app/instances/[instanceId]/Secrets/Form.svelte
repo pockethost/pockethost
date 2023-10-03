@@ -1,110 +1,126 @@
 <script lang="ts">
   import { SECRET_KEY_REGEX } from '@pockethost/common'
-  // import the items as described in the store
   import { items } from './stores.js'
+  import { slide } from 'svelte/transition'
 
-  // variables bound to the input elements
-  let name: string = ''
-  let value: string = ''
+  // Keep track of the new key and value to be added
+  let secretKey: string = ''
+  let secretValue: string = ''
+
+  // These will validate the key and value before being submitted
   let isKeyValid = false
   let isValueValid = false
   let isFormValid = false
 
-  // following the submit event, proceed to update the store by adding the item or updating its value (if existing)
-  const handleSubmit = () => {
-    // findIndex returns -1 if a match is not found
-    const index = $items.findIndex((item) => item.name === name)
-    items.upsert({ name, value })
-    name = ''
-    value = ''
+  // This will animate a success message when the key is saved
+  let successfulSave = false
+
+  // Keep track of any error message
+  let errorMessage: string = ''
+
+  // Watch for changes in real time and update the key and value as the user types them
+  $: {
+    secretKey = secretKey.toUpperCase()
+    secretValue = secretValue.trim()
+    isKeyValid = !!secretKey.match(SECRET_KEY_REGEX)
+    isValueValid = secretValue.length > 0
+    isFormValid = isKeyValid && isValueValid
   }
 
-  $: {
-    name = name.toUpperCase()
-    value = value.trim()
-    isKeyValid = !!name.match(SECRET_KEY_REGEX)
-    isValueValid = value.length > 0
-    isFormValid = isKeyValid && isValueValid
-    console.log({ isFormValid })
+  // Submit the form to create the new environment variable
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault()
+
+    // Reset any messaging
+    errorMessage = ''
+
+    try {
+      // Block the button from submitting more than once
+      isFormValid = false
+
+      // Save to the database
+      items.upsert({ name: secretKey, value: secretValue })
+
+      // Reset the values when the POST is done
+      secretKey = ''
+      secretValue = ''
+
+      // Enable the submit button
+      isFormValid = true
+
+      // Show the success message
+      successfulSave = true
+
+      // Remove the success toast after a few seconds
+      setTimeout(() => {
+        successfulSave = false
+      }, 5000)
+    } catch (error: any) {
+      errorMessage = error.message
+    }
   }
 </script>
 
-<!-- form component
-    introduce the component with a heading
-    describe the form with input elements of type text and number
--->
-<div class="container">
-  <h2>Add an Environment Variable</h2>
-  <section>
-    <!-- display a form with 2 fields
-        - input[type="text"], describing the name
-        - input[type="number"], describing the value (price, cost, currently undecided)
+<div class="mb-8">
+  <h4 class="flex items-center font-bold h-9 text-lg mb-3">
+    Add an Environment Variable
+  </h4>
 
-    -->
-    <!-- wrap each input in a label -->
-    <label>
-      <span>Name</span>
-      <input class="form-control" required type="text" bind:value={name} />
-    </label>
-    <label>
-      <span>Value</span>
-      <input class="form-control" bind:value placeholder="" type="password" />
-    </label>
+  <form on:submit={handleSubmit} class="mb-4">
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="label" for="secret-key">
+          <span class="label-text">Key</span>
+        </label>
 
-    <!-- describe the action of the icon button through aria attributes -->
-    <button
-      class="btn btn-primary"
-      aria-label="Create entry"
-      aria-describedby="description"
-      disabled={!isFormValid}
-      on:click={() => handleSubmit()}
-      >Add
-    </button>
-    {#if !isKeyValid && name.length > 0}
-      <div class="text-danger">
-        All key names must be upper case, alphanumeric, and may include
-        underscore (_).
+        <input
+          id="secret-key"
+          type="text"
+          bind:value={secretKey}
+          class="input input-bordered w-full max-w-xs"
+        />
+      </div>
+
+      <div>
+        <label class="label" for="secret-value">
+          <span class="label-text">Value</span>
+        </label>
+
+        <input
+          id="secret-value"
+          type="text"
+          bind:value={secretValue}
+          class="input input-bordered w-full max-w-xs"
+        />
+      </div>
+    </div>
+
+    {#if !isKeyValid && secretKey.length > 0}
+      <div in:slide class="alert alert-error mb-4">
+        <i class="fa-regular fa-circle-exclamation"></i>
+        All key names must be upper case, alphanumeric, and may include underscore
+        (_).
       </div>
     {/if}
-  </section>
-</div>
 
-<style lang="scss">
-  .container {
-    border: 1px solid black;
-    margin: 20px;
-    padding: 20px;
-    width: 300px;
-    h2 {
-      font-size: 13pt;
-    }
-    /* display the input in a wrapping row
-        flip the hue for the color and background
-    */
-    section {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      color: var(--bs-gray-600);
-      background: var(--bs-gray-100);
-      padding: 0.75rem 1rem;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      label {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        font-size: 1rem;
-        line-height: 2;
-        margin: 10px;
-        input {
-          font-size: 1.1rem;
-          color: inherit;
-          font-family: inherit;
-          background: none;
-          padding: 0.5rem 0.75rem;
-        }
-      }
-    }
-  }
-</style>
+    <div class="text-right">
+      <button type="submit" class="btn btn-primary" disabled={!isFormValid}
+        >Add <i class="fa-regular fa-floppy-disk"></i></button
+      >
+    </div>
+  </form>
+
+  {#if successfulSave}
+    <div in:slide class="alert alert-success">
+      <i class="fa-regular fa-shield-check"></i>
+      Your new environment variable has been saved.
+    </div>
+  {/if}
+
+  {#if errorMessage}
+    <div in:slide class="alert alert-error mb-4">
+      <i class="fa-regular fa-circle-exclamation"></i>
+      {errorMessage}
+    </div>
+  {/if}
+</div>
