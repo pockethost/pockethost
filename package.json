@@ -1,6 +1,6 @@
 {
   "name": "pockethost",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "author": "Ben Allfree <ben@benallfree.com>",
   "license": "MIT",
   "private": true,
@@ -41,20 +41,20 @@
     ]
   },
   "devDependencies": {
+    "chalk": "^4.1.2",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.1",
     "husky": "^8.0.0",
     "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.0.3",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-svelte": "^3.0.3",
+    "replace-in-file": "^7.0.1",
     "tslib": "^2.6.2",
     "tsx": "^3.12.8",
-    "typescript": "^5.0",
-    "postinstall-postinstall": "^2.1.0",
-    "replace-in-file": "^7.0.1",
-    "chalk": "^4.1.2",
-    "type-fest": "^4.3.2"
+    "type-fest": "^4.3.2",
+    "typescript": "^5.0"
   },
   "dependencies": {
     "@s-libs/micro-dash": "^15.1.0",
