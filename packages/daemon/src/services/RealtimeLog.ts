@@ -53,15 +53,15 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
        */
       dbg(`Got a log request`)
       const parsed = new URL(req.url, `https://${req.headers.host}`)
+      // https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'authorization,content-type,cache-control',
+      )
+      res.setHeader('Access-Control-Max-Age', 86400)
       if (req.method === 'OPTIONS') {
-        // https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
-        res.setHeader('Access-Control-Allow-Origin', '*')
-        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        res.setHeader(
-          'Access-Control-Allow-Headers',
-          'authorization,content-type,cache-control',
-        )
-        res.setHeader('Access-Control-Max-Age', 86400)
         res.statusCode = 204
         res.end()
         return
