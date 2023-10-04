@@ -7,7 +7,8 @@
     "dev": "vite dev --force",
     "build": "vite build",
     "lint": "prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "postinstall": "cd ../.. && patch-package"
   },
   "type": "module",
   "dependencies": {

@@ -9,7 +9,8 @@
 		"start": "npx @11ty/eleventy --serve --quiet",
 		"debug": "DEBUG=Eleventy* npx @11ty/eleventy",
 		"debugstart": "DEBUG=Eleventy* npx @11ty/eleventy --serve --quiet",
-		"benchmark": "DEBUG=Eleventy:Benchmark* npx @11ty/eleventy"
+		"benchmark": "DEBUG=Eleventy:Benchmark* npx @11ty/eleventy",
+		"postinstall": "cd ../.. && patch-package"
 	},
 	"repository": {
 		"type": "git",

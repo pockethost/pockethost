@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "main": "src/index.ts",
   "license": "MIT",
+  "scripts": {
+    "postinstall": "cd ../.. && patch-package"
+  },
   "dependencies": {
     "ajv": "^8.11.2",
     "nanoid": "^4.0.0"
