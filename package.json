@@ -5,8 +5,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte}\"",
-    "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte}\"",
+    "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
+    "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "build": "concurrently 'yarn:build:*'",
     "build:dashboard": "cd packages/dashboard && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
