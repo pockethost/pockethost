@@ -23,8 +23,7 @@
   }
 </script>
 
-<!-- {#if $isUserLoggedIn && !$isUserVerified} -->
-{#if true}
+{#if $isUserLoggedIn && !$isUserVerified}
   <div class="alert alert-info mb-8">
     <i class="fa-regular fa-envelopes"></i>
 
