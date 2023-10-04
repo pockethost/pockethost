@@ -3,6 +3,7 @@
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
+  import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
 
   $: isFirstApplication = values($globalInstancesStore).length === 0
 </script>
@@ -20,6 +21,8 @@
         ><i class="fa-solid fa-plus"></i> New App</a
       >
     </div>
+
+    <VerifyAccountBar />
 
     <!--<UsageChartForAllInstances />-->
 
