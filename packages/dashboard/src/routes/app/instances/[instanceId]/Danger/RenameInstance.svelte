@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase'
-  import { instance } from '../store'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
+  import { client } from '$src/pocketbase'
+  import { instance } from '../store'
 
   const { renameInstance } = client()
 
@@ -36,9 +36,7 @@
 </script>
 
 <Card>
-  <CardHeader
-    documentation="https://pockethost.gitbook.io/manual/daily-usage/rename-instance"
-  >
+  <CardHeader documentation="https://pockethost.io/docs/usage/rename-instance">
     Rename Instance
   </CardHeader>
 

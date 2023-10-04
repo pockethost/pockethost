@@ -20,9 +20,7 @@
 </script>
 
 <Card>
-  <CardHeader
-    documentation="https://pockethost.gitbook.io/manual/daily-usage/maintenance"
-  >
+  <CardHeader documentation="https://pockethost.io/docs/usage/maintenance">
     Maintenance Mode
   </CardHeader>
 

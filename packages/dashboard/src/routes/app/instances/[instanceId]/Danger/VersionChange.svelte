@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase'
-  import MiniEdit from '$components/MiniEdit.svelte'
-  import { instance } from '../store'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
+  import { client } from '$src/pocketbase'
+  import { instance } from '../store'
 
   $: ({ id, maintenance } = $instance)
 
@@ -32,9 +31,7 @@
 </script>
 
 <Card>
-  <CardHeader
-    documentation="https://pockethost.gitbook.io/manual/daily-usage/upgrading"
-  >
+  <CardHeader documentation="https://pockethost.io/docs/usage/upgrading">
     Version Change
   </CardHeader>
 

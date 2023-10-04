@@ -19,9 +19,7 @@
 </script>
 
 <Card>
-  <CardHeader
-    documentation="https://pockethost.gitbook.io/manual/daily-usage/ftp"
-  >
+  <CardHeader documentation="https://pockethost.io/docs/usage/ftp">
     FTP Access
   </CardHeader>
 
