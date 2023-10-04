@@ -33,12 +33,12 @@
   </MediaQuery>
 
   <div class="flex flex-col gap-2 mb-auto">
-    <a on:click={handleClick} href="/dashboard" class={linkClasses}
-      ><i
+    <a on:click={handleClick} href="/dashboard" class={linkClasses}>
+      <i
         class="fa-regular fa-table-columns {$page.url.pathname ===
           '/dashboard' && 'text-primary'}"
-      ></i> Dashboard</a
-    >
+      ></i> Dashboard
+    </a>
 
     <div class="pl-8 flex flex-col gap-4 mb-4">
       {#each values($globalInstancesStore) as app}
@@ -47,10 +47,15 @@
           on:click={handleClick}
           class={subLinkClasses}
         >
-          <i
-            class="fa-regular fa-server {$page.url.pathname ===
-              `/app/instances/${app.id}` && 'text-primary'}"
-          ></i>
+          {#if app.maintenance}
+            <i class="fa-regular fa-triangle-person-digging text-warning"></i>
+          {:else}
+            <i
+              class="fa-regular fa-server {$page.url.pathname ===
+                `/app/instances/${app.id}` && 'text-primary'}"
+            ></i>
+          {/if}
+
           {app.subdomain}
         </a>
       {/each}
