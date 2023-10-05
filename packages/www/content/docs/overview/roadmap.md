@@ -1,8 +1,22 @@
 ---
 title: Roadmap
 category: getting-started
-description: Planned features and known issues
+description: Explore the PocketHost's roadmap and delve into the planned
+  enhancements for our cloud-based hosting and deployment platform. From
+  handling project instances and account management to CLI and backup features,
+  and even paid tier objectives - we are constantly working to improve your
+  experience with pockethost.io.
 ---
+
+# Overview
+
+Our main goal at PocketHost is ensuring that your projects are up and running without the unnecessary backend hassle, and to continuously refine this process. We strive to help you focus on what you love - creating - while we handle the nitty-gritty. Our roadmap includes enhancements across a variety of features, which we're excited to share.
+
+Instance and Account Management features are set for a significant revamp. We're working on allowing you to power instances on and off, place them into maintenance mode, restart them, and even delete them. Account management will benefit from the ability to permanently delete an account or change the email address affiliated with it.
+
+A big addition is a comprehensive Command Line Interface (CLI) feature for improved interaction with the platform. Enhancements include the ability to download and restore DB backups locally, deployment of static assets, and initialization of a new project, among others.
+
+Looking towards the future, there are plenty of ideas buzzing around. From developing detailed video tutorials, mitigating storage partitioning, to integrating secure mail API credentials for your projects, we’re all about constantly growing and improving. And remember, we encourage your input along the way – it helps make PocketHost better! Your creations reflect you, and we're here to ensure they reach the world beautifully.
 
 This document attempts to outline all known/planned issues.
 

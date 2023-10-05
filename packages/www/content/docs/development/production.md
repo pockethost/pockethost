@@ -1,8 +1,25 @@
 ---
 title: Production Deployment
 category: development
-description: How to deploy PocketHost to production
+description: Learn how to deploy your PocketHost project for production. This
+  guide covers building, refreshing Certbot, running tests, as well as updating
+  and maintaining PocketBase's max semver. Dive in and get your applications
+  running smoothly in no time.
+
 ---
+
+# Overview
+
+Deploying your PocketHost project for production may seem daunting at first, especially when your focus is primarily on code creation. But fear not, this guide will get you through the necessary steps to streamline your deployment process.
+
+Begin by setting up your project. Use `git clone git@github.com:benallfree/pockethost.git` command, followed by `cd pockethost` to enter the directory. After you have initiated your project, you need to build it, and for this, you'll leverage `scripts/build.sh`.
+
+Next, take a moment to refresh Certbot with `./scripts/certbot-refresh.sh`. This will help ensure your SSL certs are always up-to-date, with `fullchain.pem` and `privkey.key` keys in the `docker/mount/nginx/ssl`.
+
+Then, you're ready to run the project. Launch your project using `sudo scripts/pm2.sh` and follow up with `sudo pm2 dash` to access the dashboard. At this point, navigate to `https://pockethost.io` to test the output.
+
+Finally, update the max PocketBase semver to limit or lock the PocketBase versions available. All you need is to tweak the `DAEMON_PB_SEMVER` variable in `.env`. And there you have it, your PocketHost project is ready to go live!
+
 
 ## Summary
 

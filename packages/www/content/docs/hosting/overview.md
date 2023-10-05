@@ -1,8 +1,21 @@
 ---
-title: Overview
+title: Getting Started
 category: hosting
-description: How to set up a production hosting environment for PocketHost
+description: Explore how to set up a production-grade hosting environment for
+  PocketHost. Whether you crave control over underlying infrastructure or wish
+  to run it from unoffered regions, this guide provides needful insights into
+  managing Docker, handling DNS, provisioning SSL certs, and understanding cloud
+  computing or VPS deployment. Discover PocketHost's abilities to transform your
+  song.
 ---
+
+# Overview
+
+Power up your projects by hosting PocketHost independently. If control is what you crave, or your project operates out of pockethost.io's reach, then this guide is just what you need. Here, we unravel the intimidating knots of Docker management, DNS handling, and SSL certificate provisioning. We also offer a bird's eye view of both Cloud Computing and VPS deployment. In essence, you're about to embark on a DIY journey into the belly of PocketHost, and we're here to guide you.
+
+Designing a hosting service isn't just ones and zeros; it's a test of your knowledge on a wide array of topics. Expect to challenge your understanding of email and SPF+DKIM, DNS terminology, storage management, volume mounting, and more. You'll also get a hands-on experience of AWS's functionalities. What's more, the trip includes valuable lessons in scaling, security, log rotation, patch management, update handling, build tools, and more.
+
+Still intrigued by the idea of hosting your own PocketHost? Then let's delve into the practical realm. We'll kick off with the basics: updating your packages, installing necessary platforms and cloning repositories. Be prepared for an in-depth, step-by-step instruction, packed with actionable tasks. So grab your keyboards and get ready to explore a whole new horizon in PocketHost hosting.
 
 [UNDER CONSTRUCTION]
 

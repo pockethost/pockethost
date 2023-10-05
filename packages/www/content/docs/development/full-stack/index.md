@@ -2,8 +2,21 @@
 title: All our base
 category: development
 subcategory: full-stack
-description: How to run the pockethost.io stack locally
+description: Explore how to run the entire pockethost.io stack locally, from
+  setting up local SSL wildcard domain to launching the platform. This guide
+  covers the necessary preparations and gives a step-by-step walkthrough to run
+  in dev mode, making backend setup a breeze, even in a local environment.
 ---
+
+# Overview
+
+It's time for some thrilling backstage moments with pockethost.io! We've always loved the idea of you diving deep into our inner mechanics here at PocketHost. Why should cloud hosting have all the fun, right? So let's hit the ground running and explore how you can operate the entire pockethost.io stack right from your local environment, from configuring a local SSL wildcard domain to getting the platform up and running.
+
+Let's be clear, this isn't beginner stuff. You can run the entire stack locally and that's no small feat. This means you can spin up a complete PocketHost platform on your personal machine, making your local back-end environment mirror that of production. This comes in handy for debugging, new feature development or just to gain a solid understanding of how the gears of PocketHost mesh together.
+
+Moving on, you should note that you need a local SSL wildcard domain set up to get started. For our OS X users, if you encounter difficulty running `pocketbase`, your machine's security settings could likely be the impediment. Fear not, a helpful link has been included for troubleshooting this common hiccup. Now that we've got that covered, my friends, it's time for some hands-on action with pockethost.io in your own habitat!
+
+Stay patient, stay curious, and above all, remember: Movement defines everything we do, whether it's a line of code or a jiu jitsu match! Let's put that core philosophy into practice.
 
 The entire pockethost.io stack can be run locally.
 
