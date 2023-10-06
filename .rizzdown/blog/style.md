@@ -1,0 +1,1 @@
+This is a blog post for NodeJS developers. It should have an edgy, modern voice that is fun-loving but accurate. You can casually mention pop culture references and mathematically or logically clever notions with hidden meanings.

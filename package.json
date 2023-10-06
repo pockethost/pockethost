@@ -1,6 +1,6 @@
 {
   "name": "pockethost",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "author": "Ben Allfree <ben@benallfree.com>",
   "license": "MIT",
   "private": true,
@@ -18,7 +18,8 @@
     "pm2": "concurrently 'yarn:pm2:*'",
     "pm2:daemon": "cd packages/daemon && yarn pm2",
     "postinstall": "patch-package",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "release:create": "hygen blog new"
   },
   "workspaces": {
     "packages": [
@@ -36,7 +37,7 @@
     ]
   },
   "devDependencies": {
-    "chalk": "^4.1.2",
+    "chalk": "^5.3.0",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.1",
     "husky": "^8.0.0",
@@ -53,6 +54,8 @@
   },
   "dependencies": {
     "@s-libs/micro-dash": "^15.1.0",
+    "hygen": "^6.2.11",
+    "ora": "^7.0.1",
     "pocketbase": "^0.18.0"
   }
 }
