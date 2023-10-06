@@ -64,12 +64,12 @@ ${summaries.map((commit) => `* ${commit}`).join('\n')}
 
     const title = await spin(
       `Generating title...`,
-      `A title for this blog post, no more than 10 words`,
+      `A title for this blog post, no more than 10 words. No exaggerations or puffery. Factual.`,
     )
 
     const description = await spin(
       `Generating OpenGraph description...`,
-      `An OpenGraph summary/description for this blog post, no more than 50 words.`,
+      `An OpenGraph summary/description for this blog post, no more than 50 words. A call to action.`,
     )
 
     const body = await spin(
