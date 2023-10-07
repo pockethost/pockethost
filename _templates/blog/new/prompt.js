@@ -43,7 +43,7 @@ module.exports = {
     }
 
     const profilePath = join(cwd(), `.rizzdown/blog`)
-    const { factory } = await import(`@rizzdown/core`)
+    const { factory } = await import(`rizzdown`)
     const subjectMatter = `
 # Change Log
 
