@@ -14,9 +14,7 @@ export const centralDbService = mkSingleton(
       ['/api(/*)', '/_(/*)', '/'],
       (req, res, meta, logger) => {
         const { dbg } = logger
-        const { subdomain, coreInternalUrl, proxy } = meta
-
-        if (subdomain !== PUBLIC_APP_DB) return
+        const { coreInternalUrl, proxy } = meta
 
         const target = coreInternalUrl
         dbg(
