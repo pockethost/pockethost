@@ -11,7 +11,7 @@
     "build:dashboard": "cd packages/dashboard && yarn build",
     "build:daemon": "cd packages/daemon && yarn build",
     "build:www": "cd packages/www && yarn build",
-    "dev": "NODE_ENV=development concurrently 'yarn:dev:*'",
+    "dev": "concurrently 'yarn:dev:*'",
     "dev:daemon": "cd packages/daemon && yarn dev",
     "start": "concurrently 'yarn:start:*'",
     "start:daemon": "cd packages/daemon && yarn start",
