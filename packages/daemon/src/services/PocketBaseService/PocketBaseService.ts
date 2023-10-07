@@ -190,7 +190,7 @@ export const createPocketbaseService = async (
         docker
           .run(
             `pockethost/pocketbase`,
-            [bin, `--help`],
+            [''], // Supplied by createOptions
             [stdout, stderr],
             createOptions,
             (err, data) => {
@@ -198,9 +198,12 @@ export const createPocketbaseService = async (
               dbg(`${slug} closed with code ${StatusCode}`, { err, data })
               isRunning = false
               if (StatusCode > 0) {
-                dbg(`${slug} stopped unexpectedly with code ${err}`, data)
-                onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
+                if (err?.json) {
+                  error(`Error: ${err.json.message}`)
+                  dbg(`${slug} stopped unexpectedly with code ${err}`, data)
+                }
               }
+              onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
               resolveExit(0)
             },
           )
@@ -211,7 +214,9 @@ export const createPocketbaseService = async (
       })
       cm.add(async () => {
         dbg(`Stopping ${slug} for cleanup`)
-        await container?.stop().catch(warn)
+        await container
+          ?.stop()
+          .catch((err) => warn(`Possible error stopping container: ${err}`))
         stderr.off('data', _stdErrData)
         stdout.off('data', _stdoutData)
       })
