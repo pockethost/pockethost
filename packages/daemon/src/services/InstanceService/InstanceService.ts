@@ -327,7 +327,8 @@ export const instanceService = mkSingleton(
             )
           }
         })()
-        const { pid } = childProcess
+        const { pid: _pid } = childProcess
+        const pid = _pid()
         assertTruthy(pid, `Expected PID here but got ${pid}`)
         dbg(`PocketBase instance PID: ${pid}`)
         systemInstanceLogger.breadcrumb(`pid:${pid}`)
@@ -341,7 +342,7 @@ export const instanceService = mkSingleton(
         Create the invocation record
         */
         healthyGuard()
-        const invocation = await createInvocation(instance, pid())
+        const invocation = await createInvocation(instance, pid)
         shutdownManager.add(async () => {
           await finalizeInvocation(invocation).catch(error)
         })
