@@ -97,7 +97,7 @@ global.EventSource = require('eventsource')
       slug: PUBLIC_APP_DB,
       port: DAEMON_PB_PORT_BASE,
       onUnexpectedStop: () => {
-        error(`migrate had an unexpected stop. Check it out`)
+        error(`serve had an unexpected stop. Check it out`)
       },
     },
     { logger },
