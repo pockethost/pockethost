@@ -1,5 +1,5 @@
 import { forEach, values } from '@s-libs/micro-dash'
-import { logger } from './Logger'
+import { LoggerService } from './Logger'
 
 export type UnixTimestampMs = number
 export type TimerCanceler = () => void
@@ -11,7 +11,7 @@ export type TimeManagerConfig = {}
 export type TimeManager = ReturnType<typeof createTimerManager>
 
 export const createTimerManager = (config: TimeManagerConfig) => {
-  const { dbg, error } = logger().create(`timerManager`)
+  const { dbg, error } = LoggerService().create(`timerManager`)
   let i = 0
   const cleanups: any = {}
   let isShutDown = false

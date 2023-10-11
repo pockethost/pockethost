@@ -2,7 +2,7 @@
   import { PUBLIC_ROUTES } from '$src/env'
   import { client } from '$src/pocketbase'
   import { getRouter } from '$util/utilities'
-  import { logger } from '@pockethost/common'
+  import { LoggerService } from '@pockethost/common'
   import { onMount } from 'svelte'
 
   onMount(() => {
@@ -12,7 +12,7 @@
 
     const { pathname } = router
     if (!PUBLIC_ROUTES.find((matcher) => matcher.match(pathname))) {
-      const { warn } = logger()
+      const { warn } = LoggerService()
       // Send user to the homepage
       warn(`${pathname} is a private route`)
       window.location.href = '/'

@@ -1,6 +1,6 @@
 import { browser } from '$app/environment'
 import { HTTP_PROTOCOL, MOTHERSHIP_DOMAIN } from '$src/env'
-import { logger } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import {
   createPocketbaseClient,
   type PocketbaseClient,
@@ -11,7 +11,7 @@ export const client = (() => {
   return () => {
     if (!browser) throw new Error(`PocketBase client not supported in SSR`)
     if (clientInstance) return clientInstance
-    const { info } = logger()
+    const { info } = LoggerService()
     info(`Initializing pocketbase client`)
     const url = `${HTTP_PROTOCOL}://${MOTHERSHIP_DOMAIN}`
     clientInstance = createPocketbaseClient({ url })

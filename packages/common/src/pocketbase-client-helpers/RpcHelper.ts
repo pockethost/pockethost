@@ -2,7 +2,7 @@ import Ajv, { JSONSchemaType } from 'ajv'
 import type pocketbaseEs from 'pocketbase'
 import { ClientResponseError, RecordSubscription } from 'pocketbase'
 import type { JsonObject } from 'type-fest'
-import { logger } from '../Logger'
+import { LoggerService } from '../Logger'
 import { newId } from '../newId'
 import { safeCatch } from '../safeCatch'
 import {
@@ -22,7 +22,7 @@ export type RpcHelperConfig = {
 export type RpcHelper = ReturnType<typeof createRpcHelper>
 
 export const createRpcHelper = (config: RpcHelperConfig) => {
-  const _logger = logger().create(`RpcHelper`)
+  const _logger = LoggerService().create(`RpcHelper`)
   const {
     client,
     watchHelper: { watchById },
@@ -36,7 +36,7 @@ export const createRpcHelper = (config: RpcHelperConfig) => {
     const validator = new Ajv().compile(schema)
     return safeCatch(
       cmd,
-      logger(),
+      LoggerService(),
       async (
         payload: TPayload,
         cb?: (data: RecordSubscription<ConcreteRpcRecord>) => void,

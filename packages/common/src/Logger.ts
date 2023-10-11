@@ -133,4 +133,6 @@ export const createLogger = (config: Partial<Config>) => {
   return api
 }
 
-export const logger = mkSingleton((config: Config) => createLogger(config))
+export const LoggerService = mkSingleton((config: Config) =>
+  createLogger(config),
+)

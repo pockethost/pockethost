@@ -2,6 +2,7 @@ import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
   CreateInstancePayloadSchema,
+  LoggerService,
   RenameInstancePayloadSchema,
   RpcCommands,
   SaveSecretsPayloadSchema,
@@ -10,7 +11,6 @@ import {
   assertExists,
   createRpcHelper,
   createWatchHelper,
-  logger,
   safeCatch,
   type CreateInstancePayload,
   type CreateInstanceResult,
@@ -51,7 +51,7 @@ export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
 export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const { url } = config
-  const _logger = logger()
+  const _logger = LoggerService()
   const { dbg, error } = _logger
 
   const client = new PocketBase(url)

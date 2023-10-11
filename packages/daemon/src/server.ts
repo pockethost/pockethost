@@ -17,7 +17,7 @@ import {
   rpcService,
   sqliteService,
 } from '$services'
-import { logger as loggerService } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
@@ -32,13 +32,13 @@ if ((major || 0) < 18) {
   throw new Error(`Node 18 or higher required.`)
 }
 
-loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
+LoggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
 
 // npm install eventsource --save
 // @ts-ignore
 global.EventSource = require('eventsource')
 ;(async () => {
-  const logger = loggerService().create(`server.ts`)
+  const logger = LoggerService().create(`server.ts`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 

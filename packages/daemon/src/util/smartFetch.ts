@@ -1,4 +1,4 @@
-import { logger } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
@@ -7,7 +7,7 @@ export const smartFetch = async <TRet>(
   url: string,
   path: string,
 ): Promise<TRet> => {
-  const { dbg } = logger().create(`smartFetch`)
+  const { dbg } = LoggerService().create(`smartFetch`)
 
   const data = await (async () => {
     try {

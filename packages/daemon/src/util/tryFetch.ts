@@ -1,4 +1,4 @@
-import { logger as defaultLogger } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import fetch from 'node-fetch'
 import { AsyncContext } from './AsyncContext'
 
@@ -11,7 +11,7 @@ export type Config = Required<AsyncContext> & {
 
 export const tryFetch = async (url: string, config?: Partial<Config>) => {
   const { logger, preflight, retryMs }: Config = {
-    logger: defaultLogger(),
+    logger: LoggerService().create(`tryFetch`),
     preflight: async () => true,
     retryMs: TRYFETCH_RETRY_MS,
     ...config,

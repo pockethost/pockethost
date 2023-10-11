@@ -1,4 +1,4 @@
-import { logger } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import { scaleOrdinal } from 'd3-scale'
 import { schemeTableau10 } from 'd3-scale-chromatic'
 import { writable } from 'svelte/store'
@@ -36,7 +36,7 @@ const sanitize = (item: SecretItem) => {
 
 // create a custom store fulfilling the CRUD operations
 function createItems(initialItems: SecretsArray) {
-  const { dbg } = logger().create(`Secrets/store.ts`)
+  const { dbg } = LoggerService().create(`Secrets/store.ts`)
 
   const { subscribe, set, update } = writable(initialItems)
 

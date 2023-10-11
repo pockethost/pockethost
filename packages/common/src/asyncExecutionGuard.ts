@@ -1,4 +1,4 @@
-import { logger } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import { uniqueId } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { SetReturnType } from 'type-fest'
@@ -13,7 +13,7 @@ export const serialAsyncExecutionGuard = <
   const uuid = uniqueId()
   const _lane = lane || (() => uuid)
   const wrapper = (...args: Parameters<T>) => {
-    const { dbg } = logger().create('serialAsyncExecutionGuard')
+    const { dbg } = LoggerService().create('serialAsyncExecutionGuard')
     const key = _lane(...args)
     if (!limiters[key]) {
       dbg(`New serial limiter with key ${key}`)
@@ -35,7 +35,7 @@ export const singletonAsyncExecutionGuard = <
   const uuid = uniqueId()
   const keyFactory = key || (() => uuid)
   const wrapper = (...args: Parameters<T>) => {
-    const { dbg } = logger().create(`singletonAsyncExecutionGuard`)
+    const { dbg } = LoggerService().create(`singletonAsyncExecutionGuard`)
     const key = keyFactory(...args)
     if (singletons[key]) {
       return singletons[key] as unknown as ReturnType<T>

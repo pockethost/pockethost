@@ -3,14 +3,14 @@ import { client } from '$src/pocketbase'
 import { instance } from '$src/routes/app/instances/[instanceId]/store'
 import { globalInstancesStore } from '$util/stores'
 import {
+  LoggerService,
   assertExists,
   createCleanupManager,
-  logger,
   type InstanceFields,
 } from '@pockethost/common'
 import { onDestroy, onMount } from 'svelte'
 
-const { error } = logger()
+const { error } = LoggerService()
 const cm = createCleanupManager()
 
 export const getInstances = async () => {
@@ -46,7 +46,7 @@ export const getInstances = async () => {
 export const getSingleInstance = async (instanceId: string) => {
   // Only run this on the browser
   if (browser) {
-    const { dbg, error } = logger().create(`layout.svelte`)
+    const { dbg, error } = LoggerService().create(`layout.svelte`)
 
     const { watchInstanceById } = client()
 

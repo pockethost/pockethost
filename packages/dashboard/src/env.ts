@@ -1,7 +1,7 @@
 import { dev } from '$app/environment'
 import { env as _env } from '$env/dynamic/public'
 import publicRoutes from '$util/public-routes.json'
-import { logger } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 import { boolean } from 'boolean'
 import UrlPattern from 'url-pattern'
 import base from '../../../package.json'
@@ -38,7 +38,7 @@ export const PUBLIC_ROUTES = publicRoutes.map(
 )
 
 try {
-  logger()
+  LoggerService()
 } catch {
-  logger({ debug: PUBLIC_DEBUG, trace: false, errorTrace: false })
+  LoggerService({ debug: PUBLIC_DEBUG, trace: false, errorTrace: false })
 }

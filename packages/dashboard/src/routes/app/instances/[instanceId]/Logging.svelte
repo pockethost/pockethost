@@ -1,8 +1,10 @@
 <script lang="ts">
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase'
   import {
+    LoggerService,
     createCleanupManager,
-    logger,
     type InstanceLogFields,
     type RecordId,
   } from '@pockethost/common'
@@ -10,10 +12,8 @@
   import { onDestroy, onMount } from 'svelte'
   import { writable } from 'svelte/store'
   import { instance } from './store'
-  import Card from '$components/cards/Card.svelte'
-  import CardHeader from '$components/cards/CardHeader.svelte'
 
-  const { dbg, trace } = logger().create(`Logging.svelte`)
+  const { dbg, trace } = LoggerService().create(`Logging.svelte`)
 
   $: ({ id } = $instance)
 

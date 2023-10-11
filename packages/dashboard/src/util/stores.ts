@@ -2,7 +2,7 @@ import { browser } from '$app/environment'
 import { client } from '$src/pocketbase'
 import type { AuthStoreProps } from '$src/pocketbase/PocketbaseClient'
 import {
-  logger,
+  LoggerService,
   type InstanceFields,
   type InstanceId,
 } from '@pockethost/common'
@@ -25,7 +25,7 @@ if (browser) {
    * Listen for auth change events. When we get at least one, the auth state is initialized.
    */
   onAuthChange((authStoreProps) => {
-    const { dbg } = logger()
+    const { dbg } = LoggerService()
     dbg(`onAuthChange in store`, { ...authStoreProps })
     authStoreState.set(authStoreProps)
     isAuthStateInitialized.set(true)
@@ -33,7 +33,7 @@ if (browser) {
 
   // Update derived stores when authStore changes
   authStoreState.subscribe((authStoreProps) => {
-    const { dbg } = logger()
+    const { dbg } = LoggerService()
     dbg(`subscriber change`, authStoreProps)
     isUserLoggedIn.set(authStoreProps.isValid)
     isUserVerified.set(!!authStoreProps.model?.verified)

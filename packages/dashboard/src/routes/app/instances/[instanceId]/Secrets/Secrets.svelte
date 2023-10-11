@@ -1,9 +1,11 @@
 <script lang="ts">
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
   import CodeSample from '$components/CodeSample.svelte'
   import { client } from '$src/pocketbase'
   import {
     createCleanupManager,
-    logger,
+    LoggerService,
     type SaveSecretsPayload,
   } from '@pockethost/common'
   import { forEach, reduce } from '@s-libs/micro-dash'
@@ -12,8 +14,6 @@
   import Form from './Form.svelte'
   import List from './List.svelte'
   import { items } from './stores'
-  import Card from '$components/cards/Card.svelte'
-  import CardHeader from '$components/cards/CardHeader.svelte'
 
   // TODO: Hot Reload is causing an infinite loop in the network tab for some reason. Wasn't able to figure out why
 
@@ -27,7 +27,7 @@
     activeTab = id
   }
 
-  const { dbg } = logger().create(`Secrets.svelte`)
+  const { dbg } = LoggerService().create(`Secrets.svelte`)
 
   const cm = createCleanupManager()
 

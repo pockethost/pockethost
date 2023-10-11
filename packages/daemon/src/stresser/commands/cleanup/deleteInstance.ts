@@ -4,9 +4,9 @@ import {
   INVOCATION_COLLECTION,
   InstanceFields,
   InvocationFields,
+  LoggerService,
   RPC_COLLECTION,
   RpcFields,
-  logger,
   singletonAsyncExecutionGuard,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
@@ -23,7 +23,7 @@ export const deleteInvocation = singletonAsyncExecutionGuard(
 export const deleteInvocationsForInstance = singletonAsyncExecutionGuard(
   async (instance: InstanceFields) => {
     const { client } = await clientService()
-    const { dbg, error } = logger()
+    const { dbg, error } = LoggerService()
       .create(`deleteInvocationsForInstance`)
       .breadcrumb(instance.id)
     const { id } = instance

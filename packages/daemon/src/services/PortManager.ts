@@ -1,6 +1,6 @@
 import { DAEMON_PB_PORT_BASE } from '$constants'
 import {
-  logger,
+  LoggerService,
   mkSingleton,
   serialAsyncExecutionGuard,
 } from '@pockethost/common'
@@ -15,7 +15,7 @@ export type PortManagerConfig = {
 
 export const portManager = mkSingleton(async (cfg: PortManagerConfig) => {
   const { maxPorts } = cfg
-  const _logger = logger().create(`PortManager`)
+  const _logger = LoggerService().create(`PortManager`)
   const { dbg, error, info } = _logger
   info(`Starting`)
 

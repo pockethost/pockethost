@@ -1,12 +1,12 @@
 <script lang="ts">
   import TinyButton from '$components/helpers/TinyButton.svelte'
-  import { logger } from '@pockethost/common'
+  import { LoggerService } from '@pockethost/common'
 
   export let value: string = ''
   export let disabled: boolean = false
   export let save: (newValue: string) => Promise<string> = async () => 'saved'
 
-  const { dbg, error } = logger().create('MiniEdit.svelte')
+  const { dbg, error } = LoggerService().create('MiniEdit.svelte')
 
   let msg = ''
   let err = ''

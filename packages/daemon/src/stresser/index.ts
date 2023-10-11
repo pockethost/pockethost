@@ -1,5 +1,5 @@
 import { DEBUG, TRACE } from '$constants'
-import { logger as loggerService } from '@pockethost/common'
+import { LoggerService } from '@pockethost/common'
 
 import { Command } from 'commander'
 import { createCleanup } from './commands/cleanup'
@@ -7,8 +7,8 @@ import { createSeed } from './commands/seed'
 import { createStress } from './commands/stress'
 const program = new Command()
 
-loggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
-const logger = loggerService().create(`stresser`)
+LoggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
+const logger = LoggerService().create(`stresser`)
 const { dbg, error, info, warn } = logger
 
 // npm install eventsource --save

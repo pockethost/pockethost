@@ -1,6 +1,6 @@
 import type pocketbaseEs from 'pocketbase'
 import type { RecordSubscription, UnsubscribeFunc } from 'pocketbase'
-import { logger } from '../Logger'
+import { LoggerService } from '../Logger'
 import { UnixTimestampMs, createTimerManager } from '../TimerManager'
 import { safeCatch } from '../safeCatch'
 import { BaseFields, RecordId } from '../schema'
@@ -25,7 +25,7 @@ export const createWatchHelper = (config: WatchHelperConfig) => {
     cb: (data: RecordSubscription<TRec>, unsub: UnsubscribeFunc) => void,
     options?: Partial<WatchConfig>,
   ): Promise<UnsubscribeFunc> => {
-    const { dbg } = logger().create(`watchById:${collectionName}:${id}`)
+    const { dbg } = LoggerService().create(`watchById:${collectionName}:${id}`)
     const config: WatchConfig = {
       initialFetch: true,
       pollIntervalMs: 0,
@@ -83,7 +83,7 @@ export const createWatchHelper = (config: WatchHelperConfig) => {
 
   const watchAllById = safeCatch(
     `watchAllById`,
-    logger(),
+    LoggerService(),
     async <TRec extends BaseFields>(
       collectionName: string,
       idName: keyof TRec,

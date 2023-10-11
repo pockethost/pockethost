@@ -1,8 +1,8 @@
 import { DAEMON_IPCIDR_LIST } from '$constants'
 import { assert } from '$util'
 import {
+  LoggerService,
   SingletonBaseConfig,
-  logger as mkLogger,
   mkSingleton,
 } from '@pockethost/common'
 import IPCIDR from 'ip-cidr'
@@ -14,13 +14,8 @@ export type IpWhitelistServiceConfig = SingletonBaseConfig & {
 const IP_WHITELIST_SERVICE_NAME = 'IpWhitelistService'
 
 export const ipWhitelistService = mkSingleton(
-  async (_config: Partial<IpWhitelistServiceConfig>) => {
-    const config: IpWhitelistServiceConfig = {
-      ipRanges: DAEMON_IPCIDR_LIST,
-      logger: _config.logger || mkLogger(),
-      ..._config,
-    }
-    const { logger, ipRanges } = config
+  async (config: Partial<IpWhitelistServiceConfig> = {}) => {
+    const { ipRanges = DAEMON_IPCIDR_LIST, logger = LoggerService() } = config
     const _serviceLogger = logger.create(IP_WHITELIST_SERVICE_NAME)
     const { dbg, error, warn, abort } = _serviceLogger
 

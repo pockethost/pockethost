@@ -1,6 +1,6 @@
 import { reduce, values } from '@s-libs/micro-dash'
 import { nanoid } from 'nanoid'
-import { logger } from './Logger'
+import { LoggerService } from './Logger'
 
 export type CleanupFunc = () => Promise<void> | void
 type CleanupRec = {
@@ -14,7 +14,7 @@ export const CLEANUP_PRIORITY_LAST = 1000
 
 export const createCleanupManager = (slug?: string) => {
   const _slug = slug || nanoid()
-  const { error, warn, dbg } = logger().create(`cleanupManager:${_slug}`)
+  const { error, warn, dbg } = LoggerService().create(`cleanupManager:${_slug}`)
   let i = 0
   const cleanups: { [_: number]: CleanupRec } = {}
   const add = (cb: CleanupFunc, priority = CLEANUP_DEFAULT_PRIORITY) => {
