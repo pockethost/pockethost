@@ -68,11 +68,11 @@
     </div>
 
     <a
-      href="https://github.com/benallfree/pockethost/discussions"
+      href="https://discord.gg/nVTxCMEcGT"
       class={linkClasses}
       target="_blank"
       rel="noreferrer"
-      ><i class="fa-regular fa-comment-code"></i> Discussion
+      ><i class="fa-regular fa-comment-code"></i> Support
       <i
         class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"
       ></i></a
