@@ -482,10 +482,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
   integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
 
-"@s-libs/micro-dash@^15.1.0":
-  version "15.1.0"
-  resolved "https://registry.yarnpkg.com/@s-libs/micro-dash/-/micro-dash-15.1.0.tgz#393e0173a37f573148f9d5857e2a627ed115fcff"
-  integrity sha512-aAVutALpYYaqP9D2w9lBPtm/KaBFis25pyl+AjOEnnOJD4cQFBblMYJkNGUMH0gihmUrnvdWEvNscTJE1ZVadw==
+"@s-libs/micro-dash@^16.1.0":
+  version "16.1.0"
+  resolved "https://registry.yarnpkg.com/@s-libs/micro-dash/-/micro-dash-16.1.0.tgz#2a81ab697716ec2caf6f7b7d8e8a1e74833c8e01"
+  integrity sha512-GmmtRb/vNl1RxErvm/d+ITfjbo4og/CXyYdqs4vpeFrJla0uSEbXwf9aJUXYvgORQDgXV6h9tdgDY6T88FRU3Q==
   dependencies:
     tslib "^2.3.0"
     utility-types "^3.10.0"

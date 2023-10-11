@@ -54,7 +54,7 @@
     "typescript": "^5.0"
   },
   "dependencies": {
-    "@s-libs/micro-dash": "^15.1.0",
+    "@s-libs/micro-dash": "^16.1.0",
     "hygen": "^6.2.11",
     "ora": "^7.0.1",
     "pocketbase": "^0.18.0"

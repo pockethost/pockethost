@@ -102,7 +102,16 @@ function assert(v, msg) {
     throw new Error(msg || 'Assertion failure')
   }
 }
-// ../../node_modules/@s-libs/micro-dash/fesm2015/micro-dash.mjs
+// ../../node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
+function keysOfNonArray(object) {
+  return object ? Object.getOwnPropertyNames(object) : []
+}
+function forOwnOfNonArray(object, iteratee) {
+  forEachOfArray(keysOfNonArray(object), function (key) {
+    return iteratee(object[key], key)
+  })
+  return object
+}
 function forEach(collection, iteratee) {
   if (Array.isArray(collection)) {
     forEachOfArray(collection, iteratee)
@@ -117,15 +126,6 @@ function forEachOfArray(array, iteratee) {
       break
     }
   }
-}
-function keysOfNonArray(object) {
-  return object ? Object.getOwnPropertyNames(object) : []
-}
-function forOwnOfNonArray(object, iteratee) {
-  forEachOfArray(keysOfNonArray(object), function (key) {
-    return iteratee(object[key], key)
-  })
-  return object
 }
 // src/hooks/src/lib.ts
 var newModel = function (schema) {
