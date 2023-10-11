@@ -2,7 +2,7 @@ import {
   DAEMON_PB_IDLE_TTL,
   PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
+  PUBLIC_HTTP_PROTOCOL,
 } from '$constants'
 import { clientService, proxyService } from '$services'
 import { mkInternalUrl, now } from '$util'
@@ -481,7 +481,7 @@ export const instanceService = mkSingleton(
         dbg(`Checking for verified account`)
         if (!owner?.verified) {
           throw new Error(
-            `Log in at ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`,
+            `Log in at ${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`,
           )
         }
 

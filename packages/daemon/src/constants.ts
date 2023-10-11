@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { env, envb, envi } from './util/env'
-export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
+export const PUBLIC_HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
 export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `pockethost.test`)
 export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', `pockethost-central`)
 
@@ -95,7 +95,7 @@ export const HOST_OS = env('HOST_OS', 'darwin')
 export const DOCKER_ARCH = env('DOCKER_ARCH', 'arm64')
 
 console.log({
-  PUBLIC_APP_PROTOCOL,
+  PUBLIC_HTTP_PROTOCOL,
   PUBLIC_APP_DOMAIN,
   PUBLIC_APP_DB,
   DAEMON_PB_USERNAME,

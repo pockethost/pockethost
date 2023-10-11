@@ -3,7 +3,7 @@ import {
   DAEMON_PB_USERNAME,
   PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_PROTOCOL,
+  PUBLIC_HTTP_PROTOCOL,
 } from '$constants'
 import { Logger, mkSingleton } from '@pockethost/common'
 import { createPbClient } from './PbClient'
@@ -31,7 +31,7 @@ export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
       dbg(`Logged in`)
     } catch (e) {
       error(
-        `CANNOT AUTHENTICATE TO ${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`,
+        `CANNOT AUTHENTICATE TO ${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}/_/`,
       )
       process.exit(-1)
     }

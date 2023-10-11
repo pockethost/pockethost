@@ -1,7 +1,7 @@
 <script>
-  import { PUBLIC_APP_DOMAIN, PUBLIC_APP_PROTOCOL } from '$src/env'
+  import { PUBLIC_APP_DOMAIN, PUBLIC_HTTP_PROTOCOL } from '$src/env'
 
-  const baseUrl = `${PUBLIC_APP_PROTOCOL}://${PUBLIC_APP_DOMAIN}/`
+  const baseUrl = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DOMAIN}/`
   const imageUrl = `${baseUrl}poster.png`
   const tagline = `Get a PocketBase backend for your next app in under 10 seconds.`
 </script>

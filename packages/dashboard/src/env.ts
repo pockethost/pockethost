@@ -22,7 +22,7 @@ export const envb = (name: PublicEnvName, _default: boolean) =>
 
 export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', 'pockethost-central')
 export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', 'pockethost.io')
-export const PUBLIC_APP_PROTOCOL = env('PUBLIC_APP_PROTOCOL', 'https')
+export const PUBLIC_HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
 
 export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', dev)
 
