@@ -5,6 +5,9 @@ const { cwd } = require('process')
 module.exports = {
   prompt: async ({ prompter, args }) => {
     const { execSync } = require('child_process')
+    const { default: ora } = await import('ora')
+    const { default: chalk } = await import('chalk')
+    const { factory } = await import(`rizzdown`)
 
     const commitsSinceLast = execSync(
       `git log $(git describe --tags --abbrev=0)..HEAD --oneline`,
@@ -43,7 +46,6 @@ module.exports = {
     }
 
     const profilePath = join(cwd(), `.rizzdown/blog`)
-    const { factory } = await import(`rizzdown`)
     const subjectMatter = `
 # Change Log
 
@@ -51,9 +53,6 @@ module.exports = {
 ${summaries.map((commit) => `* ${commit}`).join('\n')}
 `
     const { generate } = factory({ profilePath, subjectMatter })
-
-    const { default: ora } = await import('ora')
-    const { default: chalk } = await import('chalk')
 
     const spin = async (title, prompt) => {
       const spinner = ora().start(title)
@@ -69,12 +68,12 @@ ${summaries.map((commit) => `* ${commit}`).join('\n')}
 
     const description = await spin(
       `Generating OpenGraph description...`,
-      `An OpenGraph summary/description for this blog post, no more than 50 words. A call to action.`,
+      `An OpenGraph summary/description for this blog post, no more than 50 words. A call to action. Factual.`,
     )
 
     const body = await spin(
       `Generating body...`,
-      `A multiparagraph summary and digest of the change log, between 200-300 words, describing the benefits of the changes. Make it inviting and reassuring for new users to try out the new features.`,
+      `A single paragraph digest of the change log, between 50-100 words, factual and dry.`,
     )
 
     return {
