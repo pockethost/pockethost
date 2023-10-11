@@ -197,13 +197,13 @@ export const createPocketbaseService = async (
               const { StatusCode } = data || {}
               dbg(`${slug} closed with code ${StatusCode}`, { err, data })
               isRunning = false
-              if (StatusCode > 0) {
+              if (StatusCode > 0 || err) {
                 if (err?.json) {
                   error(`Error: ${err.json.message}`)
                   dbg(`${slug} stopped unexpectedly with code ${err}`, data)
                 }
+                onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
               }
-              onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
               resolveExit(0)
             },
           )
