@@ -3,6 +3,10 @@ import { join } from 'path'
 import { env, envb, envi } from './util/env'
 export const PUBLIC_HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
 export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `pockethost.test`)
+export const PUBLIC_EDGE_APEX_DOMAIN = env(
+  'PUBLIC_EDGE_APEX_DOMAIN',
+  `pockethost.test`,
+)
 export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', `pockethost-central`)
 
 export const DAEMON_PB_USERNAME = (() => {

@@ -1,4 +1,4 @@
-import { DAEMON_PORT, PUBLIC_APP_DOMAIN } from '$constants'
+import { DAEMON_PORT, PUBLIC_EDGE_APEX_DOMAIN } from '$constants'
 import { Logger, SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
@@ -43,9 +43,9 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   const server = createServer(async (req, res) => {
     try {
       dbg(`Incoming request ${req.method} ${req.headers.host}/${req.url}`)
-      if (!req.headers.host?.endsWith(PUBLIC_APP_DOMAIN)) {
+      if (!req.headers.host?.endsWith(PUBLIC_EDGE_APEX_DOMAIN)) {
         warn(
-          `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_APP_DOMAIN}`,
+          `Request for ${req.headers.host} rejected because host does not end in ${PUBLIC_EDGE_APEX_DOMAIN}`,
         )
         res.writeHead(502, {
           'Content-Type': `text/plain`,
