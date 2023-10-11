@@ -7,6 +7,10 @@ jobs:
       contents: read
       deployments: write
     name: Publish to Cloudflare Pages
+    env:
+      PUBLIC_HTTP_PROTOCOL: 'https'
+      PUBLIC_BLOG_DOMAIN: 'pockethost.io'
+      PUBLIC_APP_DOMAIN: 'app.pockethost.io'
     steps:
       - name: Checkout
         uses: actions/checkout@v3

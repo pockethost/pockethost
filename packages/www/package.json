@@ -6,7 +6,7 @@
     "build": "npx @11ty/eleventy",
     "build-ghpages": "npx @11ty/eleventy --pathprefix=/eleventy-base-blog/",
     "start:tailwind": "tailwind -i ./public/css/index.css -o ./_site/css/index.css --watch",
-    "start": "npx @11ty/eleventy --serve --quiet",
+    "start": "source ../../.env && npx @11ty/eleventy --serve --quiet",
     "debug": "DEBUG=Eleventy* npx @11ty/eleventy",
     "debugstart": "DEBUG=Eleventy* npx @11ty/eleventy --serve --quiet",
     "benchmark": "DEBUG=Eleventy:Benchmark* npx @11ty/eleventy",
