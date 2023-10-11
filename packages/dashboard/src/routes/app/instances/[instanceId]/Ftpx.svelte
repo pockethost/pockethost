@@ -2,7 +2,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$src/env'
+  import { BLOG_DOMAIN, EDGE_APEX_DOMAIN, HTTP_PROTOCOL } from '$src/env'
   import { client } from '$src/pocketbase'
   import { bash } from 'svelte-highlight/languages'
 
@@ -13,13 +13,13 @@
   if (!email) {
     throw new Error(`Email expected here`)
   }
-  const ftpUrl = `ftp://${encodeURIComponent(
-    email,
-  )}@ftp.sfo-1.${PUBLIC_APP_DOMAIN}`
+  const ftpUrl = `ftp://${encodeURIComponent(email)}@ftp.${EDGE_APEX_DOMAIN}`
 </script>
 
 <Card>
-  <CardHeader documentation="https://pockethost.io/docs/usage/ftp">
+  <CardHeader
+    documentation={`${HTTP_PROTOCOL}://${BLOG_DOMAIN}/docs/usage/ftp`}
+  >
     FTP Access
   </CardHeader>
 

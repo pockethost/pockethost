@@ -1,17 +1,17 @@
 <script lang="ts">
+  import { APP_DOMAIN } from '$src/env'
   import { assertExists } from '@pockethost/common'
+  import { slide } from 'svelte/transition'
   import Code from './Code.svelte'
-  import UsageChart from './UsageChart.svelte'
+  import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
+  import Maintenance from './Danger/Maintenance.svelte'
+  import RenameInstance from './Danger/RenameInstance.svelte'
+  import VersionChange from './Danger/VersionChange.svelte'
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Secrets from './Secrets/Secrets.svelte'
+  import UsageChart from './UsageChart.svelte'
   import { instance } from './store'
-  import { PUBLIC_APP_DOMAIN } from '$src/env'
-  import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
-  import RenameInstance from './Danger/RenameInstance.svelte'
-  import Maintenance from './Danger/Maintenance.svelte'
-  import VersionChange from './Danger/VersionChange.svelte'
-  import { slide } from 'svelte/transition'
 
   $: ({ status, version, secondsThisMonth } = $instance)
 
@@ -43,7 +43,7 @@
   </div>
 
   <a
-    href="https://{$instance.subdomain}.{PUBLIC_APP_DOMAIN}/_"
+    href="https://{$instance.subdomain}.{APP_DOMAIN}/_"
     rel="noreferrer"
     target="_blank"
     class="btn btn-primary"

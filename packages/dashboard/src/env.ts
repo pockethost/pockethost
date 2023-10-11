@@ -20,9 +20,14 @@ export const envi = (name: PublicEnvName, _default: number) =>
 export const envb = (name: PublicEnvName, _default: boolean) =>
   boolean(env(name, _default.toString()))
 
-export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', 'pockethost-central')
-export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', 'pockethost.io')
-export const PUBLIC_HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
+export const BLOG_DOMAIN = env('PUBLIC_BLOG_DOMAIN', 'pockethost.io')
+export const APP_DOMAIN = env('PUBLIC_APP_DOMAIN', 'app.pockethost.io')
+export const EDGE_APEX_DOMAIN = env('PUBLIC_EDGE_APEX_DOMAIN', 'pockethost.io')
+export const HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
+export const MOTHERSHIP_DOMAIN = env(
+  'PUBLIC_MOTHERSHIP_DOMAIN',
+  'pockethost-central.pockethost.io',
+)
 
 export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', dev)
 

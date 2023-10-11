@@ -1,9 +1,5 @@
 import { browser } from '$app/environment'
-import {
-  PUBLIC_APP_DB,
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_HTTP_PROTOCOL,
-} from '$src/env'
+import { HTTP_PROTOCOL, MOTHERSHIP_DOMAIN } from '$src/env'
 import { logger } from '@pockethost/common'
 import {
   createPocketbaseClient,
@@ -17,7 +13,7 @@ export const client = (() => {
     if (clientInstance) return clientInstance
     const { info } = logger()
     info(`Initializing pocketbase client`)
-    const url = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DB}.${PUBLIC_APP_DOMAIN}`
+    const url = `${HTTP_PROTOCOL}://${MOTHERSHIP_DOMAIN}`
     clientInstance = createPocketbaseClient({ url })
     return clientInstance
   }

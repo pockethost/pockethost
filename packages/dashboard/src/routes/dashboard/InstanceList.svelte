@@ -1,11 +1,8 @@
 <script>
-  import { globalInstancesStore } from '$util/stores'
-  import { fly } from 'svelte/transition'
-  import { backOut } from 'svelte/easing'
-  import { PUBLIC_APP_DOMAIN } from '$src/env'
-  import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
+  import { EDGE_APEX_DOMAIN, HTTP_PROTOCOL } from '$src/env'
+  import { globalInstancesStore } from '$util/stores'
 
   // Convert the object of objects into an array of objects
   const allInstancesArray = Object.values($globalInstancesStore)
@@ -55,7 +52,7 @@
 
           <a
             class="btn btn-secondary"
-            href={`https://${instance.subdomain}.${PUBLIC_APP_DOMAIN}/_`}
+            href={`${HTTP_PROTOCOL}://${instance.subdomain}.${EDGE_APEX_DOMAIN}/_`}
             target="_blank"
           >
             <img

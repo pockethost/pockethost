@@ -1,7 +1,7 @@
 <script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { PUBLIC_APP_DOMAIN } from '$src/env'
+  import { EDGE_APEX_DOMAIN } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
   import { generateSlug } from 'random-word-slugs'
   import { slide } from 'svelte/transition'
@@ -64,7 +64,7 @@
       </div>
 
       <h4 class="text-center font-bold py-12">
-        https://{instanceName}.{PUBLIC_APP_DOMAIN}
+        https://{instanceName}.{EDGE_APEX_DOMAIN}
       </h4>
 
       {#if formError}

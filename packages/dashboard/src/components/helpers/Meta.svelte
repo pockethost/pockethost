@@ -1,7 +1,7 @@
 <script>
-  import { PUBLIC_APP_DOMAIN, PUBLIC_HTTP_PROTOCOL } from '$src/env'
+  import { APP_DOMAIN, HTTP_PROTOCOL } from '$src/env'
 
-  const baseUrl = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DOMAIN}/`
+  const baseUrl = `${HTTP_PROTOCOL}://${APP_DOMAIN}/`
   const imageUrl = `${baseUrl}poster.png`
   const tagline = `Get a PocketBase backend for your next app in under 10 seconds.`
 </script>
@@ -22,7 +22,7 @@
 
   <!-- Twitter Meta Tags -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta property="twitter:domain" content={PUBLIC_APP_DOMAIN} />
+  <meta property="twitter:domain" content={APP_DOMAIN} />
   <meta property="twitter:url" content={baseUrl} />
   <meta name="twitter:title" content="PocketHost" />
   <meta name="twitter:description" content={tagline} />

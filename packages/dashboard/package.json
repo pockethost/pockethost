@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
-    "dev": "vite dev --force",
+    "dev": "DEBUG=1 source ../../.env && vite dev --force",
     "build": "vite build",
     "lint": "prettier --check .",
     "format": "prettier --write .",
