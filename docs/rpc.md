@@ -1,13 +1,3 @@
----
-title: Creating RPC Calls
-category: development
-description: Learn how to secure data modifications with PocketHost by creating
-  Remote Procedure Calls (RPC). Our guide comprehensively covers how to produce
-  new RPC calls, adjust the schema, and handle commands. Currently, only
-  asynchronous executions are supported, with returns from RPC calls
-  unavailable. Ideal for nodejs programmers seeking robust security measures.
----
-
 For security, PocketHost does not allow modification of records by the frontend PocketBase client. Instead, the frontend must send an RPC request which the backend will securely process. This allows for many security vulnerabilities to be addressed which PocketBase admin security rules cannot. In particular, PocketBase admin security rules fall short in these scenarios:
 
 - When the incoming data cannot be validated declaratively

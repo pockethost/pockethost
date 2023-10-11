@@ -1,13 +1,3 @@
----
-title: Introduction
-category: overview
-description: PocketHost, a powerful cloud hosting platform for PocketBase,
-  allows you to create unlimited projects quickly and easily. With no backend
-  setup required, it manages all the Linux/devops tasks, from email and DNS
-  jargon to SSL management and CDN hosting, so developers can solely focus on
-  building their apps.
----
-
 # 👋 Welcome to PocketHost
 
 ## Overview

@@ -7,7 +7,7 @@
     "build:docker": "cd src/services/PocketBaseService && docker build -t pockethost/pocketbase .",
     "build:hooks": "tsup --target es5 ./src/hooks/src/*.ts -d ./pb_hooks && prettier -w \"./pb_hooks/*\"",
     "dev": "concurrently 'yarn:dev:*'",
-    "dev:server": "tsx watch src/server.ts",
+    "dev:server": "source ../../.env && DEBUG=1 tsx watch src/server.ts",
     "dev:hooks": "chokidar './src/hooks/**' -c 'yarn build:hooks' --initial",
     "ddos": "NODE_ENV=development tsx watch src/stresser/index.ts",
     "start": "tsx src/server.ts",

@@ -1,14 +1,3 @@
----
-title: Getting Started
-category: hosting
-description: Explore how to set up a production-grade hosting environment for
-  PocketHost. Whether you crave control over underlying infrastructure or wish
-  to run it from unoffered regions, this guide provides needful insights into
-  managing Docker, handling DNS, provisioning SSL certs, and understanding cloud
-  computing or VPS deployment. Discover PocketHost's abilities to transform your
-  song.
----
-
 # Overview
 
 Power up your projects by hosting PocketHost independently. If control is what you crave, or your project operates out of pockethost.io's reach, then this guide is just what you need. Here, we unravel the intimidating knots of Docker management, DNS handling, and SSL certificate provisioning. We also offer a bird's eye view of both Cloud Computing and VPS deployment. In essence, you're about to embark on a DIY journey into the belly of PocketHost, and we're here to guide you.

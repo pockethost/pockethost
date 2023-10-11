@@ -1,12 +1,3 @@
----
-title: Production Deployment
-category: development
-description: Learn how to deploy your PocketHost project for production. This
-  guide covers building, refreshing Certbot, running tests, as well as updating
-  and maintaining PocketBase's max semver. Dive in and get your applications
-  running smoothly in no time.
----
-
 ## Summary
 
 - `sudo crontab -e`
