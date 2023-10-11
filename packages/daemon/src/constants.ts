@@ -30,6 +30,8 @@ export const DAEMON_IPCIDR_LIST = env('DAEMON_IPCIDR_LIST', '')
   .filter((v) => !!v)
 
 export const DAEMON_PORT = envi('DAEMON_PORT', 3000)
+export const MOTHERSHIP_PORT = envi('MOTHERSHIP_PORT', 8091)
+
 export const DAEMON_PB_PORT_BASE = envi('DAEMON_PB_PORT_BASE', 8090)
 export const DAEMON_PB_IDLE_TTL = envi('DAEMON_PB_IDLE_TTL', 5000)
 export const DAEMON_PB_MIGRATIONS_DIR = (() => {

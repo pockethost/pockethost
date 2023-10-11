@@ -1,8 +1,8 @@
 import {
   DAEMON_MAX_PORTS,
-  DAEMON_PB_PORT_BASE,
   DAEMON_PB_SEMVER,
   DEBUG,
+  MOTHERSHIP_PORT,
   PH_BIN_CACHE,
   PUBLIC_APP_DB,
   TRACE,
@@ -95,7 +95,7 @@ global.EventSource = require('eventsource')
       version: DAEMON_PB_SEMVER,
       name: PUBLIC_APP_DB,
       slug: PUBLIC_APP_DB,
-      port: DAEMON_PB_PORT_BASE,
+      port: MOTHERSHIP_PORT,
       onUnexpectedStop: () => {
         error(`serve had an unexpected stop. Check it out`)
       },
@@ -106,6 +106,7 @@ global.EventSource = require('eventsource')
   /**
    * Launch services
    */
+  console.log('launching')
   await portManager({ maxPorts: DAEMON_MAX_PORTS })
   await clientService({ url, logger })
   await ftpService({ logger })
