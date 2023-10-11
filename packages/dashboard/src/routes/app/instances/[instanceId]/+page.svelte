@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { APP_DOMAIN } from '$src/env'
+  import { EDGE_APEX_DOMAIN } from '$src/env'
   import { assertExists } from '@pockethost/common'
   import { slide } from 'svelte/transition'
   import Code from './Code.svelte'
@@ -43,7 +43,7 @@
   </div>
 
   <a
-    href="https://{$instance.subdomain}.{APP_DOMAIN}/_"
+    href="https://{$instance.subdomain}.{EDGE_APEX_DOMAIN}/_"
     rel="noreferrer"
     target="_blank"
     class="btn btn-primary"
