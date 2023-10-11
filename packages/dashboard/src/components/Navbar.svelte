@@ -2,7 +2,6 @@
   import { page } from '$app/stores'
   import Logo from '$components/Logo.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
-  import ThemeToggle from '$components/ThemeToggle.svelte'
   import { handleLogoutAndRedirect } from '$util/database'
   import { getInstances } from '$util/getInstances'
   import { globalInstancesStore } from '$util/stores'
@@ -107,6 +106,4 @@
       ><i class="fa-regular fa-arrow-up-left-from-circle"></i> Logout</button
     >
   </div>
-
-  <ThemeToggle />
 </aside>
