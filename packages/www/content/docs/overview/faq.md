@@ -1,20 +1,12 @@
 ---
 title: FAQ
-category: getting-started
+category: overview
 description: Explore frequently asked questions about pockethost.io, a
   nonprofit, one-click hosting and deployment service for PocketBase projects.
   Discover how PocketHost ensures stability, security, and offers a free tier,
   including resources like FAQs on data backup, migration, pricing, usage
   restrictions and more for both hobbyists and
 ---
-
-# Overview
-
-pockethost.io is a community-powered, non-profit hosting service for the PocketBase projects. Headed by seasoned programmer benallfree, it provides one-click hosting and deployment, allowing you to harness the power of PocketBase without the need to self-host or grapple with server setups. Furthermore, PocketHost provides a plethora of additional services such as backup, restore, SFTP access, static hosting, and much more, making it a useful tool for quick deployment of small to mid-scale PocketBase projects.
-
-PocketHost employs the tested and stressed infrastructure daily ensuring stability and security for your data. You can back up and download your data at any time via SFTP and SSH with RSA-2048 encryption boosts security. PocketHost, developed with an understanding of the sovereignty principle of PocketBase, extends support to import data, facilitating easy migration process to and from the platform.
-
-Creating as many PocketBase instances as needed is at the heart of PocketHost’s mission. The service caters to both hobbyists and professional developers; hence a free tier has been offered. This free tier grants you unlimited bandwidth, storage, and 100 CPU minutes each month allowing flexibility for users. Moreover, they're considering the inception of a paid-plan for power users which will come with added perks and unlimited resources. An interactive discussion area is maintained for further queries and to stay updated with the latest developments.
 
 ## About
 

@@ -6,17 +6,7 @@ description: Learn how to use PocketBase Hooks on PocketHost to write custom
   creating HTTP routes, updating/creating records, or running server actions
   upon user registration. It's an essential guide for nodejs developers looking
   to maximize PocketHost's potential.
-
 ---
-
-# Overview
-
-Currently, we're diving into the wonders of PocketBase Hooks on PocketHost. As a seasoned Node.js developer, you have the power to create dynamic server-side functionalities with minimal fuss. PocketBase Hooks let you write plain JavaScript code, incorporated into your PocketHost deployment, to create custom HTTP routes, update and create records, or even perform server actions when a user registers.
-
-This is done within the `pb_hooks` directory, where every instance on PocketHost is mounted. We commonly see `*.pb.js` files placed in this directory, automatically executed once loaded into PocketBase. Some caveats to keep in mind - alterations in your `pb_hooks` directory will cause your PocketHost instance to restart and automatically escalate your changes. 
-
-If you're a fan of practical learning, take a look at some sample codes like an `onAfterBootstrap` event listener, registering new HTTP routes, creating and updating records, and even paying attention to collection changes. These scripts make it feasible to run server-side tasks, enhancing the versatility of your application. Remember, all these scripts go straight into your `pb_hooks` directory on the PocketHost instance. In a nutshell, this crucial guide increases the potency of PocketHost for any Node.js developers out there. Watch this space for more power-packed PocketHost functionalities. Keep coding, and as always, enjoy the journey!
-
 
 The prebuilt PocketBase v0.17+ executable comes with an embedded ES5 JavaScript engine (goja) which enables you to write custom server-side code using plain JavaScript.
 

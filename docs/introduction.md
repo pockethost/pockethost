@@ -1,22 +1,12 @@
 ---
 title: Introduction
-category: getting-started
+category: overview
 description: PocketHost, a powerful cloud hosting platform for PocketBase,
   allows you to create unlimited projects quickly and easily. With no backend
   setup required, it manages all the Linux/devops tasks, from email and DNS
   jargon to SSL management and CDN hosting, so developers can solely focus on
   building their apps.
-
 ---
-
-# Overview
-
-Starting a new project on PocketHost is as effortless as creating a project on Firebase or Supabase. Simply choose a custom subdomain and each PocketBase instance is instantly provisioned and managed on `pockethost.io`. Our cloud-hosted environment is built with speed and scalability in mind, and you can access your PocketBase instance using the PocketBase JavaScript SDK. It's as simple as `new PocketBase('https://my-project.pockethost.io')`.
-
-We know that many web and nodejs programmers choose SvelteKit, React, Vercel, Firebase, and Supabase for their ease of use. That's why we've mirrored that simplicity with PocketHost. Set up a live PocketBase instance with no backend setup. Once you've created an account at pockethost.io, you can provision your first PocketBase instance and connect from anywhere.  
-
-With PocketHost, you can forget about the time-consuming tasks of managing Linux/devops. We handle everything from email and DNS management to SSL certification, CDN hosting, and much more. This lets us give you more time to focus on what's really important: building your app and making an impact with your creation.
-
 
 # 👋 Welcome to PocketHost
 

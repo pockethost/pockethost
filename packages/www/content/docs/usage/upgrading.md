@@ -6,21 +6,7 @@ description: Learn how to upgrade your PocketHost instance version quickly and
   rarer and more substantial updates, our guide makes the process
   straightforward while prioritizing your project's data safety. Upgrade, but
   don't compromise.
-
 ---
-
-# Overview
-
-Unlock the full potential of PocketHost by upgrading your instance version promptly and effortlessly. PocketHost's comprehensive support for all versions of PocketBase grants you the power to optimize your instance with the latest and most capable versions out there. 
-
-To upgrade your instance, take advantage of the Danger Zone in the instance details. Specify the desired PocketBase version using semver format. This upgrade can be automatic for minor updates or manual for more substantial changes. 
-
-Always initiate the upgrade process by backing up your instance for data integrity. In most scenarios, automatic upgrades are advised. Simply change to the new version you want. While specifying a semver range like `~0.16.0`, the system will embrace any upcoming patch release without including major versions. After this step, you can take your instance out of maintenance to make it live.
-
-In some exceptional cases, resort to manual upgrades. These steps require downloading your database via FTP, performing necessary upgrades according to PocketBase documentation, and re-uploading the database. After exiting maintenance mode, ensure to test your instance.
-
-Upgrading your PocketHost instance means staying ahead and leveraging the best features it offers. But always emphasize protecting your project's data without compromising utility.
-
 
 PocketHost supports all versions of PocketBase.
 

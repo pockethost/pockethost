@@ -7,21 +7,7 @@ description: Learn how to manage your PocketHost instance with our comprehensive
   admin access. Master the nuances of using PocketHost and get your PocketBase
   projects up and running in no time. Essential reading for web & node.js
   developers.
-
 ---
-
-# Overview
-
-Dive straight into managing your individual PocketHost instances via an easy-to-use dashboard. Each PocketBase deployment functions on an on-demand basis, launching only upon receiving a web request. Following a period of 5 seconds idle time, instances hibernate for optimal hardware use, with a negligible latency during the "first hit". 
-
-Track usage through PocketHost’s integrated metering system, offering a generous 100 active minutes each month in the free tier. When over this limit, you have the option to purchase extended usage, or to shift your instance to the pool of stand-by instances. 
-
-Control the your PocketBase version deployed with each instance. Default selections utilize the latest major+minor release, locked at instance creation. Upgrades to successive versions can be facilitated by reaching out to support. 
-
-Administer your instance efficiently with the use of instance-specific access, available at the URL https://<instance-name>.pockethost.io/_. This can also be accessed via the PocketHost dashboard. 
-
-Secure your instance with environment variables unveiled at `pocketbase` executable launch. Secrets are accessible as environment variables, available to the `pocketbase` process. Monitor developments through the realtime log – a feature to be launched soon.
-
 
 PocketHost provides a simple dashboard where you can manage your instance.
 
