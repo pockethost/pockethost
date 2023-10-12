@@ -1,6 +1,5 @@
 [
   "/",
-  "/docs(/*)",
   "/signup",
   "/login",
   "/login/password-reset",
