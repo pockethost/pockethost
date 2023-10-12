@@ -1,9 +1,9 @@
-import { PUBLIC_APP_DB } from '$src/constants'
+import { PUBLIC_MOTHERSHIP_NAME } from '$src/constants'
 import {
   InstanceFields,
-  mkSingleton,
   RecordId,
   SingletonBaseConfig,
+  mkSingleton,
 } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
 import { text } from 'node:stream/consumers'
@@ -25,7 +25,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
   const { dbg, error } = _realtimeLogger
 
   ;(await proxyService()).use(
-    PUBLIC_APP_DB,
+    PUBLIC_MOTHERSHIP_NAME,
     '/logs',
     async (req, res, meta, logger) => {
       const { subdomain, host, coreInternalUrl } = meta

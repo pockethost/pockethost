@@ -1,13 +1,29 @@
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { env, envb, envi } from './util/env'
+
+/**
+ * Public env vars. These are shared with the frontend and default to production
+ * values.
+ */
+
 export const PUBLIC_HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
-export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `pockethost.test`)
+export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `app.pockethost.io`)
+export const PUBLIC_BLOG_DOMAIN = env('PUBLIC_BLOG_DOMAIN', `pockethost.io`)
 export const PUBLIC_EDGE_APEX_DOMAIN = env(
   'PUBLIC_EDGE_APEX_DOMAIN',
-  `pockethost.test`,
+  `pockethost.io`,
 )
-export const PUBLIC_APP_DB = env('PUBLIC_APP_DB', `pockethost-central`)
+export const PUBLIC_MOTHERSHIP_NAME = env(
+  'PUBLIC_MOTHERSHIP_NAME',
+  `pockethost-central`,
+)
+export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', false)
+
+// Derived
+export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAME}.${PUBLIC_EDGE_APEX_DOMAIN}`
+
+export const MOTHERSHIP_NAME = env('MOTHERSHIP_NAME', `pockethost-central`)
 
 export const DAEMON_PB_USERNAME = (() => {
   const v = env('DAEMON_PB_USERNAME')
@@ -74,7 +90,6 @@ export const DAEMON_PB_DATA_DIR = (() => {
 })()
 
 export const NODE_ENV = env('NODE_ENV', '')
-export const DEBUG = envb('DEBUG', NODE_ENV === 'development')
 export const TRACE = envb('TRACE', false)
 
 export const DAEMON_MAX_PORTS = envi(`DAEMON_MAX_PORTS`, 500)
@@ -103,7 +118,10 @@ export const DOCKER_ARCH = env('DOCKER_ARCH', 'arm64')
 console.log({
   PUBLIC_HTTP_PROTOCOL,
   PUBLIC_APP_DOMAIN,
-  PUBLIC_APP_DB,
+  PUBLIC_MOTHERSHIP_NAME,
+  PUBLIC_BLOG_DOMAIN,
+  PUBLIC_DEBUG,
+  PUBLIC_EDGE_APEX_DOMAIN,
   DAEMON_PB_USERNAME,
   DAEMON_PB_PASSWORD,
   DAEMON_PB_MIGRATIONS_DIR,
@@ -118,7 +136,6 @@ console.log({
   SSL_CERT,
   PH_BIN_CACHE,
   NODE_ENV,
-  DEBUG,
   TRACE,
   DAEMON_PB_PORT_BASE,
   DAEMON_PB_IDLE_TTL,

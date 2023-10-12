@@ -1,8 +1,8 @@
 import {
   DAEMON_PB_IDLE_TTL,
-  PUBLIC_APP_DB,
   PUBLIC_APP_DOMAIN,
   PUBLIC_HTTP_PROTOCOL,
+  PUBLIC_MOTHERSHIP_NAME,
 } from '$constants'
 import { clientService, proxyService } from '$services'
 import { mkInternalUrl, now } from '$util'
@@ -444,14 +444,11 @@ export const instanceService = mkSingleton(
     }
 
     ;(await proxyService()).use(
-      (subdomain) => subdomain !== PUBLIC_APP_DB,
+      (subdomain) => subdomain !== PUBLIC_MOTHERSHIP_NAME,
       ['/api(/*)', '/_(/*)', '(/*)'],
       async (req, res, meta, logger) => {
         const { dbg } = logger
         const { subdomain: instanceIdOrSubdomain, host, proxy } = meta
-
-        // Do not handle central db requests, that is handled separately
-        if (instanceIdOrSubdomain === PUBLIC_APP_DB) return
 
         const { instance, owner } = await getInstanceByIdOrSubdomain(
           instanceIdOrSubdomain,

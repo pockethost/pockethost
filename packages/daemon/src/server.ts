@@ -1,10 +1,10 @@
 import {
   DAEMON_MAX_PORTS,
   DAEMON_PB_SEMVER,
-  DEBUG,
   MOTHERSHIP_PORT,
   PH_BIN_CACHE,
-  PUBLIC_APP_DB,
+  PUBLIC_DEBUG,
+  PUBLIC_MOTHERSHIP_NAME,
   TRACE,
 } from '$constants'
 import {
@@ -32,7 +32,7 @@ if ((major || 0) < 18) {
   throw new Error(`Node 18 or higher required.`)
 }
 
-LoggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
+LoggerService({ debug: PUBLIC_DEBUG, trace: TRACE, errorTrace: !PUBLIC_DEBUG })
 
 // npm install eventsource --save
 // @ts-ignore
@@ -76,8 +76,8 @@ global.EventSource = require('eventsource')
           command: 'migrate',
           isMothership: true,
           version: DAEMON_PB_SEMVER,
-          name: PUBLIC_APP_DB,
-          slug: PUBLIC_APP_DB,
+          name: PUBLIC_MOTHERSHIP_NAME,
+          slug: PUBLIC_MOTHERSHIP_NAME,
           onUnexpectedStop: () => {
             error(`migrate had an unexpected stop. Check it out`)
           },
@@ -93,8 +93,8 @@ global.EventSource = require('eventsource')
       command: 'serve',
       isMothership: true,
       version: DAEMON_PB_SEMVER,
-      name: PUBLIC_APP_DB,
-      slug: PUBLIC_APP_DB,
+      name: PUBLIC_MOTHERSHIP_NAME,
+      slug: PUBLIC_MOTHERSHIP_NAME,
       port: MOTHERSHIP_PORT,
       onUnexpectedStop: () => {
         error(`serve had an unexpected stop. Check it out`)

@@ -1,5 +1,5 @@
-import { PUBLIC_APP_DB } from '$constants'
-import { mkSingleton, SingletonBaseConfig } from '@pockethost/common'
+import { PUBLIC_MOTHERSHIP_NAME } from '$constants'
+import { SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { proxyService } from './ProxyService'
 
 export type CentralDbServiceConfig = SingletonBaseConfig
@@ -10,7 +10,7 @@ export const centralDbService = mkSingleton(
     const { dbg } = logger.create(`centralDbService`)
 
     ;(await proxyService()).use(
-      PUBLIC_APP_DB,
+      PUBLIC_MOTHERSHIP_NAME,
       ['/api(/*)', '/_(/*)', '/'],
       (req, res, meta, logger) => {
         const { dbg } = logger
