@@ -29,7 +29,7 @@ export const PUBLIC_MOTHERSHIP_NAME =
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
 // Derived
-export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAME}/${PUBLIC_EDGE_APEX_DOMAIN}`
+export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAME}.${PUBLIC_EDGE_APEX_DOMAIN}`
 export const WWW_URL = (path = '') =>
   `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_BLOG_DOMAIN}/${path}`
 export const BLOG_URL = (path = '') => WWW_URL(`blog/${path}`)
