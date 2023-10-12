@@ -5,6 +5,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "check:types": "concurrently 'yarn:check:types:*'",
+    "check:types:dashboard": "cd packages/dashboard && yarn check:types",
+    "check:types:common": "cd packages/common && yarn check:types",
+    "check:types:daemon": "cd packages/daemon && yarn check:types",
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "build": "concurrently 'yarn:build:*'",

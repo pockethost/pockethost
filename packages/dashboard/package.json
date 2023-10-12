@@ -3,6 +3,7 @@
   "version": "0.4.1",
   "private": true,
   "scripts": {
+    "check:types": "svelte-check",
     "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
     "dev": "DEBUG=1 source ../../.env && vite dev --force",
     "build": "vite build",
@@ -45,6 +46,7 @@
     "@types/d3-scale": "^4.0.3",
     "@types/d3-scale-chromatic": "^3.0.0",
     "@types/js-cookie": "^3.0.2",
-    "@types/marked": "^4.0.8"
+    "@types/marked": "^4.0.8",
+    "svelte-check": "^3.5.2"
   }
 }

@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
+    "check:types": "tsc --noEmit --skipLibCheck",
     "build": "concurrently 'yarn:build:*'",
     "build:docker": "cd src/services/PocketBaseService && docker build -t pockethost/pocketbase .",
     "build:hooks": "tsup --target es5 ./src/hooks/src/*.ts -d ./pb_hooks && prettier -w \"./pb_hooks/*\"",
