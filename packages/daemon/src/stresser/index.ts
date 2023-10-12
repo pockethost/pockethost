@@ -1,4 +1,4 @@
-import { DEBUG, TRACE } from '$constants'
+import { PUBLIC_DEBUG, TRACE } from '$constants'
 import { LoggerService } from '@pockethost/common'
 
 import { Command } from 'commander'
@@ -7,7 +7,7 @@ import { createSeed } from './commands/seed'
 import { createStress } from './commands/stress'
 const program = new Command()
 
-LoggerService({ debug: DEBUG, trace: TRACE, errorTrace: !DEBUG })
+LoggerService({ debug: PUBLIC_DEBUG, trace: TRACE, errorTrace: !PUBLIC_DEBUG })
 const logger = LoggerService().create(`stresser`)
 const { dbg, error, info, warn } = logger
 
