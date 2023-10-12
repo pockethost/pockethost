@@ -2,14 +2,14 @@
   import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { EDGE_APEX_DOMAIN, HTTP_PROTOCOL } from '$src/env'
+  import { DOCS_URL, INSTANCE_URL } from '$src/env'
   import { instance } from './store'
 
   let installSnippet = `npm i pocketbase`
 
   let connectionSnippet = ''
   $: {
-    const url = `${HTTP_PROTOCOL}://${$instance.subdomain}.${EDGE_APEX_DOMAIN}`
+    const url = INSTANCE_URL($instance.subdomain)
     connectionSnippet = `import PocketBase from 'pocketbase';\n\nconst url = '${url}'\nconst client = new PocketBase(url)`
   }
 
@@ -39,10 +39,8 @@
   <p>Additional Resources:</p>
   <ul class="list-disc pl-4">
     <li>
-      <a
-        href="https://pocketbase.io/docs/api-records/"
-        target="_blank"
-        class="link">PocketBase Web APIs</a
+      <a href={DOCS_URL(`/api-records/`)} target="_blank" class="link"
+        >PocketBase Web APIs</a
       >
     </li>
     <li>

@@ -10,10 +10,9 @@ import {
 } from '@pockethost/common'
 import { onDestroy, onMount } from 'svelte'
 
-const { error } = LoggerService()
-const cm = createCleanupManager()
-
 export const getInstances = async () => {
+  const { error } = LoggerService()
+
   onMount(() => {
     if (browser) {
       ;(async () => {
@@ -44,6 +43,7 @@ export const getInstances = async () => {
 }
 
 export const getSingleInstance = async (instanceId: string) => {
+  const cm = createCleanupManager()
   // Only run this on the browser
   if (browser) {
     const { dbg, error } = LoggerService().create(`layout.svelte`)

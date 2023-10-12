@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_ROUTES } from '$src/env'
+  import { ROUTES } from '$src/constants'
   import { client } from '$src/pocketbase'
   import { getRouter } from '$util/utilities'
   import { LoggerService } from '@pockethost/common'
@@ -11,7 +11,7 @@
     const router = getRouter()
 
     const { pathname } = router
-    if (!PUBLIC_ROUTES.find((matcher) => matcher.match(pathname))) {
+    if (!ROUTES.find((matcher) => matcher.match(pathname))) {
       const { warn } = LoggerService()
       // Send user to the homepage
       warn(`${pathname} is a private route`)

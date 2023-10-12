@@ -2,7 +2,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { BLOG_DOMAIN, EDGE_APEX_DOMAIN, HTTP_PROTOCOL } from '$src/env'
+  import { DOCS_URL, FTP_URL } from '$src/env'
   import { client } from '$src/pocketbase'
   import { bash } from 'svelte-highlight/languages'
 
@@ -13,15 +13,11 @@
   if (!email) {
     throw new Error(`Email expected here`)
   }
-  const ftpUrl = `ftp://${encodeURIComponent(email)}@ftp.${EDGE_APEX_DOMAIN}`
+  const ftpUrl = FTP_URL(email)
 </script>
 
 <Card>
-  <CardHeader
-    documentation={`${HTTP_PROTOCOL}://${BLOG_DOMAIN}/docs/usage/ftp`}
-  >
-    FTP Access
-  </CardHeader>
+  <CardHeader documentation={DOCS_URL(`/usage/ftp`)}>FTP Access</CardHeader>
 
   <p class="mb-8">
     Securely access your instance files via FTPS. Use your PocketHost account

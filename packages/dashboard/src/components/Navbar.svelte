@@ -2,7 +2,7 @@
   import { page } from '$app/stores'
   import Logo from '$components/Logo.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
-  import { BLOG_DOMAIN, HTTP_PROTOCOL } from '$src/env'
+  import { DOCS_URL } from '$src/env'
   import { handleLogoutAndRedirect } from '$util/database'
   import { getInstances } from '$util/getInstances'
   import { globalInstancesStore } from '$util/stores'
@@ -80,7 +80,7 @@
     >
 
     <a
-      href={`${HTTP_PROTOCOL}://${BLOG_DOMAIN}/docs`}
+      href={`${DOCS_URL()}`}
       class={linkClasses}
       target="_blank"
       rel="noreferrer"

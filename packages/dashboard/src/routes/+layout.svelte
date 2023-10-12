@@ -1,10 +1,11 @@
 <script>
+  import MediaQuery from '$components/MediaQuery.svelte'
+  import MobileNavDrawer from '$components/MobileNavDrawer.svelte'
   import Navbar from '$components/Navbar.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import Protect from '$components/helpers/Protect.svelte'
-  import MediaQuery from '$components/MediaQuery.svelte'
-  import MobileNavDrawer from '$components/MobileNavDrawer.svelte'
   import '../app.css'
+  import '../services'
 
   import { isUserLoggedIn } from '$util/stores'
 </script>

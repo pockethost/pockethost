@@ -1,44 +1,44 @@
-import { dev } from '$app/environment'
-import { env as _env } from '$env/dynamic/public'
-import publicRoutes from '$util/public-routes.json'
-import { LoggerService } from '@pockethost/common'
 import { boolean } from 'boolean'
-import UrlPattern from 'url-pattern'
-import base from '../../../package.json'
 
-export type PublicEnvName = `PUBLIC_${string}`
+/**
+ * These environment variables default to pointing to the production build so frontend development is easy.
+ * If they are specified in .env, those values will prevail.
+ */
 
-export const env = (name: PublicEnvName, _default: string = '') => {
-  const v = _env[name]
-  if (!v) return _default
-  return v
-}
+// The domain name of the lander/marketing site
+export const PUBLIC_BLOG_DOMAIN =
+  import.meta.env.PUBLIC_BLOG_DOMAIN || 'pockethost.io'
 
-export const envi = (name: PublicEnvName, _default: number) =>
-  parseInt(env(name, _default.toString()))
+// The domain name where this dashboard lives
+export const PUBLIC_APP_DOMAIN =
+  import.meta.env.PUBLIC_APP_DOMAIN || 'app.pockethost.io'
 
-export const envb = (name: PublicEnvName, _default: boolean) =>
-  boolean(env(name, _default.toString()))
+// The domain name apex where all instances live (eg, <subdomain>.pockethost.io)
+export const PUBLIC_EDGE_APEX_DOMAIN =
+  import.meta.env.PUBLIC_EDGE_APEX_DOMAIN || 'pockethost.io'
 
-export const BLOG_DOMAIN = env('PUBLIC_BLOG_DOMAIN', 'pockethost.io')
-export const APP_DOMAIN = env('PUBLIC_APP_DOMAIN', 'app.pockethost.io')
-export const EDGE_APEX_DOMAIN = env('PUBLIC_EDGE_APEX_DOMAIN', 'pockethost.io')
-export const HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
-export const MOTHERSHIP_DOMAIN = env(
-  'PUBLIC_MOTHERSHIP_DOMAIN',
-  'pockethost-central.pockethost.io',
-)
+// The protocol to use, almost always will be https
+export const PUBLIC_HTTP_PROTOCOL =
+  import.meta.env.PUBLIC_HTTP_PROTOCOL || 'https'
 
-export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', dev)
+// The complete URL to the mothership
+export const PUBLIC_MOTHERSHIP_NAME =
+  import.meta.env.PUBLIC_MOTHERSHIP_NAME || `pockethost-central`
 
-export const PUBLIC_POCKETHOST_VERSION = base.version
+// Whether or not we are in debugging mode - default TRUE
+export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
-export const PUBLIC_ROUTES = publicRoutes.map(
-  (pattern) => new UrlPattern(pattern),
-)
-
-try {
-  LoggerService()
-} catch {
-  LoggerService({ debug: PUBLIC_DEBUG, trace: false, errorTrace: false })
-}
+// Derived
+export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAME}/${PUBLIC_EDGE_APEX_DOMAIN}`
+export const WWW_URL = (path = '') =>
+  `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_BLOG_DOMAIN}/${path}`
+export const BLOG_URL = (path = '') => WWW_URL(`blog/${path}`)
+export const DOCS_URL = (path = '') => WWW_URL(`docs/${path}`)
+export const APP_URL = (path = '') =>
+  `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DOMAIN}/${path}`
+export const INSTANCE_URL = (name: string, path = '') =>
+  `${PUBLIC_HTTP_PROTOCOL}://${name}.${PUBLIC_EDGE_APEX_DOMAIN}/${path}`
+export const INSTANCE_ADMIN_URL = (name: string, path = '') =>
+  INSTANCE_URL(name, `_/${path}`)
+export const FTP_URL = (email: string) =>
+  `ftp://${encodeURIComponent(email)}@ftp.${PUBLIC_EDGE_APEX_DOMAIN}`

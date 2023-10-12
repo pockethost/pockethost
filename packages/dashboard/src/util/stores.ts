@@ -7,6 +7,7 @@ import {
   type InstanceId,
 } from '@pockethost/common'
 import { writable } from 'svelte/store'
+import '../services'
 
 export const authStoreState = writable<AuthStoreProps>({
   isValid: false,

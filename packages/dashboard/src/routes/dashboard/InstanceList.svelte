@@ -1,7 +1,7 @@
 <script>
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { EDGE_APEX_DOMAIN, HTTP_PROTOCOL } from '$src/env'
+  import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
 
   // Convert the object of objects into an array of objects
@@ -52,7 +52,7 @@
 
           <a
             class="btn btn-secondary"
-            href={`${HTTP_PROTOCOL}://${instance.subdomain}.${EDGE_APEX_DOMAIN}/_`}
+            href={INSTANCE_ADMIN_URL(instance.subdomain)}
             target="_blank"
           >
             <img
