@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import AlertBar from '$components/AlertBar.svelte'
+  import { slide } from 'svelte/transition'
   import { handleUnauthenticatedPasswordResetConfirm } from '$util/database'
 
   let password: string = ''
@@ -27,6 +27,9 @@
       },
     )
 
+    // Hard refresh and send the user back to the login screen
+    window.location = "/?view=login";
+
     isFormButtonDisabled = false
   }
 </script>
@@ -35,62 +38,41 @@
   <title>Reset Your Password - PocketHost</title>
 </svelte:head>
 
-<div class="page-bg">
-  <div class="card">
-    <h2 class="mb-4">New Password</h2>
+<div class="min-h-screen flex items-center justify-center">
+  <div class="card w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
+    <div class="card-body">
+      <h2 class="card-title mb-4">New Password</h2>
 
-    <form on:submit={handleSubmit}>
-      <div class="form-floating mb-3">
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          placeholder="Password"
-          bind:value={password}
-          required
-          autocomplete="password"
-        />
-        <label for="password">New Password</label>
-      </div>
+      <form on:submit={handleSubmit}>
+        <div class="form-control w-full max-w-xs">
+          <label class="label" for="password">New Password</label>
+          <input
+            type="password"
+            class="input input-bordered w-full max-w-xs"
+            id="password"
+            bind:value={password}
+            required
+            autocomplete="new-password"
+          />
+        </div>
 
-      {#if formError}
-        <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
-      {/if}
+        {#if formError}
+          <div transition:slide class="alert alert-error mb-5">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{formError}</span>
+          </div>
+        {/if}
 
-      <button
-        type="submit"
-        class="btn btn-primary w-100"
-        disabled={isFormButtonDisabled}
-      >
-        Save <i class="bi bi-arrow-right-short" />
-      </button>
-    </form>
+        <div class='mt-4 card-actions justify-end'>
+          <button
+            type="submit"
+            class="btn btn-primary w-100"
+            disabled={isFormButtonDisabled}
+          >
+            Save <i class="bi bi-arrow-right-short" />
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
-
-<style lang="scss">
-  .page-bg {
-    background-color: #222;
-    background-image: var(--gradient-light-soft-blue-vertical);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: calc(100vh - 91px);
-    padding: 0 18px;
-  }
-
-  .card {
-    border: 0;
-    box-shadow: var(--soft-box-shadow);
-    padding: 24px;
-    max-width: 425px;
-    width: 100%;
-    border-radius: 24px;
-  }
-
-  @media screen and (min-width: 768px) {
-    .card {
-      padding: 48px;
-    }
-  }
-</style>
