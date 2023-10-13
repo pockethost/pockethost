@@ -18,7 +18,7 @@
 
     // Update the view of the form
     if (view === 'login') {
-      isSignUpView = false;
+      isSignUpView = false
     }
   })
 </script>

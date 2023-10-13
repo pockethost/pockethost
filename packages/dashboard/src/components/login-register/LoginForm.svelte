@@ -92,18 +92,17 @@
 </form>
 
 <div class="p-4 bg-zinc-800 text-center">
-  <div class='mb-4'>
+  <div class="mb-4">
     Need to Register? <button
-    type="button"
-    class="link font-bold"
-    on:click={handleLoginClick}>Create A New Account</button
-  >
+      type="button"
+      class="link font-bold"
+      on:click={handleLoginClick}>Create A New Account</button
+    >
   </div>
 
   <div>
-    Forgot Your Password? <a
-    href="login/password-reset"
-    class="link font-bold">Reset Password</a
-  >
+    Forgot Your Password? <a href="login/password-reset" class="link font-bold"
+      >Reset Password</a
+    >
   </div>
 </div>

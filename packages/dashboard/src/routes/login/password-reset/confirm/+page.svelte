@@ -28,7 +28,7 @@
     )
 
     // Hard refresh and send the user back to the login screen
-    window.location = "/?view=login";
+    window.location = '/?view=login'
 
     isFormButtonDisabled = false
   }
@@ -63,7 +63,7 @@
           </div>
         {/if}
 
-        <div class='mt-4 card-actions justify-end'>
+        <div class="mt-4 card-actions justify-end">
           <button
             type="submit"
             class="btn btn-primary w-100"
