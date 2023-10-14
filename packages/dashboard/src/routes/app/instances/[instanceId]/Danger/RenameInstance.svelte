@@ -25,11 +25,23 @@
     // Disable the button to prevent double submissions
     isButtonDisabled = true
 
-    // TODO: Set up error handling for when the name is wrong
-    // TODO: Do validations like trim and removing numbers
-    renameInstance({ instanceId: id, subdomain: formSubdomain }).then(
-      () => 'saved',
+    // Remove extra whitespace, and numbers from the subdomain
+    const instanceNameValidation = formSubdomain.trim().replace(/[0-9]/g, '')
+
+    // Prompt the user to confirm the version change
+    const confirmVersionChange = confirm(
+      `Are you sure you want to rename your instance to ${instanceNameValidation}?`,
     )
+
+    // If they select yes, then update the version in pocketbase
+    if (confirmVersionChange) {
+      // TODO: Set up error handling for when the name is wrong
+      // TODO: Do validations like trim and removing numbers
+      renameInstance({
+        instanceId: id,
+        subdomain: instanceNameValidation,
+      }).then(() => 'saved')
+    }
 
     // Set the button back to normal
     isButtonDisabled = false
@@ -53,10 +65,13 @@
     on:submit={onRename}
   >
     <input
+      title="Only letters and dashes are allowed"
+      required
       type="text"
       bind:value={formSubdomain}
       class="input input-bordered w-full"
     />
+
     <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
       >Rename Instance</button
     >

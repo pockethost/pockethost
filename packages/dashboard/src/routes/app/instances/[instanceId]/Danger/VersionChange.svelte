@@ -19,12 +19,23 @@
     // Disable the button to prevent double submissions
     isButtonDisabled = true
 
-    // Save to the database
-    client()
-      .saveVersion({ instanceId: id, version: version })
-      .then(() => {
-        return 'saved'
-      })
+    // Prompt the user to confirm the version change
+    const confirmVersionChange = confirm(
+      `Are you sure you want to change the version to ${version}?`,
+    )
+
+    // If they select yes, then update the version in pocketbase
+    if (confirmVersionChange) {
+      // Save to the database
+      client()
+        .saveVersion({ instanceId: id, version: version })
+        .then(() => {
+          return 'saved'
+        })
+    } else {
+      // If they hit cancel, reset the version number back to what it was initially
+      version = $instance.version
+    }
 
     // Set the button back to normal
     isButtonDisabled = false
@@ -51,6 +62,7 @@
     on:submit={handleSave}
   >
     <input
+      required
       type="text"
       bind:value={version}
       class="input input-bordered w-full"
