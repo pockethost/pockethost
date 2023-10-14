@@ -4,6 +4,7 @@
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase'
   import { instance } from '../store'
+  import { slide } from 'svelte/transition'
 
   const { renameInstance } = client()
 
@@ -17,6 +18,9 @@
 
   // Controls the disabled state of the button
   let isButtonDisabled = false
+
+  // Controls visibility of an error message
+  let errorMessage = ''
 
   // TODO: What are the limits for this?
   const onRename = (e: Event) => {
@@ -35,12 +39,14 @@
 
     // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
-      // TODO: Set up error handling for when the name is wrong
-      // TODO: Do validations like trim and removing numbers
       renameInstance({
         instanceId: id,
         subdomain: instanceNameValidation,
-      }).then(() => 'saved')
+      })
+        .then(() => 'saved')
+        .catch((error) => {
+          errorMessage = error.message
+        })
     }
 
     // Set the button back to normal
@@ -59,6 +65,13 @@
     > by the old instance name. You also may not be able to change it back if someone
     else choose it.
   </p>
+
+  {#if errorMessage}
+    <div in:slide class="alert alert-error mb-4">
+      <i class="fa-regular fa-circle-exclamation"></i>
+      {errorMessage}
+    </div>
+  {/if}
 
   <form
     class="flex rename-instance-form-container-query gap-4"
