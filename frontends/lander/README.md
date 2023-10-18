@@ -112,6 +112,19 @@ public/ # This folder is copied into the _site folder at compile time. Images an
 └── webfonts # This holds the Font Awesome icon system
 ```
 
+### Using JSON
+
+If you need to iterate over a list of JSON objects, you can include your `json` file in the `_data` directory. This automatically adds the JSON to the global scope of the app. Make sure to name your file in camelCase.
+
+For example, adding the `_data/showcase.json` file, creates a global variable called `{{ showcase }}` that can be used anywhere and without imports. You can loop over this data like so:
+
+```twig
+{# showcase comes from the "_data/showcase.json" global file #}
+{% for item in showcase %}
+    {{ ShowcaseCard(item.image, item.title, item.description, item.url) }}
+{% endfor %}
+```
+
 ## 11ty Advanced Features
 
 - 11ty "Get Started" Documentation: https://www.11ty.dev/docs/getting-started/
