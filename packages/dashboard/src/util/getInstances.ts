@@ -1,7 +1,7 @@
 import { browser } from '$app/environment'
 import { client } from '$src/pocketbase'
 import { instance } from '$src/routes/app/instances/[instanceId]/store'
-import { globalInstancesStore } from '$util/stores'
+import { globalInstancesStore, isUserLoggedIn } from '$util/stores'
 import {
   LoggerService,
   assertExists,
@@ -13,32 +13,32 @@ import { onDestroy, onMount } from 'svelte'
 export const getInstances = async () => {
   const { error } = LoggerService()
 
-  onMount(() => {
-    if (browser) {
-      ;(async () => {
-        const { getAllInstancesById } = client()
+  const cm = createCleanupManager()
+  onMount(async () => {
+    const unsub = isUserLoggedIn.subscribe(async (isLoggedIn) => {
+      if (!isLoggedIn) return
+      const { getAllInstancesById } = client()
 
-        const instances = await getAllInstancesById()
+      const instances = await getAllInstancesById()
 
-        globalInstancesStore.set(instances)
+      globalInstancesStore.set(instances)
 
-        client()
-          .client.collection('instances')
-          .subscribe<InstanceFields>('*', (data) => {
-            globalInstancesStore.update((instances) => {
-              instances[data.record.id] = data.record
-              return instances
-            })
+      const unsub = await client()
+        .client.collection('instances')
+        .subscribe<InstanceFields>('*', (data) => {
+          globalInstancesStore.update((instances) => {
+            instances[data.record.id] = data.record
+            return instances
           })
-      })().catch(error)
-    }
+        })
+      cm.add(unsub)
+    })
+    cm.add(unsub)
   })
 
   // Stop listening to the db if this component unmounts
   onDestroy(() => {
-    if (browser) {
-      client().client.collection('instances').unsubscribe('*').catch(error)
-    }
+    cm.shutdown().catch(console.error)
   })
 }
 

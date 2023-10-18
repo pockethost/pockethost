@@ -4,12 +4,8 @@
   import MediaQuery from '$components/MediaQuery.svelte'
   import { DOCS_URL } from '$src/env'
   import { handleLogoutAndRedirect } from '$util/database'
-  import { getInstances } from '$util/getInstances'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-
-  // This will query the database for all instances and then update the global state
-  getInstances()
 
   const linkClasses =
     'font-medium text-xl text-base-content btn btn-ghost capitalize justify-start'
@@ -19,7 +15,7 @@
     'font-medium text-base-content btn btn-outline btn-primary btn-sm capitalize justify-start'
 
   const handleClick = () => {
-    document.querySelector('.drawer-overlay')?.click()
+    document.querySelector<HTMLElement>('.drawer-overlay')?.click()
   }
 </script>
 

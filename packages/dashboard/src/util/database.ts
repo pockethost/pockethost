@@ -11,7 +11,7 @@ export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
 
   if (setError) {
     const message = parseError(e)[0]
-    setError(message)
+    setError(message || 'Unknown message')
   } else {
     throw e
   }

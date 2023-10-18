@@ -21,7 +21,7 @@
   }
 
   let isSubmitting = false
-  const handleSubmit = async (e: MouseEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
 
     isSubmitting = true
