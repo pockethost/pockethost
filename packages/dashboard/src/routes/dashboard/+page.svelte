@@ -1,9 +1,9 @@
 <script lang="ts">
+  import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
-  import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
 
   $: isFirstApplication = values($globalInstancesStore).length === 0
 </script>
