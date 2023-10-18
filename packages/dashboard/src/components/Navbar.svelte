@@ -19,7 +19,7 @@
     'font-medium text-base-content btn btn-outline btn-primary btn-sm capitalize justify-start'
 
   const handleClick = () => {
-    document.querySelector('.drawer-overlay')?.click()
+    document.querySelector<HTMLElement>('.drawer-overlay')?.click()
   }
 </script>
 
