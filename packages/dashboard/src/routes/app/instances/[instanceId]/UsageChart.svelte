@@ -1,20 +1,20 @@
 <script lang="ts">
+  import { format, subMonths } from 'date-fns'
   import { Line } from 'svelte-chartjs'
-  import { subMonths, format } from 'date-fns'
   import { instance } from './store'
 
+  import Card from '$components/cards/Card.svelte'
+  import CardHeader from '$components/cards/CardHeader.svelte'
   import {
+    CategoryScale,
     Chart as ChartJS,
-    Title,
-    Tooltip,
     Legend,
     LineElement,
     LinearScale,
     PointElement,
-    CategoryScale,
+    Title,
+    Tooltip,
   } from 'chart.js'
-  import Card from '$components/cards/Card.svelte'
-  import CardHeader from '$components/cards/CardHeader.svelte'
 
   ChartJS.register(
     Title,
@@ -41,7 +41,7 @@
   }
 
   // Set the default data object for the chart
-  let data = {}
+  let data: any = {}
 
   // This will watch for changes in the `secondsThisMonth` variable and update the chart data
   $: {
@@ -73,7 +73,7 @@
     }
   }
 
-  let options = {
+  const options: any = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {

@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { Line } from 'svelte-chartjs'
-  import { subMonths, format } from 'date-fns'
   import { globalInstancesStore } from '$util/stores'
+  import { format, subMonths } from 'date-fns'
+  import { Line } from 'svelte-chartjs'
 
   import {
+    CategoryScale,
     Chart as ChartJS,
-    Title,
-    Tooltip,
     Legend,
     LineElement,
     LinearScale,
     PointElement,
-    CategoryScale,
+    Title,
+    Tooltip,
   } from 'chart.js'
 
   ChartJS.register(
@@ -109,7 +109,7 @@
   )
 
   // Add up the individual instance usages and the total usage
-  const allChartData = [
+  const allChartData: any = [
     ...individualInstanceUsageData,
     {
       label: 'All Instances',
@@ -142,12 +142,12 @@
   ]
 
   // Set the default data object for the chart
-  let data = {
+  const data: any = {
     labels: getLastSixMonths(),
     datasets: allChartData,
   }
 
-  let options = {
+  const options: any = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
