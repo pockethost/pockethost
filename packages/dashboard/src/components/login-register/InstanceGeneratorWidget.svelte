@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition'
+  import LoginForm from '$components/login-register/LoginForm.svelte'
   import NewInstanceProcessingBlock from '$components/login-register/NewInstanceProcessingBlock.svelte'
   import RegisterForm from '$components/login-register/RegisterForm.svelte'
-  import LoginForm from '$components/login-register/LoginForm.svelte'
+  import { slide } from 'svelte/transition'
 
   // Create a toggle to hold the Sign-Up view or the Register view
   let isSignUpView: boolean = true
@@ -28,7 +28,7 @@
 
   {#if !isSignUpView}
     <div in:slide={{ delay: 400 }} out:slide>
-      <LoginForm bind:isProcessing bind:isSignUpView />
+      <LoginForm bind:isSignUpView />
     </div>
   {/if}
 </div>
