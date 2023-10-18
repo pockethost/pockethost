@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { slide } from 'svelte/transition'
   import { handleUnauthenticatedPasswordResetConfirm } from '$util/database'
+  import { slide } from 'svelte/transition'
 
   let password: string = ''
   let token: string | null = ''
@@ -28,7 +28,7 @@
     )
 
     // Hard refresh and send the user back to the login screen
-    window.location = '/?view=login'
+    window.location.href = '/?view=login'
 
     isFormButtonDisabled = false
   }

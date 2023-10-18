@@ -75,7 +75,7 @@
       {/if}
 
       <div class="flex items-center justify-center gap-4">
-        <a href="/dashboard" class="btn">Cancel</a>
+        <a href="/" class="btn">Cancel</a>
 
         <button class="btn btn-primary" disabled={isFormButtonDisabled}>
           Create <i class="bi bi-arrow-right-short" />

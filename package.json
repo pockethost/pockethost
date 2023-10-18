@@ -16,7 +16,7 @@
     "build:daemon": "cd packages/daemon && yarn build",
     "build:www": "cd packages/www && yarn build",
     "dev": "concurrently 'yarn:dev:*'",
-    "dev:caddy": "source .env && caddy run",
+    "dev:caddy": "caddy run",
     "dev:www": "cd packages/www && yarn start",
     "dev:dashboard": "cd packages/dashboard && yarn dev",
     "dev:daemon": "cd packages/daemon && yarn dev",

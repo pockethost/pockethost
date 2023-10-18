@@ -5,7 +5,7 @@
   "scripts": {
     "check:types": "svelte-check",
     "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
-    "dev": "DEBUG=1 source ../../.env && vite dev --force",
+    "dev": "vite dev --force",
     "build": "vite build",
     "lint": "prettier --check .",
     "format": "prettier --write .",
@@ -26,6 +26,7 @@
     "d3-scale-chromatic": "^3.0.0",
     "daisyui": "^3.8.1",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
     "highlight.js": "^11.8.0",
     "js-cookie": "^3.0.5",
     "node-html-parser": "^6.1.8",

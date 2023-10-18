@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
   import { page } from '$app/stores'
   import { slide } from 'svelte/transition'
   import { handleAccountConfirmation } from '$util/database'
@@ -9,15 +8,13 @@
 
   // Check for a token in the URL
   $: {
-    if (browser) {
-      token = $page?.url?.searchParams?.get('token')
+    token = $page?.url?.searchParams?.get('token')
 
-      if (token) {
-        handleLoad()
-      } else {
-        // No token was found in the URL
-        formError = 'Invalid link'
-      }
+    if (token) {
+      handleLoad()
+    } else {
+      // No token was found in the URL
+      formError = 'Invalid link'
     }
   }
 

@@ -1,4 +1,5 @@
 const { boolean } = require('boolean')
+require('dotenv').config({ path: '../../.env' })
 
 /**
  * These environment variables default to pointing to the production build so frontend development is easy.

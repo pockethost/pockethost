@@ -1,30 +1,26 @@
 <script lang="ts">
   import Logo from '$components/Logo.svelte'
-  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
+  import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
+  import UserLoggedOut from '$components/helpers/UserLoggedOut.svelte'
   import InstanceGeneratorWidget from '$components/login-register/InstanceGeneratorWidget.svelte'
-  import { isUserLoggedIn } from '$util/stores'
+  import Dashboard from './dashboard/Dashboard.svelte'
 </script>
 
 <svelte:head>
   <title>Home - PocketHost</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center">
-  <div>
-    <AuthStateGuard>
-      <Logo />
+<div>
+  <UserLoggedIn>
+    <Dashboard />
+  </UserLoggedIn>
 
-      {#if $isUserLoggedIn}
-        <div class="">
-          <a href="/dashboard" class="btn btn-primary"
-            >Go to Your Dashboard <i class="bi bi-arrow-right-short" /></a
-          >
-        </div>
-      {/if}
-
-      {#if !$isUserLoggedIn}
+  <UserLoggedOut>
+    <div class="min-h-screen flex items-center justify-center">
+      <div>
+        <Logo />
         <InstanceGeneratorWidget />
-      {/if}
-    </AuthStateGuard>
-  </div>
+      </div>
+    </div>
+  </UserLoggedOut>
 </div>

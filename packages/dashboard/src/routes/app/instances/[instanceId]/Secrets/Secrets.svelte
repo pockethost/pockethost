@@ -1,15 +1,9 @@
 <script lang="ts">
+  import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import CodeSample from '$components/CodeSample.svelte'
-  import { client } from '$src/pocketbase'
-  import {
-    createCleanupManager,
-    LoggerService,
-    type SaveSecretsPayload,
-  } from '@pockethost/common'
-  import { forEach, reduce } from '@s-libs/micro-dash'
-  import { onDestroy, onMount } from 'svelte'
+  import { LoggerService } from '@pockethost/common'
+  import { forEach } from '@s-libs/micro-dash'
   import { instance } from '../store'
   import Form from './Form.svelte'
   import List from './List.svelte'
@@ -17,7 +11,14 @@
 
   // TODO: Hot Reload is causing an infinite loop in the network tab for some reason. Wasn't able to figure out why
 
-  $: ({ id, secrets } = $instance)
+  $: {
+    const { id, secrets } = $instance
+    items.clear()
+
+    forEach(secrets || {}, (value, name) => {
+      items.upsert({ name, value })
+    })
+  }
 
   // Keep track of which tab the user has selected
   let activeTab = 0
@@ -28,44 +29,6 @@
   }
 
   const { dbg } = LoggerService().create(`Secrets.svelte`)
-
-  const cm = createCleanupManager()
-
-  onMount(() => {
-    items.clear()
-
-    forEach(secrets || {}, (value, name) => {
-      items.upsert({ name, value })
-    })
-
-    let initial = false
-
-    const unsub = items.subscribe(async (secrets) => {
-      if (!initial) {
-        initial = true
-        return
-      }
-
-      dbg(`Got change`, secrets)
-
-      await client().saveSecrets({
-        instanceId: id,
-        secrets: reduce(
-          secrets,
-          (c, v) => {
-            const { name, value } = v
-            c[name] = value
-            return c
-          },
-          {} as SaveSecretsPayload['secrets'],
-        ),
-      })
-    })
-
-    cm.add(unsub)
-  })
-
-  onDestroy(cm.shutdown)
 </script>
 
 <Card>

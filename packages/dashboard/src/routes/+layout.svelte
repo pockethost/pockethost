@@ -2,31 +2,28 @@
   import MediaQuery from '$components/MediaQuery.svelte'
   import MobileNavDrawer from '$components/MobileNavDrawer.svelte'
   import Navbar from '$components/Navbar.svelte'
+  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
-  import Protect from '$components/helpers/Protect.svelte'
+  import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
   import '../app.css'
   import '../services'
-
-  import { getInstances } from '$util/getInstances'
-  import { isUserLoggedIn } from '$util/stores'
-
-  getInstances()
 </script>
 
 <Meta />
-<Protect />
 
-{#if $isUserLoggedIn}
+<AuthStateGuard>
   <div class="layout xl:flex">
-    <MediaQuery query="(min-width: 1280px)" let:matches>
-      {#if matches}
-        <Navbar />
-      {:else}
-        <MobileNavDrawer>
+    <UserLoggedIn>
+      <MediaQuery query="(min-width: 1280px)" let:matches>
+        {#if matches}
           <Navbar />
-        </MobileNavDrawer>
-      {/if}
-    </MediaQuery>
+        {:else}
+          <MobileNavDrawer>
+            <Navbar />
+          </MobileNavDrawer>
+        {/if}
+      </MediaQuery>
+    </UserLoggedIn>
 
     <div class="lg:p-4 lg:pt-0 xl:pt-4 min-h-screen grow">
       <div
@@ -36,10 +33,4 @@
       </div>
     </div>
   </div>
-{/if}
-
-{#if !$isUserLoggedIn}
-  <div>
-    <slot />
-  </div>
-{/if}
+</AuthStateGuard>
