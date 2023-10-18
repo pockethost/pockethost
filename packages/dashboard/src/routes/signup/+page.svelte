@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AlertBar from '$components/AlertBar.svelte'
+  import { slide } from 'svelte/transition'
   import {
     handleFormError,
     handleLogin,
@@ -65,12 +65,15 @@
             placeholder="Password"
             bind:value={password}
             required
-            autocomplete="new-password"
+            autocomplete="current-password"
           />
         </div>
 
         {#if formError}
-          <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+          <div transition:slide class="alert alert-error mb-5">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{formError}</span>
+          </div>
         {/if}
 
         <button
