@@ -1,7 +1,6 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
   import { handleLogin } from '$util/database'
-  import { boolean } from 'boolean'
 
   export let isSignUpView: boolean = true
 
@@ -64,7 +63,7 @@
       class="input input-bordered w-full"
       id="password"
       placeholder="Password"
-      autocomplete="new-password"
+      autocomplete="current-password"
       bind:value={password}
       required
     />
@@ -93,9 +92,17 @@
 </form>
 
 <div class="p-4 bg-zinc-800 text-center">
-  Need to Register? <button
-    type="button"
-    class="link font-bold"
-    on:click={handleLoginClick}>Create A New Account</button
-  >
+  <div class="mb-4">
+    Need to Register? <button
+      type="button"
+      class="link font-bold"
+      on:click={handleLoginClick}>Create A New Account</button
+    >
+  </div>
+
+  <div>
+    Forgot Your Password? <a href="login/password-reset" class="link font-bold"
+      >Reset Password</a
+    >
+  </div>
 </div>

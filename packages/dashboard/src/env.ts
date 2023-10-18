@@ -41,4 +41,4 @@ export const INSTANCE_URL = (name: string, path = '') =>
 export const INSTANCE_ADMIN_URL = (name: string, path = '') =>
   INSTANCE_URL(name, `_/${path}`)
 export const FTP_URL = (email: string) =>
-  `ftp://${encodeURIComponent(email)}@ftp.${PUBLIC_EDGE_APEX_DOMAIN}`
+  `ftp://${encodeURIComponent(email)}@ftp.sfo-1.${PUBLIC_EDGE_APEX_DOMAIN}`

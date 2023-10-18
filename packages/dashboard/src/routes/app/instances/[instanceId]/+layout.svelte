@@ -1,23 +1,23 @@
-<script lang="ts">
+<script>
   import { page } from '$app/stores'
-  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import { getSingleInstance } from '$util/getInstances'
-  import { createCleanupManager } from '@pockethost/common'
-  import { onDestroy } from 'svelte'
+  import { globalInstancesStore } from '$util/stores'
+  import { assert } from '@pockethost/common'
   import { instance } from './store'
 
-  const cm = createCleanupManager()
-
-  // Run anytime the page params changes
+  let isReady = false
   $: {
-    getSingleInstance($page.params.instanceId)
+    const { instanceId } = $page.params
+    assert(instanceId)
+    const _instance = $globalInstancesStore[instanceId]
+    if (_instance) {
+      instance.set(_instance)
+    }
+    isReady = !!_instance
   }
-
-  onDestroy(() => cm.shutdown())
 </script>
 
-<AuthStateGuard>
-  {#if $instance}
-    <slot />
-  {/if}
-</AuthStateGuard>
+{#if isReady}
+  <slot />
+{:else}
+  <div>Instance not found</div>
+{/if}

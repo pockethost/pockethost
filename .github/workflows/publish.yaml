@@ -29,7 +29,7 @@ jobs:
           files: |
             packages/www/**
 
-      - name: Get changed www files
+      - name: Get changed dashboard files
         id: changed-dashboard-files
         uses: tj-actions/changed-files@v35
         with:

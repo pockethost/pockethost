@@ -5,7 +5,7 @@
   import { globalInstancesStore } from '$util/stores'
 
   // Convert the object of objects into an array of objects
-  const allInstancesArray = Object.values($globalInstancesStore)
+  $: allInstancesArray = Object.values($globalInstancesStore)
 </script>
 
 <Card height="h-auto">

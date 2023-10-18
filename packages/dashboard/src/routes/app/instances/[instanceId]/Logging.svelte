@@ -2,15 +2,16 @@
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase'
+  import { mkCleanup } from '$util/componentCleanup'
   import {
     LoggerService,
-    createCleanupManager,
+    Unsubscribe,
     type InstanceLogFields,
     type RecordId,
   } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
-  import { onDestroy, onMount } from 'svelte'
-  import { writable } from 'svelte/store'
+  import { onMount } from 'svelte'
+  import { derived, writable } from 'svelte/store'
   import { instance } from './store'
 
   const { dbg, trace } = LoggerService().create(`Logging.svelte`)
@@ -46,28 +47,32 @@
   const logs = writable<{ [_: RecordId]: InstanceLogFields }>({})
   let logsArray: InstanceLogFields[] = []
 
-  const cm = createCleanupManager()
+  const onDestroy = mkCleanup()
+
+  const instanceId = derived(instance, (instance) => instance.id)
 
   onMount(async () => {
-    dbg(`Watching instance log`)
+    let unwatch: Unsubscribe | undefined
+    const unsub = instanceId.subscribe((id) => {
+      dbg(`Watching instance log ${id}`)
+      unwatch?.()
+      logs.set({})
+      unwatch = client().watchInstanceLog(id, (newLog) => {
+        trace(`Got new log`, newLog)
 
-    const unsub = client().watchInstanceLog(id, (newLog) => {
-      trace(`Got new log`, newLog)
+        logs.update((currentLogs) => {
+          return { ...currentLogs, [newLog.id]: newLog }
+        })
 
-      logs.update((currentLogs) => {
-        return { ...currentLogs, [newLog.id]: newLog }
+        logsArray = values($logs)
+          .sort((a, b) => (a.created > b.created ? 1 : -1))
+          .slice(0, 1000)
+          .reverse()
       })
-
-      logsArray = values($logs)
-        .sort((a, b) => (a.created > b.created ? 1 : -1))
-        .slice(0, 1000)
-        .reverse()
     })
-
-    cm.add(unsub)
+    onDestroy(unsub)
+    onDestroy(() => unwatch?.())
   })
-
-  onDestroy(cm.shutdown)
 </script>
 
 <Card>

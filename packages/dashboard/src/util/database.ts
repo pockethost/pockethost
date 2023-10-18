@@ -11,7 +11,7 @@ export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
 
   if (setError) {
     const message = parseError(e)[0]
-    setError(message)
+    setError(message || 'Unknown message')
   } else {
     throw e
   }
@@ -38,7 +38,7 @@ export const handleLogin = async (
     await authViaEmail(email, password)
 
     if (shouldRedirect) {
-      await goto('/dashboard')
+      await goto('/')
     }
   } catch (error) {
     if (!(error instanceof Error)) {
@@ -88,7 +88,7 @@ export const handleAccountConfirmation = async (
   try {
     await confirmVerification(token)
 
-    window.location.href = '/dashboard'
+    window.location.href = '/'
   } catch (error: any) {
     handleFormError(error, setError)
   }
@@ -136,7 +136,7 @@ export const handleUnauthenticatedPasswordResetConfirm = async (
   try {
     await requestPasswordResetConfirm(token, password)
 
-    await goto('/dashboard')
+    await goto('/')
   } catch (error: any) {
     handleFormError(error, setError)
   }

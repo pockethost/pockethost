@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AlertBar from '$components/AlertBar.svelte'
+  import { slide } from 'svelte/transition'
   import { handleUnauthenticatedPasswordReset } from '$util/database'
 
   let email: string = ''
@@ -28,8 +28,8 @@
   <title>Password Reset - PocketHost</title>
 </svelte:head>
 
-<div class="flex justify-center">
-  <div class="card w-96 bg-base-100 shadow-xl">
+<div class="min-h-screen flex items-center justify-center">
+  <div class="card w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
     <div class="card-body">
       {#if userShouldCheckTheirEmail}
         <div class="text-center">
@@ -60,7 +60,10 @@
           </div>
 
           {#if formError}
-            <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+            <div transition:slide class="alert alert-error mb-5">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <span>{formError}</span>
+            </div>
           {/if}
 
           <div class="mt-4 card-actions justify-end">

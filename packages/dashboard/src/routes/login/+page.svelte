@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AlertBar from '$components/AlertBar.svelte'
+  import { slide } from 'svelte/transition'
   import { handleLogin } from '$util/database'
 
   let email: string = ''
@@ -61,7 +61,10 @@
         <p class="m-3"></p>
 
         {#if formError}
-          <AlertBar icon="bi bi-exclamation-triangle-fill" text={formError} />
+          <div transition:slide class="alert alert-error mb-5">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{formError}</span>
+          </div>
         {/if}
 
         <button

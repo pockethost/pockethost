@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { SECRET_KEY_REGEX } from '@pockethost/common'
-  import { items } from './stores.js'
+  import { client } from '$src/pocketbase/index.js'
+  import { SECRET_KEY_REGEX, SaveSecretsPayload } from '@pockethost/common'
+  import { reduce } from '@s-libs/micro-dash'
   import { slide } from 'svelte/transition'
+  import { instance } from '../store.js'
+  import { items } from './stores.js'
 
   // Keep track of the new key and value to be added
   let secretKey: string = ''
@@ -40,6 +43,18 @@
 
       // Save to the database
       items.upsert({ name: secretKey, value: secretValue })
+      await client().saveSecrets({
+        instanceId: $instance.id,
+        secrets: reduce(
+          $items,
+          (c, v) => {
+            const { name, value } = v
+            c[name] = value
+            return c
+          },
+          {} as SaveSecretsPayload['secrets'],
+        ),
+      })
 
       // Reset the values when the POST is done
       secretKey = ''
