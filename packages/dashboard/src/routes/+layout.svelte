@@ -14,7 +14,6 @@
 </script>
 
 <Meta />
-<Protect />
 
 {#if $isUserLoggedIn}
   <div class="layout xl:flex">
