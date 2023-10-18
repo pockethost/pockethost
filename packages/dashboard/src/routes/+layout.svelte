@@ -7,7 +7,10 @@
   import '../app.css'
   import '../services'
 
+  import { getInstances } from '$util/getInstances'
   import { isUserLoggedIn } from '$util/stores'
+
+  getInstances()
 </script>
 
 <Meta />
