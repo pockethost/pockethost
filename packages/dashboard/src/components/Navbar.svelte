@@ -3,9 +3,11 @@
   import Logo from '$components/Logo.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
   import { DOCS_URL } from '$src/env'
+  import InstancesGuard from '$src/routes/InstancesGuard.svelte'
   import { handleLogoutAndRedirect } from '$util/database'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
+  import UserLoggedIn from './helpers/UserLoggedIn.svelte'
 
   const linkClasses =
     'font-medium text-xl text-base-content btn btn-ghost capitalize justify-start'
@@ -22,47 +24,48 @@
 <aside class="p-4 min-w-[250px] flex flex-col h-screen">
   <MediaQuery query="(min-width: 1280px)" let:matches>
     {#if matches}
-      <a href="/dashboard" class="flex gap-2 items-center justify-center">
+      <a href="/" class="flex gap-2 items-center justify-center">
         <Logo hideLogoText={true} logoWidth="w-20" />
       </a>
     {/if}
   </MediaQuery>
 
   <div class="flex flex-col gap-2 mb-auto">
-    <a on:click={handleClick} href="/dashboard" class={linkClasses}>
+    <a on:click={handleClick} href="/" class={linkClasses}>
       <i
-        class="fa-regular fa-table-columns {$page.url.pathname ===
-          '/dashboard' && 'text-primary'}"
+        class="fa-regular fa-table-columns {$page.url.pathname === '/' &&
+          'text-primary'}"
       ></i> Dashboard
     </a>
 
-    <div class="pl-8 flex flex-col gap-4 mb-4">
-      {#each values($globalInstancesStore) as app}
-        <a
-          href={`/app/instances/${app.id}`}
-          on:click={handleClick}
-          class={subLinkClasses}
-        >
-          {#if app.maintenance}
-            <i class="fa-regular fa-triangle-person-digging text-warning"></i>
-          {:else}
-            <i
-              class="fa-regular fa-server {$page.url.pathname ===
-                `/app/instances/${app.id}` && 'text-primary'}"
-            ></i>
-          {/if}
+    <InstancesGuard>
+      <div class="pl-8 flex flex-col gap-4 mb-4">
+        {#each values($globalInstancesStore) as app}
+          <a
+            href={`/app/instances/${app.id}`}
+            on:click={handleClick}
+            class={subLinkClasses}
+          >
+            {#if app.maintenance}
+              <i class="fa-regular fa-triangle-person-digging text-warning"></i>
+            {:else}
+              <i
+                class="fa-regular fa-server {$page.url.pathname ===
+                  `/app/instances/${app.id}` && 'text-primary'}"
+              ></i>
+            {/if}
 
-          {app.subdomain}
+            {app.subdomain}
+          </a>
+        {/each}
+        <a href="/app/new" on:click={handleClick} class={addNewAppClasses}>
+          <i
+            class="fa-regular fa-plus {$page.url.pathname === `/app/new` &&
+              'text-primary'}"
+          ></i> Create A New App
         </a>
-      {/each}
-
-      <a href="/app/new" on:click={handleClick} class={addNewAppClasses}>
-        <i
-          class="fa-regular fa-plus {$page.url.pathname === `/app/new` &&
-            'text-primary'}"
-        ></i> Create A New App
-      </a>
-    </div>
+      </div>
+    </InstancesGuard>
 
     <a
       href="https://discord.gg/nVTxCMEcGT"
@@ -99,8 +102,13 @@
       ></i></a
     >
 
-    <button type="button" class={linkClasses} on:click={handleLogoutAndRedirect}
-      ><i class="fa-regular fa-arrow-up-left-from-circle"></i> Logout</button
-    >
+    <UserLoggedIn>
+      <button
+        type="button"
+        class={linkClasses}
+        on:click={handleLogoutAndRedirect}
+        ><i class="fa-regular fa-arrow-up-left-from-circle"></i> Logout</button
+      >
+    </UserLoggedIn>
   </div>
 </aside>

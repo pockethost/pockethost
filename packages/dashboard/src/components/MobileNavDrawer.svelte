@@ -7,7 +7,7 @@
 
   <div class="drawer-content">
     <div class="flex items-center justify-between px-8 pt-1">
-      <a href="/dashboard" class="flex gap-2 items-center justify-center">
+      <a href="/" class="flex gap-2 items-center justify-center">
         <Logo hideLogoText={true} logoWidth="w-16" />
       </a>
 

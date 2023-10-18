@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores'
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { assertExists } from '@pockethost/common'
   import { slide } from 'svelte/transition'
@@ -12,6 +13,11 @@
   import Secrets from './Secrets/Secrets.svelte'
   import UsageChart from './UsageChart.svelte'
   import { instance } from './store'
+
+  const { instanceId } = $page.params
+
+  console.log(instanceId)
+  let isReady = false
 
   $: ({ status, version, secondsThisMonth } = $instance)
 
