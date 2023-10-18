@@ -6,7 +6,7 @@
     "build": "npx @11ty/eleventy",
     "build-ghpages": "npx @11ty/eleventy --pathprefix=/eleventy-base-blog/",
     "start:tailwind": "tailwind -i ./public/css/index.css -o ./_site/css/index.css --watch",
-    "start": "source ../../.env && npx @11ty/eleventy --serve --quiet",
+    "start": "npx @11ty/eleventy --serve --quiet",
     "debug": "DEBUG=Eleventy* npx @11ty/eleventy",
     "debugstart": "DEBUG=Eleventy* npx @11ty/eleventy --serve --quiet",
     "benchmark": "DEBUG=Eleventy:Benchmark* npx @11ty/eleventy",
@@ -48,6 +48,7 @@
     "autoprefixer": "^10.4.16",
     "boolean": "^3.2.0",
     "daisyui": "^3.7.7",
+    "dotenv": "^16.3.1",
     "postcss": "^8.4.30",
     "tailwindcss": "^3.3.3"
   }

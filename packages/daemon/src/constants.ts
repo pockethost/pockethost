@@ -1,6 +1,8 @@
-import { existsSync } from 'fs'
+import dotenv from 'dotenv'
 import { join } from 'path'
-import { env, envb, envi } from './util/env'
+import { env, envb, envfile, envi, envrequired } from './util/env'
+
+dotenv.config({ path: `../../.env` })
 
 /**
  * Public env vars. These are shared with the frontend and default to production
@@ -25,20 +27,8 @@ export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAM
 
 export const MOTHERSHIP_NAME = env('MOTHERSHIP_NAME', `pockethost-central`)
 
-export const DAEMON_PB_USERNAME = (() => {
-  const v = env('DAEMON_PB_USERNAME')
-  if (!v) {
-    throw new Error(`DAEMON_PB_USERNAME environment variable must be specified`)
-  }
-  return v
-})()
-export const DAEMON_PB_PASSWORD = (() => {
-  const v = env('DAEMON_PB_PASSWORD')
-  if (!v) {
-    throw new Error(`DAEMON_PB_PASSWORD environment variable must be specified`)
-  }
-  return v
-})()
+export const DAEMON_PB_USERNAME = envrequired('DAEMON_PB_USERNAME')
+export const DAEMON_PB_PASSWORD = envrequired('DAEMON_PB_PASSWORD')
 
 export const DAEMON_IPCIDR_LIST = env('DAEMON_IPCIDR_LIST', '')
   .split(/,/)
@@ -50,59 +40,25 @@ export const MOTHERSHIP_PORT = envi('MOTHERSHIP_PORT', 8091)
 
 export const DAEMON_PB_PORT_BASE = envi('DAEMON_PB_PORT_BASE', 8090)
 export const DAEMON_PB_IDLE_TTL = envi('DAEMON_PB_IDLE_TTL', 5000)
-export const DAEMON_PB_MIGRATIONS_DIR = (() => {
-  const v = env('DAEMON_PB_MIGRATIONS_DIR')
-  if (!v) {
-    throw new Error(
-      `DAEMON_PB_MIGRATIONS_DIR environment variable must be specified`,
-    )
-  }
-  if (!existsSync(v)) {
-    throw new Error(`DAEMON_PB_MIGRATIONS_DIR (${v}) path must exist`)
-  }
-  return v
-})()
+export const DAEMON_PB_MIGRATIONS_DIR = envfile('DAEMON_PB_MIGRATIONS_DIR')
 
-export const DAEMON_PB_HOOKS_DIR = (() => {
-  const v = env('DAEMON_PB_HOOKS_DIR')
-  if (!v) {
-    throw new Error(
-      `DAEMON_PB_HOOKS_DIR environment variable must be specified`,
-    )
-  }
-  if (!existsSync(v)) {
-    throw new Error(`DAEMON_PB_HOOKS_DIR (${v}) path must exist`)
-  }
-  return v
-})()
-
-export const DAEMON_PB_DATA_DIR = (() => {
-  const v = env('DAEMON_PB_DATA_DIR')
-  if (!v) {
-    throw new Error(
-      `DAEMON_PB_DATA_DIR (${v}) environment variable must be specified`,
-    )
-  }
-  if (!existsSync(v)) {
-    throw new Error(`DAEMON_PB_DATA_DIR (${v}) path must exist`)
-  }
-  return v
-})()
+export const DAEMON_PB_HOOKS_DIR = envfile('DAEMON_PB_HOOKS_DIR')
+export const DAEMON_PB_DATA_DIR = envfile('DAEMON_PB_DATA_DIR')
 
 export const NODE_ENV = env('NODE_ENV', '')
 export const TRACE = envb('TRACE', false)
 
 export const DAEMON_MAX_PORTS = envi(`DAEMON_MAX_PORTS`, 500)
 
-export const PH_BIN_CACHE = env(
+export const PH_BIN_CACHE = envfile(
   `PH_BIN_CACHE`,
   join(__dirname, `../../../.pbincache`),
 )
 
 export const PH_FTP_PORT = envi('PH_FTP_PORT', 21)
 
-export const SSL_KEY = env('SSL_KEY')
-export const SSL_CERT = env('SSL_CERT')
+export const SSL_KEY = envfile('SSL_KEY')
+export const SSL_CERT = envfile('SSL_CERT')
 
 export const PH_FTP_PASV_IP = env('PH_FTP_PASV_IP', '0.0.0.0')
 export const PH_FTP_PASV_PORT_MIN = envi('PH_FTP_PASV_PORT_MIN', 10000)
