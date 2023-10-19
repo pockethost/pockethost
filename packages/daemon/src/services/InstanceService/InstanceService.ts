@@ -1,24 +1,24 @@
 import {
   DAEMON_PB_IDLE_TTL,
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_HTTP_PROTOCOL,
+  mkAppUrl,
+  mkDocUrl,
   PUBLIC_MOTHERSHIP_NAME,
 } from '$constants'
 import { clientService, proxyService } from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
+  assertTruthy,
   CLEANUP_PRIORITY_LAST,
+  createCleanupManager,
+  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
-  SingletonBaseConfig,
-  StreamNames,
-  assertTruthy,
-  createCleanupManager,
-  createTimerManager,
   mkSingleton,
   safeCatch,
   serialAsyncExecutionGuard,
+  SingletonBaseConfig,
+  StreamNames,
 } from '@pockethost/common'
 import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -468,7 +468,9 @@ export const instanceService = mkSingleton(
         dbg(`Checking for maintenance mode`)
         if (instance.maintenance) {
           throw new Error(
-            `This instance is in Maintenance Mode. See https://pockethost.io/docs/usage/maintenance for more information.`,
+            `This instance is in Maintenance Mode. See ${mkDocUrl(
+              `/usage/maintenance`,
+            )} for more information.`,
           )
         }
 
@@ -477,9 +479,7 @@ export const instanceService = mkSingleton(
         */
         dbg(`Checking for verified account`)
         if (!owner?.verified) {
-          throw new Error(
-            `Log in at ${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`,
-          )
+          throw new Error(`Log in at ${mkAppUrl()}} to verify your account.`)
         }
 
         const api = await getInstanceApi(instance)

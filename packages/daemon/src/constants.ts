@@ -10,17 +10,30 @@ dotenv.config({ path: `../../.env` })
  */
 
 export const PUBLIC_HTTP_PROTOCOL = env('PUBLIC_HTTP_PROTOCOL', 'https')
-export const PUBLIC_APP_DOMAIN = env('PUBLIC_APP_DOMAIN', `app.pockethost.io`)
-export const PUBLIC_BLOG_DOMAIN = env('PUBLIC_BLOG_DOMAIN', `pockethost.io`)
+export const PUBLIC_APP_SUBDOMAIN = env('PUBLIC_APP_SUBDOMAIN', `app`)
+export const PUBLIC_BLOG_SUBDOMAIN = env('PUBLIC_BLOG_DOMAIN', ``)
+export const PUBLIC_APEX_DOMAIN = env('PUBLIC_APEX_DOMAIN', `pockethost.lvh.me`)
 export const PUBLIC_EDGE_APEX_DOMAIN = env(
   'PUBLIC_EDGE_APEX_DOMAIN',
-  `pockethost.io`,
+  `pockethost.lvh.me`,
 )
 export const PUBLIC_MOTHERSHIP_NAME = env(
   'PUBLIC_MOTHERSHIP_NAME',
   `pockethost-central`,
 )
 export const PUBLIC_DEBUG = envb('PUBLIC_DEBUG', false)
+
+export const mkFqDomain = (subdomain: string) =>
+  `${subdomain ? `${subdomain}.` : ''}${PUBLIC_APEX_DOMAIN}`
+export const mkUrl = (subdomain: string, path = '') =>
+  `${PUBLIC_HTTP_PROTOCOL}://${mkFqDomain(subdomain)}${path}`
+export const mkAppUrl = (path = '') => mkUrl(PUBLIC_APP_SUBDOMAIN, path)
+export const mkBlogUrl = (path = '') => mkUrl(PUBLIC_BLOG_SUBDOMAIN, path)
+export const mkDocUrl = (path = '') => mkBlogUrl(join('docs', path))
+export const mkEdgeSubdomain = (subdomain: string) =>
+  mkFqDomain(`${subdomain}.${PUBLIC_EDGE_APEX_DOMAIN}`)
+export const mkEdgeUrl = (subdomain: string, path = '') =>
+  mkUrl(mkEdgeSubdomain(subdomain), path)
 
 // Derived
 export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAME}.${PUBLIC_EDGE_APEX_DOMAIN}`
@@ -73,9 +86,9 @@ export const DOCKER_ARCH = env('DOCKER_ARCH', 'arm64')
 
 console.log({
   PUBLIC_HTTP_PROTOCOL,
-  PUBLIC_APP_DOMAIN,
+  PUBLIC_APP_SUBDOMAIN,
   PUBLIC_MOTHERSHIP_NAME,
-  PUBLIC_BLOG_DOMAIN,
+  PUBLIC_BLOG_SUBDOMAIN,
   PUBLIC_DEBUG,
   PUBLIC_EDGE_APEX_DOMAIN,
   DAEMON_PB_USERNAME,
