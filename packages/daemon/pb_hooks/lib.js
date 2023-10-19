@@ -65,7 +65,7 @@ __export(lib_exports, {
     return _getRecord
   },
   _unsafe_assert: function () {
-    return import_common.assert
+    return assert
   },
   endOfMonth: function () {
     return endOfMonth
@@ -96,8 +96,12 @@ __export(lib_exports, {
   },
 })
 module.exports = __toCommonJS(lib_exports)
-// src/util/assert.ts
-var import_common = require('@pockethost/common')
+// ../common/src/assert.ts
+function assert(v, msg) {
+  if (!v) {
+    throw new Error(msg || 'Assertion failure')
+  }
+}
 // ../../node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
 function keysOfNonArray(object) {
   return object ? Object.getOwnPropertyNames(object) : []
@@ -135,7 +139,7 @@ function startOfMonth(now) {
 }
 var dao = function () {
   var _dao = $app.dao()
-  ;(0, import_common.assert)(_dao)
+  assert(_dao)
   return _dao
 }
 var queryOne = function (sql, bindings, defaultResult) {
@@ -172,7 +176,7 @@ function _getRecordByIdOrRecord(recordOrInstanceId, name) {
       return _getRecord(name, recordOrInstanceId)
     return recordOrInstanceId
   })()
-  ;(0, import_common.assert)(record)
+  assert(record)
   return record
 }
 function updateInstance(recordOrInstanceId, fields) {

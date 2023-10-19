@@ -1,5 +1,5 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  noExternal: ['@s-libs/micro-dash'],
+  noExternal: ['@s-libs/micro-dash', '@pockethost/common'],
 })
