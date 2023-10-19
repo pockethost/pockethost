@@ -1,5 +1,5 @@
 import { mkInstanceDataPath, PUBLIC_DEBUG } from '$constants'
-import { LoggerService } from '@pockethost/common'
+import { createCleanupManager, LoggerService } from '@pockethost/common'
 import * as fs from 'fs'
 import { Tail } from 'tail'
 import * as winston from 'winston'
@@ -51,6 +51,10 @@ function createOrGetLogger(instanceId: string, target: string): winston.Logger {
 
 export function InstanceLogger(instanceId: string, target: string) {
   const logger = createOrGetLogger(instanceId, target)
+  const { error, warn } = LoggerService()
+    .create('InstanceLogger')
+    .breadcrumb(instanceId)
+    .breadcrumb(target)
 
   const api = {
     info: (msg: string) => {
@@ -65,16 +69,36 @@ export function InstanceLogger(instanceId: string, target: string) {
     ): UnsubFunc => {
       const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 
-      const tail = new Tail(logFile, { nLines: linesBack })
+      const cm = createCleanupManager()
+      let tid: any
+      cm.add(() => clearTimeout(tid))
+      const check = () => {
+        try {
+          const tail = new Tail(logFile, { nLines: linesBack })
 
-      tail.on('line', (line) => {
-        const entry = JSON.parse(line)
-        data(entry)
-      })
+          tail.on('line', (line) => {
+            try {
+              const entry = JSON.parse(line)
+              data(entry)
+            } catch (e) {
+              data({
+                level: 'info',
+                message: line,
+                time: new Date().toISOString(),
+              })
+            }
+          })
 
-      // Return an unsubscribe function to remove the listener when done
+          cm.add(() => tail.unwatch())
+        } catch (e) {
+          warn(e)
+          tid = setTimeout(check, 1000)
+        }
+      }
+      check()
+
       return () => {
-        tail.unwatch()
+        cm.shutdown()
       }
     },
   }
