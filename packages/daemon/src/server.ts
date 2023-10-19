@@ -18,7 +18,6 @@ import {
   sqliteService,
 } from '$services'
 import { LoggerService } from '@pockethost/common'
-import { exec } from 'child_process'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
 import { ipWhitelistService } from './services/IpWhitelistService'
@@ -41,19 +40,6 @@ global.EventSource = require('eventsource')
   const logger = LoggerService().create(`server.ts`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
-
-  /**
-   * Temporary fix until we can figure out why child processes are not
-   * being killed when the node process exits.
-   */
-  await new Promise<void>((resolve) => {
-    exec(`pkill -f 'pocketbase serve'`, (error, stdout, stderr) => {
-      if (error && error.signal !== 'SIGTERM') {
-        warn(`pkill failed with ${error}: ${stderr}`)
-      }
-      resolve()
-    })
-  })
 
   const udService = await updaterService({
     logger,
