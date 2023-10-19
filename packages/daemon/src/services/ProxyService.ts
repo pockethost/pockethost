@@ -70,7 +70,6 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         )
         for (let i = 0; i < middleware.length; i++) {
           const m = middleware[i]!
-          console.log(`Executing middleware`)
           const handled = await m(req, res)
           if (handled) break
         }
