@@ -16,16 +16,13 @@ import {
   InstanceStatus,
   mkSingleton,
   safeCatch,
-  serialAsyncExecutionGuard,
   SingletonBaseConfig,
-  StreamNames,
 } from '@pockethost/common'
 import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import MemoryStream from 'memorystream'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
-import { instanceLoggerService } from '../InstanceLoggerService'
+import { InstanceLogger } from '../InstanceLoggerService'
 import { pocketbaseService } from '../PocketBaseService/PocketBaseService'
 import { port } from '../PortManager'
 
@@ -228,20 +225,7 @@ export const instanceService = mkSingleton(
         Create the user instance logger
         */
         healthyGuard()
-        const userInstanceLogger = await instanceLoggerService().get(
-          instance.id,
-          {
-            parentLogger: systemInstanceLogger,
-          },
-        )
-
-        const writeUserLog = serialAsyncExecutionGuard(
-          userInstanceLogger.write,
-          () => `${instance.id}:userLog`,
-        )
-        shutdownManager.add(() =>
-          writeUserLog(`Shutting down instance`).catch(error),
-        )
+        const userInstanceLogger = InstanceLogger(instance.id, `exec`)
 
         /*
         Start the instance
@@ -255,25 +239,11 @@ export const instanceService = mkSingleton(
           await updateInstanceStatus(id, InstanceStatus.Idle).catch(error)
         })
         healthyGuard()
-        await writeUserLog(`Starting instance`)
 
         /*
         Spawn the child process
         */
-        const stdout = new MemoryStream()
-        stdout.on('data', (data: Buffer) => {
-          data
-            .toString()
-            .split(/\n/)
-            .forEach((line) => writeUserLog(line))
-        })
-        const stderr = new MemoryStream()
-        stderr.on('data', (data: Buffer) => {
-          data
-            .toString()
-            .split(/\n/)
-            .forEach((line) => writeUserLog(line, StreamNames.Error))
-        })
+
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
@@ -283,31 +253,16 @@ export const instanceService = mkSingleton(
               port: newPort,
               env: instance.secrets || {},
               version,
-              stdout,
-              stderr,
-              onUnexpectedStop: (code, stdout, stderr) => {
+              onUnexpectedStop: (code) => {
                 warn(
                   `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
                 )
-                warn(stdout)
-                warn(stderr)
                 shutdownManager.add(async () => {
                   await updateInstance(instance.id, {
                     maintenance: true,
                   })
-                  await writeUserLog(
+                  userInstanceLogger.error(
                     `Putting instance in maintenance mode because it shut down with return code ${code}. `,
-                    StreamNames.Error,
-                  )
-                  await Promise.all(
-                    stdout.map((data) =>
-                      writeUserLog(data, StreamNames.Error).catch(error),
-                    ),
-                  )
-                  await Promise.all(
-                    stderr.map((data) =>
-                      writeUserLog(data, StreamNames.Error).catch(error),
-                    ),
                   )
                 })
                 setImmediate(() => {
@@ -496,6 +451,7 @@ export const instanceService = mkSingleton(
         )
 
         proxy.web(req, res, { target: api.internalUrl() })
+        return true
       },
       `InstanceService`,
     )

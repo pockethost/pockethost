@@ -1,18 +1,18 @@
 import {
-  DAEMON_PB_DATA_DIR,
   DAEMON_PB_HOOKS_DIR,
   DAEMON_PB_MIGRATIONS_DIR,
+  mkInstanceDataPath,
   PUBLIC_DEBUG,
 } from '$constants'
 import { assert, mkInternalUrl, tryFetch } from '$util'
 import {
-  InvocationPid,
   createCleanupManager,
   createTimerManager,
+  InvocationPid,
 } from '@pockethost/common'
 import {
-  SingletonBaseConfig,
   mkSingleton,
+  SingletonBaseConfig,
 } from '@pockethost/common/src/mkSingleton'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
@@ -23,6 +23,7 @@ import { dirname } from 'path'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { AsyncContext } from '../../util/AsyncContext'
+import { InstanceLogger } from '../InstanceLoggerService'
 import { updaterService } from '../UpdaterService/UpdaterService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
@@ -37,11 +38,7 @@ export type SpawnConfig = {
   env?: Env
   stdout?: MemoryStream
   stderr?: MemoryStream
-  onUnexpectedStop: (
-    code: number | null,
-    stdout: string[],
-    stderr: string[],
-  ) => void
+  onUnexpectedStop: (code: number | null) => void
 }
 export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
@@ -131,24 +128,23 @@ export const createPocketbaseService = async (
     let isRunning = true
 
     const docker = new Docker()
-    const stdoutHistory: string[] = []
-    const stderrHistory: string[] = []
+    const iLogger = InstanceLogger(slug, 'exec')
+    iLogger.info(`Starting instance`)
+
     const _stdoutData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
         dbg(`${slug} stdout: ${line}`)
+        iLogger.info(line)
       })
-      stdoutHistory.push(...lines)
-      while (stdoutHistory.length > 100) stdoutHistory.shift()
     }
     stdout.on('data', _stdoutData)
     const _stdErrData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
         warn(`${slug} stderr: ${line}`)
+        iLogger.error(line)
       })
-      stderrHistory.push(...lines)
-      while (stderrHistory.length > 100) stderrHistory.shift()
     }
     stderr.on('data', _stdErrData)
     const createOptions: ContainerCreateOptions = {
@@ -164,16 +160,16 @@ export const createPocketbaseService = async (
         },
         Binds: [
           `${dirname(binPath)}:/host_bin`,
-          `${DAEMON_PB_DATA_DIR}/${slug}:/host_data`,
+          `${mkInstanceDataPath(slug)}:/host_data`,
           `${
             isMothership
               ? DAEMON_PB_MIGRATIONS_DIR
-              : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`
+              : mkInstanceDataPath(slug, `pb_migrations`)
           }:/host_data/pb_migrations`,
           `${
             isMothership
               ? DAEMON_PB_HOOKS_DIR
-              : `${DAEMON_PB_DATA_DIR}/${slug}/pb_hooks`
+              : mkInstanceDataPath(slug, `pb_hooks`)
           }:/host_data/pb_hooks`,
         ],
       },
@@ -202,7 +198,7 @@ export const createPocketbaseService = async (
                   error(`Error: ${err.json.message}`)
                   dbg(`${slug} stopped unexpectedly with code ${err}`, data)
                 }
-                onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
+                onUnexpectedStop?.(StatusCode)
               }
               resolveExit(0)
             },

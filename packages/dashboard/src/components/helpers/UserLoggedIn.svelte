@@ -1,6 +1,13 @@
 <script lang="ts">
-  import { isUserLoggedIn } from '$util/stores'
+  import { isAuthStateInitialized, isUserLoggedIn } from '$util/stores'
   import AuthStateGuard from './AuthStateGuard.svelte'
+
+  export let redirect = false
+  $: {
+    if ($isAuthStateInitialized && redirect && !$isUserLoggedIn) {
+      window.location.href = '/'
+    }
+  }
 </script>
 
 <AuthStateGuard>

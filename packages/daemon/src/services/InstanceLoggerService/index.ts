@@ -1,73 +1,84 @@
-import { DAEMON_PB_DATA_DIR } from '$constants'
-import { sqliteService } from '$services'
-import {
-  InstanceId,
-  mkSingleton,
-  SingletonBaseConfig,
-  StreamNames,
-} from '@pockethost/common'
-import { mkdirSync } from 'fs'
-import { dirname, join } from 'path'
-import { DaemonContext } from './DaemonContext'
-import { createSqliteLogger, SqliteLogger } from './SqliteLogger'
+import { mkInstanceDataPath } from '$constants'
+import * as fs from 'fs'
+import * as winston from 'winston'
 
-const instances: {
-  [instanceId: InstanceId]: SqliteLogger
-} = {}
+type UnsubFunc = () => void
 
-export const createInstanceLogger = async (
-  instanceId: InstanceId,
-  context: DaemonContext,
-) => {
-  const { parentLogger } = context
-  const _instanceLogger = parentLogger.create(`InstanceLogger`)
+const loggers: { [key: string]: winston.Logger } = {}
 
-  if (!instances[instanceId]) {
-    const loggerApi = await (async () => {
-      const _thisLogger = _instanceLogger.create(instanceId)
-      const { dbg } = _thisLogger
-
-      const logDbPath = join(
-        DAEMON_PB_DATA_DIR,
-        instanceId,
-        'pb_data',
-        'instance_logs.db',
-      )
-
-      dbg(`logs path`, logDbPath)
-      mkdirSync(dirname(logDbPath), { recursive: true })
-
-      dbg(`Running migrations`)
-      const { getDatabase } = sqliteService()
-      const db = await getDatabase(logDbPath)
-      await db.migrate({
-        migrationsPath: join(__dirname, 'migrations'),
-      })
-
-      const api = await createSqliteLogger(logDbPath, {
-        parentLogger: _instanceLogger,
-      })
-      await api.write(`Ran migrations`, StreamNames.System)
-      return api
-    })()
-    instances[instanceId] = loggerApi
+function createOrGetLogger(instanceId: string, target: string): winston.Logger {
+  const loggerKey = `${instanceId}_${target}`
+  if (loggers[loggerKey]) {
+    return loggers[loggerKey]!
   }
 
-  return instances[instanceId]!
+  const logDirectory = mkInstanceDataPath(instanceId, `logs`)
+  console.log(`Creating ${logDirectory}`)
+  if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory, { recursive: true })
+  }
+
+  const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+
+  const logger = winston.createLogger({
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json(),
+      winston.format.printf((info) => {
+        return JSON.stringify({
+          stream: info.level === 'info' ? 'stdout' : 'stderr',
+          time: info.timestamp,
+          message: info.message,
+        })
+      }),
+    ),
+    transports: [
+      new winston.transports.File({
+        filename: logFile,
+        maxsize: 100 * 1024 * 1024, // 100MB
+        maxFiles: 10,
+        tailable: true,
+        zippedArchive: true,
+      }),
+    ],
+  })
+
+  loggers[loggerKey] = logger
+  return logger
 }
 
-export type InstanceLoggerServiceConfig = SingletonBaseConfig
+export function InstanceLogger(instanceId: string, target: string) {
+  const logger = createOrGetLogger(instanceId, target)
 
-export const instanceLoggerService = mkSingleton(
-  (config: InstanceLoggerServiceConfig) => {
-    const { logger } = config
-    const { dbg } = logger.create(`InstanceLoggerService`)
-    dbg(`Starting up`)
-    return {
-      get: createInstanceLogger,
-      shutdown() {
-        dbg(`Shutting down`)
-      },
-    }
-  },
-)
+  return {
+    info: (msg: string) => {
+      logger.info(msg)
+    },
+    error: (msg: string) => {
+      logger.error(msg)
+    },
+    tail: (linesBack: number, data: (line: string) => void): UnsubFunc => {
+      const stream = logger.stream({ start: -linesBack })
+      const listener = (log: winston.LogEntry) => {
+        data(JSON.stringify(log))
+      }
+      stream.on('log', listener)
+
+      // Return an unsubscribe function to remove the listener when done
+      return () => {
+        stream.removeListener('log', listener)
+      }
+    },
+  }
+}
+
+// // Example usage
+// const loggerInstance = InstanceLogger('123', 'my-target')
+// loggerInstance.info('This is an info message')
+// loggerInstance.error('This is an error message')
+// const unsubscribe = loggerInstance.tail(10, (line) => {
+//   console.log(line)
+// })
+
+// // Later when you want to stop listening to the tail:
+// // unsubscribe();

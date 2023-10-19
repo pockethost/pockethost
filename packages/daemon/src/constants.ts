@@ -34,6 +34,8 @@ export const mkEdgeSubdomain = (subdomain: string) =>
   mkFqDomain(`${subdomain}.${PUBLIC_EDGE_APEX_DOMAIN}`)
 export const mkEdgeUrl = (subdomain: string, path = '') =>
   mkUrl(mkEdgeSubdomain(subdomain), path)
+export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
+  join(DAEMON_PB_DATA_DIR, instanceId, ...path)
 
 // Derived
 export const MOTHERSHIP_URL = `${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_MOTHERSHIP_NAME}.${PUBLIC_EDGE_APEX_DOMAIN}`

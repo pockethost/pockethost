@@ -18,7 +18,6 @@ import {
 } from '$services'
 import { LoggerService } from '@pockethost/common'
 import { centralDbService } from './services/CentralDbService'
-import { instanceLoggerService } from './services/InstanceLoggerService'
 import { ipWhitelistService } from './services/IpWhitelistService'
 import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
@@ -99,7 +98,6 @@ global.EventSource = require('eventsource')
     coreInternalUrl: url,
   })
   await ipWhitelistService({ logger })
-  await instanceLoggerService({ logger })
   await sqliteService({ logger })
   await realtimeLog({ logger })
   await instanceService({
