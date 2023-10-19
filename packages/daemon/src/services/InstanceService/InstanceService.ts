@@ -27,7 +27,7 @@ import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { instanceLoggerService } from '../InstanceLoggerService'
 import { pocketbaseService } from '../PocketBaseService/PocketBaseService'
-import { portManager } from '../PortManager'
+import { port } from '../PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -216,7 +216,7 @@ export const instanceService = mkSingleton(
         Obtain empty port
         */
         dbg(`Obtaining port`)
-        const [newPort, releasePort] = getNextPort()
+        const [newPort, releasePort] = await port.alloc()
         shutdownManager.add(() => {
           dbg(`Releasing port`)
           releasePort()
@@ -499,8 +499,6 @@ export const instanceService = mkSingleton(
       },
       `InstanceService`,
     )
-
-    const { getNextPort } = await portManager()
 
     const shutdown = async () => {
       dbg(`Shutting down instance manager`)

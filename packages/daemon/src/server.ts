@@ -1,5 +1,4 @@
 import {
-  DAEMON_MAX_PORTS,
   DAEMON_PB_SEMVER,
   MOTHERSHIP_PORT,
   PH_BIN_CACHE,
@@ -21,7 +20,6 @@ import { LoggerService } from '@pockethost/common'
 import { centralDbService } from './services/CentralDbService'
 import { instanceLoggerService } from './services/InstanceLoggerService'
 import { ipWhitelistService } from './services/IpWhitelistService'
-import { portManager } from './services/PortManager'
 import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
@@ -93,7 +91,6 @@ global.EventSource = require('eventsource')
    * Launch services
    */
   console.log('launching')
-  await portManager({ maxPorts: DAEMON_MAX_PORTS })
   await clientService({ url, logger })
   await ftpService({ logger })
   await rpcService({ logger })
