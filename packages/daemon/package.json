@@ -19,6 +19,7 @@
   "dependencies": {
     "@pockethost/common": "0.0.1",
     "@swc/core": "^1.3.86",
+    "@types/tail": "^2.2.2",
     "ajv": "^8.11.2",
     "boolean": "^3.2.0",
     "bottleneck": "^2.19.5",
@@ -40,6 +41,7 @@
     "semver": "^7.3.8",
     "sqlite": "^4.1.2",
     "sqlite3": "^5.1.6",
+    "tail": "^2.2.6",
     "tmp": "^0.2.1",
     "tsup": "^7.2.0",
     "tsx": "^3.11.0",

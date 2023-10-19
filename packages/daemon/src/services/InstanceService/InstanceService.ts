@@ -277,6 +277,9 @@ export const instanceService = mkSingleton(
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
+            userInstanceLogger.error(
+              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
+            )
             throw new Error(
               `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
             )

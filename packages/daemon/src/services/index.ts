@@ -1,6 +1,7 @@
 export * from './FtpService/FtpService'
 export * from './InstanceService/InstanceService'
 export * from './PocketBaseService/PocketBaseService'
+export * from './PortManager'
 export * from './ProxyService'
 export * from './RealtimeLog'
 export * from './RpcService/RpcService'

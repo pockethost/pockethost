@@ -107,10 +107,8 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
         'Cache-Control': 'no-store',
       })
 
-      const unsub = instanceLogger.tail(100, (line) => {
-        const obj = JSON.parse(line)
-        const evt = mkEvent(`log`, obj)
-        dbg(`****sending ${evt}`)
+      const unsub = instanceLogger.tail(100, (entry) => {
+        const evt = mkEvent(`log`, entry)
         res.write(evt)
       })
 

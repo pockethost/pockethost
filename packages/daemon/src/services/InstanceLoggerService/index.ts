@@ -1,5 +1,7 @@
-import { mkInstanceDataPath } from '$constants'
+import { mkInstanceDataPath, PUBLIC_DEBUG } from '$constants'
+import { LoggerService } from '@pockethost/common'
 import * as fs from 'fs'
+import { Tail } from 'tail'
 import * as winston from 'winston'
 
 type UnsubFunc = () => void
@@ -50,26 +52,38 @@ function createOrGetLogger(instanceId: string, target: string): winston.Logger {
 export function InstanceLogger(instanceId: string, target: string) {
   const logger = createOrGetLogger(instanceId, target)
 
-  return {
+  const api = {
     info: (msg: string) => {
       logger.info(msg)
     },
     error: (msg: string) => {
       logger.error(msg)
     },
-    tail: (linesBack: number, data: (line: string) => void): UnsubFunc => {
-      const stream = logger.stream({ start: -linesBack })
-      const listener = (log: winston.LogEntry) => {
-        data(JSON.stringify(log))
-      }
-      stream.on('log', listener)
+    tail: (
+      linesBack: number,
+      data: (line: winston.LogEntry) => void,
+    ): UnsubFunc => {
+      const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+
+      const tail = new Tail(logFile, { nLines: linesBack })
+
+      tail.on('line', (line) => {
+        const entry = JSON.parse(line)
+        data(entry)
+      })
 
       // Return an unsubscribe function to remove the listener when done
       return () => {
-        stream.removeListener('log', listener)
+        tail.unwatch()
       }
     },
   }
+  if (PUBLIC_DEBUG) {
+    const { dbg } = LoggerService().create(`Logger:${instanceId}`)
+    api.tail(0, dbg)
+  }
+
+  return api
 }
 
 // // Example usage

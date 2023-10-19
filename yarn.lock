@@ -843,6 +843,11 @@
   dependencies:
     "@types/node" "^18.11.18"
 
+"@types/tail@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@types/tail/-/tail-2.2.2.tgz#3b59bcd0bc91aa2cf50838fcbc62d1071a3ab72d"
+  integrity sha512-+CjjgMFjIVgTYsJXWNpAKVRerFWc9c+GTMzY/336fSW6BhY5TJwo2CNYJiNq7mO9rBHmtmpceKf2DnkrnaR3Vg==
+
 "@types/tmp@^0.2.1":
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/@types/tmp/-/tmp-0.2.3.tgz#908bfb113419fd6a42273674c00994d40902c165"
@@ -6300,6 +6305,11 @@ swap-case@^1.1.0:
   dependencies:
     lower-case "^1.1.1"
     upper-case "^1.1.1"
+
+tail@^2.2.6:
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/tail/-/tail-2.2.6.tgz#24abd701963639b896c42496d5f416216ec0b558"
+  integrity sha512-IQ6G4wK/t8VBauYiGPLx+d3fA5XjSVagjWV5SIYzvEvglbQjwEcukeYI68JOPpdydjxhZ9sIgzRlSmwSpphHyw==
 
 tailwindcss@^3, tailwindcss@^3.3.3:
   version "3.3.3"

@@ -79,7 +79,7 @@
     <div class="modal-box max-w-[90vw] h-[90vh]">
       <h3 class="font-bold text-lg">Instance Logging</h3>
 
-      <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col-reverse gap-3">
+      <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col gap-3">
         {#each $logs as log}
           <div
             class="px-4 text-[11px] font-mono flex align-center"
@@ -112,7 +112,7 @@
       on:click={handleFullScreenModal}
       >Fullscreen <i class="fa-regular fa-arrows-maximize"></i></button
     >
-    <div class="h-[450px] flex flex-col-reverse overflow-y-scroll gap-3">
+    <div class="h-[450px] flex flex-col overflow-y-scroll gap-3">
       {#each $logs as log}
         <div
           class="px-4 text-[11px] font-mono flex align-center"

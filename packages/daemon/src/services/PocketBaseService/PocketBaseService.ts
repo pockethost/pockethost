@@ -4,6 +4,7 @@ import {
   mkInstanceDataPath,
   PUBLIC_DEBUG,
 } from '$constants'
+import { port as getPort } from '$services'
 import { assert, mkInternalUrl, tryFetch } from '$util'
 import {
   createCleanupManager,
@@ -17,7 +18,6 @@ import {
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
-import getPort from 'get-port'
 import MemoryStream from 'memorystream'
 import { dirname } from 'path'
 import { gte } from 'semver'
@@ -69,9 +69,15 @@ export const createPocketbaseService = async (
   const _spawn = async (cfg: SpawnConfig, context?: AsyncContext) => {
     const logger = (context?.logger || _serviceLogger).create('spawn')
     const { dbg, warn, error } = logger
+    const defaultPort = await (async () => {
+      if (cfg.port) return cfg.port
+      const [defaultPort, freeDefaultPort] = await getPort.alloc()
+      cm.add(freeDefaultPort)
+      return defaultPort
+    })()
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-      port: cfg.port || (await getPort()),
+      port: defaultPort,
       isMothership: false,
       env: {},
       stderr: new MemoryStream(),
@@ -90,6 +96,8 @@ export const createPocketbaseService = async (
       stderr,
       stdout,
     } = _cfg
+    const iLogger = InstanceLogger(slug, 'exec')
+
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await getVersion(_version)
     const binPath = realVersion.binPath
@@ -128,13 +136,11 @@ export const createPocketbaseService = async (
     let isRunning = true
 
     const docker = new Docker()
-    const iLogger = InstanceLogger(slug, 'exec')
     iLogger.info(`Starting instance`)
 
     const _stdoutData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
-        dbg(`${slug} stdout: ${line}`)
         iLogger.info(line)
       })
     }
@@ -142,7 +148,6 @@ export const createPocketbaseService = async (
     const _stdErrData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
-        warn(`${slug} stderr: ${line}`)
         iLogger.error(line)
       })
     }
@@ -178,7 +183,8 @@ export const createPocketbaseService = async (
         [`8090/tcp`]: {},
       },
     }
-    dbg(`Spawning ${slug}`, { args, createOptions })
+    logger.info(`Spawning ${slug}`)
+    dbg({ args, createOptions })
 
     let container: Container | undefined = undefined
     const exited = new Promise<number>(async (resolveExit) => {
@@ -191,16 +197,19 @@ export const createPocketbaseService = async (
             createOptions,
             (err, data) => {
               const { StatusCode } = data || {}
-              dbg(`${slug} closed with code ${StatusCode}`, { err, data })
+              iLogger.info(`${slug} closed with code ${StatusCode}`)
+              dbg({ err, data })
               isRunning = false
               if (StatusCode > 0 || err) {
-                if (err?.json) {
-                  error(`Error: ${err.json.message}`)
-                  dbg(`${slug} stopped unexpectedly with code ${err}`, data)
-                }
+                iLogger.error(
+                  `Unexpected stop with code ${StatusCode} and error ${err}`,
+                )
+                error(`${slug} stopped unexpectedly with code ${err}`, data)
                 onUnexpectedStop?.(StatusCode)
+                resolveExit(StatusCode || 999)
+              } else {
+                resolveExit(0)
               }
-              resolveExit(0)
             },
           )
           .on('container', (container: Container) => {
@@ -208,14 +217,29 @@ export const createPocketbaseService = async (
             resolve(container)
           })
       })
-      cm.add(async () => {
-        dbg(`Stopping ${slug} for cleanup`)
-        await container
-          ?.stop()
-          .catch((err) => warn(`Possible error stopping container: ${err}`))
-        stderr.off('data', _stdErrData)
-        stdout.off('data', _stdoutData)
-      })
+      if (container) {
+        cm.add(async () => {
+          dbg(`Stopping ${slug} for cleanup`)
+          iLogger.info(`Stopping instance`)
+          await container
+            ?.stop()
+            .then(() => {
+              iLogger.info(`Instance stopped`)
+            })
+            .catch((err) => {
+              iLogger.error(`Error stopping instance`)
+              warn(`Possible error stopping container: ${err}`)
+            })
+
+          stderr.off('data', _stdErrData)
+          stdout.off('data', _stdoutData)
+        })
+      } else {
+        iLogger.error(`Could not start container`)
+        error(`${slug} could not start container`)
+        onUnexpectedStop?.(999)
+        resolveExit(999)
+      }
     })
 
     const url = mkInternalUrl(port)
