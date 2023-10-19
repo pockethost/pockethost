@@ -29,7 +29,7 @@ export const mkUrl = (subdomain: string, path = '') =>
   `${PUBLIC_HTTP_PROTOCOL}://${mkFqDomain(subdomain)}${path}`
 export const mkAppUrl = (path = '') => mkUrl(PUBLIC_APP_SUBDOMAIN, path)
 export const mkBlogUrl = (path = '') => mkUrl(PUBLIC_BLOG_SUBDOMAIN, path)
-export const mkDocUrl = (path = '') => mkBlogUrl(join('docs', path))
+export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))
 export const mkEdgeSubdomain = (subdomain: string) =>
   mkFqDomain(`${subdomain}.${PUBLIC_EDGE_APEX_DOMAIN}`)
 export const mkEdgeUrl = (subdomain: string, path = '') =>

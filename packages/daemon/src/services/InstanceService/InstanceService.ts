@@ -424,7 +424,7 @@ export const instanceService = mkSingleton(
         if (instance.maintenance) {
           throw new Error(
             `This instance is in Maintenance Mode. See ${mkDocUrl(
-              `/usage/maintenance`,
+              `usage/maintenance`,
             )} for more information.`,
           )
         }
