@@ -31,6 +31,7 @@
     "dotenv": "^16.3.1",
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
+    "exit-hook": "^4.0.0",
     "ftp-srv": "^4.6.2",
     "get-port": "^6.1.2",
     "http-proxy": "^1.18.1",

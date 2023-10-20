@@ -118,9 +118,5 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     `RealtimeLogService`,
   )
 
-  return {
-    shutdown() {
-      dbg(`shutdown`)
-    },
-  }
+  return {}
 })

@@ -7,6 +7,7 @@ import {
   SSL_KEY,
 } from '$constants'
 import { clientService, createPbClient } from '$services'
+import { exitHook } from '$util'
 import { SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
@@ -81,10 +82,10 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     info('Ftp server started...')
   })
 
-  const shutdown = () => {
+  exitHook(() => {
     info(`Closing FTP server`)
     ftpServer.close()
-  }
+  })
 
-  return { shutdown }
+  return {}
 })

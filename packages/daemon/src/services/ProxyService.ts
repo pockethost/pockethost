@@ -1,4 +1,5 @@
 import { DAEMON_PORT, PUBLIC_EDGE_APEX_DOMAIN } from '$constants'
+import { asyncExitHook } from '$util'
 import { Logger, SingletonBaseConfig, mkSingleton } from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
@@ -10,7 +11,6 @@ import {
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType, SetReturnType } from 'type-fest'
 import UrlPattern from 'url-pattern'
-
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
 export type ProxyMiddleware = (
@@ -88,7 +88,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   info(`daemon on port ${DAEMON_PORT}`)
   server.listen(DAEMON_PORT)
 
-  const shutdown = async () => {
+  asyncExitHook(() => {
     info(`Shutting down proxy server`)
     return new Promise<void>((resolve) => {
       server.close((err) => {
@@ -97,7 +97,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       })
       server.closeAllConnections()
     })
-  }
+  })
 
   type MiddlewareListener = SetReturnType<
     RequestListener,
@@ -169,5 +169,5 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     })
   }
 
-  return { shutdown, use }
+  return { use }
 })

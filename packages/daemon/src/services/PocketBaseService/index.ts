@@ -5,7 +5,13 @@ import {
   PUBLIC_DEBUG,
 } from '$constants'
 import { port as getPort, InstanceLogger, updaterService } from '$services'
-import { assert, AsyncContext, mkInternalUrl, tryFetch } from '$util'
+import {
+  assert,
+  AsyncContext,
+  asyncExitHook,
+  mkInternalUrl,
+  tryFetch,
+} from '$util'
 import {
   createCleanupManager,
   createTimerManager,
@@ -58,10 +64,10 @@ export const createPocketbaseService = async (
   const { getLatestVersion, getVersion } = await updaterService()
   const maxVersion = getLatestVersion()
 
-  const cm = createCleanupManager()
   const tm = createTimerManager({})
 
   const _spawn = async (cfg: SpawnConfig, context?: AsyncContext) => {
+    const cm = createCleanupManager()
     const logger = (context?.logger || _serviceLogger).create('spawn')
     const { dbg, warn, error } = logger
     const defaultPort = await (async () => {
@@ -195,6 +201,8 @@ export const createPocketbaseService = async (
               iLogger.info(`${slug} closed with code ${StatusCode}`)
               dbg({ err, data })
               isRunning = false
+              container = undefined
+              unsub()
               if (StatusCode > 0 || err) {
                 iLogger.error(
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
@@ -212,24 +220,7 @@ export const createPocketbaseService = async (
             resolve(container)
           })
       })
-      if (container) {
-        cm.add(async () => {
-          dbg(`Stopping ${slug} for cleanup`)
-          iLogger.info(`Stopping instance`)
-          await container
-            ?.stop()
-            .then(() => {
-              iLogger.info(`Instance stopped`)
-            })
-            .catch((err) => {
-              iLogger.error(`Error stopping instance`)
-              warn(`Possible error stopping container: ${err}`)
-            })
-
-          stderr.off('data', _stdErrData)
-          stdout.off('data', _stdoutData)
-        })
-      } else {
+      if (!container) {
         iLogger.error(`Could not start container`)
         error(`${slug} could not start container`)
         onUnexpectedStop?.(999)
@@ -244,6 +235,10 @@ export const createPocketbaseService = async (
         logger: _serviceLogger,
       })
     }
+    const unsub = asyncExitHook(async () => {
+      dbg(`Exiting process ${slug}`)
+      await api.kill()
+    })
     const api: PocketbaseProcess = {
       url,
       pid: () => {
@@ -252,26 +247,33 @@ export const createPocketbaseService = async (
       },
       exited,
       kill: async () => {
+        unsub()
         if (!container) {
           throw new Error(
             `Attempt to kill a PocketBase process that was never running.`,
           )
         }
+        iLogger.info(`Stopping instance`)
         await container.stop()
+        iLogger.info(`Instance stopped`)
+        stderr.off('data', _stdErrData)
+        stdout.off('data', _stdoutData)
+
+        container = undefined
+        await cm.shutdown()
       },
     }
+
     return api
   }
 
-  const shutdown = () => {
+  asyncExitHook(async () => {
     dbg(`Shutting down pocketbaseService`)
     tm.shutdown()
-    cm.shutdown()
-  }
+  })
 
   return {
     spawn: _spawn,
-    shutdown,
   }
 }
 

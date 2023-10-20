@@ -11,6 +11,7 @@ import {
 import { isObject } from '@s-libs/micro-dash'
 import Ajv, { JSONSchemaType, ValidateFunction } from 'ajv'
 import Bottleneck from 'bottleneck'
+import exitHook from 'exit-hook'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs, { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
@@ -107,9 +108,7 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
 
   const unsub = await client.onNewRpc(run)
 
-  const shutdown = () => {
-    unsub()
-  }
+  exitHook(unsub)
 
   const ajv = new Ajv()
 
@@ -133,6 +132,5 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
   return {
     registerCommand,
     initRpcs,
-    shutdown,
   }
 })

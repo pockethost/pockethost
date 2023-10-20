@@ -11,7 +11,7 @@ import {
   port,
   proxyService,
 } from '$services'
-import { mkInternalUrl, now } from '$util'
+import { asyncExitHook, mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
   CLEANUP_PRIORITY_LAST,
@@ -165,6 +165,7 @@ export const instanceService = mkSingleton(
           return startRequest()
         },
         shutdown: async (reason) => {
+          dbg(`Shutting down`)
           if (reason) {
             _shutdownReason = reason
             error(`Panic shutdown for ${reason}`)
@@ -462,14 +463,14 @@ export const instanceService = mkSingleton(
       `InstanceService`,
     )
 
-    const shutdown = async () => {
+    asyncExitHook(async () => {
       dbg(`Shutting down instance manager`)
       const p = Promise.all(map(instanceApis, (api) => api.shutdown()))
       await p
-    }
+    })
 
     const getInstanceApiIfExistsById = (id: InstanceId) => instanceApis[id]
 
-    return { shutdown, getInstanceApiIfExistsById }
+    return { getInstanceApiIfExistsById }
   },
 )

@@ -110,19 +110,5 @@ global.EventSource = require('eventsource')
 
   info(`Hooking into process exit event`)
 
-  const shutdown = async (signal: NodeJS.Signals) => {
-    info(`Got signal ${signal}`)
-    info(`Shutting down`)
-    ftpService().shutdown()
-    ;(await realtimeLog()).shutdown()
-    ;(await proxyService()).shutdown()
-    ;(await instanceService()).shutdown()
-    ;(await rpcService()).shutdown()
-    pbService.shutdown()
-  }
-
   await (await rpcService()).initRpcs()
-  process.on('SIGTERM', shutdown)
-  process.on('SIGINT', shutdown)
-  process.on('SIGHUP', shutdown)
 })()
