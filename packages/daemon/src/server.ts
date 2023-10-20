@@ -7,19 +7,19 @@ import {
   TRACE,
 } from '$constants'
 import {
+  centralDbService,
   clientService,
   ftpService,
   instanceService,
+  ipWhitelistService,
   pocketbaseService,
   proxyService,
   realtimeLog,
   rpcService,
   sqliteService,
+  updaterService,
 } from '$services'
 import { LoggerService } from '@pockethost/common'
-import { centralDbService } from './services/CentralDbService'
-import { ipWhitelistService } from './services/IpWhitelistService'
-import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
 const [major, minor, patch] = process.versions.node.split('.').map(Number)

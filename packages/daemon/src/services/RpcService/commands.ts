@@ -1,4 +1,10 @@
 import {
+  clientService,
+  instanceService,
+  rpcService,
+  updaterService,
+} from '$services'
+import {
   CreateInstancePayload,
   CreateInstancePayloadSchema,
   CreateInstanceResult,
@@ -20,10 +26,6 @@ import {
   type SetInstanceMaintenanceResult,
 } from '@pockethost/common'
 import { valid, validRange } from 'semver'
-import { instanceService } from '../InstanceService/InstanceService'
-import { updaterService } from '../UpdaterService/UpdaterService'
-import { clientService } from '../clientService/clientService'
-import { rpcService } from './RpcService'
 
 export const registerRpcCommands = async (logger: Logger) => {
   const { client } = await clientService()

@@ -1,4 +1,5 @@
 import { DAEMON_IPCIDR_LIST } from '$constants'
+import { proxyService } from '$services'
 import { assert } from '$util'
 import {
   LoggerService,
@@ -6,7 +7,6 @@ import {
   SingletonBaseConfig,
 } from '@pockethost/common'
 import IPCIDR from 'ip-cidr'
-import { proxyService } from '../ProxyService'
 export type IpWhitelistServiceConfig = SingletonBaseConfig & {
   ipRanges: string[]
 }

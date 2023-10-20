@@ -4,17 +4,15 @@ import {
   mkInstanceDataPath,
   PUBLIC_DEBUG,
 } from '$constants'
-import { port as getPort } from '$services'
-import { assert, mkInternalUrl, tryFetch } from '$util'
+import { port as getPort, InstanceLogger, updaterService } from '$services'
+import { assert, AsyncContext, mkInternalUrl, tryFetch } from '$util'
 import {
   createCleanupManager,
   createTimerManager,
   InvocationPid,
-} from '@pockethost/common'
-import {
   mkSingleton,
   SingletonBaseConfig,
-} from '@pockethost/common/src/mkSingleton'
+} from '@pockethost/common'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
@@ -22,9 +20,6 @@ import MemoryStream from 'memorystream'
 import { dirname } from 'path'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
-import { AsyncContext } from '../../util/AsyncContext'
-import { InstanceLogger } from '../InstanceLoggerService'
-import { updaterService } from '../UpdaterService/UpdaterService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }

@@ -4,7 +4,13 @@ import {
   mkDocUrl,
   PUBLIC_MOTHERSHIP_NAME,
 } from '$constants'
-import { clientService, proxyService } from '$services'
+import {
+  clientService,
+  InstanceLogger,
+  pocketbaseService,
+  port,
+  proxyService,
+} from '$services'
 import { mkInternalUrl, now } from '$util'
 import {
   assertTruthy,
@@ -22,9 +28,6 @@ import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
-import { InstanceLogger } from '../InstanceLoggerService'
-import { pocketbaseService } from '../PocketBaseService/PocketBaseService'
-import { port } from '../PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
