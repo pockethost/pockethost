@@ -20,6 +20,7 @@ import {
   InstanceFields,
   InstanceId,
   InstanceStatus,
+  LoggerService,
   mkSingleton,
   safeCatch,
   SingletonBaseConfig,
@@ -50,8 +51,8 @@ export type InstanceServiceConfig = SingletonBaseConfig & {
 export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(
   async (config: InstanceServiceConfig) => {
-    const { logger, instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
-    const instanceServiceLogger = logger.create('InstanceService')
+    const { instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
+    const instanceServiceLogger = LoggerService().create('InstanceService')
     const { dbg, raw, error, warn } = instanceServiceLogger
     const { client } = await clientService()
 

@@ -16,6 +16,7 @@ import {
   createCleanupManager,
   createTimerManager,
   InvocationPid,
+  LoggerService,
   mkSingleton,
   SingletonBaseConfig,
 } from '@pockethost/common'
@@ -56,8 +57,7 @@ export type PocketbaseProcess = {
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig,
 ) => {
-  const { logger } = config
-  const _serviceLogger = logger.create('PocketbaseService')
+  const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
   const { getLatestVersion, getVersion } = await updaterService()
@@ -207,8 +207,7 @@ export const createPocketbaseService = async (
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
                 )
                 error(
-                  `${slug} stopped unexpectedly with code ${StatusCode}`,
-                  data,
+                  `${slug} stopped unexpectedly with code ${StatusCode} and error ${err}`,
                 )
                 resolveExit(StatusCode || 999)
               } else {

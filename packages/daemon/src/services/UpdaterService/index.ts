@@ -1,5 +1,6 @@
 import { downloadAndExtract, smartFetch } from '$util'
 import {
+  LoggerService,
   SingletonBaseConfig,
   createCleanupManager,
   createTimerManager,
@@ -27,8 +28,7 @@ export type UpdaterServiceConfig = SingletonBaseConfig & {
 
 export const updaterService = mkSingleton(
   async (config: UpdaterServiceConfig) => {
-    const { logger } = config
-    const _serviceLogger = logger.create('UpdaterService')
+    const _serviceLogger = LoggerService().create('UpdaterService')
     const { dbg, error, warn, abort } = _serviceLogger
 
     dbg(`Initializing UpdaterService`)

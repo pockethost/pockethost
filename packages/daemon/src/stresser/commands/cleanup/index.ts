@@ -1,3 +1,4 @@
+import { DAEMON_PB_PASSWORD, DAEMON_PB_USERNAME } from '$constants'
 import { clientService } from '$services'
 import { ContextBase, GlobalOptions } from '$src/stresser/types'
 import { Command } from 'commander'
@@ -31,7 +32,8 @@ export const createCleanup = (context: { program: Command } & ContextBase) => {
 
       await clientService({
         url: options.mothershipUrl,
-        logger,
+        username: DAEMON_PB_USERNAME,
+        password: DAEMON_PB_PASSWORD,
       })
 
       await deleteInstancesByFilter(`subdomain ~ '${filter}'`)

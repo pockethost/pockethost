@@ -1,5 +1,7 @@
 import {
+  DAEMON_PB_PASSWORD,
   DAEMON_PB_SEMVER,
+  DAEMON_PB_USERNAME,
   MOTHERSHIP_PORT,
   PH_BIN_CACHE,
   PUBLIC_DEBUG,
@@ -39,7 +41,6 @@ global.EventSource = require('eventsource')
   info(`Starting`)
 
   const udService = await updaterService({
-    logger,
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,
   })
@@ -93,23 +94,24 @@ global.EventSource = require('eventsource')
   /**
    * Launch services
    */
-  console.log('launching')
-  await clientService({ url, logger })
-  await ftpService({ logger })
-  await rpcService({ logger })
+  await clientService({
+    url,
+    username: DAEMON_PB_USERNAME,
+    password: DAEMON_PB_PASSWORD,
+  })
+  await ftpService({})
+  await rpcService({})
   await proxyService({
-    logger,
     coreInternalUrl: url,
   })
-  await ipWhitelistService({ logger })
-  await sqliteService({ logger })
-  await realtimeLog({ logger })
+  await ipWhitelistService({})
+  await sqliteService({})
+  await realtimeLog({})
   await instanceService({
-    logger,
     instanceApiCheckIntervalMs: 50,
     instanceApiTimeoutMs: 5000,
   })
-  await centralDbService({ logger })
+  await centralDbService({})
   // gen:service
 
   info(`Hooking into process exit event`)

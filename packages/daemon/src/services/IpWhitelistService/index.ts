@@ -15,7 +15,8 @@ const IP_WHITELIST_SERVICE_NAME = 'IpWhitelistService'
 
 export const ipWhitelistService = mkSingleton(
   async (config: Partial<IpWhitelistServiceConfig> = {}) => {
-    const { ipRanges = DAEMON_IPCIDR_LIST, logger = LoggerService() } = config
+    const { ipRanges = DAEMON_IPCIDR_LIST } = config
+    const logger = LoggerService().create(`ipWhitelistService`)
     const _serviceLogger = logger.create(IP_WHITELIST_SERVICE_NAME)
     const { dbg, error, warn, abort } = _serviceLogger
 

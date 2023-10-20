@@ -1,3 +1,4 @@
+import { DAEMON_PB_PASSWORD, DAEMON_PB_USERNAME } from '$constants'
 import { clientService } from '$services'
 import { InstanceId, serialAsyncExecutionGuard } from '@pockethost/common'
 import { random, range, shuffle, values } from '@s-libs/micro-dash'
@@ -49,7 +50,8 @@ export const createStress = (context: { program: Command } & ContextBase) => {
 
       const { client } = await clientService({
         url: options.mothershipUrl,
-        logger,
+        username: DAEMON_PB_USERNAME,
+        password: DAEMON_PB_PASSWORD,
       })
 
       const users = await client.client.collection('users').getFullList()

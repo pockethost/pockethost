@@ -1,6 +1,11 @@
 import { DAEMON_PORT, PUBLIC_EDGE_APEX_DOMAIN } from '$constants'
 import { asyncExitHook } from '$util'
-import { Logger, SingletonBaseConfig, mkSingleton } from '@pockethost/common'
+import {
+  Logger,
+  LoggerService,
+  SingletonBaseConfig,
+  mkSingleton,
+} from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
   IncomingMessage,
@@ -29,8 +34,7 @@ export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
 }
 export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
-  const { logger } = config
-  const _proxyLogger = logger.create('ProxyService')
+  const _proxyLogger = LoggerService().create('ProxyService')
   const { dbg, error, info, trace, warn } = _proxyLogger
 
   const { coreInternalUrl } = config

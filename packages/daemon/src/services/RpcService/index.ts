@@ -1,5 +1,6 @@
 import { clientService } from '$services'
 import {
+  LoggerService,
   RPC_COMMANDS,
   RpcCommands,
   RpcFields,
@@ -34,8 +35,7 @@ export type RpcRunner<
 export type RpcServiceConfig = SingletonBaseConfig & {}
 
 export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
-  const { logger } = config
-  const rpcServiceLogger = logger.create('RpcService')
+  const rpcServiceLogger = LoggerService().create('RpcService')
   const { dbg, error } = rpcServiceLogger
   const { client } = await clientService()
 

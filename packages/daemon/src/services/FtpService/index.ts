@@ -8,7 +8,11 @@ import {
 } from '$constants'
 import { clientService, createPbClient } from '$services'
 import { exitHook } from '$util'
-import { SingletonBaseConfig, mkSingleton } from '@pockethost/common'
+import {
+  LoggerService,
+  SingletonBaseConfig,
+  mkSingleton,
+} from '@pockethost/common'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import { PhFs } from './PhFs'
@@ -45,8 +49,7 @@ const tls = {
 }
 
 export const ftpService = mkSingleton((config: FtpConfig) => {
-  const { logger } = config
-  const _ftpServiceLogger = logger.create('FtpService')
+  const _ftpServiceLogger = LoggerService().create('FtpService')
   const { dbg, info } = _ftpServiceLogger
 
   const ftpServer = new FtpSrv({

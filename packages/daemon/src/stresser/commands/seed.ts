@@ -1,3 +1,4 @@
+import { DAEMON_PB_PASSWORD, DAEMON_PB_USERNAME } from '$constants'
 import { clientService } from '$services'
 import { InstanceStatus, serialAsyncExecutionGuard } from '@pockethost/common'
 import { random, range, shuffle } from '@s-libs/micro-dash'
@@ -45,7 +46,8 @@ export const createSeed = (context: { program: Command } & ContextBase) => {
 
       const { client } = await clientService({
         url: options.mothershipUrl,
-        logger,
+        username: DAEMON_PB_USERNAME,
+        password: DAEMON_PB_PASSWORD,
       })
 
       /**

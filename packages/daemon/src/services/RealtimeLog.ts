@@ -1,5 +1,6 @@
 import {
   InstanceFields,
+  LoggerService,
   mkSingleton,
   SingletonBaseConfig,
 } from '@pockethost/common'
@@ -17,8 +18,7 @@ const mkEvent = (name: string, data: JsonifiableObject) => {
 
 export type RealtimeLog = ReturnType<typeof realtimeLog>
 export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
-  const { logger } = config
-  const _realtimeLogger = logger.create(`RealtimeLog`)
+  const _realtimeLogger = LoggerService().create(`RealtimeLog`)
   const { dbg, error } = _realtimeLogger
 
   ;(await proxyService()).use(
