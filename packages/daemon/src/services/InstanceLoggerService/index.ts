@@ -6,9 +6,18 @@ import * as winston from 'winston'
 
 type UnsubFunc = () => void
 
-const loggers: { [key: string]: winston.Logger } = {}
+const loggers: {
+  [key: string]: {
+    info: (msg: string) => void
+    error: (msg: string) => void
+    tail: (
+      linesBack: number,
+      data: (line: winston.LogEntry) => void,
+    ) => UnsubFunc
+  }
+} = {}
 
-function createOrGetLogger(instanceId: string, target: string): winston.Logger {
+export function InstanceLogger(instanceId: string, target: string) {
   const loggerKey = `${instanceId}_${target}`
   if (loggers[loggerKey]) {
     return loggers[loggerKey]!
@@ -45,12 +54,6 @@ function createOrGetLogger(instanceId: string, target: string): winston.Logger {
     ],
   })
 
-  loggers[loggerKey] = logger
-  return logger
-}
-
-export function InstanceLogger(instanceId: string, target: string) {
-  const logger = createOrGetLogger(instanceId, target)
   const { error, warn } = LoggerService()
     .create('InstanceLogger')
     .breadcrumb(instanceId)
@@ -103,10 +106,13 @@ export function InstanceLogger(instanceId: string, target: string) {
     },
   }
   if (PUBLIC_DEBUG) {
-    const { dbg } = LoggerService().create(`Logger:${instanceId}`)
-    api.tail(0, dbg)
+    const { dbg } = LoggerService().create(`Logger`).breadcrumb(instanceId)
+    api.tail(0, (entry) => {
+      dbg(entry.message)
+    })
   }
 
+  loggers[loggerKey] = api
   return api
 }
 
