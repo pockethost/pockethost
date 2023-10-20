@@ -257,26 +257,6 @@ export const instanceService = mkSingleton(
               port: newPort,
               env: instance.secrets || {},
               version,
-              onUnexpectedStop: (code) => {
-                warn(
-                  `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
-                )
-                shutdownManager.add(async () => {
-                  await updateInstance(instance.id, {
-                    maintenance: true,
-                  })
-                  userInstanceLogger.error(
-                    `Putting instance in maintenance mode because it shut down with return code ${code}. `,
-                  )
-                })
-                setImmediate(() => {
-                  _safeShutdown(
-                    new Error(
-                      `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
-                    ),
-                  ).catch(error)
-                })
-              },
             })
             return cp
           } catch (e) {
@@ -289,10 +269,27 @@ export const instanceService = mkSingleton(
             )
           }
         })()
-        const { pid: _pid } = childProcess
+        const { pid: _pid, exited } = childProcess
         const pid = _pid()
+        exited.then((code) => {
+          dbg(`PocketBase processes exited with ${code}.`)
+          if (code !== 0) {
+            shutdownManager.add(async () => {
+              userInstanceLogger.error(
+                `Putting instance in maintenance mode because it shut down with return code ${code}. `,
+              )
+              await updateInstance(instance.id, {
+                maintenance: true,
+              })
+            })
+          }
+          setImmediate(() => {
+            _safeShutdown().catch(error)
+          })
+        })
         assertTruthy(pid, `Expected PID here but got ${pid}`)
         dbg(`PocketBase instance PID: ${pid}`)
+
         systemInstanceLogger.breadcrumb(`pid:${pid}`)
         shutdownManager.add(async () => {
           dbg(`killing ${id}`)

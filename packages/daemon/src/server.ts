@@ -61,9 +61,6 @@ global.EventSource = require('eventsource')
           version: DAEMON_PB_SEMVER,
           name: PUBLIC_MOTHERSHIP_NAME,
           slug: PUBLIC_MOTHERSHIP_NAME,
-          onUnexpectedStop: () => {
-            error(`migrate had an unexpected stop. Check it out`)
-          },
         },
         { logger },
       )
@@ -71,20 +68,14 @@ global.EventSource = require('eventsource')
     info(`Migrating done`)
   }
   info(`Serving`)
-  const { url } = await pbService.spawn(
-    {
-      command: 'serve',
-      isMothership: true,
-      version: DAEMON_PB_SEMVER,
-      name: PUBLIC_MOTHERSHIP_NAME,
-      slug: PUBLIC_MOTHERSHIP_NAME,
-      port: MOTHERSHIP_PORT,
-      onUnexpectedStop: () => {
-        error(`serve had an unexpected stop. Check it out`)
-      },
-    },
-    { logger },
-  )
+  const { url } = await pbService.spawn({
+    command: 'serve',
+    isMothership: true,
+    version: DAEMON_PB_SEMVER,
+    name: PUBLIC_MOTHERSHIP_NAME,
+    slug: PUBLIC_MOTHERSHIP_NAME,
+    port: MOTHERSHIP_PORT,
+  })
 
   /**
    * Launch services

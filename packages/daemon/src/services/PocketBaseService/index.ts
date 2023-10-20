@@ -39,7 +39,6 @@ export type SpawnConfig = {
   env?: Env
   stdout?: MemoryStream
   stderr?: MemoryStream
-  onUnexpectedStop: (code: number | null) => void
 }
 export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
@@ -91,7 +90,6 @@ export const createPocketbaseService = async (
       name,
       slug,
       port,
-      onUnexpectedStop,
       isMothership,
       env,
       stderr,
@@ -208,7 +206,6 @@ export const createPocketbaseService = async (
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
                 )
                 error(`${slug} stopped unexpectedly with code ${err}`, data)
-                onUnexpectedStop?.(StatusCode)
                 resolveExit(StatusCode || 999)
               } else {
                 resolveExit(0)
@@ -223,7 +220,6 @@ export const createPocketbaseService = async (
       if (!container) {
         iLogger.error(`Could not start container`)
         error(`${slug} could not start container`)
-        onUnexpectedStop?.(999)
         resolveExit(999)
       }
     })
@@ -249,9 +245,8 @@ export const createPocketbaseService = async (
       kill: async () => {
         unsub()
         if (!container) {
-          throw new Error(
-            `Attempt to kill a PocketBase process that was never running.`,
-          )
+          dbg(`Already exited`)
+          return
         }
         iLogger.info(`Stopping instance`)
         await container.stop()
