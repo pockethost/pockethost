@@ -201,11 +201,15 @@ export const createPocketbaseService = async (
               isRunning = false
               container = undefined
               unsub()
-              if (StatusCode > 0 || err) {
+              // Filter out Docker status codes https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
+              if ((StatusCode > 0 && StatusCode < 125) || err) {
                 iLogger.error(
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
                 )
-                error(`${slug} stopped unexpectedly with code ${err}`, data)
+                error(
+                  `${slug} stopped unexpectedly with code ${StatusCode}`,
+                  data,
+                )
                 resolveExit(StatusCode || 999)
               } else {
                 resolveExit(0)
