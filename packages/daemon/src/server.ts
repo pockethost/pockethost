@@ -68,13 +68,26 @@ global.EventSource = require('eventsource')
     info(`Migrating done`)
   }
   info(`Serving`)
-  const { url } = await pbService.spawn({
-    command: 'serve',
-    isMothership: true,
-    version: DAEMON_PB_SEMVER,
-    name: PUBLIC_MOTHERSHIP_NAME,
-    slug: PUBLIC_MOTHERSHIP_NAME,
-    port: MOTHERSHIP_PORT,
+  const url = await new Promise<string>((resolve) => {
+    const mothership = async () => {
+      try {
+        const { url, exited } = await pbService.spawn({
+          command: 'serve',
+          isMothership: true,
+          version: DAEMON_PB_SEMVER,
+          name: PUBLIC_MOTHERSHIP_NAME,
+          slug: PUBLIC_MOTHERSHIP_NAME,
+          port: MOTHERSHIP_PORT,
+        })
+        resolve(url)
+        await exited
+      } catch (e) {
+        error(e)
+      } finally {
+        setTimeout(mothership, 10000)
+      }
+    }
+    mothership()
   })
 
   /**
