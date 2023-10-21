@@ -55,7 +55,7 @@ global.EventSource = require('eventsource')
   const url = await new Promise<string>((resolve) => {
     const mothership = async () => {
       try {
-        const { url, exited } = await pbService.spawn({
+        const { url, exitCode } = await pbService.spawn({
           command: 'serve',
           isMothership: true,
           version: DAEMON_PB_SEMVER,
@@ -64,7 +64,7 @@ global.EventSource = require('eventsource')
           port: MOTHERSHIP_PORT,
         })
         resolve(url)
-        await exited
+        await exitCode
       } catch (e) {
         error(e)
       } finally {

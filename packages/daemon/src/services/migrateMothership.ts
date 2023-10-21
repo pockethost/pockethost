@@ -9,16 +9,13 @@ const migrateMothership = async () => {
   const pbService = await pocketbaseService()
   info(`Migrating mothership`)
   await (
-    await pbService.spawn(
-      {
-        command: 'migrate',
-        isMothership: true,
-        version: DAEMON_PB_SEMVER,
-        name: PUBLIC_MOTHERSHIP_NAME,
-        slug: PUBLIC_MOTHERSHIP_NAME,
-      },
-      { logger },
-    )
-  ).exited
+    await pbService.spawn({
+      command: 'migrate',
+      isMothership: true,
+      version: DAEMON_PB_SEMVER,
+      name: PUBLIC_MOTHERSHIP_NAME,
+      slug: PUBLIC_MOTHERSHIP_NAME,
+    })
+  ).exitCode
   info(`Migrating done`)
 }

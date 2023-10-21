@@ -51,7 +51,7 @@ export type PocketbaseProcess = {
   url: string
   pid: () => InvocationPid
   kill: () => Promise<void>
-  exited: Promise<number | null>
+  exitCode: Promise<number | null>
 }
 
 export const createPocketbaseService = async (
@@ -187,7 +187,7 @@ export const createPocketbaseService = async (
     dbg({ args, createOptions })
 
     let container: Container | undefined = undefined
-    const exited = new Promise<number>(async (resolveExit) => {
+    const exitCode = new Promise<number>(async (resolveExit) => {
       container = await new Promise<Container>((resolve) => {
         docker
           .run(
@@ -244,7 +244,7 @@ export const createPocketbaseService = async (
         assert(container)
         return container.id
       },
-      exited,
+      exitCode,
       kill: async () => {
         unsub()
         if (!container) {

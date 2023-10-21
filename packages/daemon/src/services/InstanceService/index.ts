@@ -270,9 +270,9 @@ export const instanceService = mkSingleton(
             )
           }
         })()
-        const { pid: _pid, exited } = childProcess
+        const { pid: _pid, exitCode } = childProcess
         const pid = _pid()
-        exited.then((code) => {
+        exitCode.then((code) => {
           dbg(`PocketBase processes exited with ${code}.`)
           if (code !== 0) {
             shutdownManager.add(async () => {
