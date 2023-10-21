@@ -9,6 +9,7 @@ import {
   TRACE,
 } from '$constants'
 import {
+  PocketbaseReleaseVersionService,
   centralDbService,
   clientService,
   ftpService,
@@ -19,7 +20,6 @@ import {
   realtimeLog,
   rpcService,
   sqliteService,
-  updaterService,
 } from '$services'
 import { LoggerService } from '@pockethost/common'
 // gen:import
@@ -40,7 +40,7 @@ global.EventSource = require('eventsource')
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
-  const udService = await updaterService({
+  const udService = await PocketbaseReleaseVersionService({
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,
   })

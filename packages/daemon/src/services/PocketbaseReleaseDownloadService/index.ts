@@ -2,16 +2,14 @@ import { downloadAndExtract, smartFetch } from '$util'
 import {
   LoggerService,
   SingletonBaseConfig,
-  createCleanupManager,
-  createTimerManager,
   mkSingleton,
 } from '@pockethost/common'
 import { keys } from '@s-libs/micro-dash'
 import { chmodSync, existsSync } from 'fs'
 import { join } from 'path'
-import { maxSatisfying, rsort } from 'semver'
+import { rsort } from 'semver'
 
-export type Release = {
+type Release = {
   tag_name: string
   prerelease: string
   assets: {
@@ -19,24 +17,22 @@ export type Release = {
     browser_download_url: string
   }[]
 }
-export type Releases = Release[]
+type Releases = Release[]
 
-export type UpdaterServiceConfig = SingletonBaseConfig & {
+export type PocketbaseReleaseDownloadServiceConfig = SingletonBaseConfig & {
   cachePath: string
-  checkIntervalMs: number
 }
 
-export const updaterService = mkSingleton(
-  async (config: UpdaterServiceConfig) => {
-    const _serviceLogger = LoggerService().create('UpdaterService')
-    const { dbg, error, warn, abort } = _serviceLogger
+export const PocketbaseReleaseDownloadService = mkSingleton(
+  (config: PocketbaseReleaseDownloadServiceConfig) => {
+    const _serviceLogger = LoggerService().create(
+      'PocketbaseReleaseDownloadService',
+    )
+    const { dbg, info, error, warn, abort } = _serviceLogger
 
-    dbg(`Initializing UpdaterService`)
+    dbg(`Initializing`)
 
-    const { cachePath, checkIntervalMs } = config
-
-    const cm = createCleanupManager()
-    const tm = createTimerManager({})
+    const { cachePath } = config
 
     const osName = 'linux' // type().toLowerCase()
     const cpuArchitecture = process.arch === 'x64' ? 'amd64' : process.arch
@@ -80,33 +76,11 @@ export const updaterService = mkSingleton(
         )
       }
       maxVersion = `~${rsort(keys(binPaths))[0]}`
-      dbg({ maxVersion })
-      return true
-    }
-    await check().catch(abort)
-
-    tm.repeat(check, checkIntervalMs)
-
-    const getLatestVersion = () => maxVersion
-
-    const getVersion = async (semVer = maxVersion) => {
-      const version = maxSatisfying(keys(binPaths), semVer)
-      if (!version)
-        throw new Error(
-          `No version satisfies ${semVer} (${keys(binPaths).join(', ')})`,
-        )
-      const binPath = binPaths[version]
-      if (!binPath) throw new Error(`binPath for ${version} not found`)
-      return {
-        version,
-        binPath,
-      }
+      info(`Highest PocketBase version is ${maxVersion}`)
     }
 
     return {
-      getLatestVersion,
-      getVersion,
-      shutdown: async () => {},
+      check,
     }
   },
 )

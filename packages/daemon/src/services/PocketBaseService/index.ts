@@ -4,7 +4,7 @@ import {
   mkInstanceDataPath,
   PUBLIC_DEBUG,
 } from '$constants'
-import { port as getPort, InstanceLogger, updaterService } from '$services'
+import { port as getPort, InstanceLogger } from '$services'
 import {
   assert,
   AsyncContext,
@@ -27,6 +27,7 @@ import MemoryStream from 'memorystream'
 import { dirname } from 'path'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
+import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }
@@ -60,7 +61,8 @@ export const createPocketbaseService = async (
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
-  const { getLatestVersion, getVersion } = await updaterService()
+  const { getLatestVersion, getVersion } =
+    await PocketbaseReleaseVersionService()
   const maxVersion = getLatestVersion()
 
   const tm = createTimerManager({})
@@ -231,7 +233,6 @@ export const createPocketbaseService = async (
     if (command === 'serve') {
       await tryFetch(url, {
         preflight: async () => isRunning,
-        logger: _serviceLogger,
       })
     }
     const unsub = asyncExitHook(async () => {
