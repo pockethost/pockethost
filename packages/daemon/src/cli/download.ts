@@ -15,7 +15,7 @@ LoggerService({ debug: PUBLIC_DEBUG, trace: TRACE, errorTrace: !PUBLIC_DEBUG })
 // @ts-ignore
 global.EventSource = require('eventsource')
 ;(async () => {
-  const logger = LoggerService().create(`mothership.ts`)
+  const logger = LoggerService().create(`download.ts`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
