@@ -1,6 +1,6 @@
 import { PH_BIN_CACHE, PUBLIC_DEBUG, TRACE } from '$constants'
-import { PocketbaseReleaseDownloadService } from '$services'
-import { LoggerService } from '@pockethost/common'
+import { PocketbaseReleaseDownloadService } from '$services/PocketbaseReleaseDownloadService'
+import { LoggerService } from '@pockethost/common/src/Logger'
 // gen:import
 
 const [major, minor, patch] = process.versions.node.split('.').map(Number)
