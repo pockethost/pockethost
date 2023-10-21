@@ -1,5 +1,6 @@
 import { clientService } from '$services'
 import {
+  LoggerService,
   RPC_COMMANDS,
   RpcCommands,
   RpcFields,
@@ -11,6 +12,7 @@ import {
 import { isObject } from '@s-libs/micro-dash'
 import Ajv, { JSONSchemaType, ValidateFunction } from 'ajv'
 import Bottleneck from 'bottleneck'
+import exitHook from 'exit-hook'
 import { default as knexFactory } from 'knex'
 import pocketbaseEs, { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType, JsonObject } from 'type-fest'
@@ -33,8 +35,7 @@ export type RpcRunner<
 export type RpcServiceConfig = SingletonBaseConfig & {}
 
 export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
-  const { logger } = config
-  const rpcServiceLogger = logger.create('RpcService')
+  const rpcServiceLogger = LoggerService().create('RpcService')
   const { dbg, error } = rpcServiceLogger
   const { client } = await clientService()
 
@@ -107,9 +108,7 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
 
   const unsub = await client.onNewRpc(run)
 
-  const shutdown = () => {
-    unsub()
-  }
+  exitHook(unsub)
 
   const ajv = new Ajv()
 
@@ -133,6 +132,5 @@ export const rpcService = mkSingleton(async (config: RpcServiceConfig) => {
   return {
     registerCommand,
     initRpcs,
-    shutdown,
   }
 })

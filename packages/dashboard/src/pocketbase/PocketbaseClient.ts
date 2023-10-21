@@ -1,3 +1,4 @@
+import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
@@ -286,8 +287,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     const controller = new AbortController()
     const signal = controller.signal
     const continuallyFetchFromEventSource = () => {
+      const url = INSTANCE_URL(instanceId, `logs`)
       dbg(`Subscribing to ${url}`)
-      fetchEventSource(`${url}/logs`, {
+      fetchEventSource(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,10 +300,10 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
           auth,
         }),
         onmessage: (event) => {
-          trace(`Got stream event`, event)
+          dbg(`Got stream event`, event)
           const {} = event
           const log = JSON.parse(event.data) as InstanceLogFields
-          trace(`Log is`, log)
+          dbg(`Log is`, log)
           update(log)
         },
         onopen: async (response) => {

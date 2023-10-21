@@ -22,7 +22,7 @@ app.pockethost.lvh.me {
 # Mothership
 # ================
 pockethost-central.pockethost.lvh.me {
-	reverse_proxy localhost:8090
+	reverse_proxy localhost:8091
 	tls internal
 	log {
 		output stdout

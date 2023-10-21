@@ -1,33 +1,34 @@
 import {
   DAEMON_PB_IDLE_TTL,
-  PUBLIC_APP_DOMAIN,
-  PUBLIC_HTTP_PROTOCOL,
+  mkAppUrl,
+  mkDocUrl,
   PUBLIC_MOTHERSHIP_NAME,
 } from '$constants'
-import { clientService, proxyService } from '$services'
-import { mkInternalUrl, now } from '$util'
 import {
+  clientService,
+  InstanceLogger,
+  pocketbaseService,
+  port,
+  proxyService,
+} from '$services'
+import { asyncExitHook, mkInternalUrl, now } from '$util'
+import {
+  assertTruthy,
   CLEANUP_PRIORITY_LAST,
+  createCleanupManager,
+  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
-  SingletonBaseConfig,
-  StreamNames,
-  assertTruthy,
-  createCleanupManager,
-  createTimerManager,
+  LoggerService,
   mkSingleton,
   safeCatch,
-  serialAsyncExecutionGuard,
+  SingletonBaseConfig,
 } from '@pockethost/common'
 import { map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import MemoryStream from 'memorystream'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
-import { instanceLoggerService } from '../InstanceLoggerService'
-import { pocketbaseService } from '../PocketBaseService/PocketBaseService'
-import { portManager } from '../PortManager'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -50,8 +51,8 @@ export type InstanceServiceConfig = SingletonBaseConfig & {
 export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(
   async (config: InstanceServiceConfig) => {
-    const { logger, instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
-    const instanceServiceLogger = logger.create('InstanceService')
+    const { instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
+    const instanceServiceLogger = LoggerService().create('InstanceService')
     const { dbg, raw, error, warn } = instanceServiceLogger
     const { client } = await clientService()
 
@@ -165,6 +166,7 @@ export const instanceService = mkSingleton(
           return startRequest()
         },
         shutdown: async (reason) => {
+          dbg(`Shutting down`)
           if (reason) {
             _shutdownReason = reason
             error(`Panic shutdown for ${reason}`)
@@ -216,7 +218,7 @@ export const instanceService = mkSingleton(
         Obtain empty port
         */
         dbg(`Obtaining port`)
-        const [newPort, releasePort] = getNextPort()
+        const [newPort, releasePort] = await port.alloc()
         shutdownManager.add(() => {
           dbg(`Releasing port`)
           releasePort()
@@ -228,20 +230,7 @@ export const instanceService = mkSingleton(
         Create the user instance logger
         */
         healthyGuard()
-        const userInstanceLogger = await instanceLoggerService().get(
-          instance.id,
-          {
-            parentLogger: systemInstanceLogger,
-          },
-        )
-
-        const writeUserLog = serialAsyncExecutionGuard(
-          userInstanceLogger.write,
-          () => `${instance.id}:userLog`,
-        )
-        shutdownManager.add(() =>
-          writeUserLog(`Shutting down instance`).catch(error),
-        )
+        const userInstanceLogger = InstanceLogger(instance.id, `exec`)
 
         /*
         Start the instance
@@ -255,25 +244,11 @@ export const instanceService = mkSingleton(
           await updateInstanceStatus(id, InstanceStatus.Idle).catch(error)
         })
         healthyGuard()
-        await writeUserLog(`Starting instance`)
 
         /*
         Spawn the child process
         */
-        const stdout = new MemoryStream()
-        stdout.on('data', (data: Buffer) => {
-          data
-            .toString()
-            .split(/\n/)
-            .forEach((line) => writeUserLog(line))
-        })
-        const stderr = new MemoryStream()
-        stderr.on('data', (data: Buffer) => {
-          data
-            .toString()
-            .split(/\n/)
-            .forEach((line) => writeUserLog(line, StreamNames.Error))
-        })
+
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
@@ -283,54 +258,39 @@ export const instanceService = mkSingleton(
               port: newPort,
               env: instance.secrets || {},
               version,
-              stdout,
-              stderr,
-              onUnexpectedStop: (code, stdout, stderr) => {
-                warn(
-                  `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
-                )
-                warn(stdout)
-                warn(stderr)
-                shutdownManager.add(async () => {
-                  await updateInstance(instance.id, {
-                    maintenance: true,
-                  })
-                  await writeUserLog(
-                    `Putting instance in maintenance mode because it shut down with return code ${code}. `,
-                    StreamNames.Error,
-                  )
-                  await Promise.all(
-                    stdout.map((data) =>
-                      writeUserLog(data, StreamNames.Error).catch(error),
-                    ),
-                  )
-                  await Promise.all(
-                    stderr.map((data) =>
-                      writeUserLog(data, StreamNames.Error).catch(error),
-                    ),
-                  )
-                })
-                setImmediate(() => {
-                  _safeShutdown(
-                    new Error(
-                      `PocketBase processes exited unexpectedly with ${code}. Putting in maintenance mode.`,
-                    ),
-                  ).catch(error)
-                })
-              },
             })
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
+            userInstanceLogger.error(
+              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
+            )
             throw new Error(
               `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
             )
           }
         })()
-        const { pid: _pid } = childProcess
+        const { pid: _pid, exitCode } = childProcess
         const pid = _pid()
+        exitCode.then((code) => {
+          dbg(`PocketBase processes exited with ${code}.`)
+          if (code !== 0) {
+            shutdownManager.add(async () => {
+              userInstanceLogger.error(
+                `Putting instance in maintenance mode because it shut down with return code ${code}. `,
+              )
+              await updateInstance(instance.id, {
+                maintenance: true,
+              })
+            })
+          }
+          setImmediate(() => {
+            _safeShutdown().catch(error)
+          })
+        })
         assertTruthy(pid, `Expected PID here but got ${pid}`)
         dbg(`PocketBase instance PID: ${pid}`)
+
         systemInstanceLogger.breadcrumb(`pid:${pid}`)
         shutdownManager.add(async () => {
           dbg(`killing ${id}`)
@@ -468,7 +428,9 @@ export const instanceService = mkSingleton(
         dbg(`Checking for maintenance mode`)
         if (instance.maintenance) {
           throw new Error(
-            `This instance is in Maintenance Mode. See https://pockethost.io/docs/usage/maintenance for more information.`,
+            `This instance is in Maintenance Mode. See ${mkDocUrl(
+              `usage/maintenance`,
+            )} for more information.`,
           )
         }
 
@@ -477,9 +439,7 @@ export const instanceService = mkSingleton(
         */
         dbg(`Checking for verified account`)
         if (!owner?.verified) {
-          throw new Error(
-            `Log in at ${PUBLIC_HTTP_PROTOCOL}://${PUBLIC_APP_DOMAIN} to verify your account.`,
-          )
+          throw new Error(`Log in at ${mkAppUrl()}} to verify your account.`)
         }
 
         const api = await getInstanceApi(instance)
@@ -496,20 +456,19 @@ export const instanceService = mkSingleton(
         )
 
         proxy.web(req, res, { target: api.internalUrl() })
+        return true
       },
       `InstanceService`,
     )
 
-    const { getNextPort } = await portManager()
-
-    const shutdown = async () => {
+    asyncExitHook(async () => {
       dbg(`Shutting down instance manager`)
       const p = Promise.all(map(instanceApis, (api) => api.shutdown()))
       await p
-    }
+    })
 
     const getInstanceApiIfExistsById = (id: InstanceId) => instanceApis[id]
 
-    return { shutdown, getInstanceApiIfExistsById }
+    return { getInstanceApiIfExistsById }
   },
 )

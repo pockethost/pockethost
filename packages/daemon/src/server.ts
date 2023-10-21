@@ -1,6 +1,7 @@
 import {
-  DAEMON_MAX_PORTS,
+  DAEMON_PB_PASSWORD,
   DAEMON_PB_SEMVER,
+  DAEMON_PB_USERNAME,
   MOTHERSHIP_PORT,
   PH_BIN_CACHE,
   PUBLIC_DEBUG,
@@ -8,9 +9,12 @@ import {
   TRACE,
 } from '$constants'
 import {
+  PocketbaseReleaseVersionService,
+  centralDbService,
   clientService,
   ftpService,
   instanceService,
+  ipWhitelistService,
   pocketbaseService,
   proxyService,
   realtimeLog,
@@ -18,12 +22,6 @@ import {
   sqliteService,
 } from '$services'
 import { LoggerService } from '@pockethost/common'
-import { exec } from 'child_process'
-import { centralDbService } from './services/CentralDbService'
-import { instanceLoggerService } from './services/InstanceLoggerService'
-import { ipWhitelistService } from './services/IpWhitelistService'
-import { portManager } from './services/PortManager'
-import { updaterService } from './services/UpdaterService/UpdaterService'
 // gen:import
 
 const [major, minor, patch] = process.versions.node.split('.').map(Number)
@@ -42,106 +40,64 @@ global.EventSource = require('eventsource')
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
-  /**
-   * Temporary fix until we can figure out why child processes are not
-   * being killed when the node process exits.
-   */
-  await new Promise<void>((resolve) => {
-    exec(`pkill -f 'pocketbase serve'`, (error, stdout, stderr) => {
-      if (error && error.signal !== 'SIGTERM') {
-        warn(`pkill failed with ${error}: ${stderr}`)
-      }
-      resolve()
-    })
-  })
-
-  const udService = await updaterService({
-    logger,
+  const udService = await PocketbaseReleaseVersionService({
     cachePath: PH_BIN_CACHE,
     checkIntervalMs: 1000 * 5 * 60,
   })
 
-  const pbService = await pocketbaseService({
-    logger,
-  })
+  const pbService = await pocketbaseService({})
 
   /**
    * Launch central database
    */
-  {
-    info(`Migrating mothership`)
-    await (
-      await pbService.spawn(
-        {
-          command: 'migrate',
+
+  info(`Serving`)
+  const url = await new Promise<string>((resolve) => {
+    const mothership = async () => {
+      try {
+        const { url, exitCode } = await pbService.spawn({
+          command: 'serve',
           isMothership: true,
           version: DAEMON_PB_SEMVER,
           name: PUBLIC_MOTHERSHIP_NAME,
           slug: PUBLIC_MOTHERSHIP_NAME,
-          onUnexpectedStop: () => {
-            error(`migrate had an unexpected stop. Check it out`)
-          },
-        },
-        { logger },
-      )
-    ).exited
-    info(`Migrating done`)
-  }
-  info(`Serving`)
-  const { url } = await pbService.spawn(
-    {
-      command: 'serve',
-      isMothership: true,
-      version: DAEMON_PB_SEMVER,
-      name: PUBLIC_MOTHERSHIP_NAME,
-      slug: PUBLIC_MOTHERSHIP_NAME,
-      port: MOTHERSHIP_PORT,
-      onUnexpectedStop: () => {
-        error(`serve had an unexpected stop. Check it out`)
-      },
-    },
-    { logger },
-  )
+          port: MOTHERSHIP_PORT,
+        })
+        resolve(url)
+        await exitCode
+      } catch (e) {
+        error(e)
+      } finally {
+        setTimeout(mothership, 10000)
+      }
+    }
+    mothership()
+  })
 
   /**
    * Launch services
    */
-  console.log('launching')
-  await portManager({ maxPorts: DAEMON_MAX_PORTS })
-  await clientService({ url, logger })
-  await ftpService({ logger })
-  await rpcService({ logger })
+  await clientService({
+    url,
+    username: DAEMON_PB_USERNAME,
+    password: DAEMON_PB_PASSWORD,
+  })
+  await ftpService({})
+  await rpcService({})
   await proxyService({
-    logger,
     coreInternalUrl: url,
   })
-  await ipWhitelistService({ logger })
-  await instanceLoggerService({ logger })
-  await sqliteService({ logger })
-  await realtimeLog({ logger })
+  await ipWhitelistService({})
+  await sqliteService({})
+  await realtimeLog({})
   await instanceService({
-    logger,
     instanceApiCheckIntervalMs: 50,
     instanceApiTimeoutMs: 5000,
   })
-  await centralDbService({ logger })
+  await centralDbService({})
   // gen:service
 
   info(`Hooking into process exit event`)
 
-  const shutdown = async (signal: NodeJS.Signals) => {
-    info(`Got signal ${signal}`)
-    info(`Shutting down`)
-    ftpService().shutdown()
-    ;(await realtimeLog()).shutdown()
-    ;(await proxyService()).shutdown()
-    ;(await instanceService()).shutdown()
-    ;(await rpcService()).shutdown()
-    pbService.shutdown()
-  }
-
   await (await rpcService()).initRpcs()
-  process.on('SIGTERM', shutdown)
-  process.on('SIGINT', shutdown)
-  process.on('SIGHUP', shutdown)
 })()

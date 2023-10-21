@@ -10,7 +10,7 @@ export type TimeManagerConfig = {}
 
 export type TimeManager = ReturnType<typeof createTimerManager>
 
-export const createTimerManager = (config: TimeManagerConfig) => {
+export const createTimerManager = (config?: Partial<TimeManagerConfig>) => {
   const { dbg, error } = LoggerService().create(`timerManager`)
   let i = 0
   const cleanups: any = {}
@@ -43,13 +43,17 @@ export const createTimerManager = (config: TimeManagerConfig) => {
     dbg(`done`, cleanups)
   }
 
-  const repeat = (cb: RepeatableTimerCallback, ms: UnixTimestampMs) => {
+  const repeat = (
+    cb: RepeatableTimerCallback,
+    ms: UnixTimestampMs,
+    initial = true,
+  ) => {
     let _unsub: TimerCanceler | undefined = undefined
     const _again = async () => {
       const shouldRepeat = await cb()
       if (shouldRepeat && !isShutDown) _unsub = add(_again, ms)
     }
-    _again().catch(error)
+    add(_again, initial ? 0 : ms)
     return () => {
       _unsub?.()
       _unsub = undefined

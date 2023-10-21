@@ -1,12 +1,12 @@
 import { DAEMON_IPCIDR_LIST } from '$constants'
+import { proxyService } from '$services'
 import { assert } from '$util'
 import {
   LoggerService,
-  SingletonBaseConfig,
   mkSingleton,
+  SingletonBaseConfig,
 } from '@pockethost/common'
 import IPCIDR from 'ip-cidr'
-import { proxyService } from '../ProxyService'
 export type IpWhitelistServiceConfig = SingletonBaseConfig & {
   ipRanges: string[]
 }
@@ -15,7 +15,8 @@ const IP_WHITELIST_SERVICE_NAME = 'IpWhitelistService'
 
 export const ipWhitelistService = mkSingleton(
   async (config: Partial<IpWhitelistServiceConfig> = {}) => {
-    const { ipRanges = DAEMON_IPCIDR_LIST, logger = LoggerService() } = config
+    const { ipRanges = DAEMON_IPCIDR_LIST } = config
+    const logger = LoggerService().create(`ipWhitelistService`)
     const _serviceLogger = logger.create(IP_WHITELIST_SERVICE_NAME)
     const { dbg, error, warn, abort } = _serviceLogger
 
@@ -45,6 +46,7 @@ export const ipWhitelistService = mkSingleton(
               `Request from IP ${ipAddress} blocked because it is not in range.`,
             )
           }
+          return false
         },
         IP_WHITELIST_SERVICE_NAME,
       )

@@ -1,73 +1,128 @@
-import { DAEMON_PB_DATA_DIR } from '$constants'
-import { sqliteService } from '$services'
-import {
-  InstanceId,
-  mkSingleton,
-  SingletonBaseConfig,
-  StreamNames,
-} from '@pockethost/common'
-import { mkdirSync } from 'fs'
-import { dirname, join } from 'path'
-import { DaemonContext } from './DaemonContext'
-import { createSqliteLogger, SqliteLogger } from './SqliteLogger'
+import { mkInstanceDataPath, PUBLIC_DEBUG } from '$constants'
+import { createCleanupManager, LoggerService } from '@pockethost/common'
+import * as fs from 'fs'
+import { Tail } from 'tail'
+import * as winston from 'winston'
 
-const instances: {
-  [instanceId: InstanceId]: SqliteLogger
+type UnsubFunc = () => void
+
+const loggers: {
+  [key: string]: {
+    info: (msg: string) => void
+    error: (msg: string) => void
+    tail: (
+      linesBack: number,
+      data: (line: winston.LogEntry) => void,
+    ) => UnsubFunc
+  }
 } = {}
 
-export const createInstanceLogger = async (
-  instanceId: InstanceId,
-  context: DaemonContext,
-) => {
-  const { parentLogger } = context
-  const _instanceLogger = parentLogger.create(`InstanceLogger`)
-
-  if (!instances[instanceId]) {
-    const loggerApi = await (async () => {
-      const _thisLogger = _instanceLogger.create(instanceId)
-      const { dbg } = _thisLogger
-
-      const logDbPath = join(
-        DAEMON_PB_DATA_DIR,
-        instanceId,
-        'pb_data',
-        'instance_logs.db',
-      )
-
-      dbg(`logs path`, logDbPath)
-      mkdirSync(dirname(logDbPath), { recursive: true })
-
-      dbg(`Running migrations`)
-      const { getDatabase } = sqliteService()
-      const db = await getDatabase(logDbPath)
-      await db.migrate({
-        migrationsPath: join(__dirname, 'migrations'),
-      })
-
-      const api = await createSqliteLogger(logDbPath, {
-        parentLogger: _instanceLogger,
-      })
-      await api.write(`Ran migrations`, StreamNames.System)
-      return api
-    })()
-    instances[instanceId] = loggerApi
+export function InstanceLogger(instanceId: string, target: string) {
+  const loggerKey = `${instanceId}_${target}`
+  if (loggers[loggerKey]) {
+    return loggers[loggerKey]!
   }
 
-  return instances[instanceId]!
+  const logDirectory = mkInstanceDataPath(instanceId, `logs`)
+  console.log(`Creating ${logDirectory}`)
+  if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory, { recursive: true })
+  }
+
+  const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+
+  const logger = winston.createLogger({
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json(),
+      winston.format.printf((info) => {
+        return JSON.stringify({
+          stream: info.level === 'info' ? 'stdout' : 'stderr',
+          time: info.timestamp,
+          message: info.message,
+        })
+      }),
+    ),
+    transports: [
+      new winston.transports.File({
+        filename: logFile,
+        maxsize: 100 * 1024 * 1024, // 100MB
+        maxFiles: 10,
+        tailable: true,
+        zippedArchive: true,
+      }),
+    ],
+  })
+
+  const { error, warn } = LoggerService()
+    .create('InstanceLogger')
+    .breadcrumb(instanceId)
+    .breadcrumb(target)
+
+  const api = {
+    info: (msg: string) => {
+      logger.info(msg)
+    },
+    error: (msg: string) => {
+      logger.error(msg)
+    },
+    tail: (
+      linesBack: number,
+      data: (line: winston.LogEntry) => void,
+    ): UnsubFunc => {
+      const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+
+      const cm = createCleanupManager()
+      let tid: any
+      cm.add(() => clearTimeout(tid))
+      const check = () => {
+        try {
+          const tail = new Tail(logFile, { nLines: linesBack })
+
+          tail.on('line', (line) => {
+            try {
+              const entry = JSON.parse(line)
+              data(entry)
+            } catch (e) {
+              data({
+                level: 'info',
+                message: line,
+                time: new Date().toISOString(),
+              })
+            }
+          })
+
+          cm.add(() => tail.unwatch())
+        } catch (e) {
+          warn(e)
+          tid = setTimeout(check, 1000)
+        }
+      }
+      check()
+
+      return () => {
+        cm.shutdown()
+      }
+    },
+  }
+  if (PUBLIC_DEBUG) {
+    const { dbg } = LoggerService().create(`Logger`).breadcrumb(instanceId)
+    api.tail(0, (entry) => {
+      dbg(entry.message)
+    })
+  }
+
+  loggers[loggerKey] = api
+  return api
 }
 
-export type InstanceLoggerServiceConfig = SingletonBaseConfig
+// // Example usage
+// const loggerInstance = InstanceLogger('123', 'my-target')
+// loggerInstance.info('This is an info message')
+// loggerInstance.error('This is an error message')
+// const unsubscribe = loggerInstance.tail(10, (line) => {
+//   console.log(line)
+// })
 
-export const instanceLoggerService = mkSingleton(
-  (config: InstanceLoggerServiceConfig) => {
-    const { logger } = config
-    const { dbg } = logger.create(`InstanceLoggerService`)
-    dbg(`Starting up`)
-    return {
-      get: createInstanceLogger,
-      shutdown() {
-        dbg(`Shutting down`)
-      },
-    }
-  },
-)
+// // Later when you want to stop listening to the tail:
+// // unsubscribe();

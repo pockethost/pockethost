@@ -1,6 +1,7 @@
 import {
   createCleanupManager,
   createEvent,
+  LoggerService,
   mkSingleton,
   serialAsyncExecutionGuard,
   SingletonBaseConfig,
@@ -33,8 +34,7 @@ export type SqliteServiceConfig = SingletonBaseConfig & {}
 export type SqliteService = ReturnType<typeof sqliteService>
 
 export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
-  const { logger } = config
-  const { dbg, trace } = logger.create(`sqliteService`)
+  const { dbg, trace } = LoggerService().create(`sqliteService`)
   const connections: { [_: string]: SqliteServiceApi } = {}
 
   const cm = createCleanupManager()
@@ -45,7 +45,7 @@ export const sqliteService = mkSingleton((config: SqliteServiceConfig) => {
   const _unsafe_getDatabase = async (
     filename: string,
   ): Promise<SqliteServiceApi> => {
-    const _dbLogger = logger.create(`SqliteService`)
+    const _dbLogger = LoggerService().create(`SqliteService`)
     _dbLogger.breadcrumb(filename)
     const { dbg, error, abort } = _dbLogger
 

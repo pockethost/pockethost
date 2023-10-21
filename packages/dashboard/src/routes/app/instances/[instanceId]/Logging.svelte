@@ -5,11 +5,10 @@
   import { mkCleanup } from '$util/componentCleanup'
   import {
     LoggerService,
+    StreamNames,
     Unsubscribe,
     type InstanceLogFields,
-    type RecordId,
   } from '@pockethost/common'
-  import { values } from '@s-libs/micro-dash'
   import { onMount } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from './store'
@@ -19,10 +18,9 @@
   $: ({ id } = $instance)
 
   // This takes in a log type and returns a specific text color
-  const logColor = (type: string) => {
-    if (type === 'system') return 'text-success'
-    if (type === 'info') return 'text-info'
-    if (type === 'error') return 'text-error'
+  const logColor = (type: StreamNames) => {
+    if (type === StreamNames.StdOut) return 'text-info'
+    if (type === StreamNames.StdErr) return 'text-error'
 
     return 'text-info'
   }
@@ -44,8 +42,7 @@
     modal?.showModal()
   }
 
-  const logs = writable<{ [_: RecordId]: InstanceLogFields }>({})
-  let logsArray: InstanceLogFields[] = []
+  const logs = writable<InstanceLogFields[]>([])
 
   const onDestroy = mkCleanup()
 
@@ -56,18 +53,13 @@
     const unsub = instanceId.subscribe((id) => {
       dbg(`Watching instance log ${id}`)
       unwatch?.()
-      logs.set({})
+      logs.set([])
       unwatch = client().watchInstanceLog(id, (newLog) => {
         trace(`Got new log`, newLog)
 
         logs.update((currentLogs) => {
-          return { ...currentLogs, [newLog.id]: newLog }
+          return [...currentLogs, newLog]
         })
-
-        logsArray = values($logs)
-          .sort((a, b) => (a.created > b.created ? 1 : -1))
-          .slice(0, 1000)
-          .reverse()
       })
     })
     onDestroy(unsub)
@@ -87,8 +79,8 @@
     <div class="modal-box max-w-[90vw] h-[90vh]">
       <h3 class="font-bold text-lg">Instance Logging</h3>
 
-      <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col-reverse gap-3">
-        {#each logsArray as log}
+      <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col gap-3">
+        {#each $logs as log}
           <div
             class="px-4 text-[11px] font-mono flex align-center"
             data-prefix=">"
@@ -98,7 +90,7 @@
             >
 
             <div>
-              <span class="mr-1 text-accent">{log.created}</span>
+              <span class="mr-1 text-accent">{log.time}</span>
               <span class={`mr-1 font-bold ${logColor(log.stream)}`}
                 >{log.stream}</span
               >
@@ -120,8 +112,8 @@
       on:click={handleFullScreenModal}
       >Fullscreen <i class="fa-regular fa-arrows-maximize"></i></button
     >
-    <div class="h-[450px] flex flex-col-reverse overflow-y-scroll gap-3">
-      {#each logsArray as log}
+    <div class="h-[450px] flex flex-col overflow-y-scroll gap-3">
+      {#each $logs as log}
         <div
           class="px-4 text-[11px] font-mono flex align-center"
           data-prefix=">"
@@ -131,7 +123,7 @@
           >
 
           <div>
-            <span class="mr-1 text-accent">{log.created}</span>
+            <span class="mr-1 text-accent">{log.time}</span>
             <span class={`mr-1 font-bold ${logColor(log.stream)}`}
               >{log.stream}</span
             >

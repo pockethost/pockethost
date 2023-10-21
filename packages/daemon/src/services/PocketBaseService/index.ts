@@ -1,29 +1,27 @@
 import {
-  DAEMON_PB_DATA_DIR,
   DAEMON_PB_HOOKS_DIR,
   DAEMON_PB_MIGRATIONS_DIR,
+  mkInstanceDataPath,
   PUBLIC_DEBUG,
 } from '$constants'
-import { assert, mkInternalUrl, tryFetch } from '$util'
+import { port as getPort, InstanceLogger } from '$services'
+import { assert, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import {
-  InvocationPid,
   createCleanupManager,
   createTimerManager,
-} from '@pockethost/common'
-import {
-  SingletonBaseConfig,
+  InvocationPid,
+  LoggerService,
   mkSingleton,
-} from '@pockethost/common/src/mkSingleton'
+  SingletonBaseConfig,
+} from '@pockethost/common'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
-import getPort from 'get-port'
 import MemoryStream from 'memorystream'
 import { dirname } from 'path'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
-import { AsyncContext } from '../../util/AsyncContext'
-import { updaterService } from '../UpdaterService/UpdaterService'
+import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }
@@ -37,11 +35,6 @@ export type SpawnConfig = {
   env?: Env
   stdout?: MemoryStream
   stderr?: MemoryStream
-  onUnexpectedStop: (
-    code: number | null,
-    stdout: string[],
-    stderr: string[],
-  ) => void
 }
 export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
@@ -53,28 +46,34 @@ export type PocketbaseProcess = {
   url: string
   pid: () => InvocationPid
   kill: () => Promise<void>
-  exited: Promise<number | null>
+  exitCode: Promise<number | null>
 }
 
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig,
 ) => {
-  const { logger } = config
-  const _serviceLogger = logger.create('PocketbaseService')
+  const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
-  const { getLatestVersion, getVersion } = await updaterService()
+  const { getLatestVersion, getVersion } =
+    await PocketbaseReleaseVersionService()
   const maxVersion = getLatestVersion()
 
-  const cm = createCleanupManager()
   const tm = createTimerManager({})
 
-  const _spawn = async (cfg: SpawnConfig, context?: AsyncContext) => {
-    const logger = (context?.logger || _serviceLogger).create('spawn')
+  const _spawn = async (cfg: SpawnConfig) => {
+    const cm = createCleanupManager()
+    const logger = LoggerService().create('spawn')
     const { dbg, warn, error } = logger
+    const defaultPort = await (async () => {
+      if (cfg.port) return cfg.port
+      const [defaultPort, freeDefaultPort] = await getPort.alloc()
+      cm.add(freeDefaultPort)
+      return defaultPort
+    })()
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-      port: cfg.port || (await getPort()),
+      port: defaultPort,
       isMothership: false,
       env: {},
       stderr: new MemoryStream(),
@@ -87,12 +86,13 @@ export const createPocketbaseService = async (
       name,
       slug,
       port,
-      onUnexpectedStop,
       isMothership,
       env,
       stderr,
       stdout,
     } = _cfg
+    const iLogger = InstanceLogger(slug, 'exec')
+
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await getVersion(_version)
     const binPath = realVersion.binPath
@@ -128,27 +128,21 @@ export const createPocketbaseService = async (
       args.push(`0.0.0.0:8090`)
     }
 
-    let isRunning = true
-
     const docker = new Docker()
-    const stdoutHistory: string[] = []
-    const stderrHistory: string[] = []
+    iLogger.info(`Starting instance`)
+
     const _stdoutData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
-        dbg(`${slug} stdout: ${line}`)
+        iLogger.info(line)
       })
-      stdoutHistory.push(...lines)
-      while (stdoutHistory.length > 100) stdoutHistory.shift()
     }
     stdout.on('data', _stdoutData)
     const _stdErrData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
-        warn(`${slug} stderr: ${line}`)
+        iLogger.error(line)
       })
-      stderrHistory.push(...lines)
-      while (stderrHistory.length > 100) stderrHistory.shift()
     }
     stderr.on('data', _stdErrData)
     const createOptions: ContainerCreateOptions = {
@@ -164,16 +158,16 @@ export const createPocketbaseService = async (
         },
         Binds: [
           `${dirname(binPath)}:/host_bin`,
-          `${DAEMON_PB_DATA_DIR}/${slug}:/host_data`,
+          `${mkInstanceDataPath(slug)}:/host_data`,
           `${
             isMothership
               ? DAEMON_PB_MIGRATIONS_DIR
-              : `${DAEMON_PB_DATA_DIR}/${slug}/pb_migrations`
+              : mkInstanceDataPath(slug, `pb_migrations`)
           }:/host_data/pb_migrations`,
           `${
             isMothership
               ? DAEMON_PB_HOOKS_DIR
-              : `${DAEMON_PB_DATA_DIR}/${slug}/pb_hooks`
+              : mkInstanceDataPath(slug, `pb_hooks`)
           }:/host_data/pb_hooks`,
         ],
       },
@@ -182,10 +176,13 @@ export const createPocketbaseService = async (
         [`8090/tcp`]: {},
       },
     }
-    dbg(`Spawning ${slug}`, { args, createOptions })
+    logger.info(`Spawning ${slug}`)
+    dbg({ args, createOptions })
 
     let container: Container | undefined = undefined
-    const exited = new Promise<number>(async (resolveExit) => {
+    let started = false
+    let stopped = false
+    const exitCode = new Promise<number>(async (resolveExit) => {
       container = await new Promise<Container>((resolve) => {
         docker
           .run(
@@ -195,38 +192,51 @@ export const createPocketbaseService = async (
             createOptions,
             (err, data) => {
               const { StatusCode } = data || {}
-              dbg(`${slug} closed with code ${StatusCode}`, { err, data })
-              isRunning = false
-              if (StatusCode > 0 || err) {
-                if (err?.json) {
-                  error(`Error: ${err.json.message}`)
-                  dbg(`${slug} stopped unexpectedly with code ${err}`, data)
-                }
-                onUnexpectedStop?.(StatusCode, stdoutHistory, stderrHistory)
+              dbg({ err, data })
+              container = undefined
+              stopped = true
+              unsub()
+              // Filter out Docker status codes https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
+              if ((StatusCode > 0 && StatusCode < 125) || err) {
+                iLogger.error(
+                  `Unexpected stop with code ${StatusCode} and error ${err}`,
+                )
+                error(
+                  `${slug} stopped unexpectedly with code ${StatusCode} and error ${err}`,
+                )
+                resolveExit(StatusCode || 999)
+              } else {
+                resolveExit(0)
               }
-              resolveExit(0)
             },
           )
           .on('container', (container: Container) => {
             dbg(`Got container`, container)
+            started = true
             resolve(container)
           })
       })
-      cm.add(async () => {
-        dbg(`Stopping ${slug} for cleanup`)
-        await container
-          ?.stop()
-          .catch((err) => warn(`Possible error stopping container: ${err}`))
-        stderr.off('data', _stdErrData)
-        stdout.off('data', _stdoutData)
-      })
+      if (!container) {
+        iLogger.error(`Could not start container`)
+        error(`${slug} could not start container`)
+        resolveExit(999)
+      }
     })
-
+    exitCode.then((code) => {
+      iLogger.info(`Process exited with code ${code}`)
+    })
     const url = mkInternalUrl(port)
+    const unsub = asyncExitHook(async () => {
+      dbg(`Exiting process ${slug}`)
+      await api.kill()
+    })
     if (command === 'serve') {
       await tryFetch(url, {
-        preflight: async () => isRunning,
-        logger: _serviceLogger,
+        preflight: async () => {
+          dbg({ stopped, started, container: !!container })
+          if (stopped) throw new Error(`Container stopped`)
+          return started && !!container
+        },
       })
     }
     const api: PocketbaseProcess = {
@@ -235,28 +245,34 @@ export const createPocketbaseService = async (
         assert(container)
         return container.id
       },
-      exited,
+      exitCode,
       kill: async () => {
+        unsub()
         if (!container) {
-          throw new Error(
-            `Attempt to kill a PocketBase process that was never running.`,
-          )
+          dbg(`Already exited`)
+          return
         }
+        iLogger.info(`Stopping instance`)
         await container.stop()
+        iLogger.info(`Instance stopped`)
+        stderr.off('data', _stdErrData)
+        stdout.off('data', _stdoutData)
+
+        container = undefined
+        await cm.shutdown()
       },
     }
+
     return api
   }
 
-  const shutdown = () => {
+  asyncExitHook(async () => {
     dbg(`Shutting down pocketbaseService`)
     tm.shutdown()
-    cm.shutdown()
-  }
+  })
 
   return {
     spawn: _spawn,
-    shutdown,
   }
 }
 

@@ -1,5 +1,11 @@
 import { DAEMON_PORT, PUBLIC_EDGE_APEX_DOMAIN } from '$constants'
-import { Logger, SingletonBaseConfig, mkSingleton } from '@pockethost/common'
+import { asyncExitHook } from '$util'
+import {
+  Logger,
+  LoggerService,
+  SingletonBaseConfig,
+  mkSingleton,
+} from '@pockethost/common'
 import { isFunction } from '@s-libs/micro-dash'
 import {
   IncomingMessage,
@@ -8,9 +14,8 @@ import {
   createServer,
 } from 'http'
 import { default as Server, default as httpProxy } from 'http-proxy'
-import { AsyncReturnType, Asyncify } from 'type-fest'
+import { AsyncReturnType, SetReturnType } from 'type-fest'
 import UrlPattern from 'url-pattern'
-
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
 export type ProxyMiddleware = (
@@ -23,14 +28,13 @@ export type ProxyMiddleware = (
     host: string
   },
   logger: Logger,
-) => void | Promise<void>
+) => boolean | Promise<boolean>
 
 export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
 }
 export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
-  const { logger } = config
-  const _proxyLogger = logger.create('ProxyService')
+  const _proxyLogger = LoggerService().create('ProxyService')
   const { dbg, error, info, trace, warn } = _proxyLogger
 
   const { coreInternalUrl } = config
@@ -70,7 +74,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         )
         for (let i = 0; i < middleware.length; i++) {
           const m = middleware[i]!
-          await m(req, res)
+          const handled = await m(req, res)
+          if (handled) break
         }
       }
     } catch (e) {
@@ -87,7 +92,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   info(`daemon on port ${DAEMON_PORT}`)
   server.listen(DAEMON_PORT)
 
-  const shutdown = async () => {
+  asyncExitHook(() => {
     info(`Shutting down proxy server`)
     return new Promise<void>((resolve) => {
       server.close((err) => {
@@ -96,9 +101,12 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       })
       server.closeAllConnections()
     })
-  }
+  })
 
-  type MiddlewareListener = RequestListener | Asyncify<RequestListener>
+  type MiddlewareListener = SetReturnType<
+    RequestListener,
+    boolean | Promise<boolean>
+  >
   const middleware: MiddlewareListener[] = []
 
   const use = (
@@ -139,7 +147,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       trace({ subdomainFilter, _urlFilters, host, url })
       if (!_subdomainFilter(subdomain)) {
         trace(`Subdomain ${subdomain} does not match filter ${subdomainFilter}`)
-        return
+        return false
       }
       if (
         !_urlFilters.find((u) => {
@@ -153,7 +161,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         })
       ) {
         dbg(`${url} does not match pattern ${urlFilters}`)
-        return
+        return false
       }
       dbg(`${url} matches ${urlFilters}, sending to handler`)
       return handler(
@@ -165,5 +173,5 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     })
   }
 
-  return { shutdown, use }
+  return { use }
 })

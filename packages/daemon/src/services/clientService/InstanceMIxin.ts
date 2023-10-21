@@ -1,3 +1,4 @@
+import { MixinContext } from '$services'
 import {
   INSTANCE_COLLECTION,
   InstanceFields,
@@ -9,8 +10,6 @@ import {
 } from '@pockethost/common'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { AsyncContext } from '../../util/AsyncContext'
-import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
 
@@ -56,7 +55,6 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const getInstanceById = async (
     instanceId: InstanceId,
-    context?: AsyncContext,
   ): Promise<[InstanceFields, UserFields] | []> =>
     client
       .collection(INSTANCE_COLLECTION)

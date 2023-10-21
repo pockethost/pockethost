@@ -1,15 +1,11 @@
-import { BaseFields } from './types'
-
 export enum StreamNames {
-  Info = 'info',
-  Warning = 'warning',
-  Debug = 'debug',
-  Error = 'error',
-  System = 'system',
+  StdOut = 'stdout',
+  StdErr = 'stderr',
 }
 
-export type InstanceLogFields = BaseFields & {
+export type InstanceLogFields = {
   message: string
+  time: string
   stream: StreamNames
 }
 

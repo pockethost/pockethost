@@ -1,3 +1,4 @@
+import { clientService, instanceService, rpcService } from '$services'
 import {
   CreateInstancePayload,
   CreateInstancePayloadSchema,
@@ -20,10 +21,7 @@ import {
   type SetInstanceMaintenanceResult,
 } from '@pockethost/common'
 import { valid, validRange } from 'semver'
-import { instanceService } from '../InstanceService/InstanceService'
-import { updaterService } from '../UpdaterService/UpdaterService'
-import { clientService } from '../clientService/clientService'
-import { rpcService } from './RpcService'
+import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 
 export const registerRpcCommands = async (logger: Logger) => {
   const { client } = await clientService()
@@ -41,7 +39,7 @@ export const registerRpcCommands = async (logger: Logger) => {
       const instance = await client.createInstance({
         subdomain,
         uid: rpc.userId,
-        version: (await updaterService()).getLatestVersion(),
+        version: (await PocketbaseReleaseVersionService()).getLatestVersion(),
         status: InstanceStatus.Idle,
         secondsThisMonth: 0,
         secrets: {},

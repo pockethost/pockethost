@@ -7,7 +7,12 @@ import {
   SSL_KEY,
 } from '$constants'
 import { clientService, createPbClient } from '$services'
-import { SingletonBaseConfig, mkSingleton } from '@pockethost/common'
+import { exitHook } from '$util'
+import {
+  LoggerService,
+  SingletonBaseConfig,
+  mkSingleton,
+} from '@pockethost/common'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import { PhFs } from './PhFs'
@@ -44,8 +49,7 @@ const tls = {
 }
 
 export const ftpService = mkSingleton((config: FtpConfig) => {
-  const { logger } = config
-  const _ftpServiceLogger = logger.create('FtpService')
+  const _ftpServiceLogger = LoggerService().create('FtpService')
   const { dbg, info } = _ftpServiceLogger
 
   const ftpServer = new FtpSrv({
@@ -62,7 +66,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     'login',
     async ({ connection, username, password }, resolve, reject) => {
       const url = (await clientService()).client.url
-      const client = createPbClient(url, _ftpServiceLogger)
+      const client = createPbClient(url)
       try {
         await client.client
           .collection('users')
@@ -81,10 +85,10 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     info('Ftp server started...')
   })
 
-  const shutdown = () => {
+  exitHook(() => {
     info(`Closing FTP server`)
     ftpServer.close()
-  }
+  })
 
-  return { shutdown }
+  return {}
 })

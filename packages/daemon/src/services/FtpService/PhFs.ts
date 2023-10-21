@@ -1,4 +1,5 @@
 import { DAEMON_PB_DATA_DIR } from '$constants'
+import { PocketbaseClientApi } from '$services'
 import { assert } from '$util'
 import { InstanceFields, Logger } from '@pockethost/common'
 import { compact, map } from '@s-libs/micro-dash'
@@ -13,13 +14,12 @@ import {
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { customAlphabet } from 'nanoid'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
-import { PocketbaseClientApi } from '../clientService/PbClient'
 import {
   FolderNames,
   INSTANCE_ROOT_FOLDER_NAMES,
   MAINTENANCE_ONLY_FOLDER_NAMES,
   isInstanceRootFolder,
-} from './FtpService'
+} from '.'
 import * as fsAsync from './fs-async'
 
 const nanoid = customAlphabet(`abcdefghijklmnop`)
