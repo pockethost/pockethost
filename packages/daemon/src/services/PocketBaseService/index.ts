@@ -7,7 +7,6 @@ import {
 import { port as getPort, InstanceLogger } from '$services'
 import {
   assert,
-  AsyncContext,
   asyncExitHook,
   mkInternalUrl,
   tryFetch,
@@ -67,7 +66,7 @@ export const createPocketbaseService = async (
 
   const tm = createTimerManager({})
 
-  const _spawn = async (cfg: SpawnConfig, context?: AsyncContext) => {
+  const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
     const logger = (context?.logger || _serviceLogger).create('spawn')
     const { dbg, warn, error } = logger

@@ -1,4 +1,3 @@
-export * from './AsyncContext'
 export * from './PromiseAllocator'
 export * from './assert'
 export * from './downloadAndExtract'

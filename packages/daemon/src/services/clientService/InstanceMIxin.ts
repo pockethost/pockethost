@@ -1,5 +1,4 @@
 import { MixinContext } from '$services'
-import { AsyncContext } from '$util'
 import {
   INSTANCE_COLLECTION,
   InstanceFields,
@@ -56,7 +55,6 @@ export const createInstanceMixin = (context: MixinContext) => {
 
   const getInstanceById = async (
     instanceId: InstanceId,
-    context?: AsyncContext,
   ): Promise<[InstanceFields, UserFields] | []> =>
     client
       .collection(INSTANCE_COLLECTION)
