@@ -5,12 +5,7 @@ import {
   PUBLIC_DEBUG,
 } from '$constants'
 import { port as getPort, InstanceLogger } from '$services'
-import {
-  assert,
-  asyncExitHook,
-  mkInternalUrl,
-  tryFetch,
-} from '$util'
+import { assert, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import {
   createCleanupManager,
   createTimerManager,
@@ -133,8 +128,6 @@ export const createPocketbaseService = async (
       args.push(`0.0.0.0:8090`)
     }
 
-    let isRunning = true
-
     const docker = new Docker()
     iLogger.info(`Starting instance`)
 
@@ -187,6 +180,8 @@ export const createPocketbaseService = async (
     dbg({ args, createOptions })
 
     let container: Container | undefined = undefined
+    let started = false
+    let stopped = false
     const exitCode = new Promise<number>(async (resolveExit) => {
       container = await new Promise<Container>((resolve) => {
         docker
@@ -199,6 +194,7 @@ export const createPocketbaseService = async (
               const { StatusCode } = data || {}
               dbg({ err, data })
               container = undefined
+              stopped = true
               unsub()
               // Filter out Docker status codes https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
               if ((StatusCode > 0 && StatusCode < 125) || err) {
@@ -216,6 +212,7 @@ export const createPocketbaseService = async (
           )
           .on('container', (container: Container) => {
             dbg(`Got container`, container)
+            started = true
             resolve(container)
           })
       })
@@ -229,15 +226,19 @@ export const createPocketbaseService = async (
       iLogger.info(`Process exited with code ${code}`)
     })
     const url = mkInternalUrl(port)
-    if (command === 'serve') {
-      await tryFetch(url, {
-        preflight: async () => isRunning,
-      })
-    }
     const unsub = asyncExitHook(async () => {
       dbg(`Exiting process ${slug}`)
       await api.kill()
     })
+    if (command === 'serve') {
+      await tryFetch(url, {
+        preflight: async () => {
+          dbg({ stopped, started, container: !!container })
+          if (stopped) throw new Error(`Container stopped`)
+          return started && !!container
+        },
+      })
+    }
     const api: PocketbaseProcess = {
       url,
       pid: () => {
