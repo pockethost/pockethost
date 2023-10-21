@@ -45,9 +45,7 @@ global.EventSource = require('eventsource')
     checkIntervalMs: 1000 * 5 * 60,
   })
 
-  const pbService = await pocketbaseService({
-    logger,
-  })
+  const pbService = await pocketbaseService({})
 
   /**
    * Launch central database
