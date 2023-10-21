@@ -68,7 +68,7 @@ export const createPocketbaseService = async (
 
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
-    const logger = (context?.logger || _serviceLogger).create('spawn')
+    const logger = LoggerService().create('spawn')
     const { dbg, warn, error } = logger
     const defaultPort = await (async () => {
       if (cfg.port) return cfg.port
