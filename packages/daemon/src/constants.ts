@@ -83,8 +83,6 @@ export const PH_FTP_PASV_IP = env('PH_FTP_PASV_IP', '0.0.0.0')
 export const PH_FTP_PASV_PORT_MIN = envi('PH_FTP_PASV_PORT_MIN', 10000)
 export const PH_FTP_PASV_PORT_MAX = envi('PH_FTP_PASV_PORT_MAX', 20000)
 
-export const DENO_PATH = env('DENO_PATH', `deno`)
-
 export const DAEMON_PB_SEMVER = env('DAEMON_PB_SEMVER', '') // This will default always to the max version
 
 export const HOST_OS = env('HOST_OS', 'darwin')
@@ -102,7 +100,6 @@ console.log({
   DAEMON_PB_MIGRATIONS_DIR,
   DAEMON_PB_SEMVER,
   DAEMON_PB_HOOKS_DIR,
-  DENO_PATH,
   PH_FTP_PASV_IP,
   PH_FTP_PORT,
   PH_FTP_PASV_PORT_MIN,
