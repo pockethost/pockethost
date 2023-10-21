@@ -11,7 +11,7 @@ export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
   const { url, username, password } = cfg
   const _clientLogger = LoggerService().create(`client singleton`)
   const { dbg, error } = _clientLogger
-  const client = createPbClient(url, _clientLogger)
+  const client = createPbClient(url)
 
   try {
     await client.adminAuthViaEmail(username, password)
@@ -25,7 +25,7 @@ export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
       dbg(`Logged in`)
     } catch (e) {
       error(`CANNOT AUTHENTICATE TO ${url}`)
-      process.exit(-1)
+      throw e
     }
   }
 

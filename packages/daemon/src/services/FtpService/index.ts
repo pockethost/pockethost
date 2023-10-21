@@ -66,7 +66,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     'login',
     async ({ connection, username, password }, resolve, reject) => {
       const url = (await clientService()).client.url
-      const client = createPbClient(url, _ftpServiceLogger)
+      const client = createPbClient(url)
       try {
         await client.client
           .collection('users')
