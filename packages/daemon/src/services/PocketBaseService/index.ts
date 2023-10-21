@@ -197,9 +197,7 @@ export const createPocketbaseService = async (
             createOptions,
             (err, data) => {
               const { StatusCode } = data || {}
-              iLogger.info(`${slug} closed with code ${StatusCode}`)
               dbg({ err, data })
-              isRunning = false
               container = undefined
               unsub()
               // Filter out Docker status codes https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
@@ -227,7 +225,9 @@ export const createPocketbaseService = async (
         resolveExit(999)
       }
     })
-
+    exitCode.then((code) => {
+      iLogger.info(`Process exited with code ${code}`)
+    })
     const url = mkInternalUrl(port)
     if (command === 'serve') {
       await tryFetch(url, {
