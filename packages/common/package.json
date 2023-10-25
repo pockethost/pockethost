@@ -4,7 +4,6 @@
   "main": "src/index.ts",
   "license": "MIT",
   "scripts": {
-    "postinstall": "cd ../.. && patch-package",
     "check:types": "tsc --noEmit"
   },
   "dependencies": {

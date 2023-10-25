@@ -8,13 +8,12 @@
     "dev": "vite dev --force",
     "build": "vite build",
     "lint": "prettier --check .",
-    "format": "prettier --write .",
-    "postinstall": "cd ../.. && patch-package"
+    "format": "prettier --write ."
   },
   "type": "module",
   "dependencies": {
-    "@dansvel/vite-plugin-markdown": "^2.0.5",
-    "@microsoft/fetch-event-source": "https://github.com/Almar/fetch-event-source.git#pr/make_web_worker_friendly",
+    "@dansvel/vite-plugin-markdown": "https://github.com/pockethost/vite-plugin-markdown.git#pockethost",
+    "@microsoft/fetch-event-source": "https://github.com/pockethost/fetch-event-source.git#pockethost",
     "@pockethost/common": "*",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.25.2",

@@ -13,8 +13,7 @@
     "ddos": "tsx watch src/stresser/index.ts",
     "start": "tsx src/server.ts",
     "pm2": "pm2 stop all; pm2 del daemon ; pm2 start \"yarn start\" --name=daemon -l /home/pockethost/logs/daemon-`date +%s`.log",
-    "migrate": "tsx src/migrate/migrate.ts",
-    "postinstall": "cd ../.. && patch-package"
+    "migrate": "tsx src/migrate/migrate.ts"
   },
   "dependencies": {
     "@pockethost/common": "0.0.1",
@@ -27,13 +26,13 @@
     "commander": "^11.0.0",
     "date-fns": "^2.29.3",
     "decompress": "^4.2.1",
-    "decompress-unzip": "^4.0.1",
+    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#pockethost",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
     "exit-hook": "^4.0.0",
-    "ftp-srv": "^4.6.2",
+    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#pockethost",
     "get-port": "^6.1.2",
     "glob": "^10.3.10",
     "http-proxy": "^1.18.1",
