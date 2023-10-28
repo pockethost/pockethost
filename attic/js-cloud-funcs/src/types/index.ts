@@ -1,5 +1,0 @@
-export * from './database'
-export * from './go-namespaces'
-export * from './GoApi'
-export * from './PBScriptApi'
-export * from './__global'
