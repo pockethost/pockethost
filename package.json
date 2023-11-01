@@ -24,8 +24,8 @@
     "start:daemon": "cd packages/daemon && yarn start",
     "pm2": "concurrently 'yarn:pm2:*'",
     "pm2:daemon": "cd packages/daemon && yarn pm2",
-    "prepare": "husky install",
-    "release:create": "hygen blog new"
+    "plop": "plop",
+    "prepare": "husky install"
   },
   "workspaces": {
     "packages": [
@@ -47,6 +47,8 @@
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.1",
     "husky": "^8.0.0",
+    "js-yaml": "^4.1.0",
+    "plop": "^4.0.0",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.0.3",
     "prettier-plugin-organize-imports": "^3.2.3",
@@ -60,7 +62,6 @@
   },
   "dependencies": {
     "@s-libs/micro-dash": "^16.1.0",
-    "hygen": "^6.2.11",
     "ora": "^7.0.1",
     "pocketbase": "^0.18.0"
   }
