@@ -13,7 +13,6 @@
   },
   "type": "module",
   "devDependencies": {
-    "@dansvel/vite-plugin-markdown": "https://github.com/pockethost/vite-plugin-markdown.git#pockethost",
     "@microsoft/fetch-event-source": "https://github.com/pockethost/fetch-event-source.git#pockethost",
     "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
