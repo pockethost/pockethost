@@ -7,7 +7,7 @@
     "check:types": "svelte-check",
     "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
     "dev": "vite dev --force",
-    "build": "yarn && vite build",
+    "build": "NODE_ENV=production vite build",
     "lint": "prettier --check .",
     "format": "prettier --write ."
   },

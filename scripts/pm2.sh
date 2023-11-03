@@ -15,4 +15,4 @@ chown pockethost:pockethost -R $LOG_ROOT
 pm2 stop all
 docker kill $(docker ps -q)
 docker rm $(docker ps -a -q)
-yarn pm2
+pnpm pm2

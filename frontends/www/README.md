@@ -5,8 +5,8 @@ Built with 11ty, Tailwind, Daisy UI, and Markdown
 ## Getting Started
 
 - Clone the repo
-- Run `yarn install` at the project root
-- Navigate to `packages/www/`
+- Run `pnpm install` at the project root
+- Navigate to `frontends/www/`
 - Run `npx @11ty/eleventy --serve --quiet` to start the development server
 - Access the site at http://localhost:8080/
 
@@ -16,7 +16,7 @@ Built with 11ty, Tailwind, Daisy UI, and Markdown
 
 ### Creating Variables
 
-You can use the `set` function from nunjucks to create variables. 
+You can use the `set` function from nunjucks to create variables.
 
 ```twig
 {% set linkCSS = "block py-2 px-3 rounded hover:text-white hover:bg-zinc-800" %}
@@ -52,7 +52,7 @@ You can use the `macro` command to create reusable functions. An example looks l
 {% endmacro %}
 ```
 
-Now that your component has been built with the three properties: `text`, `url`, and the optional `icon`, you can import it wherever you want. Note that imports by default start in the `_includes` folder, so no need to reference through the folder tree to get to it. 
+Now that your component has been built with the three properties: `text`, `url`, and the optional `icon`, you can import it wherever you want. Note that imports by default start in the `_includes` folder, so no need to reference through the folder tree to get to it.
 
 ```twig
 {# /content/about.njk #}
@@ -63,7 +63,6 @@ Now that your component has been built with the three properties: `text`, `url`,
 ```
 
 You can also make macros, or reusable functions, within the page itself, as long as that component is only being used on that specific page. If you need to use it in multiple pages, it is best to put it in its own file in the `_includes/components` folder.
-
 
 ### Reference Page Data
 
@@ -91,7 +90,7 @@ New post! Read the description below:
 {{ description }}
 ```
 
-The metadata will be injected into the template, and rendered as static html. 
+The metadata will be injected into the template, and rendered as static html.
 
 ### Folder Structure
 
@@ -113,46 +112,45 @@ public/ # This folder is copied into the _site folder at compile time. Images an
 └── webfonts # This holds the Font Awesome icon system
 ```
 
-
 ## 11ty Advanced Features
 
 - 11ty "Get Started" Documentation: https://www.11ty.dev/docs/getting-started/
 - Using [Eleventy v2.0](https://www.11ty.dev/blog/eleventy-v2/) with zero-JavaScript output.
-	- Content is exclusively pre-rendered (this is a static site).
-	- Can easily [deploy to a subfolder without changing any content](https://www.11ty.dev/docs/plugins/html-base/)
-	- All URLs are decoupled from the content’s location on the file system.
-	- Configure templates via the [Eleventy Data Cascade](https://www.11ty.dev/docs/data-cascade/)
+  - Content is exclusively pre-rendered (this is a static site).
+  - Can easily [deploy to a subfolder without changing any content](https://www.11ty.dev/docs/plugins/html-base/)
+  - All URLs are decoupled from the content’s location on the file system.
+  - Configure templates via the [Eleventy Data Cascade](https://www.11ty.dev/docs/data-cascade/)
 - **Performance focused** with no client-side javascript
 - Local development live reload provided by [Eleventy Dev Server](https://www.11ty.dev/docs/dev-server/).
 - Content-driven [navigation menu](https://www.11ty.dev/docs/plugins/navigation/)
 - [Image optimization](https://www.11ty.dev/docs/plugins/image/) via the `{% image %}` shortcode.
-	- Zero-JavaScript output.
-	- Support for modern image formats automatically (e.g. AVIF and WebP)
-	- Prefers `<img>` markup if possible (single image format) but switches automatically to `<picture>` for multiple image formats.
-	- Automated `<picture>` syntax markup with `srcset` and optional `sizes`
-	- Includes `width`/`height` attributes to avoid [content layout shift](https://web.dev/cls/).
-	- Includes `loading="lazy"` for native lazy loading without JavaScript.
-	- Includes [`decoding="async"`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding)
-	- Images can be co-located with blog post files.
-	- View the [Image plugin source code](https://github.com/11ty/eleventy-base-blog/blob/main/eleventy.config.images.js)
+  - Zero-JavaScript output.
+  - Support for modern image formats automatically (e.g. AVIF and WebP)
+  - Prefers `<img>` markup if possible (single image format) but switches automatically to `<picture>` for multiple image formats.
+  - Automated `<picture>` syntax markup with `srcset` and optional `sizes`
+  - Includes `width`/`height` attributes to avoid [content layout shift](https://web.dev/cls/).
+  - Includes `loading="lazy"` for native lazy loading without JavaScript.
+  - Includes [`decoding="async"`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding)
+  - Images can be co-located with blog post files.
+  - View the [Image plugin source code](https://github.com/11ty/eleventy-base-blog/blob/main/eleventy.config.images.js)
 - Per page CSS bundles [via `eleventy-plugin-bundle`](https://github.com/11ty/eleventy-plugin-bundle).
 - Built-in [syntax highlighter](https://www.11ty.dev/docs/plugins/syntaxhighlight/) (zero-JavaScript output).
 - Blog Posts
-	- Draft posts: use `draft: true` to mark a blog post as a draft. Drafts are **only** included during `--serve`/`--watch` and are excluded from full builds. View the [Drafts plugin source code](https://github.com/11ty/eleventy-base-blog/blob/main/eleventy.config.drafts.js).
-	- Automated next/previous links
-	- Accessible deep links to headings
+  - Draft posts: use `draft: true` to mark a blog post as a draft. Drafts are **only** included during `--serve`/`--watch` and are excluded from full builds. View the [Drafts plugin source code](https://github.com/11ty/eleventy-base-blog/blob/main/eleventy.config.drafts.js).
+  - Automated next/previous links
+  - Accessible deep links to headings
 - Generated Pages
-	- Home, Archive, and About pages.
-	- [Feeds for Atom and JSON](https://www.11ty.dev/docs/plugins/rss/)
-	- `sitemap.xml`
-	- Zero-maintenance tag pages ([View on the Demo](https://eleventy-base-blog.netlify.app/tags/))
-	- Content not found (404) page
+  - Home, Archive, and About pages.
+  - [Feeds for Atom and JSON](https://www.11ty.dev/docs/plugins/rss/)
+  - `sitemap.xml`
+  - Zero-maintenance tag pages ([View on the Demo](https://eleventy-base-blog.netlify.app/tags/))
+  - Content not found (404) page
 - `content/blog/` has the blog posts, but really they can live in any directory. They need only the `posts` tag to be included in the blog posts [collection](https://www.11ty.dev/docs/collections/).
 - Content can be in _any template format_ (blog posts needn’t exclusively be markdown, for example). Configure your project’s supported templates in `eleventy.config.js` -> `templateFormats`.
 - The `public` folder in your input directory will be copied to the output folder (via `addPassthroughCopy` in the `eleventy.config.js` file). This means `./public/css/*` will live at `./_site/css/*` after your build completes.
 - Provides two content feeds:
-	- `content/feed/feed.njk`
-	- `content/feed/json.njk`
+  - `content/feed/feed.njk`
+  - `content/feed/json.njk`
 - This project uses multiple [Eleventy Layouts](https://www.11ty.dev/docs/layouts/):
 - `_includes/components/postslist.njk` is a Nunjucks include and is a reusable component used to display a list of all the posts. `content/index.njk` has an example of how to use it.
 

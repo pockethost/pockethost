@@ -5,4 +5,3 @@ node_modules
 /package
 dist-server
 .idea
-yarn-error.log

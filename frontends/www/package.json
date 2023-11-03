@@ -3,7 +3,7 @@
   "version": "8.0.0",
   "description": "A starter repository for a blog web site using the Eleventy site generator.",
   "scripts": {
-    "build": "npx @11ty/eleventy",
+    "build": "NODE_ENV=production npx @11ty/eleventy",
     "build-ghpages": "npx @11ty/eleventy --pathprefix=/eleventy-base-blog/",
     "start:tailwind": "tailwind -i ./public/css/index.css -o ./_site/css/index.css --watch",
     "start": "npx @11ty/eleventy --serve --quiet",

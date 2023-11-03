@@ -6,7 +6,7 @@
 - `sudo ./scripts/build.sh`
 - `sudo ./scripts/prod.sh`
 - Finalize readme
-- `yarn version --patch`
+- `pnpm version --patch`
 - `sudo ./scripts/pm2.sh`
 - `sudo crontab -e`
 - Create new discussion in PocketHost and PocketBase
@@ -18,7 +18,7 @@
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
-yarn
+pnpm
 cp .env-template .env # modify as needed
 scripts/build.sh
 ```
@@ -46,7 +46,7 @@ If all goes well:
 - Update `./gitbook/releases` with latest relevant fixes.
 - Create a new discussion on PocketHost forum
 - If major release, create announcement on PocketBase forum
-- Use `yarn version --patch` for patch release and tag with git
+- Use `pnpm version --patch` for patch release and tag with git
 - Use `scripts/build.sh` to rebuild everything
 - Use `scripts/pm2.sh` to run in prod mode
 

@@ -1,4 +1,6 @@
-require('dotenv').config({ path: '.env' })
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: '.env' })
+}
 
 /**
  * These environment variables default to pointing to the production build so frontend development is easy.

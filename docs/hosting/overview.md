@@ -24,16 +24,16 @@ If you're still interested in creating a PocketHost hosting environment for your
 ```
 apt-get update
 apt-get install -y nginx nodejs npm
-npm i -g n yarn
+npm i -g n pnpm
 n lts
 hash -r
 git clone git@github.com:benallfree/pockethost.git pockethost-latest
 cd pockethost-latest
-yarn
+pnpm
 cd ..
 git clone git@github.com:benallfree/pockethost.git pockethost-lts
 cd pockethost-lts
-yarn
+pnpm
 cd ..
 
 ```

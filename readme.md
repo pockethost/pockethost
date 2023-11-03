@@ -51,9 +51,9 @@ If you just want to work on the UI/frontend client apps, they are configured to 
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
-yarn
-yarn dev:www            # Marketing/blog area
-yarn dev:dashboard      # Dashboard/control panel
+pnpm
+pnpm dev:www            # Marketing/blog area
+pnpm dev:dashboard      # Dashboard/control panel
 ```
 
 ## All our base
@@ -75,14 +75,14 @@ Then:
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
-yarn
+pnpm
 cp .env-template .env
 ```
 
 `.env-template` is preconfigured to make all of PocketHost run locally using `lvh.me` as follows:
 
 ```bash
-yarn dev
+pnpm dev
 
 # marketing/blog
 open https://pockethost.lvh.me
@@ -132,17 +132,17 @@ That's it! You can control all this and much more from the `.env-template` file.
 
 The Mothership is a set of backend services, including a central `pocketbase` instance, that is the source of truth for the state of PocketHost.
 
-| Name                      | Default                               | Discussion                                                                                                                                                               |
-| ------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| MOTHERSHIP_MIGRATIONS_DIR | `<root>/packages/daemon/migrations`   | The directory where the Mothership migrations live. This is typically kept in revision control, so the default location is within the project directory structure.       |
-| MOTHERSHIP_HOOKS_DIR      | `<root>/packages/daemon/pb_hooks`     | The directory where the Mothership `pb_hooks` live. This is typically kept in revision control, so the default location is within the project directory structure.       |
-| MOTHERSHIP_ADMIN_USERNAME | `admin@pockethost.lvh.me`             | This admin login is created the first time PocketHost runs.                                                                                                              |
-| MOTHERSHIP_ADMIN_PASSWORD | `password`                            |                                                                                                                                                                          |
-| DEMO_USER_USERNAME        | `user@pockethost.lvh.me`              | This login is created the first time PocketHost runs                                                                                                                     |
-| DEMO_USER_PASSWORD        | `password`                            |                                                                                                                                                                          |
-| MOTHERSHIP_PORT           | `8091`                                | The port the Mothership service will listen on.                                                                                                                          |
-| MOTHERSHIP_SEMVER         | `(blank)`                             | The semver used to lock the Mothership to a specific `pocketbase` version range. The Mothership will never launch with a `pocketbase` binary version outside this range. |
-| MOTHERSHIP_PRIVATE_URL    | `http://mothership.pockdthost.lvh.me` | This should be set to an intranet IP address in production settings.                                                                                                     |
+| Name                      | Default                                | Discussion                                                                                                                                                               |
+| ------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| MOTHERSHIP_MIGRATIONS_DIR | `<root>/src/mothership-app/migrations` | The directory where the Mothership migrations live. This is typically kept in revision control, so the default location is within the project directory structure.       |
+| MOTHERSHIP_HOOKS_DIR      | `<root>/src/mothership-app/pb_hooks`   | The directory where the Mothership `pb_hooks` live. This is typically kept in revision control, so the default location is within the project directory structure.       |
+| MOTHERSHIP_ADMIN_USERNAME | `admin@pockethost.lvh.me`              | This admin login is created the first time PocketHost runs.                                                                                                              |
+| MOTHERSHIP_ADMIN_PASSWORD | `password`                             |                                                                                                                                                                          |
+| DEMO_USER_USERNAME        | `user@pockethost.lvh.me`               | This login is created the first time PocketHost runs                                                                                                                     |
+| DEMO_USER_PASSWORD        | `password`                             |                                                                                                                                                                          |
+| MOTHERSHIP_PORT           | `8091`                                 | The port the Mothership service will listen on.                                                                                                                          |
+| MOTHERSHIP_SEMVER         | `(blank)`                              | The semver used to lock the Mothership to a specific `pocketbase` version range. The Mothership will never launch with a `pocketbase` binary version outside this range. |
+| MOTHERSHIP_PRIVATE_URL    | `http://mothership.pockdthost.lvh.me`  | This should be set to an intranet IP address in production settings.                                                                                                     |
 
 ## Edge Variables (backend only)
 
