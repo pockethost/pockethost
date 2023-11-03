@@ -74,9 +74,11 @@ global.EventSource = EventSource
         })
         resolve(url)
         await exitCode
+        console.log(`got exit code on mothership`, { exitCode })
       } catch (e) {
         error(e)
       } finally {
+        console.log(`finally executing`)
         setTimeout(mothership, 10000)
       }
     }
