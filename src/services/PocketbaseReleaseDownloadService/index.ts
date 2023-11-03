@@ -27,7 +27,7 @@ export const PocketbaseReleaseDownloadService = mkSingleton(
   (config: Partial<PocketbaseReleaseDownloadServiceConfig> = {}) => {
     const { cachePath, onlyOne } = mergeConfig(
       {
-        cachePath: PH_BIN_CACHE,
+        cachePath: PH_BIN_CACHE(),
         onlyOne: false,
       },
       config,

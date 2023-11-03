@@ -1,4 +1,3 @@
-import { MixinContext } from '$services'
 import {
   INSTANCE_COLLECTION,
   InstanceFields,
@@ -9,6 +8,7 @@ import {
 } from '$shared'
 import { reduce } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
+import { MixinContext } from './PbClient'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
 

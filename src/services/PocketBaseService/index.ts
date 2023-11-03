@@ -113,7 +113,7 @@ export const createPocketbaseService = async (
       `--publicDir`,
       `/host_data/pb_public`,
     ]
-    if (DEBUG) {
+    if (DEBUG()) {
       args.push(`--debug`)
     }
     if (gte(realVersion.version, `0.9.0`)) {
@@ -163,12 +163,12 @@ export const createPocketbaseService = async (
           `${mkInstanceDataPath(slug)}:/host_data`,
           `${
             isMothership
-              ? MOTHERSHIP_MIGRATIONS_DIR
+              ? MOTHERSHIP_MIGRATIONS_DIR()
               : mkInstanceDataPath(slug, `pb_migrations`)
           }:/host_data/pb_migrations`,
           `${
             isMothership
-              ? MOTHERSHIP_HOOKS_DIR
+              ? MOTHERSHIP_HOOKS_DIR()
               : mkInstanceDataPath(slug, `pb_hooks`)
           }:/host_data/pb_hooks`,
         ],

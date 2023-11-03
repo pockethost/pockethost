@@ -1,4 +1,5 @@
 import {
+  MOTHERSHIP_URL,
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
   PH_FTP_PASV_PORT_MIN,
@@ -6,11 +7,11 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '$constants'
-import { clientService, createPbClient } from '$services'
 import { LoggerService, SingletonBaseConfig, mkSingleton } from '$shared'
 import { exitHook } from '$util'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
+import pocketbaseEs from 'pocketbase'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = SingletonBaseConfig & {}
@@ -39,34 +40,30 @@ export function isInstanceRootFolder(name: string): name is FolderNames {
   return INSTANCE_ROOT_FOLDER_NAMES.includes(name as FolderNames)
 }
 
-const tls = {
-  key: readFileSync(SSL_KEY || ''),
-  cert: readFileSync(SSL_CERT || ''),
-}
-
 export const ftpService = mkSingleton((config: FtpConfig) => {
+  const tls = {
+    key: readFileSync(SSL_KEY()),
+    cert: readFileSync(SSL_CERT()),
+  }
   const _ftpServiceLogger = LoggerService().create('FtpService')
   const { dbg, info } = _ftpServiceLogger
 
   const ftpServer = new FtpSrv({
-    url: 'ftp://0.0.0.0:' + PH_FTP_PORT,
+    url: 'ftp://0.0.0.0:' + PH_FTP_PORT(),
     anonymous: false,
     log: _ftpServiceLogger.create(`ftpServer`, { errorTrace: false }),
     tls,
-    pasv_url: PH_FTP_PASV_IP,
-    pasv_max: PH_FTP_PASV_PORT_MAX,
-    pasv_min: PH_FTP_PASV_PORT_MIN,
+    pasv_url: PH_FTP_PASV_IP(),
+    pasv_max: PH_FTP_PASV_PORT_MAX(),
+    pasv_min: PH_FTP_PASV_PORT_MIN(),
   })
 
   ftpServer.on(
     'login',
     async ({ connection, username, password }, resolve, reject) => {
-      const url = (await clientService()).client.url
-      const client = createPbClient(url)
+      const client = new pocketbaseEs(MOTHERSHIP_URL())
       try {
-        await client.client
-          .collection('users')
-          .authWithPassword(username, password)
+        await client.collection('users').authWithPassword(username, password)
         dbg(`Logged in`)
         const fs = new PhFs(connection, client, _ftpServiceLogger)
         resolve({ fs })

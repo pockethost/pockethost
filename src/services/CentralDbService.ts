@@ -9,7 +9,7 @@ export const centralDbService = mkSingleton(
     const { dbg } = LoggerService().create(`centralDbService`)
 
     ;(await proxyService()).use(
-      MOTHERSHIP_NAME,
+      MOTHERSHIP_NAME(),
       ['/api(/*)', '/_(/*)', '/'],
       (req, res, meta, logger) => {
         const { dbg } = logger

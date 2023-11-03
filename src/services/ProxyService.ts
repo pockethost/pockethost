@@ -57,8 +57,10 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         url.toString(),
       ].join(' ')
       info(`Incoming request ${sig}`)
-      if (!req.headers.host?.endsWith(APEX_DOMAIN)) {
-        warn(`${url} was rejected because host does not end in ${APEX_DOMAIN}`)
+      if (!req.headers.host?.endsWith(APEX_DOMAIN())) {
+        warn(
+          `${url} was rejected because host does not end in ${APEX_DOMAIN()}`,
+        )
         res.writeHead(502, {
           'Content-Type': `text/plain`,
         })
@@ -85,8 +87,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     }
   })
 
-  info(`daemon on port ${DAEMON_PORT}`)
-  server.listen(DAEMON_PORT)
+  info(`daemon on port ${DAEMON_PORT()}`)
+  server.listen(DAEMON_PORT())
 
   asyncExitHook(() => {
     info(`Shutting down proxy server`)

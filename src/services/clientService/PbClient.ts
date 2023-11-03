@@ -17,7 +17,7 @@ export const createPbClient = (url: string) => {
 
   info(`Initializing client: ${url}`)
   const rawDb = createRawPbClient(
-    mkInstanceDataPath(MOTHERSHIP_NAME, `pb_data`, `data.db`),
+    mkInstanceDataPath(MOTHERSHIP_NAME(), `pb_data`, `data.db`),
     _clientLogger,
   )
 

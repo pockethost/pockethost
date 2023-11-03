@@ -49,8 +49,8 @@ export const createSeed = (context: { program: Command } & ContextBase) => {
 
       const { client } = await clientService({
         url: options.mothershipUrl,
-        username: MOTHERSHIP_ADMIN_USERNAME,
-        password: MOTHERSHIP_ADMIN_PASSWORD,
+        username: MOTHERSHIP_ADMIN_USERNAME(),
+        password: MOTHERSHIP_ADMIN_PASSWORD(),
       })
 
       /**

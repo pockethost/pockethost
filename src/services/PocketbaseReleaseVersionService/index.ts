@@ -28,7 +28,7 @@ export const PocketbaseReleaseVersionService = mkSingleton(
 
     const { cachePath, checkIntervalMs } = mergeConfig(
       {
-        cachePath: PH_BIN_CACHE,
+        cachePath: PH_BIN_CACHE(),
         checkIntervalMs: 1000 * 5 * 60,
       },
       config,

@@ -330,9 +330,9 @@ export const instanceService = mkSingleton(
             raw(`idle check: ${openRequestCount} open requests`)
             if (
               openRequestCount === 0 &&
-              lastRequest + DAEMON_PB_IDLE_TTL < now()
+              lastRequest + DAEMON_PB_IDLE_TTL() < now()
             ) {
-              dbg(`idle for ${DAEMON_PB_IDLE_TTL}, shutting down`)
+              dbg(`idle for ${DAEMON_PB_IDLE_TTL()}, shutting down`)
               healthyGuard()
               await _safeShutdown().catch(error)
               return false
@@ -400,7 +400,7 @@ export const instanceService = mkSingleton(
     }
 
     ;(await proxyService()).use(
-      (subdomain) => subdomain !== MOTHERSHIP_NAME,
+      (subdomain) => subdomain !== MOTHERSHIP_NAME(),
       ['/api(/*)', '/_(/*)', '(/*)'],
       async (req, res, meta, logger) => {
         const { dbg } = logger

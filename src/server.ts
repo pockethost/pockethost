@@ -1,11 +1,13 @@
 import {
   DEBUG,
+  DefaultSettingsService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
   PH_BIN_CACHE,
+  SETTINGS,
 } from '$constants'
 import {
   PocketbaseReleaseVersionService,
@@ -31,9 +33,11 @@ if ((major || 0) < 18) {
   throw new Error(`Node 18 or higher required.`)
 }
 
+DefaultSettingsService(SETTINGS)
+
 LoggerService({
-  level: DEBUG ? LogLevelName.Debug : LogLevelName.Info,
-  errorTrace: !DEBUG,
+  level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
+  errorTrace: !DEBUG(),
 })
 
 // npm install eventsource --save
@@ -45,7 +49,7 @@ global.EventSource = EventSource
   info(`Starting`)
 
   const udService = await PocketbaseReleaseVersionService({
-    cachePath: PH_BIN_CACHE,
+    cachePath: PH_BIN_CACHE(),
     checkIntervalMs: 1000 * 5 * 60,
   })
 
@@ -63,10 +67,10 @@ global.EventSource = EventSource
         const { url, exitCode } = await pbService.spawn({
           command: 'serve',
           isMothership: true,
-          version: MOTHERSHIP_SEMVER,
-          name: MOTHERSHIP_NAME,
-          slug: MOTHERSHIP_NAME,
-          port: MOTHERSHIP_PORT,
+          version: MOTHERSHIP_SEMVER(),
+          name: MOTHERSHIP_NAME(),
+          slug: MOTHERSHIP_NAME(),
+          port: MOTHERSHIP_PORT(),
         })
         resolve(url)
         await exitCode
@@ -84,8 +88,8 @@ global.EventSource = EventSource
    */
   await clientService({
     url,
-    username: MOTHERSHIP_ADMIN_USERNAME,
-    password: MOTHERSHIP_ADMIN_PASSWORD,
+    username: MOTHERSHIP_ADMIN_USERNAME(),
+    password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
   await ftpService({})
   await rpcService({})

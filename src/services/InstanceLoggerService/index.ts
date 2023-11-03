@@ -105,7 +105,7 @@ export function InstanceLogger(instanceId: string, target: string) {
       }
     },
   }
-  if (DEBUG) {
+  if (DEBUG()) {
     const { dbg } = LoggerService().create(`Logger`).breadcrumb(instanceId)
     api.tail(0, (entry) => {
       dbg(entry.message)

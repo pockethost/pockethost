@@ -10,8 +10,8 @@ if ((major || 0) < 18) {
 }
 
 LoggerService({
-  level: DEBUG ? LogLevelName.Debug : LogLevelName.Info,
-  errorTrace: !DEBUG,
+  level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
+  errorTrace: !DEBUG(),
 })
 
 // npm install eventsource --save
@@ -23,7 +23,7 @@ global.EventSource = require('eventsource')
   info(`Starting`)
 
   const { check } = PocketbaseReleaseDownloadService({
-    cachePath: PH_BIN_CACHE,
+    cachePath: PH_BIN_CACHE(),
   })
   await check()
 })()

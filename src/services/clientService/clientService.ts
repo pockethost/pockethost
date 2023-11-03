@@ -1,4 +1,10 @@
+import {
+  MOTHERSHIP_ADMIN_PASSWORD,
+  MOTHERSHIP_ADMIN_USERNAME,
+  MOTHERSHIP_URL,
+} from '$constants'
 import { LoggerService, mkSingleton } from '$shared'
+import { mergeConfig } from '$util'
 import { createPbClient } from './PbClient'
 
 export type ClientServiceConfig = {
@@ -7,31 +13,40 @@ export type ClientServiceConfig = {
   password: string
 }
 
-export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
-  const { url, username, password } = cfg
-  const _clientLogger = LoggerService().create(`client singleton`)
-  const { dbg, error } = _clientLogger
-  const client = createPbClient(url)
+export const clientService = mkSingleton(
+  async (cfg: Partial<ClientServiceConfig> = {}) => {
+    const { url, username, password } = mergeConfig<ClientServiceConfig>(
+      {
+        url: MOTHERSHIP_URL(),
+        username: MOTHERSHIP_ADMIN_USERNAME(),
+        password: MOTHERSHIP_ADMIN_PASSWORD(),
+      },
+      cfg,
+    )
+    const _clientLogger = LoggerService().create(`client singleton`)
+    const { dbg, error } = _clientLogger
+    const client = createPbClient(url)
 
-  while (true) {
-    try {
-      await client.adminAuthViaEmail(username, password)
-      dbg(`Logged in as admin`)
-      break
-    } catch (e) {
-      dbg(`Creating first admin account`)
-
+    while (true) {
       try {
-        await client.createFirstAdmin(username, password)
         await client.adminAuthViaEmail(username, password)
-        dbg(`Logged in`)
+        dbg(`Logged in as admin`)
+        break
       } catch (e) {
-        error(`CANNOT AUTHENTICATE TO ${url}`)
+        dbg(`Creating first admin account`)
+
+        try {
+          await client.createFirstAdmin(username, password)
+          await client.adminAuthViaEmail(username, password)
+          dbg(`Logged in`)
+        } catch (e) {
+          error(`CANNOT AUTHENTICATE TO ${url}`)
+        }
       }
     }
-  }
 
-  return {
-    client,
-  }
-})
+    return {
+      client,
+    }
+  },
+)

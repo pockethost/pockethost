@@ -1,5 +1,5 @@
-import { DAEMON_DATA_ROOT } from '$constants'
-import { PocketbaseClientApi } from '$services'
+import { DATA_ROOT } from '$constants'
+import { clientService } from '$services'
 import { InstanceFields, Logger } from '$shared'
 import { assert } from '$util'
 import { compact, map } from '@s-libs/micro-dash'
@@ -14,6 +14,7 @@ import {
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { customAlphabet } from 'nanoid'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
+import pocketbaseEs from 'pocketbase'
 import {
   FolderNames,
   INSTANCE_ROOT_FOLDER_NAMES,
@@ -43,20 +44,14 @@ const WIN_SEP_REGEX = /\\/g
 
 export class PhFs implements FileSystem {
   private log: Logger
-  private client: PocketbaseClientApi
   connection: FtpConnection
   cwd: string
   private _root: string
 
-  constructor(
-    connection: FtpConnection,
-    client: PocketbaseClientApi,
-    logger: Logger,
-  ) {
+  constructor(connection: FtpConnection, client: pocketbaseEs, logger: Logger) {
     const cwd = `/`
-    const root = DAEMON_DATA_ROOT
+    const root = DATA_ROOT()
     this.connection = connection
-    this.client = client
     this.log = logger.create(`PhFs`)
     this.cwd = normalize((cwd || '/').replace(WIN_SEP_REGEX, '/'))
     this._root = resolve(root || process.cwd())
@@ -99,8 +94,9 @@ export class PhFs implements FileSystem {
 
     // Check if the instance is valid
     const instance = await (async () => {
+      const { client } = await clientService()
       if (subdomain) {
-        const [instance] = await this.client.getInstanceBySubdomain(subdomain)
+        const [instance] = await client.getInstanceBySubdomain(subdomain)
         if (!instance) {
           throw new Error(`${subdomain} not found.`)
         }
@@ -193,7 +189,8 @@ export class PhFs implements FileSystem {
     If a subdomain is not specified, we are in the user's root. List all subdomains.
     */
     if (subdomain === '') {
-      const instances = await this.client.getInstances()
+      const { client } = await clientService()
+      const instances = await client.getInstances()
       return instances.map((i) => {
         return {
           isDirectory: () => true,
