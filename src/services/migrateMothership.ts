@@ -2,7 +2,7 @@ import { MOTHERSHIP_NAME, MOTHERSHIP_SEMVER } from '$constants'
 import { PocketbaseService } from '$services'
 import { LoggerService } from '$shared'
 
-const migrateMothership = async () => {
+export const migrateMothership = async () => {
   const logger = LoggerService().create(`migrateMothership`)
   const { dbg, error, info, warn } = logger
 

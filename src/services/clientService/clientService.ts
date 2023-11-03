@@ -33,8 +33,5 @@ export const clientService = mkSingleton(async (cfg: ClientServiceConfig) => {
 
   return {
     client,
-    shutdown() {
-      dbg(`clientService shutdown`)
-    },
   }
 })
