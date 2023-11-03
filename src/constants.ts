@@ -21,7 +21,7 @@ import { findUpSync } from 'find-up'
 import { dirname, join, resolve } from 'path'
 import { LogEntry } from 'winston'
 
-dotenv.config({ path: `.env` })
+const loadedEnvs = dotenv.config({ path: `.env` })
 
 // Helpers
 
@@ -81,6 +81,12 @@ export const SETTINGS = {
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
   EDGE_SECRET_KEY: mkString(),
 }
+
+forEach(loadedEnvs.parsed, (v, k) => {
+  if (!(k in SETTINGS)) {
+    throw new Error(`.env key ${k} is not a known setting.`)
+  }
+})
 
 export type Settings = ReturnType<typeof DefaultSettingsService>
 export type SettingsDefinition = {
