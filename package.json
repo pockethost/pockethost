@@ -88,7 +88,7 @@
     "@types/json-stringify-safe": "^5.0.2",
     "@types/marked": "^4.0.8",
     "@types/memorystream": "^0.3.1",
-    "@types/node": "^18.11.9",
+    "@types/node": "^20.8.7",
     "@types/semver": "^7.3.13",
     "@types/tail": "^2.2.2",
     "@types/tmp": "^0.2.1",
@@ -104,12 +104,19 @@
     "prettier": "^3.0.3",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-svelte": "^3.0.3",
-    "replace-in-file": "^7.0.1",
     "rizzdown": "^0.0.6",
     "svelte": "^4.2.2",
     "tslib": "^2.6.2",
     "tsx": "^3.12.8",
     "type-fest": "^4.3.2",
-    "typescript": "^5.0"
+    "typescript": "^5.2.2"
+  },
+  "overrides": {
+    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
+    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59"
+  },
+  "resolutions": {
+    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
+    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59"
   }
 }
