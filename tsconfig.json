@@ -17,9 +17,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "$util": ["src/util/index"],
-      "$services": ["src/services/index"],
-      "$services/*": ["src/services/*"],
+      "$util": ["src/util"],
+      "$services": ["src/services"],
       "$constants": ["src/constants"],
       "$src/*": ["src/*"],
       "$shared": ["src/shared"]
@@ -29,5 +28,5 @@
     "esm": true
   },
   "include": ["./src"],
-  "exclude": ["./src/mothership-app/migrations/**/*"]
+  "exclude": ["src/mothership-app/migrations"]
 }

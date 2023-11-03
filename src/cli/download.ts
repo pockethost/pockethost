@@ -1,5 +1,5 @@
 import { DEBUG, PH_BIN_CACHE } from '$constants'
-import { PocketbaseReleaseDownloadService } from '$services/PocketbaseReleaseDownloadService'
+import { PocketbaseReleaseDownloadService } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
 // gen:import
 
