@@ -159,7 +159,7 @@ export const createPocketbaseService = async (
           '8090/tcp': [{ HostPort: `${port}` }],
         },
         Binds: [
-          `${dirname(binPath)}:/host_bin`,
+          `${dirname(binPath)}:/host_bin:ro`,
           `${mkInstanceDataPath(slug)}:/host_data`,
           `${
             isMothership
