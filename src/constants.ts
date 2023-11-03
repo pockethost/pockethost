@@ -79,12 +79,18 @@ export const SETTINGS = {
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
   EDGE_SECRET_KEY: mkString(),
 }
-
-forEach(loadedEnvs.parsed, (v, k) => {
-  if (!(k in SETTINGS)) {
-    throw new Error(`.env key ${k} is not a known setting.`)
+;(() => {
+  let passed = true
+  forEach(loadedEnvs.parsed, (v, k) => {
+    if (!(k in SETTINGS)) {
+      passed = false
+      console.error(`.env key ${k} is not a known setting.`)
+    }
+  })
+  if (!passed) {
+    throw new Error(`Exiting due to .env errors`)
   }
-})
+})()
 
 export type Settings = ReturnType<typeof DefaultSettingsService>
 export type SettingsDefinition = {
