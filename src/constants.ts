@@ -23,18 +23,16 @@ import { LogEntry } from 'winston'
 
 const loadedEnvs = dotenv.config({ path: `.env` })
 
-// Helpers
+export const _PH_HOME = join(process.env.HOME || resolve(`~`), `.pockethost`)
+export const _PH_PROJECT_ROOT = dirname(findUpSync('package.json')!)
+export const _PH_BUILD_ROOT = join(_PH_PROJECT_ROOT, 'dist')
 
-export const PH_HOME = join(process.env.HOME || resolve(`~`), `.pockethost`)
-export const PH_PROJECT_ROOT = dirname(findUpSync('package.json')!)
-export const PH_BUILD_ROOT = join(PH_PROJECT_ROOT, 'dist')
-
-console.log({ PH_HOME, PH_PROJECT_ROOT, PH_BUILD_ROOT })
+console.log({ _PH_HOME, _PH_PROJECT_ROOT, _PH_BUILD_ROOT })
 
 export const SETTINGS = {
-  PH_HOME: mkPath(PH_HOME),
-  PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT),
-  PH_BUILD_ROOT: mkPath(PH_BUILD_ROOT),
+  PH_HOME: mkPath(_PH_HOME),
+  PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
+  PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT),
 
   DEBUG: mkBoolean(false),
 
@@ -53,26 +51,26 @@ export const SETTINGS = {
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
   MOTHERSHIP_MIGRATIONS_DIR: mkPath(
-    join(PH_BUILD_ROOT, 'mothership-app', 'migrations'),
+    join(_PH_BUILD_ROOT, 'mothership-app', 'migrations'),
   ),
   MOTHERSHIP_HOOKS_DIR: mkPath(
-    join(PH_BUILD_ROOT, 'mothership-app', `pb_hooks`),
+    join(_PH_BUILD_ROOT, 'mothership-app', `pb_hooks`),
   ),
-  MOTHERSHIP_APP_DIR: mkPath(join(PH_BUILD_ROOT, 'mothership-app', `ph_app`), {
+  MOTHERSHIP_APP_DIR: mkPath(join(_PH_BUILD_ROOT, 'mothership-app', `ph_app`), {
     required: false,
   }),
   MOTHERSHIP_SEMVER: mkString(''),
   MOTHERSHIP_PORT: mkNumber(8091),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
-  DATA_ROOT: mkPath(join(PH_HOME, 'data')),
+  DATA_ROOT: mkPath(join(_PH_HOME, 'data')),
   NODE_ENV: mkString(`production`),
   TRACE: mkBoolean(false),
-  PH_BIN_CACHE: mkPath(join(PH_HOME, '.pbincache')),
+  PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache')),
 
   PH_FTP_PORT: mkNumber(21),
-  SSL_KEY: mkPath(join(PH_HOME, `pockethost.key`)),
-  SSL_CERT: mkPath(join(PH_HOME, `pockethost.crt`)),
+  SSL_KEY: mkPath(join(_PH_HOME, `pockethost.key`)),
+  SSL_CERT: mkPath(join(_PH_HOME, `pockethost.crt`)),
   PH_FTP_PASV_IP: mkString(`0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
@@ -141,6 +139,10 @@ export const instanceLogger = () => ioc.service('instanceLogger')
 /**
  * Accessors
  */
+export const PH_HOME = () => settings().PH_HOME
+export const PH_PROJECT_ROOT = () => settings().PH_PROJECT_ROOT
+export const PH_BUILD_ROOT = () => settings().PH_BUILD_ROOT
+
 export const DEBUG = () => settings().DEBUG
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
