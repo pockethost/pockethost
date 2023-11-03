@@ -8,6 +8,5 @@ export type InvocationFields = BaseFields & {
   instanceId: RecordId
   startedAt: IsoDate
   endedAt: IsoDate
-  pid: InvocationPid
   totalSeconds: number
 }

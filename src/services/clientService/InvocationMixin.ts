@@ -23,7 +23,6 @@ export const createInvocationMixin = (
     const init: Partial<InvocationFields> = {
       uid: instance.uid,
       startedAt: pocketNow(),
-      pid,
       instanceId: instance.id,
       totalSeconds: 0,
     }
