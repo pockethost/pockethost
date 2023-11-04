@@ -1,31 +1,54 @@
 onAfterBootstrap((e) => {
   $app.dao().db().newQuery(`update instances set status='idle'`).execute()
-  $app
-    .dao()
-    .db()
-    .newQuery(`update invocations set endedAt=datetime('now') where endedAt=''`)
-    .execute()
+  // $app
+  //   .dao()
+  //   .db()
+  //   .newQuery(`update invocations set endedAt=datetime('now') where endedAt=''`)
+  //   .execute()
 })
 
 routerAdd(
   'GET',
   '/api/signup',
   (c) => {
-    const random = require(`${__hooks}/random-words.js`)
+    const isAvailable = (slug) => {
+      try {
+        const record = $app
+          .dao()
+          .findFirstRecordByData('instances', 'subdomain', slug)
+        return false
+      } catch {
+        return true
+      }
+    }
+
+    const error = (fieldName, slug, description, extra) =>
+      new ApiError(500, description, {
+        [fieldName]: new ValidationError(slug, description),
+        ...extra,
+      })
+
     const instanceName = (() => {
-      let i = 0
-      while (true) {
-        i++
-        if (i > 100) {
-          return +new Date()
+      const name = c.queryParam('name').trim()
+      if (name) {
+        if (isAvailable(name)) {
+          return name
         }
-        const slug = random.generate(2).join(`-`)
-        try {
-          const record = $app
-            .dao()
-            .findFirstRecordByData('instances', 'subdomain', slug)
-        } catch {
-          return slug
+        throw error(
+          `instanceName`,
+          `exists`,
+          `Instance name ${name} is not available.`,
+        )
+      } else {
+        const random = require(`${__hooks}/random-words.js`)
+        let i = 0
+        while (true) {
+          i++
+          if (i > 100) {
+            return +new Date()
+          }
+          const slug = random.generate(2).join(`-`)
+          if (isAvailable(slug)) return slug
         }
       }
     })()
