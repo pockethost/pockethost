@@ -52,7 +52,7 @@ If you just want to work on the UI/frontend client apps, they are configured to 
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
 pnpm
-pnpm dev:www            # Marketing/blog area
+pnpm dev:lander            # Marketing/blog area
 pnpm dev:dashboard      # Dashboard/control panel
 ```
 

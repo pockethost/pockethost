@@ -10,15 +10,15 @@
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "build": "concurrently 'pnpm:build:*'",
-    "build-mothership": "concurrently 'pnpm:build:mothership:*'",
     "build-pockethost": "concurrently 'pnpm:build:pockethost:*'",
-    "build:dashboard": "cd frontends/dashboard && pnpm build",
-    "build:www": "cd frontends/www && pnpm build",
+    "build-frontends": "concurrently 'pnpm:build:frontend:*'",
+    "build:frontend:dashboard": "cd frontends/dashboard && pnpm build",
+    "build:frontend:lander": "cd frontends/lander && pnpm build",
     "build:pockethost:docker": "cd src/services/PocketBaseService && docker build -t benallfree/pockethost-instance .",
     "push:docker": "docker tag benallfree/pockethost-instance benallfree/pockethost-instance:latest && docker push benallfree/pockethost-instance:latest",
     "dev": "concurrently 'pnpm:dev:*'",
     "dev-daemon": "concurrently 'pnpm:dev:daemon:*'",
-    "dev:www": "cd frontends/www && pnpm start",
+    "dev:lander": "cd frontends/lander && pnpm start",
     "dev:dashboard": "cd frontends/dashboard && pnpm dev",
     "dev:daemon:server": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
@@ -45,7 +45,7 @@
     "commander": "^11.1.0",
     "date-fns": "^2.30.0",
     "decompress": "^4.2.1",
-    "decompress-unzip": "github:pockethost/decompress-unzip#6ef397b9a2df11d39c7b26ce779e123833844751",
+    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
     "event-source-polyfill": "^1.0.31",
@@ -109,12 +109,5 @@
     "type-fest": "^4.6.0",
     "typescript": "^5.2.2"
   },
-  "overrides": {
-    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
-    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59"
-  },
-  "resolutions": {
-    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
-    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59"
-  }
+  "packageManager": "pnpm@8.10.2"
 }

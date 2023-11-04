@@ -9,24 +9,41 @@ jobs:
     name: Publish to Cloudflare Pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
+
+      - name: pnpm
+        uses: pnpm/action-setup@v2.4.0
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Prepare build
+        run: |
+          pnpm i
+          pnpm lint
+          pnpm build-frontends
+          ls
+          ls dist
 
       - name: Get changed lander files
         id: changed-lander-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            dist/lander/**
+            frontends/lander/**
 
       - name: Get changed dashboard files
         id: changed-dashboard-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            dist/dashboard/**
+            frontends/dashboard/**
 
       - name: Publish lander to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/pages-action@v1.5.0
         if: steps.changed-lander-files.outputs.any_changed == 'true'
         id: lander_deploy
         with:
@@ -39,7 +56,7 @@ jobs:
           wranglerVersion: '3'
 
       - name: Publish dashboard to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/pages-action@v1.5.0
         if: steps.changed-dashboard-files.outputs.any_changed == 'true'
         id: dashboard_deploy
         with:
@@ -52,7 +69,7 @@ jobs:
           wranglerVersion: '3'
 
       - name: Expose git commit data
-        uses: rlespinasse/git-commit-data-action@v1
+        uses: rlespinasse/git-commit-data-action@v1.5.0
 
       - name: Discord feature branch notification for dashboard
         if: github.ref_name != 'master' && steps.changed-dashboard-files.outputs.any_changed == 'true'

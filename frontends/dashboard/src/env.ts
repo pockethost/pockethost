@@ -30,9 +30,9 @@ export const PUBLIC_MOTHERSHIP_URL =
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
 // Derived
-export const WWW_URL = (path = '') => `${PUBLIC_BLOG_URL}/${path}`
-export const BLOG_URL = (path = '') => WWW_URL(`blog/${path}`)
-export const DOCS_URL = (path = '') => WWW_URL(`docs/${path}`)
+export const LANDER_URL = (path = '') => `${PUBLIC_BLOG_URL}/${path}`
+export const BLOG_URL = (path = '') => LANDER_URL(`blog/${path}`)
+export const DOCS_URL = (path = '') => LANDER_URL(`docs/${path}`)
 export const APP_URL = (path = '') => `${PUBLIC_APP_URL}/${path}`
 export const INSTANCE_URL = (name: string, path = '') =>
   `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${path}`
