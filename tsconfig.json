@@ -28,5 +28,5 @@
     "esm": true
   },
   "include": ["./src"],
-  "exclude": ["src/mothership-app/migrations"]
+  "exclude": ["src/mothership-app"]
 }
