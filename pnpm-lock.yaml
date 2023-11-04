@@ -220,9 +220,6 @@ importers:
 
   frontends/dashboard:
     devDependencies:
-      '@dansvel/vite-plugin-markdown':
-        specifier: https://github.com/pockethost/vite-plugin-markdown.git#b2e84d276b741615d1e57198182933b85819e9c3
-        version: github.com/pockethost/vite-plugin-markdown/b2e84d276b741615d1e57198182933b85819e9c3(@types/node@20.8.10)(sass@1.69.5)
       '@microsoft/fetch-event-source':
         specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
         version: github.com/pockethost/fetch-event-source/ebe3b7122647b48b93fd11effbbfb915d98956b0
@@ -7420,25 +7417,3 @@ packages:
       uuid: 9.0.1
       yargs: 15.4.1
     dev: false
-
-  github.com/pockethost/vite-plugin-markdown/b2e84d276b741615d1e57198182933b85819e9c3(@types/node@20.8.10)(sass@1.69.5):
-    resolution: {tarball: https://codeload.github.com/pockethost/vite-plugin-markdown/tar.gz/b2e84d276b741615d1e57198182933b85819e9c3}
-    id: github.com/pockethost/vite-plugin-markdown/b2e84d276b741615d1e57198182933b85819e9c3
-    name: '@dansvel/vite-plugin-markdown'
-    version: 2.0.5
-    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
-    prepare: true
-    requiresBuild: true
-    dependencies:
-      front-matter: 4.0.2
-      marked: 9.1.5
-      vite: 4.5.0(@types/node@20.8.10)(sass@1.69.5)
-    transitivePeerDependencies:
-      - '@types/node'
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - terser
-    dev: true
