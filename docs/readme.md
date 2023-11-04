@@ -8,7 +8,7 @@ PocketHost is designed to run full stack on your local development machine.
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
 pnpm
-pnpm dev:www # Marketing site only, talks to pockethost.io
+pnpm dev:lander # Marketing site only, talks to pockethost.io
 pnpm dev:dashboard # Dashboard site only, talks to pockethost.io
 pnpm dev # Everything, talks to pockethost.lvh.me
 ```

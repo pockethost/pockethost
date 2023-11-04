@@ -61,7 +61,7 @@ export default function (plop) {
       },
       {
         type: 'add',
-        path: 'frontends/www/content/blog/{{dashCase title}}.md',
+        path: 'frontends/lander/content/blog/{{dashCase title}}.md',
         templateFile: 'plop-templates/blog.hbs',
       },
     ],
