@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  decompress-unzip: https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751
-  ftp-srv: https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
-
 importers:
 
   .:
@@ -55,7 +51,7 @@ importers:
         specifier: ^6.3.0
         version: 6.3.0
       ftp-srv:
-        specifier: https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
+        specifier: github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
         version: github.com/pockethost/ftp-srv/0fc708bae0d5d7a55ce948767f082d6fcfb2af59
       get-port:
         specifier: ^6.1.2

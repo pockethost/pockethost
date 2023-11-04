@@ -45,7 +45,7 @@
     "commander": "^11.1.0",
     "date-fns": "^2.30.0",
     "decompress": "^4.2.1",
-    "decompress-unzip": "github:pockethost/decompress-unzip#6ef397b9a2df11d39c7b26ce779e123833844751",
+    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
     "event-source-polyfill": "^1.0.31",
@@ -108,14 +108,6 @@
     "tsx": "^3.14.0",
     "type-fest": "^4.6.0",
     "typescript": "^5.2.2"
-  },
-  "overrides": {
-    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
-    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59"
-  },
-  "resolutions": {
-    "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
-    "ftp-srv": "https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59"
   },
   "packageManager": "pnpm@8.10.2"
 }
