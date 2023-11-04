@@ -1,29 +1,77 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition'
+  import { client } from '$src/pocketbase-client'
   import { handleInstanceGeneratorWidget } from '$util/database'
-  import { generateSlug } from 'random-word-slugs'
+  import { writable } from 'svelte/store'
+  import { slide } from 'svelte/transition'
 
   export let isProcessing: boolean = false
   export let isSignUpView: boolean = false
 
-  // Controls the spin animation of the instance regeneration button
-  let rotationCounter: number = 0
+  const instanceNameField = writable('')
+  const instanceInfo = writable({
+    name: '',
+    fetching: true,
+    availabe: false,
+  })
+
+  const generateSlug = async () => {
+    instanceInfo.update((info) => ({ ...info, fetching: true }))
+    const { instanceName: name } = await client().client.send(`/api/signup`, {})
+    instanceInfo.update((info) => ({
+      ...info,
+      availabe: true,
+      name,
+      fetching: false,
+    }))
+    instanceNameField.set(name)
+  }
+
+  instanceNameField.subscribe(async (name) => {
+    if (name !== $instanceInfo.name) {
+      try {
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: true,
+        }))
+        const res = await client().client.send(
+          `/api/signup?name=${encodeURIComponent(name)}`,
+          {},
+        )
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: false,
+          availabe: true,
+          name,
+        }))
+      } catch (e) {
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: false,
+          availabe: false,
+          name,
+        }))
+      }
+    }
+  })
+
+  generateSlug()
 
   // Set up the variables to hold the form information
   let email: string = ''
   let password: string = ''
-  let instanceName: string = generateSlug(2)
   let formError: string = ''
 
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled =
-    email.length === 0 || password.length === 0 || instanceName.length === 0
+    email.length === 0 ||
+    password.length === 0 ||
+    $instanceInfo.name.length === 0 ||
+    !$instanceInfo.availabe
 
   // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
-    rotationCounter = rotationCounter + 180
-    instanceName = generateSlug(2)
+    generateSlug()
   }
 
   // Toggle between registration and login forms
@@ -40,7 +88,7 @@
     await handleInstanceGeneratorWidget(
       email,
       password,
-      instanceName,
+      $instanceInfo.name,
       (error) => {
         formError = error
       },
@@ -50,12 +98,61 @@
 
     isProcessing = false
   }
+
+  $: {
+  }
 </script>
 
 <form class="card-body" on:submit={handleSubmit}>
   <h2 class="font-bold text-white mb-3 text-center text-2xl">
-    Register and Create Your <br />First Instance
+    You are 30 seconds away from your first <br />PocketBase Instance
   </h2>
+
+  <div class="mb-3">
+    <label class="label" for="instance">
+      <span class="label-text">Instance Name</span>
+    </label>
+
+    <div class="input-group">
+      <input
+        type="text"
+        placeholder="instance-name"
+        bind:value={$instanceNameField}
+        id="instance"
+        class="input input-bordered w-full"
+      />
+
+      <button
+        type="button"
+        class="btn btn-square"
+        on:click={handleInstanceNameRegeneration}
+      >
+        <i class="fa-solid fa-rotate"></i>
+      </button>
+    </div>
+    <div style="font-size: 15px; padding: 5px">
+      {#if $instanceInfo.fetching}
+        Verifying...
+      {:else if $instanceInfo.availabe}
+        <span class="text-success">
+          https://{$instanceInfo.name}.pockethost.io ✔︎</span
+        >
+      {:else}
+        <span class="text-error">
+          https://{$instanceInfo.name}.pockethost.io ❌</span
+        >
+      {/if}
+      <code style=""
+        ><pre>
+      {`
+const client = new PocketBase('https://{$instanceInfo.name}.pockethost.io')
+client.send('/api/health', {}).then(() => {
+console.log('Instance is healthy!')
+})
+`}</pre>
+      </code>
+    </div>
+  </div>
 
   <div class="mb-3">
     <label class="label" for="id">
@@ -73,7 +170,7 @@
     />
   </div>
 
-  <div class="mb-3">
+  <div class="mb-12">
     <label class="label" for="password">
       <span class="label-text">Password</span>
     </label>
@@ -86,30 +183,6 @@
       bind:value={password}
       required
     />
-  </div>
-
-  <div class="mb-12">
-    <label class="label" for="instance">
-      <span class="label-text">Instance Name</span>
-    </label>
-
-    <div class="input-group">
-      <input
-        type="text"
-        placeholder="instance-name"
-        bind:value={instanceName}
-        id="instance"
-        class="input input-bordered w-full"
-      />
-
-      <button
-        type="button"
-        class="btn btn-square"
-        on:click={handleInstanceNameRegeneration}
-      >
-        <i class="fa-solid fa-rotate"></i>
-      </button>
-    </div>
   </div>
 
   {#if formError}

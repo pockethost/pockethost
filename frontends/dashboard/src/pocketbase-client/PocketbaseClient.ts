@@ -120,6 +120,13 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   ): Promise<InstanceFields | undefined> =>
     client.collection('instances').getOne<InstanceFields>(id)
 
+  const getInstanceBySubdomain = (
+    subdomain: InstanceFields['subdomain'],
+  ): Promise<InstanceFields | undefined> =>
+    client
+      .collection('instances')
+      .getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
+
   const watchInstanceById = async (
     id: InstanceId,
     cb: (data: RecordSubscription<InstanceFields>) => void,
@@ -277,6 +284,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     getAuthStoreProps,
     parseError,
     getInstanceById,
+    getInstanceBySubdomain,
     createInstance,
     authViaEmail,
     createUser,

@@ -3,8 +3,9 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { INSTANCE_URL } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
-  import { generateSlug } from 'random-word-slugs'
   import { slide } from 'svelte/transition'
+
+  const generateSlug = (n: number) => `FIXMEE`
 
   let instanceName: string = generateSlug(2)
   let formError: string = ''
