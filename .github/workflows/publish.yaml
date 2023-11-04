@@ -33,14 +33,14 @@ jobs:
         uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            dist/lander/**
+            frontends/lander/**
 
       - name: Get changed dashboard files
         id: changed-dashboard-files
         uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            dist/dashboard/**
+            frontends/dashboard/**
 
       - name: Publish lander to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
