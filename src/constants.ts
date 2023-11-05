@@ -1,7 +1,6 @@
 import {
   InstanceFields,
   InstanceId,
-  InvocationFields,
   IoCManager,
   mkSingleton,
   UserFields,
@@ -117,8 +116,6 @@ export type MothershipProvider = {
     subdomain: InstanceFields['subdomain'],
   ): Promise<[InstanceFields, UserFields] | []>
   updateInstance(id: InstanceId, fields: Partial<InstanceFields>): Promise<void>
-  createInvocation(instance: InstanceFields): Promise<InvocationFields>
-  finalizeInvocation(invocation: InvocationFields): Promise<void>
 }
 
 type UnsubFunc = () => void

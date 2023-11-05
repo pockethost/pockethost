@@ -19,7 +19,7 @@
   console.log(instanceId)
   let isReady = false
 
-  $: ({ status, version, secondsThisMonth } = $instance)
+  $: ({ status, version } = $instance)
 
   assertExists($instance, `Expected instance here`)
   const { subdomain } = $instance
@@ -41,9 +41,7 @@
       <div class="badge badge-accent badge-outline">
         Status: &nbsp;<span class="capitalize">{status}</span>
       </div>
-      <div class="badge badge-accent badge-outline">
-        Usage: {Math.ceil(secondsThisMonth / 60)} mins
-      </div>
+
       <div class="badge badge-accent badge-outline">Version: {version}</div>
     </div>
   </div>

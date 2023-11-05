@@ -25,12 +25,6 @@ Instances are placed in hibernation after 5 seconds of idle time.
 
 _Note: Usage Metering is not active until PocketHost reaches v1.0. There is no planned timeline for when or if PocketHost will reach v1.0_
 
-The free tier of PocketHost provides 100 _active minutes_ per month.
-
-![View of an instance showing the total usage](/docs/instance-usage-screenshot.png)
-
-> Because an instance stays active for a minimum of only 5 seconds per activation, 100 minutes of real, active usage is actually quite a bit. After you use your 100 minutes, you can either pay for more usage minutes, or PocketHost will move your instance to the pool of stand-by instances that get served after everyone else. Again, in practice, you will likely not even notice the difference. But if you do, there is always a paid option.
-
 ## Instance Versioning
 
 By default, your instance will use the latest major+minor release of PocketBase. The PocketBase version is locked when your instance is created. We use [semver](https://semver.org/) ([npm package](https://docs.npmjs.com/cli/v6/using-npm/semver)) to determine the version range that should be allowed for your instance. When your instance is launched, it will use the latest matching version.

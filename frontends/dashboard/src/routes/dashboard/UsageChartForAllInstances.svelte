@@ -96,17 +96,14 @@
           getRandomNumber(),
           getRandomNumber(),
           getRandomNumber(),
-          Math.ceil(instance.secondsThisMonth / 60),
+          Math.ceil(0 / 60),
         ],
       }
     },
   )
 
   // Loop through the instance list again, and create a "total usage" entry
-  const totalUsageAmount = allInstancesArray.reduce(
-    (total, instance) => total + instance.secondsThisMonth,
-    0,
-  )
+  const totalUsageAmount = allInstancesArray.reduce((total) => total + 0, 0)
 
   // Add up the individual instance usages and the total usage
   const allChartData: any = [

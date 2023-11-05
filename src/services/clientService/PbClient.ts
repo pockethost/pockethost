@@ -3,7 +3,6 @@ import { Logger, LoggerService } from '$shared'
 import { Knex } from 'knex'
 import { default as PocketBase, default as pocketbaseEs } from 'pocketbase'
 import { createInstanceMixin } from './InstanceMIxin'
-import { createInvocationMixin } from './InvocationMixin'
 import { createRawPbClient } from './RawPbClient'
 
 export type PocketbaseClientApi = ReturnType<typeof createPbClient>
@@ -37,7 +36,6 @@ export const createPbClient = (url: string) => {
 
   const context: MixinContext = { client, rawDb, logger: _clientLogger }
   const instanceApi = createInstanceMixin(context)
-  const invocationApi = createInvocationMixin(context, instanceApi)
 
   const api = {
     client,
@@ -46,7 +44,6 @@ export const createPbClient = (url: string) => {
     createFirstAdmin,
     adminAuthViaEmail,
     ...instanceApi,
-    ...invocationApi,
   }
 
   return api

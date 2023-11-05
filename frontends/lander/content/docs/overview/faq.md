@@ -68,7 +68,7 @@ Use the FTP feature to transfer all your data.
 
 The PocketHost service is free until we reach v1.0.
 
-At that point, we will likely introduce a free tier based on "run time" minutes per month.
+At that point, we will likely introduce a paid tier while keeping a generous free tier.
 
 ### What is the pockethost.io free tier and restrictions?
 
@@ -78,11 +78,6 @@ pockethost.io offers a free tier to everyone. The free tier includes:
 - Unlimited storage
 - 1 project
 - Connect to your instance from `your-instance.pockethost.io`
-- 100 CPU minutes per month
-
-A "CPU minute" is one minute of your `pocketbase` instance running on our system. PocketHost shuts down idle instances to conserve resources. In practice, about 90% of projects use fewer than 100 minutes of actual CPU time per month.
-
-The free tier is less suitable for realtime applications that require the `pocketbase` instance to run continuously.
 
 ### What paid plans are there?
 
@@ -90,14 +85,8 @@ pockethost.io offers a one-size-fits-all paid plan. The paid plan includes:
 
 - Unlimited bandwidth
 - Unlimited storage
-- Unlimited CPU minutes
 - Unlimited projects
-- Connect to your instance from `your-instance.pockethost.io` or a custom domain of your choice
 - Priority support
-
-### What happens when I reach my minutes / rate / something?
-
-Your instance will be placed into [Maintenance Mode](/docs/usage/maintenance/) until the problem is corrected.
 
 ### Are we allowed to have multiple projects running on Pockethost? How many instances can I create?
 

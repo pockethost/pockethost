@@ -8,7 +8,6 @@ import { InstanceLogger, PortService } from '$services'
 import {
   createCleanupManager,
   createTimerManager,
-  InvocationPid,
   LoggerService,
   mkSingleton,
   SingletonBaseConfig,
@@ -44,7 +43,7 @@ export type PocketbaseServiceConfig = SingletonBaseConfig & {}
 
 export type PocketbaseProcess = {
   url: string
-  pid: () => InvocationPid
+  pid: () => string
   kill: () => Promise<void>
   exitCode: Promise<number | null>
 }

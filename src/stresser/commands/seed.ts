@@ -23,7 +23,6 @@ const _unsafe_createInstance = async (context: ContextBase) => {
     uid: shuffle(users).pop()!.id,
     status: InstanceStatus.Idle,
     version: `~0.${random(1, 16)}.0`,
-    secondsThisMonth: 0,
     secrets: {},
     maintenance: false,
   })

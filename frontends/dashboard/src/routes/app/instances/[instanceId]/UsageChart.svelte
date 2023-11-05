@@ -1,7 +1,6 @@
 <script lang="ts">
   import { format, subMonths } from 'date-fns'
   import { Line } from 'svelte-chartjs'
-  import { instance } from './store'
 
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
@@ -25,8 +24,6 @@
     PointElement,
     CategoryScale,
   )
-
-  $: ({ secondsThisMonth } = $instance)
 
   // Calculate the last six months
   const getLastSixMonths = () => {
@@ -67,7 +64,7 @@
           pointHoverBorderWidth: 2,
           pointRadius: 1,
           pointHitRadius: 25,
-          data: [24, 3, 16, 56, 55, Math.ceil(secondsThisMonth / 60)],
+          data: [24, 3, 16, 56, 55, Math.ceil(0 / 60)],
         },
       ],
     }
