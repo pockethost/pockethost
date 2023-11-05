@@ -1,15 +1,13 @@
 import { mkInstanceDataPath, MOTHERSHIP_NAME } from '$constants'
-import { Logger, LoggerService } from '$shared'
-import { Knex } from 'knex'
-import { default as PocketBase, default as pocketbaseEs } from 'pocketbase'
+import { LoggerService } from '$shared'
+import { default as PocketBase } from 'pocketbase'
+import { MixinContext } from '.'
 import { createInstanceMixin } from './InstanceMIxin'
 import { createRawPbClient } from './RawPbClient'
 
-export type PocketbaseClientApi = ReturnType<typeof createPbClient>
+export type PocketbaseClientApi = ReturnType<typeof createAdminPbClient>
 
-export type MixinContext = { client: pocketbaseEs; rawDb: Knex; logger: Logger }
-
-export const createPbClient = (url: string) => {
+export const createAdminPbClient = (url: string) => {
   const _clientLogger = LoggerService().create('PbClient')
   const { info } = _clientLogger
 

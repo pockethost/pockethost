@@ -3,9 +3,11 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
 } from '$constants'
-import { LoggerService, mkSingleton } from '$shared'
+import { Logger, LoggerService, mkSingleton } from '$shared'
 import { mergeConfig } from '$util'
-import { createPbClient } from './PbClient'
+import { Knex } from 'knex'
+import PocketBase from 'pocketbase'
+import { createAdminPbClient } from './createAdminPbClient'
 
 export type ClientServiceConfig = {
   url: string
@@ -13,7 +15,13 @@ export type ClientServiceConfig = {
   password: string
 }
 
-export const clientService = mkSingleton(
+export type MixinContext = {
+  client: PocketBase
+  rawDb: Knex
+  logger: Logger
+}
+
+export const MothershipAdmimClientService = mkSingleton(
   async (cfg: Partial<ClientServiceConfig> = {}) => {
     const { url, username, password } = mergeConfig<ClientServiceConfig>(
       {
@@ -25,7 +33,7 @@ export const clientService = mkSingleton(
     )
     const _clientLogger = LoggerService().create(`client singleton`)
     const { dbg, error } = _clientLogger
-    const client = createPbClient(url)
+    const client = createAdminPbClient(url)
 
     while (true) {
       try {

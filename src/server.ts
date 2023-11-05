@@ -10,11 +10,11 @@ import {
   SETTINGS,
 } from '$constants'
 import {
+  MothershipAdmimClientService,
   PocketbaseReleaseVersionService,
   PocketbaseService,
   PortService,
   centralDbService,
-  clientService,
   ftpService,
   instanceService,
   ipWhitelistService,
@@ -87,7 +87,7 @@ global.EventSource = EventSource
   /**
    * Launch services
    */
-  await clientService({
+  await MothershipAdmimClientService({
     url,
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
