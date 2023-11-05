@@ -9,6 +9,7 @@
     "check:types:pockethost": "tsc --noEmit --skipLibCheck",
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
+    "download-versions": "tsx ./src/cli/download.ts",
     "build": "concurrently 'pnpm:build:*'",
     "build-pockethost": "concurrently 'pnpm:build:pockethost:*'",
     "build-frontends": "concurrently 'pnpm:build:frontend:*'",
