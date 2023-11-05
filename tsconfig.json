@@ -24,9 +24,6 @@
       "$shared": ["src/shared"]
     }
   },
-  "ts-node": {
-    "esm": true
-  },
   "include": ["./src"],
   "exclude": ["src/mothership-app"]
 }
