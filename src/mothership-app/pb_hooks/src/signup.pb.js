@@ -1,11 +1,4 @@
-onAfterBootstrap((e) => {
-  $app.dao().db().newQuery(`update instances set status='idle'`).execute()
-  // $app
-  //   .dao()
-  //   .db()
-  //   .newQuery(`update invocations set endedAt=datetime('now') where endedAt=''`)
-  //   .execute()
-})
+/// <reference path="../types/types.d.ts" />
 
 routerAdd(
   'GET',
@@ -57,34 +50,34 @@ routerAdd(
 )
 
 /*
-// HTTP 200
-{
-  status: 'ok'
-}
-
-// HTTP 500
-{
-    "code": 500,
-    "message": "That user account already exists. Try a password reset.",
-    "data": {
-        "email": {
-            "code": "exists",
-            "message": "That user account already exists. Try a password reset."
-        }
-    }
-}
-
-{
-    "code": 500,
-    "message": "Instance name was taken, sorry aboout that. Try another.",
-    "data": {
-        "instanceName": {
-            "code": "exists",
-            "message": "Instance name was taken, sorry aboout that. Try another."
-        }
-    }
-}
-*/
+  // HTTP 200
+  {
+    status: 'ok'
+  }
+  
+  // HTTP 500
+  {
+      "code": 500,
+      "message": "That user account already exists. Try a password reset.",
+      "data": {
+          "email": {
+              "code": "exists",
+              "message": "That user account already exists. Try a password reset."
+          }
+      }
+  }
+  
+  {
+      "code": 500,
+      "message": "Instance name was taken, sorry aboout that. Try another.",
+      "data": {
+          "instanceName": {
+              "code": "exists",
+              "message": "Instance name was taken, sorry aboout that. Try another."
+          }
+      }
+  }
+  */
 
 // https://pocketbase.io/docs/js-routing/#sending-request-to-custom-routes-using-the-sdks
 routerAdd(
