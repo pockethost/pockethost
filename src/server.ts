@@ -20,7 +20,6 @@ import {
   ipWhitelistService,
   proxyService,
   realtimeLog,
-  rpcService,
   sqliteService,
 } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
@@ -94,7 +93,6 @@ global.EventSource = EventSource
     password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
   await ftpService({})
-  await rpcService({})
   await proxyService({
     coreInternalUrl: url,
   })
@@ -109,6 +107,4 @@ global.EventSource = EventSource
   // gen:service
 
   info(`Hooking into process exit event`)
-
-  await (await rpcService()).initRpcs()
 })()

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SECRET_KEY_REGEX, SaveSecretsPayload } from '$shared'
+  import { SECRET_KEY_REGEX, UpdateInstancePayload } from '$shared'
   import { client } from '$src/pocketbase-client/index.js'
   import { reduce } from '@s-libs/micro-dash'
   import { slide } from 'svelte/transition'
@@ -43,17 +43,19 @@
 
       // Save to the database
       items.upsert({ name: secretKey, value: secretValue })
-      await client().saveSecrets({
+      await client().updateInstance({
         instanceId: $instance.id,
-        secrets: reduce(
-          $items,
-          (c, v) => {
-            const { name, value } = v
-            c[name] = value
-            return c
-          },
-          {} as SaveSecretsPayload['secrets'],
-        ),
+        fields: {
+          secrets: reduce(
+            $items,
+            (c, v) => {
+              const { name, value } = v
+              c[name] = value
+              return c
+            },
+            {} as NonNullable<UpdateInstancePayload['fields']['secrets']>,
+          ),
+        },
       })
 
       // Reset the values when the POST is done

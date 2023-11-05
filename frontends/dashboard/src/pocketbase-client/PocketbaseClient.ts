@@ -1,27 +1,19 @@
 import {
   CreateInstancePayloadSchema,
   LoggerService,
-  RenameInstancePayloadSchema,
-  RpcCommands,
-  SaveSecretsPayloadSchema,
-  SaveVersionPayloadSchema,
-  SetInstanceMaintenancePayloadSchema,
+  RestCommands,
+  RestMethods,
+  UpdateInstancePayload,
+  UpdateInstancePayloadSchema,
+  UpdateInstanceResult,
   assertExists,
-  createRpcHelper,
+  createRestHelper,
   createWatchHelper,
   type CreateInstancePayload,
   type CreateInstanceResult,
   type InstanceFields,
   type InstanceId,
   type InstanceLogFields,
-  type RenameInstancePayload,
-  type RenameInstanceResult,
-  type SaveSecretsPayload,
-  type SaveSecretsResult,
-  type SaveVersionPayload,
-  type SaveVersionResult,
-  type SetInstanceMaintenancePayload,
-  type SetInstanceMaintenanceResult,
 } from '$shared'
 import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
@@ -108,34 +100,20 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const watchHelper = createWatchHelper({ client })
   const { watchById, watchAllById } = watchHelper
-  const rpcMixin = createRpcHelper({ client, watchHelper })
-  const { mkRpc } = rpcMixin
+  const restMixin = createRestHelper({ client, watchHelper })
+  const { mkRest } = restMixin
 
-  const createInstance = mkRpc<CreateInstancePayload, CreateInstanceResult>(
-    RpcCommands.CreateInstance,
+  const createInstance = mkRest<CreateInstancePayload, CreateInstanceResult>(
+    RestCommands.Instance,
+    RestMethods.Create,
     CreateInstancePayloadSchema,
   )
-  const saveSecrets = mkRpc<SaveSecretsPayload, SaveSecretsResult>(
-    RpcCommands.SaveSecrets,
-    SaveSecretsPayloadSchema,
+
+  const updateInstance = mkRest<UpdateInstancePayload, UpdateInstanceResult>(
+    RestCommands.Instance,
+    RestMethods.Update,
+    UpdateInstancePayloadSchema,
   )
-
-  const saveVersion = mkRpc<SaveVersionPayload, SaveVersionResult>(
-    RpcCommands.SaveVersion,
-    SaveVersionPayloadSchema,
-  )
-
-  const renameInstance = mkRpc<RenameInstancePayload, RenameInstanceResult>(
-    RpcCommands.RenameInstance,
-    RenameInstancePayloadSchema,
-  )
-
-  const setInstanceMaintenance = mkRpc<
-    SetInstanceMaintenancePayload,
-    SetInstanceMaintenanceResult
-  >(RpcCommands.SetInstanceMaintenance, SetInstanceMaintenancePayloadSchema)
-
-  // gen:mkRpc
 
   const getInstanceById = (
     id: InstanceId,
@@ -295,7 +273,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   return {
     client,
-    saveSecrets,
     watchInstanceLog,
     getAuthStoreProps,
     parseError,
@@ -313,9 +290,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     watchInstanceById,
     getAllInstancesById,
     resendVerificationEmail,
-    renameInstance,
-    setInstanceMaintenance,
-    // gen:export
-    saveVersion,
+    updateInstance,
   }
 }
