@@ -1,5 +1,8 @@
 import {
+  APEX_DOMAIN,
   DEBUG,
+  INSTANCE_APP_HOOK_DIR,
+  INSTANCE_APP_MIGRATIONS_DIR,
   mkInstanceDataPath,
   MOTHERSHIP_HOOKS_DIR,
   MOTHERSHIP_MIGRATIONS_DIR,
@@ -16,8 +19,9 @@ import { assert, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
+import { globSync } from 'glob'
 import MemoryStream from 'memorystream'
-import { dirname } from 'path'
+import { basename, dirname, join } from 'path'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
@@ -146,10 +150,39 @@ export const createPocketbaseService = async (
       })
     }
     stderr.on('data', _stdErrData)
+    const Binds = [
+      `${dirname(binPath)}:/host_bin:ro`,
+      `${mkInstanceDataPath(slug)}:/host_data`,
+    ]
+    const hooksDir = isMothership
+      ? MOTHERSHIP_HOOKS_DIR()
+      : mkInstanceDataPath(slug, `pb_hooks`)
+    Binds.push(`${hooksDir}:/host_data/pb_hooks`)
+
+    const migrationsDir = isMothership
+      ? MOTHERSHIP_MIGRATIONS_DIR()
+      : mkInstanceDataPath(slug, `pb_migrations`)
+    Binds.push(`${migrationsDir}:/host_data/pb_migrations`)
+
+    if (!isMothership) {
+      globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).forEach((file) => {
+        Binds.push(`${file}:/host_data/pb_migrations/${basename(file)}:ro`)
+      })
+      globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).forEach((file) => {
+        Binds.push(`${file}:/host_data/pb_hooks/${basename(file)}:ro`)
+      })
+    }
+
     const createOptions: ContainerCreateOptions = {
       Image: `benallfree/pockethost-instance`,
       Cmd: args,
-      Env: map(env, (v, k) => `${k}=${v}`),
+      Env: map(
+        {
+          ...env,
+          PH_APEX_DOMAIN: APEX_DOMAIN(),
+        },
+        (v, k) => `${k}=${v}`,
+      ),
       name: `${name}-${+new Date()}`,
       HostConfig: {
         AutoRemove: true,
@@ -157,20 +190,7 @@ export const createPocketbaseService = async (
         PortBindings: {
           '8090/tcp': [{ HostPort: `${port}` }],
         },
-        Binds: [
-          `${dirname(binPath)}:/host_bin:ro`,
-          `${mkInstanceDataPath(slug)}:/host_data`,
-          `${
-            isMothership
-              ? MOTHERSHIP_MIGRATIONS_DIR()
-              : mkInstanceDataPath(slug, `pb_migrations`)
-          }:/host_data/pb_migrations`,
-          `${
-            isMothership
-              ? MOTHERSHIP_HOOKS_DIR()
-              : mkInstanceDataPath(slug, `pb_hooks`)
-          }:/host_data/pb_hooks`,
-        ],
+        Binds,
       },
       Tty: false,
       ExposedPorts: {
