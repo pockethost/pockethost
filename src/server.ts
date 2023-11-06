@@ -14,13 +14,13 @@ import {
   PocketbaseReleaseVersionService,
   PocketbaseService,
   PortService,
+  SqliteService,
   centralDbService,
   ftpService,
   instanceService,
   ipWhitelistService,
   proxyService,
   realtimeLog,
-  sqliteService,
 } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
 import EventSource from 'eventsource'
@@ -97,7 +97,7 @@ global.EventSource = EventSource
     coreInternalUrl: url,
   })
   await ipWhitelistService({})
-  await sqliteService({})
+  await SqliteService({})
   await realtimeLog({})
   await instanceService({
     instanceApiCheckIntervalMs: 50,
