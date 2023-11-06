@@ -31,7 +31,7 @@ console.log({ _PH_HOME, _PH_PROJECT_ROOT, _PH_BUILD_ROOT })
 export const SETTINGS = {
   PH_HOME: mkPath(_PH_HOME),
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
-  PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT),
+  PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT, { required: false }),
 
   DEBUG: mkBoolean(false),
 
