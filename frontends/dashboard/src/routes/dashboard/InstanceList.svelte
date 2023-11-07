@@ -38,13 +38,28 @@
     {#each arrayOfActiveInstances as instance, index}
       <InstanceRow {instance} {index} />
     {/each}
+
+    {#if arrayOfMaintenanceInstances.length === 0}
+      <p class="italic">
+        None of your instances are active. Create a new app to use PocketBase!
+      </p>
+    {/if}
   </div>
 
   <CardHeader>Instances in Maintenance Mode</CardHeader>
+
+  <p class="mb-4 opacity-50">
+    Maintenance Mode will prevent these instances process from running. No
+    requests are processed while your instance is in Maintenance Mode.
+  </p>
 
   <div class="grid">
     {#each arrayOfMaintenanceInstances as instance, index}
       <InstanceRow {instance} {index} />
     {/each}
+
+    {#if arrayOfMaintenanceInstances.length === 0}
+      <p class="italic">None of your instances in Maintenance Mode</p>
+    {/if}
   </div>
 </Card>
