@@ -37,3 +37,5 @@ pnpm
 cd ..
 
 ```
+
+Discussion about ulimits https://chat.openai.com/share/f9ff9df7-9afd-48ce-9a04-d44b4a8a3066

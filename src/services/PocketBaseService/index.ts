@@ -186,11 +186,17 @@ export const createPocketbaseService = async (
       name: `${name}-${+new Date()}`,
       HostConfig: {
         AutoRemove: true,
-        CpuPercent: 10,
         PortBindings: {
           '8090/tcp': [{ HostPort: `${port}` }],
         },
         Binds,
+        Ulimits: [
+          {
+            Name: 'nofile',
+            Soft: 1024,
+            Hard: 1024,
+          },
+        ],
       },
       Tty: false,
       ExposedPorts: {
