@@ -5,8 +5,8 @@ import {
   MOTHERSHIP_NAME,
 } from '$constants'
 import {
-  clientService,
   InstanceLogger,
+  MothershipAdmimClientService,
   PocketbaseService,
   PortService,
   proxyService,
@@ -53,7 +53,7 @@ export const instanceService = mkSingleton(
     const { instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
     const instanceServiceLogger = LoggerService().create('InstanceService')
     const { dbg, raw, error, warn } = instanceServiceLogger
-    const { client } = await clientService()
+    const { client } = await MothershipAdmimClientService()
 
     const pbService = await PocketbaseService()
 
@@ -203,9 +203,6 @@ export const instanceService = mkSingleton(
         client.updateInstanceStatus,
       )
       const updateInstance = clientLimiter.wrap(client.updateInstance)
-      const createInvocation = clientLimiter.wrap(client.createInvocation)
-      const pingInvocation = clientLimiter.wrap(client.pingInvocation)
-      const finalizeInvocation = clientLimiter.wrap(client.finalizeInvocation)
 
       /*
       Handle async setup
@@ -298,15 +295,6 @@ export const instanceService = mkSingleton(
         })
 
         /*
-        Create the invocation record
-        */
-        healthyGuard()
-        const invocation = await createInvocation(instance, pid)
-        shutdownManager.add(async () => {
-          await finalizeInvocation(invocation).catch(error)
-        })
-
-        /*
         API state, timers, etc
         */
         const tm = createTimerManager({})
@@ -341,19 +329,6 @@ export const instanceService = mkSingleton(
             }
             return true
           }, RECHECK_TTL)
-        }
-
-        {
-          tm.repeat(
-            () =>
-              pingInvocation(invocation)
-                .then(() => true)
-                .catch((e) => {
-                  warn(`_pingInvocation failed with ${e}`)
-                  return true
-                }),
-            1000,
-          )
         }
 
         dbg(`${internalUrl} is running`)

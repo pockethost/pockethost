@@ -1,9 +1,8 @@
 <script lang="ts">
   import ProvisioningStatus from '$components/ProvisioningStatus.svelte'
-  import AccordionItem from '../../../../components/AccordionItem.svelte'
   import { instance } from './store'
 
-  $: ({ status, version, secondsThisMonth } = $instance)
+  $: ({ status, version } = $instance)
 </script>
 
 <div class="card card-body bg-base-200">
@@ -11,10 +10,6 @@
 
   <div>
     Status: <ProvisioningStatus {status} />
-  </div>
-
-  <div>
-    Usage: {Math.ceil(secondsThisMonth / 60)} mins
   </div>
 
   <div>

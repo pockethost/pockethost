@@ -8,3 +8,4 @@ build
 *.njk
 _site
 forks
+src/mothership-app/pb_hooks/src/versions.pb.js

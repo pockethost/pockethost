@@ -2,6 +2,7 @@
   import MediaQuery from '$components/MediaQuery.svelte'
   import MobileNavDrawer from '$components/MobileNavDrawer.svelte'
   import Navbar from '$components/Navbar.svelte'
+  import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
@@ -29,6 +30,8 @@
       <div
         class="bg-base-300 border-base-300 border-[16px] xl:h-[calc(100vh-32px)] lg:p-4 rounded-2xl xl:overflow-hidden xl:overflow-y-auto"
       >
+        <VerifyAccountBar />
+
         <slot />
       </div>
     </div>

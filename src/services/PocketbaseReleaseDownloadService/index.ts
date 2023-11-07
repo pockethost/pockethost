@@ -1,11 +1,12 @@
-import { PH_BIN_CACHE } from '$constants'
-import { LoggerService, mkSingleton, SingletonBaseConfig } from '$shared'
+import { MOTHERSHIP_HOOKS_DIR, PH_BIN_CACHE } from '$constants'
+import { LoggerService, SingletonBaseConfig, mkSingleton } from '$shared'
 import { downloadAndExtract, mergeConfig, smartFetch } from '$util'
 import { keys } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { chmodSync, existsSync } from 'fs'
+import { chmodSync, existsSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { rsort } from 'semver'
+import { expandAndSortSemVers } from './expandAndSortSemVers'
 
 type Release = {
   url: string
@@ -100,6 +101,15 @@ export const PocketbaseReleaseDownloadService = mkSingleton(
         }),
       )
       await Promise.all(promises)
+
+      console.log(`***keys`, keys(binPaths))
+      const sortedSemVers = expandAndSortSemVers(keys(binPaths))
+      writeFileSync(
+        join(MOTHERSHIP_HOOKS_DIR(), `versions.pb.js`),
+        `module.exports = ${JSON.stringify({ versions: sortedSemVers })}`,
+      )
+      console.log(JSON.stringify(sortedSemVers))
+
       if (keys(binPaths).length === 0) {
         throw new Error(
           `No version found, probably mismatched architecture and OS (${osName}/${cpuArchitecture})`,

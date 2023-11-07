@@ -2,7 +2,7 @@ import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
 } from '$constants'
-import { clientService } from '$services'
+import { MothershipAdmimClientService } from '$services'
 import { InstanceStatus, serialAsyncExecutionGuard } from '$shared'
 import { random, range, shuffle } from '@s-libs/micro-dash'
 import { Command } from 'commander'
@@ -14,7 +14,7 @@ const nanoid = customAlphabet(`abcdefghijklmnop`)
 const _unsafe_createInstance = async (context: ContextBase) => {
   const logger = context.logger.create(`createInstance`)
   const { dbg } = logger
-  const { client } = await clientService()
+  const { client } = await MothershipAdmimClientService()
 
   const users = await client.client.collection('users').getFullList()
 
@@ -23,7 +23,6 @@ const _unsafe_createInstance = async (context: ContextBase) => {
     uid: shuffle(users).pop()!.id,
     status: InstanceStatus.Idle,
     version: `~0.${random(1, 16)}.0`,
-    secondsThisMonth: 0,
     secrets: {},
     maintenance: false,
   })
@@ -47,7 +46,7 @@ export const createSeed = (context: { program: Command } & ContextBase) => {
     .action(async () => {
       const options = seedCmd.optsWithGlobals<SeedOptions>()
 
-      const { client } = await clientService({
+      const { client } = await MothershipAdmimClientService({
         url: options.mothershipUrl,
         username: MOTHERSHIP_ADMIN_USERNAME(),
         password: MOTHERSHIP_ADMIN_PASSWORD(),

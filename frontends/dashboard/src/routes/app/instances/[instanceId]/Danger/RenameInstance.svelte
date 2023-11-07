@@ -6,7 +6,7 @@
   import { slide } from 'svelte/transition'
   import { instance } from '../store'
 
-  const { renameInstance } = client()
+  const { updateInstance } = client()
 
   $: ({ subdomain, id } = $instance)
 
@@ -39,9 +39,11 @@
 
     // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
-      renameInstance({
+      updateInstance({
         instanceId: id,
-        subdomain: instanceNameValidation,
+        fields: {
+          subdomain: instanceNameValidation,
+        },
       })
         .then(() => 'saved')
         .catch((error) => {

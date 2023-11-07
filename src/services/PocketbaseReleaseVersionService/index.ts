@@ -54,6 +54,7 @@ export const PocketbaseReleaseVersionService = mkSingleton(
         }
         binPaths[sanitizedTagName] = binPath
       })
+
       maxVersion = `~${rsort(keys(binPaths))[0]}`
       dbg({ maxVersion })
       return true

@@ -1,2 +1,2 @@
-export * from './RpcHelper'
+export * from './RestHelper'
 export * from './WatchHelper'

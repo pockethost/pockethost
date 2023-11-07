@@ -1,7 +1,6 @@
 import {
   InstanceFields,
   InstanceId,
-  InvocationFields,
   IoCManager,
   mkSingleton,
   UserFields,
@@ -32,7 +31,7 @@ console.log({ _PH_HOME, _PH_PROJECT_ROOT, _PH_BUILD_ROOT })
 export const SETTINGS = {
   PH_HOME: mkPath(_PH_HOME),
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
-  PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT),
+  PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT, { required: false }),
 
   DEBUG: mkBoolean(false),
 
@@ -78,6 +77,15 @@ export const SETTINGS = {
   EDGE_APEX_DOMAIN: mkString(`pockethost.lvh.me`),
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
   EDGE_SECRET_KEY: mkString(),
+
+  INSTANCE_APP_HOOKS_DIR: mkPath(
+    join(_PH_BUILD_ROOT, `instance-app`, `pb_hooks`),
+    { create: true },
+  ),
+  INSTANCE_APP_MIGRATIONS_DIR: mkPath(
+    join(_PH_BUILD_ROOT, `instance-app`, `migrations`),
+    { create: true },
+  ),
 }
 ;(() => {
   let passed = true
@@ -117,8 +125,6 @@ export type MothershipProvider = {
     subdomain: InstanceFields['subdomain'],
   ): Promise<[InstanceFields, UserFields] | []>
   updateInstance(id: InstanceId, fields: Partial<InstanceFields>): Promise<void>
-  createInvocation(instance: InstanceFields): Promise<InvocationFields>
-  finalizeInvocation(invocation: InvocationFields): Promise<void>
 }
 
 type UnsubFunc = () => void
@@ -191,6 +197,10 @@ export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 export const EDGE_MAX_ACTIVE_INSTANCES = () =>
   settings().EDGE_MAX_ACTIVE_INSTANCES
 export const EDGE_SECRET_KEY = () => settings().EDGE_SECRET_KEY
+
+export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
+export const INSTANCE_APP_MIGRATIONS_DIR = () =>
+  settings().INSTANCE_APP_MIGRATIONS_DIR
 
 /**
  * Helpers

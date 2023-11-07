@@ -1,4 +1,4 @@
-import { BaseFields, RecordId, Seconds, Subdomain, UserId } from './types'
+import { BaseFields, RecordId, Subdomain, UserId } from './types'
 
 export type VersionId = string
 
@@ -24,7 +24,6 @@ export type InstanceFields = BaseFields & {
   uid: UserId
   status: InstanceStatus
   version: VersionId
-  secondsThisMonth: Seconds
   secrets: InstanceSecretCollection | null
   maintenance: boolean
 }

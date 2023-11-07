@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  decompress-unzip: https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751
-  ftp-srv: https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
-
 importers:
 
   .:
@@ -16,7 +12,7 @@ importers:
         specifier: ^16.1.0
         version: 16.1.0
       ajv:
-        specifier: ^8.11.2
+        specifier: ^8.12.0
         version: 8.12.0
       boolean:
         specifier: ^3.2.0
@@ -25,10 +21,10 @@ importers:
         specifier: ^2.19.5
         version: 2.19.5
       commander:
-        specifier: ^11.0.0
+        specifier: ^11.1.0
         version: 11.1.0
       date-fns:
-        specifier: ^2.29.3
+        specifier: ^2.30.0
         version: 2.30.0
       decompress:
         specifier: ^4.2.1
@@ -55,7 +51,7 @@ importers:
         specifier: ^6.3.0
         version: 6.3.0
       ftp-srv:
-        specifier: https://github.com/pockethost/ftp-srv.git#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
+        specifier: github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
         version: github.com/pockethost/ftp-srv/0fc708bae0d5d7a55ce948767f082d6fcfb2af59
       get-port:
         specifier: ^6.1.2
@@ -73,7 +69,7 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1
       knex:
-        specifier: ^2.3.0
+        specifier: ^2.5.1
         version: 2.5.1(sqlite3@5.1.6)
       memorystream:
         specifier: ^0.3.1
@@ -82,7 +78,7 @@ importers:
         specifier: ^5.0.2
         version: 5.0.2
       node-fetch:
-        specifier: ^3.3.0
+        specifier: ^3.3.2
         version: 3.3.2
       ora:
         specifier: ^7.0.1
@@ -93,9 +89,6 @@ importers:
       semver:
         specifier: ^7.5.4
         version: 7.5.4
-      sqlite:
-        specifier: ^4.1.2
-        version: 4.2.1
       sqlite3:
         specifier: ^5.1.6
         version: 5.1.6
@@ -116,55 +109,55 @@ importers:
         specifier: ^0.1.62
         version: 0.1.62(@swc/core@1.3.95)
       '@swc/core':
-        specifier: ^1.3.86
+        specifier: ^1.3.95
         version: 1.3.95
       '@types/bootstrap':
-        specifier: ^5.2.6
+        specifier: ^5.2.8
         version: 5.2.8
       '@types/d3-scale':
-        specifier: ^4.0.3
+        specifier: ^4.0.6
         version: 4.0.6
       '@types/d3-scale-chromatic':
-        specifier: ^3.0.0
+        specifier: ^3.0.1
         version: 3.0.1
       '@types/decompress':
-        specifier: ^4.2.4
+        specifier: ^4.2.6
         version: 4.2.6
       '@types/dockerode':
-        specifier: ^3.3.19
+        specifier: ^3.3.21
         version: 3.3.21
       '@types/eventsource':
         specifier: ^1.1.14
         version: 1.1.14
       '@types/http-proxy':
-        specifier: ^1.17.9
+        specifier: ^1.17.13
         version: 1.17.13
       '@types/js-cookie':
-        specifier: ^3.0.2
+        specifier: ^3.0.5
         version: 3.0.5
       '@types/json-stringify-safe':
         specifier: ^5.0.2
         version: 5.0.2
       '@types/marked':
-        specifier: ^4.0.8
+        specifier: ^4.3.2
         version: 4.3.2
       '@types/memorystream':
-        specifier: ^0.3.1
+        specifier: ^0.3.3
         version: 0.3.3
       '@types/node':
-        specifier: ^20.8.7
+        specifier: ^20.8.10
         version: 20.8.10
       '@types/semver':
-        specifier: ^7.3.13
+        specifier: ^7.5.4
         version: 7.5.4
       '@types/tail':
         specifier: ^2.2.2
         version: 2.2.2
       '@types/tmp':
-        specifier: ^0.2.1
+        specifier: ^0.2.5
         version: 0.2.5
       '@types/unzipper':
-        specifier: ^0.10.5
+        specifier: ^0.10.8
         version: 0.10.8
       chalk:
         specifier: ^5.3.0
@@ -173,13 +166,13 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       concurrently:
-        specifier: ^8.2.1
+        specifier: ^8.2.2
         version: 8.2.2
       copyfiles:
         specifier: ^2.4.1
         version: 2.4.1
       husky:
-        specifier: ^8.0.0
+        specifier: ^8.0.3
         version: 8.0.3
       js-yaml:
         specifier: ^4.1.0
@@ -209,10 +202,10 @@ importers:
         specifier: ^2.6.2
         version: 2.6.2
       tsx:
-        specifier: ^3.12.8
+        specifier: ^3.14.0
         version: 3.14.0
       type-fest:
-        specifier: ^4.3.2
+        specifier: ^4.6.0
         version: 4.6.0
       typescript:
         specifier: ^5.2.2
@@ -221,7 +214,7 @@ importers:
   frontends/dashboard:
     devDependencies:
       '@microsoft/fetch-event-source':
-        specifier: https://github.com/pockethost/fetch-event-source.git#pockethost
+        specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
         version: github.com/pockethost/fetch-event-source/ebe3b7122647b48b93fd11effbbfb915d98956b0
       '@s-libs/micro-dash':
         specifier: ^16.1.0
@@ -302,7 +295,7 @@ importers:
         specifier: ^4.4.9
         version: 4.5.0(@types/node@20.8.10)(sass@1.69.5)
 
-  frontends/www:
+  frontends/lander:
     dependencies:
       '@tailwindcss/typography':
         specifier: ^0.5.10
@@ -6341,10 +6334,6 @@ packages:
       - bluebird
       - encoding
       - supports-color
-    dev: false
-
-  /sqlite@4.2.1:
-    resolution: {integrity: sha512-Tll0Ndvnwkuv5Hn6WIbh26rZiYQORuH1t5m/or9LUpSmDmmyFG89G9fKrSeugMPxwmEIXoVxqTun4LbizTs4uw==}
     dev: false
 
   /ssh2@1.14.0:
