@@ -5,7 +5,6 @@ import {
 } from '$constants'
 import { Logger, LoggerService, mkSingleton } from '$shared'
 import { mergeConfig } from '$util'
-import { Knex } from 'knex'
 import PocketBase from 'pocketbase'
 import { createAdminPbClient } from './createAdminPbClient'
 
@@ -17,7 +16,6 @@ export type ClientServiceConfig = {
 
 export type MixinContext = {
   client: PocketBase
-  rawDb: Knex
   logger: Logger
 }
 

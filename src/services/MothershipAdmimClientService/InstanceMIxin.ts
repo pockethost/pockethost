@@ -16,12 +16,7 @@ export const createInstanceMixin = (context: MixinContext) => {
   const { logger } = context
   const { dbg, raw } = logger.create('InstanceMixin')
 
-  const { client, rawDb } = context
-
-  const resetInstances = async () =>
-    rawDb(INSTANCE_COLLECTION).update<InstanceFields>({
-      status: InstanceStatus.Idle,
-    })
+  const { client } = context
 
   const createInstance = (
     payload: InstanceFields_Create,
@@ -120,6 +115,5 @@ export const createInstanceMixin = (context: MixinContext) => {
     getInstance,
     updateInstances,
     createInstance,
-    resetInstances,
   }
 }
