@@ -9,6 +9,20 @@
   import { values } from '@s-libs/micro-dash'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
 
+  type TypeInstanceObject = {
+    id: string
+    subdomain: string
+    maintenance: boolean
+  }
+
+  let arrayOfActiveInstances: TypeInstanceObject[] = [];
+
+  $: {
+    if($globalInstancesStore) {
+      arrayOfActiveInstances = values($globalInstancesStore).filter((app) => !app.maintenance);
+    }
+  }
+
   const linkClasses =
     'font-medium text-xl text-base-content btn btn-ghost capitalize justify-start'
   const subLinkClasses =
@@ -40,7 +54,7 @@
 
     <InstancesGuard>
       <div class="pl-8 flex flex-col gap-4 mb-4">
-        {#each values($globalInstancesStore) as app}
+        {#each arrayOfActiveInstances as app}
           <a
             href={`/app/instances/${app.id}`}
             on:click={handleClick}

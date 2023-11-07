@@ -1,66 +1,46 @@
-<script>
+<script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
+  import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
+  import { values } from '@s-libs/micro-dash'
+  import {slide} from 'svelte/transition'
 
-  // Convert the object of objects into an array of objects
-  $: allInstancesArray = Object.values($globalInstancesStore)
+  let isMaintenanceModeOpen = false;
+
+  type TypeInstanceObject = {
+    id: string;
+    subdomain: string;
+    status: string;
+    version: string;
+    maintenance: boolean;
+  }
+
+  let arrayOfActiveInstances: TypeInstanceObject[] = [];
+  let arrayOfMaintenanceInstances: TypeInstanceObject[] = [];
+
+  $: {
+    if($globalInstancesStore) {
+      arrayOfActiveInstances = values($globalInstancesStore).filter((app) => !app.maintenance);
+      arrayOfMaintenanceInstances = values($globalInstancesStore).filter((app) => app.maintenance);
+    }
+  }
 </script>
 
 <Card height="h-auto">
   <CardHeader>Active Instances</CardHeader>
 
+  <div class="grid mb-24">
+    {#each arrayOfActiveInstances as instance, index}
+      <InstanceRow {instance} {index} />
+    {/each}
+  </div>
+
+  <CardHeader>Instances in Maintenance Mode</CardHeader>
+
   <div class="grid">
-    {#each allInstancesArray as instance, index}
-      <div
-        class="lg:flex items-center justify-between transition-all duration-500 lg:py-8 py-16 px-4 rounded-2xl {index %
-          2 ===
-        0
-          ? ''
-          : 'bg-base-100'}"
-      >
-        <div class="lg:text-left text-center mb-6 lg:mb-0">
-          <h4 class="font-bold capitalize mb-2">{instance.subdomain}</h4>
-
-          <div class="flex items-center flex-wrap justify-center gap-2">
-            <div class="badge badge-accent badge-outline">
-              Status: &nbsp;<span class="capitalize">{instance.status}</span>
-            </div>
-            <div class="badge badge-accent badge-outline">
-              Version: {instance.version}
-            </div>
-
-            {#if instance.maintenance}
-              <div class="badge badge-outline border-warning gap-2">
-                <i class="fa-regular fa-triangle-person-digging text-warning"
-                ></i>
-                <span class="text-warning">Maintenance Mode</span>
-              </div>
-            {/if}
-          </div>
-        </div>
-
-        <div class="flex items-center justify-center gap-2">
-          <a href={`/app/instances/${instance.id}`} class="btn btn-primary">
-            <i class="fa-regular fa-circle-info"></i>
-            <span>Details</span>
-          </a>
-
-          <a
-            class="btn btn-secondary"
-            href={INSTANCE_ADMIN_URL(instance.subdomain)}
-            target="_blank"
-          >
-            <img
-              src="/images/pocketbase-logo.svg"
-              alt="PocketBase Logo"
-              class="w-6"
-            />
-            <span>Admin</span>
-          </a>
-        </div>
-      </div>
+    {#each arrayOfMaintenanceInstances as instance, index}
+      <InstanceRow {instance} {index} />
     {/each}
   </div>
 </Card>
