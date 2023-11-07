@@ -28,9 +28,6 @@
               Status: &nbsp;<span class="capitalize">{instance.status}</span>
             </div>
             <div class="badge badge-accent badge-outline">
-              Usage: {Math.ceil(instance.secondsThisMonth / 60)} mins
-            </div>
-            <div class="badge badge-accent badge-outline">
               Version: {instance.version}
             </div>
 

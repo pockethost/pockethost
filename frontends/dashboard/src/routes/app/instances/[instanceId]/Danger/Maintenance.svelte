@@ -5,7 +5,7 @@
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
 
-  const { setInstanceMaintenance } = client()
+  const { updateInstance } = client()
 
   $: ({ id, maintenance } = $instance)
 
@@ -14,7 +14,7 @@
     const isChecked = target.checked
 
     // Update the database with the new value
-    setInstanceMaintenance({ instanceId: id, maintenance: isChecked }).then(
+    updateInstance({ instanceId: id, fields: { maintenance: isChecked } }).then(
       () => 'saved',
     )
   }

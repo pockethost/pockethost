@@ -5,13 +5,14 @@
   import { client } from '$src/pocketbase-client'
   import { slide } from 'svelte/transition'
   import { instance } from '../store'
+  import VersionPicker from './VersionPicker.svelte'
 
   $: ({ id, maintenance, version } = $instance)
 
   // Create a copy of the version
-  let instanceVersion = version
+  let selectedVersion = version
   $: {
-    instanceVersion = version
+    selectedVersion = version
   }
 
   // Controls the disabled state of the button
@@ -29,14 +30,18 @@
 
     // Prompt the user to confirm the version change
     const confirmVersionChange = confirm(
-      `Are you sure you want to change the version to ${instanceVersion}?`,
+      `Are you sure you want to change the version to ${selectedVersion}?`,
     )
 
     // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
       // Save to the database
+      errorMessage = ''
       client()
-        .saveVersion({ instanceId: id, version: instanceVersion })
+        .updateInstance({
+          instanceId: id,
+          fields: { version: selectedVersion },
+        })
         .then(() => {
           return 'saved'
         })
@@ -45,7 +50,7 @@
         })
     } else {
       // If they hit cancel, reset the version number back to what it was initially
-      instanceVersion = version
+      selectedVersion = version
     }
 
     // Set the button back to normal
@@ -79,12 +84,8 @@
     class="flex change-version-form-container-query gap-4"
     on:submit={handleSave}
   >
-    <input
-      required
-      type="text"
-      bind:value={instanceVersion}
-      class="input input-bordered w-full"
-    />
+    <VersionPicker bind:selectedVersion disabled={!maintenance} />
+
     <button
       type="submit"
       class="btn btn-error"

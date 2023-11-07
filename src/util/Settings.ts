@@ -2,120 +2,100 @@ import { mkSingleton } from '$shared'
 import { boolean as castToBoolean } from 'boolean'
 import { existsSync, mkdirSync } from 'fs'
 
-export type HandlerFactory<TValue> = (key: string) => {
+export type Caster<TValue, TConfig = {}> = {
+  stringToType: (value: string, config?: Partial<TConfig>) => TValue
+  typeToString: (value: TValue, config?: Partial<TConfig>) => string
+}
+
+export type Handler<TValue> = {
   get: () => TValue
   set: (value: TValue) => void
 }
+
+export type HandlerFactory<TValue> = (key: string) => Handler<TValue>
 
 export type Maker<TValue, TConfig = {}> = (
   _default?: TValue,
   config?: Partial<TConfig>,
 ) => HandlerFactory<TValue>
 
-export const mkBoolean: Maker<boolean> = (_default) => (name: string) => {
-  return {
-    get() {
-      const v = process.env[name]
-      if (typeof v === `undefined`) {
-        if (typeof _default === `undefined`)
-          throw new Error(`${name} must be defined`)
-        return _default
-      }
-      return castToBoolean(v)
-    },
-    set(v) {
-      process.env[name] = `${v}`
-    },
-  }
-}
-
-export const mkNumber: Maker<number> = (_default) => (name: string) => {
-  return {
-    get() {
-      const v = process.env[name]
-      if (typeof v === `undefined`) {
-        if (typeof _default === `undefined`)
-          throw new Error(`${name} must be defined`)
-        return _default
-      }
-      return parseInt(v, 10)
-    },
-    set(v) {
-      process.env[name] = v.toString()
-    },
-  }
-}
-
-export const mkPath: Maker<string, { create: boolean; required: boolean }> =
-  (_default, options = {}) =>
+const mkMaker =
+  <TValue, TConfig = {}>(
+    caster: Caster<TValue, TConfig>,
+  ): Maker<TValue, TConfig> =>
+  (_default, config) =>
   (name: string) => {
-    const { create = false, required = true } = options
     return {
-      get() {
-        const v = (() => {
-          const v = process.env[name]
-          if (typeof v === `undefined`) {
-            if (typeof _default === `undefined`)
-              throw new Error(`${name} must be defined`)
-            return _default
-          }
-          return v
-        })()
-        if (create) {
-          mkdirSync(v, { recursive: true })
-        }
-        if (required && !existsSync(v)) {
-          throw new Error(`${name} (${v}) must exist.`)
-        }
-        return v
-      },
-      set(v) {
-        if (!existsSync(v)) {
-          throw new Error(`${name} (${v}) must exist.`)
-        }
-        process.env[name] = v
-      },
-    }
-  }
-
-export const mkString: Maker<string> = (_default) => (name: string) => {
-  return {
-    get() {
-      const v = process.env[name]
-      if (typeof v === `undefined`) {
-        if (typeof _default === `undefined`)
-          throw new Error(`${name} must be defined`)
-        return _default
-      }
-      return v
-    },
-    set(v) {
-      process.env[name] = v
-    },
-  }
-}
-
-export const mkCsvString: Maker<string[]> = (_default) => (name: string) => {
-  return {
-    get() {
-      return (() => {
+      get(): TValue {
         const v = process.env[name]
         if (typeof v === `undefined`) {
           if (typeof _default === `undefined`)
             throw new Error(`${name} must be defined`)
-          return _default
+          this.set(_default)
+          return this.get()
         }
-        return v
-          .split(/,/)
-          .map((s) => s.trim())
-          .filter((v) => !!v)
-      })()
-    },
-    set(v) {
-      process.env[name] = v.join(',')
-    },
+        try {
+          return caster.stringToType(v, config)
+        } catch (e) {
+          throw new Error(`${name}: ${e}`)
+        }
+      },
+      set(v: TValue) {
+        try {
+          process.env[name] = caster.typeToString(v, config)
+        } catch (e) {
+          throw new Error(`${name}: ${e}`)
+        }
+      },
+    }
   }
-}
+
+export const mkBoolean = mkMaker<boolean>({
+  stringToType: (v) => castToBoolean(v),
+  typeToString: (v) => `${v}`,
+})
+
+export const mkNumber = mkMaker<number>({
+  stringToType: (s) => parseInt(s, 10),
+  typeToString: (v) => v.toString(),
+})
+
+export const mkPath = mkMaker<string, { create: boolean; required: boolean }>({
+  stringToType: (v, options) => {
+    const { create = false, required = true } = options || {}
+    if (create) {
+      mkdirSync(v, { recursive: true })
+    }
+    if (required && !existsSync(v)) {
+      throw new Error(`${v} must exist.`)
+    }
+    return v
+  },
+  typeToString: (v, options) => {
+    const { create = false, required = true } = options || {}
+    if (create) {
+      mkdirSync(v, { recursive: true })
+    }
+    if (required && !existsSync(v)) {
+      throw new Error(`${v} must exist.`)
+    }
+    return v
+  },
+})
+
+export const mkString = mkMaker<string>({
+  typeToString: (v) => v,
+  stringToType: (v) => v,
+})
+
+export const mkCsvString = mkMaker<string[]>({
+  typeToString: (v) => v.join(','),
+  stringToType: (s) =>
+    s
+      .split(/,/)
+      .map((s) => s.trim())
+      .filter((v) => !!v),
+})
 
 type Config<T> = {
   [K in keyof T]: HandlerFactory<T[K]>
@@ -132,6 +112,7 @@ export const SettingsService = <T extends Object>(config: Config<T>) => {
         set: (value) => handler.set(value),
         enumerable: true,
       })
+      handler.get() // Initialize process.env
     }
 
     return lookup as T

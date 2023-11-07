@@ -10,18 +10,17 @@ import {
   SETTINGS,
 } from '$constants'
 import {
+  MothershipAdmimClientService,
   PocketbaseReleaseVersionService,
   PocketbaseService,
   PortService,
+  SqliteService,
   centralDbService,
-  clientService,
   ftpService,
   instanceService,
   ipWhitelistService,
   proxyService,
   realtimeLog,
-  rpcService,
-  sqliteService,
 } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
 import EventSource from 'eventsource'
@@ -74,9 +73,11 @@ global.EventSource = EventSource
         })
         resolve(url)
         await exitCode
+        console.log(`got exit code on mothership`, { exitCode })
       } catch (e) {
         error(e)
       } finally {
+        console.log(`finally executing`)
         setTimeout(mothership, 10000)
       }
     }
@@ -86,18 +87,17 @@ global.EventSource = EventSource
   /**
    * Launch services
    */
-  await clientService({
+  await MothershipAdmimClientService({
     url,
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
   await ftpService({})
-  await rpcService({})
   await proxyService({
     coreInternalUrl: url,
   })
   await ipWhitelistService({})
-  await sqliteService({})
+  await SqliteService({})
   await realtimeLog({})
   await instanceService({
     instanceApiCheckIntervalMs: 50,
@@ -107,6 +107,4 @@ global.EventSource = EventSource
   // gen:service
 
   info(`Hooking into process exit event`)
-
-  await (await rpcService()).initRpcs()
 })()
