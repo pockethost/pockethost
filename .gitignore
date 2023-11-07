@@ -13,3 +13,4 @@ pocketbase
 .svelte-kit
 live-data
 dist
+.pockethost

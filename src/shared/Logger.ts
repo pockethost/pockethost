@@ -95,21 +95,23 @@ export const createLogger = (config: Partial<Config>) => {
       if (_curIdx === MAX_BUF) _curIdx = 0
     }
     if (isLevelGte(levelIn, level)) {
-      LogLevelConsoleMap[levelIn](
-        ...args.map((arg) => {
-          const t = typeof arg
-          if (t === 'string' && !!arg.match(/\n/)) {
-            return stringify(arg, null, 2)
-          }
-          if (t === 'function') {
-            return `<<function ${stringify(arg.toString())}>>`
-          }
-          if (t === 'object') {
-            return stringify(arg, null, 2)
-          }
-          return arg
-        }),
-      )
+      const pfx = args.shift()
+      while (args.length > 0) {
+        let arg = args.shift()
+        const t = typeof arg
+        if (t === 'string' && !!arg.match(/\n/)) {
+          args.unshift(...arg.split(/\n/))
+          continue
+        }
+        if (t === 'object') {
+          args.unshift(...stringify(arg, null, 2).split(/\n/))
+          continue
+        }
+        if (t === 'function') {
+          arg = `<<function ${stringify(arg.toString())}>>`
+        }
+        LogLevelConsoleMap[levelIn](...[pfx, arg])
+      }
     }
   }
 

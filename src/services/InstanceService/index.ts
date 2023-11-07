@@ -59,8 +59,6 @@ export const instanceService = mkSingleton(
 
     const instanceApis: { [_: InstanceId]: InstanceApi } = {}
 
-    client.resetInstances().catch(error)
-
     const getInstanceApi = (instance: InstanceFields): Promise<InstanceApi> => {
       const _logger = instanceServiceLogger.create(`getInstanceApi`)
       const { id, subdomain, version } = instance
