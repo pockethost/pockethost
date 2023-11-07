@@ -15,11 +15,13 @@
     maintenance: boolean
   }
 
-  let arrayOfActiveInstances: TypeInstanceObject[] = [];
+  let arrayOfActiveInstances: TypeInstanceObject[] = []
 
   $: {
-    if($globalInstancesStore) {
-      arrayOfActiveInstances = values($globalInstancesStore).filter((app) => !app.maintenance);
+    if ($globalInstancesStore) {
+      arrayOfActiveInstances = values($globalInstancesStore).filter(
+        (app) => !app.maintenance,
+      )
     }
   }
 

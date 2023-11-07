@@ -4,25 +4,29 @@
   import { globalInstancesStore } from '$util/stores'
   import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
   import { values } from '@s-libs/micro-dash'
-  import {slide} from 'svelte/transition'
+  import { slide } from 'svelte/transition'
 
-  let isMaintenanceModeOpen = false;
+  let isMaintenanceModeOpen = false
 
   type TypeInstanceObject = {
-    id: string;
-    subdomain: string;
-    status: string;
-    version: string;
-    maintenance: boolean;
+    id: string
+    subdomain: string
+    status: string
+    version: string
+    maintenance: boolean
   }
 
-  let arrayOfActiveInstances: TypeInstanceObject[] = [];
-  let arrayOfMaintenanceInstances: TypeInstanceObject[] = [];
+  let arrayOfActiveInstances: TypeInstanceObject[] = []
+  let arrayOfMaintenanceInstances: TypeInstanceObject[] = []
 
   $: {
-    if($globalInstancesStore) {
-      arrayOfActiveInstances = values($globalInstancesStore).filter((app) => !app.maintenance);
-      arrayOfMaintenanceInstances = values($globalInstancesStore).filter((app) => app.maintenance);
+    if ($globalInstancesStore) {
+      arrayOfActiveInstances = values($globalInstancesStore).filter(
+        (app) => !app.maintenance,
+      )
+      arrayOfMaintenanceInstances = values($globalInstancesStore).filter(
+        (app) => app.maintenance,
+      )
     }
   }
 </script>

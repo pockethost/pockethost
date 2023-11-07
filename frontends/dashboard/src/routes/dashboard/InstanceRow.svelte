@@ -2,24 +2,23 @@
   import { INSTANCE_ADMIN_URL } from '$src/env.js'
 
   type TypeInstanceObject = {
-    id: string;
-    subdomain: string;
-    status: string;
-    version: string;
-    maintenance: boolean;
+    id: string
+    subdomain: string
+    status: string
+    version: string
+    maintenance: boolean
   }
 
-  export let instance: TypeInstanceObject;
-  export let index: number;
+  export let instance: TypeInstanceObject
+  export let index: number
 </script>
-
 
 <div
   class="lg:flex items-center justify-between transition-all duration-500 lg:py-8 py-16 px-4 rounded-2xl {index %
-          2 ===
-        0
-          ? ''
-          : 'bg-base-100'}"
+    2 ===
+  0
+    ? ''
+    : 'bg-base-100'}"
 >
   <div class="lg:text-left text-center mb-6 lg:mb-0">
     <h4 class="font-bold capitalize mb-2">{instance.subdomain}</h4>
@@ -34,8 +33,7 @@
 
       {#if instance.maintenance}
         <div class="badge badge-outline border-warning gap-2">
-          <i class="fa-regular fa-triangle-person-digging text-warning"
-          ></i>
+          <i class="fa-regular fa-triangle-person-digging text-warning"></i>
           <span class="text-warning">Maintenance Mode</span>
         </div>
       {/if}
