@@ -1,30 +1,20 @@
-import {
-  APEX_DOMAIN,
-  DEBUG,
-  INSTANCE_APP_HOOK_DIR,
-  INSTANCE_APP_MIGRATIONS_DIR,
-  mkInstanceDataPath,
-  MOTHERSHIP_HOOKS_DIR,
-  MOTHERSHIP_MIGRATIONS_DIR,
-} from '$constants'
+import { APEX_DOMAIN, mkInstanceDataPath } from '$constants'
 import { InstanceLogger, PortService } from '$services'
 import {
+  LoggerService,
+  SingletonBaseConfig,
   createCleanupManager,
   createTimerManager,
-  LoggerService,
   mkSingleton,
-  SingletonBaseConfig,
 } from '$shared'
 import { assert, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
-import { globSync } from 'glob'
 import MemoryStream from 'memorystream'
-import { basename, dirname, join } from 'path'
-import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
+import { buildImage } from './buildImage'
 
 export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }
@@ -34,7 +24,7 @@ export type SpawnConfig = {
   slug: string
   version?: string
   port?: number
-  isMothership?: boolean
+  extraBinds?: string[]
   env?: Env
   stdout?: MemoryStream
   stderr?: MemoryStream
@@ -52,11 +42,16 @@ export type PocketbaseProcess = {
   exitCode: Promise<number | null>
 }
 
+const INSTANCE_IMAGE_NAME = `pockethost-instance`
+
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig,
 ) => {
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
+
+  dbg(`Building docker image for instnace`)
+  await buildImage(`Dockerfile`, INSTANCE_IMAGE_NAME)
 
   const { getLatestVersion, getVersion } =
     await PocketbaseReleaseVersionService()
@@ -77,7 +72,7 @@ export const createPocketbaseService = async (
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
       port: defaultPort,
-      isMothership: false,
+      extraBinds: [],
       env: {},
       stderr: new MemoryStream(),
       stdout: new MemoryStream(),
@@ -89,7 +84,7 @@ export const createPocketbaseService = async (
       name,
       slug,
       port,
-      isMothership,
+      extraBinds,
       env,
       stderr,
       stdout,
@@ -104,32 +99,6 @@ export const createPocketbaseService = async (
       throw new Error(
         `PocketBase binary (${binPath}) not found. Contact pockethost.io.`,
       )
-    }
-
-    const bin = `/host_bin/pocketbase`
-
-    const args = [
-      bin,
-      command,
-      `--dir`,
-      `/host_data/pb_data`,
-      `--publicDir`,
-      `/host_data/pb_public`,
-    ]
-    if (DEBUG()) {
-      args.push(`--debug`)
-    }
-    if (gte(realVersion.version, `0.9.0`)) {
-      args.push(`--migrationsDir`)
-      args.push(`/host_data/pb_migrations`)
-    }
-    if (gte(realVersion.version, `0.17.0`)) {
-      args.push(`--hooksDir`)
-      args.push(`/host_data/pb_hooks`)
-    }
-    if (command === 'serve') {
-      args.push(`--http`)
-      args.push(`0.0.0.0:8090`)
     }
 
     const docker = new Docker()
@@ -150,32 +119,16 @@ export const createPocketbaseService = async (
       })
     }
     stderr.on('data', _stdErrData)
-    const Binds = [
-      `${dirname(binPath)}:/host_bin:ro`,
-      `${mkInstanceDataPath(slug)}:/host_data`,
-    ]
-    const hooksDir = isMothership
-      ? MOTHERSHIP_HOOKS_DIR()
-      : mkInstanceDataPath(slug, `pb_hooks`)
-    Binds.push(`${hooksDir}:/host_data/pb_hooks`)
+    const Binds = [`${mkInstanceDataPath(slug)}:/home/pocketbase`]
+    Binds.push(`${binPath}:/home/pocketbase/pocketbase:ro`)
 
-    const migrationsDir = isMothership
-      ? MOTHERSHIP_MIGRATIONS_DIR()
-      : mkInstanceDataPath(slug, `pb_migrations`)
-    Binds.push(`${migrationsDir}:/host_data/pb_migrations`)
-
-    if (!isMothership) {
-      globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).forEach((file) => {
-        Binds.push(`${file}:/host_data/pb_migrations/${basename(file)}:ro`)
-      })
-      globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).forEach((file) => {
-        Binds.push(`${file}:/host_data/pb_hooks/${basename(file)}:ro`)
-      })
+    if (extraBinds.length > 0) {
+      Binds.push(...extraBinds)
     }
 
     const createOptions: ContainerCreateOptions = {
-      Image: `benallfree/pockethost-instance`,
-      Cmd: args,
+      Image: INSTANCE_IMAGE_NAME,
+      Cmd: [`./pocketbase`, `serve`, `--http`, `0.0.0.0:8090`],
       Env: map(
         {
           ...env,
@@ -202,9 +155,10 @@ export const createPocketbaseService = async (
       ExposedPorts: {
         [`8090/tcp`]: {},
       },
+      User: 'pocketbase',
     }
     logger.info(`Spawning ${slug}`)
-    dbg({ args, createOptions })
+    dbg({ createOptions })
 
     let container: Container | undefined = undefined
     let started = false
