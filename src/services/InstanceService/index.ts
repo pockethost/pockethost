@@ -344,7 +344,7 @@ export const instanceService = mkSingleton(
     const getInstanceByIdOrSubdomain = async (idOrSubdomain: InstanceId) => {
       {
         dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
-        const [instance, owner] = await client
+        const instance = await client
           .getInstanceById(idOrSubdomain)
           .catch((e: ClientResponseError) => {
             if (e.status !== 404) {
@@ -352,24 +352,21 @@ export const instanceService = mkSingleton(
                 `Unexpected response ${JSON.stringify(e)} from mothership`,
               )
             }
-            return []
           })
-        if (instance && owner) {
+        if (instance) {
           dbg(`${idOrSubdomain} is an instance ID`)
-          return { instance, owner }
+          return instance
         }
       }
       {
         dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const [instance, owner] =
-          await client.getInstanceBySubdomain(idOrSubdomain)
-        if (instance && owner) {
+        const instance = await client.getInstanceBySubdomain(idOrSubdomain)
+        if (instance) {
           dbg(`${idOrSubdomain} is a subdomain`)
-          return { instance, owner }
+          return instance
         }
       }
       dbg(`${idOrSubdomain} is neither an instance nor a subdomain`)
-      return {}
     }
 
     ;(await proxyService()).use(
@@ -379,16 +376,15 @@ export const instanceService = mkSingleton(
         const { dbg } = logger
         const { subdomain: instanceIdOrSubdomain, host, proxy } = meta
 
-        const { instance, owner } = await getInstanceByIdOrSubdomain(
-          instanceIdOrSubdomain,
-        )
-        if (!owner) {
-          throw new Error(`Instance owner is invalid`)
-        }
+        const instance = await getInstanceByIdOrSubdomain(instanceIdOrSubdomain)
         if (!instance) {
           throw new Error(
             `Subdomain ${instanceIdOrSubdomain} does not resolve to an instance`,
           )
+        }
+        const owner = instance.expand.uid
+        if (!owner) {
+          throw new Error(`Instance owner is invalid`)
         }
 
         /*
@@ -407,7 +403,7 @@ export const instanceService = mkSingleton(
         Owner check
         */
         dbg(`Checking for verified account`)
-        if (!owner?.verified) {
+        if (!owner.verified) {
           throw new Error(`Log in at ${mkAppUrl()}} to verify your account.`)
         }
 

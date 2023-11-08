@@ -1,3 +1,4 @@
+import { UserFields } from './User'
 import { BaseFields, RecordId, Subdomain, UserId } from './types'
 
 export type VersionId = string
@@ -26,6 +27,10 @@ export type InstanceFields = BaseFields & {
   version: VersionId
   secrets: InstanceSecretCollection | null
   maintenance: boolean
+}
+
+export type WithUser = {
+  expand: { uid: UserFields }
 }
 
 export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
