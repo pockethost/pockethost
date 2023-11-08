@@ -25,7 +25,8 @@
     "start": "tsx src/server.ts",
     "pm2": "pm2 stop all; pm2 del daemon ; pm2 start \"pnpm start\" --name=daemon -l /home/pockethost/logs/daemon-`date +%s`.log",
     "plop": "plop",
-    "prepare": "[ -d '.git' ] && husky install || echo 'skipping husky'"
+    "prepare": "[ -d '.git' ] && husky install || echo 'skipping husky'",
+    "nofile": "cat /proc/sys/fs/file-nr"
   },
   "prettier": {
     "semi": false,
