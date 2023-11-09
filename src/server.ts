@@ -36,7 +36,6 @@ DefaultSettingsService(SETTINGS)
 
 LoggerService({
   level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
-  errorTrace: !DEBUG(),
 })
 
 // npm install eventsource --save

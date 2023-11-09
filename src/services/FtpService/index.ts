@@ -51,7 +51,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
   const ftpServer = new FtpSrv({
     url: 'ftp://0.0.0.0:' + PH_FTP_PORT(),
     anonymous: false,
-    log: _ftpServiceLogger.create(`ftpServer`, { errorTrace: false }),
+    log: _ftpServiceLogger.create(`ftpServer`),
     tls,
     pasv_url: PH_FTP_PASV_IP(),
     pasv_max: PH_FTP_PASV_PORT_MAX(),
