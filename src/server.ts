@@ -71,8 +71,8 @@ global.EventSource = EventSource
           slug: MOTHERSHIP_NAME(),
           port: MOTHERSHIP_PORT(),
           extraBinds: [
-            `${MOTHERSHIP_HOOKS_DIR()}:/home/pocketbase/pb_hooks:ro`,
-            `${MOTHERSHIP_MIGRATIONS_DIR()}:/home/pocketbase/pb_migrations:ro`,
+            `${MOTHERSHIP_HOOKS_DIR()}:/home/pocketbase/pb_hooks`,
+            `${MOTHERSHIP_MIGRATIONS_DIR()}:/home/pocketbase/pb_migrations`,
           ],
         })
         resolve(url)
