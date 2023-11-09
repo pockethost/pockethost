@@ -1,5 +1,7 @@
 import {
   DAEMON_PB_IDLE_TTL,
+  INSTANCE_APP_HOOK_DIR,
+  INSTANCE_APP_MIGRATIONS_DIR,
   mkAppUrl,
   mkDocUrl,
   MOTHERSHIP_NAME,
@@ -24,8 +26,10 @@ import {
   SingletonBaseConfig,
 } from '$shared'
 import { asyncExitHook, mkInternalUrl, now } from '$util'
-import { map, values } from '@s-libs/micro-dash'
+import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
+import { globSync } from 'glob'
+import { basename, join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 
@@ -251,6 +255,18 @@ export const instanceService = mkSingleton(
               slug: instance.id,
               port: newPort,
               env: instance.secrets || {},
+              extraBinds: flatten([
+                globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
+                  (file) =>
+                    `${file}:/home/pocketbase/pb_migrations/${basename(
+                      file,
+                    )}:ro`,
+                ),
+                globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
+                  (file) =>
+                    `${file}:/home/pocketbase/pb_hooks/${basename(file)}:ro)`,
+                ),
+              ]),
               version,
             })
             return cp
