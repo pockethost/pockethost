@@ -7,11 +7,14 @@ export async function buildImage(
   dockerFileName: string,
   imageName: string,
 ): Promise<void> {
-  const { dbg } = LoggerService().create('buildImage')
+  const { dbg, info } = LoggerService()
+    .create('buildImage')
+    .breadcrumb(imageName)
+    .breadcrumb(dockerFileName)
 
   const docker = new Dockerode()
 
-  dbg(`Creating Docker iamge`)
+  info(`Creating Docker iamge`)
   const stream = await docker.buildImage(
     {
       context: join(PH_PROJECT_ROOT(), 'src', 'services', 'PocketBaseService'),
@@ -24,5 +27,5 @@ export async function buildImage(
       err ? reject(err) : resolve(res),
     )
   })
-  dbg(`Image created`)
+  info(`Image created`)
 }
