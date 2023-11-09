@@ -155,7 +155,7 @@ export const createPocketbaseService = async (
       ExposedPorts: {
         [`8090/tcp`]: {},
       },
-      User: 'pocketbase',
+      // User: 'pocketbase',
     }
     logger.info(`Spawning ${slug}`)
     dbg({ createOptions })
