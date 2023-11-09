@@ -7,7 +7,6 @@ import { mkSingleton } from './mkSingleton'
 
 export type Config = {
   level: LogLevelName
-  errorTrace: boolean
   pfx: string[]
 }
 
@@ -65,20 +64,15 @@ export const LogLevels = {
   [LogLevelName.Abort]: 6,
 } as const
 
-const MAX_BUF = 1000
-let _curIdx = 0
-const _buf: any = []
-
 export const createLogger = (config: Partial<Config>) => {
   const _config = mergeConfig<Config>(
     {
       level: LogLevelName.Debug,
-      errorTrace: false,
       pfx: [''],
     },
     config,
   )
-  const { pfx, errorTrace, level } = _config
+  const { pfx, level } = _config
 
   const _pfx = (s: string) =>
     [new Date().toISOString(), s, ...pfx]
@@ -87,13 +81,6 @@ export const createLogger = (config: Partial<Config>) => {
       .join(' ')
 
   const _log = (levelIn: LogLevelName, ...args: any[]) => {
-    if (_buf.length < MAX_BUF) {
-      _buf.push(args)
-    } else {
-      _buf[_curIdx] = args
-      _curIdx++
-      if (_curIdx === MAX_BUF) _curIdx = 0
-    }
     if (isLevelGte(levelIn, level)) {
       const pfx = args.shift()
       while (args.length > 0) {
@@ -148,14 +135,6 @@ export const createLogger = (config: Partial<Config>) => {
     new Error().stack?.split(/\n/).forEach((line) => {
       _log(LogLevelName.Debug, _pfx(chalk.bgRed(`ERROR`)), line)
     })
-    if (!errorTrace) return
-    console.error(`========== ERROR TRACEBACK BEGIN ==============`)
-    ;[..._buf.slice(_curIdx, MAX_BUF), ..._buf.slice(0, _curIdx)].forEach(
-      (args) => {
-        console.error(...args)
-      },
-    )
-    console.error(`========== ERROR TRACEBACK END ==============`)
   }
 
   const abort = (...args: any[]): never => {

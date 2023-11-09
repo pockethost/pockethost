@@ -3,6 +3,8 @@ import {
   DefaultSettingsService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
+  MOTHERSHIP_HOOKS_DIR,
+  MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
@@ -36,7 +38,6 @@ DefaultSettingsService(SETTINGS)
 
 LoggerService({
   level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
-  errorTrace: !DEBUG(),
 })
 
 // npm install eventsource --save
@@ -65,11 +66,14 @@ global.EventSource = EventSource
       try {
         const { url, exitCode } = await pbService.spawn({
           command: 'serve',
-          isMothership: true,
           version: MOTHERSHIP_SEMVER(),
           name: MOTHERSHIP_NAME(),
           slug: MOTHERSHIP_NAME(),
           port: MOTHERSHIP_PORT(),
+          extraBinds: [
+            `${MOTHERSHIP_HOOKS_DIR()}:/home/pocketbase/pb_hooks:ro`,
+            `${MOTHERSHIP_MIGRATIONS_DIR()}:/home/pocketbase/pb_migrations:ro`,
+          ],
         })
         resolve(url)
         await exitCode

@@ -11,7 +11,6 @@ const check = async () => {
   DefaultSettingsService(SETTINGS)
   LoggerService({
     level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
-    errorTrace: !DEBUG(),
   })
 
   const logger = LoggerService().create(`download.ts`)

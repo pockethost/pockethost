@@ -147,7 +147,7 @@ export const createPocketbaseService = async (
           {
             Name: 'nofile',
             Soft: 1024,
-            Hard: 1024,
+            Hard: 4096,
           },
         ],
       },
@@ -155,7 +155,7 @@ export const createPocketbaseService = async (
       ExposedPorts: {
         [`8090/tcp`]: {},
       },
-      User: 'pocketbase',
+      // User: 'pocketbase',
     }
     logger.info(`Spawning ${slug}`)
     dbg({ createOptions })

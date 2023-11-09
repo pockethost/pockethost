@@ -6,6 +6,5 @@ try {
 } catch {
   LoggerService({
     level: PUBLIC_DEBUG ? LogLevelName.Debug : LogLevelName.Info,
-    errorTrace: false,
   })
 }
