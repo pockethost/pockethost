@@ -194,7 +194,7 @@ export const createPocketbaseService = async (
           {
             Name: 'nofile',
             Soft: 1024,
-            Hard: 1024,
+            Hard: 4096,
           },
         ],
       },
