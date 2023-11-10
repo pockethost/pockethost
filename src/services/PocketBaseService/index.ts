@@ -134,7 +134,7 @@ export const createPocketbaseService = async (
         `--http`,
         `0.0.0.0:8090`,
         DEBUG() ? `--debug` : '',
-      ],
+      ].filter((v) => !!v),
       Env: map(
         {
           ...env,
