@@ -30,9 +30,17 @@
     overflow: hidden;
 
     .copy-button {
+      transition: all 300ms;
+      opacity: 0;
       position: absolute;
       top: 8px;
       right: 8px;
+    }
+
+    &:hover {
+      .copy-button {
+        opacity: 1;
+      }
     }
   }
 </style>

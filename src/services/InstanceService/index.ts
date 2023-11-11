@@ -1,5 +1,7 @@
 import {
   DAEMON_PB_IDLE_TTL,
+  INSTANCE_APP_HOOK_DIR,
+  INSTANCE_APP_MIGRATIONS_DIR,
   mkAppUrl,
   mkDocUrl,
   MOTHERSHIP_NAME,
@@ -24,8 +26,10 @@ import {
   SingletonBaseConfig,
 } from '$shared'
 import { asyncExitHook, mkInternalUrl, now } from '$util'
-import { map, values } from '@s-libs/micro-dash'
+import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
+import { globSync } from 'glob'
+import { basename, join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 
@@ -251,16 +255,26 @@ export const instanceService = mkSingleton(
               slug: instance.id,
               port: newPort,
               env: instance.secrets || {},
+              extraBinds: flatten([
+                globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
+                  (file) =>
+                    `${file}:/home/pocketbase/pb_migrations/${basename(file)}`,
+                ),
+                globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
+                  (file) =>
+                    `${file}:/home/pocketbase/pb_hooks/${basename(file)})`,
+                ),
+              ]),
               version,
             })
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
             userInstanceLogger.error(
-              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
+              `Could not launch PocketBase ${instance.version}. Please review your instnace logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
             )
             throw new Error(
-              `Could not launch PocketBase ${instance.version}. It may be time to upgrade.`,
+              `Could not launch PocketBase ${instance.version}. Please review your instnace logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
             )
           }
         })()
@@ -344,7 +358,7 @@ export const instanceService = mkSingleton(
     const getInstanceByIdOrSubdomain = async (idOrSubdomain: InstanceId) => {
       {
         dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
-        const [instance, owner] = await client
+        const instance = await client
           .getInstanceById(idOrSubdomain)
           .catch((e: ClientResponseError) => {
             if (e.status !== 404) {
@@ -352,24 +366,21 @@ export const instanceService = mkSingleton(
                 `Unexpected response ${JSON.stringify(e)} from mothership`,
               )
             }
-            return []
           })
-        if (instance && owner) {
+        if (instance) {
           dbg(`${idOrSubdomain} is an instance ID`)
-          return { instance, owner }
+          return instance
         }
       }
       {
         dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const [instance, owner] =
-          await client.getInstanceBySubdomain(idOrSubdomain)
-        if (instance && owner) {
+        const instance = await client.getInstanceBySubdomain(idOrSubdomain)
+        if (instance) {
           dbg(`${idOrSubdomain} is a subdomain`)
-          return { instance, owner }
+          return instance
         }
       }
       dbg(`${idOrSubdomain} is neither an instance nor a subdomain`)
-      return {}
     }
 
     ;(await proxyService()).use(
@@ -379,16 +390,15 @@ export const instanceService = mkSingleton(
         const { dbg } = logger
         const { subdomain: instanceIdOrSubdomain, host, proxy } = meta
 
-        const { instance, owner } = await getInstanceByIdOrSubdomain(
-          instanceIdOrSubdomain,
-        )
-        if (!owner) {
-          throw new Error(`Instance owner is invalid`)
-        }
+        const instance = await getInstanceByIdOrSubdomain(instanceIdOrSubdomain)
         if (!instance) {
           throw new Error(
             `Subdomain ${instanceIdOrSubdomain} does not resolve to an instance`,
           )
+        }
+        const owner = instance.expand.uid
+        if (!owner) {
+          throw new Error(`Instance owner is invalid`)
         }
 
         /*
@@ -407,7 +417,7 @@ export const instanceService = mkSingleton(
         Owner check
         */
         dbg(`Checking for verified account`)
-        if (!owner?.verified) {
+        if (!owner.verified) {
           throw new Error(`Log in at ${mkAppUrl()}} to verify your account.`)
         }
 
