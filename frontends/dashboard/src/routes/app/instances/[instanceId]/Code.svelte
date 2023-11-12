@@ -2,7 +2,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL, INSTANCE_URL } from '$src/env'
+  import { INSTANCE_URL } from '$src/env'
   import { instance } from './store'
 
   let installSnippet = `npm i pocketbase`
@@ -39,8 +39,10 @@
   <p>Additional Resources:</p>
   <ul class="list-disc pl-4">
     <li>
-      <a href={DOCS_URL(`/api-records/`)} target="_blank" class="link"
-        >PocketBase Web APIs</a
+      <a
+        href={`https://pocketbase.io/docs/api-records/`}
+        target="_blank"
+        class="link">PocketBase Web APIs</a
       >
     </li>
     <li>
