@@ -112,7 +112,7 @@ https://app.pockethost.lvh.me
 login: `user@pockethost.lvh.me`  
 password: `password`
 
-The user `user@pockethost.lvh.me` owns `instance1` and `instnace2`, each which is running in its own region on separate edge servers.
+The user `user@pockethost.lvh.me` owns `instance1` and `instance2`, each which is running in its own region on separate edge servers.
 
 That's it! You can control all this and much more from the `.env-template` file. It's fully documented, but here it is again just in case.
 
