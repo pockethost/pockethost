@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition'
   import { handleUnauthenticatedPasswordReset } from '$util/database'
+  import { slide } from 'svelte/transition'
 
   let email: string = ''
   let formError: string = ''
@@ -72,7 +72,7 @@
               class="btn btn-primary w-100"
               disabled={isFormButtonDisabled}
             >
-              Send Verification Email <i class="bi bi-arrow-right-short" />
+              Reset Password <i class="bi bi-arrow-right-short" />
             </button>
           </div>
         </form>
