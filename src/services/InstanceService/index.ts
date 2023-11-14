@@ -418,7 +418,7 @@ export const instanceService = mkSingleton(
         */
         dbg(`Checking for verified account`)
         if (!owner.verified) {
-          throw new Error(`Log in at ${mkAppUrl()}} to verify your account.`)
+          throw new Error(`Log in at ${mkAppUrl()} to verify your account.`)
         }
 
         const api = await getInstanceApi(instance)
