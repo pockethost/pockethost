@@ -100,13 +100,13 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const createInstance = mkRest<CreateInstancePayload, CreateInstanceResult>(
     RestCommands.Instance,
-    RestMethods.Create,
+    RestMethods.Post,
     CreateInstancePayloadSchema,
   )
 
   const updateInstance = mkRest<UpdateInstancePayload, UpdateInstanceResult>(
     RestCommands.Instance,
-    RestMethods.Update,
+    RestMethods.Put,
     UpdateInstancePayloadSchema,
   )
 

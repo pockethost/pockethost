@@ -1,5 +1,6 @@
 import Ajv, { JSONSchemaType } from 'ajv'
 import type pocketbaseEs from 'pocketbase'
+import { ClientResponseError } from 'pocketbase'
 import type { JsonObject } from 'type-fest'
 import { LoggerService } from '../Logger'
 import { RestCommands, RestMethods } from '../schema'
@@ -28,13 +29,41 @@ export const createRestHelper = (config: RestHelperConfig) => {
       if (!validator(payload)) {
         throw new Error(`Invalid REST payload: ${validator.errors}`)
       }
+      const _payload = { ...payload }
 
-      const res = await client.send(`/api/${cmd}`, {
-        method: method,
-        body: payload,
+      const url = `/api/${cmd}${
+        method === RestMethods.Post ? '' : '/:id'
+      }`.replace(/:([a-zA-Z]+)/g, (_, key) => {
+        if (!(key in _payload)) {
+          throw new Error(`Payload must include '${key}`)
+        }
+        const value = _payload[key]!
+        delete _payload[key]
+        return encodeURIComponent(value.toString())
       })
-      dbg(res)
-      return res
+
+      const options: any = {
+        method: method,
+      }
+
+      if (method !== RestMethods.Get) {
+        options.body = _payload
+      }
+
+      dbg({ url, options })
+
+      try {
+        const res = await client.send(url, options)
+        dbg(res)
+        return res
+      } catch (e) {
+        if (e instanceof ClientResponseError) {
+          error(`REST error: ${e.originalError}`)
+          throw e.originalError
+        }
+        error(`REST error: ${e}`)
+        throw e
+      }
     }
   }
 

@@ -14,7 +14,7 @@
     const isChecked = target.checked
 
     // Update the database with the new value
-    updateInstance({ instanceId: id, fields: { maintenance: isChecked } }).then(
+    updateInstance({ id, fields: { maintenance: isChecked } }).then(
       () => 'saved',
     )
   }

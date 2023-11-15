@@ -2,7 +2,7 @@
 
 /*
 {
-  "instanceId": "kz4ngg77eaw1ho0",
+  "id": "kz4ngg77eaw1ho0",
   "fields": {
     "maintenance": true
     "name": '',
@@ -12,12 +12,11 @@
 */
 routerAdd(
   'PUT',
-  '/api/instance',
+  '/api/instance/:id',
   (c) => {
-    console.log(`***TOP OF PUt`)
+    console.log(`***TOP OF PUT`)
     let data = new DynamicModel({
-      // describe the shape of the fields to read (used also as initial values)
-      instanceId: '',
+      id: '',
       fields: {
         maintenance: null,
         name: null,
@@ -27,21 +26,28 @@ routerAdd(
     })
 
     c.bind(data)
+    console.log(`***After bind`)
 
     // This is necessary for destructuring to work correctly
     data = JSON.parse(JSON.stringify(data))
 
+    const id = c.pathParam('id')
     const {
-      instanceId,
       fields: { maintenance, name, version, secrets },
     } = data
 
     console.log(
       `***vars`,
-      JSON.stringify({ instanceId, maintenance, name, version, secrets }),
+      JSON.stringify({
+        id,
+        maintenance,
+        name,
+        version,
+        secrets,
+      }),
     )
 
-    const record = $app.dao().findRecordById('instances', instanceId)
+    const record = $app.dao().findRecordById('instances', id)
     const authRecord = c.get('authRecord') // empty if not authenticated as regular auth record
     console.log(`***authRecord`, JSON.stringify(authRecord))
 
@@ -53,22 +59,23 @@ routerAdd(
     }
 
     function cleanObject(obj) {
-      return Object.entries(obj).reduce((acc, [key, value]) => {
+      console.log(`***original`, JSON.stringify(obj))
+      const sanitized = Object.entries(obj).reduce((acc, [key, value]) => {
         if (value !== null && value !== undefined) {
           acc[key] = value
         }
         return acc
       }, {})
+      console.log(`***sanitized`, JSON.stringify(sanitized))
+      return sanitized
     }
 
-    console.log(`***original`, JSON.stringify(data))
     const sanitized = cleanObject({
       subdomain: name,
       version,
       maintenance,
       secrets,
     })
-    console.log(`***sanitized`, JSON.stringify(sanitized))
 
     const form = new RecordUpsertForm($app, record)
     form.loadData(sanitized)

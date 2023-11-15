@@ -44,7 +44,7 @@
       // Save to the database
       items.upsert({ name: secretKey, value: secretValue })
       await client().updateInstance({
-        instanceId: $instance.id,
+        id: $instance.id,
         fields: {
           secrets: reduce(
             $items,

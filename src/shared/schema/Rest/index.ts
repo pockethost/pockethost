@@ -2,8 +2,9 @@ import Ajv from 'ajv'
 import { JsonObject } from 'type-fest'
 
 export enum RestMethods {
-  Create = 'POST',
-  Update = 'PUT',
+  Get = 'GET',
+  Post = 'POST',
+  Put = 'PUT',
 }
 
 export enum RestCommands {
@@ -16,4 +17,3 @@ export const ajv = new Ajv()
 
 export * from './CreateInstance'
 export * from './UpdateInstance'
-// gen:export
