@@ -1,6 +1,7 @@
 import { createCleanupManager } from '$shared'
 import { onDestroy } from 'svelte'
 
+// TODO: Document this
 export const mkCleanup = () => {
   const cm = createCleanupManager()
 
