@@ -11,7 +11,6 @@
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Secrets from './Secrets/Secrets.svelte'
-  import UsageChart from './UsageChart.svelte'
   import { instance } from './store'
 
   const { instanceId } = $page.params
@@ -67,15 +66,12 @@
 {/if}
 
 <div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-4">
-  <UsageChart />
-
   <Code />
+  <Logging />
 </div>
 
-<div class="grid lg:grid-cols-3 grid-cols-1 gap-4 mb-16">
+<div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-16">
   <Ftp />
-
-  <Logging />
 
   <Secrets />
 </div>
