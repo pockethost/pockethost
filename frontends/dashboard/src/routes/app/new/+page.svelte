@@ -3,32 +3,84 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { INSTANCE_URL } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
-  import { generateSlug } from 'random-word-slugs'
   import { slide } from 'svelte/transition'
+  import { writable } from 'svelte/store'
+  import { client } from '$src/pocketbase-client'
 
-  let instanceName: string = generateSlug(2)
-  let formError: string = ''
+  const instanceNameField = writable('')
+  const instanceInfo = writable({
+    name: '',
+    fetching: true,
+    available: false,
+  })
 
-  // Controls the spin animation of the instance regeneration button
-  let rotationCounter: number = 0
-
-  let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled = instanceName.length === 0 || isSubmitting
-
-  const handleInstanceNameRegeneration = () => {
-    rotationCounter = rotationCounter + 180
-    instanceName = generateSlug(2)
+  const generateSlug = async () => {
+    instanceInfo.update((info) => ({ ...info, fetching: true }))
+    const { instanceName: name } = await client().client.send(`/api/signup`, {})
+    instanceInfo.update((info) => ({
+      ...info,
+      available: true,
+      name,
+      fetching: false,
+    }))
+    instanceNameField.set(name)
   }
 
+  instanceNameField.subscribe(async (name) => {
+    if (name !== $instanceInfo.name) {
+      try {
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: true,
+        }))
+
+        await client().client.send(
+          `/api/signup?name=${encodeURIComponent(name)}`,
+          {},
+        )
+
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: false,
+          available: true,
+          name,
+        }))
+      } catch (e) {
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: false,
+          available: false,
+          name,
+        }))
+      }
+    }
+  })
+
+  // Generate the initial slug on load
+  generateSlug()
+
+  let formError: string = ''
   let isSubmitting = false
+
+  // Disable the form button until all fields are filled out
+  let isFormButtonDisabled: boolean = true
+  $: isFormButtonDisabled =
+    $instanceInfo.name.length === 0 || !$instanceInfo.available
+
+  // Generate a unique name for the PocketHost instance
+  const handleInstanceNameRegeneration = () => {
+    generateSlug()
+  }
+
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
 
     isSubmitting = true
     formError = ''
-    await handleCreateNewInstance(instanceName, (error) => {
+
+    await handleCreateNewInstance($instanceNameField, (error) => {
       formError = error
-    }).finally(() => {
+    }).finally(async () => {
       isSubmitting = false
     })
   }
@@ -50,7 +102,7 @@
       <div class="flex rename-instance-form-container-query gap-4">
         <input
           type="text"
-          bind:value={instanceName}
+          bind:value={$instanceNameField}
           class="input input-bordered w-full"
         />
 
@@ -63,9 +115,19 @@
         >
       </div>
 
-      <h4 class="text-center font-bold py-12">
-        {INSTANCE_URL(instanceName)}
-      </h4>
+      <div style="font-size: 15px;" class="p-2 mb-8">
+        {#if $instanceInfo.fetching}
+          Verifying...
+        {:else if $instanceInfo.available}
+          <span class="text-success">
+            https://{$instanceInfo.name}.pockethost.io ✔︎</span
+          >
+        {:else}
+          <span class="text-error">
+            https://{$instanceInfo.name}.pockethost.io ❌</span
+          >
+        {/if}
+      </div>
 
       {#if formError}
         <div transition:slide class="alert alert-error mb-5">
@@ -77,8 +139,16 @@
       <div class="flex items-center justify-center gap-4">
         <a href="/" class="btn">Cancel</a>
 
-        <button class="btn btn-primary" disabled={isFormButtonDisabled}>
-          Create <i class="bi bi-arrow-right-short" />
+        <button
+          type="submit"
+          class="btn btn-primary"
+          disabled={isFormButtonDisabled}
+        >
+          {#if isSubmitting}
+            <span class="loading loading-spinner loading-md"></span>
+          {:else}
+            Create <i class="bi bi-arrow-right-short" />
+          {/if}
         </button>
       </div>
     </form>
