@@ -11,7 +11,7 @@
   const instanceInfo = writable({
     name: '',
     fetching: true,
-    availabe: false,
+    available: false,
   })
 
   const generateSlug = async () => {
@@ -19,7 +19,7 @@
     const { instanceName: name } = await client().client.send(`/api/signup`, {})
     instanceInfo.update((info) => ({
       ...info,
-      availabe: true,
+      available: true,
       name,
       fetching: false,
     }))
@@ -40,14 +40,14 @@
         instanceInfo.update((info) => ({
           ...info,
           fetching: false,
-          availabe: true,
+          available: true,
           name,
         }))
       } catch (e) {
         instanceInfo.update((info) => ({
           ...info,
           fetching: false,
-          availabe: false,
+          available: false,
           name,
         }))
       }
@@ -67,7 +67,7 @@
     email.length === 0 ||
     password.length === 0 ||
     $instanceInfo.name.length === 0 ||
-    !$instanceInfo.availabe
+    !$instanceInfo.available
 
   // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
@@ -134,7 +134,7 @@
     <div style="font-size: 15px; padding: 5px">
       {#if $instanceInfo.fetching}
         Verifying...
-      {:else if $instanceInfo.availabe}
+      {:else if $instanceInfo.available}
         <span class="text-success">
           https://{$instanceInfo.name}.pockethost.io ✔︎</span
         >
