@@ -130,6 +130,7 @@
         <i class="fa-solid fa-rotate"></i>
       </button>
     </div>
+
     <div style="font-size: 15px; padding: 5px">
       {#if $instanceInfo.fetching}
         Verifying...
@@ -142,15 +143,6 @@
           https://{$instanceInfo.name}.pockethost.io ❌</span
         >
       {/if}
-      <code style=""
-        ><pre>
-      {`
-const client = new PocketBase('https://{$instanceInfo.name}.pockethost.io')
-client.send('/api/health', {}).then(() => {
-console.log('Instance is healthy!')
-})
-`}</pre>
-      </code>
     </div>
   </div>
 
