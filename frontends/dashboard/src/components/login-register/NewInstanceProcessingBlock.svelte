@@ -1,12 +1,7 @@
 <script lang="ts">
-  import { getRandomElementFromArray } from '$util/utilities'
-
   // Fun quotes when waiting for the instance to load. This could take up to 10 seconds
-  let processingQuotesArray = [
-    'Did you know it takes fourteen sentient robots to create each instance on PocketHost?',
-  ]
-
-  let processingQuote = getRandomElementFromArray(processingQuotesArray)
+  let processingQuote =
+    'Did you know it takes fourteen sentient robots to create each instance on PocketHost?'
 </script>
 
 <div class="card-body">

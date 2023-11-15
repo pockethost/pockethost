@@ -16,81 +16,34 @@ export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
 
 /**
  * This will log a user into Pocketbase, and includes an optional error handler
- * @param email {string} The email of the user
- * @param password {string} The password of the user
- * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
- * @param shouldRedirect {boolean} This will redirect the user to the dashboard when they are logged in
+ * @param {string} email The email of the user
+ * @param {string} password The password of the user
  */
-export const handleLogin = async (
-  email: string,
-  password: string,
-  setError?: FormErrorHandler,
-  redirect = '',
-) => {
+export const handleLogin = async (email: string, password: string) => {
   const { authViaEmail } = client()
-  // Reset the form error if the form is submitted
-  setError?.('')
 
-  try {
-    await authViaEmail(email, password)
-
-    if (redirect) {
-      await goto(redirect)
-    }
-  } catch (error) {
-    if (!(error instanceof Error)) {
-      throw new Error(
-        `Expected Error type here, but got ${typeof error}:${error}`,
-      )
-    }
-    handleFormError(error, setError)
-  }
+  return await authViaEmail(email, password)
 }
 
 /**
  * This will register a new user into Pocketbase, and includes an optional error handler
  * @param email {string} The email of the user
  * @param password {string} The password of the user
- * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
-export const handleRegistration = async (
-  email: string,
-  password: string,
-  setError?: FormErrorHandler,
-) => {
+export const handleRegistration = async (email: string, password: string) => {
   const { createUser } = client()
-  // Reset the form error if the form is submitted
-  setError?.('')
 
-  try {
-    await createUser(email, password)
-  } catch (error: any) {
-    handleFormError(error, setError)
-  }
+  return await createUser(email, password)
 }
 
 /**
  * This will let a user confirm their new account email, and includes an optional error handler
  * @param token {string} The token from the verification email
- * @param setError {function} This can be used to show an alert bar if an error occurs during the login process
  */
-export const handleAccountConfirmation = async (
-  token: string,
-  setError?: FormErrorHandler,
-) => {
+export const handleAccountConfirmation = async (token: string) => {
   const { confirmVerification } = client()
-  // Reset the form error if the form is submitted
-  setError?.('')
 
-  try {
-    await confirmVerification(token)
-
-    window.location.href = '/'
-  } catch (error: any) {
-    handleFormError(error, setError)
-  }
-
-  return false
+  return await confirmVerification(token)
 }
 
 /**
@@ -176,7 +129,7 @@ export const handleInstanceGeneratorWidget = async (
       method: 'POST',
       body: { email, password, instanceName },
     })
-    await handleLogin(email, password, setError)
+    await handleLogin(email, password)
     const instance = await client().getInstanceBySubdomain(instanceName)
     if (!instance) throw new Error(`This should never happen`)
     window.location.href = `/app/instances/${instance.id}`
