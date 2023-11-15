@@ -9,7 +9,7 @@ import { boolean } from 'boolean'
 export const PUBLIC_APP_URL =
   import.meta.env.PUBLIC_APP_URL || 'https://app.pockethost.io'
 
-// The apex domain of this whole operation
+// The apex domain of this whole operation. Also known as the "app" or "dashboard"
 export const PUBLIC_APEX_DOMAIN =
   import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
 
@@ -26,33 +26,93 @@ export const PUBLIC_MOTHERSHIP_URL =
   import.meta.env.PUBLIC_MOTHERSHIP_URL ||
   `https://pockethost-central.pockethost.io`
 
-// Whether or not we are in debugging mode - default TRUE
+// Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
-// Derived
-const mkPath = (...paths: string[]) =>
-  paths
-    .flatMap((path) => path.split('/'))
-    .filter((v) => !!v)
-    .join('/')
-export const LANDER_URL = (...paths: string[]) =>
-  `${PUBLIC_BLOG_URL}/${mkPath(...paths)}`
-export const BLOG_URL = (...paths: string[]) => LANDER_URL(`blog`, ...paths)
-export const DOCS_URL = (...paths: string[]) => LANDER_URL(`docs`, ...paths)
-export const APP_URL = (...paths: string[]) =>
-  `${PUBLIC_APP_URL}/${mkPath(...paths)}`
-export const INSTANCE_URL = (name: string, ...paths: string[]) =>
-  `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${mkPath(...paths)}`
-export const INSTANCE_ADMIN_URL = (name: string, ...paths: string[]) =>
-  INSTANCE_URL(name, `_/${mkPath(...paths)}`)
-export const FTP_URL = (email: string) =>
-  `ftp://${encodeURIComponent(email)}@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}`
+/**
+ * This helper function will take a dynamic list of values and join them together with a slash.
+ * @param {Array<string>} paths This is an optional list of additional paths to append to the lander URL.
+ * @example
+ * mkPath('a', 'b', 'c') // a/b/c
+ */
+const mkPath = (...paths: string[]) => {
+  return paths.filter((v) => !!v).join('/')
+}
 
-console.log({
-  PUBLIC_APEX_DOMAIN,
-  PUBLIC_APP_URL,
-  PUBLIC_BLOG_URL,
-  PUBLIC_DEBUG,
-  PUBLIC_HTTP_PROTOCOL,
-  PUBLIC_MOTHERSHIP_URL,
-})
+/**
+ * Helpful alias for the lander url.
+ * @param {Array<string>} paths This is an optional list of additional paths to append to the lander URL.
+ * @example
+ * LANDER_URL() // https://pockethost.io/
+ * LANDER_URL('showcase') // https://pockethost.io/showcase/
+ */
+export const LANDER_URL = (...paths: string[]) => {
+  return `${PUBLIC_BLOG_URL}/${mkPath(...paths)}/`
+}
+
+/**
+ * Helpful alias for the blog url.
+ * @param {Array<string>} paths This is an optional list of additional paths to append to the blogs URL.
+ * @example
+ * BLOG_URL() // https://pockethost.io/blog
+ * BLOG_URL('new-features-2023') // https://pockethost.io/blog/new-features-2023/
+ */
+export const BLOG_URL = (...paths: string[]) => {
+  return LANDER_URL(`blog`, ...paths)
+}
+
+/**
+ * Helpful alias for the docs url.
+ * @param {Array<string>} paths This is an optional list of additional paths to append to the docs URL.
+ * @example
+ * DOCS_URL() // https://pockethost.io/docs
+ * DOCS_URL('overview', 'help') // https://pockethost.io/docs/overview/help/
+ */
+export const DOCS_URL = (...paths: string[]) => {
+  return LANDER_URL(`docs`, ...paths)
+}
+
+/**
+ * Helpful alias for the app url.
+ * @param {Array<string>} paths This is an optional list of additional paths to append to the app URL.
+ * @example
+ * APP_URL() // https://app.pockethost.io/
+ * APP_URL('dashboard') // https://app.pockethost.io/dashboard
+ */
+export const APP_URL = (...paths: string[]) => {
+  return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
+}
+
+/**
+ * Helpful alias for generating the URL for a specific instance
+ * @param {string} name This is the unique instance name
+ * @param {Array<string>} paths This is an optional list of additional paths to append to the instance URL.
+ * @example
+ * INSTANCE_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/
+ * INSTANCE_URL('my-cool-instance', 'dashboard') // https://my-cool-instance.pockethost.io/dashboard
+ */
+export const INSTANCE_URL = (name: string, ...paths: string[]) => {
+  return `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${mkPath(
+    ...paths,
+  )}`
+}
+
+/**
+ * Helpful alias for generating the URL for a specific instance's admin panel
+ * @param {string} name This is the unique instance name
+ * @example
+ * INSTANCE_ADMIN_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/_/
+ */
+export const INSTANCE_ADMIN_URL = (name: string) => {
+  return INSTANCE_URL(name, `_/`)
+}
+
+/**
+ * Helpful alias for generating the URL for a specific instance's FTP server
+ * @param {string} email
+ * @example
+ * FTP_URL("user@example.com") // ftp://user%40example.com@ftp.sfo-1.pockethost.io
+ */
+export const FTP_URL = (email: string) => {
+  return `ftp://${encodeURIComponent(email)}@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}`
+}

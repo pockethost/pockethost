@@ -1,13 +1,10 @@
 import { goto } from '$app/navigation'
-import { LoggerService } from '$shared'
 import { client } from '$src/pocketbase-client'
 
 export type FormErrorHandler = (value: string) => void
 
 export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
   const { parseError } = client()
-  const { dbg, error, warn } = LoggerService()
-  error(`Form error: ${e}`, { error: e })
 
   if (setError) {
     const message = parseError(e)[0]
@@ -174,8 +171,6 @@ export const handleInstanceGeneratorWidget = async (
   instanceName: string,
   setError = (value: string) => {},
 ) => {
-  const { dbg, error, warn } = LoggerService()
-
   try {
     await client().client.send(`/api/signup`, {
       method: 'POST',
