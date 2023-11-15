@@ -4,6 +4,7 @@
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { slide } from 'svelte/transition'
   import Code from './Code.svelte'
+  import AdminSync from './Danger/AdminSync.svelte'
   import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
   import Maintenance from './Danger/Maintenance.svelte'
   import RenameInstance from './Danger/RenameInstance.svelte'
@@ -84,4 +85,6 @@
   <Maintenance />
 
   <VersionChange />
+
+  <AdminSync />
 </div>

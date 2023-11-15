@@ -2,6 +2,7 @@ import {
   DAEMON_PB_IDLE_TTL,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
+  INSTANCE_DATA_DB,
   mkAppUrl,
   mkDocUrl,
   mkEdgeUrl,
@@ -13,6 +14,7 @@ import {
   PocketbaseService,
   PortService,
   proxyService,
+  SqliteService,
 } from '$services'
 import {
   assertTruthy,
@@ -244,10 +246,31 @@ export const instanceService = mkSingleton(
         })
         healthyGuard()
 
+        /**
+         * Sync admin account
+         */
+        if (instance.syncAdmin) {
+          const id = instance.uid
+          dbg(`Fetching token info for uid ${id}`)
+          const { email, tokenKey, passwordHash } =
+            await client.getUserTokenInfo({ id })
+          dbg(`Token info is`, { email, tokenKey, passwordHash })
+          const sqliteService = await SqliteService()
+          const db = await sqliteService.getDatabase(
+            INSTANCE_DATA_DB(instance.id),
+          )
+          await db(`_admins`)
+            .insert({ id, email, tokenKey, passwordHash })
+            .onConflict('id')
+            .merge({ email, tokenKey, passwordHash })
+            .catch((e) => {
+              userInstanceLogger.error(`Failed to sync admin account: ${e}`)
+            })
+        }
+
         /*
         Spawn the child process
         */
-
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
