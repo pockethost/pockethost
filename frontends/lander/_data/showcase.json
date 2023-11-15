@@ -2,7 +2,7 @@
   {
     "title": "Battleborn",
     "description": "An easy to use tabletop RPG game",
-    "image": "/img/showcase/pockethost-showcase-battleborn.jpg",
+    "image": "https://battleborn.app/images/poster.png",
     "url": "https://battleborn.app/"
   }
 ]
