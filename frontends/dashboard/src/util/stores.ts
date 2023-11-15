@@ -1,21 +1,21 @@
-import { LoggerService, type InstanceFields, type InstanceId } from '$shared'
+import { type InstanceFields, type InstanceId } from '$shared'
 import { client } from '$src/pocketbase-client'
 import { UnsubscribeFunc } from 'pocketbase'
 import { writable } from 'svelte/store'
+// TODO: Removing this will cause the app to crash
+// Theres a reference inside of `createPocketbaseClient.ts` that needs the information that comes from this file
 import '../services'
+
+const { onAuthChange } = client()
 
 export const isUserLoggedIn = writable(false)
 export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)
 
-const { onAuthChange } = client()
-
 /**
  * Listen for auth change events. When we get at least one, the auth state is initialized.
  */
 onAuthChange((authStoreProps) => {
-  const { dbg } = LoggerService()
-  dbg(`onAuthChange in store`, { ...authStoreProps })
   isUserLoggedIn.set(authStoreProps.isValid)
   isUserVerified.set(!!authStoreProps.model?.verified)
   isAuthStateInitialized.set(true)
