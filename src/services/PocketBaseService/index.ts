@@ -50,7 +50,7 @@ export const createPocketbaseService = async (
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
-  dbg(`Building docker image for instnace`)
+  dbg(`Building docker image for instance`)
   await buildImage(`Dockerfile`, INSTANCE_IMAGE_NAME)
 
   const { getLatestVersion, getVersion } =

@@ -7,35 +7,33 @@
 
   const { updateInstance } = client()
 
-  $: ({ id, maintenance } = $instance)
+  $: ({ id, syncAdmin } = $instance)
 
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement
     const isChecked = target.checked
 
     // Update the database with the new value
-    updateInstance({ id, fields: { maintenance: isChecked } }).then(
-      () => 'saved',
-    )
+    updateInstance({ id, fields: { syncAdmin: isChecked } }).then(() => 'saved')
   }
 </script>
 
 <Card>
-  <CardHeader documentation={DOCS_URL(`/usage/maintenance`)}>
-    Maintenance Mode
+  <CardHeader documentation={DOCS_URL(`/usage/admin-sync`)}>
+    Admin Sync
   </CardHeader>
 
   <p class="mb-8">
-    Your PocketHost instance will not be accessible while in maintenance mode.
-    Use this when you are upgrading, downgrading, or backing up your data.
+    Your instance will have an admin login that matches your pockethost.io
+    login.
   </p>
 
   <label class="label cursor-pointer justify-center gap-4">
-    <span class="label-text">Maintenance Mode</span>
+    <span class="label-text">Admin Sync</span>
     <input
       type="checkbox"
       class="toggle toggle-warning"
-      checked={!!maintenance}
+      checked={!!syncAdmin}
       on:change={handleChange}
     />
   </label>

@@ -40,7 +40,7 @@
     // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
       updateInstance({
-        instanceId: id,
+        id,
         fields: {
           subdomain: instanceNameValidation,
         },

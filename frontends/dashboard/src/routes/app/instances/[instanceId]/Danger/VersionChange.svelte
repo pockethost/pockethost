@@ -39,7 +39,7 @@
       errorMessage = ''
       client()
         .updateInstance({
-          instanceId: id,
+          id,
           fields: { version: selectedVersion },
         })
         .then(() => {

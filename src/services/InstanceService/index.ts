@@ -2,8 +2,10 @@ import {
   DAEMON_PB_IDLE_TTL,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
+  INSTANCE_DATA_DB,
   mkAppUrl,
   mkDocUrl,
+  mkEdgeUrl,
   MOTHERSHIP_NAME,
 } from '$constants'
 import {
@@ -12,6 +14,7 @@ import {
   PocketbaseService,
   PortService,
   proxyService,
+  SqliteService,
 } from '$services'
 import {
   assertTruthy,
@@ -243,10 +246,31 @@ export const instanceService = mkSingleton(
         })
         healthyGuard()
 
+        /**
+         * Sync admin account
+         */
+        if (instance.syncAdmin) {
+          const id = instance.uid
+          dbg(`Fetching token info for uid ${id}`)
+          const { email, tokenKey, passwordHash } =
+            await client.getUserTokenInfo({ id })
+          dbg(`Token info is`, { email, tokenKey, passwordHash })
+          const sqliteService = await SqliteService()
+          const db = await sqliteService.getDatabase(
+            INSTANCE_DATA_DB(instance.id),
+          )
+          await db(`_admins`)
+            .insert({ id, email, tokenKey, passwordHash })
+            .onConflict('id')
+            .merge({ email, tokenKey, passwordHash })
+            .catch((e) => {
+              userInstanceLogger.error(`Failed to sync admin account: ${e}`)
+            })
+        }
+
         /*
         Spawn the child process
         */
-
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
@@ -254,27 +278,33 @@ export const instanceService = mkSingleton(
               name: instance.subdomain,
               slug: instance.id,
               port: newPort,
-              env: instance.secrets || {},
               extraBinds: flatten([
                 globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_migrations/${basename(file)}`,
+                    `${file}:/home/pocketbase/pb_migrations/${basename(
+                      file,
+                    )}:ro`,
                 ),
                 globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_hooks/${basename(file)})`,
+                    `${file}:/home/pocketbase/pb_hooks/${basename(file)}:ro`,
                 ),
               ]),
+              env: {
+                ...instance.secrets,
+                PH_APP_NAME: instance.subdomain,
+                PH_INSTANCE_URL: mkEdgeUrl(instance.subdomain),
+              },
               version,
             })
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
             userInstanceLogger.error(
-              `Could not launch PocketBase ${instance.version}. Please review your instnace logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
+              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
             )
             throw new Error(
-              `Could not launch PocketBase ${instance.version}. Please review your instnace logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
+              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
             )
           }
         })()
@@ -348,7 +378,10 @@ export const instanceService = mkSingleton(
         healthyGuard()
         await updateInstanceStatus(instance.id, InstanceStatus.Running)
       })().catch((e) => {
-        warn(`Instance failed to start with ${e}`)
+        warn(
+          `Instance failed to start with ${e}`,
+          (e as ClientResponseError).originalError?.message,
+        )
         _safeShutdown(e).catch(error)
       })
 
