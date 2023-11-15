@@ -21,13 +21,14 @@ migrate(
         if (!newValue || settings.meta[field] !== APP_DEFAULTS[field]) return
         settings.meta[field] = newValue
       }
-      const { hostname } = new URL(PH_INSTANCE_URL)
       fix(`appName`, PH_APP_NAME)
       fix(`appUrl`, PH_INSTANCE_URL)
       fix(`senderName`, PH_APP_NAME)
-      fix(`senderAddress`, `${PH_APP_NAME}@${hostname}`)
+      fix(`senderAddress`, `${PH_APP_NAME}@app.pockethost.io`)
 
       dao.saveSettings(settings)
+
+      console.error(`***defaults successfully applied`)
     } catch (e) {
       console.error(`***error applying defaults: ${e}`)
     }
