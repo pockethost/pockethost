@@ -1,4 +1,12 @@
-import { LoggerService } from '$shared'
+import {
+  GetUserTokenPayload,
+  GetUserTokenPayloadSchema,
+  GetUserTokenResult,
+  LoggerService,
+  RestCommands,
+  RestMethods,
+  createRestHelper,
+} from '$shared'
 import { default as PocketBase } from 'pocketbase'
 import { MixinContext } from '.'
 import { createInstanceMixin } from './InstanceMIxin'
@@ -29,11 +37,21 @@ export const createAdminPbClient = (url: string) => {
   const context: MixinContext = { client, logger: _clientLogger }
   const instanceApi = createInstanceMixin(context)
 
+  const restHelper = createRestHelper({ client })
+  const { mkRest } = restHelper
+
+  const getUserTokenInfo = mkRest<GetUserTokenPayload, GetUserTokenResult>(
+    RestCommands.UserToken,
+    RestMethods.Get,
+    GetUserTokenPayloadSchema,
+  )
+
   const api = {
     client,
     url,
     createFirstAdmin,
     adminAuthViaEmail,
+    getUserTokenInfo,
     ...instanceApi,
   }
 
