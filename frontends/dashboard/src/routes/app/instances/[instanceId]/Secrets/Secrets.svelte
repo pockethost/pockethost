@@ -2,7 +2,6 @@
   import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { LoggerService } from '$shared'
   import { forEach } from '@s-libs/micro-dash'
   import { instance } from '../store'
   import Form from './Form.svelte'
@@ -27,8 +26,6 @@
   const handleTabChange = (id: number) => {
     activeTab = id
   }
-
-  const { dbg } = LoggerService().create(`Secrets.svelte`)
 </script>
 
 <Card>

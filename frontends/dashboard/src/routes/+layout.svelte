@@ -7,7 +7,6 @@
   import Meta from '$components/helpers/Meta.svelte'
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
   import '../app.css'
-  import '../services'
 </script>
 
 <Meta />

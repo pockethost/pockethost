@@ -1,6 +1,5 @@
 import {
   CreateInstancePayloadSchema,
-  LoggerService,
   RestCommands,
   RestMethods,
   UpdateInstancePayload,
@@ -24,8 +23,6 @@ import PocketBase, {
   type AuthModel,
 } from 'pocketbase'
 
-export type AuthChangeHandler = (user: BaseAuthStore) => void
-
 export type AuthToken = string
 export type AuthStoreProps = {
   token: AuthToken
@@ -40,8 +37,6 @@ export type PocketbaseClient = ReturnType<typeof createPocketbaseClient>
 
 export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const { url } = config
-  const _logger = LoggerService()
-  const { dbg, error } = _logger
 
   const client = new PocketBase(url)
 
@@ -62,7 +57,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         passwordConfirm: password,
       })
       .then(() => {
-        // dbg(`Sending verification email to ${email}`)
         return client.collection('users').requestVerification(email)
       })
 
@@ -148,7 +142,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const getAuthStoreProps = (): AuthStoreProps => {
     const { isAdmin, model, token, isValid } = client.authStore
-    // dbg(`current authStore`, { token, model, isValid })
+
     if (isAdmin) throw new Error(`Admin models not supported`)
     if (model && !model.email)
       throw new Error(`Expected model to be a user here`)
@@ -181,8 +175,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * out of date, or fields in the user record may have changed in the backend.
      */
     refreshAuthToken()
-      .catch((e) => {
-        dbg(`Clearing auth store: ${e}`)
+      .catch((error) => {
         client.authStore.clear()
       })
       .finally(() => {
@@ -198,7 +191,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
-      // dbg(`onAuthChange`, { ...authStore })
       const { model, isAdmin } = authStore
       if (!model) return
       if (isAdmin) return
@@ -208,10 +200,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
       }
       setTimeout(refreshAuthToken, 1000)
 
-      // FIXME - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
-      // dbg(`watching _users`)
+      // TODO - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
       // unsub = subscribe<User>(`users/${model.id}`, (user) => {
-      //   dbg(`realtime _users change`, { ...user })
       //   fireAuthChange({ ...authStore, model: user })
       // })
     })
@@ -222,14 +212,13 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     update: (log: InstanceLogFields) => void,
     nInitial = 100,
   ): (() => void) => {
-    const { dbg, trace } = _logger.create('watchInstanceLog')
     const auth = client.authStore.exportToCookie()
 
     const controller = new AbortController()
     const signal = controller.signal
     const continuallyFetchFromEventSource = () => {
       const url = INSTANCE_URL(instanceId, `logs`)
-      dbg(`Subscribing to ${url}`)
+
       fetchEventSource(url, {
         method: 'POST',
         headers: {
@@ -242,21 +231,15 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
           auth,
         }),
         onmessage: (event) => {
-          dbg(`Got stream event`, event)
           const {} = event
           const log = JSON.parse(event.data) as InstanceLogFields
-          dbg(`Log is`, log)
+
           update(log)
         },
-        onopen: async (response) => {
-          dbg(`Stream is open`, response)
-        },
-        onerror: (e) => {
-          dbg(`Stream error`, e)
-        },
+        onopen: async (response) => {},
+        onerror: (e) => {},
         onclose: () => {
           setTimeout(continuallyFetchFromEventSource, 100)
-          dbg(`Stream closed`)
         },
         signal,
       })
