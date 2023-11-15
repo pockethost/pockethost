@@ -1,16 +1,15 @@
 import { JSONSchemaType } from 'ajv'
-import { InstanceId, Semver } from '../types'
+import { InstanceFields } from '../Instance'
+import { InstanceId } from '../types'
 
 export type UpdateInstancePayload = {
-  instanceId: InstanceId
-  fields: {
-    subdomain?: string
-    maintenance?: boolean
-    version?: Semver
-    secrets?: {
-      [_: string]: string
-    }
-  }
+  id: InstanceId
+  fields: Partial<
+    Pick<
+      InstanceFields,
+      'maintenance' | 'secrets' | 'subdomain' | 'syncAdmin' | 'version'
+    >
+  >
 }
 
 export const SECRET_KEY_REGEX = /^[A-Z][A-Z0-9_]*$/
@@ -24,10 +23,11 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
   {
     type: 'object',
     properties: {
-      instanceId: { type: 'string' },
+      id: { type: 'string' },
       fields: {
         type: 'object',
         properties: {
+          syncAdmin: { type: 'boolean', nullable: true },
           subdomain: { type: 'string', nullable: true },
           maintenance: { type: 'boolean', nullable: true },
           version: {
@@ -47,6 +47,6 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
         },
       },
     },
-    required: ['instanceId', 'fields'],
+    required: ['id', 'fields'],
     additionalProperties: false,
   }

@@ -39,7 +39,7 @@
       errorMessage = ''
       client()
         .updateInstance({
-          instanceId: id,
+          id,
           fields: { version: selectedVersion },
         })
         .then(() => {
@@ -66,11 +66,10 @@
   <p class="mb-8">
     Changing your version can only be done when the instance is in maintenance
     mode. We recommend you <strong>do a full backup</strong> before making a
-    change. The version number uses the semver syntax and any
-    <a
-      href="https://www.npmjs.com/package/pocketbase?activeTab=versions"
-      class="link">supported PocketBase version</a
-    > should work.
+    change. We support
+    <a href="https://github.com/pocketbase/pocketbase/releases" class="link"
+      >every release</a
+    > of PocketBase.
   </p>
 
   {#if errorMessage}

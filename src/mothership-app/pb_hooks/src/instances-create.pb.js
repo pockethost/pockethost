@@ -48,6 +48,7 @@ routerAdd(
     record.set('subdomain', subdomain)
     record.set('status', 'idle')
     record.set('version', versions[0])
+    record.set('syncAdmin', true)
 
     const form = new RecordUpsertForm($app, record)
     form.submit()

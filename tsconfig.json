@@ -25,5 +25,5 @@
     }
   },
   "include": ["./src"],
-  "exclude": ["src/mothership-app"]
+  "exclude": ["src/mothership-app", "src/instance-app"]
 }
