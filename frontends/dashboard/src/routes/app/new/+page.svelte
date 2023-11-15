@@ -65,14 +65,12 @@
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled =
-    $instanceInfo.name.length === 0 ||
-    !$instanceInfo.available
+    $instanceInfo.name.length === 0 || !$instanceInfo.available
 
   // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
     generateSlug()
   }
-
 
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
@@ -82,7 +80,7 @@
 
     await handleCreateNewInstance($instanceNameField, (error) => {
       formError = error
-    }).finally(async() => {
+    }).finally(async () => {
       isSubmitting = false
     })
   }
@@ -117,17 +115,17 @@
         >
       </div>
 
-      <div style="font-size: 15px;" class='p-2 mb-8'>
+      <div style="font-size: 15px;" class="p-2 mb-8">
         {#if $instanceInfo.fetching}
           Verifying...
         {:else if $instanceInfo.available}
-        <span class="text-success">
-          https://{$instanceInfo.name}.pockethost.io ✔︎</span
-        >
+          <span class="text-success">
+            https://{$instanceInfo.name}.pockethost.io ✔︎</span
+          >
         {:else}
-        <span class="text-error">
-          https://{$instanceInfo.name}.pockethost.io ❌</span
-        >
+          <span class="text-error">
+            https://{$instanceInfo.name}.pockethost.io ❌</span
+          >
         {/if}
       </div>
 
@@ -141,7 +139,11 @@
       <div class="flex items-center justify-center gap-4">
         <a href="/" class="btn">Cancel</a>
 
-        <button type='submit' class="btn btn-primary" disabled={isFormButtonDisabled}>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          disabled={isFormButtonDisabled}
+        >
           {#if isSubmitting}
             <span class="loading loading-spinner loading-md"></span>
           {:else}
