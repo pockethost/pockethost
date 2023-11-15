@@ -30,14 +30,21 @@ export const PUBLIC_MOTHERSHIP_URL =
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
 // Derived
-export const LANDER_URL = (path = '') => `${PUBLIC_BLOG_URL}/${path}`
-export const BLOG_URL = (path = '') => LANDER_URL(`blog/${path}`)
-export const DOCS_URL = (path = '') => LANDER_URL(`docs/${path}`)
-export const APP_URL = (path = '') => `${PUBLIC_APP_URL}/${path}`
-export const INSTANCE_URL = (name: string, path = '') =>
-  `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${path}`
-export const INSTANCE_ADMIN_URL = (name: string, path = '') =>
-  INSTANCE_URL(name, `_/${path}`)
+const mkPath = (...paths: string[]) =>
+  paths
+    .flatMap((path) => path.split('/'))
+    .filter((v) => !!v)
+    .join('/')
+export const LANDER_URL = (...paths: string[]) =>
+  `${PUBLIC_BLOG_URL}/${mkPath(...paths)}`
+export const BLOG_URL = (...paths: string[]) => LANDER_URL(`blog`, ...paths)
+export const DOCS_URL = (...paths: string[]) => LANDER_URL(`docs`, ...paths)
+export const APP_URL = (...paths: string[]) =>
+  `${PUBLIC_APP_URL}/${mkPath(...paths)}`
+export const INSTANCE_URL = (name: string, ...paths: string[]) =>
+  `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${mkPath(...paths)}`
+export const INSTANCE_ADMIN_URL = (name: string, ...paths: string[]) =>
+  INSTANCE_URL(name, `_/${mkPath(...paths)}`)
 export const FTP_URL = (email: string) =>
   `ftp://${encodeURIComponent(email)}@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}`
 
