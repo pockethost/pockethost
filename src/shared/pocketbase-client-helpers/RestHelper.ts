@@ -3,21 +3,16 @@ import type pocketbaseEs from 'pocketbase'
 import type { JsonObject } from 'type-fest'
 import { LoggerService } from '../Logger'
 import { RestCommands, RestMethods } from '../schema'
-import type { WatchHelper } from './WatchHelper'
 
 export type RestHelperConfig = {
   client: pocketbaseEs
-  watchHelper: WatchHelper
 }
 
 export type RestHelper = ReturnType<typeof createRestHelper>
 
 export const createRestHelper = (config: RestHelperConfig) => {
   const _logger = LoggerService().create(`RestHelper`)
-  const {
-    client,
-    watchHelper: { watchById },
-  } = config
+  const { client } = config
 
   const mkRest = <TPayload extends JsonObject, TResult extends JsonObject>(
     cmd: RestCommands,

@@ -8,7 +8,6 @@ import {
   UpdateInstanceResult,
   assertExists,
   createRestHelper,
-  createWatchHelper,
   type CreateInstancePayload,
   type CreateInstanceResult,
   type InstanceFields,
@@ -23,8 +22,6 @@ import PocketBase, {
   BaseAuthStore,
   ClientResponseError,
   type AuthModel,
-  type RecordSubscription,
-  type UnsubscribeFunc,
 } from 'pocketbase'
 
 export type AuthChangeHandler = (user: BaseAuthStore) => void
@@ -98,9 +95,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const refreshAuthToken = () => client.collection('users').authRefresh()
 
-  const watchHelper = createWatchHelper({ client })
-  const { watchById, watchAllById } = watchHelper
-  const restMixin = createRestHelper({ client, watchHelper })
+  const restMixin = createRestHelper({ client })
   const { mkRest } = restMixin
 
   const createInstance = mkRest<CreateInstancePayload, CreateInstanceResult>(
@@ -119,11 +114,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     id: InstanceId,
   ): Promise<InstanceFields | undefined> =>
     client.collection('instances').getOne<InstanceFields>(id)
-
-  const watchInstanceById = async (
-    id: InstanceId,
-    cb: (data: RecordSubscription<InstanceFields>) => void,
-  ): Promise<UnsubscribeFunc> => watchById('instances', id, cb)
 
   const getAllInstancesById = async () =>
     (await client.collection('instances').getFullList()).reduce(
@@ -287,7 +277,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     onAuthChange,
     isLoggedIn,
     user,
-    watchInstanceById,
     getAllInstancesById,
     resendVerificationEmail,
     updateInstance,
