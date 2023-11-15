@@ -18,7 +18,7 @@
 
 <slot {copy} />
 
-<textarea bind:this={textarea} value={text} />
+<textarea bind:this={textarea}>{text}</textarea>
 
 <style>
   textarea {
