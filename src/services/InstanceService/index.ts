@@ -350,7 +350,10 @@ export const instanceService = mkSingleton(
         healthyGuard()
         await updateInstanceStatus(instance.id, InstanceStatus.Running)
       })().catch((e) => {
-        warn(`Instance failed to start with ${e}`)
+        warn(
+          `Instance failed to start with ${e}`,
+          (e as ClientResponseError).originalError?.message,
+        )
         _safeShutdown(e).catch(error)
       })
 
