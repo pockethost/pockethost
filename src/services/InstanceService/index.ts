@@ -4,6 +4,7 @@ import {
   INSTANCE_APP_MIGRATIONS_DIR,
   mkAppUrl,
   mkDocUrl,
+  mkEdgeUrl,
   MOTHERSHIP_NAME,
 } from '$constants'
 import {
@@ -254,7 +255,6 @@ export const instanceService = mkSingleton(
               name: instance.subdomain,
               slug: instance.id,
               port: newPort,
-              env: instance.secrets || {},
               extraBinds: flatten([
                 globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
                   (file) =>
@@ -267,6 +267,11 @@ export const instanceService = mkSingleton(
                     `${file}:/home/pocketbase/pb_hooks/${basename(file)}:ro`,
                 ),
               ]),
+              env: {
+                ...instance.secrets,
+                PH_APP_NAME: instance.subdomain,
+                PH_INSTANCE_URL: mkEdgeUrl(instance.subdomain),
+              },
               version,
             })
             return cp
