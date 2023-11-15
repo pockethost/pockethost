@@ -1,10 +1,6 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
-  import {
-    handleFormError,
-    handleLogin,
-    handleRegistration,
-  } from '$util/database'
+  import { handleLogin, handleRegistration } from '$util/database'
 
   let email: string = ''
   let password: string = ''
@@ -17,16 +13,16 @@
     e.preventDefault()
 
     isFormButtonDisabled = true
+    formError = ''
 
     try {
       await handleRegistration(email, password)
 
       // Go ahead and log the user into the site
       await handleLogin(email, password)
-    } catch (error: any) {
-      handleFormError(error, (error) => {
-        formError = error
-      })
+    } catch (error) {
+      const e = error as Error
+      formError = `Something went wrong with registering your account. ${e.message}`
     }
 
     isFormButtonDisabled = false

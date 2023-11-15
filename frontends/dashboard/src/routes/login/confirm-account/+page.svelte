@@ -19,12 +19,15 @@
   }
 
   const handleLoad = async () => {
-    if (!token) {
-      throw new Error(`Expected valid token here`)
+    try {
+      await handleAccountConfirmation(token)
+
+      // Refresh the app to get the latest info from the backend
+      window.location.href = '/'
+    } catch (error) {
+      const e = error as Error
+      formError = `Something went wrong with confirming your account. ${e.message}`
     }
-    await handleAccountConfirmation(token, (error) => {
-      formError = error
-    })
   }
 </script>
 

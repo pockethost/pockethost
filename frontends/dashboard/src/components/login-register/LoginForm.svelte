@@ -16,19 +16,24 @@
   let isButtonLoading: boolean = false
 
   // Toggle between registration and login forms
-  const handleLoginClick = () => {
+  const handleRegisterClick = () => {
     isSignUpView = !isSignUpView
   }
 
   // Handle the form submission
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
+
     isFormButtonDisabled = true
     isButtonLoading = true
+    formError = ''
 
-    await handleLogin(email, password, (error) => {
-      formError = error
-    })
+    try {
+      await handleLogin(email, password)
+    } catch (error) {
+      const e = error as Error
+      formError = `Something went wrong with logging you in. ${e.message}`
+    }
 
     isFormButtonDisabled = false
     isButtonLoading = false
@@ -96,7 +101,7 @@
     Need to Register? <button
       type="button"
       class="link font-bold"
-      on:click={handleLoginClick}>Create A New Account</button
+      on:click={handleRegisterClick}>Create A New Account</button
     >
   </div>
 
