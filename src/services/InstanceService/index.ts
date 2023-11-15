@@ -258,11 +258,13 @@ export const instanceService = mkSingleton(
               extraBinds: flatten([
                 globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_migrations/${basename(file)}`,
+                    `${file}:/home/pocketbase/pb_migrations/${basename(
+                      file,
+                    )}:ro`,
                 ),
                 globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_hooks/${basename(file)})`,
+                    `${file}:/home/pocketbase/pb_hooks/${basename(file)}:ro`,
                 ),
               ]),
               version,
