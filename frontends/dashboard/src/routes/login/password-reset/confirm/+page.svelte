@@ -18,6 +18,10 @@
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
+    // Clear out the error message
+    formError =  '';
+
+    // Check for the token and block the request if it doesn't exist
     if (!token) {
       formError =
         'No token was found. Please check your email again for the link.'
