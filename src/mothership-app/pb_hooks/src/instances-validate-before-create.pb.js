@@ -6,9 +6,12 @@
 onModelBeforeCreate((e) => {
   const { versions } = require(`${__hooks}/versions.pb.js`)
 
-  if (!versions.includes(e.model.get('version'))) {
+  const version = e.model.get('version')
+  if (!versions.includes(version)) {
     throw new BadRequestError(
-      `'version' must be one of: ${versions.join(', ')}`,
+      `Invalid version ${version}. Version must be one of: ${versions.join(
+        ', ',
+      )}`,
     )
   }
 }, 'instances')
