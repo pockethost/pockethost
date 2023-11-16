@@ -1,0 +1,37 @@
+---
+title: Showcase
+layout: layouts/base.njk
+---
+
+{% import "components/buttons.njk" as Buttons %}
+
+
+{% macro ShowcaseCard(image, title, description, showcaseURL) %}
+    <div class="card bg-base-200 shadow-xl mb-6">
+        <figure class="px-10 pt-10">
+            <img src="{{ image }}" alt="Website screenshot of {{ title }}" class="rounded-xl" />
+        </figure>
+
+        <div class="card-body items-center text-center">
+            <h2 class="card-title">{{ title }}</h2>
+
+            <p class='mb-6'>{{ description }}</p>
+
+            <div class="card-actions">
+                {{ Buttons.PrimaryButton("Check It Out", showcaseURL, "fa-regular fa-arrow-up-right-from-square", "_blank") }}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+<div class='text-center container mx-auto text-white items-center py-8'>
+    <h2 class='text-4xl font-bold py-2 px-4 text-white'>{{ title }}</h2>
+    <h3 class='mb-8'>Apps using PocketHost</h3>
+
+    <div class='grid md:grid-cols-2 xl:grid-cols-3 gap-8  mb-6'>
+        {# showcase comes from the "_data/showcase.json" global file #}
+        {% for item in showcase %}
+            {{ ShowcaseCard(item.image, item.title, item.description, item.url) }}
+        {% endfor %}
+    </div>
+</div>
