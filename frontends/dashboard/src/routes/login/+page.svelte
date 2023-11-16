@@ -14,9 +14,12 @@
 
     isFormButtonDisabled = true
 
-    await handleLogin(email, password, (error) => {
-      formError = error
-    })
+    try {
+      await handleLogin(email, password)
+    } catch (error) {
+      const e = error as Error
+      formError = `Something has gone wrong with logging in. ${e.message}`
+    }
 
     isFormButtonDisabled = false
   }

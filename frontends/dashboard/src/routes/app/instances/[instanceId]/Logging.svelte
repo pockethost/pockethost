@@ -1,19 +1,12 @@
 <script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import {
-    LoggerService,
-    StreamNames,
-    Unsubscribe,
-    type InstanceLogFields,
-  } from '$shared'
+  import { StreamNames, Unsubscribe, type InstanceLogFields } from '$shared'
   import { client } from '$src/pocketbase-client'
   import { mkCleanup } from '$util/componentCleanup'
   import { onMount } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from './store'
-
-  const { dbg, trace } = LoggerService().create(`Logging.svelte`)
 
   $: ({ id } = $instance)
 
@@ -51,12 +44,9 @@
   onMount(async () => {
     let unwatch: Unsubscribe | undefined
     const unsub = instanceId.subscribe((id) => {
-      dbg(`Watching instance log ${id}`)
       unwatch?.()
       logs.set([])
       unwatch = client().watchInstanceLog(id, (newLog) => {
-        trace(`Got new log`, newLog)
-
         logs.update((currentLogs) => {
           return [...currentLogs, newLog]
         })

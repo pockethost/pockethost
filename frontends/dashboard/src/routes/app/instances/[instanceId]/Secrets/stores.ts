@@ -1,4 +1,3 @@
-import { LoggerService } from '$shared'
 import { scaleOrdinal } from 'd3-scale'
 import { schemeTableau10 } from 'd3-scale-chromatic'
 import { writable } from 'svelte/store'
@@ -36,8 +35,6 @@ const sanitize = (item: SecretItem) => {
 
 // create a custom store fulfilling the CRUD operations
 function createItems(initialItems: SecretsArray) {
-  const { dbg } = LoggerService().create(`Secrets/store.ts`)
-
   const { subscribe, set, update } = writable(initialItems)
 
   const api = {
@@ -47,8 +44,6 @@ function createItems(initialItems: SecretsArray) {
     },
     // create: add an object for the item at the end of the store's array
     upsert: (item: SecretItem) => {
-      dbg(`Upserting`, item)
-
       const { name, value } = sanitize(item)
 
       return update((n) => {
@@ -61,7 +56,6 @@ function createItems(initialItems: SecretsArray) {
 
     // delete: remove the item from the array
     delete: (name: string) => {
-      dbg(`Delete`, name)
       return update((n) => {
         const index = n.findIndex((item) => item.name === name)
         n = [...n.slice(0, index), ...n.slice(index + 1)]
