@@ -2,7 +2,6 @@
   import { SECRET_KEY_REGEX, UpdateInstancePayload } from '$shared'
   import { client } from '$src/pocketbase-client/index.js'
   import { reduce } from '@s-libs/micro-dash'
-  import { slide } from 'svelte/transition'
   import { instance } from '../store.js'
   import { items } from './stores.js'
   import AlertBar from '$components/AlertBar.svelte'

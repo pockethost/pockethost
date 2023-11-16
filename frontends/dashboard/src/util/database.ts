@@ -23,7 +23,7 @@ export const handleCreateNewInstance = async (
   const { id } = user() || {}
 
   try {
-    // Prechecks
+    // Pre-checks
     if (!instanceName) throw new Error(`Instance name is required`)
     if (!id) throw new Error(`Must be logged in to create an instance`)
 
