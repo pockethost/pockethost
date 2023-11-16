@@ -48,44 +48,61 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const logOut = () => authStore.clear()
 
-  const createUser = (email: string, password: string) =>
-    client
-      .collection('users')
-      .create({
-        email,
-        password,
-        passwordConfirm: password,
-      })
-      .then(() => {
-        return client.collection('users').requestVerification(email)
-      })
+  /**
+   * This will register a new user into Pocketbase, and email them a verification link
+   * @param email {string} The email of the user
+   * @param password {string} The password of the user
+   */
+  const createUser = async(email: string, password: string) => {
+    // Build the new user object and any additional properties needed
+    const data = {
+      email,
+      password,
+      passwordConfirm: password,
+    }
 
-  const confirmVerification = (token: string) =>
-    client
-      .collection('users')
-      .confirmVerification(token)
-      .then((response) => {
-        return response
-      })
+    // Create the user
+    const record = await client.collection('users').create(data)
 
-  const requestPasswordReset = (email: string) =>
-    client
-      .collection('users')
-      .requestPasswordReset(email)
-      .then(() => {
-        return true
-      })
+    // Send the verification email
+    await resendVerificationEmail()
 
-  const requestPasswordResetConfirm = (token: string, password: string) =>
-    client
-      .collection('users')
-      .confirmPasswordReset(token, password, password)
-      .then((response) => {
-        return response
-      })
+    return record;
+  }
 
-  const authViaEmail = (email: string, password: string) =>
-    client.collection('users').authWithPassword(email, password)
+  /**
+   * This will let a user confirm their new account via a token in their email
+   * @param token {string} The token from the verification email
+   */
+  const confirmVerification = async(token: string) => {
+    return await client.collection('users').confirmVerification(token)
+  }
+
+  /**
+   * This will reset an unauthenticated user's password by sending a verification link to their email, and includes an optional error handler
+   * @param email {string} The email of the user
+   */
+  const requestPasswordReset = async(email: string) => {
+    return await client.collection('users').requestPasswordReset(email)
+  }
+
+  /**
+   * This will let an unauthenticated user save a new password after verifying their email
+   * @param token {string} The token from the verification email
+   * @param password {string} The new password of the user
+   */
+  const requestPasswordResetConfirm = async(token: string, password: string) => {
+    return await client.collection('users').confirmPasswordReset(token, password, password)
+  }
+
+  /**
+   * This will log a user into Pocketbase, and includes an optional error handler
+   * @param {string} email The email of the user
+   * @param {string} password The password of the user
+   */
+  const authViaEmail = async(email: string, password: string) => {
+    return await client.collection('users').authWithPassword(email, password)
+  }
 
   const refreshAuthToken = () => client.collection('users').authRefresh()
 
@@ -154,7 +171,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * Use synthetic event for authStore changers so we can broadcast just
+   * Use synthetic event for authStore changers, so we can broadcast just
    * the props we want and not the actual authStore object.
    */
   const [onAuthChange, fireAuthChange] = createGenericSyncEvent<BaseAuthStore>()

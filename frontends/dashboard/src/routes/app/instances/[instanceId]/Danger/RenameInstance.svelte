@@ -5,6 +5,7 @@
   import { client } from '$src/pocketbase-client'
   import { slide } from 'svelte/transition'
   import { instance } from '../store'
+  import AlertBar from '$components/AlertBar.svelte'
 
   const { updateInstance } = client()
 
@@ -68,12 +69,7 @@
     else choose it.
   </p>
 
-  {#if errorMessage}
-    <div in:slide class="alert alert-error mb-4">
-      <i class="fa-regular fa-circle-exclamation"></i>
-      {errorMessage}
-    </div>
-  {/if}
+  <AlertBar message={errorMessage} type='error' />
 
   <form
     class="flex rename-instance-form-container-query gap-4"

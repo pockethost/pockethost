@@ -6,6 +6,7 @@
   import { slide } from 'svelte/transition'
   import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
+  import AlertBar from '$components/AlertBar.svelte'
 
   $: ({ id, maintenance, version } = $instance)
 
@@ -72,12 +73,7 @@
     > of PocketBase.
   </p>
 
-  {#if errorMessage}
-    <div in:slide class="alert alert-error mb-4">
-      <i class="fa-regular fa-circle-exclamation"></i>
-      {errorMessage}
-    </div>
-  {/if}
+  <AlertBar message={errorMessage} type='error' />
 
   <form
     class="flex change-version-form-container-query gap-4"

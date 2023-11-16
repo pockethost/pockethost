@@ -1,6 +1,8 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
-  import { handleLogin, handleRegistration } from '$util/database'
+  import { client } from '$src/pocketbase-client'
+
+  const { createUser, authViaEmail } = client();
 
   let email: string = ''
   let password: string = ''
@@ -16,10 +18,11 @@
     formError = ''
 
     try {
-      await handleRegistration(email, password)
+      // Create the new user and email the verification link
+      await createUser(email, password)
 
       // Go ahead and log the user into the site
-      await handleLogin(email, password)
+      await authViaEmail(email, password)
     } catch (error) {
       const e = error as Error
       formError = `Something went wrong with registering your account. ${e.message}`

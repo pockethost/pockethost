@@ -4,9 +4,6 @@
   import { globalInstancesStore } from '$util/stores'
   import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
   import { values } from '@s-libs/micro-dash'
-  import { slide } from 'svelte/transition'
-
-  let isMaintenanceModeOpen = false
 
   type TypeInstanceObject = {
     id: string
@@ -39,7 +36,7 @@
       <InstanceRow {instance} {index} />
     {/each}
 
-    {#if arrayOfMaintenanceInstances.length === 0}
+    {#if arrayOfActiveInstances.length === 0}
       <p class="italic">
         None of your instances are active. Create a new app to use PocketBase!
       </p>
