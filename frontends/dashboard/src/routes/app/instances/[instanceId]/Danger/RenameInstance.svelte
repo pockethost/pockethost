@@ -68,7 +68,7 @@
     else choose it.
   </p>
 
-  <AlertBar message={errorMessage} type='error' />
+  <AlertBar message={errorMessage} type="error" />
 
   <form
     class="flex rename-instance-form-container-query gap-4"

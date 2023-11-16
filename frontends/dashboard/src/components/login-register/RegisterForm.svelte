@@ -177,7 +177,7 @@
     />
   </div>
 
-  <AlertBar message={formError} type='error' />
+  <AlertBar message={formError} type="error" />
 
   <div class="card-actions justify-end">
     <button

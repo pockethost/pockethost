@@ -3,18 +3,18 @@
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
   import { client } from '$src/pocketbase-client'
 
-  const { resendVerificationEmail } = client();
+  const { resendVerificationEmail } = client()
 
   let isButtonProcessing: boolean = false
   let formError: string = ''
 
-  const handleClick = async() => {
+  const handleClick = async () => {
     // Update the state
     isButtonProcessing = true
 
     try {
       await resendVerificationEmail()
-    } catch(error) {
+    } catch (error) {
       const e = error as Error
       formError = `Something went wrong with sending the verification email. ${e.message}`
     }

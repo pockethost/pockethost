@@ -2,7 +2,7 @@
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
 
-  const { requestPasswordReset } = client();
+  const { requestPasswordReset } = client()
 
   let email: string = ''
   let formError: string = ''
@@ -19,7 +19,7 @@
 
     try {
       await requestPasswordReset(email)
-    } catch(error) {
+    } catch (error) {
       const e = error as Error
       formError = `Something went wrong with resetting you password. ${e.message}`
     }
@@ -64,7 +64,7 @@
             />
           </div>
 
-          <AlertBar message={formError} type='error' />
+          <AlertBar message={formError} type="error" />
 
           <div class="mt-4 card-actions justify-end">
             <button

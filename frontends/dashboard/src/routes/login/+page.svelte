@@ -2,7 +2,7 @@
   import { slide } from 'svelte/transition'
   import { client } from '$src/pocketbase-client'
 
-  const { authViaEmail } = client();
+  const { authViaEmail } = client()
 
   let email: string = ''
   let password: string = ''

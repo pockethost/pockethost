@@ -26,7 +26,7 @@
   }
 
   // Log the user out and redirect them to the homepage
-  const handleLogoutAndRedirect = async() => {
+  const handleLogoutAndRedirect = async () => {
     const { logOut } = client()
 
     // Clear out the pocketbase information about the current user

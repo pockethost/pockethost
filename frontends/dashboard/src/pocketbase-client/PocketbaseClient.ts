@@ -53,7 +53,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
    * @param email {string} The email of the user
    * @param password {string} The password of the user
    */
-  const createUser = async(email: string, password: string) => {
+  const createUser = async (email: string, password: string) => {
     // Build the new user object and any additional properties needed
     const data = {
       email,
@@ -67,14 +67,14 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     // Send the verification email
     await resendVerificationEmail()
 
-    return record;
+    return record
   }
 
   /**
    * This will let a user confirm their new account via a token in their email
    * @param token {string} The token from the verification email
    */
-  const confirmVerification = async(token: string) => {
+  const confirmVerification = async (token: string) => {
     return await client.collection('users').confirmVerification(token)
   }
 
@@ -82,7 +82,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
    * This will reset an unauthenticated user's password by sending a verification link to their email, and includes an optional error handler
    * @param email {string} The email of the user
    */
-  const requestPasswordReset = async(email: string) => {
+  const requestPasswordReset = async (email: string) => {
     return await client.collection('users').requestPasswordReset(email)
   }
 
@@ -91,8 +91,13 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
    * @param token {string} The token from the verification email
    * @param password {string} The new password of the user
    */
-  const requestPasswordResetConfirm = async(token: string, password: string) => {
-    return await client.collection('users').confirmPasswordReset(token, password, password)
+  const requestPasswordResetConfirm = async (
+    token: string,
+    password: string,
+  ) => {
+    return await client
+      .collection('users')
+      .confirmPasswordReset(token, password, password)
   }
 
   /**
@@ -100,7 +105,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
    * @param {string} email The email of the user
    * @param {string} password The password of the user
    */
-  const authViaEmail = async(email: string, password: string) => {
+  const authViaEmail = async (email: string, password: string) => {
     return await client.collection('users').authWithPassword(email, password)
   }
 

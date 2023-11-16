@@ -2,7 +2,7 @@
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
 
-  const { authViaEmail } = client();
+  const { authViaEmail } = client()
 
   export let isSignUpView: boolean = true
 
@@ -76,7 +76,7 @@
     />
   </div>
 
-  <AlertBar message={formError} type='error' />
+  <AlertBar message={formError} type="error" />
 
   <div class="card-actions justify-end">
     <button

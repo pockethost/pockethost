@@ -44,7 +44,7 @@ export const handleInstanceGeneratorWidget = async (
   instanceName: string,
   setError = (value: string) => {},
 ) => {
-  const { authViaEmail } = client();
+  const { authViaEmail } = client()
 
   try {
     await client().client.send(`/api/signup`, {

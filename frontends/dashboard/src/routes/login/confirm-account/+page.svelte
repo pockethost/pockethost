@@ -3,7 +3,7 @@
   import { slide } from 'svelte/transition'
   import { client } from '$src/pocketbase-client'
 
-  const { confirmVerification } = client();
+  const { confirmVerification } = client()
 
   let token: string | null = ''
   let formError: string = ''

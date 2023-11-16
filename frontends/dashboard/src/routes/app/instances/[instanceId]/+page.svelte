@@ -52,7 +52,10 @@
 </div>
 
 {#if $instance.maintenance}
-  <AlertBar message='This instance is in Maintenance Mode and will not respond to requests' type='warning' />
+  <AlertBar
+    message="This instance is in Maintenance Mode and will not respond to requests"
+    type="warning"
+  />
 {/if}
 
 <div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-4">

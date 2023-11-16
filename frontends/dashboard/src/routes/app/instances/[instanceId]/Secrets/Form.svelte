@@ -113,7 +113,10 @@
     </div>
 
     {#if !isKeyValid && secretKey.length > 0}
-      <AlertBar message='All key names must be upper case, alphanumeric, and may include underscore (_).' type='error' />
+      <AlertBar
+        message="All key names must be upper case, alphanumeric, and may include underscore (_)."
+        type="error"
+      />
     {/if}
 
     <div class="text-right">
@@ -124,8 +127,11 @@
   </form>
 
   {#if successfulSave}
-    <AlertBar message='Your new environment variable has been saved.' type='success' />
+    <AlertBar
+      message="Your new environment variable has been saved."
+      type="success"
+    />
   {/if}
 
-  <AlertBar message={errorMessage} type='error' />
+  <AlertBar message={errorMessage} type="error" />
 </div>

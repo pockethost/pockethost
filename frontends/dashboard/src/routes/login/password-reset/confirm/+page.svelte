@@ -3,7 +3,7 @@
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
 
-  const { requestPasswordResetConfirm } = client();
+  const { requestPasswordResetConfirm } = client()
 
   let password: string = ''
   let token: string | null = ''
@@ -18,9 +18,10 @@
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
-    if(!token) {
-      formError = "No token was found. Please check your email again for the link.";
-      return;
+    if (!token) {
+      formError =
+        'No token was found. Please check your email again for the link.'
+      return
     }
 
     // Lock the button to prevent multiple submissions
@@ -31,7 +32,7 @@
 
       // Hard refresh and send the user back to the login screen
       window.location.href = '/?view=login'
-    } catch(error) {
+    } catch (error) {
       const e = error as Error
       formError = `Something went wrong with confirming your password change. ${e.message}`
     }
@@ -62,7 +63,7 @@
           />
         </div>
 
-        <AlertBar message={formError} type='error' />
+        <AlertBar message={formError} type="error" />
 
         <div class="mt-4 card-actions justify-end">
           <button

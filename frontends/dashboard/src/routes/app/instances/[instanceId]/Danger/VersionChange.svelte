@@ -72,7 +72,7 @@
     > of PocketBase.
   </p>
 
-  <AlertBar message={errorMessage} type='error' />
+  <AlertBar message={errorMessage} type="error" />
 
   <form
     class="flex change-version-form-container-query gap-4"
