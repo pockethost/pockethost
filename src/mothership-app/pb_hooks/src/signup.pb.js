@@ -162,7 +162,7 @@ routerAdd(
         instance.set('subdomain', desiredInstanceName)
         instance.set('uid', user.get('id'))
         instance.set('status', 'Idle')
-        instance.set('version', '~0.19.0')
+        instance.set('version', '0.19.*')
         txDao.saveRecord(instance)
       } catch (e) {
         if (e.toString().match(/ UNIQUE /)) {
