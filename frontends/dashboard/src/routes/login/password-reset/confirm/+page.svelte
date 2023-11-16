@@ -19,7 +19,7 @@
     e.preventDefault()
 
     // Clear out the error message
-    formError =  '';
+    formError = ''
 
     // Check for the token and block the request if it doesn't exist
     if (!token) {
