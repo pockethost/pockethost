@@ -4,5 +4,11 @@
     "description": "An easy to use tabletop RPG game",
     "image": "/img/showcase/pockethost-showcase-battleborn.jpg",
     "url": "https://battleborn.app/"
+  },
+  {
+    "title": "HT Developer Portfolio",
+    "description": "An interactive website showcasing Hyperclaw79's developer portfolio.",
+    "image": "/img/showcase/ht-dev.png",
+    "url": "https://ht-dev.vercel.app/"
   }
 ]
