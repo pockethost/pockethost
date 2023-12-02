@@ -11,7 +11,7 @@ PocketHost allows you to access all your PocketBase files via Secure FTP (FTPS).
 
 ## Accessing via FTP
 
-FTP to [ftp://pockethost.io](ftp://pockethost.io) and log in using your pockethost.io username and password.
+FTP to the address shown in your instance dashboard, then log in using your pockethost.io username and password.
 
 The initial directory listing contains a directory for each instance associated with your account.
 
