@@ -29,6 +29,7 @@ Inside each instance directory, you will find:
 ### GUI
 
 - [FileZilla](https://filezilla-project.org/) is a great GUI frontend available for all platforms.
+- [ftp-simple](https://marketplace.visualstudio.com/items?itemName=humy2833.ftp-simple) is a VSCode plugin
 
 ### CLI
 
