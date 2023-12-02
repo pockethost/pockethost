@@ -47,6 +47,7 @@ export const SETTINGS = {
 
   MOTHERSHIP_URL: mkString(`https://pockethost-central.pockethost.io`),
   MOTHERSHIP_NAME: mkString(`pockethost-central`),
+  MOTHERSHIP_INTERNAL_HOST: mkString(`localhost`),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
   MOTHERSHIP_MIGRATIONS_DIR: mkPath(
@@ -168,6 +169,8 @@ export const DAEMON_PB_PORT_BASE = () => settings().DAEMON_PB_PORT_BASE
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
 export const MOTHERSHIP_URL = () => settings().MOTHERSHIP_URL
+export const MOTHERSHIP_INTERNAL_HOST = () =>
+  settings().MOTHERSHIP_INTERNAL_HOST
 export const MOTHERSHIP_NAME = () => settings().MOTHERSHIP_NAME
 export const MOTHERSHIP_ADMIN_USERNAME = () =>
   settings().MOTHERSHIP_ADMIN_USERNAME
@@ -206,6 +209,8 @@ export const INSTANCE_APP_MIGRATIONS_DIR = () =>
  * Helpers
  */
 export const MOTHERSHIP_DATA_ROOT = () => INSTANCE_DATA_ROOT(MOTHERSHIP_NAME())
+export const MOTHERSHIP_INTERNAL_URL = () =>
+  `http://${MOTHERSHIP_INTERNAL_HOST()}:${MOTHERSHIP_PORT()}`
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
 export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
