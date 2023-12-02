@@ -24,6 +24,13 @@ routerAdd(
     const instanceName = (() => {
       const name = c.queryParam('name').trim()
       if (name) {
+        if (name.match(/^[a-z][a-z0-9-]{2,39}$/) === null) {
+          throw error(
+            `instanceName`,
+            `invalid`,
+            `Instance name must begin with a letter, be between 3-40 characters, and can only contain a-z, 0-9, and hyphen (-).`,
+          )
+        }
         if (isAvailable(name)) {
           return name
         }
