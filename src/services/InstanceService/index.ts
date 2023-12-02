@@ -357,17 +357,17 @@ export const instanceService = mkSingleton(
         }
         {
           tm.repeat(async () => {
-            raw(`idle check: ${openRequestCount} open requests`)
+            dbg(`idle check: ${openRequestCount} open requests`)
             if (
               openRequestCount === 0 &&
               lastRequest + DAEMON_PB_IDLE_TTL() < now()
             ) {
-              dbg(`idle for ${DAEMON_PB_IDLE_TTL()}, shutting down`)
+              info(`idle for ${DAEMON_PB_IDLE_TTL()}, shutting down`)
               healthyGuard()
               await _safeShutdown().catch(error)
               return false
             } else {
-              raw(`${openRequestCount} requests remain open`)
+              dbg(`${openRequestCount} requests remain open`)
             }
             return true
           }, RECHECK_TTL)
