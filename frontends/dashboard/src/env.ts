@@ -107,12 +107,6 @@ export const INSTANCE_ADMIN_URL = (name: string) => {
   return INSTANCE_URL(name, `_/`)
 }
 
-/**
- * Helpful alias for generating the URL for a specific instance's FTP server
- * @param {string} email
- * @example
- * FTP_URL("user@example.com") // ftp://user%40example.com@ftp.sfo-1.pockethost.io
- */
 export const FTP_URL = (email: string) => {
-  return `ftp://${encodeURIComponent(email)}@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}`
+  return `"${email}"@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}`
 }

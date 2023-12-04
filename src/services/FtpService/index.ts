@@ -1,5 +1,5 @@
 import {
-  MOTHERSHIP_URL,
+  MOTHERSHIP_INTERNAL_URL,
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
   PH_FTP_PASV_PORT_MIN,
@@ -61,7 +61,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
   ftpServer.on(
     'login',
     async ({ connection, username, password }, resolve, reject) => {
-      const client = new pocketbaseEs(MOTHERSHIP_URL())
+      const client = new pocketbaseEs(MOTHERSHIP_INTERNAL_URL())
       try {
         await client.collection('users').authWithPassword(username, password)
         dbg(`Logged in`)
