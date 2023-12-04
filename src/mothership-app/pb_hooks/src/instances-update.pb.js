@@ -18,8 +18,8 @@ routerAdd(
     let data = new DynamicModel({
       id: '',
       fields: {
+        subdomain: null,
         maintenance: null,
-        name: null,
         version: null,
         secrets: null,
         syncAdmin: null,
@@ -34,15 +34,15 @@ routerAdd(
 
     const id = c.pathParam('id')
     const {
-      fields: { maintenance, name, version, secrets, syncAdmin },
+      fields: { subdomain, maintenance, version, secrets, syncAdmin },
     } = data
 
     console.log(
       `***vars`,
       JSON.stringify({
         id,
+        subdomain,
         maintenance,
-        name,
         version,
         secrets,
         syncAdmin,
@@ -73,7 +73,7 @@ routerAdd(
     }
 
     const sanitized = cleanObject({
-      subdomain: name,
+      subdomain,
       version,
       maintenance,
       secrets,
