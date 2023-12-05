@@ -301,10 +301,10 @@ export const instanceService = mkSingleton(
           } catch (e) {
             warn(`Error spawning: ${e}`)
             userInstanceLogger.error(
-              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
+              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
             throw new Error(
-              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
+              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
           }
         })()

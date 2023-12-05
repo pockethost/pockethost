@@ -12,6 +12,8 @@ const env = {
   PUBLIC_APP_URL: process.env.PUBLIC_APP_URL || 'https://app.pockethost.io',
 
   PUBLIC_BLOG_URL: process.env.PUBLIC_BLOG_URL || 'https://pockethost.io',
+
+  PUBLIC_DISCORD_URL: `https://discord.gg/HsSjcuPRWX`,
 }
 
 module.exports = env
