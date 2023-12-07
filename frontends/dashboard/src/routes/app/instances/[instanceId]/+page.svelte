@@ -8,7 +8,7 @@
   import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
   import Maintenance from './Danger/Maintenance.svelte'
   import RenameInstance from './Danger/RenameInstance.svelte'
-  import VersionChange from './Danger/VersionChange.svelte'
+  import VersionChange from './Danger/VersionChange/VersionChange.svelte'
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Secrets from './Secrets/Secrets.svelte'

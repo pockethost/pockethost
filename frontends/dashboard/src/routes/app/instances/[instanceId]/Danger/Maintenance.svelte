@@ -4,8 +4,11 @@
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
+  import ErrorMessage from './ErrorMessage.svelte'
 
   const { updateInstance } = client()
+
+  let errorMessage = ''
 
   $: ({ id, maintenance } = $instance)
 
@@ -14,9 +17,11 @@
     const isChecked = target.checked
 
     // Update the database with the new value
-    updateInstance({ id, fields: { maintenance: isChecked } }).then(
-      () => 'saved',
-    )
+    updateInstance({ id, fields: { maintenance: isChecked } })
+      .then(() => 'saved')
+      .catch((error) => {
+        error.data.message || error.message
+      })
   }
 </script>
 
@@ -29,6 +34,8 @@
     Your PocketHost instance will not be accessible while in maintenance mode.
     Use this when you are upgrading, downgrading, or backing up your data.
   </p>
+
+  <ErrorMessage message={errorMessage} />
 
   <label class="label cursor-pointer justify-center gap-4">
     <span class="label-text">Maintenance Mode</span>

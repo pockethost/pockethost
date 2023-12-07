@@ -3,8 +3,8 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  import { slide } from 'svelte/transition'
-  import { instance } from '../store'
+  import { instance } from '../../store'
+  import ErrorMessage from '../ErrorMessage.svelte'
   import VersionPicker from './VersionPicker.svelte'
 
   $: ({ id, maintenance, version } = $instance)
@@ -46,7 +46,7 @@
           return 'saved'
         })
         .catch((error) => {
-          errorMessage = error.message
+          error.data.message || error.message
         })
     } else {
       // If they hit cancel, reset the version number back to what it was initially
@@ -72,12 +72,7 @@
     > of PocketBase.
   </p>
 
-  {#if errorMessage}
-    <div in:slide class="alert alert-error mb-4">
-      <i class="fa-regular fa-circle-exclamation"></i>
-      {errorMessage}
-    </div>
-  {/if}
+  <ErrorMessage message={errorMessage} />
 
   <form
     class="flex change-version-form-container-query gap-4"
