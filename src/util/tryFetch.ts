@@ -51,7 +51,7 @@ export const tryFetch = async (url: string, config?: Partial<Config>) => {
       }
       try {
         dbg(`Fetch: START`)
-        const res = await fetch(url)
+        const res = await fetch(url, { signal: AbortSignal.timeout(500) })
         dbg(`Fetch: SUCCESS`)
         resolve(res)
       } catch (e) {
