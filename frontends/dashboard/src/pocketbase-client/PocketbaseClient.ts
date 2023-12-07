@@ -1,5 +1,8 @@
 import {
   CreateInstancePayloadSchema,
+  DeleteInstancePayload,
+  DeleteInstancePayloadSchema,
+  DeleteInstanceResult,
   RestCommands,
   RestMethods,
   UpdateInstancePayload,
@@ -102,6 +105,12 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     RestCommands.Instance,
     RestMethods.Put,
     UpdateInstancePayloadSchema,
+  )
+
+  const deleteInstance = mkRest<DeleteInstancePayload, DeleteInstanceResult>(
+    RestCommands.Instance,
+    RestMethods.Delete,
+    DeleteInstancePayloadSchema,
   )
 
   const getInstanceById = (
@@ -271,5 +280,6 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     getAllInstancesById,
     resendVerificationEmail,
     updateInstance,
+    deleteInstance,
   }
 }

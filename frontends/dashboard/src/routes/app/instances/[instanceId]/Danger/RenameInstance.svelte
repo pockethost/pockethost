@@ -3,8 +3,8 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  import { slide } from 'svelte/transition'
   import { instance } from '../store'
+  import ErrorMessage from './ErrorMessage.svelte'
 
   const { updateInstance } = client()
 
@@ -47,7 +47,7 @@
       })
         .then(() => 'saved')
         .catch((error) => {
-          errorMessage = error.message
+          error.data.message || error.message
         })
     }
 
@@ -68,12 +68,7 @@
     else choose it.
   </p>
 
-  {#if errorMessage}
-    <div in:slide class="alert alert-error mb-4">
-      <i class="fa-regular fa-circle-exclamation"></i>
-      {errorMessage}
-    </div>
-  {/if}
+  <ErrorMessage message={errorMessage} />
 
   <form
     class="flex rename-instance-form-container-query gap-4"

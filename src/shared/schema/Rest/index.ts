@@ -5,6 +5,7 @@ export enum RestMethods {
   Get = 'GET',
   Post = 'POST',
   Put = 'PUT',
+  Delete = 'DELETE',
 }
 
 export enum RestCommands {
@@ -17,5 +18,6 @@ export type RestPayloadBase = JsonObject
 export const ajv = new Ajv()
 
 export * from './CreateInstance'
+export * from './DeleteInstance'
 export * from './GetUserTokenInfo'
 export * from './UpdateInstance'
