@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { slide } from 'svelte/transition'
-  import { handleLogin } from '$util/database'
+  import { client } from '$src/pocketbase-client'
+  import AlertBar from '$components/AlertBar.svelte'
+
+  const { authViaEmail } = client()
 
   export let isSignUpView: boolean = true
 
@@ -29,7 +31,7 @@
     formError = ''
 
     try {
-      await handleLogin(email, password)
+      await authViaEmail(email, password)
     } catch (error) {
       const e = error as Error
       formError = `Something went wrong with logging you in. ${e.message}`
@@ -74,12 +76,7 @@
     />
   </div>
 
-  {#if formError}
-    <div transition:slide class="alert alert-error mb-5">
-      <i class="fa-solid fa-circle-exclamation"></i>
-      <span>{formError}</span>
-    </div>
-  {/if}
+  <AlertBar message={formError} type="error" />
 
   <div class="card-actions justify-end">
     <button

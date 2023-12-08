@@ -103,7 +103,7 @@
   )
 
   // Loop through the instance list again, and create a "total usage" entry
-  const totalUsageAmount = allInstancesArray.reduce((total) => total + 0, 0)
+  const totalUsageAmount = allInstancesArray.reduce((total) => total, 0)
 
   // Add up the individual instance usages and the total usage
   const allChartData: any = [

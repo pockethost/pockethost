@@ -1,7 +1,6 @@
 <script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { INSTANCE_URL } from '$src/env'
   import { handleCreateNewInstance } from '$util/database'
   import { slide } from 'svelte/transition'
   import { writable } from 'svelte/store'

@@ -21,8 +21,6 @@
       >
     </div>
 
-    <!--<UsageChartForAllInstances />-->
-
     <InstanceList />
   {/if}
 </AuthStateGuard>

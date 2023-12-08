@@ -4,8 +4,8 @@
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../../store'
-  import ErrorMessage from '../ErrorMessage.svelte'
   import VersionPicker from './VersionPicker.svelte'
+  import AlertBar from '$components/AlertBar.svelte'
 
   $: ({ id, maintenance, version } = $instance)
 
@@ -46,7 +46,7 @@
           return 'saved'
         })
         .catch((error) => {
-          error.data.message || error.message
+          errorMessage = error.message
         })
     } else {
       // If they hit cancel, reset the version number back to what it was initially
@@ -72,7 +72,7 @@
     > of PocketBase.
   </p>
 
-  <ErrorMessage message={errorMessage} />
+  <AlertBar message={errorMessage} type="error" />
 
   <form
     class="flex change-version-form-container-query gap-4"

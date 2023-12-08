@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { page } from '$app/stores'
   import { assertExists } from '$shared'
   import { INSTANCE_ADMIN_URL } from '$src/env'
-  import { slide } from 'svelte/transition'
   import Code from './Code.svelte'
   import AdminSync from './Danger/AdminSync.svelte'
   import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
@@ -14,11 +12,7 @@
   import Logging from './Logging.svelte'
   import Secrets from './Secrets/Secrets.svelte'
   import { instance } from './store'
-
-  const { instanceId } = $page.params
-
-  console.log(instanceId)
-  let isReady = false
+  import AlertBar from '$components/AlertBar.svelte'
 
   $: ({ status, version } = $instance)
 
@@ -59,12 +53,10 @@
 </div>
 
 {#if $instance.maintenance}
-  <div transition:slide class="alert alert-warning mb-6">
-    <i class="fa-regular fa-triangle-person-digging"></i>
-    <span
-      >This instance is in Maintenance Mode and will not respond to requests</span
-    >
-  </div>
+  <AlertBar
+    message="This instance is in Maintenance Mode and will not respond to requests"
+    type="warning"
+  />
 {/if}
 
 <div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-4">

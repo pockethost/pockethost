@@ -4,7 +4,7 @@
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
-  import ErrorMessage from './ErrorMessage.svelte'
+  import AlertBar from '$components/AlertBar.svelte'
 
   const { updateInstance } = client()
 
@@ -47,7 +47,7 @@
       })
         .then(() => 'saved')
         .catch((error) => {
-          error.data.message || error.message
+          errorMessage = error.message
         })
     }
 
@@ -68,7 +68,7 @@
     else choose it.
   </p>
 
-  <ErrorMessage message={errorMessage} />
+  <AlertBar message={errorMessage} type="error" />
 
   <form
     class="flex rename-instance-form-container-query gap-4"

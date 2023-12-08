@@ -2,9 +2,9 @@
   import { SECRET_KEY_REGEX, UpdateInstancePayload } from '$shared'
   import { client } from '$src/pocketbase-client/index.js'
   import { reduce } from '@s-libs/micro-dash'
-  import { slide } from 'svelte/transition'
   import { instance } from '../store.js'
   import { items } from './stores.js'
+  import AlertBar from '$components/AlertBar.svelte'
 
   // Keep track of the new key and value to be added
   let secretKey: string = ''
@@ -113,11 +113,10 @@
     </div>
 
     {#if !isKeyValid && secretKey.length > 0}
-      <div in:slide class="alert alert-error mb-4">
-        <i class="fa-regular fa-circle-exclamation"></i>
-        All key names must be upper case, alphanumeric, and may include underscore
-        (_).
-      </div>
+      <AlertBar
+        message="All key names must be upper case, alphanumeric, and may include underscore (_)."
+        type="error"
+      />
     {/if}
 
     <div class="text-right">
@@ -128,16 +127,11 @@
   </form>
 
   {#if successfulSave}
-    <div in:slide class="alert alert-success">
-      <i class="fa-regular fa-shield-check"></i>
-      Your new environment variable has been saved.
-    </div>
+    <AlertBar
+      message="Your new environment variable has been saved."
+      type="success"
+    />
   {/if}
 
-  {#if errorMessage}
-    <div in:slide class="alert alert-error mb-4">
-      <i class="fa-regular fa-circle-exclamation"></i>
-      {errorMessage}
-    </div>
-  {/if}
+  <AlertBar message={errorMessage} type="error" />
 </div>

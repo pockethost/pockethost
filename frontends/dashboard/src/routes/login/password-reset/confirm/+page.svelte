@@ -1,7 +1,9 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { handleUnauthenticatedPasswordResetConfirm } from '$util/database'
-  import { slide } from 'svelte/transition'
+  import { client } from '$src/pocketbase-client'
+  import AlertBar from '$components/AlertBar.svelte'
+
+  const { requestPasswordResetConfirm } = client()
 
   let password: string = ''
   let token: string | null = ''
@@ -16,19 +18,28 @@
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
+    // Clear out the error message
+    formError = ''
+
+    // Check for the token and block the request if it doesn't exist
+    if (!token) {
+      formError =
+        'No token was found. Please check your email again for the link.'
+      return
+    }
+
+    // Lock the button to prevent multiple submissions
     isFormButtonDisabled = true
-    if (!token) return
 
-    await handleUnauthenticatedPasswordResetConfirm(
-      token,
-      password,
-      (error) => {
-        formError = error
-      },
-    )
+    try {
+      await requestPasswordResetConfirm(token, password)
 
-    // Hard refresh and send the user back to the login screen
-    window.location.href = '/?view=login'
+      // Hard refresh and send the user back to the login screen
+      window.location.href = '/?view=login'
+    } catch (error) {
+      const e = error as Error
+      formError = `Something went wrong with confirming your password change. ${e.message}`
+    }
 
     isFormButtonDisabled = false
   }
@@ -56,12 +67,7 @@
           />
         </div>
 
-        {#if formError}
-          <div transition:slide class="alert alert-error mb-5">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            <span>{formError}</span>
-          </div>
-        {/if}
+        <AlertBar message={formError} type="error" />
 
         <div class="mt-4 card-actions justify-end">
           <button
