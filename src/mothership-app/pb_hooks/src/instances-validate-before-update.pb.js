@@ -4,7 +4,7 @@
  * Validate instance version
  */
 onModelBeforeUpdate((e) => {
-  const { versions } = require(`${__hooks}/versions.pb.js`)
+  const { versions } = require(`${__hooks}/versions.js`)
 
   const version = e.model.get('version')
   if (!versions.includes(version)) {
