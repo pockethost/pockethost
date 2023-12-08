@@ -18,5 +18,7 @@ module.exports = {
       },
     ],
   },
+  safelist: ['no-underline', 'text-xs'],
+
   plugins: [require('@tailwindcss/typography'), require('daisyui')],
 }

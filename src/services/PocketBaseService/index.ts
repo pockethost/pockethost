@@ -221,7 +221,7 @@ export const createPocketbaseService = async (
       dbg(`Process ${slug} exited`)
     })
     if (command === 'serve') {
-      await tryFetch(url, {
+      await tryFetch(`${url}/api/health`, {
         preflight: async () => {
           dbg({ stopped, started, container: !!container })
           if (stopped) throw new Error(`Container stopped`)

@@ -4,9 +4,10 @@
   import Code from './Code.svelte'
   import AdminSync from './Danger/AdminSync.svelte'
   import DangerZoneTitle from './Danger/DangerZoneTitle.svelte'
+  import DeleteInstance from './Danger/DeleteInstance.svelte'
   import Maintenance from './Danger/Maintenance.svelte'
   import RenameInstance from './Danger/RenameInstance.svelte'
-  import VersionChange from './Danger/VersionChange.svelte'
+  import VersionChange from './Danger/VersionChange/VersionChange.svelte'
   import Ftp from './Ftpx.svelte'
   import Logging from './Logging.svelte'
   import Secrets from './Secrets/Secrets.svelte'
@@ -79,4 +80,6 @@
   <VersionChange />
 
   <AdminSync />
+
+  <DeleteInstance />
 </div>

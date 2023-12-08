@@ -1,6 +1,7 @@
 ---
 title: FAQ
 category: overview
+date: 2023-12-02
 description: Explore frequently asked questions about pockethost.io, a
   nonprofit, one-click hosting and deployment service for PocketBase projects.
   Discover how PocketHost ensures stability, security, and offers a free tier,

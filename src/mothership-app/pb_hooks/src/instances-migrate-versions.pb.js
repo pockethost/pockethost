@@ -5,7 +5,7 @@
  */
 onAfterBootstrap((e) => {
   const records = $app.dao().findRecordsByFilter(`instances`, '1=1')
-  const { versions } = require(`${__hooks}/versions.pb.js`)
+  const { versions } = require(`${__hooks}/versions.js`)
   const unrecognized = []
   records.forEach((record) => {
     const v = record.get('version').trim()

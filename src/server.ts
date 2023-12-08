@@ -1,4 +1,5 @@
 import {
+  DATA_ROOT,
   DEBUG,
   DefaultSettingsService,
   MOTHERSHIP_ADMIN_PASSWORD,
@@ -70,7 +71,11 @@ global.EventSource = EventSource
           name: MOTHERSHIP_NAME(),
           slug: MOTHERSHIP_NAME(),
           port: MOTHERSHIP_PORT(),
+          env: {
+            DATA_ROOT: `/home/pocketbase/data`,
+          },
           extraBinds: [
+            `${DATA_ROOT()}:/home/pocketbase/data`,
             `${MOTHERSHIP_HOOKS_DIR()}:/home/pocketbase/pb_hooks`,
             `${MOTHERSHIP_MIGRATIONS_DIR()}:/home/pocketbase/pb_migrations`,
           ],

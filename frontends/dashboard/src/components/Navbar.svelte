@@ -2,7 +2,7 @@
   import { page } from '$app/stores'
   import Logo from '$components/Logo.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
-  import { DOCS_URL } from '$src/env'
+  import { DISCORD_URL, DOCS_URL } from '$src/env'
   import InstancesGuard from '$src/routes/InstancesGuard.svelte'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
@@ -94,11 +94,7 @@
       </div>
     </InstancesGuard>
 
-    <a
-      href="https://discord.gg/nVTxCMEcGT"
-      class={linkClasses}
-      target="_blank"
-      rel="noreferrer"
+    <a href={DISCORD_URL} class={linkClasses} target="_blank" rel="noreferrer"
       ><i class="fa-regular fa-comment-code"></i> Support
       <i
         class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"
