@@ -7,7 +7,6 @@ import {
   MOTHERSHIP_HOOKS_DIR,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_NAME,
-  MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
   PH_BIN_CACHE,
   SETTINGS,
@@ -62,6 +61,7 @@ global.EventSource = EventSource
    */
 
   info(`Serving`)
+  const [port] = await PortService().alloc()
   const url = await new Promise<string>((resolve) => {
     const mothership = async () => {
       try {
@@ -70,7 +70,7 @@ global.EventSource = EventSource
           version: MOTHERSHIP_SEMVER(),
           name: MOTHERSHIP_NAME(),
           slug: MOTHERSHIP_NAME(),
-          port: MOTHERSHIP_PORT(),
+          port,
           env: {
             DATA_ROOT: `/home/pocketbase/data`,
           },
