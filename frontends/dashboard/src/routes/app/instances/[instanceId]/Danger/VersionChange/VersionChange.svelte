@@ -4,7 +4,6 @@
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../../store'
-  import ErrorMessage from '../ErrorMessage.svelte'
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
 
