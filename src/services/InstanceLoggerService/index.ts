@@ -91,6 +91,9 @@ export function InstanceLogger(instanceId: string, target: string) {
               })
             }
           })
+          tail.on('error', (e) => {
+            error(`Caught a tail error ${e}`)
+          })
 
           cm.add(() => tail.unwatch())
         } catch (e) {

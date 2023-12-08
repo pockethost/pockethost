@@ -72,9 +72,10 @@ global.EventSource = EventSource
           slug: MOTHERSHIP_NAME(),
           port: MOTHERSHIP_PORT(),
           env: {
-            DATA_ROOT: DATA_ROOT(),
+            DATA_ROOT: `/home/pocketbase/data`,
           },
           extraBinds: [
+            `${DATA_ROOT()}:/home/pocketbase/data`,
             `${MOTHERSHIP_HOOKS_DIR()}:/home/pocketbase/pb_hooks`,
             `${MOTHERSHIP_MIGRATIONS_DIR()}:/home/pocketbase/pb_migrations`,
           ],
