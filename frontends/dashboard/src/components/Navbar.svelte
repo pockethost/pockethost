@@ -4,10 +4,10 @@
   import MediaQuery from '$components/MediaQuery.svelte'
   import { DISCORD_URL, DOCS_URL } from '$src/env'
   import InstancesGuard from '$src/routes/InstancesGuard.svelte'
-  import { handleLogoutAndRedirect } from '$util/database'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
+  import { client } from '$src/pocketbase-client'
 
   type TypeInstanceObject = {
     id: string
@@ -23,6 +23,17 @@
         (app) => !app.maintenance,
       )
     }
+  }
+
+  // Log the user out and redirect them to the homepage
+  const handleLogoutAndRedirect = async () => {
+    const { logOut } = client()
+
+    // Clear out the pocketbase information about the current user
+    logOut()
+
+    // Hard refresh to make sure any remaining data is cleared
+    window.location.href = '/'
   }
 
   const linkClasses =

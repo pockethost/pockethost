@@ -1,7 +1,9 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import { slide } from 'svelte/transition'
-  import { handleAccountConfirmation } from '$util/database'
+  import { client } from '$src/pocketbase-client'
+
+  const { confirmVerification } = client()
 
   let token: string | null = ''
   let formError: string = ''
@@ -20,7 +22,7 @@
 
   const handleLoad = async () => {
     try {
-      await handleAccountConfirmation(token)
+      await confirmVerification(token)
 
       // Refresh the app to get the latest info from the backend
       window.location.href = '/'

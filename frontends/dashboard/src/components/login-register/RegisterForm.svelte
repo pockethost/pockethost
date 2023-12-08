@@ -2,7 +2,7 @@
   import { client } from '$src/pocketbase-client'
   import { handleInstanceGeneratorWidget } from '$util/database'
   import { writable } from 'svelte/store'
-  import { slide } from 'svelte/transition'
+  import AlertBar from '$components/AlertBar.svelte'
 
   export let isProcessing: boolean = false
   export let isSignUpView: boolean = false
@@ -177,12 +177,7 @@
     />
   </div>
 
-  {#if formError}
-    <div transition:slide class="alert alert-error mb-5">
-      <i class="fa-solid fa-circle-exclamation"></i>
-      <span>{formError}</span>
-    </div>
-  {/if}
+  <AlertBar message={formError} type="error" />
 
   <div class="card-actions justify-end">
     <button

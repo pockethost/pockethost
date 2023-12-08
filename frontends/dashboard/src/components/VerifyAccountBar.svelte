@@ -1,20 +1,23 @@
 <script lang="ts">
-  import { handleResendVerificationEmail } from '$util/database'
   import { slide } from 'svelte/transition'
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
+  import { client } from '$src/pocketbase-client'
+
+  const { resendVerificationEmail } = client()
 
   let isButtonProcessing: boolean = false
   let formError: string = ''
 
-  const handleClick = () => {
+  const handleClick = async () => {
     // Update the state
     isButtonProcessing = true
 
-    handleResendVerificationEmail((error) => {
-      formError = error
-
-      isButtonProcessing = false
-    })
+    try {
+      await resendVerificationEmail()
+    } catch (error) {
+      const e = error as Error
+      formError = `Something went wrong with sending the verification email. ${e.message}`
+    }
 
     // Wait a bit after the success before showing the button again
     setTimeout(() => {
