@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { slide } from 'svelte/transition'
   import { client } from '$src/pocketbase-client'
+  import { slide } from 'svelte/transition'
 
   const { confirmVerification } = client()
 
@@ -22,6 +22,8 @@
 
   const handleLoad = async () => {
     try {
+      if (!token) throw new Error(`token expected here`)
+
       await confirmVerification(token)
 
       // Refresh the app to get the latest info from the backend
