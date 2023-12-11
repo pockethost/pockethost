@@ -92,6 +92,7 @@ global.EventSource = EventSource
     }
     mothership()
   })
+  info(`Mothership URL for this session is ${url}`)
 
   /**
    * Launch services
@@ -101,7 +102,9 @@ global.EventSource = EventSource
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
-  await ftpService({})
+  await ftpService({
+    mothershipUrl: url,
+  })
   await proxyService({
     coreInternalUrl: url,
   })
