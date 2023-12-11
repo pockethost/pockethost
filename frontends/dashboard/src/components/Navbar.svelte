@@ -3,11 +3,11 @@
   import Logo from '$components/Logo.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
   import { DISCORD_URL, DOCS_URL } from '$src/env'
+  import { client } from '$src/pocketbase-client'
   import InstancesGuard from '$src/routes/InstancesGuard.svelte'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
-  import { client } from '$src/pocketbase-client'
 
   type TypeInstanceObject = {
     id: string
@@ -48,7 +48,7 @@
   }
 </script>
 
-<aside class="p-4 min-w-[250px] flex flex-col h-screen">
+<aside class="p-4 min-w-[250px] max-w-[250px] flex flex-col">
   <MediaQuery query="(min-width: 1280px)" let:matches>
     {#if matches}
       <a href="/" class="flex gap-2 items-center justify-center">
