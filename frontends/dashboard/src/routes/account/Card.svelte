@@ -6,7 +6,8 @@
   export let active = false
   export let features: string[] = []
   export let upgradable = false
-  export let limit = -1
+  export let startLimit = 0
+  export let limit = 0
   export let prices: { title: string; link: string }[] = []
 </script>
 
@@ -16,9 +17,18 @@
       <h2 class="card-title">
         {name}
       </h2>
-      {#if limit >= 0}
+      {#if startLimit > 0}
         {#if limit > 0}
-          <div class="text-center text-accent text-2xl">{limit} remaining</div>
+          {#if limit != startLimit}
+            <div class="text-center text-accent text-2xl">
+              <span class="line-through">{startLimit}</span>
+              <span class="text-error">{limit} remaining</span>
+            </div>
+          {:else}
+            <div class="text-center text-accent text-2xl">
+              {limit} remaining
+            </div>
+          {/if}
         {:else}
           <div class="text-center text-error text-2xl">SOLD OUT</div>
         {/if}

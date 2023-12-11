@@ -82,7 +82,8 @@
         `Founder's badge on Discord`,
         `Official PocketHost mug or tee`,
       ]}
-      limit={100}
+      startLimit={100}
+      limit={99}
       upgradable
       prices={[
         {
