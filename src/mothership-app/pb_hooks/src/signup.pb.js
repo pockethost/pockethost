@@ -158,6 +158,7 @@ routerAdd(
           )
         user.set('username', username)
         user.set('email', email)
+        user.set('subscription', 'free')
         user.setPassword(password)
         txDao.saveRecord(user)
       } catch (e) {

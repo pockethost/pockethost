@@ -7,6 +7,7 @@
   import InstancesGuard from '$src/routes/InstancesGuard.svelte'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
+  import SubscriptionStatus from './SubscriptionStatus.svelte'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
 
   type TypeInstanceObject = {
@@ -58,6 +59,8 @@
   </MediaQuery>
 
   <div class="flex flex-col gap-2 mb-auto">
+    <SubscriptionStatus {handleClick} />
+
     <a on:click={handleClick} href="/" class={linkClasses}>
       <i
         class="fa-regular fa-table-columns {$page.url.pathname === '/' &&
@@ -93,6 +96,17 @@
         </a>
       </div>
     </InstancesGuard>
+
+    <UserLoggedIn>
+      <a
+        href="/account"
+        class={linkClasses}
+        rel="noreferrer"
+        on:click={handleClick}
+      >
+        <i class="fa-regular fa-user"></i> My Account
+      </a>
+    </UserLoggedIn>
 
     <a href={DISCORD_URL} class={linkClasses} target="_blank" rel="noreferrer"
       ><i class="fa-regular fa-comment-code"></i> Support
