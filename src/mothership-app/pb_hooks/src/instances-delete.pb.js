@@ -49,7 +49,7 @@ routerAdd(
       throw new BadRequestError(`Not authorized`)
     }
 
-    if (record.get('status') !== 'idle') {
+    if (record.getString('status').toLowerCase() !== 'idle') {
       throw new BadRequestError(`Instance must be shut down first.`)
     }
 
