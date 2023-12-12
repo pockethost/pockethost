@@ -55,7 +55,7 @@
         {:else if prices.length > 0}
           <div class="card-actions justify-center">
             {#each prices as price}
-              {#if limit === 0 || !upgradable}
+              {#if (startLimit > 0 && limit === 0) || !upgradable}
                 <button class="btn btn-primary" disabled>{price.title}</button>
               {:else}
                 <a class="btn btn-primary" href={price.link} target="_blank"
