@@ -83,7 +83,7 @@
         `Official PocketHost mug or tee`,
       ]}
       startLimit={100}
-      limit={93}
+      limit={91}
       upgradable
       prices={[
         {
