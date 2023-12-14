@@ -14,6 +14,7 @@
     "build-frontends": "concurrently 'pnpm:build:frontend:*'",
     "build:frontend:dashboard": "cd frontends/dashboard && pnpm build",
     "build:frontend:lander": "cd frontends/lander && pnpm build",
+    "build:frontend:superadmin": "cd frontends/superadmin && pnpm build",
     "dev": "concurrently 'pnpm:dev:*'",
     "dev-daemon": "concurrently 'pnpm:dev:daemon:*'",
     "dev:lander": "cd frontends/lander && pnpm start",

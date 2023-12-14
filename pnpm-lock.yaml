@@ -341,6 +341,87 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3
 
+  frontends/superadmin:
+    devDependencies:
+      '@microsoft/fetch-event-source':
+        specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
+        version: github.com/pockethost/fetch-event-source/ebe3b7122647b48b93fd11effbbfb915d98956b0
+      '@s-libs/micro-dash':
+        specifier: ^16.1.0
+        version: 16.1.0
+      '@sveltejs/adapter-static':
+        specifier: ^2.0.3
+        version: 2.0.3(@sveltejs/kit@1.27.2)
+      '@sveltejs/kit':
+        specifier: ^1.25.2
+        version: 1.27.2(svelte@4.2.2)(vite@4.5.0)
+      '@tailwindcss/typography':
+        specifier: ^0.5.10
+        version: 0.5.10(tailwindcss@3.3.5)
+      '@types/bootstrap':
+        specifier: ^5.2.6
+        version: 5.2.8
+      '@types/d3-scale':
+        specifier: ^4.0.3
+        version: 4.0.6
+      '@types/d3-scale-chromatic':
+        specifier: ^3.0.0
+        version: 3.0.1
+      '@types/js-cookie':
+        specifier: ^3.0.2
+        version: 3.0.5
+      autoprefixer:
+        specifier: ^10.4.16
+        version: 10.4.16(postcss@8.4.31)
+      boolean:
+        specifier: ^3.2.0
+        version: 3.2.0
+      chart.js:
+        specifier: 4.4.0
+        version: 4.4.0
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-scale-chromatic:
+        specifier: ^3.0.0
+        version: 3.0.0
+      daisyui:
+        specifier: ^3.8.1
+        version: 3.9.4
+      date-fns:
+        specifier: ^2.30.0
+        version: 2.30.0
+      highlight.js:
+        specifier: ^11.8.0
+        version: 11.9.0
+      pocketbase:
+        specifier: ^0.19.0
+        version: 0.19.0
+      sass:
+        specifier: ^1.68.0
+        version: 1.69.5
+      svelte:
+        specifier: ^4.2.1
+        version: 4.2.2
+      svelte-chartjs:
+        specifier: 3.1.2
+        version: 3.1.2(chart.js@4.4.0)(svelte@4.2.2)
+      svelte-check:
+        specifier: ^3.5.2
+        version: 3.5.2(postcss@8.4.31)(sass@1.69.5)(svelte@4.2.2)
+      svelte-highlight:
+        specifier: ^7.3.0
+        version: 7.4.1
+      svelte-preprocess:
+        specifier: ^5.0.4
+        version: 5.0.4(postcss@8.4.31)(sass@1.69.5)(svelte@4.2.2)(typescript@5.2.2)
+      tailwindcss:
+        specifier: ^3.3.3
+        version: 3.3.5
+      vite:
+        specifier: ^4.4.9
+        version: 4.5.0(@types/node@20.8.10)(sass@1.69.5)
+
 packages:
 
   /@11ty/dependency-tree@2.0.1:
