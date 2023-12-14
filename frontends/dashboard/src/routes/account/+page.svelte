@@ -30,6 +30,7 @@
   <div class="m-10">
     <h2 class="text-2xl">My Account</h2>
     <h2>Current Plan: {PLAN_NAMES[$userSubscriptionType]}</h2>
+    <h2>Email: {client().user()?.email}</h2>
   </div>
 
   {#if $isUserLegacy}
