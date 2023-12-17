@@ -138,13 +138,7 @@ export const createPocketbaseService = async (
 
     const createOptions: ContainerCreateOptions = {
       Image: INSTANCE_IMAGE_NAME,
-      Cmd: [
-        `./pocketbase`,
-        `serve`,
-        `--http`,
-        `0.0.0.0:8090`,
-        // DEBUG() ? `--debug` : '',
-      ].filter((v) => !!v),
+      Cmd: [`/bin/bash`, `./run.sh`],
       Env: map(
         {
           ...env,
