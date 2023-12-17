@@ -1,6 +1,8 @@
-FROM alpine:3.18
+FROM node:20-alpine3.18
 
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+RUN apk update
+RUN apk add --no-cache ca-certificates bash
+RUN npm i -g pnpm
 
 RUN adduser -D pocketbase
 

@@ -1,4 +1,4 @@
-import { APEX_DOMAIN, mkInstanceDataPath } from '$constants'
+import { APEX_DOMAIN, PH_PROJECT_ROOT, mkInstanceDataPath } from '$constants'
 import { InstanceLogger, PortService } from '$services'
 import {
   LoggerService,
@@ -12,6 +12,7 @@ import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
 import MemoryStream from 'memorystream'
+import { join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 import { buildImage } from './buildImage'
@@ -121,6 +122,15 @@ export const createPocketbaseService = async (
     stderr.on('data', _stdErrData)
     const Binds = [`${mkInstanceDataPath(slug)}:/home/pocketbase`]
     Binds.push(`${binPath}:/home/pocketbase/pocketbase:ro`)
+    Binds.push(
+      `${join(
+        PH_PROJECT_ROOT(),
+        'src',
+        'services',
+        'PocketBaseService',
+        `run.sh`,
+      )}:/home/pocketbase/run.sh:ro`,
+    )
 
     if (extraBinds.length > 0) {
       Binds.push(...extraBinds)
