@@ -1,6 +1,7 @@
 import {
   DATA_ROOT,
   DEBUG,
+  DISCORD_POCKETSTREAM_URL,
   DefaultSettingsService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
@@ -73,6 +74,7 @@ global.EventSource = EventSource
           port,
           env: {
             DATA_ROOT: `/home/pocketbase/data`,
+            DISCORD_POCKETSTREAM_URL: DISCORD_POCKETSTREAM_URL(),
           },
           extraBinds: [
             `${DATA_ROOT()}:/home/pocketbase/data`,

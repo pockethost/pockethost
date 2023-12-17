@@ -87,6 +87,8 @@ export const SETTINGS = {
     join(_PH_BUILD_ROOT, `instance-app`, `migrations`),
     { create: true },
   ),
+
+  DISCORD_POCKETSTREAM_URL: mkString(''),
 }
 ;(() => {
   let passed = true
@@ -204,6 +206,9 @@ export const EDGE_SECRET_KEY = () => settings().EDGE_SECRET_KEY
 export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
 export const INSTANCE_APP_MIGRATIONS_DIR = () =>
   settings().INSTANCE_APP_MIGRATIONS_DIR
+
+export const DISCORD_POCKETSTREAM_URL = () =>
+  settings().DISCORD_POCKETSTREAM_URL
 
 /**
  * Helpers
