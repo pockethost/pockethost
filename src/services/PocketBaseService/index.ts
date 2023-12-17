@@ -1,4 +1,4 @@
-import { APEX_DOMAIN, DEBUG, mkInstanceDataPath } from '$constants'
+import { APEX_DOMAIN, mkInstanceDataPath } from '$constants'
 import { InstanceLogger, PortService } from '$services'
 import {
   LoggerService,
@@ -133,7 +133,7 @@ export const createPocketbaseService = async (
         `serve`,
         `--http`,
         `0.0.0.0:8090`,
-        DEBUG() ? `--debug` : '',
+        // DEBUG() ? `--debug` : '',
       ].filter((v) => !!v),
       Env: map(
         {
