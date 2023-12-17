@@ -28,7 +28,7 @@ migrate(
 
       dao.saveSettings(settings)
 
-      console.error(`***defaults successfully applied`)
+      console.log(`***defaults successfully applied`)
     } catch (e) {
       console.error(`***error applying defaults: ${e}`)
     }
