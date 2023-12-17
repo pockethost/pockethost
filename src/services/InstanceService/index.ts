@@ -259,6 +259,7 @@ export const instanceService = mkSingleton(
           const db = await sqliteService.getDatabase(
             INSTANCE_DATA_DB(instance.id),
           )
+          userInstanceLogger.info(`Syncing admin login`)
           await db(`_admins`)
             .insert({ id, email, tokenKey, passwordHash })
             .onConflict('id')
@@ -297,15 +298,17 @@ export const instanceService = mkSingleton(
               },
               version,
             })
+
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
+            await updateInstance(instance.id, {
+              maintenance: true,
+            })
             userInstanceLogger.error(
-              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
+              `Could not launch PocketBase ${instance.version}. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
-            throw new Error(
-              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
-            )
+            throw new Error(`Maintenance mode`)
           }
         })()
         const { pid: _pid, exitCode } = childProcess
