@@ -3,7 +3,6 @@
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/helpers/UserLoggedOut.svelte'
   import LoginForm from '$components/login-register/LoginForm.svelte'
-  import Dashboard from './dashboard/Dashboard.svelte'
 </script>
 
 <svelte:head>
@@ -11,9 +10,7 @@
 </svelte:head>
 
 <div>
-  <UserLoggedIn>
-    <Dashboard />
-  </UserLoggedIn>
+  <UserLoggedIn>Welcome</UserLoggedIn>
 
   <UserLoggedOut>
     <div class="min-h-screen flex items-center justify-center">

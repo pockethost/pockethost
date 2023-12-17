@@ -2,18 +2,35 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { DISCORD_URL } from '$src/env'
+  import { client } from '$src/pocketbase-client'
   import {
     isUserFounder,
     isUserLegacy,
     userSubscriptionType,
   } from '$util/stores'
+  import { onMount } from 'svelte'
+  import { writable } from 'svelte/store'
   import Card from './Card.svelte'
+
+  const founderMembershipsRemaining = writable(0)
+
+  onMount(async () => {
+    try {
+      const membershipCount = await client()
+        .client.collection('settings')
+        .getFirstListItem(`name = 'founders-edition-count'`)
+      founderMembershipsRemaining.set(membershipCount.value)
+    } catch (e) {
+      console.error(e)
+    }
+  })
 </script>
 
 <AuthStateGuard>
   <div class="m-10">
     <h2 class="text-2xl">My Account</h2>
     <h2>Current Plan: {PLAN_NAMES[$userSubscriptionType]}</h2>
+    <h2>Email: {client().user()?.email}</h2>
   </div>
 
   {#if $isUserLegacy}
@@ -83,7 +100,7 @@
         `Official PocketHost mug or tee`,
       ]}
       startLimit={100}
-      limit={91}
+      limit={$founderMembershipsRemaining}
       upgradable
       prices={[
         {
