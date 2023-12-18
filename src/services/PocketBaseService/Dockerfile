@@ -4,12 +4,12 @@ RUN apk update
 RUN apk add --no-cache ca-certificates bash
 RUN npm i -g pnpm
 
-RUN adduser -D pocketbase
+RUN adduser -D pockethost
 
-RUN echo "pocketbase:password" | chpasswd
+RUN echo "pockethost:password" | chpasswd
 
 EXPOSE 8090
 
-WORKDIR /home/pocketbase
+WORKDIR /home/pockethost
 
 CMD ["./pocketbase", "serve", "--http", "0.0.0.0:8090"]

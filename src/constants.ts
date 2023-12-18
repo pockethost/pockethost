@@ -217,6 +217,8 @@ export const MOTHERSHIP_INTERNAL_URL = () =>
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
 export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
+export const mkContainerHomePath = (...path: string[]) =>
+  join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
 export const mkBlogUrl = (path = '') => `${BLOG_URL()}${path}`
 export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))

@@ -11,6 +11,7 @@ import {
   MOTHERSHIP_SEMVER,
   PH_BIN_CACHE,
   SETTINGS,
+  mkContainerHomePath,
 } from '$constants'
 import {
   MothershipAdmimClientService,
@@ -72,13 +73,15 @@ global.EventSource = EventSource
           slug: MOTHERSHIP_NAME(),
           port,
           env: {
-            DATA_ROOT: `/home/pocketbase/data`,
+            DATA_ROOT: mkContainerHomePath(`data`),
             DISCORD_POCKETSTREAM_URL: DISCORD_POCKETSTREAM_URL(),
           },
           extraBinds: [
-            `${DATA_ROOT()}:/home/pocketbase/data`,
-            `${MOTHERSHIP_HOOKS_DIR()}:/home/pocketbase/pb_hooks`,
-            `${MOTHERSHIP_MIGRATIONS_DIR()}:/home/pocketbase/pb_migrations`,
+            `${DATA_ROOT()}:${mkContainerHomePath(`data`)}`,
+            `${MOTHERSHIP_HOOKS_DIR()}:${mkContainerHomePath(`pb_hooks`)}`,
+            `${MOTHERSHIP_MIGRATIONS_DIR()}:${mkContainerHomePath(
+              `pb_migrations`,
+            )}`,
           ],
         })
         resolve(url)

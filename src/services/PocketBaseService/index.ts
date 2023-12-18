@@ -1,4 +1,8 @@
-import { APEX_DOMAIN, mkInstanceDataPath } from '$constants'
+import {
+  APEX_DOMAIN,
+  mkContainerHomePath,
+  mkInstanceDataPath,
+} from '$constants'
 import { InstanceLogger, PortService } from '$services'
 import {
   LoggerService,
@@ -108,8 +112,8 @@ export const createPocketbaseService = async (
     }
     stderr.on('data', _stdErrData)
     const Binds = [
-      `${mkInstanceDataPath(slug)}:/home/pocketbase`,
-      `${binPath}:/home/pocketbase/pocketbase:ro`,
+      `${mkInstanceDataPath(slug)}:${mkContainerHomePath()}`,
+      `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
     ]
 
     if (extraBinds.length > 0) {
@@ -149,7 +153,7 @@ export const createPocketbaseService = async (
       ExposedPorts: {
         [`8090/tcp`]: {},
       },
-      // User: 'pocketbase',
+      // User: 'pockethost',
     }
     logger.info(`Spawning ${slug}`)
     dbg({ createOptions })
@@ -161,7 +165,7 @@ export const createPocketbaseService = async (
       container = await new Promise<Container>((resolve) => {
         docker
           .run(
-            `pockethost/pocketbase`,
+            INSTANCE_IMAGE_NAME,
             [''], // Supplied by createOptions
             [stdout, stderr],
             createOptions,

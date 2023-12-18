@@ -4,6 +4,7 @@ import {
   INSTANCE_APP_MIGRATIONS_DIR,
   INSTANCE_DATA_DB,
   mkAppUrl,
+  mkContainerHomePath,
   mkDocUrl,
   mkEdgeUrl,
   MOTHERSHIP_NAME,
@@ -281,13 +282,15 @@ export const instanceService = mkSingleton(
               extraBinds: flatten([
                 globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_migrations/${basename(
-                      file,
+                    `${file}:${mkContainerHomePath(
+                      `pb_migrations/${basename(file)}`,
                     )}:ro`,
                 ),
                 globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_hooks/${basename(file)}:ro`,
+                    `${file}:${mkContainerHomePath(
+                      `pb_hooks/${basename(file)}`,
+                    )}:ro`,
                 ),
               ]),
               env: {
