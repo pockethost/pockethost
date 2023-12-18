@@ -12,4 +12,3 @@ EXPOSE 8090
 
 WORKDIR /home/pockethost
 
-CMD ["./pocketbase", "serve", "--http", "0.0.0.0:8090"]
