@@ -42,7 +42,6 @@ export const SETTINGS = {
 
   IPCIDR_LIST: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
-  DAEMON_PB_PORT_BASE: mkNumber(8090),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 60 * 5), // 5 minutes
 
   MOTHERSHIP_URL: mkString(`https://pockethost-central.pockethost.io`),
@@ -167,7 +166,6 @@ export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
 export const IPCIDR_LIST = () => settings().IPCIDR_LIST
 export const DAEMON_PORT = () => settings().DAEMON_PORT
-export const DAEMON_PB_PORT_BASE = () => settings().DAEMON_PB_PORT_BASE
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
 export const MOTHERSHIP_URL = () => settings().MOTHERSHIP_URL
