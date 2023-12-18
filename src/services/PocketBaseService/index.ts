@@ -17,10 +17,8 @@ import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 import { buildImage } from './buildImage'
 
-export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
-  command: PocketbaseCommand
   name: string
   slug: string
   version?: string
@@ -79,17 +77,7 @@ export const createPocketbaseService = async (
       stdout: new MemoryStream(),
       ...cfg,
     }
-    const {
-      version,
-      command,
-      name,
-      slug,
-      port,
-      extraBinds,
-      env,
-      stderr,
-      stdout,
-    } = _cfg
+    const { version, name, slug, port, extraBinds, env, stderr, stdout } = _cfg
     logger.breadcrumb(name).breadcrumb(slug)
     const iLogger = InstanceLogger(slug, 'exec')
 
@@ -224,15 +212,13 @@ export const createPocketbaseService = async (
       await api.kill()
       dbg(`Process ${slug} exited`)
     })
-    if (command === 'serve') {
-      await tryFetch(`${url}/api/health`, {
-        preflight: async () => {
-          dbg({ stopped, started, container: !!container })
-          if (stopped) throw new Error(`Container stopped`)
-          return started && !!container
-        },
-      })
-    }
+    await tryFetch(`${url}/api/health`, {
+      preflight: async () => {
+        dbg({ stopped, started, container: !!container })
+        if (stopped) throw new Error(`Container stopped`)
+        return started && !!container
+      },
+    })
     const api: PocketbaseProcess = {
       url,
       pid: () => {

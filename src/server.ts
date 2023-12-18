@@ -67,7 +67,6 @@ global.EventSource = EventSource
     const mothership = async () => {
       try {
         const { url, exitCode } = await pbService.spawn({
-          command: 'serve',
           version: MOTHERSHIP_SEMVER(),
           name: MOTHERSHIP_NAME(),
           slug: MOTHERSHIP_NAME(),
