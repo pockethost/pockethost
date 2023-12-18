@@ -275,7 +275,6 @@ export const instanceService = mkSingleton(
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
-              command: 'serve',
               name: instance.subdomain,
               slug: instance.id,
               port: newPort,
