@@ -308,7 +308,7 @@ export const instanceService = mkSingleton(
               maintenance: true,
             })
             userInstanceLogger.error(
-              `Could not launch PocketBase ${instance.version}. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
+              `Could not launch container. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
             throw new Error(`Maintenance mode`)
           }
@@ -316,7 +316,7 @@ export const instanceService = mkSingleton(
         const { pid: _pid, exitCode } = childProcess
         const pid = _pid()
         exitCode.then((code) => {
-          dbg(`PocketBase processes exited with ${code}.`)
+          dbg(`Processes exited with ${code}.`)
           if (code !== 0) {
             shutdownManager.add(async () => {
               userInstanceLogger.error(
@@ -332,7 +332,7 @@ export const instanceService = mkSingleton(
           })
         })
         assertTruthy(pid, `Expected PID here but got ${pid}`)
-        dbg(`PocketBase instance PID: ${pid}`)
+        dbg(`Instance PID: ${pid}`)
 
         systemInstanceLogger.breadcrumb(`pid:${pid}`)
         shutdownManager.add(async () => {
