@@ -6,7 +6,9 @@
 </script>
 
 <div class=" flex flex-col gap-4 mb-4">
-  <div class="card bg-accent shadow-xl rounded-lg overflow-hidden bg-[url('/images/pockethost-cloud-logo.jpg')]">
+  <div
+    class="card bg-accent shadow-xl rounded-lg overflow-hidden bg-[url('/images/pockethost-cloud-logo.jpg')]"
+  >
     <div class="card-body backdrop-blur-md text-white">
       <h2 class="card-title">
         {PLAN_NAMES[$userSubscriptionType]}

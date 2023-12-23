@@ -146,7 +146,7 @@
       >
     </UserLoggedIn>
 
-    <div class='mt-16'>
+    <div class="mt-16">
       <SubscriptionStatus {handleClick} />
     </div>
   </div>
