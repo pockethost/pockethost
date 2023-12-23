@@ -64,26 +64,26 @@
     />
   {/if}
 
-  <div role="tablist" class="tabs tabs-boxed">
+  <div role="tablist" class="tabs tabs-bordered gap-4 mb-4 p-4">
     <a
       role="tab"
-      class="tab {$page.url.pathname.endsWith(id) ? `tab-active` : ``}"
-      href="/app/instances/{id}">Overview</a
+      class="tab h-auto md:h-8 flex gap-2 font-bold {$page.url.pathname.endsWith(id) ? `tab-active` : ``}"
+      href="/app/instances/{id}"><i class="fa-light fa-sparkles"></i> Overview</a
     >
     <a
       role="tab"
-      class="tab {$page.url.pathname.endsWith(`logs`) ? `tab-active` : ``}"
-      href="/app/instances/{id}/logs">Logs</a
+      class="tab h-auto md:h-8 flex gap-2 font-bold {$page.url.pathname.endsWith(`logs`) ? `tab-active` : ``}"
+      href="/app/instances/{id}/logs"><i class="fa-light fa-terminal"></i> Logs</a
     >
     <a
       role="tab"
-      class="tab {$page.url.pathname.endsWith(`secrets`) ? `tab-active` : ``}"
-      href="/app/instances/{id}/secrets">Secrets</a
+      class="tab h-auto md:h-8 flex gap-2 font-bold {$page.url.pathname.endsWith(`secrets`) ? `tab-active` : ``}"
+      href="/app/instances/{id}/secrets"><i class="fa-light fa-shield"></i> Secrets</a
     >
     <a
       role="tab"
-      class="tab {$page.url.pathname.endsWith(`settings`) ? `tab-active` : ``}"
-      href="/app/instances/{id}/settings">Settings</a
+      class="tab h-auto md:h-8 flex gap-2 font-bold {$page.url.pathname.endsWith(`settings`) ? `tab-active` : ``}"
+      href="/app/instances/{id}/settings"><i class="fa-light fa-gear"></i> Settings</a
     >
   </div>
 
