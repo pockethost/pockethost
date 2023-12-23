@@ -11,7 +11,7 @@ module.exports = {
       {
         // Custom theme definitions
         dark: {
-          ...require('daisyui/src/theming/themes')['[data-theme=dark]'],
+          ...require('daisyui/src/theming/themes')['dark'],
           primary: '#1eb854',
           secondary: '#1db990',
           'base-content': '#ffffff',
@@ -20,7 +20,7 @@ module.exports = {
       {
         // Custom theme definitions
         light: {
-          ...require('daisyui/src/theming/themes')['[data-theme=light]'],
+          ...require('daisyui/src/theming/themes')['light'],
           primary: '#1eb854',
           secondary: '#1db990',
           'base-content': '#222',
