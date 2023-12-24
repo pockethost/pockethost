@@ -18,7 +18,6 @@
     all: string
     founder: string
     pro: string
-    lifetime: string
     free: string
     legacy: string
   }
@@ -42,8 +41,8 @@
     { title: `Run every version of PocketBase`, planMap: { all: true } },
     { title: `Community Discord`, planMap: { all: true } },
     { title: `Priority Discord`, planMap: { pro: true, founder: true } },
-    { title: `Founder's Discord`, planMap: { lifetime: true } },
-    { title: `Founders mug/tee`, planMap: { lifetime: true } },
+    { title: `Founder's Discord`, planMap: { founder: true } },
+    { title: `Founders mug/tee`, planMap: { founder: true } },
   ]
 
   const founderMembershipsRemaining = writable(0)
