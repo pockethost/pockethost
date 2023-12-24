@@ -11,7 +11,7 @@ export const PLAN_NAMES = {
   [SubscriptionType.Legacy]: 'Legacy',
   [SubscriptionType.Free]: 'Hacker',
   [SubscriptionType.Premium]: `Pro`,
-  [SubscriptionType.Lifetime]: `Lifetime`,
+  [SubscriptionType.Lifetime]: `Founder's Edition`,
 }
 
 export type UserFields = BaseFields & {
