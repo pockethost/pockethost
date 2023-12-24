@@ -87,7 +87,7 @@
         name: `🎉 🎈 Founder's Edition 🎊 🍄`,
         prices: [
           {
-            title: `$299 once`,
+            title: `$299 once forever`,
             url: `https://buy.stripe.com/7sIg2N6Ecgg70KcdQT`,
           },
           {
