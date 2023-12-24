@@ -19,9 +19,9 @@
     "dev-daemon": "concurrently 'pnpm:dev:daemon:*'",
     "dev:lander": "cd frontends/lander && pnpm start",
     "dev:dashboard": "cd frontends/dashboard && pnpm dev",
-    "dev:daemon:server": "DEBUG=1 tsx watch src/server.ts",
+    "dev:daemon:server": "DEBUG=1 tsx watch src/cli/server.ts",
     "dev:daemon:maildev": "npx -y maildev",
-    "start": "tsx src/server.ts",
+    "start": "tsx src/cli/server.ts",
     "pm2": "pm2 stop all; pm2 del daemon ; pm2 start \"pnpm start\" --name=daemon -l /home/pockethost/logs/daemon-`date +%s`.log",
     "plop": "plop",
     "nofile": "cat /proc/sys/fs/file-nr"
