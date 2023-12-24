@@ -87,7 +87,7 @@
         name: `🎉 🎈 Founder's Edition 🎊 🍄`,
         prices: [
           {
-            title: `$299 once forever`,
+            title: `$299 once, use forever`,
             url: `https://buy.stripe.com/7sIg2N6Ecgg70KcdQT`,
           },
           {
@@ -98,7 +98,7 @@
         featured: true,
         startLimit: 100,
         limit: $founderMembershipsRemaining,
-        description: `Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days.`,
+        description: `Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options.`,
       },
     ]
   }
