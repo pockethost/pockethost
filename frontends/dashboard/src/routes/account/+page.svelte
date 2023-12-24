@@ -55,7 +55,7 @@
           >
             <legend class="sr-only">Payment frequency</legend>
 
-            <!-- Checked: "bg-indigo-500" -->
+            <!-- Checked: "bg-primary" -->
             <label
               class={`cursor-pointer rounded-full px-2.5 py-1 ${
                 planSchedule === 'month' && 'bg-primary'
@@ -71,10 +71,10 @@
               <span>Monthly</span>
             </label>
 
-            <!-- Checked: "bg-indigo-500" -->
+            <!-- Checked: "bg-primary" -->
             <label
               class={`cursor-pointer rounded-full px-2.5 py-1 ${
-                planSchedule === 'year' && 'bg-indigo-500'
+                planSchedule === 'year' && 'bg-primary'
               }`}
             >
               <input
