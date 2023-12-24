@@ -1,26 +1,11 @@
 <script>
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import { PLAN_NAMES, SubscriptionType } from '$shared'
+  import { PLAN_NAMES } from '$shared'
   import { DISCORD_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { userSubscriptionType } from '$util/stores'
-  import { onMount } from 'svelte'
-  import { writable } from 'svelte/store'
-  import Card from './Card.svelte'
   import FAQItem from './FAQItem.svelte'
-
-  const founderMembershipsRemaining = writable(0)
-
-  onMount(async () => {
-    try {
-      const membershipCount = await client()
-        .client.collection('settings')
-        .getFirstListItem(`name = 'founders-edition-count'`)
-      founderMembershipsRemaining.set(membershipCount.value)
-    } catch (e) {
-      console.error(e)
-    }
-  })
+  import Pricing from './Pricing.svelte'
 </script>
 
 <AuthStateGuard>
@@ -30,84 +15,7 @@
     <h2>Email: {client().user()?.email}</h2>
   </div>
 
-  <Card
-    name={PLAN_NAMES[SubscriptionType.Legacy]}
-    active={$userSubscriptionType === SubscriptionType.Legacy}
-    features={[
-      `Access to existing projects and legacy features`,
-      `Unlimited (fair use) bandwith, storage, and CPU`,
-      `Community support via Discord`,
-      `FTP access to PocketBase data, hooks, migrations, and files`,
-      `Run every version of PocketBase`,
-    ]}
-  />
-
-  <Card
-    name={PLAN_NAMES[SubscriptionType.Free]}
-    active={$userSubscriptionType === SubscriptionType.Free}
-    features={[
-      `1 project`,
-      `Unlimited (fair use) bandwith, storage, and CPU`,
-      `Community support via Discord`,
-      `FTP access to PocketBase data, hooks, migrations, and files`,
-      `Run every version of PocketBase`,
-    ]}
-  />
-
-  <Card
-    name={PLAN_NAMES[SubscriptionType.Premium]}
-    active={$userSubscriptionType === SubscriptionType.Premium}
-    upgradable
-    features={[
-      `Everything in the Hacker/free plan`,
-      `Unlimited projects`,
-      `Priority support channel on Discord`,
-    ]}
-    prices={[
-      { title: `$20/mo`, link: `https://buy.stripe.com/fZe6sd8Mkfc30Kc4gg` },
-      {
-        title: `$199/yr (save 20%)`,
-        link: `https://buy.stripe.com/bIYeYJbYwd3VdwY289`,
-      },
-    ]}
-  >
-    <p>
-      We have a lot of ideas for premium features. Please check our <a
-        class="link"
-        target="_blank"
-        href="https://discord.com/channels/1128192380500193370/1180219900107706409"
-        >Discord discussion</a
-      > to join in the conversation.
-    </p></Card
-  >
-
-  <Card
-    name={`🎉 🎈 Founder's Edition 🎊 🍄`}
-    active={$userSubscriptionType === SubscriptionType.Lifetime}
-    features={[
-      `Everything in the Pro tier`,
-      `Founder's badge on Discord`,
-      `Official PocketHost mug or tee`,
-    ]}
-    startLimit={100}
-    limit={$founderMembershipsRemaining}
-    upgradable
-    prices={[
-      {
-        title: `$99/yr (50% savings)`,
-        link: `https://buy.stripe.com/aEUdUF7Igfc350s28a`,
-      },
-      {
-        title: `$299 lifetime`,
-        link: `https://buy.stripe.com/7sIg2N6Ecgg70KcdQT`,
-      },
-    ]}
-  >
-    <p class="text-info text-xl">
-      Super elite! The Founder's Edition is our way of saying thanks for
-      supporting PocketHost in these early days.
-    </p>
-  </Card>
+  <Pricing />
 
   <!-- FAQ section -->
   <div
