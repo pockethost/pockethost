@@ -6,8 +6,6 @@ import {
   InstanceStatus,
   WithUser,
 } from '$shared'
-import { reduce } from '@s-libs/micro-dash'
-import Bottleneck from 'bottleneck'
 import { MixinContext } from '.'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
@@ -64,30 +62,6 @@ export const createInstanceMixin = (context: MixinContext) => {
     return client.collection(INSTANCE_COLLECTION).getFullList<InstanceFields>()
   }
 
-  const updateInstances = async (
-    cb: (rec: InstanceFields) => Partial<InstanceFields>,
-  ) => {
-    const res = await client
-      .collection(INSTANCE_COLLECTION)
-      .getFullList<InstanceFields>(200)
-    const limiter = new Bottleneck({ maxConcurrent: 1 })
-    const promises = reduce(
-      res,
-      (c, r) => {
-        c.push(
-          limiter.schedule(() => {
-            const toUpdate = cb(r)
-            dbg(`Updating instance ${r.id} with ${JSON.stringify(toUpdate)}`)
-            return client.collection(INSTANCE_COLLECTION).update(r.id, toUpdate)
-          }),
-        )
-        return c
-      },
-      [] as Promise<void>[],
-    )
-    await Promise.all(promises)
-  }
-
   return {
     getInstanceById,
     getInstances,
@@ -95,7 +69,6 @@ export const createInstanceMixin = (context: MixinContext) => {
     updateInstanceStatus,
     getInstanceBySubdomain,
     getInstance,
-    updateInstances,
     createInstance,
   }
 }
