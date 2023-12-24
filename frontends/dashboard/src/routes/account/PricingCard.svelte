@@ -24,7 +24,7 @@
 
     {#if active}
       <p
-        class="rounded-full bg-indigo-500 px-2.5 py-1 text-xs font-semibold leading-5 text-white"
+        class="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold leading-5 text-white"
       >
         Your Plan
       </p>

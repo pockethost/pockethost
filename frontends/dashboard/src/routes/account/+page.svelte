@@ -58,7 +58,7 @@
             <!-- Checked: "bg-indigo-500" -->
             <label
               class={`cursor-pointer rounded-full px-2.5 py-1 ${
-                planSchedule === 'month' && 'bg-indigo-500'
+                planSchedule === 'month' && 'bg-primary'
               }`}
             >
               <input
@@ -170,7 +170,7 @@
         </h2>
 
         <dl class="mt-10 space-y-8 divide-y divide-gray-500">
-          <FAQItem question="What is the "Legacy Plan"?">
+          <FAQItem question={`What is the "Legacy Plan"?`}>
             <p class="mb-4">
               Legacy accounts have access to existing projects and features, but
               cannot create new projects or use new features.
