@@ -45,11 +45,6 @@
           engaging your audience, creating customer loyalty, and driving sales.
         </p>
 
-
-
-
-
-
         <div
           class="mx-auto mt-10 grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3"
         >
@@ -86,16 +81,14 @@
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
             priceMonthly={[300, 'once, use forever']}
             priceAnnually={[99, 'year']}
-            checkoutMonthURL='https://buy.stripe.com/7sIg2N6Ecgg70KcdQT'
-            checkoutYearURL='https://buy.stripe.com/aEUdUF7Igfc350s28a'
+            checkoutMonthURL="https://buy.stripe.com/7sIg2N6Ecgg70KcdQT"
+            checkoutYearURL="https://buy.stripe.com/aEUdUF7Igfc350s28a"
             active={$userSubscriptionType === SubscriptionType.Lifetime}
           />
         </div>
 
-
         <PricingTable />
       </div>
-
 
       <FAQSection />
     </main>

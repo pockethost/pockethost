@@ -35,33 +35,31 @@
     </p>
   {/if}
 
-  <div class='mt-auto'>
-    {#if priceMonthly[0] > 0 && priceAnnually[0] > 0 }
+  <div class="mt-auto">
+    {#if priceMonthly[0] > 0 && priceAnnually[0] > 0}
       <a
         href={checkoutMonthURL}
         class="mt-auto mb-4 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white"
       >
-      <span class="text-xl font-bold tracking-tight text-white">
-        ${priceMonthly[0]}
-      </span>
+        <span class="text-xl font-bold tracking-tight text-white">
+          ${priceMonthly[0]}
+        </span>
         <span class="text-sm font-semibold leading-6 text-gray-300">
-        / {priceMonthly[1]}</span
+          / {priceMonthly[1]}</span
         >
-      </a
-      >
+      </a>
 
       <a
         href={checkoutYearURL}
         class="block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white"
       >
-      <span class="text-xl font-bold tracking-tight text-white">
-        ${priceAnnually[0]}
-      </span>
+        <span class="text-xl font-bold tracking-tight text-white">
+          ${priceAnnually[0]}
+        </span>
         <span class="text-sm font-semibold leading-6 text-gray-300">
-        / {priceAnnually[1]}</span
+          / {priceAnnually[1]}</span
         >
-      </a
-      >
+      </a>
     {/if}
   </div>
 </div>
