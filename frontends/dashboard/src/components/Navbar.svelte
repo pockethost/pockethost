@@ -59,6 +59,10 @@
   </MediaQuery>
 
   <div class="flex flex-col gap-2 mb-auto h-full">
+    <div class="mt-16">
+      <SubscriptionStatus {handleClick} />
+    </div>
+
     <a on:click={handleClick} href="/" class={linkClasses}>
       <i
         class="fa-regular fa-table-columns {$page.url.pathname === '/' &&
@@ -145,9 +149,5 @@
         ><i class="fa-regular fa-arrow-up-left-from-circle"></i> Logout</button
       >
     </UserLoggedIn>
-
-    <div class="mt-16">
-      <SubscriptionStatus {handleClick} />
-    </div>
   </div>
 </aside>
