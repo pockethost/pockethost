@@ -70,18 +70,18 @@
             name={PLAN_NAMES[SubscriptionType.Premium]}
             description="Want all your PocketHost projects in one place? That's what the Pro tier is all about."
             priceMonthly={[20, 'month']}
-            priceAnnually={[199, 'year']}
+            priceAnnually={[199, 'year (save 20%)']}
             checkoutMonthURL="https://buy.stripe.com/fZe6sd8Mkfc30Kc4gg"
             checkoutYearURL="https://buy.stripe.com/aEUdUF7Igfc350s28a"
             active={$userSubscriptionType === SubscriptionType.Premium}
           />
 
           <PricingCard
-            name={PLAN_NAMES[SubscriptionType.Lifetime]}
+            name={`${PLAN_NAMES[SubscriptionType.Lifetime]}`}
             {founderMembershipsRemaining}
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
             priceMonthly={[300, 'once, use forever']}
-            priceAnnually={[99, 'year']}
+            priceAnnually={[99, 'year (save 55%)']}
             checkoutMonthURL="https://buy.stripe.com/7sIg2N6Ecgg70KcdQT"
             checkoutYearURL="https://buy.stripe.com/aEUdUF7Igfc350s28a"
             active={$userSubscriptionType === SubscriptionType.Lifetime}

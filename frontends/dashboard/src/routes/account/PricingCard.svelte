@@ -29,7 +29,7 @@
   </div>
 
   {#if $founderMembershipsRemaining}
-    <p class="text-primary font-bold">
+    <p class="animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black">
       <i class="fa-regular fa-clock"></i>
       {$founderMembershipsRemaining}/100 Remaining
     </p>
