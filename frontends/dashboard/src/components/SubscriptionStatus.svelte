@@ -11,12 +11,12 @@
   >
     <div class="card-body backdrop-blur-md text-white">
       <h2 class="card-title">
-        {PLAN_NAMES[$userSubscriptionType]}
+        {$isUserFounder ? `Founder` : PLAN_NAMES[$userSubscriptionType]}
       </h2>
 
       {#if $userSubscriptionType === SubscriptionType.Free}
         <p>
-          You're on the free plan. Unlock more features such as unlimited
+          You're on the free Hacker plan. Unlock more features such as unlimited
           projects.
         </p>
 
@@ -29,8 +29,9 @@
 
       {#if $userSubscriptionType === SubscriptionType.Legacy}
         <p>
-          You're on the legacy plan. Unlock more features by supporting
-          PocketHost. This plan may be sunset eventually.
+          You're on the Legacy plan. Everything works, but you can't create new
+          projects. Unlock more features by supporting PocketHost. This plan may
+          be sunset eventually.
         </p>
 
         <div class="card-actions justify-end">
@@ -41,7 +42,9 @@
       {/if}
 
       {#if $userSubscriptionType === SubscriptionType.Premium && !$isUserFounder}
-        <p>Your membership is active. Thank you for supporting PocketHost!</p>
+        <p>
+          Your Pro membership is active. Thank you for supporting PocketHost!
+        </p>
       {/if}
 
       {#if $isUserFounder}

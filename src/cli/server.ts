@@ -1,8 +1,9 @@
 import {
   DATA_ROOT,
   DEBUG,
-  DISCORD_POCKETSTREAM_URL,
   DefaultSettingsService,
+  DISCORD_POCKETSTREAM_URL,
+  mkContainerHomePath,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_HOOKS_DIR,
@@ -11,22 +12,20 @@ import {
   MOTHERSHIP_SEMVER,
   PH_BIN_CACHE,
   SETTINGS,
-  mkContainerHomePath,
 } from '$constants'
 import {
+  centralDbService,
+  ftpService,
+  instanceService,
   MothershipAdmimClientService,
   PocketbaseReleaseVersionService,
   PocketbaseService,
   PortService,
-  SqliteService,
-  centralDbService,
-  ftpService,
-  instanceService,
-  ipWhitelistService,
   proxyService,
   realtimeLog,
+  SqliteService,
 } from '$services'
-import { LogLevelName, LoggerService } from '$shared'
+import { LoggerService, LogLevelName } from '$shared'
 import EventSource from 'eventsource'
 // gen:import
 
@@ -112,7 +111,6 @@ global.EventSource = EventSource
   await proxyService({
     coreInternalUrl: url,
   })
-  await ipWhitelistService({})
   await SqliteService({})
   await realtimeLog({})
   await instanceService({
