@@ -31,7 +31,7 @@
   {#if $founderMembershipsRemaining}
     <p class="text-primary font-bold">
       <i class="fa-regular fa-clock"></i>
-      {$founderMembershipsRemaining} Remaining
+      {$founderMembershipsRemaining}/100 Remaining
     </p>
   {/if}
 
