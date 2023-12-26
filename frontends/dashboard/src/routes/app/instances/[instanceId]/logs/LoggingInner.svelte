@@ -10,7 +10,7 @@
 
   // This takes in a log type and returns a specific text color
   const logColor = (type: StreamNames) => {
-    if (type === StreamNames.StdOut) return 'text-primary-content'
+    if (type === StreamNames.StdOut) return 'text-neutral-content'
     if (type === StreamNames.StdErr) return 'text-error'
 
     return 'text-info'

@@ -6,7 +6,7 @@
   "scripts": {
     "check:types": "svelte-check",
     "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
-    "dev": "vite dev --force --host=0.0.0.0",
+    "dev": "vite dev --force --host=0.0.0.0 --port=5174",
     "build": "NODE_ENV=production vite build",
     "lint": "prettier --check .",
     "format": "prettier --write ."
