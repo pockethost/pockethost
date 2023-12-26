@@ -59,9 +59,7 @@
   </MediaQuery>
 
   <div class="flex flex-col gap-2 mb-auto h-full">
-    <div class="mt-16">
-      <SubscriptionStatus {handleClick} />
-    </div>
+    <SubscriptionStatus {handleClick} />
 
     <a on:click={handleClick} href="/" class={linkClasses}>
       <i
