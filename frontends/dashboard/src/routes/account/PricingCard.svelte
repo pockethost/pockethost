@@ -1,12 +1,14 @@
 <script lang="ts">
+  import { writable } from 'svelte/store'
+
   export let name = ''
   export let description = ''
-  export let priceMonthly = 0
-  export let priceAnnually = 0
+  export let priceMonthly: [number, string?] = [0, '']
+  export let priceAnnually: [number, string?] = [0, '']
   export let checkoutMonthURL = ''
   export let checkoutYearURL = ''
   export let active = false
-  export let founderMembershipsRemaining
+  export let founderMembershipsRemaining = writable(0)
 </script>
 
 <div

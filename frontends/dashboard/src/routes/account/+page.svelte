@@ -1,13 +1,13 @@
 <script lang="ts">
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import PricingCard from '$src/routes/account/PricingCard.svelte'
+  import PricingTable from '$components/tables/pricing-table/PricingTable.svelte'
   import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { client } from '$src/pocketbase-client'
+  import FAQSection from '$src/routes/account/FAQSection.svelte'
+  import PricingCard from '$src/routes/account/PricingCard.svelte'
   import { isUserLegacy, userSubscriptionType } from '$util/stores'
   import { onMount } from 'svelte'
   import { writable } from 'svelte/store'
-  import FAQSection from '$src/routes/account/FAQSection.svelte'
-  import PricingTable from '$components/tables/pricing-table/PricingTable.svelte'
 
   const founderMembershipsRemaining = writable(0)
 
@@ -52,8 +52,8 @@
             <PricingCard
               name={PLAN_NAMES[SubscriptionType.Legacy]}
               description="Free forever. Use PocketHost for your next project and enjoy all the same features the paid tiers get."
-              priceMonthly={0}
-              priceAnnually={0}
+              priceMonthly={[0]}
+              priceAnnually={[0]}
               active={$userSubscriptionType === SubscriptionType.Legacy}
             />
           {:else}
@@ -80,7 +80,7 @@
             name={`${PLAN_NAMES[SubscriptionType.Lifetime]}`}
             {founderMembershipsRemaining}
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
-            priceMonthly={[300, 'once, use forever']}
+            priceMonthly={[299, 'once, use forever']}
             priceAnnually={[99, 'year (save 55%)']}
             checkoutMonthURL="https://buy.stripe.com/7sIg2N6Ecgg70KcdQT"
             checkoutYearURL="https://buy.stripe.com/aEUdUF7Igfc350s28a"
