@@ -4,6 +4,7 @@ import {
   INSTANCE_APP_MIGRATIONS_DIR,
   INSTANCE_DATA_DB,
   mkAppUrl,
+  mkContainerHomePath,
   mkDocUrl,
   mkEdgeUrl,
   MOTHERSHIP_NAME,
@@ -259,6 +260,7 @@ export const instanceService = mkSingleton(
           const db = await sqliteService.getDatabase(
             INSTANCE_DATA_DB(instance.id),
           )
+          userInstanceLogger.info(`Syncing admin login`)
           await db(`_admins`)
             .insert({ id, email, tokenKey, passwordHash })
             .onConflict('id')
@@ -274,20 +276,21 @@ export const instanceService = mkSingleton(
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
-              command: 'serve',
               name: instance.subdomain,
               slug: instance.id,
               port: newPort,
               extraBinds: flatten([
                 globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_migrations/${basename(
-                      file,
+                    `${file}:${mkContainerHomePath(
+                      `pb_migrations/${basename(file)}`,
                     )}:ro`,
                 ),
                 globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
                   (file) =>
-                    `${file}:/home/pocketbase/pb_hooks/${basename(file)}:ro`,
+                    `${file}:${mkContainerHomePath(
+                      `pb_hooks/${basename(file)}`,
+                    )}:ro`,
                 ),
               ]),
               env: {
@@ -297,21 +300,23 @@ export const instanceService = mkSingleton(
               },
               version,
             })
+
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
+            await updateInstance(instance.id, {
+              maintenance: true,
+            })
             userInstanceLogger.error(
-              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
+              `Could not launch container. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
-            throw new Error(
-              `Could not launch PocketBase ${instance.version}. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} and join us in the Discord support channel https://discord.gg/nVTxCMEcGT.`,
-            )
+            throw new Error(`Maintenance mode`)
           }
         })()
         const { pid: _pid, exitCode } = childProcess
         const pid = _pid()
         exitCode.then((code) => {
-          dbg(`PocketBase processes exited with ${code}.`)
+          dbg(`Processes exited with ${code}.`)
           if (code !== 0) {
             shutdownManager.add(async () => {
               userInstanceLogger.error(
@@ -327,7 +332,7 @@ export const instanceService = mkSingleton(
           })
         })
         assertTruthy(pid, `Expected PID here but got ${pid}`)
-        dbg(`PocketBase instance PID: ${pid}`)
+        dbg(`Instance PID: ${pid}`)
 
         systemInstanceLogger.breadcrumb(`pid:${pid}`)
         shutdownManager.add(async () => {

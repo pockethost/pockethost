@@ -1,0 +1,43 @@
+{
+  "name": "@pockethost/superadmin",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/app.html",
+  "scripts": {
+    "check:types": "svelte-check",
+    "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
+    "dev": "vite dev --force --host=0.0.0.0 --port=5175",
+    "build": "NODE_ENV=production vite build",
+    "lint": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "type": "module",
+  "devDependencies": {
+    "@microsoft/fetch-event-source": "https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0",
+    "@s-libs/micro-dash": "^16.1.0",
+    "@sveltejs/adapter-static": "^2.0.3",
+    "@sveltejs/kit": "^1.25.2",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/bootstrap": "^5.2.6",
+    "@types/d3-scale": "^4.0.3",
+    "@types/d3-scale-chromatic": "^3.0.0",
+    "@types/js-cookie": "^3.0.2",
+    "autoprefixer": "^10.4.16",
+    "boolean": "^3.2.0",
+    "chart.js": "4.4.0",
+    "d3-scale": "^4.0.2",
+    "d3-scale-chromatic": "^3.0.0",
+    "daisyui": "^3.8.1",
+    "date-fns": "^2.30.0",
+    "highlight.js": "^11.8.0",
+    "pocketbase": "^0.19.0",
+    "sass": "^1.68.0",
+    "svelte": "^4.2.1",
+    "svelte-chartjs": "3.1.2",
+    "svelte-check": "^3.5.2",
+    "svelte-highlight": "^7.3.0",
+    "svelte-preprocess": "^5.0.4",
+    "tailwindcss": "^3.3.3",
+    "vite": "^4.4.9"
+  }
+}

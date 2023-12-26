@@ -1,32 +1,31 @@
 ---
 title: FAQ
 category: overview
-description: Explore frequently asked questions about pockethost.io, a
-  nonprofit, one-click hosting and deployment service for PocketBase projects.
-  Discover how PocketHost ensures stability, security, and offers a free tier,
-  including resources like FAQs on data backup, migration, pricing, usage
-  restrictions and more for both hobbyists and
+date: 2023-12-02
+description: Explore frequently asked questions about pockethost.io, one-click hosting and deployment service for PocketBase projects.
 ---
 
 ## About
 
+### What is PocketHost?
+
+[PocketHost](https://github.com/benallfree/pockethost) is an open source multitenant PocketBase server. The project is licensed under the MIT open source license. It was created and is maintained by [benallfree](https://github.com/benallfree) and a community of contributors. Ben made PocketHost to host his personal and client projects without having to set up hosting every time.
+
+The goal of the project is to create a Firebase/Supabase style experience where users can instantly provision a new PocketBase instance.
+
+PocketHost also supports related services such as backup, restore, SFTP access, static file hosting, and nodejs cloud workers.
+
+PocketHost aims to provide a turnkey solution for creating and deploying small and medium-sized PocketBase projects quickly and with zero setup.
+
 ### What is pockethost.io?
 
-https://pockethost.io is a nonprofit hosting service powered by the PocketHost open source project. Also created and run by `benallfree`.
-
-[PocketHost](https://github.com/benallfree/pockethost) is an open source project licensed under the MIT open source license. It was created and is headed by [benallfree](https://github.com/benallfree). He made PocketHost to host his personal and client projects, so it was easy to provision a new PocketBase instance without having to set up any servers.
-
-The goal of the project is to create a Firebase/Supabase style experience where you can create an account and instantly provision a new PocketBase instance for yourself.
-
-PocketHost also supports related services such as backup, restore, SFTP access, static hosting, and Deno cloud workers.
-
-Hopefully, PocketHost provides a turnkey solution for creating and deploying small and medium-sized PocketBase projects quickly and with zero setup.
+https://pockethost.io is the flagship hosting service powered by the PocketHost open source project. Also created and maintained by [benallfree](https://github.com/benallfree).
 
 ### What are the long-term plans?
 
 PocketHost was created as a service to the PocketBase community because we love the sovereignty principle of PocketBase, but also don’t always want to self host.
 
-The features and priorities in development are balanced between `benallfree`'s personal needs and things requested by the community.
+The features and priorities in development are driven by personal needs and everyone is encouraged to engage in the conversation and contirbute code if possible.
 
 PocketHost has a 10-year endowment to offer a free tier of hosting for hobby projects and low to mid-volume projects.
 
@@ -38,7 +37,7 @@ You are invited to enjoy pockethost.io with the understanding that you can alway
 
 ### How stable is it?
 
-pockethost.io and the underlying PocketHost project are very stable. Outages are documented in [the PocketHost discussion area](https://github.com/benallfree/pockethost/discussions/223).
+pockethost.io and the underlying PocketHost project are very stable with over 99.9% uptime. Outages are documented in [the system health megathread](https://discord.com/channels/1128192380500193370/1179852349011939439).
 
 ### How often does my data get backed up?
 
@@ -64,29 +63,30 @@ Use the FTP feature to transfer all your data.
 
 ## Pricing, Limits, and Usage Restrictions
 
-### How much does the PocketHost service cost?
+### How much does the service cost?
 
-The PocketHost service is free until we reach v1.0.
+The PocketHost service has a free forever tier.
 
-At that point, we will likely introduce a paid tier while keeping a generous free tier.
+We are experimenting with paid tiers for power users.
 
 ### What is the pockethost.io free tier and restrictions?
 
 pockethost.io offers a free tier to everyone. The free tier includes:
 
-- Unlimited bandwidth
-- Unlimited storage
+- Unlimited (fair use) CPU, bandwidth, and storage
 - 1 project
 - Connect to your instance from `your-instance.pockethost.io`
+
+Please note, reality is limited by fair use. In practice, 99.9% of projects fall within our fair use ethos. If your project exceeds fair use of resources, we'll have a conversation about moving you to a more suitable plan and infrastructure.
 
 ### What paid plans are there?
 
 pockethost.io offers a one-size-fits-all paid plan. The paid plan includes:
 
-- Unlimited bandwidth
-- Unlimited storage
+- Unlimited bandwidth, storage, CPU
 - Unlimited projects
 - Priority support
+- Other premium features as they come
 
 ### Are we allowed to have multiple projects running on Pockethost? How many instances can I create?
 
@@ -98,16 +98,18 @@ Our free tier is limited to 1 project, while the paid tier allows unlimited proj
 
 ### How does outgoing email work?
 
-For now, you have to set up your own outgoing email (SES recommended). [#24](https://github.com/benallfree/pockethost/issues/24) is tracking our long-term plan for supporting outgoing SMTP with zero configuration. See [#154](https://github.com/benallfree/pockethost/discussions/154) for more discussion.
+You have to set up your own outgoing email (SES recommended). [#24](https://github.com/benallfree/pockethost/issues/24) is tracking our long-term plan for supporting outgoing SMTP with zero configuration. See [#154](https://github.com/benallfree/pockethost/discussions/154) for more discussion.
 
 ### How does S3 storage work?
 
-PocketHost doesn't do anything special for S3. If you want to use S3 for your instance, you can set it up just as you would with a normal PocketBase setup. That said, you probably don't need to because our infrastructure already hosts your static assets efficiently.
-
-Depending on user demand, PocketHost may even push static assets out to a CDN automatically. We will probably support this at some point.
+Set up S3 just as you would with a stand-alone PocketBase setup. However, you probably don't need to because our infrastructure already hosts your static assets efficiently.
 
 ### What versions of PocketBase do you support, and how do I upgrade?
 
 All of them. Any time a new version comes out, our systems pick it up automatically.
 
-Your instance is automatically upgraded with patch releases, but is locked to minor releases. Please contact us if you wish to upgrade to a different minor or major release.
+Your instance is automatically upgraded with patch releases, but is locked to prevent upgrading across major boundaries. Please contact us if you wish to upgrade to a different minor or major release.
+
+### Can I host custom PocketBase binaries or a custom nodejs backend?
+
+Custom backend code is supported through pb_hooks only. Custom PocketBase binaries and custom nodejs backends are being developed.

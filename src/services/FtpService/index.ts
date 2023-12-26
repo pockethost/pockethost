@@ -7,14 +7,14 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '$constants'
-import { LoggerService, SingletonBaseConfig, mkSingleton } from '$shared'
-import { exitHook } from '$util'
+import { LoggerService, mkSingleton } from '$shared'
+import { exitHook, mergeConfig } from '$util'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import pocketbaseEs from 'pocketbase'
 import { PhFs } from './PhFs'
 
-export type FtpConfig = SingletonBaseConfig & {}
+export type FtpConfig = { mothershipUrl: string }
 
 export enum FolderNames {
   PbData = 'pb_data',
@@ -40,7 +40,13 @@ export function isInstanceRootFolder(name: string): name is FolderNames {
   return INSTANCE_ROOT_FOLDER_NAMES.includes(name as FolderNames)
 }
 
-export const ftpService = mkSingleton((config: FtpConfig) => {
+export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
+  const { mothershipUrl } = mergeConfig(
+    {
+      mothershipUrl: MOTHERSHIP_INTERNAL_URL(),
+    },
+    config,
+  )
   const tls = {
     key: readFileSync(SSL_KEY()),
     cert: readFileSync(SSL_CERT()),
@@ -61,7 +67,9 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
   ftpServer.on(
     'login',
     async ({ connection, username, password }, resolve, reject) => {
-      const client = new pocketbaseEs(MOTHERSHIP_INTERNAL_URL())
+      dbg(`Got a connection`)
+      dbg(`Finding ${mothershipUrl}`)
+      const client = new pocketbaseEs(mothershipUrl)
       try {
         await client.collection('users').authWithPassword(username, password)
         dbg(`Logged in`)

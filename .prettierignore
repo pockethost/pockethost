@@ -9,4 +9,4 @@ build
 _site
 forks
 src/mothership-app/migrations
-src/mothership-app/pb_hooks/src/versions.pb.js
+src/mothership-app/pb_hooks/src/versions.js

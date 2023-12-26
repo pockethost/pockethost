@@ -2,11 +2,12 @@
   import { page } from '$app/stores'
   import Logo from '$components/Logo.svelte'
   import MediaQuery from '$components/MediaQuery.svelte'
-  import { DOCS_URL } from '$src/env'
+  import { DISCORD_URL, DOCS_URL } from '$src/env'
+  import { client } from '$src/pocketbase-client'
   import InstancesGuard from '$src/routes/InstancesGuard.svelte'
-  import { handleLogoutAndRedirect } from '$util/database'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
+  import SubscriptionStatus from './SubscriptionStatus.svelte'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
 
   type TypeInstanceObject = {
@@ -25,6 +26,17 @@
     }
   }
 
+  // Log the user out and redirect them to the homepage
+  const handleLogoutAndRedirect = async () => {
+    const { logOut } = client()
+
+    // Clear out the pocketbase information about the current user
+    logOut()
+
+    // Hard refresh to make sure any remaining data is cleared
+    window.location.href = '/'
+  }
+
   const linkClasses =
     'font-medium text-xl text-base-content btn btn-ghost capitalize justify-start'
   const subLinkClasses =
@@ -37,7 +49,7 @@
   }
 </script>
 
-<aside class="p-4 min-w-[250px] flex flex-col h-screen">
+<aside class="p-4 min-w-[250px] max-w-[250px] flex flex-col">
   <MediaQuery query="(min-width: 1280px)" let:matches>
     {#if matches}
       <a href="/" class="flex gap-2 items-center justify-center">
@@ -47,6 +59,8 @@
   </MediaQuery>
 
   <div class="flex flex-col gap-2 mb-auto">
+    <SubscriptionStatus {handleClick} />
+
     <a on:click={handleClick} href="/" class={linkClasses}>
       <i
         class="fa-regular fa-table-columns {$page.url.pathname === '/' &&
@@ -83,11 +97,18 @@
       </div>
     </InstancesGuard>
 
-    <a
-      href="https://discord.gg/nVTxCMEcGT"
-      class={linkClasses}
-      target="_blank"
-      rel="noreferrer"
+    <UserLoggedIn>
+      <a
+        href="/account"
+        class={linkClasses}
+        rel="noreferrer"
+        on:click={handleClick}
+      >
+        <i class="fa-regular fa-user"></i> My Account
+      </a>
+    </UserLoggedIn>
+
+    <a href={DISCORD_URL} class={linkClasses} target="_blank" rel="noreferrer"
       ><i class="fa-regular fa-comment-code"></i> Support
       <i
         class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"

@@ -105,7 +105,7 @@ export const PocketbaseReleaseDownloadService = mkSingleton(
       console.log(`***keys`, keys(binPaths))
       const sortedSemVers = expandAndSortSemVers(keys(binPaths))
       writeFileSync(
-        join(MOTHERSHIP_HOOKS_DIR(), `versions.pb.js`),
+        join(MOTHERSHIP_HOOKS_DIR(), `versions.js`),
         `module.exports = ${JSON.stringify({ versions: sortedSemVers })}`,
       )
       console.log(JSON.stringify(sortedSemVers))

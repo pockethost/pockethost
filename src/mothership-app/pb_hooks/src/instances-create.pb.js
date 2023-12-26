@@ -40,7 +40,7 @@ routerAdd(
       )
     }
 
-    const { versions } = require(`${__hooks}/versions.pb.js`)
+    const { versions } = require(`${__hooks}/versions.js`)
 
     const collection = $app.dao().findCollectionByNameOrId('instances')
     const record = new Record(collection)

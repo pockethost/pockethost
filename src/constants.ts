@@ -42,7 +42,6 @@ export const SETTINGS = {
 
   IPCIDR_LIST: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
-  DAEMON_PB_PORT_BASE: mkNumber(8090),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 60 * 5), // 5 minutes
 
   MOTHERSHIP_URL: mkString(`https://pockethost-central.pockethost.io`),
@@ -87,6 +86,8 @@ export const SETTINGS = {
     join(_PH_BUILD_ROOT, `instance-app`, `migrations`),
     { create: true },
   ),
+
+  DISCORD_POCKETSTREAM_URL: mkString(''),
 }
 ;(() => {
   let passed = true
@@ -165,7 +166,6 @@ export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
 export const IPCIDR_LIST = () => settings().IPCIDR_LIST
 export const DAEMON_PORT = () => settings().DAEMON_PORT
-export const DAEMON_PB_PORT_BASE = () => settings().DAEMON_PB_PORT_BASE
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
 export const MOTHERSHIP_URL = () => settings().MOTHERSHIP_URL
@@ -205,6 +205,9 @@ export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
 export const INSTANCE_APP_MIGRATIONS_DIR = () =>
   settings().INSTANCE_APP_MIGRATIONS_DIR
 
+export const DISCORD_POCKETSTREAM_URL = () =>
+  settings().DISCORD_POCKETSTREAM_URL
+
 /**
  * Helpers
  */
@@ -214,6 +217,8 @@ export const MOTHERSHIP_INTERNAL_URL = () =>
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
 export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
+export const mkContainerHomePath = (...path: string[]) =>
+  join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
 export const mkBlogUrl = (path = '') => `${BLOG_URL()}${path}`
 export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))

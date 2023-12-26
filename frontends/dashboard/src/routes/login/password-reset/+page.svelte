@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { handleUnauthenticatedPasswordReset } from '$util/database'
-  import { slide } from 'svelte/transition'
+  import { client } from '$src/pocketbase-client'
+  import AlertBar from '$components/AlertBar.svelte'
+
+  const { requestPasswordReset } = client()
 
   let email: string = ''
   let formError: string = ''
@@ -15,9 +17,12 @@
 
     isFormButtonDisabled = true
 
-    await handleUnauthenticatedPasswordReset(email, (error) => {
-      formError = error
-    })
+    try {
+      await requestPasswordReset(email)
+    } catch (error) {
+      const e = error as Error
+      formError = `Something went wrong with resetting you password. ${e.message}`
+    }
 
     isFormButtonDisabled = false
     userShouldCheckTheirEmail = true
@@ -59,12 +64,7 @@
             />
           </div>
 
-          {#if formError}
-            <div transition:slide class="alert alert-error mb-5">
-              <i class="fa-solid fa-circle-exclamation"></i>
-              <span>{formError}</span>
-            </div>
-          {/if}
+          <AlertBar message={formError} type="error" />
 
           <div class="mt-4 card-actions justify-end">
             <button

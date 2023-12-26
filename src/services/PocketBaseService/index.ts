@@ -1,4 +1,8 @@
-import { APEX_DOMAIN, DEBUG, mkInstanceDataPath } from '$constants'
+import {
+  APEX_DOMAIN,
+  mkContainerHomePath,
+  mkInstanceDataPath,
+} from '$constants'
 import { InstanceLogger, PortService } from '$services'
 import {
   LoggerService,
@@ -16,10 +20,8 @@ import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 import { buildImage } from './buildImage'
 
-export type PocketbaseCommand = 'serve' | 'migrate'
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
-  command: PocketbaseCommand
   name: string
   slug: string
   version?: string
@@ -78,17 +80,7 @@ export const createPocketbaseService = async (
       stdout: new MemoryStream(),
       ...cfg,
     }
-    const {
-      version,
-      command,
-      name,
-      slug,
-      port,
-      extraBinds,
-      env,
-      stderr,
-      stdout,
-    } = _cfg
+    const { version, name, slug, port, extraBinds, env, stderr, stdout } = _cfg
     logger.breadcrumb(name).breadcrumb(slug)
     const iLogger = InstanceLogger(slug, 'exec')
 
@@ -119,22 +111,22 @@ export const createPocketbaseService = async (
       })
     }
     stderr.on('data', _stdErrData)
-    const Binds = [`${mkInstanceDataPath(slug)}:/home/pocketbase`]
-    Binds.push(`${binPath}:/home/pocketbase/pocketbase:ro`)
+    const Binds = [
+      `${mkInstanceDataPath(slug)}:${mkContainerHomePath()}`,
+      `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
+    ]
 
     if (extraBinds.length > 0) {
       Binds.push(...extraBinds)
     }
 
+    const Cmd = (() => {
+      return [`./pocketbase`, `serve`, `--http`, `0.0.0.0:8090`]
+    })()
+
     const createOptions: ContainerCreateOptions = {
       Image: INSTANCE_IMAGE_NAME,
-      Cmd: [
-        `./pocketbase`,
-        `serve`,
-        `--http`,
-        `0.0.0.0:8090`,
-        DEBUG() ? `--debug` : '',
-      ].filter((v) => !!v),
+      Cmd,
       Env: map(
         {
           ...env,
@@ -161,7 +153,7 @@ export const createPocketbaseService = async (
       ExposedPorts: {
         [`8090/tcp`]: {},
       },
-      // User: 'pocketbase',
+      // User: 'pockethost',
     }
     logger.info(`Spawning ${slug}`)
     dbg({ createOptions })
@@ -173,7 +165,7 @@ export const createPocketbaseService = async (
       container = await new Promise<Container>((resolve) => {
         docker
           .run(
-            `pockethost/pocketbase`,
+            INSTANCE_IMAGE_NAME,
             [''], // Supplied by createOptions
             [stdout, stderr],
             createOptions,
@@ -220,15 +212,13 @@ export const createPocketbaseService = async (
       await api.kill()
       dbg(`Process ${slug} exited`)
     })
-    if (command === 'serve') {
-      await tryFetch(url, {
-        preflight: async () => {
-          dbg({ stopped, started, container: !!container })
-          if (stopped) throw new Error(`Container stopped`)
-          return started && !!container
-        },
-      })
-    }
+    await tryFetch(`${url}/api/health`, {
+      preflight: async () => {
+        dbg({ stopped, started, container: !!container })
+        if (stopped) throw new Error(`Container stopped`)
+        return started && !!container
+      },
+    })
     const api: PocketbaseProcess = {
       url,
       pid: () => {

@@ -6,6 +6,12 @@
     "url": "https://battleborn.app/"
   },
   {
+    "title": "eCourse",
+    "description": "A minimal & customizable template for self-hosting your online course.",
+    "image": "/img/showcase/pockethost-showcase-ecourse.jpg",
+    "url": "https://ecourse.pockethost.io/"
+  },
+  {
     "title": "HT Developer Portfolio",
     "description": "An interactive website showcasing Hyperclaw79's developer portfolio.",
     "image": "/img/showcase/ht-dev.png",

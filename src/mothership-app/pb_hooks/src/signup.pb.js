@@ -158,6 +158,7 @@ routerAdd(
           )
         user.set('username', username)
         user.set('email', email)
+        user.set('subscription', 'free')
         user.setPassword(password)
         txDao.saveRecord(user)
       } catch (e) {
@@ -168,7 +169,7 @@ routerAdd(
         const instance = new Record(instanceCollection)
         instance.set('subdomain', desiredInstanceName)
         instance.set('uid', user.get('id'))
-        instance.set('status', 'Idle')
+        instance.set('status', 'idle')
         instance.set('version', '0.19.*')
         txDao.saveRecord(instance)
       } catch (e) {

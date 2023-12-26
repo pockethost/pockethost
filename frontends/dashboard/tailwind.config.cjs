@@ -2,7 +2,23 @@
 module.exports = {
   content: ['./src/**/*.{svelte,js,ts,md}'],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        text: 'text 5s ease infinite',
+      },
+      keyframes: {
+        text: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
+      },
+    },
   },
   daisyui: {
     themes: [
@@ -11,7 +27,7 @@ module.exports = {
       {
         // Custom theme definitions
         dark: {
-          ...require('daisyui/src/theming/themes')['[data-theme=dark]'],
+          ...require('daisyui/src/theming/themes')['dark'],
           primary: '#1eb854',
           secondary: '#1db990',
           'base-content': '#ffffff',
@@ -20,7 +36,7 @@ module.exports = {
       {
         // Custom theme definitions
         light: {
-          ...require('daisyui/src/theming/themes')['[data-theme=light]'],
+          ...require('daisyui/src/theming/themes')['light'],
           primary: '#1eb854',
           secondary: '#1db990',
           'base-content': '#222',
