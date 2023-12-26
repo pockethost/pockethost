@@ -6,6 +6,7 @@
   export let checkoutMonthURL = ''
   export let checkoutYearURL = ''
   export let active = false
+  export let founderMembershipsRemaining
 </script>
 
 <div
@@ -26,6 +27,13 @@
       </p>
     {/if}
   </div>
+
+  {#if $founderMembershipsRemaining}
+    <p class="text-primary font-bold">
+      <i class="fa-regular fa-clock"></i>
+      {$founderMembershipsRemaining} Remaining
+    </p>
+  {/if}
 
   <p class="mt-4 mb-8 text-sm leading-6 text-gray-300">{description}</p>
 
