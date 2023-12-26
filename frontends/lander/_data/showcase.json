@@ -4,5 +4,12 @@
     "description": "An easy to use tabletop RPG game",
     "image": "/img/showcase/pockethost-showcase-battleborn.jpg",
     "url": "https://battleborn.app/"
+  },
+
+  {
+    "title": "eCourse",
+    "description": "A minimal & customizable template for self-hosting your online course.",
+    "image": "/img/showcase/pockethost-showcase-ecourse.jpg",
+    "url": "https://ecourse.pockethost.io/"
   }
 ]
