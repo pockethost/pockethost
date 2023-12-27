@@ -25,6 +25,7 @@ const loadedEnvs = dotenv.config({ path: `.env` })
 export const _PH_HOME = join(process.env.HOME || resolve(`~`), `.pockethost`)
 export const _PH_PROJECT_ROOT = dirname(findUpSync('package.json')!)
 export const _PH_BUILD_ROOT = join(_PH_PROJECT_ROOT, 'dist')
+export const _IS_DEV = process.env.NODE_ENV === 'development'
 
 console.log({ _PH_HOME, _PH_PROJECT_ROOT, _PH_BUILD_ROOT })
 
@@ -33,14 +34,14 @@ export const SETTINGS = {
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
   PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT, { required: false }),
 
-  DEBUG: mkBoolean(false),
+  DEBUG: mkBoolean(_IS_DEV),
 
   HTTP_PROTOCOL: mkString('https:'),
   APP_URL: mkString(`https://app.pockethost.io`),
   BLOG_URL: mkString(`https://pockethost.io`),
   APEX_DOMAIN: mkString(`pockethost.io`),
 
-  IPCIDR_LIST: mkCsvString([]),
+  IPCIDR_LIST: mkCsvString([`127.0.0.1/32`]),
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 60 * 5), // 5 minutes
 
@@ -64,6 +65,7 @@ export const SETTINGS = {
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(join(_PH_HOME, 'data')),
   NODE_ENV: mkString(`production`),
+  IS_DEV: mkBoolean(_IS_DEV),
   TRACE: mkBoolean(false),
   PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache')),
 
@@ -186,6 +188,7 @@ export const MOTHERSHIP_PORT = () => settings().MOTHERSHIP_PORT
 export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
 export const DATA_ROOT = () => settings().DATA_ROOT
 export const NODE_ENV = () => settings().NODE_ENV
+export const IS_DEV = () => settings().IS_DEV
 export const TRACE = () => settings().TRACE
 export const PH_BIN_CACHE = () => settings().PH_BIN_CACHE
 
