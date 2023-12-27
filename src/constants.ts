@@ -212,8 +212,8 @@ export const DISCORD_POCKETSTREAM_URL = () =>
  * Helpers
  */
 export const MOTHERSHIP_DATA_ROOT = () => INSTANCE_DATA_ROOT(MOTHERSHIP_NAME())
-export const MOTHERSHIP_INTERNAL_URL = () =>
-  `http://${MOTHERSHIP_INTERNAL_HOST()}:${MOTHERSHIP_PORT()}`
+export const MOTHERSHIP_INTERNAL_URL = (path = '') =>
+  `http://${MOTHERSHIP_INTERNAL_HOST()}:${MOTHERSHIP_PORT()}${path}`
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
 export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
