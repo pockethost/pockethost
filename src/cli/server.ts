@@ -7,8 +7,10 @@ import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_HOOKS_DIR,
+  MOTHERSHIP_INTERNAL_URL,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_NAME,
+  MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
   PH_BIN_CACHE,
   SETTINGS,
@@ -62,15 +64,14 @@ global.EventSource = EventSource
    */
 
   info(`Serving`)
-  const [port] = await PortService().alloc()
-  const url = await new Promise<string>((resolve) => {
+  await new Promise<string>((resolve) => {
     const mothership = async () => {
       try {
         const { url, exitCode } = await pbService.spawn({
           version: MOTHERSHIP_SEMVER(),
           name: MOTHERSHIP_NAME(),
           slug: MOTHERSHIP_NAME(),
-          port,
+          port: MOTHERSHIP_PORT(),
           env: {
             DATA_ROOT: mkContainerHomePath(`data`),
             DISCORD_POCKETSTREAM_URL: DISCORD_POCKETSTREAM_URL(),
@@ -95,21 +96,21 @@ global.EventSource = EventSource
     }
     mothership()
   })
-  info(`Mothership URL for this session is ${url}`)
+  info(`Mothership URL for this session is ${MOTHERSHIP_INTERNAL_URL()}`)
 
   /**
    * Launch services
    */
   await MothershipAdmimClientService({
-    url,
+    url: MOTHERSHIP_INTERNAL_URL(),
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
   await ftpService({
-    mothershipUrl: url,
+    mothershipUrl: MOTHERSHIP_INTERNAL_URL(),
   })
   await proxyService({
-    coreInternalUrl: url,
+    coreInternalUrl: MOTHERSHIP_INTERNAL_URL(),
   })
   await SqliteService({})
   await realtimeLog({})
