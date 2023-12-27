@@ -1,4 +1,3 @@
-export * from './CentralDbService'
 export * from './FtpService'
 export * from './InstanceLoggerService'
 export * from './InstanceService'
