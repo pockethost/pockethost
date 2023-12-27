@@ -61,7 +61,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         warn(
           `${url} was rejected because host does not end in ${APEX_DOMAIN()}`,
         )
-        res.writeHead(502, {
+        res.writeHead(403, {
           'Content-Type': `text/plain`,
         })
         res.end(`${url} was rejected.`)
