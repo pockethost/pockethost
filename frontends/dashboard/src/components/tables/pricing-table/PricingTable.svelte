@@ -51,16 +51,14 @@
                       <th scope="col">
                         <span class="sr-only">Feature</span>
                       </th>
-                      <th scope="col">
-                        <span class="sr-only">Starter tier</span>
+                      <th scope="col" class="text-center">
+                        {PLAN_NAMES[SubscriptionType.Free]}
                       </th>
-                      <th scope="col">
-                        <span class="sr-only">Scale tier</span>
+                      <th scope="col" class="text-center">
+                        {PLAN_NAMES[SubscriptionType.Premium]}
                       </th>
-                      <th scope="col">
-                        <span class="sr-only"
-                          >{PLAN_NAMES[SubscriptionType.Lifetime]} tier</span
-                        >
+                      <th scope="col" class="text-center">
+                        {PLAN_NAMES[SubscriptionType.Lifetime]}
                       </th>
                     </tr>
                   </thead>
