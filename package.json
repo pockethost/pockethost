@@ -23,7 +23,7 @@
     "dev:daemon:server": "DEBUG=1 tsx watch src/cli/server.ts",
     "dev:daemon:maildev": "npx -y maildev",
     "prod:proxy": "dotenv tsx ./src/cli/proxy/server.ts",
-    "start": "tsx src/cli/server.ts",
+    "prod:edge": "tsx src/cli/server.ts",
     "plop": "plop",
     "nofile": "cat /proc/sys/fs/file-nr"
   },
