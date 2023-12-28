@@ -4,7 +4,7 @@
   import { typescript, type LanguageType } from 'svelte-highlight/languages'
 
   export let code: string
-  export let language: LanguageType<'typescript' | 'bash'> = typescript
+  export let language: LanguageType<'typescript' | 'bash' | 'dns'> = typescript
 
   const handleCopy = () => {}
 </script>

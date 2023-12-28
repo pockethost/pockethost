@@ -14,4 +14,32 @@ onModelBeforeUpdate((e) => {
       )}`,
     )
   }
+
+  const id = e.model.getId()
+  const cname = e.model.get('cname')
+  if (cname.length > 0) {
+    const result = new DynamicModel({
+      id: '',
+    })
+
+    const inUse = (() => {
+      try {
+        $app
+          .dao()
+          .db()
+          .newQuery(
+            `select id from instances where cname='${cname}' and id <> '${id}'`,
+          )
+          .one(result)
+      } catch (e) {
+        console.log(`*** cname OK ${cname}`)
+        return false
+      }
+      return true
+    })()
+
+    if (inUse) {
+      throw new BadRequestError(`Custom domain already in use.`)
+    }
+  }
 }, 'instances')

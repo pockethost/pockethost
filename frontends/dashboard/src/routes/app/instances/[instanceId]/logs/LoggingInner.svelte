@@ -44,7 +44,7 @@
     const unsub = instanceId.subscribe((id) => {
       unwatch?.()
       logs.set([])
-      unwatch = client().watchInstanceLog(id, (newLog) => {
+      unwatch = client().watchInstanceLog($instance, (newLog) => {
         logs.update((currentLogs) => {
           return [...currentLogs, newLog]
         })

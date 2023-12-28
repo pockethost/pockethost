@@ -41,7 +41,7 @@
 
     <a
       class="btn btn-secondary"
-      href={INSTANCE_ADMIN_URL(instance.subdomain)}
+      href={INSTANCE_ADMIN_URL(instance)}
       target="_blank"
     >
       <img

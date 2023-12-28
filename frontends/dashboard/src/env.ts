@@ -1,3 +1,4 @@
+import { InstanceFields } from '$shared'
 import { boolean } from 'boolean'
 
 /**
@@ -47,7 +48,7 @@ const mkPath = (...paths: string[]) => {
  * LANDER_URL('showcase') // https://pockethost.io/showcase/
  */
 export const LANDER_URL = (...paths: string[]) => {
-  return `${PUBLIC_BLOG_URL}/${mkPath(...paths)}/`
+  return `${PUBLIC_BLOG_URL}/${mkPath(...paths)}`
 }
 
 /**
@@ -83,16 +84,24 @@ export const APP_URL = (...paths: string[]) => {
   return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
 }
 
+export const INSTANCE_BARE_HOST = (instance: InstanceFields) => {
+  return `${instance.subdomain}.${PUBLIC_APEX_DOMAIN}`
+}
+
+export const INSTANCE_HOST = (instance: InstanceFields) => {
+  return instance.cname || INSTANCE_BARE_HOST(instance)
+}
+
 /**
  * Helpful alias for generating the URL for a specific instance
- * @param {string} name This is the unique instance name
+ * @param {string} instance This is the unique instance name
  * @param {Array<string>} paths This is an optional list of additional paths to append to the instance URL.
  * @example
  * INSTANCE_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/
  * INSTANCE_URL('my-cool-instance', 'dashboard') // https://my-cool-instance.pockethost.io/dashboard
  */
-export const INSTANCE_URL = (name: string, ...paths: string[]) => {
-  return `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${mkPath(
+export const INSTANCE_URL = (instance: InstanceFields, ...paths: string[]) => {
+  return `${PUBLIC_HTTP_PROTOCOL}//${INSTANCE_HOST(instance)}/${mkPath(
     ...paths,
   )}`
 }
@@ -103,8 +112,8 @@ export const INSTANCE_URL = (name: string, ...paths: string[]) => {
  * @example
  * INSTANCE_ADMIN_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/_/
  */
-export const INSTANCE_ADMIN_URL = (name: string) => {
-  return INSTANCE_URL(name, `_/`)
+export const INSTANCE_ADMIN_URL = (instance: InstanceFields) => {
+  return INSTANCE_URL(instance, `_/`)
 }
 
 export const FTP_URL = (email: string) => {

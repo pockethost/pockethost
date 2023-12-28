@@ -239,7 +239,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   const watchInstanceLog = (
-    instanceId: InstanceId,
+    instance: InstanceFields,
     update: (log: InstanceLogFields) => void,
     nInitial = 100,
   ): (() => void) => {
@@ -248,7 +248,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     const controller = new AbortController()
     const signal = controller.signal
     const continuallyFetchFromEventSource = () => {
-      const url = INSTANCE_URL(instanceId, `logs`)
+      const url = INSTANCE_URL(instance, `logs`)
 
       fetchEventSource(url, {
         method: 'POST',
@@ -257,7 +257,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
           Authorization: client.authStore.token,
         },
         body: JSON.stringify({
-          instanceId,
+          instanceId: instance.id,
           n: nInitial,
           auth,
         }),

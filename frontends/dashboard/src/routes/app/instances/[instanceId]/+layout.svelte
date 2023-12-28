@@ -43,7 +43,7 @@
     </div>
 
     <a
-      href={INSTANCE_ADMIN_URL($instance.subdomain)}
+      href={INSTANCE_ADMIN_URL($instance)}
       rel="noreferrer"
       target="_blank"
       class="btn btn-primary"

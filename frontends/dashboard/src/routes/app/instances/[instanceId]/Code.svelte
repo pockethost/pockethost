@@ -9,7 +9,7 @@
 
   let connectionSnippet = ''
   $: {
-    const url = INSTANCE_URL($instance.subdomain)
+    const url = INSTANCE_URL($instance)
     connectionSnippet = `import PocketBase from 'pocketbase';\n\nconst url = '${url}'\nconst client = new PocketBase(url)`
   }
 
@@ -28,6 +28,20 @@
 
   <div class="mb-4">
     <p>Connecting to Your Instance</p>
+    {#if $instance.cname}
+      {#if $instance.cname_active}
+        <div class="text-accent">Notice: You are in Custom Domain mode</div>
+      {:else}
+        <div class="text-error">
+          Notice: You are in Custom Domain mode but it is not active and will
+          not work. Go find <a
+            href="https://discord.com/channels/1128192380500193370/1189948945967882250"
+            target="_blank"
+            class="link">@noaxis on Discord</a
+          > to get set up.
+        </div>
+      {/if}
+    {/if}
     <CodeSample code={connectionSnippet} />
   </div>
 

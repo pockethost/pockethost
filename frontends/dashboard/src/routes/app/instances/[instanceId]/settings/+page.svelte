@@ -2,6 +2,7 @@
   import { assertExists } from '$shared'
   import { instance } from '../store'
   import AdminSync from './AdminSync.svelte'
+  import CustomDomain from './CustomDomain.svelte'
   import DangerZoneTitle from './DangerZoneTitle.svelte'
   import DeleteInstance from './DeleteInstance.svelte'
   import DevMode from './DevMode.svelte'
@@ -34,3 +35,4 @@
 
   <DeleteInstance />
 </div>
+<CustomDomain />

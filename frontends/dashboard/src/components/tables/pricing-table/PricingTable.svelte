@@ -1,32 +1,69 @@
 <script lang="ts">
-  import { PLAN_NAMES, SubscriptionType } from '$shared'
-  import { userSubscriptionType } from '$util/stores'
+  import MediaQuery from '$components/MediaQuery.svelte'
   import FeatureName from '$components/tables/pricing-table/FeatureName.svelte'
   import FeatureSupportBlock from '$components/tables/pricing-table/FeatureSupportBlock.svelte'
-  import MediaQuery from '$components/MediaQuery.svelte'
   import MobileTable from '$components/tables/pricing-table/MobileTable.svelte'
+  import { PLAN_NAMES, SubscriptionType } from '$shared'
+  import { DISCORD_URL, DOCS_URL } from '$src/env'
+  import { userSubscriptionType } from '$util/stores'
 
   type ItemValue = '1' | 'Unlimited' | 'YesBlock' | 'NoBlock'
 
   interface Item {
     name: string
     items: ItemValue[]
+    isNew?: boolean
+    infoUrl?: string
   }
 
   const items: Item[] = [
-    { name: 'Number of Projects', items: ['1', 'Unlimited', 'Unlimited'] },
+    {
+      name: 'Number of Projects',
+      items: ['1', 'Unlimited', 'Unlimited'],
+      infoUrl: '/usage/usage-limits',
+    },
     {
       name: 'Unlimited Bandwidth*',
       items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: '/usage/usage-limits',
     },
-    { name: 'Unlimited Storage*', items: ['YesBlock', 'YesBlock', 'YesBlock'] },
-    { name: 'Unlimited CPU*', items: ['YesBlock', 'YesBlock', 'YesBlock'] },
-    { name: 'FTP access', items: ['YesBlock', 'YesBlock', 'YesBlock'] },
+    {
+      name: 'Unlimited Storage*',
+      items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: '/usage/usage-limits',
+    },
+    {
+      name: 'Unlimited CPU*',
+      items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: '/usage/usage-limits',
+    },
+    {
+      name: 'FTP access',
+      items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: '/usage/ftp',
+    },
     {
       name: 'Run every version of PocketBase',
       items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: '/usage/upgrading',
     },
-    { name: 'Community Discord', items: ['YesBlock', 'YesBlock', 'YesBlock'] },
+    {
+      name: 'Secure infrastructure',
+      items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: '/overview/faq/#data-privacy-and-security',
+    },
+
+    {
+      name: 'Community Discord',
+      items: ['YesBlock', 'YesBlock', 'YesBlock'],
+      infoUrl: DISCORD_URL,
+    },
+    {
+      name: 'Custom Domains',
+      items: ['NoBlock', 'YesBlock', 'YesBlock'],
+      isNew: true,
+      infoUrl: `/usage/custom-domain`,
+    },
     { name: 'Priority Discord', items: ['NoBlock', 'YesBlock', 'YesBlock'] },
     { name: "Founder's Discord", items: ['NoBlock', 'NoBlock', 'YesBlock'] },
     { name: 'Founders mug/tee', items: ['NoBlock', 'NoBlock', 'YesBlock'] },
@@ -66,7 +103,21 @@
                   <tbody>
                     {#each items as item}
                       <tr>
-                        <FeatureName>{item.name}</FeatureName>
+                        <FeatureName
+                          >{item.name}
+                          {#if item.isNew}
+                            <span class="badge badge-primary">new</span>
+                          {/if}
+                          {#if item.infoUrl}
+                            <a
+                              href={item.infoUrl.startsWith(`http`)
+                                ? item.infoUrl
+                                : DOCS_URL(item.infoUrl)}
+                              class="badge badge-neutral"
+                              target="_blank">i</a
+                            >
+                          {/if}
+                        </FeatureName>
                         <FeatureSupportBlock item={item.items[0] ?? ''} />
                         <FeatureSupportBlock item={item.items[1] ?? ''} />
                         <FeatureSupportBlock item={item.items[2] ?? ''} />
