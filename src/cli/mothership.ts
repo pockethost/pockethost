@@ -58,6 +58,7 @@ global.EventSource = EventSource
     name: MOTHERSHIP_NAME(),
     slug: MOTHERSHIP_NAME(),
     port: MOTHERSHIP_PORT(),
+    dev: DEBUG(),
     env: {
       DATA_ROOT: mkContainerHomePath(`data`),
     },

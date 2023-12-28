@@ -4,6 +4,7 @@
   import AdminSync from './AdminSync.svelte'
   import DangerZoneTitle from './DangerZoneTitle.svelte'
   import DeleteInstance from './DeleteInstance.svelte'
+  import DevMode from './DevMode.svelte'
   import Maintenance from './Maintenance.svelte'
   import RenameInstance from './RenameInstance.svelte'
   import VersionChange from './VersionChange/VersionChange.svelte'
@@ -28,6 +29,8 @@
   <VersionChange />
 
   <AdminSync />
+
+  <DevMode />
 
   <DeleteInstance />
 </div>

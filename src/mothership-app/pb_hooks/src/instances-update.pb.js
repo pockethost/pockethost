@@ -23,6 +23,7 @@ routerAdd(
         version: null,
         secrets: null,
         syncAdmin: null,
+        dev: null,
       },
     })
 
@@ -34,7 +35,7 @@ routerAdd(
 
     const id = c.pathParam('id')
     const {
-      fields: { subdomain, maintenance, version, secrets, syncAdmin },
+      fields: { subdomain, maintenance, version, secrets, syncAdmin, dev },
     } = data
 
     console.log(
@@ -46,6 +47,7 @@ routerAdd(
         version,
         secrets,
         syncAdmin,
+        dev,
       }),
     )
 
@@ -78,6 +80,7 @@ routerAdd(
       maintenance,
       secrets,
       syncAdmin,
+      dev,
     })
 
     const form = new RecordUpsertForm($app, record)

@@ -29,6 +29,7 @@ export type InstanceFields = BaseFields & {
   maintenance: boolean
   syncAdmin: boolean
   cname: string
+  dev: boolean
 }
 
 export type WithUser = {

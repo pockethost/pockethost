@@ -16,6 +16,7 @@ import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
 import MemoryStream from 'memorystream'
+import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 import { buildImage } from './buildImage'
@@ -30,6 +31,7 @@ export type SpawnConfig = {
   env?: Env
   stdout?: MemoryStream
   stderr?: MemoryStream
+  dev?: boolean
 }
 export type PocketbaseServiceApi = AsyncReturnType<
   typeof createPocketbaseService
@@ -78,9 +80,11 @@ export const createPocketbaseService = async (
       env: {},
       stderr: new MemoryStream(),
       stdout: new MemoryStream(),
+      dev: false,
       ...cfg,
     }
-    const { version, name, slug, port, extraBinds, env, stderr, stdout } = _cfg
+    const { version, name, slug, port, extraBinds, env, stderr, stdout, dev } =
+      _cfg
     logger.breadcrumb(name).breadcrumb(slug)
     const iLogger = InstanceLogger(slug, 'exec')
 
@@ -123,6 +127,9 @@ export const createPocketbaseService = async (
     const Cmd = (() => {
       return [`./pocketbase`, `serve`, `--http`, `0.0.0.0:8090`]
     })()
+    if (dev && gte(realVersion.version, `0.20.1`)) {
+      Cmd.push(`--dev`)
+    }
 
     const createOptions: ContainerCreateOptions = {
       Image: INSTANCE_IMAGE_NAME,

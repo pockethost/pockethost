@@ -278,6 +278,7 @@ export const instanceService = mkSingleton(
               name: instance.subdomain,
               slug: instance.id,
               port: newPort,
+              dev: instance.dev,
               extraBinds: flatten([
                 globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
                   (file) =>
