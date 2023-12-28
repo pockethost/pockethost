@@ -4,7 +4,7 @@ import vhost from 'vhost'
 
 export function createVhostProxyMiddleware(host: string, target: string) {
   console.log(`Creating ${host}->${target}`)
-  const handler = createProxyMiddleware({ target })
+  const handler = createProxyMiddleware({ target, ws: true })
   return vhost(host, (_req, res, next) => {
     const req = _req as unknown as Request
     const method = req.method
