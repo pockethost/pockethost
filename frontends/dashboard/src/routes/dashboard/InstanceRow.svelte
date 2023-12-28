@@ -1,15 +1,8 @@
 <script lang="ts">
+  import { InstanceFields } from '$shared'
   import { INSTANCE_ADMIN_URL } from '$src/env.js'
 
-  type TypeInstanceObject = {
-    id: string
-    subdomain: string
-    status: string
-    version: string
-    maintenance: boolean
-  }
-
-  export let instance: TypeInstanceObject
+  export let instance: InstanceFields
   export let index: number
 </script>
 
