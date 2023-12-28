@@ -412,7 +412,15 @@ export const instanceService = mkSingleton(
       }
       {
         dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const instance = await client.getInstanceBySubdomain(idOrSubdomain)
+        const instance = await client
+          .getInstanceBySubdomain(idOrSubdomain)
+          .catch((e: ClientResponseError) => {
+            if (e.status !== 404) {
+              throw new Error(
+                `Unexpected response ${JSON.stringify(e)} from mothership`,
+              )
+            }
+          })
         if (instance) {
           dbg(`${idOrSubdomain} is a subdomain`)
           return instance
@@ -430,9 +438,11 @@ export const instanceService = mkSingleton(
 
         const instance = await getInstanceByIdOrSubdomain(instanceIdOrSubdomain)
         if (!instance) {
-          throw new Error(
-            `Subdomain ${instanceIdOrSubdomain} does not resolve to an instance`,
-          )
+          res.writeHead(404, {
+            'Content-Type': `text/plain`,
+          })
+          res.end(`${host} not found`)
+          return true
         }
         const owner = instance.expand.uid
         if (!owner) {
