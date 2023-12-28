@@ -46,6 +46,6 @@
   >
     {@html alertTypeIcon}
 
-    <span>{message}</span>
+    <span>{@html message}</span>
   </div>
 {/if}
