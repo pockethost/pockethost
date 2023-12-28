@@ -31,7 +31,8 @@
     "prod:edge:ftp": "tsx src/cli/edge-ftp.ts",
     "prod:mothership": "tsx src/cli/mothership.ts",
     "plop": "plop",
-    "nofile": "cat /proc/sys/fs/file-nr"
+    "nofile": "cat /proc/sys/fs/file-nr",
+    "mail": "tsx ./src/cli/sendmail.ts"
   },
   "prettier": {
     "semi": false,
