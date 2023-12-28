@@ -7,27 +7,26 @@ import {
   mkContainerHomePath,
   mkDocUrl,
   mkEdgeUrl,
-  MOTHERSHIP_NAME,
 } from '$constants'
 import {
   InstanceLogger,
   MothershipAdmimClientService,
   PocketbaseService,
   PortService,
-  proxyService,
   SqliteService,
+  proxyService,
 } from '$services'
 import {
-  assertTruthy,
   CLEANUP_PRIORITY_LAST,
-  createCleanupManager,
-  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
   LoggerService,
-  mkSingleton,
   SingletonBaseConfig,
+  assertTruthy,
+  createCleanupManager,
+  createTimerManager,
+  mkSingleton,
 } from '$shared'
 import { asyncExitHook, mkInternalUrl, now } from '$util'
 import { flatten, map, values } from '@s-libs/micro-dash'
@@ -393,7 +392,26 @@ export const instanceService = mkSingleton(
       return api
     }
 
-    const getInstanceByIdOrSubdomain = async (idOrSubdomain: InstanceId) => {
+    const getInstanceByIdOrSubdomainOrCname = async (
+      idOrSubdomain: InstanceId,
+      host: string,
+    ) => {
+      {
+        dbg(`Trying to get instance by host: ${host}`)
+        const instance = await client
+          .getInstanceByCname(host)
+          .catch((e: ClientResponseError) => {
+            if (e.status !== 404) {
+              throw new Error(
+                `Unexpected response ${JSON.stringify(e)} from mothership`,
+              )
+            }
+          })
+        if (instance) {
+          dbg(`${host} is a cname`)
+          return instance
+        }
+      }
       {
         dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
         const instance = await client
@@ -430,13 +448,16 @@ export const instanceService = mkSingleton(
     }
 
     ;(await proxyService()).use(
-      (subdomain) => subdomain !== MOTHERSHIP_NAME(),
-      ['/api(/*)', '/_(/*)', '(/*)'],
+      (subdomain) => true,
+      ['(/*)'],
       async (req, res, meta, logger) => {
         const { dbg } = logger
         const { subdomain: instanceIdOrSubdomain, host, proxy } = meta
 
-        const instance = await getInstanceByIdOrSubdomain(instanceIdOrSubdomain)
+        const instance = await getInstanceByIdOrSubdomainOrCname(
+          instanceIdOrSubdomain,
+          host,
+        )
         if (!instance) {
           res.writeHead(404, {
             'Content-Type': `text/plain`,

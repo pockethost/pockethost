@@ -28,6 +28,7 @@ export type InstanceFields = BaseFields & {
   secrets: InstanceSecretCollection | null
   maintenance: boolean
   syncAdmin: boolean
+  cname: string
 }
 
 export type WithUser = {

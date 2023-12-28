@@ -31,6 +31,13 @@ export const createInstanceMixin = (context: MixinContext) => {
       .collection(INSTANCE_COLLECTION)
       .getFirstListItem(`subdomain = '${subdomain}'`, { expand: 'uid' })
 
+  const getInstanceByCname = (
+    host: string,
+  ): Promise<InstanceFields & WithUser> =>
+    client
+      .collection(INSTANCE_COLLECTION)
+      .getFirstListItem(`cname = '${host}'`, { expand: 'uid' })
+
   const getInstanceById = async (
     instanceId: InstanceId,
   ): Promise<InstanceFields & WithUser> =>
@@ -68,6 +75,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     updateInstance,
     updateInstanceStatus,
     getInstanceBySubdomain,
+    getInstanceByCname,
     getInstance,
     createInstance,
   }

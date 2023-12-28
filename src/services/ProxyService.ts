@@ -1,4 +1,4 @@
-import { APEX_DOMAIN, DAEMON_PORT } from '$constants'
+import { DAEMON_PORT } from '$constants'
 import {
   Logger,
   LoggerService,
@@ -57,16 +57,6 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         url.toString(),
       ].join(' ')
       info(`Incoming request ${sig}`)
-      if (!req.headers.host?.endsWith(APEX_DOMAIN())) {
-        warn(
-          `${url} was rejected because host does not end in ${APEX_DOMAIN()}`,
-        )
-        res.writeHead(403, {
-          'Content-Type': `text/plain`,
-        })
-        res.end(`${url} was rejected.`)
-        return
-      }
 
       {
         const { warn } = _proxyLogger.create(sig)

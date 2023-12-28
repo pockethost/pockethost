@@ -13,6 +13,7 @@ import fs from 'fs'
 import http from 'http'
 import https from 'https'
 
+import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 
@@ -20,7 +21,6 @@ DefaultSettingsService(SETTINGS)
 
 const PROD_ROUTES = {
   'pockethost-central.pockethost.io': `http://localhost:${MOTHERSHIP_PORT()}`,
-  '*.pockethost.io': `http://localhost:${DAEMON_PORT()}`,
 }
 const DEV_ROUTES = {
   'mail.pockethost.lvh.me': `http://localhost:${1080}`,
@@ -28,7 +28,6 @@ const DEV_ROUTES = {
   'app.pockethost.lvh.me': `http://localhost:${5174}`,
   'superadmin.pockethost.lvh.me': `http://localhost:${5175}`,
   'pockethost.lvh.me': `http://localhost:${8080}`,
-  '*.pockethost.lvh.me': `http://localhost:${DAEMON_PORT()}`,
 }
 const hostnameRoutes = IS_DEV() ? DEV_ROUTES : PROD_ROUTES
 
@@ -43,6 +42,12 @@ app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
 forEach(hostnameRoutes, (target, host) => {
   app.use(createVhostProxyMiddleware(host, target))
 })
+
+// Fall-through
+const handler = createProxyMiddleware({
+  target: `http://localhost:${DAEMON_PORT()}`,
+})
+app.all(`*`, handler)
 
 if (IS_DEV()) {
   http.createServer(app).listen(80, () => {
