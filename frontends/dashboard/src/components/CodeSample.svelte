@@ -20,7 +20,6 @@
 <style lang="scss">
   .copy-container {
     position: relative;
-    margin: 5px;
     border-radius: 16px;
     overflow: hidden;
 
