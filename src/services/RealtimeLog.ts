@@ -22,7 +22,6 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
   const { dbg, error } = _realtimeLogger
 
   ;(await proxyService()).use(
-    '*',
     '/logs',
     async (req, res, meta, logger) => {
       const { subdomain, host, coreInternalUrl } = meta

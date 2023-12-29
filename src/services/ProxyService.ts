@@ -6,7 +6,6 @@ import {
   mkSingleton,
 } from '$shared'
 import { asyncExitHook } from '$util'
-import { isFunction } from '@s-libs/micro-dash'
 import {
   IncomingMessage,
   RequestListener,
@@ -98,22 +97,17 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   const middleware: MiddlewareListener[] = []
 
   const use = (
-    subdomainFilter: string | ((subdomain: string) => boolean),
     urlFilters: string | string[],
     handler: ProxyMiddleware,
     handlerName: string,
   ) => {
     const _handlerLogger = _proxyLogger.create(`${handlerName}`)
     const { dbg, trace } = _handlerLogger
-    dbg({ subdomainFilter, urlFilters })
+    dbg({ urlFilters })
 
     const _urlFilters = Array.isArray(urlFilters)
       ? urlFilters.map((f) => new UrlPattern(f))
       : [new UrlPattern(urlFilters)]
-    const _subdomainFilter = isFunction(subdomainFilter)
-      ? subdomainFilter
-      : (subdomain: string) =>
-          subdomainFilter === '*' || subdomain === subdomainFilter
 
     middleware.push((req, res) => {
       const host = req.headers.host
@@ -132,11 +126,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       if (!url) {
         throw new Error(`Expected URL here`)
       }
-      trace({ subdomainFilter, _urlFilters, host, url })
-      if (!_subdomainFilter(subdomain)) {
-        trace(`Subdomain ${subdomain} does not match filter ${subdomainFilter}`)
-        return false
-      }
+      trace({ _urlFilters, host, url })
+
       if (
         !_urlFilters.find((u) => {
           const isMatch = !!u.match(url)

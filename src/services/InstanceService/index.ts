@@ -454,7 +454,6 @@ export const instanceService = mkSingleton(
     }
 
     ;(await proxyService()).use(
-      (subdomain) => true,
       ['(/*)'],
       async (req, res, meta, logger) => {
         const { dbg } = logger
