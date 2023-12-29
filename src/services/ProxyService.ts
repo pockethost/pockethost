@@ -6,15 +6,12 @@ import {
   mkSingleton,
 } from '$shared'
 import { asyncExitHook } from '$util'
-import {
-  IncomingMessage,
-  RequestListener,
-  ServerResponse,
-  createServer,
-} from 'http'
+import express from 'express'
+import { IncomingMessage, RequestListener, ServerResponse } from 'http'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType, SetReturnType } from 'type-fest'
 import UrlPattern from 'url-pattern'
+
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
 export type ProxyMiddleware = (
@@ -43,7 +40,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     warn(`Proxy error ${err} on ${req.url} (${req.headers.host})`)
   })
 
-  const server = createServer(async (req, res) => {
+  const server = express()
+  server.use(async (req, res) => {
     try {
       const url = new URL(`http://${req.headers.host}${req.url}`)
       const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
@@ -76,18 +74,12 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     }
   })
 
-  info(`daemon on port ${DAEMON_PORT()}`)
-  server.listen(DAEMON_PORT())
+  server.listen(DAEMON_PORT(), () => {
+    info(`daemon listening on port ${DAEMON_PORT()}`)
+  })
 
-  asyncExitHook(() => {
+  asyncExitHook(async () => {
     info(`Shutting down proxy server`)
-    return new Promise<void>((resolve) => {
-      server.close((err) => {
-        if (err) error(err)
-        resolve()
-      })
-      server.closeAllConnections()
-    })
   })
 
   type MiddlewareListener = SetReturnType<
