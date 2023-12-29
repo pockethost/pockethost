@@ -1,5 +1,6 @@
 import {
   DAEMON_PB_IDLE_TTL,
+  EDGE_APEX_DOMAIN,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
   INSTANCE_DATA_DB,
@@ -393,10 +394,7 @@ export const instanceService = mkSingleton(
       return api
     }
 
-    const getInstanceByIdOrSubdomainOrCname = async (
-      idOrSubdomain: InstanceId,
-      host: string,
-    ) => {
+    const getInstance = async (host: string) => {
       {
         dbg(`Trying to get instance by host: ${host}`)
         const instance = await client
@@ -418,6 +416,7 @@ export const instanceService = mkSingleton(
           return instance
         }
       }
+      const idOrSubdomain = host.replace(`.${EDGE_APEX_DOMAIN()}`, '')
       {
         dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
         const instance = await client
@@ -450,69 +449,64 @@ export const instanceService = mkSingleton(
           return instance
         }
       }
-      dbg(`${idOrSubdomain} is neither an instance nor a subdomain`)
+      dbg(`${idOrSubdomain} is neither an cname nor a subdomain`)
     }
 
-    ;(await proxyService()).use(
-      ['(/*)'],
-      async (req, res, meta, logger) => {
-        const { dbg } = logger
-        const { subdomain: instanceIdOrSubdomain, host, proxy } = meta
+    ;(await proxyService()).use(async (req, res, next) => {
+      const logger = LoggerService().create(`InstanceRequest`)
 
-        const instance = await getInstanceByIdOrSubdomainOrCname(
-          instanceIdOrSubdomain,
-          host,
-        )
-        if (!instance) {
-          res.writeHead(404, {
-            'Content-Type': `text/plain`,
-          })
-          res.end(`${host} not found`)
-          return true
-        }
-        const owner = instance.expand.uid
-        if (!owner) {
-          throw new Error(`Instance owner is invalid`)
-        }
+      const { dbg } = logger
 
-        /*
+      const { host, proxy } = res.locals
+
+      const instance = await getInstance(host)
+      if (!instance) {
+        res.writeHead(404, {
+          'Content-Type': `text/plain`,
+        })
+        res.end(`${host} not found`)
+        return
+      }
+      const owner = instance.expand.uid
+      if (!owner) {
+        throw new Error(`Instance owner is invalid`)
+      }
+
+      /*
         Maintenance check
         */
-        dbg(`Checking for maintenance mode`)
-        if (instance.maintenance) {
-          throw new Error(
-            `This instance is in Maintenance Mode. See ${mkDocUrl(
-              `usage/maintenance`,
-            )} for more information.`,
-          )
-        }
+      dbg(`Checking for maintenance mode`)
+      if (instance.maintenance) {
+        throw new Error(
+          `This instance is in Maintenance Mode. See ${mkDocUrl(
+            `usage/maintenance`,
+          )} for more information.`,
+        )
+      }
 
-        /*
+      /*
         Owner check
         */
-        dbg(`Checking for verified account`)
-        if (!owner.verified) {
-          throw new Error(`Log in at ${mkAppUrl()} to verify your account.`)
-        }
+      dbg(`Checking for verified account`)
+      if (!owner.verified) {
+        throw new Error(`Log in at ${mkAppUrl()} to verify your account.`)
+      }
 
-        const api = await getInstanceApi(instance)
-        const endRequest = api.startRequest()
-        res.on('close', endRequest)
-        if (req.closed) {
-          throw new Error(`Request already closed.`)
-        }
+      const api = await getInstanceApi(instance)
+      const endRequest = api.startRequest()
+      res.on('close', endRequest)
+      if (req.closed) {
+        throw new Error(`Request already closed.`)
+      }
 
-        dbg(
-          `Forwarding proxy request for ${
-            req.url
-          } to instance ${api.internalUrl()}`,
-        )
+      dbg(
+        `Forwarding proxy request for ${
+          req.url
+        } to instance ${api.internalUrl()}`,
+      )
 
-        proxy.web(req, res, { target: api.internalUrl() })
-        return true
-      },
-      `InstanceService`,
-    )
+      proxy.web(req, res, { target: api.internalUrl() })
+    })
 
     asyncExitHook(async () => {
       dbg(`Shutting down instance manager`)
