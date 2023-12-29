@@ -51,14 +51,17 @@ export const SETTINGS = {
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
   MOTHERSHIP_MIGRATIONS_DIR: mkPath(
-    join(_PH_BUILD_ROOT, 'mothership-app', 'migrations'),
+    join(_PH_PROJECT_ROOT, 'src', 'mothership-app', 'migrations'),
   ),
   MOTHERSHIP_HOOKS_DIR: mkPath(
-    join(_PH_BUILD_ROOT, 'mothership-app', `pb_hooks`),
+    join(_PH_PROJECT_ROOT, 'src', 'mothership-app', `pb_hooks`, `src`),
   ),
-  MOTHERSHIP_APP_DIR: mkPath(join(_PH_BUILD_ROOT, 'mothership-app', `ph_app`), {
-    required: false,
-  }),
+  MOTHERSHIP_APP_DIR: mkPath(
+    join(_PH_PROJECT_ROOT, 'src', 'mothership-app', `ph_app`),
+    {
+      required: false,
+    },
+  ),
   MOTHERSHIP_SEMVER: mkString(''),
   MOTHERSHIP_PORT: mkNumber(8091),
 
