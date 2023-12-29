@@ -19,7 +19,6 @@ import MemoryStream from 'memorystream'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
-import { buildImage } from './buildImage'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
@@ -53,9 +52,6 @@ export const createPocketbaseService = async (
 ) => {
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
-
-  dbg(`Building docker image for instance`)
-  await buildImage(`Dockerfile`, INSTANCE_IMAGE_NAME)
 
   const { getLatestVersion, getVersion } =
     await PocketbaseReleaseVersionService()
