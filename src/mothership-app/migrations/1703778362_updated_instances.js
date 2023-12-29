@@ -10,7 +10,7 @@ migrate((db) => {
     "CREATE INDEX `idx_TfdgNnO` ON `instances` (`maintenance`)",
     "CREATE INDEX `idx_FrmHehp` ON `instances` (`created`)",
     "CREATE INDEX `idx_tNMeylJ` ON `instances` (`updated`)",
-    "CREATE UNIQUE INDEX `idx_rBYwAXi` ON `instances` (`cname_active`) WHERE cname != ''"
+    "CREATE UNIQUE INDEX `idx_rBYwAXi` ON `instances` (`cname`) WHERE cname != ''"
   ]
 
   // add
