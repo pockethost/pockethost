@@ -3,6 +3,7 @@ import {
   DEBUG,
   DefaultSettingsService,
   mkContainerHomePath,
+  MOTHERSHIP_APP_DIR,
   MOTHERSHIP_HOOKS_DIR,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_NAME,
@@ -66,6 +67,7 @@ global.EventSource = EventSource
       `${DATA_ROOT()}:${mkContainerHomePath(`data`)}`,
       `${MOTHERSHIP_HOOKS_DIR()}:${mkContainerHomePath(`pb_hooks`)}`,
       `${MOTHERSHIP_MIGRATIONS_DIR()}:${mkContainerHomePath(`pb_migrations`)}`,
+      `${MOTHERSHIP_APP_DIR()}:${mkContainerHomePath(`ph_app`)}`,
     ],
   })
   info(`Mothership URL for this session is ${url}`)
