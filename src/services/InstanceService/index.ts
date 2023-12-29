@@ -410,6 +410,11 @@ export const instanceService = mkSingleton(
           })
         if (instance) {
           dbg(`${host} is a cname`)
+          if (!instance.cname_active) {
+            throw new Error(
+              `CNAME not active for this instance. See dashboard.`,
+            )
+          }
           return instance
         }
       }
