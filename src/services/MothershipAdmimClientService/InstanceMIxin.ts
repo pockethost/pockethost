@@ -36,7 +36,7 @@ export const createInstanceMixin = (context: MixinContext) => {
   ): Promise<InstanceFields & WithUser> =>
     client
       .collection(INSTANCE_COLLECTION)
-      .getFirstListItem(`cname = '${host}' and cname_active = 1`, {
+      .getFirstListItem(`cname = '${host}'`, {
         expand: 'uid',
       })
 
