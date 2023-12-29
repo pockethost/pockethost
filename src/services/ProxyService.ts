@@ -50,21 +50,24 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   server.use(async (req, res, next) => {
-    try {
-      const url = new URL(`http://${req.headers.host}${req.url}`)
-      const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
-      const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
-      const method = req.method || '<m>'
-      const sig = [
-        method.padStart(10),
-        country.padStart(5),
-        ip.padEnd(45),
-        url.toString(),
-      ].join(' ')
-      info(`Incoming request ${sig}`)
+    const url = new URL(`http://${req.headers.host}${req.url}`)
+    const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
+    const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
+    const method = req.method || '<m>'
+    const sig = [
+      method.padStart(10),
+      country.padStart(5),
+      ip.padEnd(45),
+      url.toString(),
+    ].join(' ')
+    info(`Incoming request ${sig}`)
+    res.locals.sig = sig
+    next()
+  })
 
+  server.use(async (req, res, next) => {
+    try {
       {
-        const { warn } = _proxyLogger.create(sig)
         for (let i = 0; i < middleware.length; i++) {
           const m = middleware[i]!
           const handled = await m(req, res, next)
