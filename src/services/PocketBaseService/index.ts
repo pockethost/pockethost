@@ -121,18 +121,17 @@ export const createPocketbaseService = async (
     }
 
     const Cmd = (() => {
-      return [`./pocketbase`, `serve`, `--http`, `0.0.0.0:8090`]
+      return ['node', `index.mjs`]
     })()
-    if (dev && gte(realVersion.version, `0.20.1`)) {
-      Cmd.push(`--dev`)
-    }
 
     const createOptions: ContainerCreateOptions = {
       Image: INSTANCE_IMAGE_NAME,
+      WorkingDir: `/bootstrap`,
       Cmd,
       Env: map(
         {
           ...env,
+          DEV: dev && gte(realVersion.version, `0.20.1`),
           PH_APEX_DOMAIN: APEX_DOMAIN(),
         },
         (v, k) => `${k}=${v}`,
