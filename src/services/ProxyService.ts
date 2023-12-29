@@ -6,6 +6,7 @@ import {
   mkSingleton,
 } from '$shared'
 import { asyncExitHook } from '$util'
+import cors from 'cors'
 import express, { Request, Response } from 'express'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
@@ -39,6 +40,8 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   const server = express()
+
+  server.use(cors())
 
   server.use((req, res, next) => {
     const host = req.headers.host
