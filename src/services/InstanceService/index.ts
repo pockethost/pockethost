@@ -4,6 +4,7 @@ import {
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
   INSTANCE_DATA_DB,
+  UPGRADE_MODE,
   mkAppUrl,
   mkContainerHomePath,
   mkDocUrl,
@@ -305,13 +306,19 @@ export const instanceService = mkSingleton(
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
-            await updateInstance(instance.id, {
-              maintenance: true,
-            })
-            userInstanceLogger.error(
-              `Could not launch container. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
-            )
-            throw new Error(`Maintenance mode`)
+            if (UPGRADE_MODE()) {
+              throw new Error(
+                `PocketHost is rebooting. Try again in a few seconds.`,
+              )
+            } else {
+              await updateInstance(instance.id, {
+                maintenance: true,
+              })
+              userInstanceLogger.error(
+                `Could not launch container. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
+              )
+              throw new Error(`Maintenance mode`)
+            }
           }
         })()
         const { pid: _pid, exitCode } = childProcess

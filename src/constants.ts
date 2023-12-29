@@ -30,6 +30,8 @@ export const _IS_DEV = process.env.NODE_ENV === 'development'
 console.log({ _PH_HOME, _PH_PROJECT_ROOT, _PH_BUILD_ROOT })
 
 export const SETTINGS = {
+  UPGRADE_MODE: mkBoolean(false),
+
   PH_HOME: mkPath(_PH_HOME),
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
   PH_BUILD_ROOT: mkPath(_PH_BUILD_ROOT, { required: false }),
@@ -158,6 +160,8 @@ export const instanceLogger = () => ioc.service('instanceLogger')
 /**
  * Accessors
  */
+export const UPGRADE_MODE = () => settings().UPGRADE_MODE
+
 export const PH_HOME = () => settings().PH_HOME
 export const PH_PROJECT_ROOT = () => settings().PH_PROJECT_ROOT
 export const PH_BUILD_ROOT = () => settings().PH_BUILD_ROOT
