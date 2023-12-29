@@ -6,8 +6,7 @@ import {
   mkSingleton,
 } from '$shared'
 import { asyncExitHook } from '$util'
-import express from 'express'
-import { IncomingMessage, RequestListener, ServerResponse } from 'http'
+import express, { Request, RequestHandler, Response } from 'express'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType, SetReturnType } from 'type-fest'
 import UrlPattern from 'url-pattern'
@@ -15,8 +14,8 @@ import UrlPattern from 'url-pattern'
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
 export type ProxyMiddleware = (
-  req: IncomingMessage,
-  res: ServerResponse<IncomingMessage>,
+  req: Request,
+  res: Response,
   meta: {
     subdomain: string
     coreInternalUrl: string
@@ -41,7 +40,16 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   const server = express()
-  server.use(async (req, res) => {
+  server.use((req, res, next) => {
+    const host = req.headers.host
+    if (!host) {
+      throw new Error(`Host not found`)
+    }
+    res.locals.host = host
+    next()
+  })
+
+  server.use(async (req, res, next) => {
     try {
       const url = new URL(`http://${req.headers.host}${req.url}`)
       const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
@@ -59,7 +67,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
         const { warn } = _proxyLogger.create(sig)
         for (let i = 0; i < middleware.length; i++) {
           const m = middleware[i]!
-          const handled = await m(req, res)
+          const handled = await m(req, res, next)
           if (handled) break
         }
       }
@@ -83,7 +91,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   type MiddlewareListener = SetReturnType<
-    RequestListener,
+    RequestHandler,
     boolean | Promise<boolean>
   >
   const middleware: MiddlewareListener[] = []
@@ -102,10 +110,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
       : [new UrlPattern(urlFilters)]
 
     middleware.push((req, res) => {
-      const host = req.headers.host
-      if (!host) {
-        throw new Error(`Host not found`)
-      }
+      const { host } = res.locals
       const _requestLogger = _handlerLogger.create(host)
       const { dbg, trace } = _requestLogger
       _requestLogger.breadcrumb(req.method || 'unknown http method')
