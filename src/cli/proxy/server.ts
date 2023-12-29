@@ -40,7 +40,7 @@ app.use(cors())
 app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
 
 forEach(hostnameRoutes, (target, host) => {
-  app.use(createVhostProxyMiddleware(host, target))
+  app.use(createVhostProxyMiddleware(host, target, IS_DEV()))
 })
 
 // Fall-through

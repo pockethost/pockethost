@@ -2,9 +2,13 @@ import { Request } from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import vhost from 'vhost'
 
-export function createVhostProxyMiddleware(host: string, target: string) {
+export function createVhostProxyMiddleware(
+  host: string,
+  target: string,
+  ws = false,
+) {
   console.log(`Creating ${host}->${target}`)
-  const handler = createProxyMiddleware({ target, ws: true })
+  const handler = createProxyMiddleware({ target, ws, changeOrigin: ws })
   return vhost(host, (_req, res, next) => {
     const req = _req as unknown as Request
     const method = req.method

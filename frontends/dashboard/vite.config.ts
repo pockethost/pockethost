@@ -9,6 +9,13 @@ const config: UserConfig = {
   },
   envPrefix: 'PUBLIC_',
   envDir: isProd ? '.' : undefined,
+  server: {
+    port: 5174,
+    strictPort: true,
+    hmr: {
+      clientPort: 5174,
+    },
+  },
 }
 
 export default config
