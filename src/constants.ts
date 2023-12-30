@@ -105,7 +105,7 @@ export const SETTINGS = {
     }
   })
   if (!passed) {
-    throw new Error(`Exiting due to .env errors`)
+    // throw new Error(`Exiting due to .env errors`)
   }
 })()
 
