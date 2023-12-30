@@ -66,7 +66,7 @@ import PocketBase, { RecordModel } from 'pocketbase'
 
   const users = (
     await client.collection(TBL_USERS).getFullList(undefined, {
-      filter: `verified=1 && subscription='legacy'`,
+      filter: `verified=1 && unsubscribe=0 && subscription='legacy'`,
       expand: `sent_messages(user)`,
     })
   )
