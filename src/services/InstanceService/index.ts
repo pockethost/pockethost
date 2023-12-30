@@ -4,31 +4,31 @@ import {
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
   INSTANCE_DATA_DB,
-  UPGRADE_MODE,
   mkAppUrl,
   mkContainerHomePath,
   mkDocUrl,
   mkEdgeUrl,
+  UPGRADE_MODE,
 } from '$constants'
 import {
   InstanceLogger,
   MothershipAdmimClientService,
   PocketbaseService,
   PortService,
-  SqliteService,
   proxyService,
+  SqliteService,
 } from '$services'
 import {
+  assertTruthy,
   CLEANUP_PRIORITY_LAST,
+  createCleanupManager,
+  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
   LoggerService,
-  SingletonBaseConfig,
-  assertTruthy,
-  createCleanupManager,
-  createTimerManager,
   mkSingleton,
+  SingletonBaseConfig,
 } from '$shared'
 import { asyncExitHook, mkInternalUrl, now } from '$util'
 import { flatten, map, values } from '@s-libs/micro-dash'
@@ -277,8 +277,8 @@ export const instanceService = mkSingleton(
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn({
-              name: instance.subdomain,
-              slug: instance.id,
+              subdomain: instance.subdomain,
+              instanceId: instance.id,
               port: newPort,
               dev: instance.dev,
               extraBinds: flatten([

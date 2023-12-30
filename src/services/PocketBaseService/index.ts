@@ -22,8 +22,8 @@ import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionServ
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
-  name: string
-  slug: string
+  subdomain: string
+  instanceId: string
   version?: string
   port?: number
   extraBinds?: string[]
@@ -79,10 +79,20 @@ export const createPocketbaseService = async (
       dev: false,
       ...cfg,
     }
-    const { version, name, slug, port, extraBinds, env, stderr, stdout, dev } =
-      _cfg
-    logger.breadcrumb(name).breadcrumb(slug)
-    const iLogger = InstanceLogger(slug, 'exec')
+    const {
+      version,
+      subdomain,
+      instanceId,
+      port,
+      extraBinds,
+      env,
+      stderr,
+      stdout,
+      dev,
+    } = _cfg
+
+    logger.breadcrumb(subdomain).breadcrumb(instanceId)
+    const iLogger = InstanceLogger(instanceId, 'exec')
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await getVersion(_version)
@@ -112,7 +122,7 @@ export const createPocketbaseService = async (
     }
     stderr.on('data', _stdErrData)
     const Binds = [
-      `${mkInstanceDataPath(slug)}:${mkContainerHomePath()}`,
+      `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
       `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
     ]
 
@@ -136,7 +146,7 @@ export const createPocketbaseService = async (
         },
         (v, k) => `${k}=${v}`,
       ),
-      name: `${name}-${+new Date()}`,
+      name: `${subdomain}-${+new Date()}`,
       HostConfig: {
         AutoRemove: true,
         PortBindings: {
@@ -157,7 +167,8 @@ export const createPocketbaseService = async (
       },
       // User: 'pockethost',
     }
-    logger.info(`Spawning ${slug}`)
+    logger.info(`Spawning ${instanceId}`)
+
     dbg({ createOptions })
 
     let container: Container | undefined = undefined
@@ -183,7 +194,7 @@ export const createPocketbaseService = async (
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
                 )
                 error(
-                  `${slug} stopped unexpectedly with code ${StatusCode} and error ${err}`,
+                  `${instanceId} stopped unexpectedly with code ${StatusCode} and error ${err}`,
                 )
                 resolveExit(StatusCode || 999)
               } else {
@@ -199,7 +210,7 @@ export const createPocketbaseService = async (
       })
       if (!container) {
         iLogger.error(`Could not start container`)
-        error(`${slug} could not start container`)
+        error(`${instanceId} could not start container`)
         resolveExit(999)
       }
     })
@@ -210,9 +221,9 @@ export const createPocketbaseService = async (
     logger.breadcrumb(url)
     dbg(`Making exit hook for ${url}`)
     const unsub = asyncExitHook(async () => {
-      dbg(`Exiting process ${slug}`)
+      dbg(`Exiting process ${instanceId}`)
       await api.kill()
-      dbg(`Process ${slug} exited`)
+      dbg(`Process ${instanceId} exited`)
     })
     await tryFetch(`${url}/api/health`, {
       preflight: async () => {

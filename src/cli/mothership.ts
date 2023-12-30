@@ -56,8 +56,8 @@ global.EventSource = EventSource
   info(`Serving`)
   const { url, exitCode } = await pbService.spawn({
     version: MOTHERSHIP_SEMVER(),
-    name: MOTHERSHIP_NAME(),
-    slug: MOTHERSHIP_NAME(),
+    subdomain: MOTHERSHIP_NAME(),
+    instanceId: MOTHERSHIP_NAME(),
     port: MOTHERSHIP_PORT(),
     dev: DEBUG(),
     env: {
