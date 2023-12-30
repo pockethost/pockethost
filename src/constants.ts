@@ -120,9 +120,8 @@ export const DefaultSettingsService = mkSingleton(
 
     ioc.register('settings', _settings)
 
-    if (_settings.DEBUG) {
       logConstants()
-    }
+
     return _settings
   },
 )
