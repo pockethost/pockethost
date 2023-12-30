@@ -15,4 +15,4 @@ COPY bootstrap/* .
 
 RUN npm i
 
-CMD ["node", "index.mjs"]
+WORKDIR /home/pockethost
