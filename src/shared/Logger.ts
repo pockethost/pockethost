@@ -72,7 +72,11 @@ export const createLogger = (config: Partial<Config>) => {
     },
     config,
   )
-  const { pfx, level } = _config
+  const { pfx } = _config
+
+  const setLevel = (level: LogLevelName) => {
+    _config.level = level
+  }
 
   const _pfx = (s: string) =>
     [new Date().toISOString(), s, ...pfx]
@@ -81,7 +85,7 @@ export const createLogger = (config: Partial<Config>) => {
       .join(' ')
 
   const _log = (levelIn: LogLevelName, ...args: any[]) => {
-    if (isLevelGte(levelIn, level)) {
+    if (isLevelGte(levelIn, _config.level)) {
       const pfx = args.shift()
       while (args.length > 0) {
         let arg = args.shift()
@@ -117,7 +121,9 @@ export const createLogger = (config: Partial<Config>) => {
   const info = (...args: any[]) => {
     _log(
       LogLevelName.Info,
-      _pfx(isLevelGt(LogLevelName.Info, level) ? chalk.gray(`INFO`) : ''),
+      _pfx(
+        isLevelGt(LogLevelName.Info, _config.level) ? chalk.gray(`INFO`) : '',
+      ),
       ...args,
     )
   }
@@ -172,6 +178,7 @@ export const createLogger = (config: Partial<Config>) => {
     shutdown() {
       dbg(`Logger shutting down`)
     },
+    setLevel,
   }
   return api
 }
