@@ -36,7 +36,7 @@ console.log({ hasCustomNodeServer, hasCustomPocketbase })
   })
 
   child.on('exit', (code) => {
-    process.exit(code)
+    process.exit(code || 0)
   })
 }
 
@@ -56,7 +56,7 @@ if (hasCustomNodeServer) {
     })
 
     child.on('exit', (code) => {
-      process.exit(code)
+      process.exit(code || 0)
     })
   }
 }
