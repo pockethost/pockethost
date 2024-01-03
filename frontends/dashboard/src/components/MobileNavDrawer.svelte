@@ -24,7 +24,7 @@
       class="drawer-overlay"
     ></label>
 
-    <div class='h-full'>
+    <div class="h-full">
       <slot />
     </div>
   </div>
