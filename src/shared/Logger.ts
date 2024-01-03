@@ -138,6 +138,10 @@ export const createLogger = (config: Partial<Config>) => {
 
   const error = (...args: any[]) => {
     _log(LogLevelName.Error, ...[_pfx(chalk.bgRed(`ERROR`)), ...args])
+  }
+
+  const criticalError = (...args: any[]) => {
+    _log(LogLevelName.Error, ...[_pfx(chalk.bgRed(`ERROR`)), ...args])
     new Error().stack?.split(/\n/).forEach((line) => {
       _log(LogLevelName.Debug, _pfx(chalk.bgRed(`ERROR`)), line)
     })
@@ -169,6 +173,7 @@ export const createLogger = (config: Partial<Config>) => {
     warn,
     info,
     error,
+    criticalError,
     create,
     child,
     trace,
