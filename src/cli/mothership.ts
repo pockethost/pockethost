@@ -10,6 +10,7 @@ import {
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
   PH_BIN_CACHE,
+  PH_VERSIONS,
   SETTINGS,
 } from '$constants'
 import {
@@ -66,6 +67,7 @@ global.EventSource = EventSource
     extraBinds: [
       `${DATA_ROOT()}:${mkContainerHomePath(`data`)}`,
       `${MOTHERSHIP_HOOKS_DIR()}:${mkContainerHomePath(`pb_hooks`)}`,
+      `${PH_VERSIONS()}:${mkContainerHomePath(`pb_hooks`, `versions.js`)}`,
       `${MOTHERSHIP_MIGRATIONS_DIR()}:${mkContainerHomePath(`pb_migrations`)}`,
       `${MOTHERSHIP_APP_DIR()}:${mkContainerHomePath(`ph_app`)}`,
     ],

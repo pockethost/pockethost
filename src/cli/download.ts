@@ -1,9 +1,4 @@
-import {
-  DEBUG,
-  DefaultSettingsService,
-  PH_BIN_CACHE,
-  SETTINGS,
-} from '$constants'
+import { DEBUG, DefaultSettingsService, SETTINGS } from '$constants'
 import { PocketbaseReleaseDownloadService } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
 
@@ -18,9 +13,7 @@ const check = async () => {
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
-  const { check } = PocketbaseReleaseDownloadService({
-    cachePath: PH_BIN_CACHE(),
-  })
+  const { check } = PocketbaseReleaseDownloadService({})
   await check()
 }
 

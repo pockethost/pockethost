@@ -33,6 +33,7 @@ export const SETTINGS = {
   UPGRADE_MODE: mkBoolean(false),
 
   PH_HOME: mkPath(_PH_HOME),
+  PH_VERSIONS: mkPath(join(_PH_HOME, `versions.js`), { required: false }),
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
 
   DEBUG: mkBoolean(_IS_DEV),
@@ -118,7 +119,7 @@ export const DefaultSettingsService = mkSingleton(
 
     ioc.register('settings', _settings)
 
-      logConstants()
+    logConstants()
 
     return _settings
   },
@@ -160,6 +161,7 @@ export const instanceLogger = () => ioc.service('instanceLogger')
 export const UPGRADE_MODE = () => settings().UPGRADE_MODE
 
 export const PH_HOME = () => settings().PH_HOME
+export const PH_VERSIONS = () => settings().PH_VERSIONS
 export const PH_PROJECT_ROOT = () => settings().PH_PROJECT_ROOT
 
 export const DEBUG = () => settings().DEBUG

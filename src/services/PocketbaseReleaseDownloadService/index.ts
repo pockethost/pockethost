@@ -1,4 +1,4 @@
-import { MOTHERSHIP_HOOKS_DIR, PH_BIN_CACHE } from '$constants'
+import { PH_BIN_CACHE, PH_VERSIONS } from '$constants'
 import { LoggerService, SingletonBaseConfig, mkSingleton } from '$shared'
 import { downloadAndExtract, mergeConfig, smartFetch } from '$util'
 import { keys } from '@s-libs/micro-dash'
@@ -21,14 +21,16 @@ type Releases = Release[]
 
 export type PocketbaseReleaseDownloadServiceConfig = SingletonBaseConfig & {
   onlyOne: boolean
-  cachePath: string
+  binCachePath: string
+  versionsCachePath: string
 }
 
 export const PocketbaseReleaseDownloadService = mkSingleton(
   (config: Partial<PocketbaseReleaseDownloadServiceConfig> = {}) => {
-    const { cachePath, onlyOne } = mergeConfig(
+    const { binCachePath, versionsCachePath, onlyOne } = mergeConfig(
       {
-        cachePath: PH_BIN_CACHE(),
+        binCachePath: PH_BIN_CACHE(),
+        versionsCachePath: PH_VERSIONS(),
         onlyOne: false,
       },
       config,
@@ -52,7 +54,7 @@ export const PocketbaseReleaseDownloadService = mkSingleton(
       info(`Fetching info for PocketBase releases...`)
       let releases = await smartFetch<Releases>(
         `https://api.github.com/repos/pocketbase/pocketbase/releases?per_page=100`,
-        join(cachePath, `releases.json`),
+        join(binCachePath, `releases.json`),
       )
       // dbg({ releases })
 
@@ -67,7 +69,7 @@ export const PocketbaseReleaseDownloadService = mkSingleton(
         .map((release) => {
           const { tag_name, assets } = release
           const sanitizedTagName = tag_name.slice(1)
-          const path = join(cachePath, tag_name)
+          const path = join(binCachePath, tag_name)
           const url = assets.find((v) => {
             // dbg(v.name)
             return v.name.includes(osName) && v.name.includes(cpuArchitecture)
@@ -105,10 +107,10 @@ export const PocketbaseReleaseDownloadService = mkSingleton(
       console.log(`***keys`, keys(binPaths))
       const sortedSemVers = expandAndSortSemVers(keys(binPaths))
       writeFileSync(
-        join(MOTHERSHIP_HOOKS_DIR(), `versions.js`),
+        versionsCachePath,
         `module.exports = ${JSON.stringify({ versions: sortedSemVers })}`,
       )
-      console.log(JSON.stringify(sortedSemVers))
+      info(`Saved to ${versionsCachePath}`, sortedSemVers)
 
       if (keys(binPaths).length === 0) {
         throw new Error(
