@@ -28,7 +28,7 @@
 
 {#if $isUserLoggedIn && !$isUserVerified}
   <div class="alert alert-info mb-8">
-    <i class="fa-regular fa-envelopes"></i>
+    <i class="fa-light fa-envelopes"></i>
 
     <div>Please verify your account by clicking the link in your email</div>
 
@@ -40,7 +40,7 @@
       {:else}
         <button
           type="button"
-          class="btn btn-outline-secondary"
+          class="btn btn-outline-secondary btn-sm"
           on:click={handleClick}>Resend Email</button
         >
       {/if}
