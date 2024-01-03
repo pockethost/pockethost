@@ -116,7 +116,7 @@ export const createPocketbaseService = async (
     const _stdErrData = (data: Buffer) => {
       const lines = data.toString().split(/\n/)
       lines.forEach((line) => {
-        warn(line)
+        error(line)
         iLogger.error(line)
       })
     }
