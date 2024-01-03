@@ -47,7 +47,14 @@ forEach(hostnameRoutes, (target, host) => {
 const handler = createProxyMiddleware({
   target: `http://localhost:${DAEMON_PORT()}`,
 })
-app.all(`*`, handler)
+app.all(`*`, (req, res, next) => {
+  const method = req.method
+  const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
+
+  console.log(`${method} ${fullUrl} -> ${`http://localhost:${DAEMON_PORT()}`}`)
+
+  handler(req, res, next)
+})
 
 if (IS_DEV()) {
   http.createServer(app).listen(80, () => {
