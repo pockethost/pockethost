@@ -22,7 +22,8 @@ import { LogEntry } from 'winston'
 
 const loadedEnvs = dotenv.config({ path: `.env` })
 
-export const _PH_HOME = join(process.env.HOME || resolve(`~`), `.pockethost`)
+export const _PH_HOME =
+  process.env.PH_HOME || join(process.env.HOME || resolve(`~`), `.pockethost`)
 export const _PH_PROJECT_ROOT = dirname(findUpSync('package.json')!)
 export const _PH_BUILD_ROOT = join(_PH_PROJECT_ROOT, 'dist')
 export const _IS_DEV = process.env.NODE_ENV === 'development'
