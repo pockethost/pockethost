@@ -71,7 +71,7 @@ export const SETTINGS = {
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
   TRACE: mkBoolean(false),
-  PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache')),
+  PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache'), { create: true }),
 
   PH_FTP_PORT: mkNumber(21),
   SSL_KEY: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `pockethost.test.key`)),
