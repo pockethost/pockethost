@@ -9,6 +9,7 @@
   import { values } from '@s-libs/micro-dash'
   import SubscriptionStatus from './SubscriptionStatus.svelte'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
+  import SidebarNavLink from '$components/sidebar/SidebarNavLink.svelte'
 
   type TypeInstanceObject = {
     id: string
@@ -37,115 +38,143 @@
     window.location.href = '/'
   }
 
-  const linkClasses =
-    'font-medium text-xl text-base-content btn btn-ghost capitalize justify-start'
-  const subLinkClasses =
-    'font-medium text-base-content btn btn-ghost btn-sm capitalize justify-start'
-  const addNewAppClasses =
-    'font-medium text-base-content btn btn-outline btn-primary btn-sm capitalize justify-start'
-
-  const handleClick = () => {
+  const handleMobileNavDismiss = () => {
     document.querySelector<HTMLElement>('.drawer-overlay')?.click()
   }
 </script>
 
-<aside class="p-4 min-w-[250px] max-w-[250px] flex flex-col">
-  <MediaQuery query="(min-width: 1280px)" let:matches>
-    {#if matches}
-      <a href="/" class="flex gap-2 items-center justify-center">
-        <Logo hideLogoText={true} logoWidth="w-20" />
-      </a>
-    {/if}
-  </MediaQuery>
-
-  <div class="flex flex-col gap-2 mb-auto h-full">
-    <SubscriptionStatus {handleClick} />
-
-    <a on:click={handleClick} href="/" class={linkClasses}>
-      <i
-        class="fa-regular fa-table-columns {$page.url.pathname === '/' &&
-          'text-primary'}"
-      ></i> Dashboard
-    </a>
-
-    <InstancesGuard>
-      <div class="pl-8 flex flex-col gap-4 mb-4">
-        {#each arrayOfActiveInstances as app}
-          <a
-            href={`/app/instances/${app.id}`}
-            on:click={handleClick}
-            class={subLinkClasses}
-          >
-            {#if app.maintenance}
-              <i class="fa-regular fa-triangle-person-digging text-warning"></i>
-            {:else}
-              <i
-                class="fa-regular fa-server {$page.url.pathname ===
-                  `/app/instances/${app.id}` && 'text-primary'}"
-              ></i>
-            {/if}
-
-            {app.subdomain}
-          </a>
-        {/each}
-        <a href="/app/new" on:click={handleClick} class={addNewAppClasses}>
-          <i
-            class="fa-regular fa-plus {$page.url.pathname === `/app/new` &&
-              'text-primary'}"
-          ></i> Create A New App
+<!-- Custom Tablet Navigation -->
+<MediaQuery query="(min-width: 701px) and (max-width: 1024px)" let:matches>
+  {#if matches}
+    <UserLoggedIn>
+      <div role="tablist" class="tabs tabs-boxed">
+        <a href="/" role="tab" class="tab">
+          <Logo hideLogoText={true} logoWidth="h-8" />
         </a>
+
+        <a
+          role="tab"
+          class="tab {$page.url.pathname === '/' ? `tab-active` : ``}"
+          href="/">Dashboard</a
+        >
+
+        <a href={DISCORD_URL} class="tab" target="_blank" rel="noreferrer"
+          ><i class="fa-regular fa-comment-code mr-2"></i> Support
+        </a>
+
+        <a
+          href={`${DOCS_URL()}`}
+          class="tab"
+          role="tab"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <i class="fa-regular fa-webhook mr-2"></i> Docs
+        </a>
+        <a
+          role="tab"
+          class="tab {$page.url.pathname.endsWith(`/account`)
+            ? `tab-active`
+            : ``}"
+          href="/account">My Account</a
+        >
+
+        <button type="button" class="tab" on:click={handleLogoutAndRedirect}
+          ><i class="fa-regular fa-arrow-up-left-from-circle mr-2"></i> Logout</button
+        >
       </div>
-    </InstancesGuard>
-
-    <UserLoggedIn>
-      <a
-        href="/account"
-        class={linkClasses}
-        rel="noreferrer"
-        on:click={handleClick}
-      >
-        <i class="fa-regular fa-user"></i> My Account
-      </a>
     </UserLoggedIn>
+  {:else}
+    <aside
+      class="lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col w-full max-w-[360px] h-full"
+    >
+      <div class="flex grow flex-col overflow-y-auto bg-gray-900 px-6 h-full">
+        <div class="flex shrink-0 items-center">
+          <a href="/" class="" on:click={handleMobileNavDismiss}>
+            <Logo hideLogoText={true} logoWidth="w-20" />
+          </a>
+        </div>
 
-    <a href={DISCORD_URL} class={linkClasses} target="_blank" rel="noreferrer"
-      ><i class="fa-regular fa-comment-code"></i> Support
-      <i
-        class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"
-      ></i></a
-    >
+        <nav class="flex flex-1 flex-col">
+          <SubscriptionStatus handleClick={handleMobileNavDismiss} />
 
-    <a
-      href={`${DOCS_URL()}`}
-      class={linkClasses}
-      target="_blank"
-      rel="noreferrer"
-    >
-      <i class="fa-regular fa-webhook"></i> Docs
-      <i
-        class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"
-      ></i></a
-    >
+          <ul role="list" class="-mx-2 space-y-1 mb-8">
+            <li>
+              <SidebarNavLink
+                url="/"
+                icon="house"
+                handleClick={handleMobileNavDismiss}>Dashboard</SidebarNavLink
+              >
 
-    <a
-      href="https://github.com/pockethost/pockethost"
-      class={linkClasses}
-      target="_blank"
-      rel="noreferrer"
-    >
-      <i class="fa-brands fa-github"></i> GitHub
-      <i
-        class="fa-regular fa-arrow-up-right-from-square ml-auto opacity-50 text-sm"
-      ></i></a
-    >
+              <InstancesGuard>
+                <ul role="list" class="ml-6 space-y-1 mt-1 mb-2">
+                  {#each arrayOfActiveInstances as app}
+                    <li>
+                      <SidebarNavLink
+                        url={`/app/instances/${app.id}`}
+                        icon="server"
+                        iconSmall={true}
+                        handleClick={handleMobileNavDismiss}
+                        >{app.subdomain}</SidebarNavLink
+                      >
+                    </li>
+                  {/each}
+                </ul>
 
-    <UserLoggedIn>
-      <button
-        type="button"
-        class={linkClasses}
-        on:click={handleLogoutAndRedirect}
-        ><i class="fa-regular fa-arrow-up-left-from-circle"></i> Logout</button
-      >
-    </UserLoggedIn>
-  </div>
-</aside>
+                <div class="px-4 mb-4">
+                  <a
+                    href="/app/new"
+                    class="btn btn-primary btn-outline btn-block btn-sm"
+                    on:click={handleMobileNavDismiss}
+                  >
+                    <i class="fa-light fa-plus"></i>
+                    Create a New App
+                  </a>
+                </div>
+              </InstancesGuard>
+            </li>
+            <li>
+              <SidebarNavLink
+                url="/account"
+                icon="user"
+                handleClick={handleMobileNavDismiss}>My Account</SidebarNavLink
+              >
+            </li>
+            <li>
+              <SidebarNavLink
+                url={DISCORD_URL}
+                icon="comment-code"
+                external={true}
+                handleClick={handleMobileNavDismiss}>Support</SidebarNavLink
+              >
+            </li>
+            <li>
+              <SidebarNavLink
+                url={DOCS_URL()}
+                icon="webhook"
+                external={true}
+                handleClick={handleMobileNavDismiss}>Docs</SidebarNavLink
+              >
+            </li>
+            <li>
+              <SidebarNavLink
+                url="https://github.com/pockethost/pockethost"
+                icon="github"
+                brandIcon={true}
+                external={true}
+                handleClick={handleMobileNavDismiss}>GitHub</SidebarNavLink
+              >
+            </li>
+            <li>
+              <SidebarNavLink
+                url="#"
+                icon="arrow-up-left-from-circle"
+                handleClick={handleLogoutAndRedirect}>Logout</SidebarNavLink
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+  {/if}
+</MediaQuery>
