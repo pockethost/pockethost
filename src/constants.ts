@@ -82,7 +82,6 @@ export const SETTINGS = {
 
   EDGE_APEX_DOMAIN: mkString(`pockethost.lvh.me`),
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
-  EDGE_SECRET_KEY: mkString(),
 
   INSTANCE_APP_HOOKS_DIR: mkPath(
     join(_PH_PROJECT_ROOT, `src`, `instance-app`, `pb_hooks`),
@@ -206,7 +205,6 @@ export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 export const EDGE_MAX_ACTIVE_INSTANCES = () =>
   settings().EDGE_MAX_ACTIVE_INSTANCES
-export const EDGE_SECRET_KEY = () => settings().EDGE_SECRET_KEY
 
 export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
 export const INSTANCE_APP_MIGRATIONS_DIR = () =>
