@@ -71,8 +71,8 @@
             description="Want all your PocketHost projects in one place? That's what the Pro tier is all about."
             priceMonthly={[20, 'month']}
             priceAnnually={[199, 'year (save 20%)']}
-            checkoutMonthURL="https://buy.stripe.com/fZe6sd8Mkfc30Kc4gg"
-            checkoutYearURL="https://buy.stripe.com/aEUdUF7Igfc350s28a"
+            checkoutMonthURL="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d"
+            checkoutYearURL="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73"
             active={$userSubscriptionType === SubscriptionType.Premium}
           />
 
@@ -82,8 +82,8 @@
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
             priceMonthly={[299, 'once, use forever']}
             priceAnnually={[99, 'year (save 55%)']}
-            checkoutMonthURL="https://buy.stripe.com/7sIg2N6Ecgg70KcdQT"
-            checkoutYearURL="https://buy.stripe.com/aEUdUF7Igfc350s28a"
+            checkoutMonthURL="https://store.pockethost.io/checkout/buy/e71cbfb5-cec3-4745-97a7-d877f6776503"
+            checkoutYearURL="https://store.pockethost.io/checkout/buy/e5660329-5b99-4ed6-8f36-0d387803e1d6"
             active={$userSubscriptionType === SubscriptionType.Lifetime}
           />
         </div>
