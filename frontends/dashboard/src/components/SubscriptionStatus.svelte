@@ -1,8 +1,10 @@
 <script lang="ts">
   import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { isUserFounder, userSubscriptionType } from '$util/stores'
+
   isUserFounder
-  export let handleClick: any
+
+  export let handleClick: any = () => {}
 </script>
 
 <div class=" flex flex-col gap-4 mb-4">
