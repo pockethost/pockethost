@@ -315,7 +315,7 @@ export const instanceService = mkSingleton(
                 maintenance: true,
               })
               userInstanceLogger.error(
-                `Could not launch container. Instance has been placed in maintenace mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
+                `Could not launch container. Instance has been placed in maintenance mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
               )
               throw new Error(`Maintenance mode`)
             }
