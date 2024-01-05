@@ -19,18 +19,22 @@ export const isUserLoggedIn = writable(false)
 export const isUserFounder = writable(false)
 export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)
-
+export const userStore = writable<UserFields | undefined>()
 /**
  * Listen for auth change events. When we get at least one, the auth state is initialized.
  */
 onAuthChange((authStoreProps) => {
-  const user = authStoreProps.model as UserFields | undefined
+  const isLoggedIn = authStoreProps.isValid
+  isUserLoggedIn.set(isLoggedIn)
+  userStore.set(isLoggedIn ? (authStoreProps.model as UserFields) : undefined)
+  isAuthStateInitialized.set(true)
+})
+
+userStore.subscribe((user) => {
   isUserLegacy.set(!!user?.isLegacy)
   isUserFounder.set(!!user?.isFounder)
   userSubscriptionType.set(user?.subscription || SubscriptionType.Free)
-  isUserLoggedIn.set(authStoreProps.isValid)
   isUserVerified.set(!!user?.verified)
-  isAuthStateInitialized.set(true)
 })
 
 // This holds an array of all the user's instances and their data

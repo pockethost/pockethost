@@ -14,6 +14,7 @@ export type UpdateInstancePayload = {
       | 'version'
       | 'dev'
       | 'cname'
+      | 'notifyMaintenanceMode'
     >
   >
 }
@@ -52,6 +53,7 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
           },
           dev: { type: 'boolean', nullable: true },
           cname: { type: 'string', nullable: true },
+          notifyMaintenanceMode: { type: 'boolean', nullable: true },
         },
       },
     },

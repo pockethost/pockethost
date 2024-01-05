@@ -31,6 +31,7 @@ export type InstanceFields = BaseFields & {
   cname: string
   dev: boolean
   cname_active: boolean
+  notifyMaintenanceMode: boolean
 }
 
 export type WithUser = {

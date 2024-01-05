@@ -25,6 +25,7 @@ routerAdd(
         syncAdmin: null,
         dev: null,
         cname: null,
+        notifyMaintenanceMode: null,
       },
     })
 
@@ -44,6 +45,7 @@ routerAdd(
         syncAdmin,
         dev,
         cname,
+        notifyMaintenanceMode,
       },
     } = data
 
@@ -58,6 +60,7 @@ routerAdd(
         syncAdmin,
         dev,
         cname,
+        notifyMaintenanceMode,
       }),
     )
 
@@ -92,6 +95,7 @@ routerAdd(
       syncAdmin,
       dev,
       cname,
+      notifyMaintenanceMode,
     })
     if (sanitized.cname !== undefined) {
       sanitized.cname_active = false

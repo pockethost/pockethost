@@ -3,6 +3,7 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
+  import { userStore } from '$util/stores'
   import { instance } from '../store'
   import ErrorMessage from './ErrorMessage.svelte'
 
@@ -10,14 +11,26 @@
 
   let errorMessage = ''
 
-  $: ({ id, maintenance } = $instance)
+  $: ({ id, maintenance, notifyMaintenanceMode } = $instance)
 
-  const handleChange = (e: Event) => {
+  const handleMaintenanceChange = (e: Event) => {
     const target = e.target as HTMLInputElement
-    const isChecked = target.checked
+    const maintenance = target.checked
 
     // Update the database with the new value
-    updateInstance({ id, fields: { maintenance: isChecked } })
+    updateInstance({ id, fields: { maintenance } })
+      .then(() => 'saved')
+      .catch((error) => {
+        error.data.message || error.message
+      })
+  }
+
+  const handleNotifyMaintenanceChange = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const notifyMaintenanceMode = target.checked
+
+    // Update the database with the new value
+    updateInstance({ id, fields: { notifyMaintenanceMode } })
       .then(() => 'saved')
       .catch((error) => {
         error.data.message || error.message
@@ -43,7 +56,23 @@
       type="checkbox"
       class="toggle toggle-warning"
       checked={!!maintenance}
-      on:change={handleChange}
+      on:change={handleMaintenanceChange}
     />
   </label>
+
+  <label class="label cursor-pointer justify-center gap-4">
+    <span class="label-text">Email on Maintenance Mode</span>
+    <input
+      type="checkbox"
+      class="toggle toggle-success"
+      checked={!!notifyMaintenanceMode}
+      on:change={handleNotifyMaintenanceChange}
+    />
+  </label>
+  {#if !$userStore?.notifyMaintenanceMode}
+    <div class="text-error">
+      Warning: Maintenance Mode is globally deactivated. This setting will have
+      no effect. See account settings.
+    </div>
+  {/if}
 </Card>
