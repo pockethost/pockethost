@@ -2,7 +2,7 @@ import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
 } from '$constants'
-import { MothershipAdmimClientService } from '$services'
+import { MothershipAdminClientService } from '$services'
 import { ContextBase, GlobalOptions } from '$src/stresser/types'
 import { Command } from 'commander'
 import { deleteInstancesByFilter } from './deleteInstance'
@@ -33,7 +33,7 @@ export const createCleanup = (context: { program: Command } & ContextBase) => {
         throw new Error(`Cleanup filter must begin with 'stress-'`)
       }
 
-      await MothershipAdmimClientService({
+      await MothershipAdminClientService({
         url: options.mothershipUrl,
         username: MOTHERSHIP_ADMIN_USERNAME(),
         password: MOTHERSHIP_ADMIN_PASSWORD(),

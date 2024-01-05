@@ -1,4 +1,4 @@
-import { MothershipAdmimClientService } from '$services'
+import { MothershipAdminClientService } from '$services'
 import {
   INSTANCE_COLLECTION,
   InstanceFields,
@@ -8,7 +8,7 @@ import Bottleneck from 'bottleneck'
 
 export const deleteInstance = singletonAsyncExecutionGuard(
   async (instance: InstanceFields) => {
-    const { client } = await MothershipAdmimClientService()
+    const { client } = await MothershipAdminClientService()
     const { id } = instance
 
     await client.client
@@ -25,7 +25,7 @@ export const deleteInstance = singletonAsyncExecutionGuard(
 
 export const deleteInstancesByFilter = singletonAsyncExecutionGuard(
   async (filter: string) => {
-    const { client } = await MothershipAdmimClientService()
+    const { client } = await MothershipAdminClientService()
     const instances = await client.client
       .collection(INSTANCE_COLLECTION)
       .getFullList<InstanceFields>(0, { filter })

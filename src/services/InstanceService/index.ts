@@ -12,7 +12,7 @@ import {
 } from '$constants'
 import {
   InstanceLogger,
-  MothershipAdmimClientService,
+  MothershipAdminClientService,
   PocketbaseService,
   PortService,
   proxyService,
@@ -62,7 +62,7 @@ export const instanceService = mkSingleton(
     const { instanceApiTimeoutMs, instanceApiCheckIntervalMs } = config
     const instanceServiceLogger = LoggerService().create('InstanceService')
     const { dbg, raw, error, warn } = instanceServiceLogger
-    const { client } = await MothershipAdmimClientService()
+    const { client } = await MothershipAdminClientService()
 
     const pbService = await PocketbaseService()
 

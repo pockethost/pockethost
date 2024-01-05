@@ -2,7 +2,7 @@ import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
 } from '$constants'
-import { MothershipAdmimClientService } from '$services'
+import { MothershipAdminClientService } from '$services'
 import { InstanceId, serialAsyncExecutionGuard } from '$shared'
 import { random, range, shuffle, values } from '@s-libs/micro-dash'
 import { Command } from 'commander'
@@ -51,7 +51,7 @@ export const createStress = (context: { program: Command } & ContextBase) => {
     .action(async () => {
       const options = seedCmd.optsWithGlobals<StressOptions>()
 
-      const { client } = await MothershipAdmimClientService({
+      const { client } = await MothershipAdminClientService({
         url: options.mothershipUrl,
         username: MOTHERSHIP_ADMIN_USERNAME(),
         password: MOTHERSHIP_ADMIN_PASSWORD(),

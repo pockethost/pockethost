@@ -19,7 +19,7 @@ export type MixinContext = {
   logger: Logger
 }
 
-export const MothershipAdmimClientService = mkSingleton(
+export const MothershipAdminClientService = mkSingleton(
   async (cfg: Partial<ClientServiceConfig> = {}) => {
     const { url, username, password } = mergeConfig<ClientServiceConfig>(
       {
