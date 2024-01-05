@@ -170,7 +170,8 @@ routerAdd(
         instance.set('subdomain', desiredInstanceName)
         instance.set('uid', user.get('id'))
         instance.set('status', 'idle')
-        instance.set('version', '0.19.*')
+        const { versions } = require(`${__hooks}/versions.js`)
+        instance.set('version', versions[0])
         txDao.saveRecord(instance)
       } catch (e) {
         if (e.toString().match(/ UNIQUE /)) {
