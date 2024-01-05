@@ -20,4 +20,5 @@ export type UserFields = BaseFields & {
   isLegacy: boolean
   isFounder: boolean
   subscription: SubscriptionType
+  notifyMaintenanceMode: boolean
 }

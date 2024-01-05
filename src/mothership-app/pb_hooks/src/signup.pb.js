@@ -159,6 +159,7 @@ routerAdd(
         user.set('username', username)
         user.set('email', email)
         user.set('subscription', 'free')
+        user.set('notifyMaintenanceMode', true)
         user.setPassword(password)
         txDao.saveRecord(user)
       } catch (e) {
@@ -170,7 +171,10 @@ routerAdd(
         instance.set('subdomain', desiredInstanceName)
         instance.set('uid', user.get('id'))
         instance.set('status', 'idle')
-        instance.set('version', '0.19.*')
+        instance.set('notifyMaintenanceMode', true)
+        instance.set('syncAdmin', true)
+        const { versions } = require(`${__hooks}/versions.js`)
+        instance.set('version', versions[0])
         txDao.saveRecord(instance)
       } catch (e) {
         if (e.toString().match(/ UNIQUE /)) {
