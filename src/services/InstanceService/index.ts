@@ -187,7 +187,7 @@ export const instanceService = mkSingleton(
         },
       }
       const _safeShutdown = async (reason?: Error) => {
-        if (status === InstanceApiStatus.ShuttingDown) {
+        if (status === InstanceApiStatus.ShuttingDown && reason) {
           warn(`Already shutting down, ${reason} will not be reported.`)
           return
         }
