@@ -79,11 +79,6 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     next()
   })
 
-  server.use((req, res, next) => {
-    res.locals.proxy = proxy
-    next()
-  })
-
   server.listen(DAEMON_PORT(), () => {
     info(`daemon listening on port ${DAEMON_PORT()}`)
   })
