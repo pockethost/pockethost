@@ -8,7 +8,8 @@ import {
 } from '$constants'
 import { forEach } from '@s-libs/micro-dash'
 import cors from 'cors'
-import express from 'express'
+import express, { ErrorRequestHandler } from 'express'
+import 'express-async-errors'
 import fs from 'fs'
 import http from 'http'
 import https from 'https'
@@ -55,6 +56,11 @@ app.all(`*`, (req, res, next) => {
 
   handler(req, res, next)
 })
+
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  res.status(500).send(err.toString())
+}
+app.use(errorHandler)
 
 if (IS_DEV()) {
   http.createServer(app).listen(80, () => {

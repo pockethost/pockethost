@@ -8,6 +8,7 @@ import {
 import { asyncExitHook } from '$util'
 import cors from 'cors'
 import express, { Request, Response } from 'express'
+import 'express-async-errors'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
 

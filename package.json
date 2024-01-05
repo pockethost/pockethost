@@ -61,6 +61,7 @@
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
     "exit-hook": "^4.0.0",
+    "express-async-errors": "^3.1.1",
     "find-up": "^6.3.0",
     "ftp-srv": "github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59",
     "get-port": "^6.1.2",
