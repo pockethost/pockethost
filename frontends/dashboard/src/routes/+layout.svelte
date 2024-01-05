@@ -6,6 +6,7 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
+  import { isUserLoggedIn } from '$util/stores'
   import '../app.css'
 </script>
 
@@ -25,7 +26,7 @@
       </MediaQuery>
     </UserLoggedIn>
 
-    <main class="py-10 lg:pl-72">
+    <main class="py-10 {$isUserLoggedIn ? `lg:pl-72` : ``}">
       <div class="px-4 sm:px-6 lg:px-8">
         <VerifyAccountBar />
 
