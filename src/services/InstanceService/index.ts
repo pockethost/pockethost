@@ -266,7 +266,7 @@ export const instanceService = mkSingleton(
             // First, try upserting
             await db(`_admins`)
               .insert({ id, email, tokenKey, passwordHash })
-              .onConflict()
+              .onConflict('id')
               .merge({ email, tokenKey, passwordHash })
 
             userInstanceLogger.info(`${email} has been successfully sync'd`)
