@@ -262,13 +262,31 @@ export const instanceService = mkSingleton(
             INSTANCE_DATA_DB(instance.id),
           )
           userInstanceLogger.info(`Syncing admin login`)
-          await db(`_admins`)
-            .insert({ id, email, tokenKey, passwordHash })
-            .onConflict('id')
-            .merge({ email, tokenKey, passwordHash })
-            .catch((e) => {
+          try {
+            // First, try upserting
+            await db(`_admins`)
+              .insert({ id, email, tokenKey, passwordHash })
+              .onConflict()
+              .merge({ email, tokenKey, passwordHash })
+
+            userInstanceLogger.info(`${email} has been successfully sync'd`)
+          } catch (e) {
+            // Upsert could fail if the email exists under a different ID
+            // If that happens, it means they created an admin account with the same email
+            // manually. In that case, just update the pw hash
+            try {
+              userInstanceLogger.info(`Got an error on admin sync upsert. ${e}`)
+              userInstanceLogger.info(
+                `${email} may already exist under a different ID, trying to update instead`,
+              )
+              await db(`_admins`)
+                .update({ tokenKey, passwordHash })
+                .where({ email })
+              userInstanceLogger.info(`${email} has been successfully sync'd`)
+            } catch (e) {
               userInstanceLogger.error(`Failed to sync admin account: ${e}`)
-            })
+            }
+          }
         }
 
         /*
