@@ -2,6 +2,7 @@ import {
   DATA_ROOT,
   DEBUG,
   DefaultSettingsService,
+  LS_WEBHOOK_SECRET,
   mkContainerHomePath,
   MOTHERSHIP_APP_DIR,
   MOTHERSHIP_HOOKS_DIR,
@@ -63,6 +64,7 @@ global.EventSource = EventSource
     dev: DEBUG(),
     env: {
       DATA_ROOT: mkContainerHomePath(`data`),
+      LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
     },
     extraBinds: [
       `${DATA_ROOT()}:${mkContainerHomePath(`data`)}`,

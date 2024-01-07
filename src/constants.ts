@@ -96,6 +96,8 @@ export const SETTINGS = {
   DISCORD_POCKETSTREAM_URL: mkString(''),
 
   TEST_EMAIL: mkString(),
+
+  LS_WEBHOOK_SECRET: mkString(''),
 }
 ;(() => {
   let passed = true
@@ -218,6 +220,8 @@ export const DISCORD_POCKETSTREAM_URL = () =>
   settings().DISCORD_POCKETSTREAM_URL
 
 export const TEST_EMAIL = () => settings().TEST_EMAIL
+
+export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
 
 /**
  * Helpers

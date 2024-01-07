@@ -5,7 +5,7 @@
   import { client } from '$src/pocketbase-client'
   import FAQSection from '$src/routes/account/FAQSection.svelte'
   import PricingCard from '$src/routes/account/PricingCard.svelte'
-  import { isUserLegacy, userSubscriptionType } from '$util/stores'
+  import { isUserLegacy, userStore, userSubscriptionType } from '$util/stores'
   import { onMount } from 'svelte'
   import { writable } from 'svelte/store'
 
@@ -71,8 +71,8 @@
             description="Want all your PocketHost projects in one place? That's what the Pro tier is all about."
             priceMonthly={[20, 'month']}
             priceAnnually={[199, 'year (save 20%)']}
-            checkoutMonthURL="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d"
-            checkoutYearURL="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73"
+            checkoutMonthURL="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]={$userStore?.id}"
+            checkoutYearURL="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]={$userStore?.id}"
             active={$userSubscriptionType === SubscriptionType.Premium}
           />
 
@@ -82,8 +82,8 @@
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
             priceMonthly={[299, 'once, use forever']}
             priceAnnually={[99, 'year (save 55%)']}
-            checkoutMonthURL="https://store.pockethost.io/checkout/buy/e71cbfb5-cec3-4745-97a7-d877f6776503"
-            checkoutYearURL="https://store.pockethost.io/checkout/buy/e5660329-5b99-4ed6-8f36-0d387803e1d6"
+            checkoutMonthURL="https://store.pockethost.io/checkout/buy/e71cbfb5-cec3-4745-97a7-d877f6776503?checkout[custom][user_id]={$userStore?.id}"
+            checkoutYearURL="https://store.pockethost.io/checkout/buy/e5660329-5b99-4ed6-8f36-0d387803e1d6?checkout[custom][user_id]={$userStore?.id}"
             active={$userSubscriptionType === SubscriptionType.Lifetime}
           />
         </div>

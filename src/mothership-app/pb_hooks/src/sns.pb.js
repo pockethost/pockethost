@@ -88,7 +88,7 @@ routerAdd('POST', '/api/sns', (c) => {
             default:
               audit(
                 { event: `SNS` },
-                `Unrecognized bounce type ${bounceType}: ${data}`,
+                `Unrecognized bounce type ${bounceType}: ${raw}`,
               )
           }
           break
@@ -124,12 +124,12 @@ routerAdd('POST', '/api/sns', (c) => {
         default:
           audit(
             { event: `SNS` },
-            `Unrecognized notification type ${notificationType}: ${data}`,
+            `Unrecognized notification type ${notificationType}: ${raw}`,
           )
       }
       break
     default:
-      audit({ event: `SNS` }, `Message ${Type} not handled: ${data}`)
+      audit({ event: `SNS` }, `Message ${Type} not handled: ${raw}`)
   }
 
   return c.json(200, { status: 'ok' })
