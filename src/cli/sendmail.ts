@@ -3,108 +3,129 @@ import {
   DefaultSettingsService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
+  MOTHERSHIP_DATA_DB,
   MOTHERSHIP_INTERNAL_URL,
   MOTHERSHIP_URL,
   SETTINGS,
+  TEST_EMAIL,
 } from '$constants'
-import { LogLevelName, LoggerService } from '$src/shared'
+import { SqliteService } from '$services'
+import { LogLevelName, LoggerService, UserFields } from '$src/shared'
+import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import PocketBase, { RecordModel } from 'pocketbase'
-;(async () => {
-  DefaultSettingsService(SETTINGS)
-  LoggerService({
-    level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
+import { InvalidArgumentError, program } from 'commander'
+import PocketBase from 'pocketbase'
+
+const TBL_SENT_MESSAGES = `sent_messages`
+
+DefaultSettingsService(SETTINGS)
+const { dbg, info } = LoggerService({
+  level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
+}).create(`mail.ts`)
+
+function myParseInt(value: string) {
+  // parseInt takes a string and a radix
+  const parsedValue = parseInt(value, 10)
+  if (isNaN(parsedValue)) {
+    throw new InvalidArgumentError('Not a number.')
+  }
+  return parsedValue
+}
+
+function interpolateString(
+  template: string,
+  dict: { [key: string]: string },
+): string {
+  return template.replace(/\{\$(\w+)\}/g, (match, key) => {
+    dbg({ match, key })
+    const lowerKey = key.toLowerCase()
+    return dict.hasOwnProperty(lowerKey) ? dict[lowerKey]! : match
+  })
+}
+
+program
+  .argument(`<messageId>`, `ID of the message to send`)
+  .option('--limit <number>', `Max messages to send`, myParseInt, 1)
+  .option('--confirm', `Really send messages`, false)
+
+  .action(async (messageId, { limit, confirm }) => {
+    dbg({ messageId, confirm, limit })
+
+    const { getDatabase } = SqliteService({})
+
+    const db = await getDatabase(MOTHERSHIP_DATA_DB())
+
+    info(MOTHERSHIP_URL())
+
+    const client = new PocketBase(MOTHERSHIP_INTERNAL_URL())
+    await client.admins.authWithPassword(
+      MOTHERSHIP_ADMIN_USERNAME(),
+      MOTHERSHIP_ADMIN_PASSWORD(),
+    )
+
+    const message = await client
+      .collection(`campaign_messages`)
+      .getOne(messageId, { expand: 'campaign' })
+    const { campaign } = message.expand || {}
+    dbg({ messageId, limit, message, campaign })
+
+    const vars: { [_: string]: string } = {
+      messageId,
+    }
+    await Promise.all(
+      map(campaign.vars, async (sql, k) => {
+        const res = await db.raw(sql)
+        const [{ value }] = res
+        vars[k.toLocaleLowerCase()] = value
+      }),
+    )
+
+    dbg({ vars })
+    const subject = interpolateString(message.subject, vars)
+    const body = interpolateString(message.body, vars)
+
+    const sql = `SELECT u.*
+    FROM (${campaign.usersQuery}) u
+    LEFT JOIN sent_messages sm ON u.id = sm.user AND sm.campaign_message = '${messageId}'
+    WHERE sm.id IS NULL;
+     `
+    dbg(sql)
+    const users = (await db.raw<UserFields[]>(sql)).slice(0, limit)
+
+    // dbg({ users })
+
+    const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 100 })
+    await Promise.all(
+      users.map((user) => {
+        return limiter.schedule(async () => {
+          if (!confirm) {
+            const old = user.email
+            user.email = TEST_EMAIL()
+            info(`Sending to ${user.email} masking ${old}`)
+          } else {
+            info(`Sending to ${user.email}`)
+          }
+          await client.send(`/api/mail`, {
+            method: 'POST',
+            body: {
+              to: user.email,
+              subject,
+              body: `${body}<hr/>I only send PocketHost annoucements. But I get it. <a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">[[unsub]]</a>`,
+            },
+          })
+          info(`Sent`)
+          if (confirm) {
+            await client.collection(TBL_SENT_MESSAGES).create({
+              user: user.id,
+              message: messageId,
+              campaign_message: messageId,
+            })
+          }
+        })
+      }),
+    )
+
+    SqliteService().shutdown()
   })
 
-  const logger = LoggerService().create(`mail.ts`)
-
-  const { dbg, error, info, warn } = logger
-  info(MOTHERSHIP_URL())
-
-  const client = new PocketBase(MOTHERSHIP_INTERNAL_URL())
-  await client.admins.authWithPassword(
-    MOTHERSHIP_ADMIN_USERNAME(),
-    MOTHERSHIP_ADMIN_PASSWORD(),
-  )
-
-  const membershipCount = await client
-    .collection('settings')
-    .getFirstListItem(`name = 'founders-edition-count'`)
-
-  const MESSAGES = {
-    'founder-announce-1': {
-      subject: `Grab your Founder's Edition membership before they're gone (${membershipCount.value} remaining)`,
-      body: [
-        `Hello, this message is going out to anyone who is already a PocketHost user…`,
-        `<p>In case you missed <a href="https://discord.com/channels/1128192380500193370/1179854182363173005/1184769442618552340">the Discord announcement</a>, PocketHost is rolling out a paid tier of unlimited (fair use) bandwidth, storage, and projects.`,
-        `<p>New free users are limited to one project. To keep things fair, I made you a Legacy user which means all your existing projects still work but you can’t create new ones.`,
-        `<p>As a way of saying thank you to all of you who supported PocketHost in the early days, I made a Founder’s Edition membership where you can pay once ($299) for lifetime access, or pay yearly ($99/yr) which is a 50% discount.`,
-        `<p>There are only <span style="text-decoration: line-through;">100</span> ${membershipCount.value} Founder’s Edition memberships. If you want one, please grab one from the PocketHost dashboard (https://app.pockethost.io/dashboard) before I announce it publicly.`,
-        `<p>Happy coding! `,
-        `<p>~Ben`,
-      ],
-    },
-    'founder-announce-2': {
-      subject: `${membershipCount.value} Founder's Memberships left`,
-      body: [
-        `<p>Just a reminder to anyone who is still thinking about a Founder's membership - they are my way of saying thank you to all of you who supported PocketHost in the early days. They haven't been announced publicly yet, they are just for you guys right now.`,
-        `<p>You can grab one for $299 lifetime access, or $99/yr which is a 55% discount.`,
-        `<p>There are <span style="text-decoration: line-through;">100</span> ${membershipCount.value} Founder’s Edition memberships available. If you want one, please grab one from your PocketHost account page (https://app.pockethost.io/account).`,
-        `<p>Happy coding! `,
-        `<p>~Ben`,
-      ],
-    },
-  }
-
-  const TEST = !!process.env.TEST
-  const TRAUNCH_SIZE = 1000
-  const MESSAGE_ID = `founder-announce-2`
-  const TBL_SENT_MESSAGES = `sent_messages`
-  const TBL_USERS = 'users'
-
-  const { subject, body } = MESSAGES[MESSAGE_ID]
-
-  const users = (
-    await client.collection(TBL_USERS).getFullList(undefined, {
-      filter: `verified=1 && unsubscribe=0 && subscription='legacy'`,
-      expand: `sent_messages(user)`,
-    })
-  )
-    .filter((user) => {
-      const sent = user.expand?.[`sent_messages(user)`] as
-        | RecordModel
-        | undefined
-      if (sent?.find((rec: RecordModel) => rec.message === MESSAGE_ID)) {
-        dbg(`Skipping ${user.email}`)
-        return false
-      }
-      return true
-    })
-    .slice(0, TRAUNCH_SIZE)
-  info(`user count ${users.length}`)
-
-  const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 100 })
-  await Promise.all(
-    users.map((user) => {
-      if (TEST) {
-        user.email = 'ben@benallfree.com'
-      }
-      return limiter.schedule(async () => {
-        info(`Sending to ${user.email}`)
-        await client.send(`/api/mail`, {
-          method: 'POST',
-          body: {
-            to: user.email,
-            subject,
-            body: body.join(`<p>`),
-          },
-        })
-        if (!TEST) {
-          await client
-            .collection(TBL_SENT_MESSAGES)
-            .create({ user: user.id, message: MESSAGE_ID })
-        }
-      })
-    }),
-  )
-})()
+program.parseAsync()

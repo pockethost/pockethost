@@ -94,6 +94,8 @@ export const SETTINGS = {
   ),
 
   DISCORD_POCKETSTREAM_URL: mkString(''),
+
+  TEST_EMAIL: mkString(),
 }
 ;(() => {
   let passed = true
@@ -215,10 +217,15 @@ export const INSTANCE_APP_MIGRATIONS_DIR = () =>
 export const DISCORD_POCKETSTREAM_URL = () =>
   settings().DISCORD_POCKETSTREAM_URL
 
+export const TEST_EMAIL = () => settings().TEST_EMAIL
+
 /**
  * Helpers
  */
+
 export const MOTHERSHIP_DATA_ROOT = () => INSTANCE_DATA_ROOT(MOTHERSHIP_NAME())
+export const MOTHERSHIP_DATA_DB = () =>
+  join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const MOTHERSHIP_INTERNAL_URL = (path = '') =>
   `http://${MOTHERSHIP_INTERNAL_HOST()}:${MOTHERSHIP_PORT()}${path}`
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
