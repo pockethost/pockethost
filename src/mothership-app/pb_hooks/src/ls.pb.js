@@ -37,7 +37,7 @@ routerAdd('POST', '/api/ls', (c) => {
     data: {
       type,
       attributes: {
-        order_id,
+        order_number,
         product_name,
         product_id,
         status,
@@ -46,9 +46,9 @@ routerAdd('POST', '/api/ls', (c) => {
     },
   } = data
 
-  log({ user_id, order_id, product_name, product_id, status, email })
+  log({ user_id, order_number, product_name, product_id, status, email })
 
-  if (status !== `active`) {
+  if (![`active`, `paid`].includes(status)) {
     audit({ email, event: `LS_ERR` }, `Unsupported status ${status}: ${raw}`)
     return c.json(500, { status: 'unsupported status' })
   } else {
@@ -62,11 +62,11 @@ routerAdd('POST', '/api/ls', (c) => {
     log(`user ID ok`, user_id)
   }
 
-  if (!order_id) {
-    audit({ email, event: `LS_ERR` }, `No order ID: ${raw}`)
-    return c.json(500, { status: 'no order ID' })
+  if (!order_number) {
+    audit({ email, event: `LS_ERR` }, `No order #: ${raw}`)
+    return c.json(500, { status: 'no order #' })
   } else {
-    log(`order ID ok`, order_id)
+    log(`order # ok`, order_number)
   }
 
   const user = (() => {
@@ -117,7 +117,7 @@ routerAdd('POST', '/api/ls', (c) => {
   const collection = $app.dao().findCollectionByNameOrId('payments')
   const payment = new Record(collection, {
     user: user_id,
-    payment_id: `ls_${order_id}`,
+    payment_id: `ls_${order_number}`,
   })
 
   try {
