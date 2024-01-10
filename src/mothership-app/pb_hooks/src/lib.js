@@ -21,7 +21,7 @@ const mkLog =
    */
   (...s) =>
     console.log(
-      `*** [${namespace}]`,
+      `[${namespace}]`,
       ...s.map((p) => {
         if (typeof p === 'object') return JSON.stringify(p, null, 2)
         return p
