@@ -108,7 +108,6 @@ routerAdd(
       dev,
       cname,
       notifyMaintenanceMode,
-      cname_active: cname === undefined ? undefined : false, // set cname inactive if it has changed
     })
 
     const form = new RecordUpsertForm($app, record)
