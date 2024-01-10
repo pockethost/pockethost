@@ -1,9 +1,12 @@
 /// <reference path="../types/types.d.ts" />
 
 onModelAfterCreate((e) => {
+  const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+
+  const log = mkLog(`instances:create:discord:notify`)
+
   const webhookUrl = $os.getenv('DISCORD_POCKETSTREAM_URL')
   if (!webhookUrl) {
-    console.warn(`***DISCORD_POCKETSTREAM_URL not defined`)
     return
   }
   const version = e.model.get('version')
@@ -19,6 +22,6 @@ onModelAfterCreate((e) => {
       timeout: 5, // in seconds
     })
   } catch (e) {
-    console.error(`***${e}`)
+    audit(`ERROR`, `Instance creation discord notify failed with ${e}`)
   }
 }, 'instances')
