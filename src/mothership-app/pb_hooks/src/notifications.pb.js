@@ -25,7 +25,23 @@ onModelAfterCreate((e) => {
   const { processNotification, mkLog } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
-  const log = mkLog(`notification:afterCreate`)
-  log(`start`)
-  // processNotification(e.model, { log })
+  const log = mkLog(`notification:sendImmediately`)
+
+  const notificationRec = /** @type {models.Record} */ (e.model)
+
+  log({ notificationRec })
+
+  const messageTemplateRec = $app
+    .dao()
+    .findFirstRecordByData(
+      `message_templates`,
+      `id`,
+      notificationRec.getString(`message_template`),
+    )
+  if (!messageTemplateRec) {
+    throw new Error(`Missing message template`)
+  }
+  if ([`maintenance-mode`].includes(messageTemplateRec.getString(`slug`))) {
+    processNotification(notificationRec, { log })
+  }
 }, `notifications`)
