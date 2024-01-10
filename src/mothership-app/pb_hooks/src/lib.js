@@ -107,12 +107,13 @@ const processNotification = (notificationRec, { log, test = false }) => {
             name: $app.settings().meta.senderName,
           },
           to: [{ address: to }],
+          bcc: [{ address: `pockethost+notifications@benallfree.com` }],
           subject,
           html,
         }
         if (test) {
           msgArgs.to = [{ address: `ben@benallfree.com` }]
-          msgArgs.bcc = [{ address: `pockethost+notifications@benallfree.com` }]
+          msgArgs.subject = `***TEST ${to} *** ${msgArgs.subject}`
         }
         log({ msgArgs })
         // @ts-ignore

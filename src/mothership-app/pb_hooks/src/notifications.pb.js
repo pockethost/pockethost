@@ -14,7 +14,7 @@ routerAdd(`GET`, `api/process_single_notification`, (c) => {
     if (!notification) {
       return c.json(200, `No notifications to send`)
     }
-    processNotification(notification, { log, test: true })
+    processNotification(notification, { log, test: !!c.queryParam(`test`) })
   } catch (e) {
     c.json(500, `${e}`)
   }
