@@ -43,7 +43,8 @@
     "trailingComma": "all",
     "plugins": [
       "./node_modules/prettier-plugin-organize-imports/index.js",
-      "./node_modules/prettier-plugin-svelte/plugin.js"
+      "./node_modules/prettier-plugin-svelte/plugin.js",
+      "./node_modules/prettier-plugin-jsdoc/dist/index.js"
     ]
   },
   "type": "module",
@@ -116,6 +117,7 @@
     "plop": "^4.0.0",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.0.3",
+    "prettier-plugin-jsdoc": "^1.3.0",
     "prettier-plugin-organize-imports": "^3.2.3",
     "prettier-plugin-svelte": "^3.0.3",
     "rizzdown": "^0.0.6",
