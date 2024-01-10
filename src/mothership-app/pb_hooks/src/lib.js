@@ -1,7 +1,8 @@
 /// <reference path="../types/lib.d.ts" />
 
 /** @type {Lib['audit']} */
-const audit = (event, note, extra) => {
+const audit = (event, note, extra = {}) => {
+  console.error(`AUDIT:${event}: ${note}`, JSON.stringify(extra))
   $app.dao().saveRecord(
     new Record($app.dao().findCollectionByNameOrId('audit'), {
       event,
