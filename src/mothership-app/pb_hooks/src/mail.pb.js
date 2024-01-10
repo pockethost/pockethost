@@ -4,22 +4,27 @@ routerAdd(
   'POST',
   '/api/mail',
   (c) => {
-    let data = new DynamicModel({
-      to: '',
-      subject: '',
-      body: '',
-    })
+    const { mkLog, audit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+    const log = mkLog(`mail`)
 
-    console.log(`***before bind`)
+    let data = /** @type {{ to: string; subject: string; body: string }} */ (
+      new DynamicModel({
+        to: '',
+        subject: '',
+        body: '',
+      })
+    )
+
+    log(`before bind`)
 
     c.bind(data)
 
-    console.log(`***after bind`)
+    log(`after bind`)
 
     // This is necessary for destructuring to work correctly
     data = JSON.parse(JSON.stringify(data))
 
-    console.log(`***bind parsed`, JSON.stringify(data))
+    log(`bind parsed`, JSON.stringify(data))
 
     const { to, subject, body } = data
 
@@ -35,8 +40,8 @@ routerAdd(
 
     $app.newMailClient().send(email)
 
-    const msg = `***Sent to ${to}`
-    console.log(msg)
+    const msg = `Sent to ${to}`
+    log(msg)
 
     return c.json(200, { status: 'ok' })
   },
