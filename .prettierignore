@@ -13,3 +13,4 @@ forks
 src/mothership-app/pb_hooks/src/versions.js
 
 src/mothership-app/migrations
+src/mothership-app/pb_hooks/types/types.d.ts

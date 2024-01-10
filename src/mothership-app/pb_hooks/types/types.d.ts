@@ -15,7 +15,7 @@
  *
  * ```js
  * // prints "Hello world!" on every 30 minutes
- * cronAdd('hello', '*/30 * * * *', () => {
+ * cronAdd('hello', '*\/30 * * * *', () => {
  *   console.log('Hello world!')
  * })
  * ```
@@ -2587,7 +2587,7 @@ namespace filepath {
      * only possible returned error is ErrBadPattern, when pattern is
      * malformed.
      *
-     * On Windows, escaping is disabled. Instead, '\' is treated as path
+     * On Windows, escaping is disabled. Instead, '' is treated as path
      * separator.
      */
     (pattern: string): boolean
@@ -2596,7 +2596,7 @@ namespace filepath {
     /**
      * Glob returns the names of all files matching pattern or nil if there is
      * no matching file. The syntax of patterns is the same as in Match. The
-     * pattern may describe hierarchical names such as /usr/*/bin/ed (assuming
+     * pattern may describe hierarchical names such as /usr/*\/bin/ed (assuming
      * the Separator is '/').
      *
      * Glob ignores file system errors such as I/O errors reading directories.
@@ -2622,11 +2622,11 @@ namespace filepath {
      * 3. Eliminate each inner .. path name element (the parent directory)
      *
      *         along with the non-.. element that precedes it.
-     *
      * 4. Eliminate .. elements that begin a rooted path:
      *
      *         that is, replace "/.." by "/" at the beginning of a path,
-     *     assuming Separator is '/'.
+     *
+     *    Assuming Separator is '/'.
      *
      * The returned path ends in a slash only if it represents a root directory,
      * such as "/" on Unix or `C:\` on Windows.
