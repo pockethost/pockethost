@@ -25,7 +25,7 @@ onModelBeforeUpdate((e) => {
     enqueueNotification(`email`, `welcome`, uid)
     newModel.set(`welcome`, new DateTime())
   } catch (e) {
-    audit(`ERROR`, `${e}`)
+    audit(`ERROR`, `${e}`, { user: newModel.getId() })
     throw e
   }
 }, 'users')

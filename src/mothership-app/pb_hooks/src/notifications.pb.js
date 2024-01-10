@@ -22,7 +22,7 @@ routerAdd(`GET`, `api/process_single_notification`, (c) => {
 })
 
 onModelAfterCreate((e) => {
-  const { processNotification, mkLog } = /** @type {Lib} */ (
+  const { processNotification, mkLog, audit } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
   const log = mkLog(`notification:sendImmediately`)
@@ -39,6 +39,9 @@ onModelAfterCreate((e) => {
       notificationRec.getString(`message_template`),
     )
   if (!messageTemplateRec) {
+    audit(`ERROR`, `Missing message template`, {
+      notification: notificationRec.getId(),
+    })
     throw new Error(`Missing message template`)
   }
   if ([`maintenance-mode`].includes(messageTemplateRec.getString(`slug`))) {
