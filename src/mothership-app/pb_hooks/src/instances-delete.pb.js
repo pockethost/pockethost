@@ -16,13 +16,13 @@ routerAdd(
 
     const log = mkLog(`DELETE:instance`)
 
-    log(`***TOP OF DELETE`)
+    log(`TOP OF DELETE`)
     let data = new DynamicModel({
       id: '',
     })
 
     c.bind(data)
-    log(`***After bind`)
+    log(`After bind`)
 
     // This is necessary for destructuring to work correctly
     data = JSON.parse(JSON.stringify(data))
@@ -30,14 +30,14 @@ routerAdd(
     const id = c.pathParam('id')
 
     log(
-      `***vars`,
+      `vars`,
       JSON.stringify({
         id,
       }),
     )
 
     const authRecord = /** @type {models.Record} */ (c.get('authRecord')) // empty if not authenticated as regular auth record
-    log(`***authRecord`, JSON.stringify(authRecord))
+    log(`authRecord`, JSON.stringify(authRecord))
 
     if (!authRecord) {
       throw new BadRequestError(`Expected authRecord here`)
@@ -56,9 +56,9 @@ routerAdd(
     }
 
     const path = [$os.getenv('DATA_ROOT'), id].join('/')
-    log(`***path ${path}`)
+    log(`path ${path}`)
     const res = $os.removeAll(path)
-    log(`***res`, res)
+    log(`res`, res)
 
     $app.dao().deleteRecord(record)
 

@@ -1,9 +1,9 @@
-/// <reference path="../types/types.d.ts" />
-
-/**
- * Migrate version numbers
- */
+/** Migrate version numbers */
 onAfterBootstrap((e) => {
+  const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+
+  const log = mkLog(`bootstrap`)
+
   const records = $app.dao().findRecordsByFilter(`instances`, '1=1')
   const { versions } = require(`${__hooks}/versions.js`)
   const unrecognized = []
@@ -28,5 +28,5 @@ onAfterBootstrap((e) => {
       unrecognized.push(v)
     }
   })
-  unrecognized.forEach((v) => console.log(`***unrecognized ${v}`))
+  log({ unrecognized })
 })
