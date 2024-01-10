@@ -41,9 +41,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
       throw new Error(`Expected 'auth' query param, but found ${req.url}`)
     }
 
-    /**
-     * Validate auth token
-     */
+    /** Validate auth token */
     const client = new pocketbaseEs(coreInternalUrl)
     client.authStore.loadFromCookie(auth)
     dbg(`Cookie here is`, client.authStore.isValid)
@@ -57,9 +55,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     }
     dbg(`Cookie auth passed)`)
 
-    /**
-     * Validate instance and ownership
-     */
+    /** Validate instance and ownership */
     dbg(`Got a log request for instance ID ${instanceId}`)
     const instance = await client
       .collection('instances')
@@ -69,14 +65,10 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     }
     dbg(`Instance is `, instance)
 
-    /**
-     * Get a database connection
-     */
+    /** Get a database connection */
     const instanceLogger = InstanceLogger(instanceId, `exec`)
 
-    /**
-     * Start the stream
-     */
+    /** Start the stream */
     res.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=UTF-8',
       Connection: 'keep-alive',

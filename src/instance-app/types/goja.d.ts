@@ -11,7 +11,10 @@ interface Console {
   clear(): void
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/count) */
   count(label?: string): void
-  /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/countReset) */
+  /**
+   * [MDN
+   * Reference](https://developer.mozilla.org/docs/Web/API/console/countReset)
+   */
   countReset(label?: string): void
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/debug) */
   debug(...data: any[]): void
@@ -23,9 +26,15 @@ interface Console {
   error(...data: any[]): void
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/group) */
   group(...data: any[]): void
-  /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/groupCollapsed) */
+  /**
+   * [MDN
+   * Reference](https://developer.mozilla.org/docs/Web/API/console/groupCollapsed)
+   */
   groupCollapsed(...data: any[]): void
-  /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/groupEnd) */
+  /**
+   * [MDN
+   * Reference](https://developer.mozilla.org/docs/Web/API/console/groupEnd)
+   */
   groupEnd(): void
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/console/info) */
   info(...data: any[]): void

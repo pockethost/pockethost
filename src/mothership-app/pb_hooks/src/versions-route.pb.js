@@ -1,8 +1,6 @@
 /// <reference path="../types/types.d.ts" />
 
-/**
- * Return a list of available PocketBase versions
- */
+/** Return a list of available PocketBase versions */
 routerAdd(
   'GET',
   '/api/versions',

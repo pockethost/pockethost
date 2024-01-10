@@ -159,9 +159,7 @@ export const settings = () => ioc.service('settings')
 export const mothership = () => ioc.service('mothership')
 export const instanceLogger = () => ioc.service('instanceLogger')
 
-/**
- * Accessors
- */
+/** Accessors */
 export const UPGRADE_MODE = () => settings().UPGRADE_MODE
 
 export const PH_HOME = () => settings().PH_HOME
@@ -223,9 +221,7 @@ export const TEST_EMAIL = () => settings().TEST_EMAIL
 
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
 
-/**
- * Helpers
- */
+/** Helpers */
 
 export const MOTHERSHIP_DATA_ROOT = () => INSTANCE_DATA_ROOT(MOTHERSHIP_NAME())
 export const MOTHERSHIP_DATA_DB = () =>

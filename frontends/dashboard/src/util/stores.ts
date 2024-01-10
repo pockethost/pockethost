@@ -21,7 +21,8 @@ export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)
 export const userStore = writable<UserFields | undefined>()
 /**
- * Listen for auth change events. When we get at least one, the auth state is initialized.
+ * Listen for auth change events. When we get at least one, the auth state is
+ * initialized.
  */
 onAuthChange((authStoreProps) => {
   const isLoggedIn = authStoreProps.isValid
@@ -44,9 +45,7 @@ export const globalInstancesStore = writable<{
 
 export const globalInstancesStoreReady = writable(false)
 
-/**
- * Listen for instances
- */
+/** Listen for instances */
 isUserLoggedIn.subscribe(async (isLoggedIn) => {
   let unsub: UnsubscribeFunc | undefined
   if (!isLoggedIn) {

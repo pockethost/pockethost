@@ -55,9 +55,7 @@ global.EventSource = EventSource
 
   info(`Serving`)
 
-  /**
-   * Launch services
-   */
+  /** Launch services */
   await MothershipAdminClientService({
     url: MOTHERSHIP_INTERNAL_URL(),
     username: MOTHERSHIP_ADMIN_USERNAME(),

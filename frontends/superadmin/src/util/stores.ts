@@ -11,7 +11,8 @@ export const isUserLoggedIn = writable(false)
 export const isAuthStateInitialized = writable(false)
 
 /**
- * Listen for auth change events. When we get at least one, the auth state is initialized.
+ * Listen for auth change events. When we get at least one, the auth state is
+ * initialized.
  */
 onAuthChange((authStoreProps) => {
   isUserLoggedIn.set(authStoreProps.isValid)

@@ -3,8 +3,9 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
- * These environment variables default to pointing to the production build so frontend development is easy.
- * If they are specified in .env, those values will prevail.
+ * These environment variables default to pointing to the production build so
+ * frontend development is easy. If they are specified in .env, those values
+ * will prevail.
  */
 
 const env = {

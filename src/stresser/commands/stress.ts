@@ -74,9 +74,7 @@ export const createStress = (context: { program: Command } & ContextBase) => {
       const instances = await client.getInstances()
       dbg(`Instances ${instances.length}`)
 
-      /**
-       * Stress test
-       */
+      /** Stress test */
       const stress = async () => {
         try {
           const instance = shuffle(instances)

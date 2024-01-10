@@ -1,8 +1,6 @@
 /// <reference path="../types/types.d.ts" />
 
-/**
- * Validate instance version
- */
+/** Validate instance version */
 onModelBeforeCreate((e) => {
   const { versions } = require(`${__hooks}/versions.js`)
 

@@ -15,9 +15,9 @@ export type EventHandler<TPayload> = (
 ) => boolean | void | Promise<boolean | void>
 
 /**
- *
- * @param defaultHandler Optional handler to call if no handler calls `handled()`
- * @returns void
+ * @param defaultHandler Optional handler to call if no handler calls
+ *   `handled()`
+ * @returns Void
  */
 export const createEvent = <TPayload>(
   defaultHandler?: EventHandler<TPayload>,

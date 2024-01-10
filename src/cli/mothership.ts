@@ -51,9 +51,7 @@ global.EventSource = EventSource
   await PortService({})
   const pbService = await PocketbaseService({})
 
-  /**
-   * Launch central database
-   */
+  /** Launch central database */
 
   info(`Serving`)
   const { url, exitCode } = await pbService.spawn({

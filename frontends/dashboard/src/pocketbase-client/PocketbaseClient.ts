@@ -52,7 +52,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const logOut = () => authStore.clear()
 
   /**
-   * This will register a new user into Pocketbase, and email them a verification link
+   * This will register a new user into Pocketbase, and email them a
+   * verification link
+   *
    * @param email {string} The email of the user
    * @param password {string} The password of the user
    */
@@ -75,6 +77,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   /**
    * This will let a user confirm their new account via a token in their email
+   *
    * @param token {string} The token from the verification email
    */
   const confirmVerification = async (token: string) => {
@@ -82,7 +85,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * This will reset an unauthenticated user's password by sending a verification link to their email, and includes an optional error handler
+   * This will reset an unauthenticated user's password by sending a
+   * verification link to their email, and includes an optional error handler
+   *
    * @param email {string} The email of the user
    */
   const requestPasswordReset = async (email: string) => {
@@ -90,7 +95,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * This will let an unauthenticated user save a new password after verifying their email
+   * This will let an unauthenticated user save a new password after verifying
+   * their email
+   *
    * @param token {string} The token from the verification email
    * @param password {string} The new password of the user
    */
@@ -104,7 +111,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * This will log a user into Pocketbase, and includes an optional error handler
+   * This will log a user into Pocketbase, and includes an optional error
+   * handler
+   *
    * @param {string} email The email of the user
    * @param {string} password The password of the user
    */
@@ -185,25 +194,22 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * Use synthetic event for authStore changers, so we can broadcast just
-   * the props we want and not the actual authStore object.
+   * Use synthetic event for authStore changers, so we can broadcast just the
+   * props we want and not the actual authStore object.
    */
   const [onAuthChange, fireAuthChange] = createGenericSyncEvent<BaseAuthStore>()
 
-  /**
-   * This section is for initialization
-   */
+  /** This section is for initialization */
   {
-    /**
-     * Listen for native authStore changes and convert to synthetic event
-     */
+    /** Listen for native authStore changes and convert to synthetic event */
     client.authStore.onChange(() => {
       fireAuthChange(client.authStore)
     })
 
     /**
-     * Refresh the auth token immediately upon creating the client. The auth token may be
-     * out of date, or fields in the user record may have changed in the backend.
+     * Refresh the auth token immediately upon creating the client. The auth
+     * token may be out of date, or fields in the user record may have changed
+     * in the backend.
      */
     refreshAuthToken()
       .catch((error) => {
@@ -218,8 +224,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * This way, when the verified flag is flipped, it will appear that the
      * authstore model is updated.
      *
-     * Polling is a stopgap til v.0.8. Once 0.8 comes along, we can do a realtime
-     * watch on the user record and update auth accordingly.
+     * Polling is a stopgap til v.0.8. Once 0.8 comes along, we can do a
+     * realtime watch on the user record and update auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
       const { model, isAdmin } = authStore

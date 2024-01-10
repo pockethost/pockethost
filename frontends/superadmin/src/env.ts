@@ -1,8 +1,9 @@
 import { boolean } from 'boolean'
 
 /**
- * These environment variables default to pointing to the production build so frontend development is easy.
- * If they are specified in .env, those values will prevail.
+ * These environment variables default to pointing to the production build so
+ * frontend development is easy. If they are specified in .env, those values
+ * will prevail.
  */
 
 // The domain name where this dashboard lives
@@ -30,10 +31,14 @@ export const PUBLIC_MOTHERSHIP_URL =
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
 /**
- * This helper function will take a dynamic list of values and join them together with a slash.
- * @param {Array<string>} paths This is an optional list of additional paths to append to the lander URL.
+ * This helper function will take a dynamic list of values and join them
+ * together with a slash.
+ *
  * @example
- * mkPath('a', 'b', 'c') // a/b/c
+ *   mkPath('a', 'b', 'c') // a/b/c
+ *
+ * @param {string[]} paths This is an optional list of additional paths to
+ *   append to the lander URL.
  */
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
@@ -41,10 +46,13 @@ const mkPath = (...paths: string[]) => {
 
 /**
  * Helpful alias for the lander url.
- * @param {Array<string>} paths This is an optional list of additional paths to append to the lander URL.
+ *
  * @example
- * LANDER_URL() // https://pockethost.io/
- * LANDER_URL('showcase') // https://pockethost.io/showcase/
+ *   LANDER_URL() // https://pockethost.io/
+ *   LANDER_URL('showcase') // https://pockethost.io/showcase/
+ *
+ * @param {string[]} paths This is an optional list of additional paths to
+ *   append to the lander URL.
  */
 export const LANDER_URL = (...paths: string[]) => {
   return `${PUBLIC_BLOG_URL}/${mkPath(...paths)}/`
@@ -52,10 +60,13 @@ export const LANDER_URL = (...paths: string[]) => {
 
 /**
  * Helpful alias for the blog url.
- * @param {Array<string>} paths This is an optional list of additional paths to append to the blogs URL.
+ *
  * @example
- * BLOG_URL() // https://pockethost.io/blog
- * BLOG_URL('new-features-2023') // https://pockethost.io/blog/new-features-2023/
+ *   BLOG_URL() // https://pockethost.io/blog
+ *   BLOG_URL('new-features-2023') // https://pockethost.io/blog/new-features-2023/
+ *
+ * @param {string[]} paths This is an optional list of additional paths to
+ *   append to the blogs URL.
  */
 export const BLOG_URL = (...paths: string[]) => {
   return LANDER_URL(`blog`, ...paths)
@@ -63,10 +74,13 @@ export const BLOG_URL = (...paths: string[]) => {
 
 /**
  * Helpful alias for the docs url.
- * @param {Array<string>} paths This is an optional list of additional paths to append to the docs URL.
+ *
  * @example
- * DOCS_URL() // https://pockethost.io/docs
- * DOCS_URL('overview', 'help') // https://pockethost.io/docs/overview/help/
+ *   DOCS_URL() // https://pockethost.io/docs
+ *   DOCS_URL('overview', 'help') // https://pockethost.io/docs/overview/help/
+ *
+ * @param {string[]} paths This is an optional list of additional paths to
+ *   append to the docs URL.
  */
 export const DOCS_URL = (...paths: string[]) => {
   return LANDER_URL(`docs`, ...paths)
@@ -74,10 +88,13 @@ export const DOCS_URL = (...paths: string[]) => {
 
 /**
  * Helpful alias for the app url.
- * @param {Array<string>} paths This is an optional list of additional paths to append to the app URL.
+ *
  * @example
- * APP_URL() // https://app.pockethost.io/
- * APP_URL('dashboard') // https://app.pockethost.io/dashboard
+ *   APP_URL() // https://app.pockethost.io/
+ *   APP_URL('dashboard') // https://app.pockethost.io/dashboard
+ *
+ * @param {string[]} paths This is an optional list of additional paths to
+ *   append to the app URL.
  */
 export const APP_URL = (...paths: string[]) => {
   return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
@@ -85,11 +102,14 @@ export const APP_URL = (...paths: string[]) => {
 
 /**
  * Helpful alias for generating the URL for a specific instance
- * @param {string} name This is the unique instance name
- * @param {Array<string>} paths This is an optional list of additional paths to append to the instance URL.
+ *
  * @example
- * INSTANCE_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/
- * INSTANCE_URL('my-cool-instance', 'dashboard') // https://my-cool-instance.pockethost.io/dashboard
+ *   INSTANCE_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/
+ *   INSTANCE_URL('my-cool-instance', 'dashboard') // https://my-cool-instance.pockethost.io/dashboard
+ *
+ * @param {string} name This is the unique instance name
+ * @param {string[]} paths This is an optional list of additional paths to
+ *   append to the instance URL.
  */
 export const INSTANCE_URL = (name: string, ...paths: string[]) => {
   return `${PUBLIC_HTTP_PROTOCOL}//${name}.${PUBLIC_APEX_DOMAIN}/${mkPath(
@@ -99,9 +119,11 @@ export const INSTANCE_URL = (name: string, ...paths: string[]) => {
 
 /**
  * Helpful alias for generating the URL for a specific instance's admin panel
- * @param {string} name This is the unique instance name
+ *
  * @example
- * INSTANCE_ADMIN_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/_/
+ *   INSTANCE_ADMIN_URL('my-cool-instance') // https://my-cool-instance.pockethost.io/_/
+ *
+ * @param {string} name This is the unique instance name
  */
 export const INSTANCE_ADMIN_URL = (name: string) => {
   return INSTANCE_URL(name, `_/`)

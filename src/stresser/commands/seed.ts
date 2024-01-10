@@ -52,9 +52,7 @@ export const createSeed = (context: { program: Command } & ContextBase) => {
         password: MOTHERSHIP_ADMIN_PASSWORD(),
       })
 
-      /**
-       * Create instances
-       */
+      /** Create instances */
       await Promise.all(range(10).map(() => createInstance({ logger })))
     })
 }

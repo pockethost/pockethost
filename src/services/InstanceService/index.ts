@@ -248,9 +248,7 @@ export const instanceService = mkSingleton(
         })
         healthyGuard()
 
-        /**
-         * Sync admin account
-         */
+        /** Sync admin account */
         if (instance.syncAdmin) {
           const id = instance.uid
           dbg(`Fetching token info for uid ${id}`)
