@@ -55,36 +55,36 @@ routerAdd('POST', '/api/ls', (c) => {
       log(`order # ok`, order_number)
     }
 
-    const user = (() => {
+    const userRec = (() => {
       try {
         return $app.dao().findFirstRecordByData('users', 'id', user_id)
       } catch (e) {}
     })()
-    if (!user) {
+    if (!userRec) {
       throw new Error(`User ${user_id} not found`)
     } else {
-      log(`user record ok`, user)
+      log(`user record ok`, userRec)
     }
 
     /** @type{{[_:number]: ()=>void}} */
     const editions = {
       // Founder's annual
       159792: () => {
-        user.set(`subscription`, `premium`)
-        user.set(`isFounder`, true)
+        userRec.set(`subscription`, `premium`)
+        userRec.set(`isFounder`, true)
       },
       // Founder's lifetime
       159794: () => {
-        user.set(`subscription`, `lifetime`)
-        user.set(`isFounder`, true)
+        userRec.set(`subscription`, `lifetime`)
+        userRec.set(`isFounder`, true)
       },
       // Pro annual
       159791: () => {
-        user.set(`subscription`, `premium`)
+        userRec.set(`subscription`, `premium`)
       },
       // Pro monthly
       159790: () => {
-        user.set(`subscription`, `premium`)
+        userRec.set(`subscription`, `premium`)
       },
     }
 
@@ -105,7 +105,7 @@ routerAdd('POST', '/api/ls', (c) => {
     )
 
     $app.dao().runInTransaction((txDao) => {
-      txDao.saveRecord(user)
+      txDao.saveRecord(userRec)
       log(`saved user`)
       txDao.saveRecord(payment)
       log(`saved payment`)
