@@ -105,6 +105,7 @@ routerAdd('POST', '/api/ls', (c) => {
     )
 
     $app.dao().runInTransaction((txDao) => {
+      log(`transaction started`)
       if (!userRec.getDateTime(`welcome`)) {
         enqueueNotification(`email`, `welcome`, user_id)
         userRec.set(`welcome`, new DateTime())
