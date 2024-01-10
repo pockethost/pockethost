@@ -1,5 +1,7 @@
 routerAdd('POST', '/api/ls', (c) => {
-  const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const { audit, mkLog, enqueueNotification } = /** @type {Lib} */ (
+    require(`${__hooks}/lib.js`)
+  )
 
   const log = mkLog(`ls`)
 
@@ -115,41 +117,9 @@ routerAdd('POST', '/api/ls', (c) => {
         .execute()
       log(`saved founder count`)
 
-      const emailTemplate = $app
-        .dao()
-        .findFirstRecordByData('message_templates', `slug`, `lemon_order_email`)
-      const emailNotification = new Record(
-        $app.dao().findCollectionByNameOrId('notifications'),
-        {
-          user: user_id,
-          channel: `email`,
-          message_template: emailTemplate.getId(),
-          message_template_vars: { product_name },
-          payload: {
-            to: user.email(),
-          },
-        },
-      )
-      txDao.saveRecord(emailNotification)
-      log(`saved email notice`)
+      enqueueNotification(`email`, `lemon_order_email`, user_id)
+      enqueueNotification(`lemonbot`, `lemon_order_discord`, user_id)
 
-      const discordTemplate = $app
-        .dao()
-        .findFirstRecordByData(
-          'message_templates',
-          `slug`,
-          `lemon_order_discord`,
-        )
-      const discordNotification = new Record(
-        $app.dao().findCollectionByNameOrId('notifications'),
-        {
-          user: user_id,
-          channel: `lemonbot`,
-          message_template: discordTemplate.getId(),
-          message_template_vars: { product_name },
-        },
-      )
-      txDao.saveRecord(discordNotification)
       log(`saved discord notice`)
     })
     log(`database updated`)
