@@ -2038,6 +2038,7 @@ function generate(options) {
   }
 
   const total = options.min + randInt(options.max + 1 - options.min)
+  /** @type {string[] | string} */
   let results = []
   let token = ''
   let relativeIndex = 0

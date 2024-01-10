@@ -1,27 +1,8 @@
 /// <reference path="../types/types.d.ts" />
 
 routerAdd('POST', '/api/sns', (c) => {
-  const log = (...s) =>
-    console.log(
-      `*** [sns]`,
-      ...s.map((p) => {
-        if (typeof p === 'object') return JSON.stringify(p, null, 2)
-        return p
-      }),
-    )
-  const error = (...s) => console.error(`***`, ...s)
-
-  const audit = (key, note) => {
-    log(note)
-    const collection = $app.dao().findCollectionByNameOrId('audit')
-
-    const record = new Record(collection, {
-      ...key,
-      note,
-    })
-
-    $app.dao().saveRecord(record)
-  }
+  const { mkLog, audit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const log = mkLog(`sns`)
 
   const processBounce = (emailAddress) => {
     log(`Processing ${emailAddress}`)
@@ -34,20 +15,17 @@ routerAdd('POST', '/api/sns', (c) => {
       try {
         $app.dao().saveRecord(user)
       } catch (e) {
-        audit(
-          { user: user.getId(), event: `PBOUNCE_ERR` },
-          `User ${emailAddress} could not be disabled `,
-        )
+        audit(`PBOUNCE_ERR`, `User ${emailAddress} could not be disabled `, {
+          user: user.getId(),
+        })
       }
-      audit(
-        { user: user.getId(), event: `PBOUNCE` },
-        `User ${emailAddress} has been disabled`,
-      )
+      audit('PBOUNCE', `User ${emailAddress} has been disabled`, {
+        user: user.getId(),
+      })
     } catch (e) {
-      audit(
-        { email: emailAddress, event: `PBOUNCE_ERR` },
-        `${emailAddress} is not in the system.`,
-      )
+      audit('PBOUNCE_ERR', `${emailAddress} is not in the system.`, {
+        email: emailAddress,
+      })
       log(`After audit`)
     }
   }
@@ -86,10 +64,9 @@ routerAdd('POST', '/api/sns', (c) => {
               })
               break
             default:
-              audit(
-                { event: `SNS` },
-                `Unrecognized bounce type ${bounceType}: ${raw}`,
-              )
+              audit('SNS', `Unrecognized bounce type ${bounceType}`, {
+                raw_payload: raw,
+              })
           }
           break
         }
@@ -109,27 +86,26 @@ routerAdd('POST', '/api/sns', (c) => {
                 user.set(`unsubscribe`, true)
                 $app.dao().saveRecord(user)
                 audit(
-                  { user: user.getId(), event: `COMPLAINT` },
+                  'COMPLAINT',
                   `User ${emailAddress} has been unsubscribed`,
+                  { email: emailAddress, user: user.getId() },
                 )
               } catch (e) {
-                audit(
-                  { email: emailAddress, event: `COMPLAINT` },
-                  `${emailAddress} is not in the system.`,
-                )
+                audit('COMPLAINT', `${emailAddress} is not in the system.`, {
+                  email: emailAddress,
+                })
               }
             })
           }
           break
         default:
-          audit(
-            { event: `SNS` },
-            `Unrecognized notification type ${notificationType}: ${raw}`,
-          )
+          audit('SNS', `Unrecognized notification type ${notificationType}`, {
+            raw_payload: raw,
+          })
       }
       break
     default:
-      audit({ event: `SNS` }, `Message ${Type} not handled: ${raw}`)
+      audit(`SNS`, `Message ${Type} not handled`, { raw_payload: raw })
   }
 
   return c.json(200, { status: 'ok' })

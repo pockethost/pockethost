@@ -14,23 +14,47 @@ routerAdd(
   'PUT',
   '/api/instance/:id',
   (c) => {
-    console.log(`***TOP OF PUT`)
-    let data = new DynamicModel({
-      id: '',
-      fields: {
-        subdomain: null,
-        maintenance: null,
-        version: null,
-        secrets: null,
-        syncAdmin: null,
-        dev: null,
-        cname: null,
-        notifyMaintenanceMode: null,
-      },
-    })
+    const { mkLog, audit, removeEmptyKeys } = /** @type {Lib} */ (
+      require(`${__hooks}/lib.js`)
+    )
+    const log = mkLog(`PUT:instance`)
+
+    log(`TOP OF PUT`)
+
+    let data =
+      /**
+       * @type {{
+       *   id: string
+       *   fields: {
+       *     subdomain: string | null
+       *     maintenance: boolean | null
+       *     version: string | null
+       *     secrets: StringKvLookup | null
+       *     syncAdmin: boolean | null
+       *     dev: boolean | null
+       *     cname: string | null
+       *     notifyMaintenanceMode: boolean | null
+       *   }
+       * }} }
+       */
+      (
+        new DynamicModel({
+          id: '',
+          fields: {
+            subdomain: null,
+            maintenance: null,
+            version: null,
+            secrets: null,
+            syncAdmin: null,
+            dev: null,
+            cname: null,
+            notifyMaintenanceMode: null,
+          },
+        })
+      )
 
     c.bind(data)
-    console.log(`***After bind`)
+    log(`After bind`)
 
     // This is necessary for destructuring to work correctly
     data = JSON.parse(JSON.stringify(data))
@@ -49,8 +73,8 @@ routerAdd(
       },
     } = data
 
-    console.log(
-      `***vars`,
+    log(
+      `vars`,
       JSON.stringify({
         id,
         subdomain,
@@ -65,8 +89,8 @@ routerAdd(
     )
 
     const record = $app.dao().findRecordById('instances', id)
-    const authRecord = c.get('authRecord') // empty if not authenticated as regular auth record
-    console.log(`***authRecord`, JSON.stringify(authRecord))
+    const authRecord = /** @type {models.Record} */ (c.get('authRecord')) // empty if not authenticated as regular auth record
+    log(`authRecord`, JSON.stringify(authRecord))
 
     if (!authRecord) {
       throw new Error(`Expected authRecord here`)
@@ -75,19 +99,7 @@ routerAdd(
       throw new BadRequestError(`Not authorized`)
     }
 
-    function cleanObject(obj) {
-      console.log(`***original`, JSON.stringify(obj))
-      const sanitized = Object.entries(obj).reduce((acc, [key, value]) => {
-        if (value !== null && value !== undefined) {
-          acc[key] = value
-        }
-        return acc
-      }, {})
-      console.log(`***sanitized`, JSON.stringify(sanitized))
-      return sanitized
-    }
-
-    const sanitized = cleanObject({
+    const sanitized = removeEmptyKeys({
       subdomain,
       version,
       maintenance,
@@ -96,10 +108,8 @@ routerAdd(
       dev,
       cname,
       notifyMaintenanceMode,
+      cname_active: cname === undefined ? undefined : false, // set cname inactive if it has changed
     })
-    if (sanitized.cname !== undefined) {
-      sanitized.cname_active = false
-    }
 
     const form = new RecordUpsertForm($app, record)
     form.loadData(sanitized)

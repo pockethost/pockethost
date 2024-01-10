@@ -21,10 +21,13 @@ interface Lib {
   ) => void
   enqueueNotification: (
     channel: 'email' | 'lemonbot',
-    template: string,
+    template:
+      | 'maintenance_mode'
+      | 'lemon_order_email'
+      | 'lemon_order_discord'
     user_id: string,
-    message_template_vars: { [_: string]: string },
-    dao: daos.Dao,
+    message_template_vars?: { [_: string]: string },
+    dao?: daos.Dao,
   ) => void
 
   audit: (
