@@ -7,7 +7,6 @@ onModelAfterUpdate((e) => {
   const { mkLog, enqueueNotification } = require(`${__hooks}/lib.js`)
 
   const log = mkLog(`maintenance-mode`)
-  log(`top`)
 
   // Bail out if we aren't in maintenance mode
   const isMaintenance = newModel.get('maintenance')
