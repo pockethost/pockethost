@@ -25,6 +25,7 @@ interface Lib {
       | 'maintenance_mode'
       | 'lemon_order_email'
       | 'lemon_order_discord'
+      | 'welcome',
     user_id: string,
     message_template_vars?: { [_: string]: string },
     dao?: daos.Dao,

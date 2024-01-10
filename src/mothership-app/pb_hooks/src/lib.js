@@ -141,7 +141,7 @@ const processNotification = (notificationRec, { log, test = false }) => {
         throw new Error(`Unsupported channel: ${channel}`)
     }
     if (!test) {
-      notificationRec.set(`delivered`, new Date().toISOString())
+      notificationRec.set(`delivered`, new DateTime())
     }
   } catch (e) {
     log(`${e}`)

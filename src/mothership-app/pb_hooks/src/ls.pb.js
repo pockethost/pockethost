@@ -105,6 +105,10 @@ routerAdd('POST', '/api/ls', (c) => {
     )
 
     $app.dao().runInTransaction((txDao) => {
+      if (!userRec.getDateTime(`welcome`)) {
+        enqueueNotification(`email`, `welcome`, user_id)
+        userRec.set(`welcome`, new DateTime())
+      }
       txDao.saveRecord(userRec)
       log(`saved user`)
       txDao.saveRecord(payment)
