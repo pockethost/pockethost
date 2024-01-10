@@ -3,6 +3,7 @@ type Logger = (...args: any[]) => void
 type StringKvLookup = { [_: string]: string }
 
 type AuditEvents =
+  | 'ERROR'
   | 'NOTIFICATION_ERR'
   | 'LS'
   | 'LS_ERR'
@@ -17,7 +18,7 @@ interface Lib {
   mkLog: (namespace: string) => Logger
   processNotification: (
     notificationRec: models.Record,
-    context: { log: Logger; test: boolean },
+    context: { log: Logger; test?: boolean },
   ) => void
   enqueueNotification: (
     channel: 'email' | 'lemonbot',
