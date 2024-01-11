@@ -12,7 +12,7 @@ routerAdd('GET', '/api/unsubscribe', (c) => {
     $app.dao().saveRecord(record)
 
     const email = record.getString('email')
-    audit('UNSUBSCRIBE', '', { email, user: id })
+    audit('UNSUBSCRIBE', '', { log, extra: { email, user: id } })
 
     $app.newMailClient().send(
       new MailerMessage({
@@ -26,7 +26,7 @@ routerAdd('GET', '/api/unsubscribe', (c) => {
     )
     return c.html(200, `<p>${email} has been unsubscribed.`)
   } catch (e) {
-    audit('UNSUBSCRIBE_ERR', `User ${id} not found`)
+    audit('UNSUBSCRIBE_ERR', `User ${id} not found`, { log })
     return c.html(200, `<p>Looks like you're already unsubscribed.`)
   }
 })

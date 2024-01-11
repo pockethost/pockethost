@@ -1,10 +1,10 @@
-/// <reference path="../types/types.d.ts" />
-
 onModelAfterUpdate((e) => {
   const newModel = /** @type {models.Record} */ (e.model)
   const oldModel = newModel.originalCopy()
 
-  const { mkLog, enqueueNotification } = require(`${__hooks}/lib.js`)
+  const { mkLog, enqueueNotification } = /** @type {Lib} */ (
+    require(`${__hooks}/lib.js`)
+  )
 
   const log = mkLog(`maintenance-mode`)
 
@@ -32,8 +32,10 @@ onModelAfterUpdate((e) => {
   const subdomain = newModel.getString(`subdomain`)
   const address = user.getString(`email`)
   log({ instanceId, subdomain, address })
-  enqueueNotification(`email`, `maintenance-mode`, uid, {
-    subdomain,
-    instanceId,
+  enqueueNotification(`email`, `maintenance_mode`, uid, {
+    message_template_vars: {
+      subdomain,
+      instanceId,
+    },
   })
 }, 'instances')

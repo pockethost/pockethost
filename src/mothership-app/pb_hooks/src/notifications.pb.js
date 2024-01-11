@@ -22,6 +22,7 @@ routerAdd(`GET`, `api/process_single_notification`, (c) => {
 })
 
 onModelAfterCreate((e) => {
+  return
   const { processNotification, mkLog, audit } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
@@ -31,20 +32,22 @@ onModelAfterCreate((e) => {
 
   log({ notificationRec })
 
-  const messageTemplateRec = $app
-    .dao()
-    .findFirstRecordByData(
-      `message_templates`,
-      `id`,
-      notificationRec.getString(`message_template`),
-    )
-  if (!messageTemplateRec) {
-    audit(`ERROR`, `Missing message template`, {
-      notification: notificationRec.getId(),
+  try {
+    $app.dao().expandRecord(notificationRec, ['message_template'], null)
+
+    const messageTemplateRec = notificationRec.expandedOne(`message_template`)
+    if (!messageTemplateRec) {
+      throw new Error(`Missing message template`)
+    }
+    if ([`maintenance-mode`].includes(messageTemplateRec.getString(`slug`))) {
+      processNotification(notificationRec, { log })
+    }
+  } catch (e) {
+    audit(`ERROR`, `${e}`, {
+      log,
+      extra: {
+        notification: notificationRec.getId(),
+      },
     })
-    throw new Error(`Missing message template`)
-  }
-  if ([`maintenance-mode`].includes(messageTemplateRec.getString(`slug`))) {
-    processNotification(notificationRec, { log })
   }
 }, `notifications`)

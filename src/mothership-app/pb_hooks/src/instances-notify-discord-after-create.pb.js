@@ -22,6 +22,6 @@ onModelAfterCreate((e) => {
       timeout: 5, // in seconds
     })
   } catch (e) {
-    audit(`ERROR`, `Instance creation discord notify failed with ${e}`)
+    audit(`ERROR`, `Instance creation discord notify failed with ${e}`, { log })
   }
 }, 'instances')

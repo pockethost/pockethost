@@ -22,10 +22,10 @@ onModelBeforeUpdate((e) => {
     log(`user just became verified`)
     const uid = newModel.getId()
 
-    enqueueNotification(`email`, `welcome`, uid)
+    enqueueNotification(`email`, `welcome`, uid, { log })
     newModel.set(`welcome`, new DateTime())
   } catch (e) {
-    audit(`ERROR`, `${e}`, { user: newModel.getId() })
+    audit(`ERROR`, `${e}`, { log, extra: { user: newModel.getId() } })
     throw e
   }
 }, 'users')

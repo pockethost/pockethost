@@ -107,7 +107,7 @@ routerAdd('POST', '/api/ls', (c) => {
     $app.dao().runInTransaction((txDao) => {
       log(`transaction started`)
       if (!userRec.getDateTime(`welcome`)) {
-        enqueueNotification(`email`, `welcome`, user_id)
+        enqueueNotification(`email`, `welcome`, user_id, { log, dao: txDao })
         userRec.set(`welcome`, new DateTime())
       }
       txDao.saveRecord(userRec)
@@ -122,21 +122,35 @@ routerAdd('POST', '/api/ls', (c) => {
         .execute()
       log(`saved founder count`)
 
-      enqueueNotification(`email`, `lemon_order_email`, user_id)
-      enqueueNotification(`lemonbot`, `lemon_order_discord`, user_id)
+      log(`about to enqueue email`)
+      enqueueNotification(`email`, `lemon_order_email`, user_id, {
+        dao: txDao,
+        log,
+      })
+      log(`about to enqueue lemonbot`)
+      enqueueNotification(`lemonbot`, `lemon_order_discord`, user_id, {
+        dao: txDao,
+        log,
+      })
 
       log(`saved discord notice`)
     })
     log(`database updated`)
     audit(`LS`, `Order ${order_number} ${product_name} processed.`, {
-      email,
-      user: user_id,
+      log,
+      extra: {
+        email,
+        user: user_id,
+      },
     })
   } catch (e) {
     audit(`LS_ERR`, `${e}`, {
-      email,
-      user: user_id,
-      raw_payload: raw,
+      log,
+      extra: {
+        email,
+        user: user_id,
+        raw_payload: raw,
+      },
     })
     return c.json(500, `${e}`)
   }

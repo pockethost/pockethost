@@ -6,26 +6,23 @@ routerAdd('POST', '/api/sns', (c) => {
 
   const processBounce = (emailAddress) => {
     log(`Processing ${emailAddress}`)
+    const extra = /** @type {{ email: string; user: string }} */ ({
+      email: emailAddress,
+    })
     try {
       const user = $app
         .dao()
         .findFirstRecordByData('users', 'email', emailAddress)
       log(`user is`, user)
+      extra.user = user.getId()
       user.setVerified(false)
-      try {
-        $app.dao().saveRecord(user)
-      } catch (e) {
-        audit(`PBOUNCE_ERR`, `User ${emailAddress} could not be disabled `, {
-          user: user.getId(),
-        })
-      }
+      $app.dao().saveRecord(user)
       audit('PBOUNCE', `User ${emailAddress} has been disabled`, {
-        user: user.getId(),
+        extra,
+        log,
       })
     } catch (e) {
-      audit('PBOUNCE_ERR', `${emailAddress} is not in the system.`, {
-        email: emailAddress,
-      })
+      audit('PBOUNCE_ERR', `${e}`, { log, extra })
       log(`After audit`)
     }
   }
@@ -64,8 +61,9 @@ routerAdd('POST', '/api/sns', (c) => {
               })
               break
             default:
-              audit('SNS', `Unrecognized bounce type ${bounceType}`, {
-                raw_payload: raw,
+              audit('SNS_ERR', `Unrecognized bounce type ${bounceType}`, {
+                log,
+                extra: { raw_payload: raw },
               })
           }
           break
@@ -88,24 +86,39 @@ routerAdd('POST', '/api/sns', (c) => {
                 audit(
                   'COMPLAINT',
                   `User ${emailAddress} has been unsubscribed`,
-                  { email: emailAddress, user: user.getId() },
+                  { log, extra: { email: emailAddress, user: user.getId() } },
                 )
               } catch (e) {
-                audit('COMPLAINT', `${emailAddress} is not in the system.`, {
-                  email: emailAddress,
-                })
+                audit(
+                  'COMPLAINT_ERR',
+                  `${emailAddress} is not in the system.`,
+                  {
+                    log,
+                    extra: {
+                      email: emailAddress,
+                    },
+                  },
+                )
               }
             })
           }
           break
         default:
-          audit('SNS', `Unrecognized notification type ${notificationType}`, {
-            raw_payload: raw,
-          })
+          audit(
+            'SNS_ERR',
+            `Unrecognized notification type ${notificationType}`,
+            {
+              log,
+              extra: { raw_payload: raw },
+            },
+          )
       }
       break
     default:
-      audit(`SNS`, `Message ${Type} not handled`, { raw_payload: raw })
+      audit(`SNS_ERR`, `Message ${Type} not handled`, {
+        log,
+        extra: { raw_payload: raw },
+      })
   }
 
   return c.json(200, { status: 'ok' })
