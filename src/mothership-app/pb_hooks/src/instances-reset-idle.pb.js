@@ -2,5 +2,6 @@
 
 /** Reset instance status to idle on start */
 onAfterBootstrap((e) => {
-  $app.dao().db().newQuery(`update instances set status='idle'`).execute()
+  const dao = $app.dao()
+  dao.db().newQuery(`update instances set status='idle'`).execute()
 })

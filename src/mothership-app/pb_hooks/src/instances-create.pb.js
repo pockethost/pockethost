@@ -7,6 +7,7 @@ routerAdd(
   'POST',
   '/api/instance',
   (c) => {
+    const dao = $app.dao()
     const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
 
     const log = mkLog(`POST:instance`)
@@ -46,7 +47,7 @@ routerAdd(
 
     const { versions } = require(`${__hooks}/versions.js`)
 
-    const collection = $app.dao().findCollectionByNameOrId('instances')
+    const collection = dao.findCollectionByNameOrId('instances')
     const record = new Record(collection)
     record.set('uid', authRecord.getId())
     record.set('subdomain', subdomain)

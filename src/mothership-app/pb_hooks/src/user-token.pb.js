@@ -9,6 +9,7 @@ routerAdd(
   'GET',
   '/api/userToken/:id',
   (c) => {
+    const dao = $app.dao()
     const { mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
     const log = mkLog(`user-token`)
 
@@ -20,7 +21,7 @@ routerAdd(
       throw new BadRequestError(`User ID is required.`)
     }
 
-    const rec = $app.dao().findRecordById('users', id)
+    const rec = dao.findRecordById('users', id)
     const tokenKey = rec.getString('tokenKey')
     const passwordHash = rec.getString('passwordHash')
     const email = rec.getString(`email`)

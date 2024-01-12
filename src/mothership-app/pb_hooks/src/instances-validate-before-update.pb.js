@@ -2,6 +2,7 @@
 
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
+  const dao = e.dao || $app.dao()
   const { versions } = require(`${__hooks}/versions.js`)
 
   const version = e.model.get('version')
@@ -22,8 +23,7 @@ onModelBeforeUpdate((e) => {
 
     const inUse = (() => {
       try {
-        $app
-          .dao()
+        dao
           .db()
           .newQuery(
             `select id from instances where cname='${cname}' and id <> '${id}'`,

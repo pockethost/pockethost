@@ -19,7 +19,7 @@ interface Lib {
   mkLog: (namespace: string) => Logger
   processNotification: (
     notificationRec: models.Record,
-    context: Partial<{ log: Logger; test?: boolean; dao: daos.Dao }>,
+    context: { log: Logger; test?: boolean; dao: daos.Dao },
   ) => void
   enqueueNotification: (
     channel: 'email' | 'lemonbot',
@@ -29,27 +29,27 @@ interface Lib {
       | 'lemon_order_discord'
       | 'welcome',
     user_id: string,
-    context?: Partial<{
-      message_template_vars: { [_: string]: string }
+    context: {
+      message_template_vars?: { [_: string]: string }
       dao: daos.Dao
       log: Logger
-    }>,
+    },
   ) => void
 
   audit: (
     event: AuditEvents,
     note: string,
-    context?: Partial<{
+    context: {
       log: Logger
 
       dao: daos.Dao
-      extra: Partial<{
+      extra?: Partial<{
         notification: string
         email: string
         user: string
         raw_payload: string
       }>
-    }>,
+    },
   ) => void
   removeEmptyKeys: <T>(obj: T) => T
 }

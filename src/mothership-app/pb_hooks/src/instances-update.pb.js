@@ -14,6 +14,7 @@ routerAdd(
   'PUT',
   '/api/instance/:id',
   (c) => {
+    const dao = $app.dao()
     const { mkLog, audit, removeEmptyKeys } = /** @type {Lib} */ (
       require(`${__hooks}/lib.js`)
     )
@@ -88,7 +89,7 @@ routerAdd(
       }),
     )
 
-    const record = $app.dao().findRecordById('instances', id)
+    const record = dao.findRecordById('instances', id)
     const authRecord = /** @type {models.Record} */ (c.get('authRecord')) // empty if not authenticated as regular auth record
     log(`authRecord`, JSON.stringify(authRecord))
 

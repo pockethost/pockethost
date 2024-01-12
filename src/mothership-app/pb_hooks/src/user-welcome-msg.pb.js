@@ -1,6 +1,7 @@
 /// <reference path="../types/types.d.ts" />
 
 onModelBeforeUpdate((e) => {
+  const dao = e.dao || $app.dao()
   const newModel = /** @type {models.Record} */ (e.model)
   const oldModel = newModel.originalCopy()
 
@@ -22,10 +23,10 @@ onModelBeforeUpdate((e) => {
     log(`user just became verified`)
     const uid = newModel.getId()
 
-    enqueueNotification(`email`, `welcome`, uid, { log })
+    enqueueNotification(`email`, `welcome`, uid, { log, dao })
     newModel.set(`welcome`, new DateTime())
   } catch (e) {
-    audit(`ERROR`, `${e}`, { log, extra: { user: newModel.getId() } })
+    audit(`ERROR`, `${e}`, { log, dao, extra: { user: newModel.getId() } })
     throw e
   }
 }, 'users')

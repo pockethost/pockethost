@@ -1,6 +1,7 @@
 /// <reference path="../types/types.d.ts" />
 
 onModelAfterCreate((e) => {
+  const dao = e.dao || $app.dao()
   const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
 
   const log = mkLog(`instances:create:discord:notify`)
@@ -22,6 +23,9 @@ onModelAfterCreate((e) => {
       timeout: 5, // in seconds
     })
   } catch (e) {
-    audit(`ERROR`, `Instance creation discord notify failed with ${e}`, { log })
+    audit(`ERROR`, `Instance creation discord notify failed with ${e}`, {
+      log,
+      dao,
+    })
   }
 }, 'instances')

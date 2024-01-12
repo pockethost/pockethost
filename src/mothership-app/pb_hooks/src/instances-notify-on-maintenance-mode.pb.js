@@ -1,4 +1,6 @@
 onModelAfterUpdate((e) => {
+  const dao = e.dao || $app.dao()
+
   const newModel = /** @type {models.Record} */ (e.model)
   const oldModel = newModel.originalCopy()
 
@@ -18,7 +20,7 @@ onModelAfterUpdate((e) => {
 
   log(`switched`)
   const uid = newModel.get(`uid`)
-  const user = $app.dao().findRecordById('users', uid)
+  const user = dao.findRecordById('users', uid)
 
   // Bail out if the user has notifications disabled globally or for the instance
   const shouldNotify =
@@ -33,6 +35,8 @@ onModelAfterUpdate((e) => {
   const address = user.getString(`email`)
   log({ instanceId, subdomain, address })
   enqueueNotification(`email`, `maintenance_mode`, uid, {
+    log,
+    dao,
     message_template_vars: {
       subdomain,
       instanceId,

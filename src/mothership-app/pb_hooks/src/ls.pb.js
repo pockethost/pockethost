@@ -1,4 +1,5 @@
 routerAdd('POST', '/api/ls', (c) => {
+  const dao = $app.dao()
   const { audit, mkLog, enqueueNotification } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
@@ -57,7 +58,7 @@ routerAdd('POST', '/api/ls', (c) => {
 
     const userRec = (() => {
       try {
-        return $app.dao().findFirstRecordByData('users', 'id', user_id)
+        return dao.findFirstRecordByData('users', 'id', user_id)
       } catch (e) {}
     })()
     if (!userRec) {
@@ -96,15 +97,12 @@ routerAdd('POST', '/api/ls', (c) => {
     }
     applyEditionSpecifics()
 
-    const payment = new Record(
-      $app.dao().findCollectionByNameOrId('payments'),
-      {
-        user: user_id,
-        payment_id: `ls_${order_number}`,
-      },
-    )
+    const payment = new Record(dao.findCollectionByNameOrId('payments'), {
+      user: user_id,
+      payment_id: `ls_${order_number}`,
+    })
 
-    $app.dao().runInTransaction((txDao) => {
+    dao.runInTransaction((txDao) => {
       log(`transaction started`)
       if (!userRec.getDateTime(`welcome`)) {
         enqueueNotification(`email`, `welcome`, user_id, { log, dao: txDao })
@@ -138,6 +136,7 @@ routerAdd('POST', '/api/ls', (c) => {
     log(`database updated`)
     audit(`LS`, `Order ${order_number} ${product_name} processed.`, {
       log,
+      dao,
       extra: {
         email,
         user: user_id,
@@ -146,6 +145,7 @@ routerAdd('POST', '/api/ls', (c) => {
   } catch (e) {
     audit(`LS_ERR`, `${e}`, {
       log,
+      dao,
       extra: {
         email,
         user: user_id,

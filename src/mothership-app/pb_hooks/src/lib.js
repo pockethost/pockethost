@@ -1,6 +1,5 @@
 /** @type {Lib['audit']} */
-const audit = (event, note, context = {}) => {
-  const { log = mkLog(`audit`), dao = $app.dao(), extra = {} } = context
+const audit = (event, note, { log, dao, extra = {} }) => {
   log(`AUDIT:${event}: ${note}`, extra)
   dao.saveRecord(
     new Record(dao.findCollectionByNameOrId('audit'), {
@@ -47,12 +46,12 @@ function interpolateString(template, dict) {
 }
 
 /** @type {Lib['enqueueNotification']} */
-const enqueueNotification = (channel, template, user_id, context = {}) => {
-  const {
-    log = mkLog(`enqueueNotification`),
-    message_template_vars = {},
-    dao = $app.dao(),
-  } = context
+const enqueueNotification = (
+  channel,
+  template,
+  user_id,
+  { log, dao, message_template_vars = {} },
+) => {
   log({ channel, template, user_id })
   const emailTemplate = dao.findFirstRecordByData(
     'message_templates',
@@ -75,12 +74,7 @@ const enqueueNotification = (channel, template, user_id, context = {}) => {
 }
 
 /** @type {Lib['processNotification']} */
-const processNotification = (notificationRec, context) => {
-  const {
-    log = mkLog(`processNotification`),
-    test = false,
-    dao = $app.dao(),
-  } = context
+const processNotification = (notificationRec, { log, dao, test = false }) => {
   log({ notificationRec })
 
   const channel = notificationRec.getString(`channel`)

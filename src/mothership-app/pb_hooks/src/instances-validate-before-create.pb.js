@@ -2,6 +2,7 @@
 
 /** Validate instance version */
 onModelBeforeCreate((e) => {
+  const dao = e.dao || $app.dao()
   const { versions } = require(`${__hooks}/versions.js`)
 
   const version = e.model.get('version')

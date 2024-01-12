@@ -102,6 +102,7 @@ routerAdd(
   'POST',
   '/api/signup',
   (c) => {
+    const dao = $app.dao()
     const parsed = (() => {
       const rawBody = readerToString(c.request().body)
       try {
@@ -145,7 +146,7 @@ routerAdd(
 
     const userExists = (() => {
       try {
-        const record = $app.dao().findFirstRecordByData('users', 'email', email)
+        const record = dao.findFirstRecordByData('users', 'email', email)
         return true
       } catch {
         return false
@@ -160,8 +161,8 @@ routerAdd(
       )
     }
 
-    $app.dao().runInTransaction((txDao) => {
-      const usersCollection = $app.dao().findCollectionByNameOrId('users')
+    dao.runInTransaction((txDao) => {
+      const usersCollection = dao.findCollectionByNameOrId('users')
       const instanceCollection = $app
         .dao()
         .findCollectionByNameOrId('instances')

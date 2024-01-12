@@ -12,6 +12,7 @@ routerAdd(
   'DELETE',
   '/api/instance/:id',
   (c) => {
+    const dao = $app.dao()
     const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
 
     const log = mkLog(`DELETE:instance`)
@@ -43,7 +44,7 @@ routerAdd(
       throw new BadRequestError(`Expected authRecord here`)
     }
 
-    const record = $app.dao().findRecordById('instances', id)
+    const record = dao.findRecordById('instances', id)
     if (!record) {
       throw new BadRequestError(`Instance ${id} not found.`)
     }
@@ -60,7 +61,7 @@ routerAdd(
     const res = $os.removeAll(path)
     log(`res`, res)
 
-    $app.dao().deleteRecord(record)
+    dao.deleteRecord(record)
 
     return c.json(200, { status: 'ok' })
   },
