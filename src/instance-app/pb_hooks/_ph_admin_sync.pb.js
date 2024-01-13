@@ -4,12 +4,19 @@ $app.onBeforeServe().add((e) => {
 
   const log = mkLog(`admin-sync`)
 
-  const { id, email, tokenKey, passwordHash } = JSON.parse(
-    $os.getenv(`ADMIN_SYNC`),
-  )
+  const { id, email, tokenKey, passwordHash } = (() => {
+    try {
+      return /** @type{{id:string, email:string, tokenKey:string,passwordHash:string}} */ (
+        JSON.parse($os.getenv(`ADMIN_SYNC`))
+      )
+    } catch (e) {
+      return { id: '', email: '', tokenKey: '', passwordHash: '' }
+    }
+  })()
 
   if (!email) {
     log(`Not active - skipped`)
+    return
   }
 
   const result = new DynamicModel({
