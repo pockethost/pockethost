@@ -3,7 +3,6 @@ import {
   EDGE_APEX_DOMAIN,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
-  INSTANCE_DATA_DB,
   mkAppUrl,
   mkContainerHomePath,
   mkDocUrl,
@@ -16,7 +15,7 @@ import {
   PocketbaseService,
   PortService,
   proxyService,
-  SqliteService,
+  SpawnConfig,
 } from '$services'
 import {
   assertTruthy,
@@ -34,6 +33,7 @@ import { asyncExitHook, mkInternalUrl, now } from '$util'
 import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'glob'
+import stringify from 'json-stringify-safe'
 import { basename, join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
@@ -248,6 +248,34 @@ export const instanceService = mkSingleton(
         })
         healthyGuard()
 
+        /** Create spawn config */
+        const spawnArgs: SpawnConfig = {
+          subdomain: instance.subdomain,
+          instanceId: instance.id,
+          port: newPort,
+          dev: instance.dev,
+          extraBinds: flatten([
+            globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
+              (file) =>
+                `${file}:${mkContainerHomePath(
+                  `pb_migrations/${basename(file)}`,
+                )}:ro`,
+            ),
+            globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
+              (file) =>
+                `${file}:${mkContainerHomePath(
+                  `pb_hooks/${basename(file)}`,
+                )}:ro`,
+            ),
+          ]),
+          env: {
+            ...instance.secrets,
+            PH_APP_NAME: instance.subdomain,
+            PH_INSTANCE_URL: mkEdgeUrl(instance.subdomain),
+          },
+          version,
+        }
+
         /** Sync admin account */
         if (instance.syncAdmin) {
           const id = instance.uid
@@ -255,36 +283,11 @@ export const instanceService = mkSingleton(
           const { email, tokenKey, passwordHash } =
             await client.getUserTokenInfo({ id })
           dbg(`Token info is`, { email, tokenKey, passwordHash })
-          const sqliteService = await SqliteService()
-          const db = await sqliteService.getDatabase(
-            INSTANCE_DATA_DB(instance.id),
-          )
-          userInstanceLogger.info(`Syncing admin login`)
-          try {
-            // First, try upserting
-            await db(`_admins`)
-              .insert({ id, email, tokenKey, passwordHash })
-              .onConflict('id')
-              .merge({ email, tokenKey, passwordHash })
-
-            userInstanceLogger.info(`${email} has been successfully sync'd`)
-          } catch (e) {
-            // Upsert could fail if the email exists under a different ID
-            // If that happens, it means they created an admin account with the same email
-            // manually. In that case, just update the pw hash
-            try {
-              userInstanceLogger.info(`Got an error on admin sync upsert. ${e}`)
-              userInstanceLogger.info(
-                `${email} may already exist under a different ID, trying to update instead`,
-              )
-              await db(`_admins`)
-                .update({ tokenKey, passwordHash })
-                .where({ email })
-              userInstanceLogger.info(`${email} has been successfully sync'd`)
-            } catch (e) {
-              userInstanceLogger.error(`Failed to sync admin account: ${e}`)
-            }
-          }
+          spawnArgs.env!.ADMIN_SYNC = stringify({
+            email,
+            tokenKey,
+            passwordHash,
+          })
         }
 
         /*
@@ -292,32 +295,7 @@ export const instanceService = mkSingleton(
         */
         const childProcess = await (async () => {
           try {
-            const cp = await pbService.spawn({
-              subdomain: instance.subdomain,
-              instanceId: instance.id,
-              port: newPort,
-              dev: instance.dev,
-              extraBinds: flatten([
-                globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
-                  (file) =>
-                    `${file}:${mkContainerHomePath(
-                      `pb_migrations/${basename(file)}`,
-                    )}:ro`,
-                ),
-                globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
-                  (file) =>
-                    `${file}:${mkContainerHomePath(
-                      `pb_hooks/${basename(file)}`,
-                    )}:ro`,
-                ),
-              ]),
-              env: {
-                ...instance.secrets,
-                PH_APP_NAME: instance.subdomain,
-                PH_INSTANCE_URL: mkEdgeUrl(instance.subdomain),
-              },
-              version,
-            })
+            const cp = await pbService.spawn(spawnArgs)
 
             return cp
           } catch (e) {
