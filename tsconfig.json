@@ -24,6 +24,5 @@
       "$shared": ["src/shared"]
     }
   },
-  "include": ["./src"],
-  "exclude": ["src/instance-app"]
+  "include": ["./src"]
 }
