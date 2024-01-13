@@ -284,6 +284,7 @@ export const instanceService = mkSingleton(
             await client.getUserTokenInfo({ id })
           dbg(`Token info is`, { email, tokenKey, passwordHash })
           spawnArgs.env!.ADMIN_SYNC = stringify({
+            id,
             email,
             tokenKey,
             passwordHash,
