@@ -75,8 +75,8 @@ export const SETTINGS = {
   PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache'), { create: true }),
 
   PH_FTP_PORT: mkNumber(21),
-  SSL_KEY: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `pockethost.test.key`)),
-  SSL_CERT: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `pockethost.test.crt`)),
+  SSL_KEY: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `localhost.key`)),
+  SSL_CERT: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `localhost.crt`)),
   PH_FTP_PASV_IP: mkString(`0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
