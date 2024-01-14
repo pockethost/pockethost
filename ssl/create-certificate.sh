@@ -48,7 +48,7 @@ openssl x509 -req \
     -CAkey ca.key \
     -CAcreateserial \
     -out "$DOMAIN.crt" \
-    -days 365 \
+    -days 3650 \
     -sha256
 
 rm "$DOMAIN.csr"
