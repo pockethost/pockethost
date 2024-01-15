@@ -1,5 +1,6 @@
 import { DEBUG, mkInstanceDataPath } from '$constants'
 import { LoggerService, createCleanupManager } from '$shared'
+import { asyncExitHook } from '$util'
 import * as fs from 'fs'
 import { Tail } from 'tail'
 import * as winston from 'winston'
@@ -103,8 +104,11 @@ export function InstanceLogger(instanceId: string, target: string) {
       }
       check()
 
+      const unsub = asyncExitHook(() => cm.shutdown())
+
       return () => {
         cm.shutdown()
+        unsub()
       }
     },
   }
