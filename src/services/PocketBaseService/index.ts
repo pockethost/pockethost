@@ -42,7 +42,7 @@ export type PocketbaseProcess = {
   url: string
   pid: () => string
   kill: () => Promise<void>
-  exitCode: Promise<number | null>
+  exitCode: Promise<number>
 }
 
 const INSTANCE_IMAGE_NAME = `pockethost-instance`
@@ -179,7 +179,7 @@ export const createPocketbaseService = async (
     let started = false
     let stopped = false
     const exitCode = new Promise<number>(async (resolveExit) => {
-      container = await new Promise<Container>((resolve) => {
+      new Promise<Container>((resolveContainer, rejectContainer) => {
         docker
           .run(
             INSTANCE_IMAGE_NAME,
@@ -201,6 +201,7 @@ export const createPocketbaseService = async (
                   `${instanceId} stopped unexpectedly with code ${StatusCode} and error ${err}`,
                 )
                 resolveExit(StatusCode || 999)
+                rejectContainer()
               } else {
                 resolveExit(0)
               }
@@ -209,14 +210,18 @@ export const createPocketbaseService = async (
           .on('container', (container: Container) => {
             dbg(`Got container`, container)
             started = true
-            resolve(container)
+            resolveContainer(container)
           })
       })
-      if (!container) {
-        iLogger.error(`Could not start container`)
-        error(`${instanceId} could not start container`)
-        resolveExit(999)
-      }
+        .then((_c) => {
+          dbg(`Container has been assigned`)
+          container = _c
+        })
+        .catch(() => {
+          dbg(`Container will not be assigned`)
+          iLogger.error(`Could not start container`)
+          error(`${instanceId} could not start container`)
+        })
     })
     exitCode.then((code) => {
       iLogger.info(`Process exited with code ${code}`)
