@@ -20,6 +20,7 @@ import {
   PortService,
 } from '$services'
 import { LoggerService, LogLevelName } from '$shared'
+import { gracefulExit } from '$util'
 import EventSource from 'eventsource'
 // gen:import
 
@@ -73,4 +74,7 @@ global.EventSource = EventSource
     ],
   })
   info(`Mothership URL for this session is ${url}`)
+  exitCode.then((c) => {
+    gracefulExit(c)
+  })
 })()
