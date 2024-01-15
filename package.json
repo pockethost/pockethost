@@ -26,7 +26,7 @@
     "dev:edge:ftp": "tsx watch src/cli/edge-ftp.ts",
     "dev:downloader": "pnpm download-versions",
     "dev:mothership:maildev": "npx -y maildev",
-    "dev:mothership:pocketbase": "tsx watch src/cli/mothership.ts",
+    "dev:mothership:pocketbase": "nodemon --signal SIGTERM --watch src --exec tsx ./src/cli/mothership.ts",
     "prod:proxy": "dotenv tsx ./src/cli/proxy/server.ts",
     "prod:edge:daemon": "tsx src/cli/edge-daemon.ts",
     "prod:edge:ftp": "tsx src/cli/edge-ftp.ts",
