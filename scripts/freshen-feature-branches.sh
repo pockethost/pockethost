@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get all branches that start with 'feat/' and store them in an array
-feat_branches=($(git branch | grep '^  feat/' | sed 's/  //'))
+feat_branches=($(git branch --list 'feat/*' 'fix/*' | sed 's/  //'))
 
 # Loop through each 'feat/' branch
 for branch in "${feat_branches[@]}"; do
