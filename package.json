@@ -24,12 +24,14 @@
     "dev:superadmin": "cd frontends/superadmin && pnpm dev",
     "dev:edge:daemon": "tsx watch src/cli/edge-daemon.ts",
     "dev:edge:ftp": "tsx watch src/cli/edge-ftp.ts",
+    "dev:edge:syslogd": "tsx watch src/cli/edge-syslogd.ts",
     "dev:downloader": "pnpm download-versions",
     "dev:mothership:maildev": "npx -y maildev",
     "dev:mothership:pocketbase": "nodemon --signal SIGTERM --watch src --exec tsx ./src/cli/mothership.ts",
     "prod:proxy": "dotenv tsx ./src/cli/proxy/server.ts",
     "prod:edge:daemon": "tsx src/cli/edge-daemon.ts",
     "prod:edge:ftp": "tsx src/cli/edge-ftp.ts",
+    "prod:edge:syslog": "tsx src/cli/edge-syslogd.ts",
     "prod:mothership": "tsx src/cli/mothership.ts",
     "plop": "plop",
     "nofile": "cat /proc/sys/fs/file-nr",
@@ -50,6 +52,7 @@
   "type": "module",
   "dependencies": {
     "@s-libs/micro-dash": "^16.1.0",
+    "@types/winston-syslog": "^2.4.3",
     "ajv": "^8.12.0",
     "boolean": "^3.2.0",
     "bottleneck": "^2.19.5",
@@ -77,10 +80,12 @@
     "pocketbase": "^0.20.1",
     "semver": "^7.5.4",
     "sqlite3": "^5.1.6",
+    "syslog-parse": "^2.0.0",
     "tail": "^2.2.6",
     "tmp": "^0.2.1",
     "url-pattern": "^1.0.3",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "winston-syslog": "^2.7.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.1.62",

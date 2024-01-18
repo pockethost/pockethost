@@ -1,9 +1,10 @@
 import {
   APEX_DOMAIN,
+  SYSLOGD_PORT,
   mkContainerHomePath,
   mkInstanceDataPath,
 } from '$constants'
-import { InstanceLogger, PortService } from '$services'
+import { PortService } from '$services'
 import {
   LoggerService,
   SingletonBaseConfig,
@@ -19,6 +20,7 @@ import MemoryStream from 'memorystream'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
+import { SyslogLogger } from '../SyslogService'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
@@ -92,7 +94,7 @@ export const createPocketbaseService = async (
     } = _cfg
 
     logger.breadcrumb(subdomain).breadcrumb(instanceId)
-    const iLogger = InstanceLogger(instanceId, 'exec')
+    const iLogger = SyslogLogger(instanceId, 'exec')
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await getVersion(_version)
@@ -106,20 +108,9 @@ export const createPocketbaseService = async (
     const docker = new Docker()
     iLogger.info(`Starting instance`)
 
-    const _stdoutData = (data: Buffer) => {
-      const lines = data.toString().split(/\n/)
-      lines.forEach((line) => {
-        iLogger.info(line)
-      })
-    }
+    const _stdoutData = (data: Buffer) => {}
     stdout.on('data', _stdoutData)
-    const _stdErrData = (data: Buffer) => {
-      const lines = data.toString().split(/\n/)
-      lines.forEach((line) => {
-        error(line)
-        iLogger.error(line)
-      })
-    }
+    const _stdErrData = (data: Buffer) => {}
     stderr.on('data', _stdErrData)
     const Binds = [
       `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
@@ -154,6 +145,13 @@ export const createPocketbaseService = async (
             Hard: 4096,
           },
         ],
+        LogConfig: {
+          Type: 'syslog',
+          Config: {
+            'syslog-address': `udp://localhost:${SYSLOGD_PORT()}`,
+            tag: instanceId,
+          },
+        },
       },
       Tty: false,
       ExposedPorts: {

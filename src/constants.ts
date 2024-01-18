@@ -98,6 +98,8 @@ export const SETTINGS = {
   TEST_EMAIL: mkString(),
 
   LS_WEBHOOK_SECRET: mkString(''),
+
+  SYSLOGD_PORT: mkNumber(6514),
 }
 ;(() => {
   let passed = true
@@ -220,6 +222,8 @@ export const DISCORD_POCKETSTREAM_URL = () =>
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
+
+export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
 
 /** Helpers */
 

@@ -25,8 +25,8 @@ export function InstanceLogger(instanceId: string, target: string) {
   }
 
   const logDirectory = mkInstanceDataPath(instanceId, `logs`)
-  console.log(`Creating ${logDirectory}`)
   if (!fs.existsSync(logDirectory)) {
+    console.log(`Creating ${logDirectory}`)
     fs.mkdirSync(logDirectory, { recursive: true })
   }
 

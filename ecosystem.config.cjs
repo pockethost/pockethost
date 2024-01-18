@@ -13,6 +13,10 @@ module.exports = {
       script: 'pnpm prod:edge:ftp',
     },
     {
+      name: `edge-syslog`,
+      script: 'pnpm prod:edge:syslog',
+    },
+    {
       name: `mothership`,
       script: 'pnpm prod:mothership',
     },
