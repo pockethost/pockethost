@@ -8,7 +8,8 @@
   export let checkoutMonthURL = ''
   export let checkoutYearURL = ''
   export let active = false
-  export let founderMembershipsRemaining = writable(0)
+  export let qtyMax = 0
+  export let qtyRemaining = writable(0)
 </script>
 
 <div
@@ -30,13 +31,16 @@
     {/if}
   </div>
 
-  {#if $founderMembershipsRemaining}
+  {#if qtyMax > 0}
     <p
       class="animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black"
     >
       <i class="fa-regular fa-clock"></i>
-      {$founderMembershipsRemaining}/100 Remaining
+      {$qtyRemaining}/{qtyMax} Remaining
     </p>
+    {#if $qtyRemaining <= 0}
+      <p class="text-error text-xl font-black">SOLD OUT</p>
+    {/if}
   {/if}
 
   <p class="mt-4 mb-8 text-sm leading-6 text-gray-300">{description}</p>
@@ -48,9 +52,13 @@
   {/if}
 
   <div class="mt-auto">
-    {#if priceMonthly[0] > 0 && priceAnnually[0] > 0}
+    {#if priceAnnually[0] > 0}
       <a
-        href={checkoutMonthURL}
+        href={qtyMax > 0
+          ? $qtyRemaining > 0
+            ? checkoutMonthURL
+            : 'javascript:alert(`sold out`)'
+          : checkoutMonthURL}
         class="mt-auto mb-4 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white"
       >
         <span class="text-xl font-bold tracking-tight text-white">
@@ -60,9 +68,14 @@
           / {priceMonthly[1]}</span
         >
       </a>
-
+    {/if}
+    {#if priceMonthly[0] > 0}
       <a
-        href={checkoutYearURL}
+        href={qtyMax > 0
+          ? $qtyRemaining > 0
+            ? checkoutYearURL
+            : 'javascript:alert(`sold out`)'
+          : checkoutYearURL}
         class="block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white"
       >
         <span class="text-xl font-bold tracking-tight text-white">

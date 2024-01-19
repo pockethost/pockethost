@@ -190,7 +190,7 @@
                         {#each items as item}
                           <MobileTable
                             feature={item.name}
-                            item={item.items[0]}
+                            item={item.items[0] || ''}
                           />
                         {/each}
                       </dl>
@@ -243,7 +243,7 @@
                         {#each items as item}
                           <MobileTable
                             feature={item.name}
-                            item={item.items[1]}
+                            item={item.items[1] || ''}
                           />
                         {/each}
                       </dl>
@@ -297,7 +297,7 @@
                         {#each items as item}
                           <MobileTable
                             feature={item.name}
-                            item={item.items[2]}
+                            item={item.items[2] || ''}
                           />
                         {/each}
                       </dl>

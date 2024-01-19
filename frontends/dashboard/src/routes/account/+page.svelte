@@ -78,7 +78,8 @@
 
           <PricingCard
             name={`${PLAN_NAMES[SubscriptionType.Lifetime]}`}
-            {founderMembershipsRemaining}
+            qtyRemaining={founderMembershipsRemaining}
+            qtyMax={200}
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
             priceMonthly={[299, 'once, use forever']}
             priceAnnually={[99, 'year (save 55%)']}
