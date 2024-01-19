@@ -5,7 +5,7 @@
   import MobileTable from '$components/tables/pricing-table/MobileTable.svelte'
   import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { DISCORD_URL, DOCS_URL } from '$src/env'
-  import { userSubscriptionType } from '$util/stores'
+  import { userSubscriptionType, isUserFounder } from '$util/stores'
 
   type ItemValue = '1' | 'Unlimited' | 'YesBlock' | 'NoBlock'
 
@@ -137,13 +137,14 @@
                     <div class="rounded-lg ring-1 ring-transparent"></div>
                   {/if}
 
-                  {#if $userSubscriptionType === SubscriptionType.Premium}
+                  {#if $userSubscriptionType === SubscriptionType.Premium && !$isUserFounder}
                     <div class="rounded-lg ring-2 ring-primary"></div>
                   {:else}
                     <div class="rounded-lg ring-1 ring-transparent"></div>
                   {/if}
 
-                  {#if $userSubscriptionType === SubscriptionType.Lifetime}
+                  {#if $userSubscriptionType === SubscriptionType.Lifetime ||
+                  (SubscriptionType.Premium && $isUserFounder)}
                     <div class="rounded-lg ring-2 ring-primary"></div>
                   {:else}
                     <div class="rounded-lg ring-1 ring-transparent"></div>
