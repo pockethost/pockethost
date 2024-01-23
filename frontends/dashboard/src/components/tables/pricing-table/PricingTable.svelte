@@ -143,8 +143,7 @@
                     <div class="rounded-lg ring-1 ring-transparent"></div>
                   {/if}
 
-                  {#if $userSubscriptionType === SubscriptionType.Lifetime ||
-                  (SubscriptionType.Premium && $isUserFounder)}
+                  {#if $userSubscriptionType === SubscriptionType.Lifetime || (SubscriptionType.Premium && $isUserFounder)}
                     <div class="rounded-lg ring-2 ring-primary"></div>
                   {:else}
                     <div class="rounded-lg ring-1 ring-transparent"></div>
