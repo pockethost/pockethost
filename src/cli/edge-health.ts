@@ -3,7 +3,6 @@ import {
   DEBUG,
   DefaultSettingsService,
   DISCORD_HEALTH_CHANNEL_URL,
-  MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   SETTINGS,
 } from '$constants'
@@ -31,31 +30,79 @@ const openFiles = _exec(`lsof -n | awk '$4 ~ /^[0-9]/ {print}'`)
 
 const [freeSpace] = _exec(`df -h / | awk 'NR==2{print $4}'`)
 
-const containers = _exec(
-  `docker ps --format '{{.Names}} {{.Ports}}' | awk '{print $1, $2}' | sed 's/-[0-9]* / /' |  awk -F':' '{print $1, $2}' | awk '{print $1, $3}' | awk -F'->' '{print $1}'`,
-)
-  .map((line) => line.split(/\s+/))
-  .filter((split): split is [string, string] => !!split[0])
-  .filter(([name]) => name !== MOTHERSHIP_NAME())
-  .map(([name, port]) => {
+type DockerPs = {
+  Command: string
+  CreatedAt: string
+  ID: string
+  Image: string
+  Labels: string
+  LocalVolumes: string
+  Mounts: string
+  Names: string
+  Networks: string
+  Ports: string
+  RunningFor: string
+  Size: string
+  State: string
+  Status: string
+}
+
+const SAMPLE: DockerPs = {
+  Command: '"docker-entrypoint.s…"',
+  CreatedAt: '2024-01-23 04:36:09 +0000 UTC',
+  ID: '6e0921e84391',
+  Image: 'pockethost-instance',
+  Labels: '',
+  LocalVolumes: '0',
+  Mounts:
+    '/home/pocketho…,/home/pocketho…,/home/pocketho…,/home/pocketho…,/home/pocketho…',
+  Names: 'kekbase-1705984569777',
+  Networks: 'bridge',
+  Ports: '0.0.0.0:44447-\u003e8090/tcp, :::44447-\u003e8090/tcp',
+  RunningFor: '7 hours ago',
+  Size: '0B (virtual 146MB)',
+  State: 'running',
+  Status: 'Up 7 hours',
+}
+
+type Check = {
+  name: string
+  priority: number
+  emoji: string
+  isHealthy: boolean
+  url: string
+
+  // Instance
+  port?: number
+  ago?: string
+  mem?: string
+}
+
+const containers = _exec(`docker ps --format '{{json .}}'`)
+  .filter((line) => line.trim())
+  .map((line) => {
+    dbg(line)
+    return line
+  })
+  .map((line) => JSON.parse(line) as DockerPs)
+  .map<Check>((rec) => {
+    const name = rec.Names.replace(/-\d+/, '')
+
+    const port = parseInt(rec.Ports.match(/:(\d+)/)?.[1] || '0', 10)
+    const mem = rec.Size.match(/(\d+MB)/)?.[1] || '0MB'
     return {
       name,
       priority: 0,
       emoji: ':guitar:',
-      port: parseInt(port || '0', 10),
+      port,
       isHealthy: false,
       url: `http://localhost:${port}/api/health`,
+      ago: rec.RunningFor,
+      mem,
     }
   })
 
-const checks: {
-  name: string
-  priority: number
-  emoji?: string
-  isHealthy: boolean
-  url: string
-  port?: number
-}[] = [
+const checks: Check[] = [
   {
     name: `edge proxy`,
     priority: 10,
@@ -120,10 +167,10 @@ await fetch(DISCORD_URL, {
           return a.name.localeCompare(b.name)
         })
         .map(
-          ({ name, isHealthy, emoji }) =>
+          ({ name, isHealthy, emoji, mem, ago }) =>
             `${
               isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-            } ${emoji} ${name}`,
+            } ${emoji} ${name} ${mem || ''} ${ago || ''}`,
         ),
     ].join(`\n`),
   }),
