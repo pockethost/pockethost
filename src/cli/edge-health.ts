@@ -76,6 +76,7 @@ type Check = {
   port?: number
   ago?: string
   mem?: string
+  created?: Date
 }
 
 const containers = _exec(`docker ps --format '{{json .}}'`)
@@ -87,18 +88,19 @@ const containers = _exec(`docker ps --format '{{json .}}'`)
   .map((line) => JSON.parse(line) as DockerPs)
   .map<Check>((rec) => {
     const name = rec.Names.replace(/-\d+/, '')
-
     const port = parseInt(rec.Ports.match(/:(\d+)/)?.[1] || '0', 10)
     const mem = rec.Size.match(/(\d+MB)/)?.[1] || '0MB'
+    const created = new Date(rec.CreatedAt)
     return {
       name,
       priority: 0,
-      emoji: ':guitar:',
+      emoji: ':octopus:',
       port,
       isHealthy: false,
       url: `http://localhost:${port}/api/health`,
       ago: rec.RunningFor,
       mem,
+      created,
     }
   })
 
@@ -150,29 +152,67 @@ function getFreeMemoryInGB(): string {
   return freeMemoryGB.toFixed(2) // Rounds to 2 decimal places
 }
 
-await fetch(DISCORD_URL, {
-  method: 'POST',
-  body: JSON.stringify({
-    content: [
-      `===================`,
-      `Server: SFO-1`,
-      `${new Date()}`,
-      `Free RAM: ${getFreeMemoryInGB()}`,
-      `Free disk: ${freeSpace}`,
-      `${checks.length} containers running and ${openFiles.length} open files.`,
-      ...checks
-        .sort((a, b) => {
-          if (a.priority > b.priority) return -1
-          if (a.priority < b.priority) return 1
-          return a.name.localeCompare(b.name)
-        })
-        .map(
-          ({ name, isHealthy, emoji, mem, ago }) =>
-            `${
-              isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-            } ${emoji} ${name} ${mem || ''} ${ago || ''}`,
-        ),
-    ].join(`\n`),
+const content = [
+  `===================`,
+  `Server: SFO-1`,
+  `${new Date()}`,
+  `Free RAM: ${getFreeMemoryInGB()}`,
+  `Free disk: ${freeSpace}`,
+  `${checks.length} containers running and ${openFiles.length} open files.`,
+  ...checks
+    .sort((a, b) => {
+      if (a.priority > b.priority) return -1
+      if (a.priority < b.priority) return 1
+      const now = new Date()
+      return +(b.created || now) - +(a.created || now)
+      return a.name.localeCompare(b.name)
+    })
+    .map(({ name, isHealthy, emoji, mem, ago }) => {
+      const isInstance = !!mem
+      if (isInstance) {
+        return `${
+          isHealthy ? ':white_check_mark:' : ':face_vomiting: '
+        } ${emoji} \`${name.padStart(20)} ${(mem || '').padStart(10)} ${
+          ago || ''
+        }\``
+      }
+      return `${
+        isHealthy ? ':white_check_mark:' : ':face_vomiting: '
+      } ${emoji} ${name}`
+    }),
+]
+
+function splitIntoChunks(lines: string[], maxChars: number = 2000): string[] {
+  const chunks: string[] = []
+  let currentChunk: string = ''
+
+  lines.forEach((line) => {
+    // Check if adding the next line exceeds the maxChars limit
+    if (currentChunk.length + line.length + 1 > maxChars) {
+      chunks.push(currentChunk)
+      currentChunk = ''
+    }
+    currentChunk += line + '\n' // Add the line and a newline character
+  })
+
+  // Add the last chunk if it's not empty
+  if (currentChunk) {
+    chunks.push(currentChunk)
+  }
+
+  return chunks
+}
+
+dbg(content)
+
+await Promise.all(
+  splitIntoChunks(content).map(async (content) => {
+    await fetch(DISCORD_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        content,
+      }),
+      headers: { 'content-type': 'application/json' },
+    })
   }),
-  headers: { 'content-type': 'application/json' },
-})
+)
