@@ -7,6 +7,7 @@ import {
   SETTINGS,
 } from '$constants'
 import { LoggerService, LogLevelName } from '$shared'
+import Bottleneck from 'bottleneck'
 import { execSync } from 'child_process'
 import fetch from 'node-fetch'
 import { freemem } from 'os'
@@ -172,9 +173,9 @@ const content = [
       if (isInstance) {
         return `${
           isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-        } ${emoji} \`${name.padStart(20)} ${(mem || '').padStart(10)} ${
+        } ${emoji} \`${name.padStart(30)} ${(mem || '').padStart(10)} ${(
           ago || ''
-        }\``
+        ).padStart(20)}\``
       }
       return `${
         isHealthy ? ':white_check_mark:' : ':face_vomiting: '
@@ -205,14 +206,17 @@ function splitIntoChunks(lines: string[], maxChars: number = 2000): string[] {
 
 dbg(content)
 
+const limiter = new Bottleneck({ maxConcurrent: 1 })
 await Promise.all(
-  splitIntoChunks(content).map(async (content) => {
-    await fetch(DISCORD_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        content,
+  splitIntoChunks(content).map((content) =>
+    limiter.schedule(() =>
+      fetch(DISCORD_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          content,
+        }),
+        headers: { 'content-type': 'application/json' },
       }),
-      headers: { 'content-type': 'application/json' },
-    })
-  }),
+    ),
+  ),
 )
