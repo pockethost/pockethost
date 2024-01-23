@@ -10,7 +10,10 @@ import { LoggerService, LogLevelName } from '$shared'
 import Bottleneck from 'bottleneck'
 import { execSync } from 'child_process'
 import fetch from 'node-fetch'
+import { default as osu } from 'node-os-utils'
 import { freemem } from 'os'
+
+const { cpu, drive, openfiles, proc } = osu
 
 DefaultSettingsService(SETTINGS)
 
@@ -105,6 +108,64 @@ const containers = _exec(`docker ps --format '{{json .}}'`)
     }
   })
 
+function getFreeMemoryInGB(): string {
+  const freeMemoryBytes: number = freemem()
+  const freeMemoryGB: number = freeMemoryBytes / Math.pow(1024, 3)
+  return freeMemoryGB.toFixed(2) // Rounds to 2 decimal places
+}
+
+function splitIntoChunks(lines: string[], maxChars: number = 2000): string[] {
+  const chunks: string[] = []
+  let currentChunk: string = ''
+
+  lines.forEach((line) => {
+    // Check if adding the next line exceeds the maxChars limit
+    if (currentChunk.length + line.length + 1 > maxChars) {
+      chunks.push(currentChunk)
+      currentChunk = ''
+    }
+    currentChunk += line + '\n' // Add the line and a newline character
+  })
+
+  // Add the last chunk if it's not empty
+  if (currentChunk) {
+    chunks.push(currentChunk)
+  }
+
+  return chunks
+}
+
+const limiter = new Bottleneck({ maxConcurrent: 1 })
+
+const send = (lines: string[]) =>
+  Promise.all(
+    splitIntoChunks(lines).map((content) =>
+      limiter.schedule(() =>
+        fetch(DISCORD_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            content,
+          }),
+          headers: { 'content-type': 'application/json' },
+        }),
+      ),
+    ),
+  )
+
+const driveInfo = await drive.info(`/`)
+
+await send([
+  `===================`,
+  `Server: SFO-1`,
+  `${new Date()}`,
+  `CPUs: ${cpu.count()}`,
+  `CPU Usage: ${await cpu.usage()}%`,
+  `Free RAM: ${getFreeMemoryInGB()}GB`,
+  `Free disk: ${driveInfo.freeGb}GB`,
+  `Open files: ${openFiles.length}`,
+  `Containers: ${containers.length}`,
+])
+
 const checks: Check[] = [
   {
     name: `edge proxy`,
@@ -146,20 +207,8 @@ await Promise.all(
   }),
 )
 dbg({ checks })
-
-function getFreeMemoryInGB(): string {
-  const freeMemoryBytes: number = freemem()
-  const freeMemoryGB: number = freeMemoryBytes / Math.pow(1024, 3)
-  return freeMemoryGB.toFixed(2) // Rounds to 2 decimal places
-}
-
-const content = [
-  `===================`,
-  `Server: SFO-1`,
-  `${new Date()}`,
-  `Free RAM: ${getFreeMemoryInGB()}`,
-  `Free disk: ${freeSpace}`,
-  `${checks.length} containers running and ${openFiles.length} open files.`,
+await send([
+  `---health checks---`,
   ...checks
     .sort((a, b) => {
       if (a.priority > b.priority) return -1
@@ -181,42 +230,4 @@ const content = [
         isHealthy ? ':white_check_mark:' : ':face_vomiting: '
       } ${emoji} ${name}`
     }),
-]
-
-function splitIntoChunks(lines: string[], maxChars: number = 2000): string[] {
-  const chunks: string[] = []
-  let currentChunk: string = ''
-
-  lines.forEach((line) => {
-    // Check if adding the next line exceeds the maxChars limit
-    if (currentChunk.length + line.length + 1 > maxChars) {
-      chunks.push(currentChunk)
-      currentChunk = ''
-    }
-    currentChunk += line + '\n' // Add the line and a newline character
-  })
-
-  // Add the last chunk if it's not empty
-  if (currentChunk) {
-    chunks.push(currentChunk)
-  }
-
-  return chunks
-}
-
-dbg(content)
-
-const limiter = new Bottleneck({ maxConcurrent: 1 })
-await Promise.all(
-  splitIntoChunks(content).map((content) =>
-    limiter.schedule(() =>
-      fetch(DISCORD_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          content,
-        }),
-        headers: { 'content-type': 'application/json' },
-      }),
-    ),
-  ),
-)
+])
