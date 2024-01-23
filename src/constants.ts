@@ -100,6 +100,8 @@ export const SETTINGS = {
   LS_WEBHOOK_SECRET: mkString(''),
 
   SYSLOGD_PORT: mkNumber(6514),
+
+  DISCORD_HEALTH_CHANNEL_URL: mkString(''),
 }
 ;(() => {
   let passed = true
@@ -224,6 +226,9 @@ export const TEST_EMAIL = () => settings().TEST_EMAIL
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
 
 export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
+
+export const DISCORD_HEALTH_CHANNEL_URL = () =>
+  settings().DISCORD_HEALTH_CHANNEL_URL
 
 /** Helpers */
 

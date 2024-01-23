@@ -31,6 +31,7 @@
     "prod:proxy": "dotenv tsx ./src/cli/proxy/server.ts",
     "prod:edge:daemon": "tsx src/cli/edge-daemon.ts",
     "prod:edge:ftp": "tsx src/cli/edge-ftp.ts",
+    "prod:edge:health": "tsx src/cli/edge-health.ts",
     "prod:edge:syslog": "tsx src/cli/edge-syslogd.ts",
     "prod:mothership": "tsx src/cli/mothership.ts",
     "plop": "plop",

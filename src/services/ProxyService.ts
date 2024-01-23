@@ -2,14 +2,14 @@ import { DAEMON_PORT } from '$constants'
 import {
   Logger,
   LoggerService,
-  SingletonBaseConfig,
   mkSingleton,
+  SingletonBaseConfig,
 } from '$shared'
 import { asyncExitHook } from '$util'
 import cors from 'cors'
 import express, { Request, Response } from 'express'
 import 'express-async-errors'
-import { default as Server, default as httpProxy } from 'http-proxy'
+import { default as httpProxy, default as Server } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
@@ -43,6 +43,11 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   const server = express()
 
   server.use(cors())
+
+  server.get('/api/health', (req, res, next) => {
+    res.json({ status: 'ok' })
+    res.end
+  })
 
   server.use((req, res, next) => {
     const host = req.headers.host

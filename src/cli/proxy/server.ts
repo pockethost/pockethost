@@ -44,6 +44,11 @@ forEach(hostnameRoutes, (target, host) => {
   app.use(createVhostProxyMiddleware(host, target, IS_DEV()))
 })
 
+app.get(`/api/health`, (req, res, next) => {
+  res.json({ status: 'ok' })
+  res.end()
+})
+
 // Fall-through
 const handler = createProxyMiddleware({
   target: `http://localhost:${DAEMON_PORT()}`,

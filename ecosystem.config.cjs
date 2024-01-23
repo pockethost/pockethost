@@ -25,5 +25,10 @@ module.exports = {
       restart_delay: 60 * 60 * 1000, // 1 hour
       script: 'pnpm download-versions',
     },
+    {
+      name: `edge-health`,
+      restart_delay: 60 * 1000, // 1 minute
+      script: 'pnpm prod:edge:health',
+    },
   ],
 }
