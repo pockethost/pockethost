@@ -1,6 +1,6 @@
 import {
   APEX_DOMAIN,
-  DOCKER_HOST,
+  DOCKER_CONTAINER_HOST,
   mkContainerHomePath,
   mkInstanceDataPath,
   SYSLOGD_PORT,
@@ -149,7 +149,7 @@ export const createPocketbaseService = async (
         LogConfig: {
           Type: 'syslog',
           Config: {
-            'syslog-address': `udp://${DOCKER_HOST()}:${SYSLOGD_PORT()}`,
+            'syslog-address': `udp://${DOCKER_CONTAINER_HOST()}:${SYSLOGD_PORT()}`,
             tag: instanceId,
           },
         },
