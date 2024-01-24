@@ -102,6 +102,8 @@ export const SETTINGS = {
   SYSLOGD_PORT: mkNumber(6514),
 
   DISCORD_HEALTH_CHANNEL_URL: mkString(''),
+
+  DOCKER_HOST: mkString(`host.docker.internal`),
 }
 ;(() => {
   let passed = true
@@ -229,6 +231,8 @@ export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
 
 export const DISCORD_HEALTH_CHANNEL_URL = () =>
   settings().DISCORD_HEALTH_CHANNEL_URL
+
+export const DOCKER_HOST = () => settings().DOCKER_HOST
 
 /** Helpers */
 

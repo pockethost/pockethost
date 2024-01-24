@@ -1,16 +1,17 @@
 import {
   APEX_DOMAIN,
-  SYSLOGD_PORT,
+  DOCKER_HOST,
   mkContainerHomePath,
   mkInstanceDataPath,
+  SYSLOGD_PORT,
 } from '$constants'
 import { PortService } from '$services'
 import {
-  LoggerService,
-  SingletonBaseConfig,
   createCleanupManager,
   createTimerManager,
+  LoggerService,
   mkSingleton,
+  SingletonBaseConfig,
 } from '$shared'
 import { assert, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
@@ -148,7 +149,7 @@ export const createPocketbaseService = async (
         LogConfig: {
           Type: 'syslog',
           Config: {
-            'syslog-address': `udp://localhost:${SYSLOGD_PORT()}`,
+            'syslog-address': `udp://${DOCKER_HOST()}:${SYSLOGD_PORT()}`,
             tag: instanceId,
           },
         },
