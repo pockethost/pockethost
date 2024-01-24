@@ -44,7 +44,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
 
   server.use(cors())
 
-  server.get('/api/health', (req, res, next) => {
+  server.get('/_api/health', (req, res, next) => {
     res.json({ status: 'ok' })
     res.end
   })

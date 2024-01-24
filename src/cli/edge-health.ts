@@ -172,14 +172,14 @@ const checks: Check[] = [
     priority: 10,
     emoji: `:park:`,
     isHealthy: false,
-    url: `https://proxy.pockethost.io/api/health`,
+    url: `https://proxy.pockethost.io/_api/health`,
   },
   {
     name: `edge daemon`,
     priority: 8,
     emoji: `:imp:`,
     isHealthy: false,
-    url: `http://localhost:${DAEMON_PORT()}/api/health`,
+    url: `http://localhost:${DAEMON_PORT()}/_api/health`,
   },
   {
     name: `mothership`,

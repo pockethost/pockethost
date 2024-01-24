@@ -44,7 +44,7 @@ forEach(hostnameRoutes, (target, host) => {
   app.use(createVhostProxyMiddleware(host, target, IS_DEV()))
 })
 
-app.get(`/api/health`, (req, res, next) => {
+app.get(`/_api/health`, (req, res, next) => {
   res.json({ status: 'ok' })
   res.end()
 })
