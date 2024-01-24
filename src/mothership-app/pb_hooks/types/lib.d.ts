@@ -24,7 +24,7 @@ interface Lib {
   enqueueNotification: (
     channel: 'email' | 'lemonbot',
     template:
-      | 'maintenance_mode'
+      | 'maintenance-mode'
       | 'lemon_order_email'
       | 'lemon_order_discord'
       | 'welcome',
