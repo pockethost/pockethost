@@ -464,10 +464,7 @@ export const instanceService = mkSingleton(
 
       const instance = await getInstance(host)
       if (!instance) {
-        res.writeHead(404, {
-          'Content-Type': `text/plain`,
-        })
-        res.end(`${host} not found`)
+        res.status(404).end(`${host} not found`)
         return
       }
       const owner = instance.expand.uid
@@ -517,8 +514,6 @@ export const instanceService = mkSingleton(
       await p
     })
 
-    const getInstanceApiIfExistsById = (id: InstanceId) => instanceApis[id]
-
-    return { getInstanceApiIfExistsById }
+    return {}
   },
 )
