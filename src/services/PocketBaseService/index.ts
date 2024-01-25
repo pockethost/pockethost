@@ -109,9 +109,13 @@ export const createPocketbaseService = async (
     const docker = new Docker()
     iLogger.info(`Starting instance`)
 
-    const _stdoutData = (data: Buffer) => {}
+    const _stdoutData = (data: Buffer) => {
+      dbg(data.toString())
+    }
     stdout.on('data', _stdoutData)
-    const _stdErrData = (data: Buffer) => {}
+    const _stdErrData = (data: Buffer) => {
+      dbg(data.toString())
+    }
     stderr.on('data', _stdErrData)
     const Binds = [
       `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
