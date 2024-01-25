@@ -2,7 +2,7 @@
 
 ## Introduction
 
-PocketHost is the open source the cloud hosting platform for PocketBase. https://pockethost.io is the flagship service running PocketHost, where you can host your PocketBase projects wit zero setup. Create a project like you would in Firebase and Supabase and let PocketHost do the rest.
+PocketHost is the open source cloud hosting platform for PocketBase. https://pockethost.io is the flagship service running PocketHost, where you can host your PocketBase projects with zero setup. Create a project like you would in Firebase and Supabase and let PocketHost do the rest.
 
 Features:
 
