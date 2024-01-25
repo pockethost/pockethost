@@ -20,8 +20,6 @@ const { dbg, info, error } = LoggerService({
   level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
 }).create(`edge-syslogd`)
 
-console.log(`debug is ${DEBUG()}`)
-
 server.on('error', (err) => {
   console.log(`Server error:\n${err.stack}`)
   server.close()
