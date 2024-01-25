@@ -43,7 +43,7 @@
 
   const scrollToBottom = (node: Element) => {
     if (node) {
-      node.scroll({ top: node.scrollHeight + 1000, behavior: 'smooth' })
+      node.scroll({ top: node.scrollHeight, behavior: 'smooth' })
     }
   }
 
