@@ -2,7 +2,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { INSTANCE_URL } from '$src/env'
+  import { DISCORD_URL, INSTANCE_URL } from '$src/env'
   import { instance } from './store'
 
   let installSnippet = `npm i pocketbase`
@@ -34,10 +34,8 @@
       {:else}
         <div class="text-error">
           Notice: You are in Custom Domain mode but it is not active and will
-          not work. Go find <a
-            href="https://discord.com/channels/1128192380500193370/1189948945967882250"
-            target="_blank"
-            class="link">@noaxis on Discord</a
+          not work. Go find <a href={DISCORD_URL} target="_blank" class="link"
+            >@noaxis on Discord</a
           > to get set up.
         </div>
       {/if}
