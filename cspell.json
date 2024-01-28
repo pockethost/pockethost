@@ -7,8 +7,10 @@
     "eventsource",
     "frontends",
     "getenv",
+    "jsonifiable",
     "lemonbot",
     "maildev",
+    "maxsize",
     "memorystream",
     "middlewares",
     "mothership",
@@ -21,6 +23,8 @@
     "rizzdown",
     "superadmin",
     "syslogd",
+    "tailable",
+    "Unsub",
     "unzipper",
     "upserting"
   ]
