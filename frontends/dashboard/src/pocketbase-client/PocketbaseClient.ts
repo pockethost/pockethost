@@ -262,6 +262,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
           'Content-Type': 'application/json',
           Authorization: client.authStore.token,
         },
+        openWhenHidden: true,
         body: JSON.stringify({
           instanceId: instance.id,
           n: nInitial,

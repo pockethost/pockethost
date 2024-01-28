@@ -6,10 +6,10 @@
   import FAQSection from '$src/routes/account/FAQSection.svelte'
   import PricingCard from '$src/routes/account/PricingCard.svelte'
   import {
+    isUserFounder,
     isUserLegacy,
     userStore,
     userSubscriptionType,
-    isUserFounder,
   } from '$util/stores'
   import { onMount } from 'svelte'
   import { writable } from 'svelte/store'
@@ -21,7 +21,7 @@
       const membershipCount = await client()
         .client.collection('settings')
         .getFirstListItem(`name = 'founders-edition-count'`)
-      founderMembershipsRemaining.set(membershipCount.value)
+      founderMembershipsRemaining.set(Math.max(0, membershipCount.value))
     } catch (e) {
       console.error(e)
     }
@@ -85,7 +85,7 @@
           <PricingCard
             name={`${PLAN_NAMES[SubscriptionType.Lifetime]}`}
             qtyRemaining={founderMembershipsRemaining}
-            qtyMax={200}
+            qtyMax={100}
             description="Super elite! The Founder's Edition is our way of saying thanks for supporting PocketHost in these early days. Choose between lifetime and annual options."
             priceMonthly={[299, 'once, use forever']}
             priceAnnually={[99, 'year (save 55%)']}

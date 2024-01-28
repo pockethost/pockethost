@@ -2,7 +2,7 @@
   import { StreamNames, Unsubscribe, type InstanceLogFields } from '$shared'
   import { client } from '$src/pocketbase-client'
   import { mkCleanup } from '$util/componentCleanup'
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'
 
@@ -33,6 +33,29 @@
     modal?.showModal()
   }
 
+  // Auto Scrolls The Logs Window as New Logs Are Appended
+  // -----------------------------------------------------
+
+  let logElement: Element
+  let logElementPopup: Element
+
+  let autoScroll: boolean = true
+
+  const scrollToBottom = (node: Element) => {
+    if (node) {
+      node.scroll({ top: node.scrollHeight, behavior: 'smooth' })
+    }
+  }
+
+  $: if ($logs && autoScroll) {
+    tick().then(() => {
+      if (logElement) scrollToBottom(logElement)
+      if (logElementPopup) scrollToBottom(logElementPopup)
+    })
+  }
+
+  // -----------------------------------------------------
+
   const logs = writable<InstanceLogFields[]>([])
 
   const onDestroy = mkCleanup()
@@ -62,9 +85,22 @@
 
 <dialog id="loggingFullscreenModal" class="modal backdrop-blur">
   <div class="modal-box max-w-[90vw] h-[90vh]">
+    <button
+      class="btn btn-sm absolute top-[6px] right-[6px]"
+      on:click={() => (autoScroll = !autoScroll)}
+      >AutoScroll
+      <i
+        class="fa-regular"
+        class:fa-close={!autoScroll}
+        class:fa-arrow-down={autoScroll}
+      />
+    </button>
     <h3 class="font-bold text-lg">Instance Logging</h3>
 
-    <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col">
+    <div
+      class="py-4 h-[80vh] overflow-y-scroll flex flex-col"
+      bind:this={logElementPopup}
+    >
       {#each $logs as log}
         <div
           class="px-4 text-[11px] font-mono flex align-center"
@@ -87,12 +123,20 @@
 </dialog>
 
 <div class="mockup-code">
-  <button
-    class="btn btn-sm absolute top-[6px] right-[6px]"
-    on:click={handleFullScreenModal}
-    >Fullscreen <i class="fa-regular fa-arrows-maximize"></i></button
-  >
-  <div class="h-[450px] flex flex-col overflow-y-scroll">
+  <div class="flex flex-row absolute top-[6px] right-[6px] gap-1">
+    <button class="btn btn-sm" on:click={() => (autoScroll = !autoScroll)}
+      >AutoScroll
+      <i
+        class="fa-regular"
+        class:fa-close={!autoScroll}
+        class:fa-arrow-down={autoScroll}
+      />
+    </button>
+    <button class="btn btn-sm" on:click={handleFullScreenModal}
+      >Fullscreen <i class="fa-regular fa-arrows-maximize" /></button
+    >
+  </div>
+  <div class="h-[450px] flex flex-col overflow-y-scroll" bind:this={logElement}>
     {#each $logs as log}
       <div class="px-4 text-[11px] font-mono flex align-center" data-prefix=">">
         <div>
