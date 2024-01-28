@@ -80,7 +80,10 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
       res.write(evt)
     })
 
-    res.on('close', unsub)
+    res.on('close', () => {
+      unsub()
+      instanceLogger.shutdown()
+    })
   })
 
   return {}

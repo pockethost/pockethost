@@ -1,36 +1,52 @@
-import { DEBUG, mkInstanceDataPath } from '$constants'
-import { LoggerService, createCleanupManager } from '$shared'
-import { asyncExitHook } from '$util'
+import { mkInstanceDataPath } from '$constants'
+import { createCleanupManager, LoggerService } from '$shared'
+import { asyncExitHook, mergeConfig } from '$util'
 import * as fs from 'fs'
 import { Tail } from 'tail'
 import * as winston from 'winston'
 
 type UnsubFunc = () => void
 
+export type InstanceLoggerApi = {
+  info: (msg: string) => void
+  error: (msg: string) => void
+  tail: (linesBack: number, data: (line: winston.LogEntry) => void) => UnsubFunc
+  shutdown: () => void
+}
+
+export type InstanceLoggerOptions = {
+  ttl: number
+}
+
 const loggers: {
-  [key: string]: {
-    info: (msg: string) => void
-    error: (msg: string) => void
-    tail: (
-      linesBack: number,
-      data: (line: winston.LogEntry) => void,
-    ) => UnsubFunc
-  }
+  [key: string]: InstanceLoggerApi
 } = {}
 
-export function InstanceLogger(instanceId: string, target: string) {
+export function InstanceLogger(
+  instanceId: string,
+  target: string,
+  options: Partial<InstanceLoggerOptions> = {},
+) {
+  const { dbg, info } = LoggerService().create(instanceId).breadcrumb(target)
+  const { ttl } = mergeConfig<InstanceLoggerOptions>({ ttl: 0 }, options)
+
+  dbg({ ttl })
+
   const loggerKey = `${instanceId}_${target}`
   if (loggers[loggerKey]) {
+    dbg(`Logger exists, using cache`)
     return loggers[loggerKey]!
   }
 
   const logDirectory = mkInstanceDataPath(instanceId, `logs`)
   if (!fs.existsSync(logDirectory)) {
-    console.log(`Creating ${logDirectory}`)
+    dbg(`Creating ${logDirectory}`)
     fs.mkdirSync(logDirectory, { recursive: true })
   }
 
   const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+
+  const cm = createCleanupManager()
 
   const logger = winston.createLogger({
     format: winston.format.combine(
@@ -55,25 +71,50 @@ export function InstanceLogger(instanceId: string, target: string) {
     ],
   })
 
+  cm.add(() => {
+    dbg(`Deleting and closing`)
+    delete loggers[loggerKey]
+    logger.close()
+  })
+
   const { error, warn } = LoggerService()
     .create('InstanceLogger')
     .breadcrumb(instanceId)
     .breadcrumb(target)
 
+  const resetTtl = (() => {
+    let tid: ReturnType<typeof setTimeout>
+
+    return () => {
+      if (!ttl) return
+      clearTimeout(tid)
+      tid = setTimeout(() => {
+        dbg(`Logger timeout`)
+        api.shutdown()
+      }, ttl)
+    }
+  })()
+
   const api = {
     info: (msg: string) => {
+      resetTtl()
+      dbg(`info: `, msg)
       logger.info(msg)
     },
     error: (msg: string) => {
+      resetTtl()
+      dbg(`error: `, msg)
       logger.error(msg)
     },
     tail: (
       linesBack: number,
       data: (line: winston.LogEntry) => void,
     ): UnsubFunc => {
+      if (ttl) {
+        throw new Error(`Cannot tail with ttl active`)
+      }
       const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 
-      const cm = createCleanupManager()
       let tid: any
       cm.add(() => clearTimeout(tid))
       const check = () => {
@@ -111,12 +152,7 @@ export function InstanceLogger(instanceId: string, target: string) {
         unsub()
       }
     },
-  }
-  if (DEBUG()) {
-    const { dbg } = LoggerService().create(`Logger`).breadcrumb(instanceId)
-    api.tail(0, (entry) => {
-      dbg(entry.message)
-    })
+    shutdown: () => cm.shutdown(),
   }
 
   loggers[loggerKey] = api

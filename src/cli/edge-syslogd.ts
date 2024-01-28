@@ -37,7 +37,7 @@ server.on('message', (msg, rinfo) => {
 
   const { process: instanceId, severity, message } = parsed
 
-  const logger = InstanceLogger(instanceId, `exec`)
+  const logger = InstanceLogger(instanceId, `exec`, { ttl: 5000 })
   if (severity === 'info') {
     logger.info(message)
   } else {
