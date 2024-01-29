@@ -90,6 +90,13 @@ export const createLogger = (config: Partial<Config>) => {
       while (args.length > 0) {
         let arg = args.shift()
         const t = typeof arg
+        if (arg instanceof Error) {
+          args.unshift(...[arg.name, arg.message.toString()])
+          if (isLevelLte(levelIn, LogLevelName.Debug) && arg.stack) {
+            args.unshift(...arg.stack.split(/\n/))
+          }
+          continue
+        }
         if (t === 'string' && !!arg.match(/\n/)) {
           args.unshift(...arg.split(/\n/))
           continue
