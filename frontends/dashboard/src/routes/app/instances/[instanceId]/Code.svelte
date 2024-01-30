@@ -7,9 +7,10 @@
 
   let installSnippet = `npm i pocketbase`
 
+  const url = INSTANCE_URL($instance)
+
   let connectionSnippet = ''
   $: {
-    const url = INSTANCE_URL($instance)
     connectionSnippet = `import PocketBase from 'pocketbase';\n\nconst url = '${url}'\nconst client = new PocketBase(url)`
   }
 
@@ -20,6 +21,11 @@
 
 <Card>
   <CardHeader>Getting Started</CardHeader>
+
+  <div class="mb-4">
+    <p>Your PocketBase URL is</p>
+    <CodeSample code={url} />
+  </div>
 
   <div class="mb-4">
     <p>Installing PocketBase</p>
