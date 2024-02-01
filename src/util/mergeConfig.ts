@@ -1,3 +1,11 @@
+/**
+ * Merges a config object with defaults. Shallow copies root descendants,
+ * skipping`undefined` values.
+ *
+ * @param defaultConfig The default config values
+ * @param partialConfigs A partial config to merge with defaults
+ * @returns
+ */
 export function mergeConfig<T>(
   defaultConfig: T,
   ...partialConfigs: Partial<T>[]
