@@ -18,7 +18,6 @@ import {
   SpawnConfig,
 } from '$services'
 import {
-  assertTruthy,
   CLEANUP_PRIORITY_LAST,
   createCleanupManager,
   createTimerManager,
@@ -314,8 +313,7 @@ export const instanceService = mkSingleton(
             )
           }
         })()
-        const { pid: _pid, exitCode } = childProcess
-        const pid = _pid()
+        const { exitCode } = childProcess
         exitCode.then((code) => {
           info(`Processes exited with ${code}.`)
           if (code !== 0 && !UPGRADE_MODE()) {
@@ -335,10 +333,6 @@ export const instanceService = mkSingleton(
             _safeShutdown().catch(error)
           })
         })
-        assertTruthy(pid, `Expected PID here but got ${pid}`)
-        dbg(`Instance PID: ${pid}`)
-
-        systemInstanceLogger.breadcrumb(`pid:${pid}`)
         shutdownManager.add(async () => {
           dbg(`killing ${id}`)
           await childProcess.kill().catch(error)
