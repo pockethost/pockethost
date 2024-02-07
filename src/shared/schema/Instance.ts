@@ -32,6 +32,7 @@ export type InstanceFields = BaseFields & {
   dev: boolean
   cname_active: boolean
   notifyMaintenanceMode: boolean
+  corsOrigins: string
 }
 
 export type WithUser = {
