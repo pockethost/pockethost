@@ -1,5 +1,6 @@
 export * from './PromiseAllocator'
 export * from './Settings'
+export * from './SyslogLogger'
 export * from './assert'
 export * from './downloadAndExtract'
 export * from './env'

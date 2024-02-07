@@ -3,24 +3,13 @@ import { LoggerService } from '$shared'
 import * as winston from 'winston'
 import 'winston-syslog'
 
-const loggers: {
-  [key: string]: {
-    info: (msg: string) => void
-    error: (msg: string) => void
-  }
-} = {}
-
 export function SyslogLogger(instanceId: string, target: string) {
-  const loggerKey = `${instanceId}_${target}`
-  if (loggers[loggerKey]) {
-    return loggers[loggerKey]!
-  }
-
   const logger = winston.createLogger({
     format: winston.format.printf((info) => {
       return info.message
     }),
     transports: [
+      // @ts-ignore
       new winston.transports.Syslog({
         host: `localhost`,
         port: SYSLOGD_PORT(),
@@ -41,8 +30,10 @@ export function SyslogLogger(instanceId: string, target: string) {
     error: (msg: string) => {
       logger.error(msg)
     },
+    shutdown: () => {
+      logger.close()
+    },
   }
 
-  loggers[loggerKey] = api
   return api
 }

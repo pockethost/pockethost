@@ -13,7 +13,7 @@ import {
   mkSingleton,
   SingletonBaseConfig,
 } from '$shared'
-import { assert, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
+import { asyncExitHook, mkInternalUrl, SyslogLogger, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
@@ -21,7 +21,6 @@ import MemoryStream from 'memorystream'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
-import { SyslogLogger } from '../SyslogService'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
