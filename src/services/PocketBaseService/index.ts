@@ -8,7 +8,6 @@ import {
 import { PortService } from '$services'
 import {
   createCleanupManager,
-  createTimerManager,
   LoggerService,
   mkSingleton,
   SingletonBaseConfig,
@@ -57,8 +56,6 @@ export const createPocketbaseService = async (
   const { getLatestVersion, getVersion } =
     await PocketbaseReleaseVersionService()
   const maxVersion = getLatestVersion()
-
-  const tm = createTimerManager({})
 
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
@@ -269,11 +266,6 @@ export const createPocketbaseService = async (
 
     return api
   }
-
-  asyncExitHook(async () => {
-    dbg(`Shutting down timers`)
-    tm.shutdown()
-  })
 
   return {
     spawn: _spawn,
