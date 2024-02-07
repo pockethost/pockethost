@@ -64,15 +64,16 @@ export const createPocketbaseService = async (
     const cm = createCleanupManager()
     const logger = LoggerService().create('spawn')
     const { dbg, warn, error } = logger
-    const defaultPort = await (async () => {
-      if (cfg.port) return cfg.port
+      const port =
+        cfg.port ||
+        (await (async () => {
       const [defaultPort, freeDefaultPort] = await PortService().alloc()
       cm.add(freeDefaultPort)
       return defaultPort
-    })()
+        })())
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-      port: defaultPort,
+        port,
       extraBinds: [],
       env: {},
       stderr: new MemoryStream(),
@@ -84,7 +85,6 @@ export const createPocketbaseService = async (
       version,
       subdomain,
       instanceId,
-      port,
       extraBinds,
       env,
       stderr,
