@@ -42,7 +42,6 @@ export type PocketbaseServiceConfig = SingletonBaseConfig & {}
 
 export type PocketbaseProcess = {
   url: string
-  pid: () => string
   kill: () => Promise<void>
   exitCode: Promise<number>
 }
@@ -245,10 +244,6 @@ export const createPocketbaseService = async (
     })
     const api: PocketbaseProcess = {
       url,
-      pid: () => {
-        assert(container)
-        return container.id
-      },
       exitCode,
       kill: async () => {
         dbg(`Killing`)
