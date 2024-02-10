@@ -214,7 +214,8 @@ await send([
       if (a.priority > b.priority) return -1
       if (a.priority < b.priority) return 1
       const now = new Date()
-      return +(b.created || now) - +(a.created || now)
+      const res = +(b.created || now) - +(a.created || now)
+      if (res) return res
       return a.name.localeCompare(b.name)
     })
     .map(({ name, isHealthy, emoji, mem, ago }) => {
@@ -222,12 +223,13 @@ await send([
       if (isInstance) {
         return `${
           isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-        } ${emoji} \`${name.padStart(30)} ${(mem || '').padStart(10)} ${(
+        } \`${name.padStart(30)} ${(mem || '').padStart(10)} ${(
           ago || ''
         ).padStart(20)}\``
+      } else {
+        return `${
+          isHealthy ? ':white_check_mark:' : ':face_vomiting: '
+        }  ${name}`
       }
-      return `${
-        isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-      } ${emoji} ${name}`
     }),
 ])
