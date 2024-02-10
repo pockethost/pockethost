@@ -48,6 +48,13 @@ export function InstanceLogger(
 
   const cm = createCleanupManager()
 
+  const fileTransport = new winston.transports.File({
+    filename: logFile,
+    maxsize: 100 * 1024 * 1024, // 100MB
+    maxFiles: 10,
+    tailable: true,
+    zippedArchive: true,
+  })
   const logger = winston.createLogger({
     format: winston.format.combine(
       winston.format.timestamp(),
@@ -60,20 +67,13 @@ export function InstanceLogger(
         })
       }),
     ),
-    transports: [
-      new winston.transports.File({
-        filename: logFile,
-        maxsize: 100 * 1024 * 1024, // 100MB
-        maxFiles: 10,
-        tailable: true,
-        zippedArchive: true,
-      }),
-    ],
+    transports: [fileTransport],
   })
 
   cm.add(() => {
     dbg(`Deleting and closing`)
     delete loggers[loggerKey]
+    fileTransport.close?.()
     logger.close()
   })
 
