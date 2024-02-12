@@ -4,18 +4,18 @@ import * as winston from 'winston'
 import 'winston-syslog'
 
 export function SyslogLogger(instanceId: string, target: string) {
+  // @ts-ignore
+  const syslogTransport = new winston.transports.Syslog({
+    host: `localhost`,
+    port: SYSLOGD_PORT(),
+    app_name: instanceId,
+  }) as winston.transport
+
   const logger = winston.createLogger({
     format: winston.format.printf((info) => {
       return info.message
     }),
-    transports: [
-      // @ts-ignore
-      new winston.transports.Syslog({
-        host: `localhost`,
-        port: SYSLOGD_PORT(),
-        app_name: instanceId,
-      }),
-    ],
+    transports: [syslogTransport],
   })
 
   const { error, warn } = LoggerService()
@@ -31,6 +31,7 @@ export function SyslogLogger(instanceId: string, target: string) {
       logger.error(msg)
     },
     shutdown: () => {
+      syslogTransport.close?.()
       logger.close()
     },
   }
