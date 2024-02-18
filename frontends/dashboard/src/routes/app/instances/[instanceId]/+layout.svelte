@@ -22,6 +22,10 @@
   $: ({ status, version, id } = $instance || {})
 </script>
 
+<svelte:head>
+  <title>{$instance.subdomain} overview - PocketHost</title>
+</svelte:head>
+
 {#if isReady}
   <div
     class="flex md:flex-row flex-col items-center justify-between mb-6 gap-4"

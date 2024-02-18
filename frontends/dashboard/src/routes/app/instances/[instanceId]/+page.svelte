@@ -10,10 +10,6 @@
   const { subdomain } = $instance
 </script>
 
-<svelte:head>
-  <title>{subdomain} overview - PocketHost</title>
-</svelte:head>
-
 <div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-4">
   <Code />
   <Ftp />
