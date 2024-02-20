@@ -61,16 +61,16 @@ export const createPocketbaseService = async (
     const cm = createCleanupManager()
     const logger = LoggerService().create('spawn')
     const { dbg, warn, error } = logger
-      const port =
-        cfg.port ||
-        (await (async () => {
-      const [defaultPort, freeDefaultPort] = await PortService().alloc()
-      cm.add(freeDefaultPort)
-      return defaultPort
-        })())
+    const port =
+      cfg.port ||
+      (await (async () => {
+        const [defaultPort, freeDefaultPort] = await PortService().alloc()
+        cm.add(freeDefaultPort)
+        return defaultPort
+      })())
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-        port,
+      port,
       extraBinds: [],
       env: {},
       stderr: new MemoryStream(),
@@ -185,13 +185,23 @@ export const createPocketbaseService = async (
             [stdout, stderr],
             createOptions,
             (err, data) => {
-              const { StatusCode } = data || {}
+              const StatusCode = (() => {
+                if (!data.StatusCode) return 0
+                return parseInt(data.StatusCode, 10)
+              })()
               dbg({ err, data })
               container = undefined
               stopped = true
               unsub()
-              // Filter out Docker status codes https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
-              if ((StatusCode > 0 && StatusCode < 125) || err) {
+              // Filter out Docker status codes
+              /*
+              https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
+              https://tldp.org/LDP/abs/html/exitcodes.html
+              https://docs.docker.com/engine/reference/run/#exit-status
+              125, 126, 127 - Docker
+              137 - SIGKILL (expected)
+              */
+              if ((StatusCode > 0 && StatusCode !== 137) || err) {
                 iLogger.error(
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
                 )
