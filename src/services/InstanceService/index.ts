@@ -367,6 +367,9 @@ export const instanceService = mkSingleton(
             ) {
               info(`idle for ${DAEMON_PB_IDLE_TTL()}, shutting down`)
               healthyGuard()
+              userInstanceLogger.info(
+                `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
+              )
               await _safeShutdown().catch(error)
               return false
             } else {

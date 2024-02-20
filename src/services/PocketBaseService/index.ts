@@ -185,13 +185,23 @@ export const createPocketbaseService = async (
             [stdout, stderr],
             createOptions,
             (err, data) => {
-              const { StatusCode } = data || {}
+              const StatusCode = (() => {
+                if (!data.StatusCode) return 0
+                return parseInt(data.StatusCode, 10)
+              })()
               dbg({ err, data })
               container = undefined
               stopped = true
               unsub()
-              // Filter out Docker status codes https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
-              if ((StatusCode > 0 && StatusCode < 125) || err) {
+              // Filter out Docker status codes
+              /*
+              https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
+              https://tldp.org/LDP/abs/html/exitcodes.html
+              https://docs.docker.com/engine/reference/run/#exit-status
+              125, 126, 127 - Docker
+              137 - SIGKILL (expected)
+              */
+              if ((StatusCode > 0 && StatusCode !== 137) || err) {
                 iLogger.error(
                   `Unexpected stop with code ${StatusCode} and error ${err}`,
                 )
