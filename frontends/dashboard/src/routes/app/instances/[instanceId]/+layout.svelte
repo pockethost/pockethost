@@ -5,6 +5,7 @@
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
   import { instance } from './store'
+  import {onMount} from 'svelte'
 
   let isReady = false
   $: {
@@ -17,13 +18,27 @@
     isReady = !!_instance
   }
 
-  console.log($page.url)
+  let title = ''
+  let titleSetInt
+
+  onMount(() => {
+    titleSetInt = setInterval(() => {
+      if (isReady) {
+        title = $instance.subdomain
+      }
+    }, 10)
+  })
+
+  $: if (isReady && title !== '') {
+    clearInterval(titleSetInt)
+    title = $instance.subdomain
+  }
 
   $: ({ status, version, id } = $instance || {})
 </script>
 
 <svelte:head>
-  <title>{$instance.subdomain} overview - PocketHost</title>
+  <title>{title} overview - PocketHost</title>
 </svelte:head>
 
 {#if isReady}
