@@ -21,7 +21,7 @@
 </script>
 
 <svelte:head>
-  <title>{isReady ? $instance.subdomain : Instance} overview - PocketHost</title>
+  <title>{isReady ? $instance.subdomain : "Instance"} overview - PocketHost</title>
 </svelte:head>
 
 {#if isReady}
