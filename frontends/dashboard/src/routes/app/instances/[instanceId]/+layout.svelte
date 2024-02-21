@@ -17,10 +17,14 @@
     isReady = !!_instance
   }
 
-  console.log($page.url)
-
   $: ({ status, version, id } = $instance || {})
 </script>
+
+<svelte:head>
+  <title
+    >{isReady ? $instance.subdomain : 'Instance'} overview - PocketHost</title
+  >
+</svelte:head>
 
 {#if isReady}
   <div
