@@ -1,3 +1,5 @@
+name: Publish SSG Frontends to Cloudflare Pages
+
 on:
   push:
   pull_request:
