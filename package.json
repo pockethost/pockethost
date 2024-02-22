@@ -36,8 +36,7 @@
     "prod:mothership": "tsx src/cli/mothership.ts",
     "plop": "plop",
     "nofile": "cat /proc/sys/fs/file-nr",
-    "mail": "tsx ./src/cli/sendmail.ts",
-    "pocketbase": ". ./.env && $PH_HOME/host/pocketbase --dir $PH_HOME/data/pockethost-central/pb_data --migrationsDir ./src/mothership-app/migrations"
+    "mail": "tsx ./src/cli/sendmail.ts"
   },
   "prettier": {
     "semi": false,
