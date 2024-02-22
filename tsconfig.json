@@ -24,5 +24,5 @@
       "$shared": ["src/shared"]
     }
   },
-  "include": ["./src"]
+  "include": ["./src", "plopfile.mjs"]
 }
