@@ -9,7 +9,7 @@
   export let handleClick: Function = () => {}
 
   let activeLink = $page.url.pathname === url
-  $: activeLink = $page.url.pathname === url
+  $: activeLink = $page.url.pathname.includes(url)
 </script>
 
 <a
