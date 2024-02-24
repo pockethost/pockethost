@@ -24,16 +24,13 @@ You may change this using the Danger Zone in the instance details.
 
 Sometimes, the automated upgrade is not possible or may leave your PocketHost instance in an unresponsive state because PocketBase exits when it notices a problem with the database schema. In that case, you must perform a manual upgrade.
 
-1. [Back up your instance](/docs/usage/backup-and-restore/)
-2. Put the instance in [Maintenance Mode](/docs/usage/maintenance/)
-3. Update your instance to the target version you want.
-4. Download your database via [FTP](/docs/usage/ftp/)
-5. On your local machine, perform whatever upgrade steps are necessary according to the PocketBase documentation
-6. Upload your database via FTP again
-7. Take the instance out of Maintenance Mode and test
+1. [Back up your instance](https://pocketbase.io/docs/going-to-production/#backup-and-restore) via the PocketBase admin
+2. Download your database backup via the PocketBase admin
+3. On your local machine, perform whatever upgrade steps are necessary according to the PocketBase documentation
+4. Perform a backup locally
+5. Restore the backup via the live PocketBase admin
 
 ## Caveats
 
 - Downgrading to an earlier version may work in some cases, but is not advised. See [#271](https://github.com/pocketbase/pocketbase/discussions/2710#discussioncomment-6185502) for further details.
-- In some cases, you may need to
 - When a new version of PocketHost is run for the first time, it may run migrations on its system tables. These migrations are typically non-destructive
