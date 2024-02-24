@@ -31,8 +31,10 @@ export function SyslogLogger(instanceId: string, target: string) {
       logger.error(msg)
     },
     shutdown: () => {
-      syslogTransport.close?.()
-      logger.close()
+      return new Promise<void>((resolve) => {
+        logger.on('close', resolve)
+        logger.close()
+      })
     },
   }
 
