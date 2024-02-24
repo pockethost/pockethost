@@ -32,6 +32,8 @@
     "noaxis",
     "nofile",
     "nohup",
+    "oneline",
+    "opengraph",
     "PASV",
     "pbincache",
     "PBOUNCE",

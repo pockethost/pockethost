@@ -9,6 +9,18 @@ import factory from 'rizzdown'
 
 /** @typedef {import('plop').NodePlopAPI} Plop */
 
+const mkAIGenerator = (/** @type {string} */ subjectMatter) => {
+  const profilePath = join(cwd(), `.rizzdown/blog`)
+  const { generate } = factory({ profilePath, subjectMatter })
+
+  return async (/** @type {string} */ title, /** @type {string} */ prompt) => {
+    const spinner = ora().start(title)
+    const res = await generate(prompt, {})
+    spinner.stopAndPersist({ symbol: chalk.green(`✔︎`) })
+    return res
+  }
+}
+
 export default function (/** @type {Plop} */ plop) {
   plop.setHelper('isoTimestamp', function () {
     return new Date().toISOString()
@@ -72,8 +84,8 @@ export default function (/** @type {Plop} */ plop) {
     ],
   })
 
-  plop.setGenerator('blog-release', {
-    description: 'Generate a new release announcement',
+  plop.setGenerator('release', {
+    description: 'Generate a new release',
     prompts: [
       {
         type: 'list',
@@ -82,17 +94,12 @@ export default function (/** @type {Plop} */ plop) {
         message: `What type of release is this?`,
         default: 2,
       },
-      {
-        type: 'input',
-        name: 'summary',
-        message: `What is this release about, generally?`,
-      },
     ],
     actions: (data) => {
       if (!data) throw new Error(`data expected`)
       return [
         async () => {
-          const { releaseType, summary } = data
+          const { releaseType } = data
           const commitsSinceLast = execSync(
             `git log $(git describe --tags --abbrev=0)..HEAD --oneline | grep -E "fix:|enh:|feat:|docs:|chore:" | sed 's/^[^ ]*/\*/' | sort`,
           )
@@ -112,51 +119,56 @@ export default function (/** @type {Plop} */ plop) {
             `Great, a ${releaseType} release. The new version will be ${version}.`,
           )
 
-          const summaries = []
-          // for (let i = 0; i < commitsSinceLast.length; i++) {
-          //   const commit = commitsSinceLast[i]
+          const summaries = commitsSinceLast
+            .map((commit) => `* ${commit}`)
+            .join(`\n`)
+          // const summaries = []
+          // // for (let i = 0; i < commitsSinceLast.length; i++) {
+          // //   const commit = commitsSinceLast[i]
+          // //   const { summary } = await inquirer.prompt({
+          // //     type: 'input',
+          // //     name: 'summary',
+          // //     message: `Please summarize this commit log (enter to leave as is):`,
+          // //     default: commit,
+          // //   })
+          // //   summaries.push(summary)
+          // // }
+          // summaries.push(...commitsSinceLast)
+
+          // const summary = await (async () => {
+          //   const _summary = await mkAIGenerator(summaries)(
+          //     `Generating commit summary...`,
+          //     `Using semver parlance, this is a ${releaseType} release of PocketHost. What follows are the git commit messages for this ${releaseType} release. Please provide a one-paragraph summary under 50 words based on git commit messages. Factual. ASCII characters only. Use reflective and dry technical language, no calls to action or 'consumer' sounding language.`,
+          //   )
+
           //   const { summary } = await inquirer.prompt({
           //     type: 'input',
           //     name: 'summary',
-          //     message: `Please summarize this commit log (enter to leave as is):`,
-          //     default: commit,
+          //     message: `What is this release about, generally?`,
+          //     default: _summary,
           //   })
-          //   summaries.push(summary)
-          // }
-          summaries.push(...commitsSinceLast)
+          //   return summary
+          // })()
 
-          const profilePath = join(cwd(), `.rizzdown/blog`)
-          const subjectMatter = `# PocketHost v${version} release\n\n## Summary\n\n${summary}\n\n###Detailed updates\n\n${summaries.join(
-            `\n`,
-          )}`
-
-          const { generate } = factory({ profilePath, subjectMatter })
-
-          const spin = async (
-            /** @type {string} */ title,
-            /** @type {string} */ prompt,
-          ) => {
-            const spinner = ora().start(title)
-            const res = await generate(prompt, {})
-            spinner.stopAndPersist({ symbol: chalk.green(`✔︎`) })
-            return res
-          }
+          const generate = mkAIGenerator(
+            `# PocketHost v${version} release\n\n###Detailed updates\n\n${summaries}`,
+          )
 
           data.version = version
 
           data.title = `PocketHost v${version}`
 
-          data.opengraph = await spin(
-            `Generating description...`,
-            `An OpenGraph summary/description for this blog post, no more than 50 words. A call to action. Factual. ASCII characters only. Use reflective and dry technical language, no calls to action or 'consumer' sounding language.`,
+          data.opengraph = await generate(
+            `Generating OpenGraph description...`,
+            `An OpenGraph summary for this release, no more than 50 words. Factual. ASCII characters only. Use reflective and dry technical language, no calls to action or 'consumer' sounding language.`,
           )
 
-          data.overview = await spin(
+          data.overview = await generate(
             `Generating overview...`,
             `1-3 short paragraphs organizing the major changes and discussing their importance. ASCII characters only. Use reflective and dry technical language, no calls to action or 'consumer' sounding language`,
           )
 
-          data.change_log = summaries.map((line) => `* ${line}`).join(`\n`)
+          data.change_log = summaries
         },
         {
           type: 'add',
