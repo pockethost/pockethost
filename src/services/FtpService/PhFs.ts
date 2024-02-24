@@ -15,10 +15,11 @@ import { customAlphabet } from 'nanoid'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
 import pocketbaseEs from 'pocketbase'
 import {
-  FolderNames,
-  INSTANCE_ROOT_FOLDER_NAMES,
+  FolderNamesMap,
+  INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES,
   MAINTENANCE_ONLY_FOLDER_NAMES,
-  isInstanceRootFolder,
+  VirtualFolderNames,
+  virtualFolderGuard,
 } from '.'
 import * as fsAsync from './fs-async'
 
@@ -74,20 +75,18 @@ export class PhFs implements FileSystem {
       : join('/', this.cwd, resolvedPath)
 
     // Create local filesystem path using the platform separator
-    const [empty, subdomain, rootFolderName, ...pathFromRootFolder] =
+    const [empty, subdomain, virtualRootFolderName, ...pathFromRootFolder] =
       joinedPath.split('/')
     dbg({
       joinedPath,
       subdomain,
-      rootFolderName,
+      virtualRootFolderName,
       restOfPath: pathFromRootFolder,
     })
 
     // Check if the root folder name is valid
-    if (rootFolderName) {
-      if (!isInstanceRootFolder(rootFolderName)) {
-        throw new Error(`Accessing ${rootFolderName} is not allowed.`)
-      }
+    if (virtualRootFolderName) {
+      virtualFolderGuard(virtualRootFolderName)
     }
 
     // Begin building the physical path
@@ -103,25 +102,31 @@ export class PhFs implements FileSystem {
           throw new Error(`${subdomain} not found.`)
         }
         fsPathParts.push(instance.id)
-        if (rootFolderName) {
-          dbg({ rootFolderName, instance })
+        if (virtualRootFolderName) {
+          virtualFolderGuard(virtualRootFolderName)
+          const physicalFolderName = FolderNamesMap[virtualRootFolderName]
+          dbg({
+            fsPathParts,
+            virtualRootFolderName,
+            physicalFolderName,
+            instance,
+          })
           if (
-            MAINTENANCE_ONLY_FOLDER_NAMES.includes(
-              rootFolderName as FolderNames,
-            ) &&
+            MAINTENANCE_ONLY_FOLDER_NAMES.includes(virtualRootFolderName) &&
             !instance.maintenance
           ) {
             throw new Error(
-              `Instance must be in maintenance mode to access ${rootFolderName}`,
+              `Instance must be in maintenance mode to access ${virtualRootFolderName}`,
             )
           }
-          fsPathParts.push(rootFolderName)
+          fsPathParts.push(physicalFolderName)
           // Ensure folder exists
           const rootFolderFsPath = resolve(
             join(...fsPathParts)
               .replace(UNIX_SEP_REGEX, sep)
               .replace(WIN_SEP_REGEX, sep),
           )
+          dbg({ rootFolderFsPath })
           if (!existsSync(rootFolderFsPath)) {
             mkdirSync(rootFolderFsPath, { recursive: true })
           }
@@ -145,7 +150,7 @@ export class PhFs implements FileSystem {
       clientPath,
       fsPath,
       subdomain,
-      rootFolderName,
+      virtualRootFolderName,
       restOfPath: pathFromRootFolder,
       instance,
     })
@@ -154,7 +159,7 @@ export class PhFs implements FileSystem {
       clientPath,
       fsPath,
       subdomain,
-      rootFolderName: rootFolderName as FolderNames | undefined,
+      rootFolderName: virtualRootFolderName as VirtualFolderNames | undefined,
       pathFromRootFolder,
       instance,
     }
@@ -217,7 +222,7 @@ export class PhFs implements FileSystem {
     our allowed folder names. 
     */
     if (!rootFolderName) {
-      return INSTANCE_ROOT_FOLDER_NAMES.map((name) => ({
+      return INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES.map((name) => ({
         isDirectory: () => true,
         mode: 0o755,
         size: 0,
