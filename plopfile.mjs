@@ -94,7 +94,7 @@ export default function (/** @type {Plop} */ plop) {
         async () => {
           const { releaseType, summary } = data
           const commitsSinceLast = execSync(
-            `git log $(git describe --tags --abbrev=0)..HEAD --oneline | grep -E "fix:|enh:|feat:" | sed 's/^[^ ]*/\*/' | sort`,
+            `git log $(git describe --tags --abbrev=0)..HEAD --oneline | grep -E "fix:|enh:|feat:|docs:|chore:" | sed 's/^[^ ]*/\*/' | sort`,
           )
             .toString()
             .replace(/^\S+?\s/gm, '')
