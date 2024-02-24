@@ -219,8 +219,8 @@ export const createPocketbaseService = async (
               }
             },
           )
-          .on('container', (container: Container) => {
-            dbg(`Got container`, container)
+          .on('start', (container: Container) => {
+            dbg(`Got started container`, container)
             started = true
             resolveContainer(container)
           })
