@@ -17,12 +17,14 @@ The initial directory listing contains a directory for each instance associated 
 
 Inside each instance directory, you will find:
 
-| Directory Name | Description                                     | Instructions                                            |
-| -------------- | ----------------------------------------------- | ------------------------------------------------------- |
-| pb_data        | The PocketBase data directory                   | [view](https://pocketbase.io/docs/going-to-production/) |
-| pb_public      | The location from which public files are served | [view](https://pocketbase.io/docs)                      |
-| pb_migrations  | The PocketBase migrations directory             | [view](https://pocketbase.io/docs/migrations/)          |
-| pb_hooks       | The PocketBase JS hooks directory               | [view](https://pocketbase.io/docs/js-overview/)         |
+| Directory Name  | Description                                            | Instructions                                                               |
+| --------------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| pb_data         | The PocketBase data directory                          | [view](https://pocketbase.io/docs/going-to-production/)                    |
+| pb_data/backups | The PocketBase database backups                        | [view](https://pocketbase.io/docs/going-to-production/#backup-and-restore) |
+| pb_data/storage | The PocketBase uploaded file storage directory         | [view](https://pocketbase.io/docs/files-handling/)                         |
+| pb_public       | The location from which public static files are served | [view](https://pocketbase.io/docs)                                         |
+| pb_migrations   | The PocketBase migrations directory                    | [view](https://pocketbase.io/docs/migrations/)                             |
+| pb_hooks        | The PocketBase JS hooks directory                      | [view](https://pocketbase.io/docs/js-overview/)                            |
 
 ## Recommended Clients
 
