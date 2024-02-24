@@ -24,10 +24,6 @@ export enum FolderNames {
 }
 
 export const MAINTENANCE_ONLY_FOLDER_NAMES: FolderNames[] = [FolderNames.PbData]
-export const RESTART_ON_WRITE: FolderNames[] = [
-  FolderNames.PbMigrations,
-  FolderNames.PbHooks,
-]
 
 export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
   FolderNames.PbData,

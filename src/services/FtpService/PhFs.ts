@@ -351,10 +351,9 @@ export class PhFs implements FileSystem {
       error(e)
       fsAsync.unlink(fsPath)
     })
-    stream.once('close', async () => {
+    stream.once('close', () => {
       dbg(`write(${fileName}) closing`)
       stream.end()
-      await this.restartInstanceGuard(rootFolderName, instance)
     })
     return {
       stream,
@@ -417,9 +416,10 @@ export class PhFs implements FileSystem {
     }
 
     return fsAsync.stat(fsPath).then((stat) => {
-      const _cleanup = () => this.restartInstanceGuard(rootFolderName, instance)
-      if (stat.isDirectory()) return fsAsync.rmdir(fsPath).then(_cleanup)
-      else return fsAsync.unlink(fsPath).then(_cleanup)
+      if (stat.isDirectory()) {
+        return fsAsync.rmdir(fsPath)
+      }
+      return fsAsync.unlink(fsPath)
     })
   }
 
@@ -475,14 +475,7 @@ export class PhFs implements FileSystem {
       throw new Error(`rename not allowed at this level`)
     }
 
-    return fsAsync
-      .rename(fromPath, toPath)
-      .then(() =>
-        Promise.all([
-          this.restartInstanceGuard(fromRootFolderName, instance),
-          this.restartInstanceGuard(toRootFolderName, instance),
-        ]),
-      )
+    return fsAsync.rename(fromPath, toPath)
   }
 
   async chmod(path: string, mode: Mode) {
@@ -508,23 +501,5 @@ export class PhFs implements FileSystem {
 
   getUniqueName() {
     return nanoid(30)
-  }
-
-  async restartInstanceGuard(
-    rootFolderName: FolderNames | undefined,
-    instance: InstanceFields,
-  ) {
-    // Not needed?
-    // const { dbg, error } = this.log
-    // if (rootFolderName && includes(RESTART_ON_WRITE, rootFolderName)) {
-    //   try {
-    //     dbg(`Restarting instance`)
-    //     const is = await instanceService()
-    //     const api = is.getInstanceApiIfExistsById(instance.id)
-    //     await api?.shutdown()
-    //   } catch (e) {
-    //     error(e)
-    //   }
-    // }
   }
 }
