@@ -186,7 +186,7 @@ export const createPocketbaseService = async (
             createOptions,
             (err, data) => {
               const StatusCode = (() => {
-                if (!data.StatusCode) return 0
+                if (!data?.StatusCode) return 0
                 return parseInt(data.StatusCode, 10)
               })()
               dbg({ err, data })
