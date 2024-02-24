@@ -123,7 +123,7 @@ export class PhFs implements FileSystem {
               .replace(WIN_SEP_REGEX, sep),
           )
           if (!existsSync(rootFolderFsPath)) {
-            mkdirSync(rootFolderFsPath)
+            mkdirSync(rootFolderFsPath, { recursive: true })
           }
         }
         if (resolvedPath.length > 0) fsPathParts.push(...pathFromRootFolder)
