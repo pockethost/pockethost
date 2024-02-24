@@ -91,6 +91,10 @@ export const createPocketbaseService = async (
 
     logger.breadcrumb(subdomain).breadcrumb(instanceId)
     const iLogger = SyslogLogger(instanceId, 'exec')
+    cm.add(() => {
+      dbg(`Shutting down iLogger`)
+      iLogger.shutdown()
+    })
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await getVersion(_version)
