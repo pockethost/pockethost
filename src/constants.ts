@@ -94,6 +94,7 @@ export const SETTINGS = {
   ),
 
   DISCORD_POCKETSTREAM_URL: mkString(''),
+  DISCORD_ALERT_CHANNEL_URL: mkString(''),
 
   TEST_EMAIL: mkString(),
 
@@ -222,6 +223,9 @@ export const INSTANCE_APP_MIGRATIONS_DIR = () =>
 
 export const DISCORD_POCKETSTREAM_URL = () =>
   settings().DISCORD_POCKETSTREAM_URL
+
+export const DISCORD_ALERT_CHANNEL_URL = () =>
+  settings().DISCORD_ALERT_CHANNEL_URL
 
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 

@@ -14,6 +14,7 @@ import fs from 'fs'
 import http from 'http'
 import https from 'https'
 
+import { discordAlert } from '$src/util/discordAlert'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
@@ -63,6 +64,7 @@ app.all(`*`, (req, res, next) => {
 })
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  discordAlert(err.toString())
   res.status(500).send(err.toString())
 }
 app.use(errorHandler)

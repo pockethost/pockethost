@@ -77,7 +77,11 @@ export const instanceService = mkSingleton(
         const retry = (interval = instanceApiCheckIntervalMs) => {
           maxTries--
           if (maxTries <= 0) {
-            reject(new Error(`Timeout obtaining instance API.`))
+            reject(
+              new Error(
+                `Timeout obtaining instance API [instance ${instance.id}]`,
+              ),
+            )
             return
           }
           dbg(`${maxTries} tries remaining. Retrying in ${interval}ms`)

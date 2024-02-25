@@ -18,10 +18,10 @@ import {
   realtimeLog,
 } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
+import { discordAlert } from '$src/util/discordAlert'
 import { tryFetch } from '$util'
 import EventSource from 'eventsource'
 import { ErrorRequestHandler } from 'express'
-// gen:import
 
 const [major, minor, patch] = process.versions.node.split('.').map(Number)
 
@@ -72,7 +72,9 @@ global.EventSource = EventSource
     instanceApiTimeoutMs: 5000,
   })
 
-  const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
+    console.log(`###error`, err)
+    discordAlert(err)
     res.status(500).send(err.toString())
   }
   ;(await proxyService()).use(errorHandler)
