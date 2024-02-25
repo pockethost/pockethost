@@ -77,11 +77,7 @@ export const instanceService = mkSingleton(
         const retry = (interval = instanceApiCheckIntervalMs) => {
           maxTries--
           if (maxTries <= 0) {
-            reject(
-              new Error(
-                `Timeout obtaining instance API [instance ${instance.id}]`,
-              ),
-            )
+            reject(new Error(`Timeout obtaining instance API.`))
             return
           }
           dbg(`${maxTries} tries remaining. Retrying in ${interval}ms`)
@@ -120,7 +116,7 @@ export const instanceService = mkSingleton(
       const systemInstanceLogger = instanceServiceLogger.create(
         `${subdomain}:${id}:${version}`,
       )
-      const { dbg, warn, error, info } = systemInstanceLogger
+      const { dbg, warn, error, info, trace } = systemInstanceLogger
 
       if (instanceApis[id]) {
         throw new Error(
@@ -356,15 +352,15 @@ export const instanceService = mkSingleton(
           lastRequest = now()
           openRequestCount++
           const id = openRequestCount
-          dbg(`started new request`)
+          trace(`started new request`)
           return () => {
             openRequestCount--
-            dbg(`ended request (${openRequestCount} still open)`)
+            trace(`ended request (${openRequestCount} still open)`)
           }
         }
         {
           tm.repeat(async () => {
-            dbg(`idle check: ${openRequestCount} open requests`)
+            trace(`idle check: ${openRequestCount} open requests`)
             if (
               openRequestCount === 0 &&
               lastRequest + DAEMON_PB_IDLE_TTL() < now()
@@ -377,7 +373,7 @@ export const instanceService = mkSingleton(
               await _safeShutdown().catch(error)
               return false
             } else {
-              dbg(`${openRequestCount} requests remain open`)
+              trace(`${openRequestCount} requests remain open`)
             }
             return true
           }, RECHECK_TTL)
@@ -388,10 +384,20 @@ export const instanceService = mkSingleton(
         healthyGuard()
         await updateInstanceStatus(instance.id, InstanceStatus.Running)
       })().catch((e) => {
-        warn(
-          `Instance failed to start with ${e}`,
-          (e as ClientResponseError).originalError?.message,
-        )
+        const detail = (() => {
+          if (e instanceof ClientResponseError) {
+            const { response } = e
+            if (response?.data) {
+              const detail = map(
+                response.data,
+                (v, k) => `${k}:${v?.code}:${v?.message}`,
+              ).join(`\n`)
+              return detail
+            }
+          }
+          return `${e}`
+        })()
+        warn(`Instance failed to start: ${detail}`)
         _safeShutdown(e).catch(error)
       })
 
