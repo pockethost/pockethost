@@ -218,10 +218,22 @@ export const instanceService = mkSingleton(
         Create serialized client communication functions to prevent race conditions
         */
       const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
-      const updateInstanceStatus = clientLimiter.wrap(
-        client.updateInstanceStatus,
+      const updateInstance = clientLimiter.wrap(
+        (id: InstanceId, fields: Partial<InstanceFields>) => {
+          dbg(`Updating instance fields`, fields)
+          return client
+            .updateInstance(id, fields)
+            .then(() => {
+              dbg(`Updated instance fields`, fields)
+            })
+            .catch((e) => {
+              dbg(`Error updating instance fields`, fields)
+              error(e)
+            })
+        },
       )
-      const updateInstance = clientLimiter.wrap(client.updateInstance)
+      const updateInstanceStatus = (id: InstanceId, status: InstanceStatus) =>
+        updateInstance(id, { status })
 
       /*
       Handle async setup
@@ -251,12 +263,11 @@ export const instanceService = mkSingleton(
         Start the instance
         */
         dbg(`Starting instance`)
-        dbg(`Set instance status: starting`)
         healthyGuard()
-        await updateInstanceStatus(instance.id, InstanceStatus.Starting)
+        updateInstanceStatus(instance.id, InstanceStatus.Starting)
         shutdownManager.add(async () => {
           dbg(`Shutting down: set instance status: idle`)
-          await updateInstanceStatus(id, InstanceStatus.Idle).catch(error)
+          updateInstanceStatus(id, InstanceStatus.Idle)
         })
         healthyGuard()
 
@@ -317,7 +328,7 @@ export const instanceService = mkSingleton(
             if (UPGRADE_MODE()) {
               // Noop
             } else {
-              await updateInstance(instance.id, {
+              updateInstance(instance.id, {
                 maintenance: true,
               })
             }
@@ -337,7 +348,7 @@ export const instanceService = mkSingleton(
               error(
                 `Putting instance in maintenance mode because it shut down with return code ${code}. `,
               )
-              await updateInstance(instance.id, {
+              updateInstance(instance.id, {
                 maintenance: true,
               })
             })
@@ -395,7 +406,7 @@ export const instanceService = mkSingleton(
         dbg(`${internalUrl} is running`)
         status = InstanceApiStatus.Healthy
         healthyGuard()
-        await updateInstanceStatus(instance.id, InstanceStatus.Running)
+        updateInstanceStatus(instance.id, InstanceStatus.Running)
       })().catch((e) => {
         const detail = (() => {
           if (e instanceof ClientResponseError) {
