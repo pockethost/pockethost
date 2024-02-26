@@ -77,7 +77,11 @@ export const instanceService = mkSingleton(
         const retry = (interval = instanceApiCheckIntervalMs) => {
           maxTries--
           if (maxTries <= 0) {
-            reject(new Error(`Timeout obtaining instance API.`))
+            reject(
+              new Error(
+                `Timeout obtaining instance API: [${id}:${subdomain}].`,
+              ),
+            )
             return
           }
           dbg(`${maxTries} tries remaining. Retrying in ${interval}ms`)
@@ -103,7 +107,7 @@ export const instanceService = mkSingleton(
             reject(e)
             return
           }
-          dbg(`API found but not healthy, waiting`)
+          dbg(`API found but not healthy (${instanceApi.status()}), waiting`)
           retry()
         }
         _check()
@@ -128,13 +132,22 @@ export const instanceService = mkSingleton(
       Initialize shutdown manager
       */
       const shutdownManager = createCleanupManager()
-      shutdownManager.add(async () => {
-        dbg(`Deleting from cache`)
+      shutdownManager.add(() => {
+        dbg(`Shutting down: delete instanceApis[id]`)
+        dbg(
+          `Shutting down: There are ${
+            values(instanceApis).length
+          } still in API cache`,
+        )
         delete instanceApis[id]
-        dbg(`There are ${values(instanceApis).length} still in cache`)
+        dbg(
+          `Shutting down: There are now ${
+            values(instanceApis).length
+          } still in API cache`,
+        )
       }, CLEANUP_PRIORITY_LAST) // Make this the very last thing that happens
-      shutdownManager.add(async () => {
-        dbg(`Shutting down`)
+      shutdownManager.add(() => {
+        dbg(`Shut down: InstanceApiStatus.ShuttingDown`)
         status = InstanceApiStatus.ShuttingDown
       })
 
@@ -222,7 +235,7 @@ export const instanceService = mkSingleton(
         dbg(`Obtaining port`)
         const [newPort, releasePort] = await PortService().alloc()
         shutdownManager.add(() => {
-          dbg(`Releasing port`)
+          dbg(`shut down: releasing port`)
           releasePort()
         }, CLEANUP_PRIORITY_LAST)
         systemInstanceLogger.breadcrumb(`port:${newPort}`)
@@ -242,7 +255,7 @@ export const instanceService = mkSingleton(
         healthyGuard()
         await updateInstanceStatus(instance.id, InstanceStatus.Starting)
         shutdownManager.add(async () => {
-          dbg(`Set instance status: idle`)
+          dbg(`Shutting down: set instance status: idle`)
           await updateInstanceStatus(id, InstanceStatus.Idle).catch(error)
         })
         healthyGuard()
