@@ -36,6 +36,7 @@ import stringify from 'json-stringify-safe'
 import { basename, join } from 'path'
 import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
+import { mkInstanceCache } from './mkInstanceCache'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -428,63 +429,74 @@ export const instanceService = mkSingleton(
       return api
     }
 
-    const getInstance = async (host: string) => {
-      {
-        dbg(`Trying to get instance by host: ${host}`)
-        const instance = await client
-          .getInstanceByCname(host)
-          .catch((e: ClientResponseError) => {
-            if (e.status !== 404) {
-              throw new Error(
-                `Unexpected response ${JSON.stringify(e)} from mothership`,
-              )
-            }
-          })
-        if (instance) {
-          dbg(`${host} is a cname`)
-          if (!instance.cname_active) {
-            throw new Error(
-              `CNAME not active for this instance. See dashboard.`,
-            )
+    const getInstance = (() => {
+      const cache = mkInstanceCache(client.client)
+
+      return async (host: string) => {
+        if (cache.hasItem(host)) {
+          dbg(`cache hit ${host}`)
+          return cache.getItem(host)
+        }
+        dbg(`cache miss ${host}`)
+
+        {
+          dbg(`Trying to get instance by host: ${host}`)
+          const instance = await client
+            .getInstanceByCname(host)
+
+            .catch((e: ClientResponseError) => {
+              if (e.status !== 404) {
+                throw new Error(
+                  `Unexpected response ${JSON.stringify(e)} from mothership`,
+                )
+              }
+            })
+          if (instance) {
+            dbg(`${host} is a cname`)
+            cache.setItem(instance)
+            return instance
           }
-          return instance
         }
-      }
-      const idOrSubdomain = host.replace(`.${EDGE_APEX_DOMAIN()}`, '')
-      {
-        dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
-        const instance = await client
-          .getInstanceById(idOrSubdomain)
-          .catch((e: ClientResponseError) => {
-            if (e.status !== 404) {
-              throw new Error(
-                `Unexpected response ${JSON.stringify(e)} from mothership`,
-              )
-            }
-          })
-        if (instance) {
-          dbg(`${idOrSubdomain} is an instance ID`)
-          return instance
+
+        const idOrSubdomain = host.replace(`.${EDGE_APEX_DOMAIN()}`, '')
+        {
+          dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
+          const instance = await client
+            .getInstanceById(idOrSubdomain)
+            .catch((e: ClientResponseError) => {
+              if (e.status !== 404) {
+                throw new Error(
+                  `Unexpected response ${JSON.stringify(e)} from mothership`,
+                )
+              }
+            })
+          if (instance) {
+            dbg(`${idOrSubdomain} is an instance ID`)
+            cache.setItem(instance)
+            return instance
+          }
         }
-      }
-      {
-        dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const instance = await client
-          .getInstanceBySubdomain(idOrSubdomain)
-          .catch((e: ClientResponseError) => {
-            if (e.status !== 404) {
-              throw new Error(
-                `Unexpected response ${JSON.stringify(e)} from mothership`,
-              )
-            }
-          })
-        if (instance) {
-          dbg(`${idOrSubdomain} is a subdomain`)
-          return instance
+        {
+          dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
+          const instance = await client
+            .getInstanceBySubdomain(idOrSubdomain)
+            .catch((e: ClientResponseError) => {
+              if (e.status !== 404) {
+                throw new Error(
+                  `Unexpected response ${JSON.stringify(e)} from mothership`,
+                )
+              }
+            })
+          if (instance) {
+            dbg(`${idOrSubdomain} is a subdomain`)
+            cache.setItem(instance)
+            return instance
+          }
         }
+        dbg(`${host} is none of: cname, id, subdomain`)
+        cache.blankItem(host)
       }
-      dbg(`${idOrSubdomain} is neither an cname nor a subdomain`)
-    }
+    })()
 
     ;(await proxyService()).use(async (req, res, next) => {
       const logger = LoggerService().create(`InstanceRequest`)

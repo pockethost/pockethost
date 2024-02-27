@@ -1,5 +1,5 @@
-import { UserFields } from './User'
 import { BaseFields, RecordId, Subdomain, UserId } from './types'
+import { UserFields } from './User'
 
 export type VersionId = string
 
@@ -37,6 +37,8 @@ export type InstanceFields = BaseFields & {
 export type WithUser = {
   expand: { uid: UserFields }
 }
+
+export type InstanceFields_WithUser = InstanceFields & WithUser
 
 export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
 
