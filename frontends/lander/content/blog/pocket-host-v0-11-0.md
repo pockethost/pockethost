@@ -31,26 +31,19 @@ The new release also marks major strides in reliability and error handling. The 
 
 Two notable fixes encapsulated under v0.11.0 focus on InstanceService and system logging. The API timeout errors prevalent previously have been resolved by adjusting the 'fire and forget' mothership updates in InstanceService. Moreover, the balancing act between system operations and readability has been enhanced. The double close in the system logger has been eliminated, alongside ensuring the instance logger shuts down when the container exits, aiding in providing a cleaner feed.
 
-
-# Stats
-
-```
-you complete me
-```
-
 # Change Log
 
-* chore: enhance debug logging in InstanceService
-* chore: refactor FTP physical and virtual directory names
-* chore: refactor pb launcher for better performance
-* docs: pb_hooks description clarification
-* enh: fortify instance startup errors
-* feat: discord exception alerter
-* feat: edge instance caching
-* fix: fire and forget mothership updates in InstanceService (fixes API timeout errors)
-* fix: remove double close in syslogger
-* fix: shut down instance logger when container exits
-* fix: wait for container start signal rather than 'container' signal
+- chore: enhance debug logging in InstanceService
+- chore: refactor FTP physical and virtual directory names
+- chore: refactor pb launcher for better performance
+- docs: pb_hooks description clarification
+- enh: fortify instance startup errors
+- feat: discord exception alerter
+- feat: edge instance caching
+- fix: fire and forget mothership updates in InstanceService (fixes API timeout errors)
+- fix: remove double close in syslogger
+- fix: shut down instance logger when container exits
+- fix: wait for container start signal rather than 'container' signal
 
 You can try PocketHost and learn more at https://pockethost.io. Our thriving [Discord community](https://discord.gg/HsSjcuPRWX) awaits you :)
 
@@ -59,4 +52,3 @@ You can try PocketHost and learn more at https://pockethost.io. Our thriving [Di
 Thank you to all the [PocketHost contributors](https://github.com/pockethost/pockethost/graphs/contributors). You guys are really coming through while I'm down in the trenches keeping servers running. Onward! :)
 
 I also want to mention the thriving Discord community. We have over 500 members and many daily active users who discuss PocketBase programming topics as well as get support for PocketHost. If you want to really feel a sense of vibrancy, it's happing in [our Discord community](https://discord.gg/HsSjcuPRWX).
-
