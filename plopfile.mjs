@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import { execSync } from 'child_process'
 import { readFileSync } from 'fs'
+import inquirer from 'inquirer'
 import yaml from 'js-yaml'
 import ora from 'ora'
 import { join } from 'path'
@@ -86,20 +87,11 @@ export default function (/** @type {Plop} */ plop) {
 
   plop.setGenerator('release', {
     description: 'Generate a new release',
-    prompts: [
-      {
-        type: 'list',
-        name: 'releaseType',
-        choices: ['major', 'minor', 'patch'],
-        message: `What type of release is this?`,
-        default: 2,
-      },
-    ],
+    prompts: [],
     actions: (data) => {
       if (!data) throw new Error(`data expected`)
       return [
         async () => {
-          const { releaseType } = data
           const commitsSinceLast = execSync(
             `git log $(git describe --tags --abbrev=0)..HEAD --oneline | grep -E "fix:|enh:|feat:|docs:|chore:" | sed 's/^[^ ]*/\*/' | sort`,
           )
@@ -110,6 +102,14 @@ export default function (/** @type {Plop} */ plop) {
 
           console.log(`Commits since last release:`)
           commitsSinceLast.forEach((line) => console.log(`  * ${line}`))
+
+          const { releaseType } = await inquirer.prompt({
+            type: 'list',
+            name: 'releaseType',
+            choices: ['major', 'minor', 'patch'],
+            message: `What type of release is this?`,
+            default: 2,
+          })
 
           execSync(`npm version --no-git-tag-version ${releaseType}`)
           const { version } = JSON.parse(
@@ -161,6 +161,11 @@ export default function (/** @type {Plop} */ plop) {
           data.opengraph = await generate(
             `Generating OpenGraph description...`,
             `An OpenGraph summary for this release, no more than 50 words. Factual. ASCII characters only. Use reflective and dry technical language, no calls to action or 'consumer' sounding language.`,
+          )
+
+          data.summary = await generate(
+            `Generating key updates summary...`,
+            `A bullet point summary of items tagged as 'feat' or 'fix'. Features come first. No more than 50 words TOTAL for the whole list. Factual. ASCII characters only. Use reflective and dry technical language, no calls to action or 'consumer' sounding language.`,
           )
 
           data.overview = await generate(
