@@ -139,7 +139,7 @@ export const INSTANCE_ADMIN_URL = (instance: InstanceFields) => {
 }
 
 export const FTP_URL = (email: string) => {
-  return `"${email}"@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}`
+  return `"${email}"@ftp.sfo-1.${PUBLIC_APEX_DOMAIN}:21`
 }
 
 export const DISCORD_URL = `https://discord.gg/HsSjcuPRWX`
