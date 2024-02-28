@@ -177,7 +177,10 @@ export const DEBUG = () => settings().DEBUG
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
 export const APP_URL = () => settings().APP_URL
-export const BLOG_URL = () => settings().BLOG_URL
+export const BLOG_URL = (...path: string[]) =>
+  join(settings().BLOG_URL, ...path)
+export const DOCS_URL = (...path: string[]) => BLOG_URL(`docs`, ...path)
+
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
 export const IPCIDR_LIST = () => settings().IPCIDR_LIST

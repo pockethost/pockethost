@@ -1,5 +1,7 @@
 import {
+  APP_URL,
   DAEMON_PB_IDLE_TTL,
+  DOCS_URL,
   EDGE_APEX_DOMAIN,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
@@ -80,7 +82,10 @@ export const instanceService = mkSingleton(
           if (maxTries <= 0) {
             reject(
               new Error(
-                `Timeout obtaining instance API: [${id}:${subdomain}].`,
+                `PocketBase instance failed to launch. Please check logs at ${APP_URL()}. [${id}:${subdomain}]. ${DOCS_URL(
+                  `usage`,
+                  `errors`,
+                )}`,
               ),
             )
             return
