@@ -1,7 +1,7 @@
 import { DEBUG, DefaultSettingsService, SETTINGS } from '$constants'
 import { PocketbaseReleaseDownloadService } from '$services'
 import { LogLevelName, LoggerService } from '$shared'
-import { discordAlert } from '$src/util/discordAlert'
+import { discordAlert } from '$util'
 
 const check = async () => {
   DefaultSettingsService(SETTINGS)

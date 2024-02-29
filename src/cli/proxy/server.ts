@@ -17,7 +17,7 @@ import fs from 'fs'
 import http from 'http'
 import https from 'https'
 
-import { discordAlert } from '$src/util/discordAlert'
+import { discordAlert } from '$util'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'

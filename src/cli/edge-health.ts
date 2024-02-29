@@ -7,7 +7,7 @@ import {
   SETTINGS,
 } from '$constants'
 import { LoggerService, LogLevelName } from '$shared'
-import { discordAlert } from '$src/util/discordAlert'
+import { discordAlert } from '$util'
 import Bottleneck from 'bottleneck'
 import { execSync } from 'child_process'
 import fetch from 'node-fetch'
