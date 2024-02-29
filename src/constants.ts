@@ -46,6 +46,7 @@ export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
 export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
   join(_PH_PROJECT_ROOT, 'src', 'instance-app', ...paths)
 
+const TLS_PFX = `tls`
 export const SETTINGS = {
   UPGRADE_MODE: mkBoolean(false),
 
@@ -88,8 +89,8 @@ export const SETTINGS = {
   PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache'), { create: true }),
 
   PH_FTP_PORT: mkNumber(21),
-  SSL_KEY: mkPath(join(_SSL_HOME, `tls.key`)),
-  SSL_CERT: mkPath(join(_SSL_HOME, `tls.cert`)),
+  SSL_KEY: mkPath(join(_SSL_HOME, `${TLS_PFX}.key`)),
+  SSL_CERT: mkPath(join(_SSL_HOME, `${TLS_PFX}.cert`)),
   PH_FTP_PASV_IP: mkString(`0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
