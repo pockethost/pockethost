@@ -11,6 +11,7 @@ export function mkSingleton<TConfig, TInstance>(
     if (instance && config) {
       console.warn('Attempted to initialize service twice.')
       console.warn(new Error().stack)
+      return instance
     }
 
     if (!instance && !config) {

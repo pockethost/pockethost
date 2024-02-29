@@ -42,10 +42,17 @@ export const _MOTHERSHIP_NAME =
   process.env.MOTHERSHIP_NAME || 'pockethost-central'
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
-  join(_PH_PROJECT_ROOT, 'src', 'mothership-app', ...paths)
+  join(
+    process.env.PH_MOTHERSHIP_APP_ROOT ||
+      join(_PH_PROJECT_ROOT, 'mothership-app'),
+    ...paths,
+  )
 
 export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
-  join(_PH_PROJECT_ROOT, 'src', 'instance-app', ...paths)
+  join(
+    process.env.PH_INSTANCE_APP_ROOT || join(_PH_PROJECT_ROOT, 'instance-app'),
+    ...paths,
+  )
 
 const TLS_PFX = `tls`
 
@@ -82,6 +89,7 @@ export const SETTINGS = {
   MOTHERSHIP_INTERNAL_HOST: mkString(`localhost`),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
+  PH_MOTHERSHIP_APP_ROOT: mkString(_MOTHERSHIP_APP_ROOT()),
   MOTHERSHIP_MIGRATIONS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`migrations`)),
   MOTHERSHIP_HOOKS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`pb_hooks`, `src`)),
   MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
@@ -107,6 +115,7 @@ export const SETTINGS = {
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
 
+  PH_INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
   INSTANCE_APP_HOOKS_DIR: mkPath(_INSTANCE_APP_ROOT(`pb_hooks`), {
     create: true,
   }),
