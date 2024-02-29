@@ -11,7 +11,10 @@ export const createIpWhitelistMiddleware = (blockedCIDRs: string[]) => {
     next: express.NextFunction,
   ) => {
     const ip = req.ip // or req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    if (blockedCIDRObjects.some((cidr) => cidr.contains(ip))) {
+    if (
+      blockedCIDRs.length === 0 ||
+      blockedCIDRObjects.some((cidr) => cidr.contains(ip))
+    ) {
       next()
     } else {
       res.status(403).send('Nope')
