@@ -11,5 +11,12 @@
     "description": "A minimal & customizable template for self-hosting your online course.",
     "image": "/img/showcase/pockethost-showcase-ecourse.jpg",
     "url": "https://ecourse.pockethost.io/"
+  },
+
+  {
+    "title": "Bike Builder",
+    "description": "A tool designed to help you quickly identify bike part compatibility without all the noise.",
+    "image": "/img/showcase/pockethost-showcase-bikebuilder.png",
+    "url": "https://builder.bike/"
   }
 ]
