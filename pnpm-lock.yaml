@@ -107,9 +107,15 @@ importers:
       node-os-utils:
         specifier: ^1.3.7
         version: 1.3.7
+      pbgo:
+        specifier: 1.0.0-alpha.1
+        version: link:../pbgo
       pocketbase:
         specifier: ^0.20.1
         version: 0.20.1
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
       semver:
         specifier: ^7.5.4
         version: 7.5.4
@@ -7210,6 +7216,14 @@ packages:
     hasBin: true
     dependencies:
       glob: 7.2.3
+
+  /rimraf@5.0.5:
+    resolution: {integrity: sha512-CqDakW+hMe/Bz202FPEymy68P+G50RfMQK+Qo5YUqc9SPipvbGjCGKd0RSKEelbsfQuw3g5NZDSrlZZAJurH1A==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dependencies:
+      glob: 10.3.10
+    dev: false
 
   /rizzdown@0.0.7:
     resolution: {integrity: sha512-gL+Vz1qMNAIoEgtYzJ+PbB0rZFtI+GJ/C+vXC9/IM1O3F21AgboBWrqGM7Ls5L7GiG1o933vApjulun/hdto2g==}

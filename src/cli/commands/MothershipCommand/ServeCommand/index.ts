@@ -2,14 +2,16 @@ import { Command } from 'commander'
 import { mothership } from './mothership'
 
 type Options = {
-  debug: boolean
+  isolate: boolean
 }
 
 export const ServeCommand = () => {
   const cmd = new Command(`serve`)
     .description(`Run the PocketHost mothership`)
+    .option(`--isolate`, `Use Docker for process isolation.`, false)
     .action(async (options: Options) => {
-      await mothership()
+      console.log({ options })
+      await mothership(options)
     })
   return cmd
 }

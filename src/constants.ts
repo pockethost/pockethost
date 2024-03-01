@@ -216,9 +216,10 @@ export const MOTHERSHIP_ADMIN_USERNAME = () =>
   settings().MOTHERSHIP_ADMIN_USERNAME
 export const MOTHERSHIP_ADMIN_PASSWORD = () =>
   settings().MOTHERSHIP_ADMIN_PASSWORD
-export const MOTHERSHIP_MIGRATIONS_DIR = () =>
-  settings().MOTHERSHIP_MIGRATIONS_DIR
-export const MOTHERSHIP_HOOKS_DIR = () => settings().MOTHERSHIP_HOOKS_DIR
+export const MOTHERSHIP_MIGRATIONS_DIR = (...paths: string[]) =>
+  join(settings().MOTHERSHIP_MIGRATIONS_DIR, ...paths)
+export const MOTHERSHIP_HOOKS_DIR = (...paths: string[]) =>
+  join(settings().MOTHERSHIP_HOOKS_DIR, ...paths)
 export const MOTHERSHIP_APP_DIR = () => settings().MOTHERSHIP_APP_DIR
 export const MOTHERSHIP_SEMVER = () => settings().MOTHERSHIP_SEMVER
 export const MOTHERSHIP_PORT = () => settings().MOTHERSHIP_PORT
@@ -264,7 +265,8 @@ export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
 
 /** Helpers */
 
-export const MOTHERSHIP_DATA_ROOT = () => INSTANCE_DATA_ROOT(MOTHERSHIP_NAME())
+export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
+  join(INSTANCE_DATA_ROOT(MOTHERSHIP_NAME()), ...paths)
 export const MOTHERSHIP_DATA_DB = () =>
   join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const MOTHERSHIP_INTERNAL_URL = (path = '') =>
