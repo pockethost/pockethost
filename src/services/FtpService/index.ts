@@ -9,6 +9,7 @@ import {
 } from '$constants'
 import { LoggerService, mkSingleton } from '$shared'
 import { exitHook, mergeConfig } from '$util'
+import { keys, values } from '@s-libs/micro-dash'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import pocketbaseEs from 'pocketbase'
@@ -16,28 +17,47 @@ import { PhFs } from './PhFs'
 
 export type FtpConfig = { mothershipUrl: string }
 
-export enum FolderNames {
-  PbData = 'pb_data',
-  PbPublic = 'pb_public',
-  PbMigrations = 'pb_migrations',
-  PbHooks = 'pb_hooks',
+export enum VirtualFolderNames {
+  Data = 'pb_data',
+  Public = 'pb_public',
+  Migrations = 'pb_migrations',
+  Hooks = 'pb_hooks',
 }
 
-export const MAINTENANCE_ONLY_FOLDER_NAMES: FolderNames[] = [FolderNames.PbData]
-export const RESTART_ON_WRITE: FolderNames[] = [
-  FolderNames.PbMigrations,
-  FolderNames.PbHooks,
+export enum PhysicalFolderNames {
+  Data = 'pb_data',
+  Public = 'pb_public',
+  Migrations = 'pb_migrations',
+  Hooks = 'pb_hooks',
+}
+export const MAINTENANCE_ONLY_FOLDER_NAMES: VirtualFolderNames[] = [
+  VirtualFolderNames.Data,
 ]
 
-export const INSTANCE_ROOT_FOLDER_NAMES: FolderNames[] = [
-  FolderNames.PbData,
-  FolderNames.PbPublic,
-  FolderNames.PbMigrations,
-  FolderNames.PbHooks,
-]
+export const FolderNamesMap: {
+  [_ in VirtualFolderNames]: PhysicalFolderNames
+} = {
+  [VirtualFolderNames.Data]: PhysicalFolderNames.Data,
+  [VirtualFolderNames.Public]: PhysicalFolderNames.Public,
+  [VirtualFolderNames.Migrations]: PhysicalFolderNames.Migrations,
+  [VirtualFolderNames.Hooks]: PhysicalFolderNames.Hooks,
+} as const
 
-export function isInstanceRootFolder(name: string): name is FolderNames {
-  return INSTANCE_ROOT_FOLDER_NAMES.includes(name as FolderNames)
+export const INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES = keys(FolderNamesMap)
+export const INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES = values(FolderNamesMap)
+
+export function isInstanceRootVirtualFolder(
+  name: string,
+): name is VirtualFolderNames {
+  return INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES.includes(name as VirtualFolderNames)
+}
+
+export function virtualFolderGuard(
+  name: string,
+): asserts name is VirtualFolderNames {
+  if (!isInstanceRootVirtualFolder(name)) {
+    throw new Error(`Accessing ${name} is not allowed.`)
+  }
 }
 
 export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {

@@ -41,7 +41,10 @@
     <tbody>
       <tr>
         <th>pb_data</th>
-        <td>The PocketBase data directory</td>
+        <td
+          >The PocketBase data directory, including upload storage and database
+          backups</td
+        >
       </tr>
       <tr>
         <th>pb_public</th>

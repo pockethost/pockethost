@@ -1,15 +1,10 @@
 import {
-  DEBUG,
-  DefaultSettingsService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_INTERNAL_URL,
-  PH_BIN_CACHE,
-  SETTINGS,
 } from '$constants'
 import {
   MothershipAdminClientService,
-  PocketbaseReleaseVersionService,
   PocketbaseService,
   PortService,
   SqliteService,
@@ -17,41 +12,19 @@ import {
   proxyService,
   realtimeLog,
 } from '$services'
-import { LogLevelName, LoggerService } from '$shared'
-import { tryFetch } from '$util'
-import EventSource from 'eventsource'
+import { LoggerService } from '$shared'
+import { discordAlert, tryFetch } from '$util'
 import { ErrorRequestHandler } from 'express'
-// gen:import
 
-const [major, minor, patch] = process.versions.node.split('.').map(Number)
-
-if ((major || 0) < 18) {
-  throw new Error(`Node 18 or higher required.`)
-}
-
-DefaultSettingsService(SETTINGS)
-
-LoggerService({
-  level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info,
-})
-
-// npm install eventsource --save
-// @ts-ignore
-global.EventSource = EventSource
-;(async () => {
-  const logger = LoggerService().create(`server.ts`)
+export async function daemon() {
+  const logger = LoggerService().create(`EdgeDaemonCommand`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
-  tryFetch(`${MOTHERSHIP_INTERNAL_URL(`/api/health`)}`, {})
-
-  const udService = await PocketbaseReleaseVersionService({
-    cachePath: PH_BIN_CACHE(),
-    checkIntervalMs: 1000 * 5 * 60,
-  })
-
   await PortService({})
   await PocketbaseService({})
+
+  await tryFetch(`${MOTHERSHIP_INTERNAL_URL(`/api/health`)}`, {})
 
   info(`Serving`)
 
@@ -72,9 +45,10 @@ global.EventSource = EventSource
     instanceApiTimeoutMs: 5000,
   })
 
-  const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
+    console.log(`###error`, err)
+    discordAlert(err)
     res.status(500).send(err.toString())
   }
   ;(await proxyService()).use(errorHandler)
-  info(`Hooking into process exit event`)
-})()
+}

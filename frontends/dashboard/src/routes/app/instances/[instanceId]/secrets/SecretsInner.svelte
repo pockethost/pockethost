@@ -27,8 +27,8 @@
 </script>
 
 <p class="mb-4">
-  These secrets are passed into your <code>pocketbase</code> executable and can
-  be accessed from <code>pb_hooks</code> JS hooks.
+  These secrets are forwarded to your <code>pocketbase</code> as environment
+  variables, which are also accessible from any <code>pb_hooks</code> you have created.
 </p>
 
 <!-- If the user has any secrets, render them in a code block -->

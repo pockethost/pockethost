@@ -1,9 +1,14 @@
 import { ioc } from '$constants'
+import { discordAlert } from './discordAlert'
 import { gracefulExit } from './exit'
 ;['unhandledRejection', 'uncaughtException'].forEach((type) => {
   process.on(type, (e) => {
-    console.error(`${e}`)
-
+    console.error(e)
+    try {
+      discordAlert(e)
+    } catch (e) {
+      console.error(e)
+    }
     const debug = (() => {
       try {
         return ioc.service('settings').DEBUG

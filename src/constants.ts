@@ -15,19 +15,53 @@ import {
   SettingsService,
 } from '$src/util/Settings'
 import { forEach } from '@s-libs/micro-dash'
+import devcert from 'devcert'
 import dotenv from 'dotenv'
 import { findUpSync } from 'find-up'
+import { mkdirSync, realpathSync, writeFileSync } from 'fs'
 import { dirname, join, resolve } from 'path'
 import { LogEntry } from 'winston'
 
-const loadedEnvs = dotenv.config({ path: `.env` })
+dotenv.config({ path: `.env` })
+
+const realScriptPath = realpathSync(process.argv[1]!)
 
 export const _PH_HOME =
   process.env.PH_HOME || join(process.env.HOME || resolve(`~`), `.pockethost`)
-export const _PH_PROJECT_ROOT = dirname(findUpSync('package.json')!)
-export const _IS_DEV = process.env.NODE_ENV === 'development'
 
-console.log({ _PH_HOME, _PH_PROJECT_ROOT })
+export const _SSL_HOME = join(_PH_HOME, `ssl`)
+
+export const _IS_DEV = process.env.NODE_ENV === 'development'
+export const _PH_PROJECT_ROOT = dirname(
+  findUpSync('package.json', { cwd: dirname(realScriptPath) })!,
+)
+export const _APEX_DOMAIN = process.env.APEX_DOMAIN || 'pockethost.lvh.me'
+export const _HTTP_PROTOCOL = process.env.HTTP_PROTOCOL || `https:`
+export const _APP_NAME = process.env.APP_NAME || 'app'
+export const _MOTHERSHIP_NAME =
+  process.env.MOTHERSHIP_NAME || 'pockethost-central'
+
+export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
+  join(
+    process.env.PH_MOTHERSHIP_APP_ROOT ||
+      join(_PH_PROJECT_ROOT, 'mothership-app'),
+    ...paths,
+  )
+
+export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
+  join(
+    process.env.PH_INSTANCE_APP_ROOT || join(_PH_PROJECT_ROOT, 'instance-app'),
+    ...paths,
+  )
+
+const TLS_PFX = `tls`
+
+if (_IS_DEV) {
+  mkdirSync(_SSL_HOME, { recursive: true })
+  const { key, cert } = await devcert.certificateFor(_APEX_DOMAIN, {})
+  writeFileSync(join(_SSL_HOME, `${TLS_PFX}.key`), key)
+  writeFileSync(join(_SSL_HOME, `${TLS_PFX}.cert`), cert)
+}
 
 export const SETTINGS = {
   UPGRADE_MODE: mkBoolean(false),
@@ -38,32 +72,29 @@ export const SETTINGS = {
 
   DEBUG: mkBoolean(_IS_DEV),
 
-  HTTP_PROTOCOL: mkString('https:'),
-  APP_URL: mkString(`https://app.pockethost.io`),
-  BLOG_URL: mkString(`https://pockethost.io`),
-  APEX_DOMAIN: mkString(`pockethost.io`),
+  HTTP_PROTOCOL: mkString(_HTTP_PROTOCOL),
+  APP_NAME: mkString(_APP_NAME),
+  APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APP_NAME}.${_APEX_DOMAIN}`),
+  BLOG_URL: mkString(`${_HTTP_PROTOCOL}//${_APEX_DOMAIN}`),
+  APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
-  IPCIDR_LIST: mkCsvString([`127.0.0.1/32`]),
+  IPCIDR_LIST: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 60 * 5), // 5 minutes
 
-  MOTHERSHIP_URL: mkString(`https://pockethost-central.pockethost.io`),
-  MOTHERSHIP_NAME: mkString(`pockethost-central`),
+  MOTHERSHIP_URL: mkString(
+    `${_HTTP_PROTOCOL}//${_MOTHERSHIP_NAME}.${_APEX_DOMAIN}`,
+  ),
+  MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
   MOTHERSHIP_INTERNAL_HOST: mkString(`localhost`),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
-  MOTHERSHIP_MIGRATIONS_DIR: mkPath(
-    join(_PH_PROJECT_ROOT, 'src', 'mothership-app', 'migrations'),
-  ),
-  MOTHERSHIP_HOOKS_DIR: mkPath(
-    join(_PH_PROJECT_ROOT, 'src', 'mothership-app', `pb_hooks`, `src`),
-  ),
-  MOTHERSHIP_APP_DIR: mkPath(
-    join(_PH_PROJECT_ROOT, 'src', 'mothership-app', `ph_app`),
-    {
-      required: false,
-    },
-  ),
+  PH_MOTHERSHIP_APP_ROOT: mkString(_MOTHERSHIP_APP_ROOT()),
+  MOTHERSHIP_MIGRATIONS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`migrations`)),
+  MOTHERSHIP_HOOKS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`pb_hooks`, `src`)),
+  MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
+    required: false,
+  }),
   MOTHERSHIP_SEMVER: mkString(''),
   MOTHERSHIP_PORT: mkNumber(8091),
 
@@ -75,25 +106,25 @@ export const SETTINGS = {
   PH_BIN_CACHE: mkPath(join(_PH_HOME, '.pbincache'), { create: true }),
 
   PH_FTP_PORT: mkNumber(21),
-  SSL_KEY: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `localhost.key`)),
-  SSL_CERT: mkPath(join(_PH_PROJECT_ROOT, `ssl`, `localhost.crt`)),
+  SSL_KEY: mkPath(join(_SSL_HOME, `${TLS_PFX}.key`)),
+  SSL_CERT: mkPath(join(_SSL_HOME, `${TLS_PFX}.cert`)),
   PH_FTP_PASV_IP: mkString(`0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
 
-  EDGE_APEX_DOMAIN: mkString(`pockethost.lvh.me`),
+  EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
 
-  INSTANCE_APP_HOOKS_DIR: mkPath(
-    join(_PH_PROJECT_ROOT, `src`, `instance-app`, `pb_hooks`),
-    { create: true },
-  ),
-  INSTANCE_APP_MIGRATIONS_DIR: mkPath(
-    join(_PH_PROJECT_ROOT, `src`, `instance-app`, `migrations`),
-    { create: true },
-  ),
+  PH_INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
+  INSTANCE_APP_HOOKS_DIR: mkPath(_INSTANCE_APP_ROOT(`pb_hooks`), {
+    create: true,
+  }),
+  INSTANCE_APP_MIGRATIONS_DIR: mkPath(_INSTANCE_APP_ROOT(`migrations`), {
+    create: true,
+  }),
 
   DISCORD_POCKETSTREAM_URL: mkString(''),
+  DISCORD_ALERT_CHANNEL_URL: mkString(''),
 
   TEST_EMAIL: mkString(),
 
@@ -105,18 +136,6 @@ export const SETTINGS = {
 
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
 }
-;(() => {
-  let passed = true
-  forEach(loadedEnvs.parsed, (v, k) => {
-    if (!(k in SETTINGS)) {
-      passed = false
-      console.error(`.env key ${k} is not a known setting.`)
-    }
-  })
-  if (!passed) {
-    // throw new Error(`Exiting due to .env errors`)
-  }
-})()
 
 export type Settings = ReturnType<typeof DefaultSettingsService>
 export type SettingsDefinition = {
@@ -129,7 +148,9 @@ export const DefaultSettingsService = mkSingleton(
 
     ioc.register('settings', _settings)
 
-    logConstants()
+    if (ioc.service('settings').DEBUG) {
+      logConstants()
+    }
 
     return _settings
   },
@@ -176,7 +197,11 @@ export const DEBUG = () => settings().DEBUG
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
 export const APP_URL = () => settings().APP_URL
-export const BLOG_URL = () => settings().BLOG_URL
+export const APP_NAME = () => settings().APP_NAME
+export const BLOG_URL = (...path: string[]) =>
+  join(settings().BLOG_URL, ...path)
+export const DOCS_URL = (...path: string[]) => BLOG_URL(`docs`, ...path)
+
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
 export const IPCIDR_LIST = () => settings().IPCIDR_LIST
@@ -191,9 +216,10 @@ export const MOTHERSHIP_ADMIN_USERNAME = () =>
   settings().MOTHERSHIP_ADMIN_USERNAME
 export const MOTHERSHIP_ADMIN_PASSWORD = () =>
   settings().MOTHERSHIP_ADMIN_PASSWORD
-export const MOTHERSHIP_MIGRATIONS_DIR = () =>
-  settings().MOTHERSHIP_MIGRATIONS_DIR
-export const MOTHERSHIP_HOOKS_DIR = () => settings().MOTHERSHIP_HOOKS_DIR
+export const MOTHERSHIP_MIGRATIONS_DIR = (...paths: string[]) =>
+  join(settings().MOTHERSHIP_MIGRATIONS_DIR, ...paths)
+export const MOTHERSHIP_HOOKS_DIR = (...paths: string[]) =>
+  join(settings().MOTHERSHIP_HOOKS_DIR, ...paths)
 export const MOTHERSHIP_APP_DIR = () => settings().MOTHERSHIP_APP_DIR
 export const MOTHERSHIP_SEMVER = () => settings().MOTHERSHIP_SEMVER
 export const MOTHERSHIP_PORT = () => settings().MOTHERSHIP_PORT
@@ -223,6 +249,9 @@ export const INSTANCE_APP_MIGRATIONS_DIR = () =>
 export const DISCORD_POCKETSTREAM_URL = () =>
   settings().DISCORD_POCKETSTREAM_URL
 
+export const DISCORD_ALERT_CHANNEL_URL = () =>
+  settings().DISCORD_ALERT_CHANNEL_URL
+
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
@@ -236,7 +265,8 @@ export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
 
 /** Helpers */
 
-export const MOTHERSHIP_DATA_ROOT = () => INSTANCE_DATA_ROOT(MOTHERSHIP_NAME())
+export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
+  join(INSTANCE_DATA_ROOT(MOTHERSHIP_NAME()), ...paths)
 export const MOTHERSHIP_DATA_DB = () =>
   join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const MOTHERSHIP_INTERNAL_URL = (path = '') =>

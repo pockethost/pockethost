@@ -111,7 +111,9 @@
     >
   </div>
 
-  <slot />
+  {#key $page.url.pathname}
+    <slot />
+  {/key}
 {:else}
   <div>Instance not found</div>
 {/if}

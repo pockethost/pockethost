@@ -10,7 +10,7 @@ description: Learn how to use PocketBase Hooks on PocketHost to write custom
 
 The prebuilt PocketBase v0.17+ executable comes with an embedded ES5 JavaScript engine (goja) which enables you to write custom server-side code using plain JavaScript.
 
-Every PocketHost instance comes with a `pb_hooks` directory which is mounted into the PocketBase instance at `/pb_hooks`. This directory is where you can place your custom server-side code.
+Every PocketHost instance comes with a `pb_hooks` directory accessible via [FTP](/docs/usage/ftp). When your PocketBase instance runs, the contents are mounted at `/pb_hooks`. This directory is where you can place your custom server-side code.
 
 For examples and more information about PocketBase hooks, see the [PocketBase JS hooks documentation](https://pocketbase.io/docs/js-overview/).
 
