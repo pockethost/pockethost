@@ -13,6 +13,16 @@ routerAdd('POST', '/api/ls', (c) => {
   const data = JSON.parse(raw)
   log(`payload`, JSON.stringify(data, null, 2))
 
+  const body_hash = $security.hs256(raw, secret)
+  log(`Body hash`, body_hash)
+
+  const xsignature_header = c.request().header.get('X-Signature')
+  log(`Signature`, xsignature_header)
+
+  if (xsignature_header == undefined || !$security.equal(body_hash, xsignature_header)) {
+    return c.json(401, { error: 'Invalid signature' })
+  }
+
   /** @type {WebHook} */
   let {
     meta: {
