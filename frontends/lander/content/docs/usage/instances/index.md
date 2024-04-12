@@ -51,7 +51,7 @@ Instance secrets are exposed as environment variables when your `pocketbase` exe
 
 ```ts
 // pb_hooks
-$app.getEnv('FOO')
+$os.getenv('FOO')
 ```
 
 ## Realtime log
