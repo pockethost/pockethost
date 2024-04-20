@@ -2,33 +2,34 @@ module.exports = {
   apps: [
     {
       name: `firewall`,
-      script: 'pnpm dev:cli firewall serve',
+      script: 'pnpm prod:cli firewall serve',
     },
     {
       name: `edge-daemon`,
-      script: 'pnpm dev:cli edge daemon serve',
+      script: 'pnpm prod:cli edge daemon serve',
     },
     {
       name: `edge-ftp`,
-      script: 'pnpm dev:cli edge ftp serve',
+      script: 'pnpm prod:cli edge ftp serve',
+      cron_restart: '0 0 * * *',
     },
     {
       name: `edge-syslog`,
-      script: 'pnpm dev:cli edge syslog serve',
+      script: 'pnpm prod:cli edge syslog serve',
     },
     {
       name: `mothership`,
-      script: 'pnpm dev:cli mothership serve',
+      script: 'pnpm prod:cli mothership serve',
     },
     {
       name: `downloader`,
       restart_delay: 60 * 60 * 1000, // 1 hour
-      script: 'pnpm dev:cli download',
+      script: 'pnpm prod:cli download',
     },
     {
       name: `health`,
       restart_delay: 60 * 1000, // 1 minute
-      script: 'pnpm dev:cli health',
+      script: 'pnpm prod:cli health',
     },
   ],
 }
