@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { DefaultSettingsService, SETTINGS } from '$constants'
+import { DEBUG, DefaultSettingsService, SETTINGS } from '$constants'
 import { LogLevelName, LoggerService } from '$shared'
 import { program } from 'commander'
 import EventSource from 'eventsource'
@@ -18,7 +18,7 @@ export type GlobalOptions = {
 
 DefaultSettingsService(SETTINGS)
 
-LoggerService({})
+LoggerService({ level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info })
 
 //@ts-ignore
 global.EventSource = EventSource
