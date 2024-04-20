@@ -40,7 +40,7 @@ Here's all the Linux/devops stuff that PocketHost does for you:
 - SSL cert provisioning and management
 - Storage
 - Volume mounts
-- Could computing or VPS deployment
+- Cloud computing or VPS deployment
 - CDN and static asset hosting
 - Amazon AWS
 - Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on

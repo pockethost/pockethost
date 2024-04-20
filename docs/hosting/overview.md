@@ -14,10 +14,10 @@ Running a hosting service is not easy. To provide a great hosting experience for
 - SSL cert provisioning and management
 - Storage
 - Volume mounts
-- Could computing or VPS deployment
+- Cloud computing or VPS deployment
 - CDN and static asset hosting
 - Amazon AWS
-- Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on
+- Lots more - scaling, firewalls, DDoS protection, user security, log retention, patches, updates, build tools, CPU architectures, multitenancy, and the list goes on
 
 If you're still interested in creating a PocketHost hosting environment for yourself, read on...
 
@@ -35,7 +35,4 @@ git clone git@github.com:benallfree/pockethost.git pockethost-lts
 cd pockethost-lts
 pnpm
 cd ..
-
 ```
-
-Discussion about ulimits https://chat.openai.com/share/f9ff9df7-9afd-48ce-9a04-d44b4a8a3066
