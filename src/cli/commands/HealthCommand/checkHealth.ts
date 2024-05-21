@@ -12,7 +12,7 @@ import { default as osu } from 'node-os-utils'
 import { freemem } from 'os'
 
 export const checkHealth = async () => {
-  const { cpu, drive, openfiles, proc } = osu
+  const { cpu, drive } = osu
 
   const DISCORD_URL = DISCORD_HEALTH_CHANNEL_URL()
 
@@ -27,8 +27,6 @@ export const checkHealth = async () => {
         .split(`\n`)
 
     const openFiles = _exec(`lsof -n | awk '$4 ~ /^[0-9]/ {print}'`)
-
-    const [freeSpace] = _exec(`df -h / | awk 'NR==2{print $4}'`)
 
     type DockerPs = {
       Command: string
@@ -151,8 +149,6 @@ export const checkHealth = async () => {
         ),
       )
 
-    const driveInfo = await drive.info(`/`)
-
     await send([
       `===================`,
       `Server: SFO-1`,
@@ -160,7 +156,10 @@ export const checkHealth = async () => {
       `CPUs: ${cpu.count()}`,
       `CPU Usage: ${await cpu.usage()}%`,
       `Free RAM: ${getFreeMemoryInGB()}GB`,
-      `Free disk: ${driveInfo.freeGb}GB`,
+      `/: ${(await drive.info(`/`)).freeGb}GB`,
+      `/mnt/pockethost-data: ${
+        (await drive.info(`/mnt/pockethost-data`)).freeGb
+      }GB`,
       `Open files: ${openFiles.length}`,
       `Containers: ${containers.length}`,
     ])
