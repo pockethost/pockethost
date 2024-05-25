@@ -521,6 +521,14 @@ export const instanceService = mkSingleton(
       }
 
       /*
+        Suspension check
+        */
+      dbg(`Checking for suspension`)
+      if (instance.suspension) {
+        throw new Error(instance.suspension)
+      }
+
+      /*
         Maintenance check
         */
       dbg(`Checking for maintenance mode`)

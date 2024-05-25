@@ -27,6 +27,7 @@ export type InstanceFields = BaseFields & {
   version: VersionId
   secrets: InstanceSecretCollection | null
   maintenance: boolean
+  suspension: string
   syncAdmin: boolean
   cname: string
   dev: boolean
