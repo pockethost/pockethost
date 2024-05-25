@@ -14,6 +14,7 @@ pocketbase
 live-data
 dist
 .pockethost
+version-cache
 
 // This is needed because Docker bind mounts will copy this file
 src/mothership-app/pb_hooks/src/versions.js
