@@ -1,3 +1,7 @@
+import { MOTHERSHIP_DATA_ROOT } from '$constants'
+import { writeFileSync } from 'fs'
+import { gobot } from 'gobot'
+
 function compareSemVer(a: string, b: string): number {
   // Consider wildcards as higher than any version number, hence represented by a large number for comparison
   let splitA = a
@@ -18,7 +22,7 @@ function compareSemVer(a: string, b: string): number {
   return 0
 }
 
-export function expandAndSortSemVers(semvers: string[]): string[] {
+function expandAndSortSemVers(semvers: string[]): string[] {
   let expandedVersions = new Set<string>() // Use a set to avoid duplicates
 
   // Helper function to add wildcard versions
@@ -43,4 +47,13 @@ export function expandAndSortSemVers(semvers: string[]): string[] {
   // expandedVersions.add('*')
   // Convert the set to an array and sort it using the custom semver comparison function
   return Array.from(expandedVersions).sort(compareSemVer)
+}
+
+export async function freshenPocketbaseVersions() {
+  const bot = await gobot(`pocketbase`)
+  const rawVersions = await bot.versions()
+  const versions = expandAndSortSemVers(rawVersions)
+  const cjs = `module.exports = ${JSON.stringify(versions, null, 2)}`
+  writeFileSync(MOTHERSHIP_DATA_ROOT(`pb_hooks`, `versions.cjs`), cjs)
+  return cjs
 }

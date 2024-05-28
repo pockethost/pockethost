@@ -8,7 +8,9 @@ routerAdd(
   '/api/instance',
   (c) => {
     const dao = $app.dao()
-    const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+    const { audit, mkLog, versions } = /** @type {Lib} */ (
+      require(`${__hooks}/lib.js`)
+    )
 
     const log = mkLog(`POST:instance`)
 
@@ -44,8 +46,6 @@ routerAdd(
         `Subdomain is required when creating an instance.`,
       )
     }
-
-    const { versions } = require(`${__hooks}/versions.js`)
 
     const collection = dao.findCollectionByNameOrId('instances')
     const record = new Record(collection)

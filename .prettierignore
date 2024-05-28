@@ -9,9 +9,6 @@ build
 _site
 forks
 
-// This is needed because Docker bind mounts will copy this file
-src/mothership-app/pb_hooks/src/versions.js
-
 src/mothership-app/migrations
 src/mothership-app/pb_hooks/types/types.d.ts
 src/instance-app/types/types.d.ts

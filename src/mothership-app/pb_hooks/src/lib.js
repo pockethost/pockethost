@@ -162,10 +162,14 @@ function removeEmptyKeys(obj) {
   return sanitized
 }
 
+/** @type {Lib['versions']} */
+const versions = require(`${__hooks}/versions.cjs`)
+
 module.exports = {
   audit,
   processNotification,
   mkLog,
   enqueueNotification,
   removeEmptyKeys,
+  versions,
 }
