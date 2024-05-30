@@ -20,7 +20,7 @@
     "buildtool": "tsx buildtool/index.ts",
     "build-frontends": "concurrently 'pnpm:build:frontend:*'",
     "build:frontend:dashboard": "cd frontends/dashboard && pnpm build",
-    "build:docker": "docker build . -t pockethost-instance:1.0.0 -t pockethost-instance:latest",
+    "build:docker": "cd src/services/PocketBaseService && docker build . -t pockethost-instance:1.0.0 -t pockethost-instance:latest",
     "build:frontend:lander": "cd frontends/lander && pnpm build",
     "build:frontend:superadmin": "cd frontends/superadmin && pnpm build",
     "dev:cli": "NODE_ENV=development tsx src/cli/index.ts",
@@ -69,6 +69,8 @@
     "ftp-srv": "github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59",
     "get-port": "^6.1.2",
     "glob": "^10.3.10",
+    "gobot": "1.0.0-alpha.40",
+    "gobot-pocketbase": "0.22.8-alpha.22",
     "http-proxy": "^1.18.1",
     "http-proxy-middleware": "^2.0.6",
     "ip-cidr": "^3.1.0",
@@ -78,7 +80,6 @@
     "nanoid": "^5.0.2",
     "node-fetch": "^3.3.2",
     "node-os-utils": "^1.3.7",
-    "pbgo": "1.0.0-alpha.3",
     "pocketbase": "^0.20.1",
     "rimraf": "^5.0.5",
     "semver": "^7.5.4",
@@ -145,6 +146,5 @@
     "tsx": "^3.14.0",
     "type-fest": "^4.6.0",
     "typescript": "^5.2.2"
-  },
-  "packageManager": "pnpm@9.1.2"
+  }
 }

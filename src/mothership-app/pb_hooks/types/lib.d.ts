@@ -52,4 +52,5 @@ interface Lib {
     },
   ) => void
   removeEmptyKeys: <T>(obj: T) => T
+  versions: string[]
 }

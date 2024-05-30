@@ -22,9 +22,9 @@ module.exports = {
       script: 'pnpm prod:cli mothership serve',
     },
     {
-      name: `downloader`,
+      name: `updater`,
       restart_delay: 60 * 60 * 1000, // 1 hour
-      script: 'pnpm prod:cli download',
+      script: 'pnpm prod:cli mothership update',
     },
     {
       name: `health`,

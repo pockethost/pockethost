@@ -4,7 +4,6 @@ import { DEBUG, DefaultSettingsService, SETTINGS } from '$constants'
 import { LogLevelName, LoggerService } from '$shared'
 import { program } from 'commander'
 import EventSource from 'eventsource'
-import { DownloadCommand } from './commands/DownloadCommand'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
 import { HealthCommand } from './commands/HealthCommand'
@@ -33,7 +32,6 @@ export const main = async () => {
     .addCommand(FirewallCommand())
     .addCommand(SendMailCommand())
     .addCommand(ServeCommand())
-    .addCommand(DownloadCommand())
 
   await program.parseAsync()
 }

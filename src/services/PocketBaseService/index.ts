@@ -16,11 +16,11 @@ import { asyncExitHook, mkInternalUrl, SyslogLogger, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
+import { gobot } from 'gobot'
 import MemoryStream from 'memorystream'
 import { gte } from 'semver'
 import { EventEmitter } from 'stream'
 import { AsyncReturnType } from 'type-fest'
-import { PocketbaseReleaseVersionService } from '../PocketbaseReleaseVersionService'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
@@ -54,9 +54,11 @@ export const createPocketbaseService = async (
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
-  const { getLatestVersion, getVersion } =
-    await PocketbaseReleaseVersionService()
-  const maxVersion = getLatestVersion()
+  const bot = await gobot(`pocketbase`, { os: 'linux' })
+  const maxVersion = (await bot.versions())[0]
+  if (!maxVersion) {
+    throw new Error(`No max version found for PocketBase`)
+  }
 
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
@@ -98,8 +100,11 @@ export const createPocketbaseService = async (
     })
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
-    const realVersion = await getVersion(_version)
-    const binPath = realVersion.binPath
+    const realVersion = await bot.maxSatisfyingVersion(_version)
+    if (!realVersion) {
+      throw new Error(`No PocketBase version satisfying ${_version}`)
+    }
+    const binPath = await bot.getBinaryPath(realVersion)
     if (!existsSync(binPath)) {
       throw new Error(
         `PocketBase binary (${binPath}) not found. Contact pockethost.io.`,
@@ -138,7 +143,7 @@ export const createPocketbaseService = async (
         Env: map(
           {
             ...env,
-            DEV: dev && gte(realVersion.version, `0.20.1`),
+            DEV: dev && gte(realVersion, `0.20.1`),
             PH_APEX_DOMAIN: APEX_DOMAIN(),
           },
           (v, k) => `${k}=${v}`,

@@ -102,6 +102,8 @@ routerAdd(
   'POST',
   '/api/signup',
   (c) => {
+    const { versions } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+
     const dao = $app.dao()
     const parsed = (() => {
       const rawBody = readerToString(c.request().body)
@@ -192,7 +194,6 @@ routerAdd(
         instance.set('status', 'idle')
         instance.set('notifyMaintenanceMode', true)
         instance.set('syncAdmin', true)
-        const { versions } = require(`${__hooks}/versions.js`)
         instance.set('version', versions[0])
         txDao.saveRecord(instance)
       } catch (e) {

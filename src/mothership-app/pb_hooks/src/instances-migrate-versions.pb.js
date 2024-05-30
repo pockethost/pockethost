@@ -1,12 +1,13 @@
 /** Migrate version numbers */
 onAfterBootstrap((e) => {
   const dao = $app.dao()
-  const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const { audit, mkLog, versions } = /** @type {Lib} */ (
+    require(`${__hooks}/lib.js`)
+  )
 
   const log = mkLog(`bootstrap`)
 
   const records = dao.findRecordsByFilter(`instances`, '1=1')
-  const { versions } = require(`${__hooks}/versions.js`)
   const unrecognized = []
   records.forEach((record) => {
     const v = record.get('version').trim()

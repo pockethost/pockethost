@@ -23,7 +23,7 @@ Key updates in this release:
 
 # Overview (experimental)
 
-Here is what AI decided based on the change log (powered by [rizzdown](https://benallfree/rizzdown))...
+Here is what AI decided based on the change log (powered by [rizzdown](https://github.com/benallfree/rizzdown))...
 
 The release of PocketHost v0.11.0 introduces essential refinements designed to uplift the developer experience. The enhancement of debug logging in InstanceService presents a granular understanding of the system's inner workings. The refactoring of FTP physical and virtual directory names, together with the PocketBase (pb) launcher, contributes to elevating performance levels - a paramount advantage for restricted bandwidth environments or large projects.
 

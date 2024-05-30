@@ -5,7 +5,7 @@ routerAdd(
   'GET',
   '/api/versions',
   (c) => {
-    const { versions } = require(`${__hooks}/versions.js`)
+    const { versions } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
 
     return c.json(200, { versions })
   } /* optional middlewares */,
