@@ -81,8 +81,8 @@ importers:
         specifier: ^10.3.10
         version: 10.3.10
       gobot:
-        specifier: 1.0.0-alpha.39
-        version: 1.0.0-alpha.39
+        specifier: 1.0.0-alpha.40
+        version: 1.0.0-alpha.40
       gobot-pocketbase:
         specifier: 0.22.8-alpha.22
         version: 0.22.8-alpha.22
@@ -2733,8 +2733,8 @@ packages:
     resolution: {integrity: sha512-beNLlDjonodEiNNcPIxAY4yYAzxcNC0i4KUrinYboR2KtAfbeMb0zijeswVKkZBnopDYQAWqasBEFhsFO7oiUg==}
     hasBin: true
 
-  gobot@1.0.0-alpha.39:
-    resolution: {integrity: sha512-nCELk7KOya33f/9eas2Ha8oLyr9gwzFBVVE8l8IchXSjHenxAAZCddqO5LiiajniLJy5zMXVK2LWDiEHwYVKXg==}
+  gobot@1.0.0-alpha.40:
+    resolution: {integrity: sha512-bV+QO3VZamsnKLH5Pqt0tFZ2CD90JT2QjQIs6tvMP1H2w8QJApbRPVkpJ4O56nXGgyj6f0udelDrsd4tm1F6CQ==}
     hasBin: true
 
   gopd@1.0.1:
@@ -7655,9 +7655,9 @@ snapshots:
 
   gobot-pocketbase@0.22.8-alpha.22:
     dependencies:
-      gobot: 1.0.0-alpha.39
+      gobot: 1.0.0-alpha.40
 
-  gobot@1.0.0-alpha.39:
+  gobot@1.0.0-alpha.40:
     dependencies:
       '@s-libs/micro-dash': 17.1.0
       bottleneck: 2.19.5
