@@ -17,7 +17,6 @@
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "build": "concurrently 'pnpm:build:*'",
-    "buildtool": "tsx buildtool/index.ts",
     "build-frontends": "concurrently 'pnpm:build:frontend:*'",
     "build:frontend:dashboard": "cd frontends/dashboard && pnpm build",
     "build:docker": "cd pockethost-instance && docker build . -t benallfree/pockethost-instance:${npm_package_version} -t benallfree/pockethost-instance:latest",

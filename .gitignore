@@ -13,4 +13,5 @@ pocketbase
 live-data
 dist
 .pockethost
-
+.scripts
+*.tgz
