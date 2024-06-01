@@ -9,10 +9,4 @@ RUN echo "pockethost:password" | chpasswd
 
 EXPOSE 8090
 
-WORKDIR /bootstrap
-
-COPY bootstrap/* .
-
-RUN npm i
-
 WORKDIR /home/pockethost
