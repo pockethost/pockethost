@@ -15,6 +15,7 @@ export type UpdateInstancePayload = {
       | 'dev'
       | 'cname'
       | 'notifyMaintenanceMode'
+      | 'corsOrigins'
     >
   >
 }
@@ -54,6 +55,7 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
           dev: { type: 'boolean', nullable: true },
           cname: { type: 'string', nullable: true },
           notifyMaintenanceMode: { type: 'boolean', nullable: true },
+          corsOrigins: { type: 'string', nullable: true },
         },
       },
     },
