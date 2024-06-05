@@ -6,7 +6,7 @@ Built with 11ty, Tailwind, Daisy UI, and Markdown
 
 - Clone the repo
 - Run `pnpm install` at the project root
-- Navigate to `frontends/www/`
+- Navigate to `packages/lander/`
 - Run `npx @11ty/eleventy --serve --quiet` to start the development server
 - Access the site at http://localhost:8080/
 

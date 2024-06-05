@@ -313,7 +313,7 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
-  frontends/dashboard:
+  packages/dashboard:
     devDependencies:
       '@microsoft/fetch-event-source':
         specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
@@ -394,7 +394,7 @@ importers:
         specifier: ^4.4.9
         version: 4.5.0(@types/node@20.8.10)(sass@1.69.5)
 
-  frontends/lander:
+  packages/lander:
     dependencies:
       '@tailwindcss/typography':
         specifier: ^0.5.10
@@ -446,7 +446,7 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3
 
-  frontends/superadmin:
+  packages/superadmin:
     devDependencies:
       '@microsoft/fetch-event-source':
         specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
@@ -585,10 +585,6 @@ packages:
 
   '@babel/helper-string-parser@7.22.5':
     resolution: {integrity: sha512-mM4COjgZox8U+JcXQwPijIZLElkgEpO5rsERVDJTc2qfCDfERyob6k5WegS14SX18IIjv+XD+GrqNumY5JRCDw==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helper-validator-identifier@7.22.20':
-    resolution: {integrity: sha512-Y4OZ+ytlatR8AI+8KZfKuL5urKp7qey08ha31L8b3BwewJAoJamTzyvxPR/5D+KkdJCGPq/+8TukHBlY10FX9A==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.24.6':
@@ -3063,6 +3059,7 @@ packages:
 
   glob@7.1.6:
     resolution: {integrity: sha512-LwaxwyZ72Lk7vZINtNNrywX0ZuLyStrdDtabefZKAY5ZGJhVtgdznluResxNmPitE0SAO+O26sWTHeKSI2wMBA==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
@@ -6163,7 +6160,7 @@ snapshots:
       posthtml-urls: 1.0.0
       pug: 3.0.2
       recursive-copy: 2.0.14
-      semver: 7.5.4
+      semver: 7.6.2
       slugify: 1.6.6
     transitivePeerDependencies:
       - bufferutil
@@ -6186,8 +6183,6 @@ snapshots:
 
   '@babel/helper-string-parser@7.22.5': {}
 
-  '@babel/helper-validator-identifier@7.22.20': {}
-
   '@babel/helper-validator-identifier@7.24.6': {}
 
   '@babel/highlight@7.24.6':
@@ -6208,7 +6203,7 @@ snapshots:
   '@babel/types@7.23.0':
     dependencies:
       '@babel/helper-string-parser': 7.22.5
-      '@babel/helper-validator-identifier': 7.22.20
+      '@babel/helper-validator-identifier': 7.24.6
       to-fast-properties: 2.0.0
 
   '@balena/dockerignore@1.0.2': {}
@@ -11254,7 +11249,7 @@ snapshots:
       detect-libc: 2.0.2
       node-addon-api: 6.1.0
       prebuild-install: 7.1.1
-      semver: 7.5.4
+      semver: 7.6.2
       simple-get: 4.0.1
       tar-fs: 3.0.4
       tunnel-agent: 0.6.0

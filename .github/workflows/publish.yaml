@@ -53,7 +53,7 @@ jobs:
         uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            frontends/dashboard/**
+            packages/dashboard/**
 
       - name: DASHBOARD - Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
@@ -97,7 +97,7 @@ jobs:
         uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            frontends/lander/**
+            packages/lander/**
 
       - name: LANDER - Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
@@ -140,7 +140,7 @@ jobs:
         uses: tj-actions/changed-files@v40.1.0
         with:
           files: |
-            frontends/superadmin/**
+            packages/superadmin/**
 
       - name: SUPERADMIN - Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
