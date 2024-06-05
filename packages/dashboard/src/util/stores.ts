@@ -1,11 +1,11 @@
+import { client } from '$src/pocketbase-client'
 import {
   SubscriptionType,
   UserFields,
   type InstanceFields,
   type InstanceId,
-} from '$shared'
-import { client } from '$src/pocketbase-client'
-import { UnsubscribeFunc } from 'pocketbase'
+  type UnsubscribeFunc,
+} from '@pockethost/common'
 import { writable } from 'svelte/store'
 // TODO: Removing this will cause the app to crash
 // Theres a reference inside of `createPocketbaseClient.ts` that needs the information that comes from this file

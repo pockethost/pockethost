@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { SECRET_KEY_REGEX, UpdateInstancePayload } from '$shared'
+  import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client/index.js'
+  import { SECRET_KEY_REGEX, UpdateInstancePayload } from '@pockethost/common'
   import { reduce } from '@s-libs/micro-dash'
   import { instance } from '../store.js'
   import { items } from './stores.js'
-  import AlertBar from '$components/AlertBar.svelte'
 
   // Keep track of the new key and value to be added
   let secretKey: string = ''

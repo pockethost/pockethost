@@ -1,7 +1,6 @@
 <script lang="ts">
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import PricingTable from '$components/tables/pricing-table/PricingTable.svelte'
-  import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { client } from '$src/pocketbase-client'
   import FAQSection from '$src/routes/account/FAQSection.svelte'
   import PricingCard from '$src/routes/account/PricingCard.svelte'
@@ -11,6 +10,7 @@
     userStore,
     userSubscriptionType,
   } from '$util/stores'
+  import { PLAN_NAMES, SubscriptionType } from '@pockethost/common'
   import { onMount } from 'svelte'
   import { writable } from 'svelte/store'
 

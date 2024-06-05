@@ -1,9 +1,9 @@
 <script>
   import { page } from '$app/stores'
   import AlertBar from '$components/AlertBar.svelte'
-  import { assert } from '$shared'
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
+  import { assert } from '@pockethost/common'
   import { instance } from './store'
 
   let isReady = false

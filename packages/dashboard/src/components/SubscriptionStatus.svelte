@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { isUserFounder, userSubscriptionType } from '$util/stores'
+  import { PLAN_NAMES, SubscriptionType } from '@pockethost/common'
 
   isUserFounder
 

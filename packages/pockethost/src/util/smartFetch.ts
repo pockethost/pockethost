@@ -1,4 +1,4 @@
-import { LoggerService } from '$shared'
+import { LoggerService } from '@pockethost/common'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'

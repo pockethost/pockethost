@@ -3,9 +3,9 @@
   import FeatureName from '$components/tables/pricing-table/FeatureName.svelte'
   import FeatureSupportBlock from '$components/tables/pricing-table/FeatureSupportBlock.svelte'
   import MobileTable from '$components/tables/pricing-table/MobileTable.svelte'
-  import { PLAN_NAMES, SubscriptionType } from '$shared'
   import { DISCORD_URL, DOCS_URL } from '$src/env'
-  import { userSubscriptionType, isUserFounder } from '$util/stores'
+  import { isUserFounder, userSubscriptionType } from '$util/stores'
+  import { PLAN_NAMES, SubscriptionType } from '@pockethost/common'
 
   type ItemValue = '1' | 'Unlimited' | 'YesBlock' | 'NoBlock'
 

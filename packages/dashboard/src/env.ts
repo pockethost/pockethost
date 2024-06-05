@@ -1,4 +1,4 @@
-import { InstanceFields } from '$shared'
+import { InstanceFields } from '@pockethost/common'
 import { boolean } from 'boolean'
 
 /**

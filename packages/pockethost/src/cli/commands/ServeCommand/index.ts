@@ -1,4 +1,4 @@
-import { LoggerService } from '$shared'
+import { LoggerService } from '@pockethost/common'
 import { Command } from 'commander'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { syslog } from '../EdgeCommand/SyslogCommand/ServeCommand/syslog'

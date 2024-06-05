@@ -1,11 +1,4 @@
 import {
-  InstanceFields,
-  InstanceId,
-  IoCManager,
-  UserFields,
-  mkSingleton,
-} from '$shared'
-import {
   HandlerFactory,
   SettingsService,
   mkBoolean,
@@ -14,6 +7,13 @@ import {
   mkPath,
   mkString,
 } from '$util'
+import {
+  InstanceFields,
+  InstanceId,
+  IoCManager,
+  UserFields,
+  mkSingleton,
+} from '@pockethost/common'
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import dotenv from 'dotenv'

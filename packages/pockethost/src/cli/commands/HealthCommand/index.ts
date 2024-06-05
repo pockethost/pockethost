@@ -1,4 +1,4 @@
-import { LoggerService } from '$shared'
+import { LoggerService } from '@pockethost/common'
 import { Command } from 'commander'
 import { checkHealth } from './checkHealth'
 

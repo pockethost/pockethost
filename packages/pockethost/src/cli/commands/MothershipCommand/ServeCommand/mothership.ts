@@ -10,7 +10,7 @@ import {
   mkContainerHomePath,
 } from '$constants'
 import { PortService } from '$services'
-import { LoggerService } from '$shared'
+import { LoggerService } from '@pockethost/common'
 import copyfiles from 'copyfiles'
 import { GobotOptions, gobot } from 'gobot'
 import { rimraf } from 'rimraf'

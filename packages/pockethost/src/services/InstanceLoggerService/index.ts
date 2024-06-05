@@ -1,6 +1,10 @@
 import { mkInstanceDataPath } from '$constants'
-import { createCleanupManager, LoggerService } from '$shared'
 import { asyncExitHook, mergeConfig } from '$util'
+import {
+  LoggerService,
+  createCleanupManager,
+  stringify,
+} from '@pockethost/common'
 import * as fs from 'fs'
 import { Tail } from 'tail'
 import * as winston from 'winston'
@@ -60,7 +64,7 @@ export function InstanceLogger(
       winston.format.timestamp(),
       winston.format.json(),
       winston.format.printf((info) => {
-        return JSON.stringify({
+        return stringify({
           stream: info.level === 'info' ? 'stdout' : 'stderr',
           time: info.timestamp,
           message: info.message,

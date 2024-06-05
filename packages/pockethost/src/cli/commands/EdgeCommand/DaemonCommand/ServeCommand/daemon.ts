@@ -12,8 +12,8 @@ import {
   proxyService,
   realtimeLog,
 } from '$services'
-import { LoggerService } from '$shared'
 import { discordAlert, tryFetch } from '$util'
+import { LoggerService } from '@pockethost/common'
 import { ErrorRequestHandler } from 'express'
 
 export async function daemon() {

@@ -37,6 +37,7 @@
     "svelte-highlight": "^7.3.0",
     "svelte-preprocess": "^5.0.4",
     "tailwindcss": "^3.3.3",
-    "vite": "^4.4.9"
+    "vite": "^4.4.9",
+    "@pockethost/common": "workspace:../common"
   }
 }

@@ -1,4 +1,5 @@
 import { DISCORD_ALERT_CHANNEL_URL } from '$constants'
+import { stringify } from '@pockethost/common'
 
 const cache: { [_: string]: NodeJS.Timeout } = {}
 
@@ -17,7 +18,7 @@ export const discordAlert = (message: { toString: () => string }) => {
 
   fetch(url, {
     method: 'POST',
-    body: JSON.stringify({
+    body: stringify({
       content: message.toString(),
     }),
     headers: { 'Content-Type': 'application/json' },

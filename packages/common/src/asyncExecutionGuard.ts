@@ -1,7 +1,7 @@
-import { LoggerService } from '$shared'
 import { uniqueId } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { SetReturnType } from 'type-fest'
+import { LoggerService } from './Logger'
 
 const limiters: { [lane: string]: Bottleneck } = {}
 export const serialAsyncExecutionGuard = <
@@ -37,6 +37,7 @@ export const singletonAsyncExecutionGuard = <
   const wrapper = (...args: Parameters<T>) => {
     const { dbg } = LoggerService().create(`singletonAsyncExecutionGuard`)
     const key = keyFactory(...args)
+    //@ts-ignore
     if (singletons[key]) {
       return singletons[key] as unknown as ReturnType<T>
     }

@@ -1,8 +1,15 @@
+import { INSTANCE_URL } from '$src/env'
+import { createGenericSyncEvent } from '$util/events'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
+  AuthModel,
+  BaseAuthStore,
+  ClientResponseError,
   CreateInstancePayloadSchema,
   DeleteInstancePayload,
   DeleteInstancePayloadSchema,
   DeleteInstanceResult,
+  PocketBase,
   RestCommands,
   RestMethods,
   UpdateInstancePayload,
@@ -15,16 +22,8 @@ import {
   type InstanceFields,
   type InstanceId,
   type InstanceLogFields,
-} from '$shared'
-import { INSTANCE_URL } from '$src/env'
-import { createGenericSyncEvent } from '$util/events'
-import { fetchEventSource } from '@microsoft/fetch-event-source'
+} from '@pockethost/common'
 import { keys, map } from '@s-libs/micro-dash'
-import PocketBase, {
-  BaseAuthStore,
-  ClientResponseError,
-  type AuthModel,
-} from 'pocketbase'
 
 export type AuthToken = string
 export type AuthStoreProps = {

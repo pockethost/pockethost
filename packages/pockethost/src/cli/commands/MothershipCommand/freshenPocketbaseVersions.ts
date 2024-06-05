@@ -1,4 +1,5 @@
 import { MOTHERSHIP_DATA_ROOT } from '$constants'
+import { stringify } from '@pockethost/common'
 import { writeFileSync } from 'fs'
 import { gobot } from 'gobot'
 
@@ -53,7 +54,7 @@ export async function freshenPocketbaseVersions() {
   const bot = await gobot(`pocketbase`)
   const rawVersions = await bot.versions()
   const versions = expandAndSortSemVers(rawVersions)
-  const cjs = `module.exports = ${JSON.stringify(versions, null, 2)}`
+  const cjs = `module.exports = ${stringify(versions, null, 2)}`
   writeFileSync(MOTHERSHIP_DATA_ROOT(`pb_hooks`, `versions.cjs`), cjs)
   return cjs
 }

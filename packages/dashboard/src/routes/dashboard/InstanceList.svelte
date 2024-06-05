@@ -1,9 +1,9 @@
 <script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { InstanceFields } from '$shared'
   import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
   import { globalInstancesStore } from '$util/stores'
+  import { InstanceFields } from '@pockethost/common'
   import { values } from '@s-libs/micro-dash'
 
   let arrayOfActiveInstances: InstanceFields[] = []

@@ -3,11 +3,12 @@ import {
   GetUserTokenPayloadSchema,
   GetUserTokenResult,
   LoggerService,
+  PocketBase,
   RestCommands,
   RestMethods,
   createRestHelper,
-} from '$shared'
-import { default as PocketBase } from 'pocketbase'
+  stringify,
+} from '@pockethost/common'
 import { MixinContext } from '.'
 import { createInstanceMixin } from './InstanceMIxin'
 
@@ -30,7 +31,7 @@ export const createAdminPbClient = (url: string) => {
       .create({ email, password, passwordConfirm: password })
       .catch((res) => {
         console.log({ email, password })
-        console.log(JSON.stringify(res, null, 2))
+        console.log(stringify(res, null, 2))
         return res
       })
 

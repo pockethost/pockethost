@@ -1,2 +1,2 @@
-import { assert } from '$shared'
+import { assert } from '@pockethost/common'
 export { assert }

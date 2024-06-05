@@ -1,6 +1,6 @@
 import { DATA_ROOT } from '$constants'
-import { InstanceFields, Logger } from '$shared'
 import { assert } from '$util'
+import { InstanceFields, Logger, PocketBase, newId } from '@pockethost/common'
 import { compact, map } from '@s-libs/micro-dash'
 import {
   Mode,
@@ -11,9 +11,7 @@ import {
   mkdirSync,
 } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
-import { customAlphabet } from 'nanoid'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
-import pocketbaseEs from 'pocketbase'
 import {
   FolderNamesMap,
   INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES,
@@ -22,8 +20,6 @@ import {
   virtualFolderGuard,
 } from '.'
 import * as fsAsync from './fs-async'
-
-const nanoid = customAlphabet(`abcdefghijklmnop`)
 
 export type PathError = {
   cause: {
@@ -47,9 +43,9 @@ export class PhFs implements FileSystem {
   connection: FtpConnection
   cwd: string
   private _root: string
-  client: pocketbaseEs
+  client: PocketBase
 
-  constructor(connection: FtpConnection, client: pocketbaseEs, logger: Logger) {
+  constructor(connection: FtpConnection, client: PocketBase, logger: Logger) {
     const cwd = `/`
     const root = DATA_ROOT()
     this.connection = connection
@@ -505,6 +501,6 @@ export class PhFs implements FileSystem {
   }
 
   getUniqueName() {
-    return nanoid(30)
+    return newId(30)
   }
 }

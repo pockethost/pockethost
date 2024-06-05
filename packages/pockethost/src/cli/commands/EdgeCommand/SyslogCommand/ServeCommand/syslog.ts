@@ -1,6 +1,6 @@
 import { SYSLOGD_PORT } from '$constants'
 import { InstanceLogger } from '$services'
-import { LoggerService } from '$shared'
+import { LoggerService } from '@pockethost/common'
 import * as dgram from 'dgram'
 import parse from 'syslog-parse'
 

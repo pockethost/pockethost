@@ -20,8 +20,7 @@
       "$util": ["./src/util"],
       "$services": ["./src/services"],
       "$constants": ["./src/constants"],
-      "$src/*": ["./src/*"],
-      "$shared": ["./src/shared"]
+      "$src/*": ["./src/*"]
     }
   },
   "include": ["**/*.ts"],

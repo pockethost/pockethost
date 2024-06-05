@@ -1,10 +1,11 @@
 import { createGenericSyncEvent } from '$util/events'
-import { keys, map } from '@s-libs/micro-dash'
-import PocketBase, {
+import {
   BaseAuthStore,
   ClientResponseError,
+  PocketBase,
   type AuthModel,
-} from 'pocketbase'
+} from '@pockethost/common'
+import { keys, map } from '@s-libs/micro-dash'
 
 export type AuthToken = string
 export type AuthStoreProps = {

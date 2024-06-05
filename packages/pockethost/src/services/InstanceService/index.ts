@@ -19,8 +19,10 @@ import {
   SpawnConfig,
   proxyService,
 } from '$services'
+import { asyncExitHook, mkInternalUrl, now } from '$util'
 import {
   CLEANUP_PRIORITY_LAST,
+  ClientResponseError,
   InstanceFields,
   InstanceId,
   InstanceStatus,
@@ -29,14 +31,12 @@ import {
   createCleanupManager,
   createTimerManager,
   mkSingleton,
-} from '$shared'
-import { asyncExitHook, mkInternalUrl, now } from '$util'
+  stringify,
+} from '@pockethost/common'
 import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'glob'
-import stringify from 'json-stringify-safe'
 import { basename, join } from 'path'
-import { ClientResponseError } from 'pocketbase'
 import { AsyncReturnType } from 'type-fest'
 import { mkInstanceCache } from './mkInstanceCache'
 
@@ -452,7 +452,7 @@ export const instanceService = mkSingleton(
             .catch((e: ClientResponseError) => {
               if (e.status !== 404) {
                 throw new Error(
-                  `Unexpected response ${JSON.stringify(e)} from mothership`,
+                  `Unexpected response ${stringify(e)} from mothership`,
                 )
               }
             })
@@ -474,7 +474,7 @@ export const instanceService = mkSingleton(
             .catch((e: ClientResponseError) => {
               if (e.status !== 404) {
                 throw new Error(
-                  `Unexpected response ${JSON.stringify(e)} from mothership`,
+                  `Unexpected response ${stringify(e)} from mothership`,
                 )
               }
             })
@@ -491,7 +491,7 @@ export const instanceService = mkSingleton(
             .catch((e: ClientResponseError) => {
               if (e.status !== 404) {
                 throw new Error(
-                  `Unexpected response ${JSON.stringify(e)} from mothership`,
+                  `Unexpected response ${stringify(e)} from mothership`,
                 )
               }
             })

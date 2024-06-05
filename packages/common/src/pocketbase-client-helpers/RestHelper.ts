@@ -1,7 +1,7 @@
 import Ajv, { JSONSchemaType } from 'ajv'
-import type PocketBase from 'pocketbase'
 import { ClientResponseError } from 'pocketbase'
 import type { JsonObject } from 'type-fest'
+import { PocketBase } from '..'
 import { LoggerService } from '../Logger'
 import { RestCommands, RestMethods } from '../schema'
 

@@ -186,7 +186,39 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  packages/common:
+    dependencies:
+      '@s-libs/micro-dash':
+        specifier: ^16.1.0
+        version: 16.1.0
+      ajv:
+        specifier: ^8.12.0
+        version: 8.12.0
+      bottleneck:
+        specifier: ^2.19.5
+        version: 2.19.5
+      chalk:
+        specifier: ^5.3.0
+        version: 5.3.0
+      json-stringify-safe:
+        specifier: ^5.0.1
+        version: 5.0.1
+      nanoid:
+        specifier: ^5.0.2
+        version: 5.0.2
+      pocketbase:
+        specifier: ^0.21.3
+        version: 0.21.3
+    devDependencies:
+      '@types/json-stringify-safe':
+        specifier: ^5.0.2
+        version: 5.0.2
+
   packages/dashboard:
+    dependencies:
+      '@pockethost/common':
+        specifier: link:../common
+        version: link:../common
     devDependencies:
       '@microsoft/fetch-event-source':
         specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
@@ -266,6 +298,9 @@ importers:
 
   packages/lander:
     dependencies:
+      '@pockethost/common':
+        specifier: link:../common
+        version: link:../common
       '@tailwindcss/typography':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.3.5)
@@ -318,6 +353,9 @@ importers:
 
   packages/pockethost:
     dependencies:
+      '@pockethost/common':
+        specifier: link:../common
+        version: link:../common
       '@s-libs/micro-dash':
         specifier: ^16.1.0
         version: 16.1.0
@@ -336,9 +374,6 @@ importers:
       bottleneck:
         specifier: ^2.19.5
         version: 2.19.5
-      chalk:
-        specifier: ^5.3.0
-        version: 5.3.0
       commander:
         specifier: ^11.1.0
         version: 11.1.0
@@ -405,27 +440,18 @@ importers:
       ip-cidr:
         specifier: ^3.1.0
         version: 3.1.0
-      json-stringify-safe:
-        specifier: ^5.0.1
-        version: 5.0.1
       knex:
         specifier: ^2.5.1
         version: 2.5.1(sqlite3@5.1.6(encoding@0.1.13))
       memorystream:
         specifier: ^0.3.1
         version: 0.3.1
-      nanoid:
-        specifier: ^5.0.2
-        version: 5.0.2
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
       node-os-utils:
         specifier: ^1.3.7
         version: 1.3.7
-      pocketbase:
-        specifier: ^0.20.1
-        version: 0.20.1
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
@@ -493,9 +519,6 @@ importers:
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
-      '@types/json-stringify-safe':
-        specifier: ^5.0.2
-        version: 5.0.2
       '@types/memorystream':
         specifier: ^0.3.3
         version: 0.3.3
@@ -557,7 +580,13 @@ importers:
         specifier: ^4.6.0
         version: 4.6.0
 
+  packages/pockethost-instance: {}
+
   packages/superadmin:
+    dependencies:
+      '@pockethost/common':
+        specifier: link:../common
+        version: link:../common
     devDependencies:
       '@microsoft/fetch-event-source':
         specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
@@ -4760,8 +4789,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  pocketbase@0.20.1:
-    resolution: {integrity: sha512-Gl51UBc1U03JlwmwMkUIa1OHbcTmmdhyMPV1aJyHp9HuY5VUlh0t4hcx6D1fdhYsJcoh3kc6mpwhTBfXDoyn8w==}
+  pocketbase@0.21.3:
+    resolution: {integrity: sha512-bsQRZ1mj4dhPJ4P5iSrDqWQtBX2NtuBkf6IOZwTv27zZOw6zrISgo963i5JD/99qKKD5aMSMDPGk1BE9ZyI7Cg==}
 
   possible-typed-array-names@1.0.0:
     resolution: {integrity: sha512-d7Uw+eZoloe0EHDIYoe+bQ5WXnGMOpmiZFTuMWCwpjzzkL2nTjcKiAk4hh8TjnGye2TwWOk3UXucZ+3rbmBa8Q==}
@@ -10757,7 +10786,7 @@ snapshots:
       ora: 8.0.1
       v8flags: 4.0.1
 
-  pocketbase@0.20.1: {}
+  pocketbase@0.21.3: {}
 
   possible-typed-array-names@1.0.0: {}
 

@@ -7,12 +7,11 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '$constants'
-import { LoggerService, mkSingleton } from '$shared'
 import { exitHook, mergeConfig } from '$util'
+import { LoggerService, PocketBase, mkSingleton } from '@pockethost/common'
 import { keys, values } from '@s-libs/micro-dash'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
-import pocketbaseEs from 'pocketbase'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = { mothershipUrl: string }
@@ -89,7 +88,7 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
     async ({ connection, username, password }, resolve, reject) => {
       dbg(`Got a connection`)
       dbg(`Finding ${mothershipUrl}`)
-      const client = new pocketbaseEs(mothershipUrl)
+      const client = new PocketBase(mothershipUrl)
       try {
         await client.collection('users').authWithPassword(username, password)
         dbg(`Logged in`)

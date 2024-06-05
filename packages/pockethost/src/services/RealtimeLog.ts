@@ -2,10 +2,11 @@ import {
   InstanceFields,
   LoggerService,
   mkSingleton,
+  PocketBase,
   SingletonBaseConfig,
-} from '$shared'
+  stringify,
+} from '@pockethost/common'
 import { text } from 'node:stream/consumers'
-import pocketbaseEs from 'pocketbase'
 import { JsonifiableObject } from 'type-fest/source/jsonifiable'
 import { InstanceLogger } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
@@ -13,7 +14,7 @@ import { proxyService } from './ProxyService'
 export type RealtimeLogConfig = SingletonBaseConfig & {}
 
 const mkEvent = (name: string, data: JsonifiableObject) => {
-  return `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`
+  return `event: ${name}\ndata: ${stringify(data)}\n\n`
 }
 
 export type RealtimeLog = ReturnType<typeof realtimeLog>
@@ -42,7 +43,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     }
 
     /** Validate auth token */
-    const client = new pocketbaseEs(coreInternalUrl)
+    const client = new PocketBase(coreInternalUrl)
     client.authStore.loadFromCookie(auth)
     dbg(`Cookie here is`, client.authStore.isValid)
     await client.collection('users').authRefresh()

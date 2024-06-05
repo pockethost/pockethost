@@ -1,6 +1,6 @@
 import { INITIAL_PORT_POOL_SIZE } from '$constants'
-import { mkSingleton } from '$shared'
 import { mergeConfig, PromiseAllocator } from '$util'
+import { mkSingleton } from '@pockethost/common'
 import getPort from 'get-port'
 
 export type Config = { maxPorts: number }

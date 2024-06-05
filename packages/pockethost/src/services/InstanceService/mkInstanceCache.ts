@@ -4,13 +4,13 @@ import {
   InstanceFields_WithUser,
   InstanceId,
   LoggerService,
+  PocketBase,
   UserFields,
   UserId,
-} from '$shared'
+} from '@pockethost/common'
 import { forEach } from '@s-libs/micro-dash'
-import pocketbaseEs from 'pocketbase'
 
-export const mkInstanceCache = (client: pocketbaseEs) => {
+export const mkInstanceCache = (client: PocketBase) => {
   const { dbg } = LoggerService().create(`InstanceCache`)
 
   const cache: { [_: InstanceId]: InstanceFields_WithUser | undefined } = {}

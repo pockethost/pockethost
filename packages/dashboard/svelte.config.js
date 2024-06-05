@@ -15,7 +15,6 @@ const config = {
       $components: './src/components',
       $util: './src/util',
       $src: './src',
-      $shared: '../pockethost/src/shared',
     },
   },
   target: '#svelte',
