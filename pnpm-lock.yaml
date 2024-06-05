@@ -7,152 +7,10 @@ settings:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
       '@changesets/cli':
         specifier: ^2.27.5
         version: 2.27.5
-      '@s-libs/micro-dash':
-        specifier: ^16.1.0
-        version: 16.1.0
-      '@types/node-os-utils':
-        specifier: ^1.3.4
-        version: 1.3.4
-      '@types/winston-syslog':
-        specifier: ^2.4.3
-        version: 2.4.3
-      ajv:
-        specifier: ^8.12.0
-        version: 8.12.0
-      boolean:
-        specifier: ^3.2.0
-        version: 3.2.0
-      bottleneck:
-        specifier: ^2.19.5
-        version: 2.19.5
-      chalk:
-        specifier: ^5.3.0
-        version: 5.3.0
-      commander:
-        specifier: ^11.1.0
-        version: 11.1.0
-      cors:
-        specifier: ^2.8.5
-        version: 2.8.5
-      decompress:
-        specifier: ^4.2.1
-        version: 4.2.1
-      decompress-unzip:
-        specifier: https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751
-        version: https://codeload.github.com/pockethost/decompress-unzip/tar.gz/6ef397b9a2df11d39c7b26ce779e123833844751
-      devcert:
-        specifier: ^1.2.2
-        version: 1.2.2
-      dockerode:
-        specifier: ^3.3.5
-        version: 3.3.5
-      dotenv:
-        specifier: ^16.3.1
-        version: 16.3.1
-      env-paths:
-        specifier: ^3.0.0
-        version: 3.0.0
-      event-source-polyfill:
-        specifier: ^1.0.31
-        version: 1.0.31
-      eventsource:
-        specifier: ^2.0.2
-        version: 2.0.2
-      exit-hook:
-        specifier: ^4.0.0
-        version: 4.0.0
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
-      express-async-errors:
-        specifier: ^3.1.1
-        version: 3.1.1(express@4.18.2)
-      express-sslify:
-        specifier: ^1.2.0
-        version: 1.2.0
-      find-up:
-        specifier: ^6.3.0
-        version: 6.3.0
-      ftp-srv:
-        specifier: github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
-        version: https://codeload.github.com/pockethost/ftp-srv/tar.gz/0fc708bae0d5d7a55ce948767f082d6fcfb2af59
-      get-port:
-        specifier: ^6.1.2
-        version: 6.1.2
-      glob:
-        specifier: ^10.3.10
-        version: 10.3.10
-      gobot:
-        specifier: 1.0.0-alpha.40
-        version: 1.0.0-alpha.40
-      gobot-pocketbase:
-        specifier: 0.22.8-alpha.22
-        version: 0.22.8-alpha.22
-      http-proxy:
-        specifier: ^1.18.1
-        version: 1.18.1
-      http-proxy-middleware:
-        specifier: ^2.0.6
-        version: 2.0.6(@types/express@4.17.21)
-      ip-cidr:
-        specifier: ^3.1.0
-        version: 3.1.0
-      json-stringify-safe:
-        specifier: ^5.0.1
-        version: 5.0.1
-      knex:
-        specifier: ^2.5.1
-        version: 2.5.1(sqlite3@5.1.6(encoding@0.1.13))
-      memorystream:
-        specifier: ^0.3.1
-        version: 0.3.1
-      nanoid:
-        specifier: ^5.0.2
-        version: 5.0.2
-      node-fetch:
-        specifier: ^3.3.2
-        version: 3.3.2
-      node-os-utils:
-        specifier: ^1.3.7
-        version: 1.3.7
-      pocketbase:
-        specifier: ^0.20.1
-        version: 0.20.1
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.5
-      semver:
-        specifier: ^7.5.4
-        version: 7.5.4
-      sqlite3:
-        specifier: ^5.1.6
-        version: 5.1.6(encoding@0.1.13)
-      syslog-parse:
-        specifier: ^2.0.0
-        version: 2.0.0
-      tail:
-        specifier: ^2.2.6
-        version: 2.2.6
-      tmp:
-        specifier: ^0.2.1
-        version: 0.2.1
-      url-pattern:
-        specifier: ^1.0.3
-        version: 1.0.3
-      vhost:
-        specifier: ^3.0.2
-        version: 3.0.2
-      winston:
-        specifier: ^3.11.0
-        version: 3.11.0
-      winston-syslog:
-        specifier: ^2.7.0
-        version: 2.7.0(winston@3.11.0)
-    devDependencies:
       '@commitlint/cli':
         specifier: ^19.3.0
         version: 19.3.0(@types/node@20.8.10)(typescript@5.2.2)
@@ -222,6 +80,9 @@ importers:
       '@types/node':
         specifier: ^20.8.10
         version: 20.8.10
+      '@types/node-os-utils':
+        specifier: ^1.3.4
+        version: 1.3.4
       '@types/semver':
         specifier: ^7.5.4
         version: 7.5.4
@@ -237,6 +98,9 @@ importers:
       '@types/vhost':
         specifier: ^3.0.9
         version: 3.0.9
+      '@types/winston-syslog':
+        specifier: ^2.4.3
+        version: 2.4.3
       chokidar-cli:
         specifier: ^3.0.0
         version: 3.0.0
@@ -258,12 +122,21 @@ importers:
       esbuild-node-externals:
         specifier: ^1.13.0
         version: 1.13.0(esbuild@0.20.0)
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+      http-proxy-middleware:
+        specifier: ^2.0.6
+        version: 2.0.6(@types/express@4.17.21)
       husky:
         specifier: ^9.0.11
         version: 9.0.11
       inquirer:
         specifier: ^9.2.15
         version: 9.2.15
+      ip-cidr:
+        specifier: ^3.1.0
+        version: 3.1.0
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -366,9 +239,6 @@ importers:
       highlight.js:
         specifier: ^11.8.0
         version: 11.9.0
-      pocketbase:
-        specifier: ^0.19.0
-        version: 0.19.0
       sass:
         specifier: ^1.68.0
         version: 1.69.5
@@ -446,6 +316,247 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3
 
+  packages/pockethost:
+    dependencies:
+      '@s-libs/micro-dash':
+        specifier: ^16.1.0
+        version: 16.1.0
+      '@types/node-os-utils':
+        specifier: ^1.3.4
+        version: 1.3.4
+      '@types/winston-syslog':
+        specifier: ^2.4.3
+        version: 2.4.3
+      ajv:
+        specifier: ^8.12.0
+        version: 8.12.0
+      boolean:
+        specifier: ^3.2.0
+        version: 3.2.0
+      bottleneck:
+        specifier: ^2.19.5
+        version: 2.19.5
+      chalk:
+        specifier: ^5.3.0
+        version: 5.3.0
+      commander:
+        specifier: ^11.1.0
+        version: 11.1.0
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      decompress:
+        specifier: ^4.2.1
+        version: 4.2.1
+      decompress-unzip:
+        specifier: https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751
+        version: https://codeload.github.com/pockethost/decompress-unzip/tar.gz/6ef397b9a2df11d39c7b26ce779e123833844751
+      devcert:
+        specifier: ^1.2.2
+        version: 1.2.2
+      dockerode:
+        specifier: ^3.3.5
+        version: 3.3.5
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      env-paths:
+        specifier: ^3.0.0
+        version: 3.0.0
+      event-source-polyfill:
+        specifier: ^1.0.31
+        version: 1.0.31
+      eventsource:
+        specifier: ^2.0.2
+        version: 2.0.2
+      exit-hook:
+        specifier: ^4.0.0
+        version: 4.0.0
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+      express-async-errors:
+        specifier: ^3.1.1
+        version: 3.1.1(express@4.18.2)
+      express-sslify:
+        specifier: ^1.2.0
+        version: 1.2.0
+      ftp-srv:
+        specifier: github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
+        version: https://codeload.github.com/pockethost/ftp-srv/tar.gz/0fc708bae0d5d7a55ce948767f082d6fcfb2af59
+      get-port:
+        specifier: ^6.1.2
+        version: 6.1.2
+      glob:
+        specifier: ^10.3.10
+        version: 10.3.10
+      gobot:
+        specifier: 1.0.0-alpha.40
+        version: 1.0.0-alpha.40
+      gobot-pocketbase:
+        specifier: 0.22.8-alpha.22
+        version: 0.22.8-alpha.22
+      http-proxy:
+        specifier: ^1.18.1
+        version: 1.18.1
+      http-proxy-middleware:
+        specifier: ^2.0.6
+        version: 2.0.6(@types/express@4.17.21)
+      ip-cidr:
+        specifier: ^3.1.0
+        version: 3.1.0
+      json-stringify-safe:
+        specifier: ^5.0.1
+        version: 5.0.1
+      knex:
+        specifier: ^2.5.1
+        version: 2.5.1(sqlite3@5.1.6(encoding@0.1.13))
+      memorystream:
+        specifier: ^0.3.1
+        version: 0.3.1
+      nanoid:
+        specifier: ^5.0.2
+        version: 5.0.2
+      node-fetch:
+        specifier: ^3.3.2
+        version: 3.3.2
+      node-os-utils:
+        specifier: ^1.3.7
+        version: 1.3.7
+      pocketbase:
+        specifier: ^0.20.1
+        version: 0.20.1
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      semver:
+        specifier: ^7.5.4
+        version: 7.6.2
+      sqlite3:
+        specifier: ^5.1.6
+        version: 5.1.6(encoding@0.1.13)
+      syslog-parse:
+        specifier: ^2.0.0
+        version: 2.0.0
+      tail:
+        specifier: ^2.2.6
+        version: 2.2.6
+      tmp:
+        specifier: ^0.2.1
+        version: 0.2.3
+      url-pattern:
+        specifier: ^1.0.3
+        version: 1.0.3
+      vhost:
+        specifier: ^3.0.2
+        version: 3.0.2
+      winston:
+        specifier: ^3.11.0
+        version: 3.11.0
+      winston-syslog:
+        specifier: ^2.7.0
+        version: 2.7.0(winston@3.11.0)
+    devDependencies:
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
+      '@types/d3-scale':
+        specifier: ^4.0.6
+        version: 4.0.6
+      '@types/d3-scale-chromatic':
+        specifier: ^3.0.1
+        version: 3.0.1
+      '@types/decompress':
+        specifier: ^4.2.6
+        version: 4.2.6
+      '@types/dockerode':
+        specifier: ^3.3.21
+        version: 3.3.21
+      '@types/eventsource':
+        specifier: ^1.1.14
+        version: 1.1.14
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
+      '@types/express-sslify':
+        specifier: ^1.2.5
+        version: 1.2.5
+      '@types/http-proxy':
+        specifier: ^1.17.13
+        version: 1.17.13
+      '@types/inquirer':
+        specifier: ^9.0.7
+        version: 9.0.7
+      '@types/js-cookie':
+        specifier: ^3.0.5
+        version: 3.0.5
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/json-stringify-safe':
+        specifier: ^5.0.2
+        version: 5.0.2
+      '@types/memorystream':
+        specifier: ^0.3.3
+        version: 0.3.3
+      '@types/ncp':
+        specifier: ^2.0.8
+        version: 2.0.8
+      '@types/node':
+        specifier: ^20.8.10
+        version: 20.8.10
+      '@types/semver':
+        specifier: ^7.5.4
+        version: 7.5.4
+      '@types/tail':
+        specifier: ^2.2.2
+        version: 2.2.2
+      '@types/tmp':
+        specifier: ^0.2.5
+        version: 0.2.5
+      '@types/unzipper':
+        specifier: ^0.10.8
+        version: 0.10.8
+      '@types/vhost':
+        specifier: ^3.0.9
+        version: 3.0.9
+      chokidar-cli:
+        specifier: ^3.0.0
+        version: 3.0.0
+      concurrently:
+        specifier: ^8.2.2
+        version: 8.2.2
+      copyfiles:
+        specifier: ^2.4.1
+        version: 2.4.1
+      date-fns:
+        specifier: ^2.30.0
+        version: 2.30.0
+      dotenv-cli:
+        specifier: ^7.3.0
+        version: 7.3.0
+      inquirer:
+        specifier: ^9.2.15
+        version: 9.2.15
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
+      ncp:
+        specifier: ^2.0.0
+        version: 2.0.0
+      nodemon:
+        specifier: ^3.0.3
+        version: 3.0.3
+      ora:
+        specifier: ^7.0.1
+        version: 7.0.1
+      postinstall-postinstall:
+        specifier: ^2.1.0
+        version: 2.1.0
+      type-fest:
+        specifier: ^4.6.0
+        version: 4.6.0
+
   packages/superadmin:
     devDependencies:
       '@microsoft/fetch-event-source':
@@ -499,9 +610,6 @@ importers:
       highlight.js:
         specifier: ^11.8.0
         version: 11.9.0
-      pocketbase:
-        specifier: ^0.19.0
-        version: 0.19.0
       sass:
         specifier: ^1.68.0
         version: 1.69.5
@@ -4652,9 +4760,6 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  pocketbase@0.19.0:
-    resolution: {integrity: sha512-bUVZfVdD17K8GnwbeDMZPEdREVg2YE0F8uHPDC0zer4VtwXUqoPCCeudTy3fhUE7pfuKnfpuPxeBSYsBY3AGIQ==}
-
   pocketbase@0.20.1:
     resolution: {integrity: sha512-Gl51UBc1U03JlwmwMkUIa1OHbcTmmdhyMPV1aJyHp9HuY5VUlh0t4hcx6D1fdhYsJcoh3kc6mpwhTBfXDoyn8w==}
 
@@ -5011,6 +5116,7 @@ packages:
 
   rimraf@2.4.5:
     resolution: {integrity: sha512-J5xnxTyqaiw06JjMftq7L9ouA448dw/E7dKghkP9WpKNuwmARNNg+Gk8/u5ryb9N/Yo2+z3MCwuqFK/+qPOPfQ==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@2.7.1:
@@ -5591,10 +5697,6 @@ packages:
   tmp@0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
     engines: {node: '>=0.6.0'}
-
-  tmp@0.2.1:
-    resolution: {integrity: sha512-76SUhtfqR2Ijn+xllcI5P1oyannHNHByD80W1q447gU3mp9G9PSpGdWmjUOHRDPiHYacIk66W7ubDTuPF3BEtQ==}
-    engines: {node: '>=8.17.0'}
 
   tmp@0.2.3:
     resolution: {integrity: sha512-nZD7m9iCPC5g0pYmcaxogYKggSfLsdxl8of3Q/oIbqCqLLIO9IAF0GWjX1z9NZRHPiXv8Wex4yDCaZsgEw0Y8w==}
@@ -10655,8 +10757,6 @@ snapshots:
       ora: 8.0.1
       v8flags: 4.0.1
 
-  pocketbase@0.19.0: {}
-
   pocketbase@0.20.1: {}
 
   possible-typed-array-names@1.0.0: {}
@@ -11292,7 +11392,7 @@ snapshots:
 
   simple-update-notifier@2.0.0:
     dependencies:
-      semver: 7.5.4
+      semver: 7.6.2
 
   sirv@2.0.3:
     dependencies:
@@ -11757,10 +11857,6 @@ snapshots:
     dependencies:
       os-tmpdir: 1.0.2
 
-  tmp@0.2.1:
-    dependencies:
-      rimraf: 3.0.2
-
   tmp@0.2.3: {}
 
   to-buffer@1.1.1: {}
@@ -11963,7 +12059,7 @@ snapshots:
       is-yarn-global: 0.4.1
       latest-version: 7.0.0
       pupa: 3.1.0
-      semver: 7.5.4
+      semver: 7.6.2
       semver-diff: 4.0.0
       xdg-basedir: 5.1.0
 

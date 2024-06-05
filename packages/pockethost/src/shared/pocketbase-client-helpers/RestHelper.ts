@@ -1,12 +1,12 @@
 import Ajv, { JSONSchemaType } from 'ajv'
-import type pocketbaseEs from 'pocketbase'
+import type PocketBase from 'pocketbase'
 import { ClientResponseError } from 'pocketbase'
 import type { JsonObject } from 'type-fest'
 import { LoggerService } from '../Logger'
 import { RestCommands, RestMethods } from '../schema'
 
 export type RestHelperConfig = {
-  client: pocketbaseEs
+  client: PocketBase
 }
 
 export type RestHelper = ReturnType<typeof createRestHelper>

@@ -7,7 +7,7 @@ import {
   TEST_EMAIL,
 } from '$constants'
 import { SqliteService } from '$services'
-import { LoggerService, UserFields } from '$src/shared'
+import { LoggerService, UserFields } from '$shared'
 import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { InvalidArgumentError, program } from 'commander'

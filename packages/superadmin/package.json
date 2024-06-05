@@ -30,7 +30,6 @@
     "daisyui": "^3.8.1",
     "date-fns": "^2.30.0",
     "highlight.js": "^11.8.0",
-    "pocketbase": "^0.19.0",
     "sass": "^1.68.0",
     "svelte": "^4.2.1",
     "svelte-chartjs": "3.1.2",

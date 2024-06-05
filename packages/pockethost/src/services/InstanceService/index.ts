@@ -5,30 +5,30 @@ import {
   EDGE_APEX_DOMAIN,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
+  UPGRADE_MODE,
   mkAppUrl,
   mkContainerHomePath,
   mkDocUrl,
   mkEdgeUrl,
-  UPGRADE_MODE,
 } from '$constants'
 import {
   InstanceLogger,
   MothershipAdminClientService,
   PocketbaseService,
   PortService,
-  proxyService,
   SpawnConfig,
+  proxyService,
 } from '$services'
 import {
   CLEANUP_PRIORITY_LAST,
-  createCleanupManager,
-  createTimerManager,
   InstanceFields,
   InstanceId,
   InstanceStatus,
   LoggerService,
-  mkSingleton,
   SingletonBaseConfig,
+  createCleanupManager,
+  createTimerManager,
+  mkSingleton,
 } from '$shared'
 import { asyncExitHook, mkInternalUrl, now } from '$util'
 import { flatten, map, values } from '@s-libs/micro-dash'

@@ -2,14 +2,14 @@ import { DAEMON_PORT } from '$constants'
 import {
   Logger,
   LoggerService,
-  mkSingleton,
   SingletonBaseConfig,
+  mkSingleton,
 } from '$shared'
 import { asyncExitHook } from '$util'
 import cors from 'cors'
 import express, { Request, Response } from 'express'
 import 'express-async-errors'
-import { default as httpProxy, default as Server } from 'http-proxy'
+import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>

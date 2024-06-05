@@ -17,12 +17,13 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "$util": ["src/util"],
-      "$services": ["src/services"],
-      "$constants": ["src/constants"],
-      "$src/*": ["src/*"],
-      "$shared": ["src/shared"]
+      "$util": ["./src/util"],
+      "$services": ["./src/services"],
+      "$constants": ["./src/constants"],
+      "$src/*": ["./src/*"],
+      "$shared": ["./src/shared"]
     }
   },
-  "include": ["**/*.ts", ],
+  "include": ["**/*.ts"],
+  "exclude": ["./src/mothership-app/**/*", "./src/instance-app/**/*"]
 }

@@ -1,18 +1,18 @@
 import {
   APEX_DOMAIN,
   DOCKER_CONTAINER_HOST,
+  SYSLOGD_PORT,
   mkContainerHomePath,
   mkInstanceDataPath,
-  SYSLOGD_PORT,
 } from '$constants'
 import { PortService } from '$services'
 import {
-  createCleanupManager,
   LoggerService,
-  mkSingleton,
   SingletonBaseConfig,
+  createCleanupManager,
+  mkSingleton,
 } from '$shared'
-import { asyncExitHook, mkInternalUrl, SyslogLogger, tryFetch } from '$util'
+import { SyslogLogger, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
@@ -104,7 +104,7 @@ export const createPocketbaseService = async (
     if (!realVersion) {
       throw new Error(`No PocketBase version satisfying ${_version}`)
     }
-    const binPath = await bot.getBinaryPath(realVersion)
+    const binPath = await bot.getBinaryFilePath(realVersion)
     if (!existsSync(binPath)) {
       throw new Error(
         `PocketBase binary (${binPath}) not found. Contact pockethost.io.`,

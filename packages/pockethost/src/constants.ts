@@ -2,28 +2,30 @@ import {
   InstanceFields,
   InstanceId,
   IoCManager,
-  mkSingleton,
   UserFields,
+  mkSingleton,
 } from '$shared'
 import {
   HandlerFactory,
+  SettingsService,
   mkBoolean,
   mkCsvString,
   mkNumber,
   mkPath,
   mkString,
-  SettingsService,
-} from '$src/util/Settings'
+} from '$util'
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import dotenv from 'dotenv'
 import envPaths from 'env-paths'
-import { findUpSync } from 'find-up'
 import { mkdirSync, realpathSync, writeFileSync } from 'fs'
-import { dirname, join, resolve } from 'path'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 import { LogEntry } from 'winston'
 
-dotenv.config({ path: `.env` })
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+dotenv.config()
 
 const realScriptPath = realpathSync(process.argv[1]!)
 
@@ -32,9 +34,7 @@ export const _PH_HOME = process.env.PH_HOME || envPaths(`pockethost`).data
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
-export const _PH_PROJECT_ROOT = dirname(
-  findUpSync('package.json', { cwd: dirname(realScriptPath) })!,
-)
+export const _PH_PROJECT_ROOT = join(__dirname, '..')
 export const _APEX_DOMAIN = process.env.APEX_DOMAIN || 'pockethost.lvh.me'
 export const _HTTP_PROTOCOL = process.env.HTTP_PROTOCOL || `https:`
 export const _APP_NAME = process.env.APP_NAME || 'app'
@@ -43,15 +43,13 @@ export const _MOTHERSHIP_NAME =
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
   join(
-    process.env.PH_MOTHERSHIP_APP_ROOT ||
-      join(_PH_PROJECT_ROOT, `src`, 'mothership-app'),
+    process.env.PH_MOTHERSHIP_APP_ROOT || join(__dirname, 'mothership-app'),
     ...paths,
   )
 
 export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
   join(
-    process.env.PH_INSTANCE_APP_ROOT ||
-      join(_PH_PROJECT_ROOT, `src`, 'instance-app'),
+    process.env.PH_INSTANCE_APP_ROOT || join(__dirname, 'mothership-app'),
     ...paths,
   )
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Logo from '$components/Logo.svelte'
+  import Logo from '$components//Logo.svelte'
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/helpers/UserLoggedOut.svelte'
   import LoginForm from '$components/login-register/LoginForm.svelte'
