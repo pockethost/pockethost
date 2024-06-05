@@ -13,11 +13,12 @@
     "pockethost": "src/cli/index.ts"
   },
   "scripts": {
-    "dev": "NODE_ENV=development tsx ./src/cli/index.ts",
-    "start": "tsx ./src/cli/index.ts",
-    "mail": "tsx ./src/cli/sendmail.ts"
+    "dev": "NODE_ENV=development dotenvx run -f ../../.env -- tsx ./src/cli/index.ts",
+    "start": "dotenvx run -f ../../.env -- tsx ./src/cli/index.ts",
+    "mail": "dotenvx run -f ../../.env -- tsx ./src/cli/sendmail.ts"
   },
   "dependencies": {
+    "@dotenvx/dotenvx": "^0.44.1",
     "@pockethost/common": "workspace:../common",
     "@s-libs/micro-dash": "^16.1.0",
     "@types/node-os-utils": "^1.3.4",
@@ -31,7 +32,6 @@
     "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
     "devcert": "^1.2.2",
     "dockerode": "^3.3.5",
-    "dotenv": "^16.3.1",
     "env-paths": "^3.0.0",
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
@@ -87,7 +87,6 @@
     "concurrently": "^8.2.2",
     "copyfiles": "^2.4.1",
     "date-fns": "^2.30.0",
-    "dotenv-cli": "^7.3.0",
     "express": "^4.18.2",
     "http-proxy-middleware": "^2.0.6",
     "inquirer": "^9.2.15",

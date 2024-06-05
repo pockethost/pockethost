@@ -16,7 +16,6 @@ import {
 } from '@pockethost/common'
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
-import dotenv from 'dotenv'
 import envPaths from 'env-paths'
 import { mkdirSync, realpathSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
@@ -24,8 +23,6 @@ import { fileURLToPath } from 'url'
 import { LogEntry } from 'winston'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-
-dotenv.config()
 
 const realScriptPath = realpathSync(process.argv[1]!)
 
