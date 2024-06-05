@@ -17,6 +17,7 @@ import {
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import dotenv from 'dotenv'
+import envPaths from 'env-paths'
 import { findUpSync } from 'find-up'
 import { mkdirSync, realpathSync, writeFileSync } from 'fs'
 import { dirname, join, resolve } from 'path'
@@ -26,8 +27,7 @@ dotenv.config({ path: `.env` })
 
 const realScriptPath = realpathSync(process.argv[1]!)
 
-export const _PH_HOME =
-  process.env.PH_HOME || join(process.env.HOME || resolve(`~`), `.pockethost`)
+export const _PH_HOME = process.env.PH_HOME || envPaths(`pockethost`).data
 
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 

@@ -60,6 +60,7 @@
     "devcert": "^1.2.2",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
+    "env-paths": "^3.0.0",
     "event-source-polyfill": "^1.0.31",
     "eventsource": "^2.0.2",
     "exit-hook": "^4.0.0",
