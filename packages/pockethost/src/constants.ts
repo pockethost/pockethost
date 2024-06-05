@@ -49,7 +49,7 @@ export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
 
 export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
   join(
-    process.env.PH_INSTANCE_APP_ROOT || join(__dirname, 'mothership-app'),
+    process.env.PH_INSTANCE_APP_ROOT || join(__dirname, 'instance-app'),
     ...paths,
   )
 
