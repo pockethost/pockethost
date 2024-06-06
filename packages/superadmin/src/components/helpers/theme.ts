@@ -1,4 +1,4 @@
-import { assertTruthy } from '@pockethost/common'
+import { assertTruthy } from 'pockethost'
 
 export const html = () => {
   const htmlElement = document.querySelector('html')

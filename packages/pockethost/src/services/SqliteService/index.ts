@@ -4,7 +4,7 @@ import {
   mkSingleton,
   serialAsyncExecutionGuard,
   SingletonBaseConfig,
-} from '@pockethost/common'
+} from '$public'
 import knex from 'knex'
 
 export type SqliteServiceApi = ReturnType<typeof knex>

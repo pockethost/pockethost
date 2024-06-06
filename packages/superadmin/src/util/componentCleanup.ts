@@ -1,4 +1,4 @@
-import { createCleanupManager } from '@pockethost/common'
+import { createCleanupManager } from 'pockethost'
 import { onDestroy } from 'svelte'
 
 // TODO: Document this more

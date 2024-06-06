@@ -17,6 +17,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
+      "$public": ["./src/public-api"],
       "$util": ["./src/util"],
       "$services": ["./src/services"],
       "$constants": ["./src/constants"],

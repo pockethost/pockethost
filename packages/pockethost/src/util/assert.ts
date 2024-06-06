@@ -1,2 +1,2 @@
-import { assert } from '@pockethost/common'
+import { assert } from '$public'
 export { assert }

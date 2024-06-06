@@ -1,4 +1,4 @@
-import { LoggerService } from '@pockethost/common'
+import { LoggerService } from '$public'
 import { Command } from 'commander'
 import { sendMail } from './sendmail'
 

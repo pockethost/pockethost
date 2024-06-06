@@ -5,14 +5,14 @@ import {
   mkContainerHomePath,
   mkInstanceDataPath,
 } from '$constants'
-import { PortService } from '$services'
-import { SyslogLogger, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import {
   LoggerService,
   SingletonBaseConfig,
   createCleanupManager,
   mkSingleton,
-} from '@pockethost/common'
+} from '$public'
+import { PortService } from '$services'
+import { SyslogLogger, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'

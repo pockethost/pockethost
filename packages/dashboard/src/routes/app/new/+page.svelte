@@ -1,6 +1,6 @@
 <script lang="ts">
   import { globalInstancesStore, userSubscriptionType } from '$util/stores'
-  import { SubscriptionType } from '@pockethost/common'
+  import { SubscriptionType } from 'pockethost'
   import { values } from '@s-libs/micro-dash'
   import Creator from './Creator.svelte'
   import Paywall from './Paywall.svelte'

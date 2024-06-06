@@ -6,8 +6,8 @@ import {
   MOTHERSHIP_URL,
   TEST_EMAIL,
 } from '$constants'
+import { LoggerService, PocketBase, UserFields } from '$public'
 import { SqliteService } from '$services'
-import { LoggerService, PocketBase, UserFields } from '@pockethost/common'
 import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { InvalidArgumentError, program } from 'commander'

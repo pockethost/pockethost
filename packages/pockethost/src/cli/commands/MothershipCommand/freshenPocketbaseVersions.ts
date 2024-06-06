@@ -1,5 +1,5 @@
 import { MOTHERSHIP_DATA_ROOT } from '$constants'
-import { stringify } from '@pockethost/common'
+import { stringify } from '$public'
 import { writeFileSync } from 'fs'
 import { gobot } from 'gobot'
 

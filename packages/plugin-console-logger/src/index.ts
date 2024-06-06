@@ -5,7 +5,7 @@ import {
   isLevelGte,
   isLevelLte,
   stringify,
-} from '@pockethost/common'
+} from 'pockethost'
 
 export const LogLevelConsoleMap = {
   [LogLevelName.Trace]: console.trace,

@@ -7,13 +7,8 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '$constants'
+import { LoggerService, PocketBase, mergeConfig, mkSingleton } from '$public'
 import { exitHook } from '$util'
-import {
-  LoggerService,
-  PocketBase,
-  mergeConfig,
-  mkSingleton,
-} from '@pockethost/common'
 import { keys, values } from '@s-libs/micro-dash'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'

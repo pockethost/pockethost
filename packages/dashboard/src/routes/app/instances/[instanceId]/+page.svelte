@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { assertExists } from '@pockethost/common'
+  import { assertExists } from 'pockethost'
   import Code from './Code.svelte'
   import Ftp from './Ftpx.svelte'
   import { instance } from './store'

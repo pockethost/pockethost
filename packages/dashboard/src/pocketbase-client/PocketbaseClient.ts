@@ -1,6 +1,7 @@
 import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
+import { keys, map } from '@s-libs/micro-dash'
 import {
   AuthModel,
   BaseAuthStore,
@@ -22,8 +23,7 @@ import {
   type InstanceFields,
   type InstanceId,
   type InstanceLogFields,
-} from '@pockethost/common'
-import { keys, map } from '@s-libs/micro-dash'
+} from 'pockethost'
 
 export type AuthToken = string
 export type AuthStoreProps = {

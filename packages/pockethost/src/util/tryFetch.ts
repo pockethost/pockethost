@@ -1,4 +1,4 @@
-import { LoggerService } from '@pockethost/common'
+import { LoggerService } from '$public'
 import fetch, { Response } from 'node-fetch'
 
 export const TRYFETCH_RETRY_MS = 50

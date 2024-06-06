@@ -5,7 +5,7 @@
   import MobileTable from '$components/tables/pricing-table/MobileTable.svelte'
   import { DISCORD_URL, DOCS_URL } from '$src/env'
   import { isUserFounder, userSubscriptionType } from '$util/stores'
-  import { PLAN_NAMES, SubscriptionType } from '@pockethost/common'
+  import { PLAN_NAMES, SubscriptionType } from 'pockethost'
 
   type ItemValue = '1' | 'Unlimited' | 'YesBlock' | 'NoBlock'
 

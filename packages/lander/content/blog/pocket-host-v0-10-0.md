@@ -189,7 +189,7 @@ total_users: 5103
 - fix: only allocate default port if port is not specified
 - fix: package overrides
 - fix: patch package fix
-- fix: pb_hooks module not building when @pockethost/common was included
+- fix: pb_hooks module not building when pockethost was included
 - fix: pockethost defaults logging
 - fix: pro pricing button
 - fix: remove deno path

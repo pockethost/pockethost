@@ -8,7 +8,7 @@ import {
   RestMethods,
   createRestHelper,
   stringify,
-} from '@pockethost/common'
+} from '$public'
 import { MixinContext } from '.'
 import { createInstanceMixin } from './InstanceMIxin'
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { userSubscriptionType } from '$util/stores'
-  import { SubscriptionType } from '@pockethost/common'
+  import { SubscriptionType } from 'pockethost'
 </script>
 
 <div class="card max-w-sm bg-base-100 shadow-xl">
