@@ -187,14 +187,13 @@ importers:
         version: 5.2.2
 
   packages/dashboard:
-    dependencies:
-      '@pockethost/plugin-console-logger':
-        specifier: link:../plugin-console-logger
-        version: link:../plugin-console-logger
     devDependencies:
       '@microsoft/fetch-event-source':
         specifier: https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0
         version: https://codeload.github.com/pockethost/fetch-event-source/tar.gz/ebe3b7122647b48b93fd11effbbfb915d98956b0
+      '@pockethost/plugin-console-logger':
+        specifier: link:../plugin-console-logger
+        version: link:../plugin-console-logger
       '@s-libs/micro-dash':
         specifier: ^16.1.0
         version: 16.1.0
