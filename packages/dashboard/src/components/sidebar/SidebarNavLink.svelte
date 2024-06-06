@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { MouseEventHandler } from 'svelte/elements'
+  import type { MouseEventHandler } from 'svelte/elements'
 
   export let url: string = ''
   export let icon: string = ''
