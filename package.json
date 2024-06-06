@@ -32,6 +32,8 @@
     "plop": "plop --no-progress",
     "nofile": "cat /proc/sys/fs/file-nr",
     "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts",
+    "gobot:download": "gobot download pocketbase",
+    "gobot:download:all": "gobot download pocketbase --g-use-version='*'",
     "prepare": "husky"
   },
   "prettier": {

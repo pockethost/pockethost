@@ -27,6 +27,11 @@ module.exports = {
       script: 'pnpm prod:cli mothership update',
     },
     {
+      name: `downloader`,
+      restart_delay: 60 * 60 * 1000, // 1 hour
+      script: 'pnpm gobot:download',
+    },
+    {
       name: `health`,
       restart_delay: 60 * 1000, // 1 minute
       script: 'pnpm prod:cli health',
