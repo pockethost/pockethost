@@ -41,6 +41,7 @@ export const firewall = async () => {
   // Create Express app
   const app = express()
 
+  app.options('*', cors()) // include before other routes
   app.use(cors())
   app.use(enforce.HTTPS())
 
