@@ -7,17 +7,17 @@ import { boolean } from 'boolean'
  * will prevail.
  */
 
+// The apex domain of this whole operation.
+export const PUBLIC_APEX_DOMAIN =
+  import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.lvh.me`
+
 // The domain name where this dashboard lives
 export const PUBLIC_APP_URL =
-  import.meta.env.PUBLIC_APP_URL || 'https://app.pockethost.io'
-
-// The apex domain of this whole operation. Also known as the "app" or "dashboard"
-export const PUBLIC_APEX_DOMAIN =
-  import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
+  import.meta.env.PUBLIC_APP_URL || `https://app.${PUBLIC_APEX_DOMAIN}`
 
 // The domain name of the lander/marketing site
 export const PUBLIC_BLOG_URL =
-  import.meta.env.PUBLIC_BLOG_URL || 'https://pockethost.io'
+  import.meta.env.PUBLIC_BLOG_URL || `https://${PUBLIC_APEX_DOMAIN}`
 
 // The protocol to use, almost always will be https
 export const PUBLIC_HTTP_PROTOCOL =
@@ -26,7 +26,7 @@ export const PUBLIC_HTTP_PROTOCOL =
 // The complete URL to the mothership
 export const PUBLIC_MOTHERSHIP_URL =
   import.meta.env.PUBLIC_MOTHERSHIP_URL ||
-  `https://pockethost-central.pockethost.io`
+  `https://pockethost-central.${PUBLIC_APEX_DOMAIN}`
 
 // Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
