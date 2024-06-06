@@ -13,6 +13,7 @@
     "pockethost": "src/cli/index.ts"
   },
   "scripts": {
+    "check:types": "tsc --noEmit ",
     "dev": "NODE_ENV=development dotenvx run -f ../../.env -- tsx ./src/cli/index.ts",
     "start": "dotenvx run -f ../../.env -- tsx ./src/cli/index.ts",
     "mail": "dotenvx run -f ../../.env -- tsx ./src/cli/sendmail.ts"

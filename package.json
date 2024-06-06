@@ -13,6 +13,7 @@
   "scripts": {
     "check:types": "concurrently 'pnpm:check:types:*'",
     "check:types:dashboard": "cd packages/dashboard && pnpm check:types",
+    "check:types:pockethost": "cd packages/pockethost && pnpm check:types",
     "check:types:common": "cd packages/common && pnpm check:types",
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
