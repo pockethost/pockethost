@@ -79,7 +79,7 @@ export default function (/** @type {Plop} */ plop) {
       },
       {
         type: 'add',
-        path: 'frontends/lander/content/blog/{{dashCase title}}.md',
+        path: 'packages/lander/content/blog/{{dashCase title}}.md',
         templateFile: 'plop-templates/blog.hbs',
       },
     ],
@@ -177,7 +177,7 @@ export default function (/** @type {Plop} */ plop) {
         },
         {
           type: 'add',
-          path: 'frontends/lander/content/blog/{{dashCase title}}.md',
+          path: 'packages/lander/content/blog/{{dashCase title}}.md',
           templateFile: 'plop-templates/blog.hbs',
         },
       ]

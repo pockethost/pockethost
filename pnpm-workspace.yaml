@@ -1,4 +1,2 @@
 packages:
-  # all packages in direct subdirs of packages/
-  - 'frontends/*'
-  - '!live-data'
+  - 'packages/*'

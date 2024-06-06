@@ -1,0 +1,12 @@
+{
+  "name": "pockethost-instance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "docker build . -t benallfree/pockethost-instance:${npm_package_version} -t benallfree/pockethost-instance:latest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
