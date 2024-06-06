@@ -1,12 +1,13 @@
 <script lang="ts">
   import { page } from '$app/stores'
+  import { MouseEventHandler } from 'svelte/elements'
 
   export let url: string = ''
   export let icon: string = ''
   export let brandIcon: boolean = false
   export let iconSmall: boolean = false
   export let external: boolean = false
-  export let handleClick: Function = () => {}
+  export let handleClick: MouseEventHandler<HTMLElement> = () => {}
 
   let activeLink = $page.url.pathname === url
   $: activeLink = $page.url.pathname.includes(url)
