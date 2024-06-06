@@ -6,6 +6,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
+    "check:types": "tsc --noEmit "
   },
   "keywords": [],
   "author": "",
