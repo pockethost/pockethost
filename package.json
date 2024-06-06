@@ -30,7 +30,9 @@
     "prod:cli": "tsx ./src/cli/index.ts",
     "plop": "plop --no-progress",
     "nofile": "cat /proc/sys/fs/file-nr",
-    "mail": "tsx ./src/cli/sendmail.ts"
+    "mail": "tsx ./src/cli/sendmail.ts",
+    "gobot:download": "gobot download pocketbase",
+    "gobot:download:all": "gobot download pocketbase --g-use-version='*'"
   },
   "prettier": {
     "semi": false,
