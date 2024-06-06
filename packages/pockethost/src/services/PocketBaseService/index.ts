@@ -8,11 +8,14 @@ import {
 import {
   LoggerService,
   SingletonBaseConfig,
+  SyslogLogger,
+  asyncExitHook,
   createCleanupManager,
+  mkInternalUrl,
   mkSingleton,
+  tryFetch,
 } from '$public'
 import { PortService } from '$services'
-import { SyslogLogger, asyncExitHook, mkInternalUrl, tryFetch } from '$util'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'

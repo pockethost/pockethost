@@ -2,27 +2,29 @@ import { mkSingleton } from '$public'
 import { boolean as castToBoolean } from 'boolean'
 import { existsSync, mkdirSync } from 'fs'
 
-export type Caster<TValue, TConfig = {}> = {
+export type SettingsCaster<TValue, TConfig = {}> = {
   stringToType: (value: string, config?: Partial<TConfig>) => TValue
   typeToString: (value: TValue, config?: Partial<TConfig>) => string
 }
 
-export type Handler<TValue> = {
+export type SettingsHandler<TValue> = {
   get: () => TValue
   set: (value: TValue) => void
 }
 
-export type HandlerFactory<TValue> = (key: string) => Handler<TValue>
+export type SettingsHandlerFactory<TValue> = (
+  key: string,
+) => SettingsHandler<TValue>
 
-export type Maker<TValue, TConfig = {}> = (
+export type SettingsMaker<TValue, TConfig = {}> = (
   _default?: TValue,
   config?: Partial<TConfig>,
-) => HandlerFactory<TValue>
+) => SettingsHandlerFactory<TValue>
 
 const mkMaker =
   <TValue, TConfig = {}>(
-    caster: Caster<TValue, TConfig>,
-  ): Maker<TValue, TConfig> =>
+    caster: SettingsCaster<TValue, TConfig>,
+  ): SettingsMaker<TValue, TConfig> =>
   (_default, config) =>
   (name: string) => {
     return {
@@ -98,7 +100,7 @@ export const mkCsvString = mkMaker<string[]>({
 })
 
 type Config<T> = {
-  [K in keyof T]: HandlerFactory<T[K]>
+  [K in keyof T]: SettingsHandlerFactory<T[K]>
 }
 
 export const SettingsService = <T extends Object>(config: Config<T>) => {

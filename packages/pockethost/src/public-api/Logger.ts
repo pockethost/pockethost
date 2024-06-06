@@ -6,7 +6,7 @@ import { mergeConfig } from './mergeConfig'
 import { mkSingleton } from './mkSingleton'
 import { PocketHostAction, action } from './plugin'
 
-export type Config = {
+export type LoggerConfig = {
   level: LogLevelName
   pfx: string[]
 }
@@ -55,8 +55,8 @@ export const LogLevels = {
   [LogLevelName.Abort]: 6,
 } as const
 
-export const createLogger = (config: Partial<Config>) => {
-  const _config = mergeConfig<Config>(
+export const createLogger = (config: Partial<LoggerConfig>) => {
+  const _config = mergeConfig<LoggerConfig>(
     {
       level: LogLevelName.Debug,
       pfx: [''],
@@ -125,7 +125,7 @@ export const createLogger = (config: Partial<Config>) => {
     throw new Error(`Fatal error: ${stringify(args)}`)
   }
 
-  const create = (s: string, configOverride?: Partial<Config>) =>
+  const create = (s: string, configOverride?: Partial<LoggerConfig>) =>
     createLogger({
       ..._config,
       ...configOverride,
@@ -161,6 +161,6 @@ export const createLogger = (config: Partial<Config>) => {
   return api
 }
 
-export const LoggerService = mkSingleton((config: Partial<Config> = {}) =>
+export const LoggerService = mkSingleton((config: Partial<LoggerConfig> = {}) =>
   createLogger(config),
 )

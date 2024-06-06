@@ -9,8 +9,7 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '$constants'
-import { LoggerService } from '$public'
-import { discordAlert } from '$util'
+import { LoggerService, discordAlert } from '$public'
 import { forEach } from '@s-libs/micro-dash'
 import cors from 'cors'
 import express, { ErrorRequestHandler } from 'express'

@@ -3,17 +3,15 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_INTERNAL_URL,
 } from '$constants'
-import { LoggerService } from '$public'
+import { LoggerService, discordAlert, tryFetch } from '$public'
 import {
   MothershipAdminClientService,
   PocketbaseService,
   PortService,
-  SqliteService,
   instanceService,
   proxyService,
   realtimeLog,
 } from '$services'
-import { discordAlert, tryFetch } from '$util'
 import { ErrorRequestHandler } from 'express'
 
 export async function daemon() {
@@ -38,7 +36,6 @@ export async function daemon() {
   await proxyService({
     coreInternalUrl: MOTHERSHIP_INTERNAL_URL(),
   })
-  await SqliteService({})
   await realtimeLog({})
   await instanceService({
     instanceApiCheckIntervalMs: 50,

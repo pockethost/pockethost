@@ -1,14 +1,17 @@
 import {
+  LoggerService,
   MOTHERSHIP_INTERNAL_URL,
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
   PH_FTP_PASV_PORT_MIN,
   PH_FTP_PORT,
+  PocketBase,
   SSL_CERT,
   SSL_KEY,
-} from '$constants'
-import { LoggerService, PocketBase, mergeConfig, mkSingleton } from '$public'
-import { exitHook } from '$util'
+  asyncExitHook,
+  mergeConfig,
+  mkSingleton,
+} from '$public'
 import { keys, values } from '@s-libs/micro-dash'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
@@ -105,7 +108,7 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
     dbg('Ftp server started...')
   })
 
-  exitHook(() => {
+  asyncExitHook(async () => {
     dbg(`Closing FTP server`)
     ftpServer.close()
   })

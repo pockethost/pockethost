@@ -19,9 +19,12 @@ import {
   InstanceStatus,
   LoggerService,
   SingletonBaseConfig,
+  asyncExitHook,
   createCleanupManager,
   createTimerManager,
+  mkInternalUrl,
   mkSingleton,
+  now,
   stringify,
 } from '$public'
 import {
@@ -32,7 +35,6 @@ import {
   SpawnConfig,
   proxyService,
 } from '$services'
-import { asyncExitHook, mkInternalUrl, now } from '$util'
 import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'glob'

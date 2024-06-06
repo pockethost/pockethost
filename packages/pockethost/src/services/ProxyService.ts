@@ -3,9 +3,9 @@ import {
   Logger,
   LoggerService,
   SingletonBaseConfig,
+  asyncExitHook,
   mkSingleton,
 } from '$public'
-import { asyncExitHook } from '$util'
 import cors from 'cors'
 import express, { Request, Response } from 'express'
 import 'express-async-errors'

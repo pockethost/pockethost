@@ -1,11 +1,11 @@
 import { mkInstanceDataPath } from '$constants'
 import {
   LoggerService,
+  asyncExitHook,
   createCleanupManager,
   mergeConfig,
   stringify,
 } from '$public'
-import { asyncExitHook } from '$util'
 import * as fs from 'fs'
 import { Tail } from 'tail'
 import * as winston from 'winston'

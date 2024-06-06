@@ -2,18 +2,16 @@ import {
   InstanceFields,
   InstanceId,
   IoCManager,
-  UserFields,
-  mkSingleton,
-} from '$public'
-import {
-  HandlerFactory,
+  SettingsHandlerFactory,
   SettingsService,
+  UserFields,
   mkBoolean,
   mkCsvString,
   mkNumber,
   mkPath,
+  mkSingleton,
   mkString,
-} from '$util'
+} from '$public'
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import envPaths from 'env-paths'
@@ -134,7 +132,7 @@ export const SETTINGS = {
 
 export type Settings = ReturnType<typeof DefaultSettingsService>
 export type SettingsDefinition = {
-  [_ in keyof Settings]: HandlerFactory<Settings[_]>
+  [_ in keyof Settings]: SettingsHandlerFactory<Settings[_]>
 }
 
 export const DefaultSettingsService = mkSingleton(

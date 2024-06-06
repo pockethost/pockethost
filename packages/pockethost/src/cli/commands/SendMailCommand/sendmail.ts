@@ -7,10 +7,10 @@ import {
   TEST_EMAIL,
 } from '$constants'
 import { LoggerService, PocketBase, UserFields } from '$public'
-import { SqliteService } from '$services'
 import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { InvalidArgumentError, program } from 'commander'
+import { SqliteService } from './SqliteService'
 
 const TBL_SENT_MESSAGES = `sent_messages`
 
