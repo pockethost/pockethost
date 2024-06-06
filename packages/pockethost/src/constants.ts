@@ -106,6 +106,7 @@ export const SETTINGS = {
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
 
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
+  EDGE_PRIVATE_NAME: mkString(`sfo-1`),
   EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
 
   PH_INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
@@ -231,6 +232,7 @@ export const PH_FTP_PASV_PORT_MIN = () => settings().PH_FTP_PASV_PORT_MIN
 export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
 
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
+export const EDGE_PRIVATE_NAME = () => settings().EDGE_PRIVATE_NAME
 export const EDGE_MAX_ACTIVE_INSTANCES = () =>
   settings().EDGE_MAX_ACTIVE_INSTANCES
 

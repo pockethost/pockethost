@@ -56,9 +56,14 @@ routerAdd(
       throw new BadRequestError(`Instance must be shut down first.`)
     }
 
-    const path = [$os.getenv('DATA_ROOT'), id].join('/')
-    log(`path ${path}`)
-    const res = $os.removeAll(path)
+    const url = `http://localhost:3000/_api/instance/${id}`
+    log(`Sending to ${url}`)
+    const res = $http.send({
+      url,
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json' },
+      timeout: 120, // in seconds
+    })
     log(`res`, res)
 
     dao.deleteRecord(record)

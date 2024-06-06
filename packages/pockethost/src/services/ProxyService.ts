@@ -44,6 +44,13 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
 
   server.use(cors())
 
+  server.delete('/_api/instance/:instanceId', (req, res, next) => {
+    const { params } = req
+    console.log({ params })
+    res.json({ status: 'ok' })
+    res.end
+  })
+
   server.get('/_api/health', (req, res, next) => {
     res.json({ status: 'ok' })
     res.end
