@@ -12,6 +12,7 @@ module.exports = {
         'pockethost',
         'common',
         'ga',
+        'plugin-console-logger',
       ],
     ],
     'scope-empty': [2, 'never'],

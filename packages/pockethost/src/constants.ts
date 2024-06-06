@@ -60,6 +60,7 @@ if (_IS_DEV) {
 }
 
 export const SETTINGS = {
+  PH_PLUGINS: mkCsvString([`@pockethost/plugin-console-logger`]),
   UPGRADE_MODE: mkBoolean(false),
 
   PH_HOME: mkPath(_PH_HOME),
@@ -181,6 +182,7 @@ export const mothership = () => ioc.service('mothership')
 export const instanceLogger = () => ioc.service('instanceLogger')
 
 /** Accessors */
+export const PH_PLUGINS = () => settings().PH_PLUGINS
 export const UPGRADE_MODE = () => settings().UPGRADE_MODE
 
 export const PH_HOME = () => settings().PH_HOME

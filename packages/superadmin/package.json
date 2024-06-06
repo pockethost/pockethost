@@ -14,6 +14,7 @@
   "type": "module",
   "devDependencies": {
     "@microsoft/fetch-event-source": "https://github.com/pockethost/fetch-event-source.git#ebe3b7122647b48b93fd11effbbfb915d98956b0",
+    "@pockethost/common": "workspace:../common",
     "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.25.2",
@@ -37,7 +38,9 @@
     "svelte-highlight": "^7.3.0",
     "svelte-preprocess": "^5.0.4",
     "tailwindcss": "^3.3.3",
-    "vite": "^4.4.9",
-    "@pockethost/common": "workspace:../common"
+    "vite": "^4.4.9"
+  },
+  "dependencies": {
+    "@pockethost/plugin-console-logger": "link:../plugin-console-logger"
   }
 }

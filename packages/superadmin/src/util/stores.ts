@@ -1,9 +1,17 @@
 import { client } from '$src/pocketbase-client'
-import { type InstanceFields, type InstanceId } from '@pockethost/common'
+import {
+  loadPlugins,
+  type InstanceFields,
+  type InstanceId,
+} from '@pockethost/common'
+import consoleLogger from '@pockethost/plugin-console-logger'
 import { writable } from 'svelte/store'
+
 // TODO: Removing this will cause the app to crash
 // Theres a reference inside of `createPocketbaseClient.ts` that needs the information that comes from this file
 import '../services'
+
+await loadPlugins([consoleLogger])
 
 const { onAuthChange } = client()
 

@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import stringify from 'json-stringify-safe'
 import { mergeConfig } from '../../pockethost/src/util/mergeConfig'
 import { mkSingleton } from './mkSingleton'
+import { PocketHostAction, action } from './plugin'
 
 export type Config = {
   level: LogLevelName
@@ -44,16 +45,6 @@ export const LEVEL_NAMES = [
   LogLevelName.Abort,
 ]
 
-export const LogLevelConsoleMap = {
-  [LogLevelName.Trace]: console.trace,
-  [LogLevelName.Raw]: console.log,
-  [LogLevelName.Debug]: console.debug,
-  [LogLevelName.Info]: console.info,
-  [LogLevelName.Warn]: console.warn,
-  [LogLevelName.Error]: console.error,
-  [LogLevelName.Abort]: console.error,
-} as const
-
 export const LogLevels = {
   [LogLevelName.Trace]: 0,
   [LogLevelName.Raw]: 1,
@@ -85,32 +76,7 @@ export const createLogger = (config: Partial<Config>) => {
       .join(' ')
 
   const _log = (levelIn: LogLevelName, ...args: any[]) => {
-    if (isLevelGte(levelIn, _config.level)) {
-      const pfx = args.shift()
-      while (args.length > 0) {
-        let arg = args.shift()
-        const t = typeof arg
-        if (arg instanceof Error) {
-          args.unshift(...[arg.name, arg.message.toString()])
-          if (isLevelLte(levelIn, LogLevelName.Debug) && arg.stack) {
-            args.unshift(...arg.stack.split(/\n/))
-          }
-          continue
-        }
-        if (t === 'string' && !!arg.match(/\n/)) {
-          args.unshift(...arg.split(/\n/))
-          continue
-        }
-        if (t === 'object') {
-          args.unshift(...stringify(arg, null, 2).split(/\n/))
-          continue
-        }
-        if (t === 'function') {
-          arg = `<<function ${stringify(arg.toString())}>>`
-        }
-        LogLevelConsoleMap[levelIn](...[pfx, arg])
-      }
-    }
+    action(PocketHostAction.Log, _config.level, levelIn, args)
   }
 
   const raw = (...args: any[]) => {
