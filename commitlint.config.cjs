@@ -4,7 +4,7 @@ module.exports = {
     'scope-enum': [
       2,
       'always',
-      ['root', 'dashboard', 'lander', 'superadmin', 'pockethost'],
+      ['root', 'dashboard', 'lander', 'superadmin', 'pockethost', 'common'],
     ],
     'scope-empty': [2, 'never'],
   },
