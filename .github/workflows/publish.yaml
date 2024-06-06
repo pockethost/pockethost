@@ -9,6 +9,8 @@ on:
         description: 'Force deploy specific project'
         required: false
         default: ''
+        # https://github.com/pockethost/pockethost/actions/workflows/publish.yaml
+
 
 jobs:
   publish:
