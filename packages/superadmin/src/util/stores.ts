@@ -1,10 +1,6 @@
 import { client } from '$src/pocketbase-client'
-import {
-  loadPlugins,
-  type InstanceFields,
-  type InstanceId,
-} from '@pockethost/common'
 import consoleLogger from '@pockethost/plugin-console-logger'
+import { loadPlugins, type InstanceFields, type InstanceId } from 'pockethost'
 import { writable } from 'svelte/store'
 
 // TODO: Removing this will cause the app to crash

@@ -7,7 +7,7 @@ import {
   PocketBase,
   UserFields,
   UserId,
-} from '@pockethost/common'
+} from '$public'
 import { forEach } from '@s-libs/micro-dash'
 
 export const mkInstanceCache = (client: PocketBase) => {

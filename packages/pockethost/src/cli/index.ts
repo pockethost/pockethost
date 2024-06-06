@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { DEBUG, DefaultSettingsService, PH_PLUGINS, SETTINGS } from '$constants'
-import { LogLevelName, LoggerService, loadPlugins } from '@pockethost/common'
+import { LogLevelName, LoggerService, loadPlugins } from '$public'
 import { program } from 'commander'
 import EventSource from 'eventsource'
 import { EdgeCommand } from './commands/EdgeCommand'

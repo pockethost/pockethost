@@ -9,8 +9,8 @@ import {
   MOTHERSHIP_SEMVER,
   mkContainerHomePath,
 } from '$constants'
+import { LoggerService } from '$public'
 import { PortService } from '$services'
-import { LoggerService } from '@pockethost/common'
 import copyfiles from 'copyfiles'
 import { GobotOptions, gobot } from 'gobot'
 import { rimraf } from 'rimraf'

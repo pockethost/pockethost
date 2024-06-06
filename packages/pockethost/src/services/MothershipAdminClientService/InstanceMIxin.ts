@@ -5,7 +5,7 @@ import {
   InstanceId,
   InstanceStatus,
   WithUser,
-} from '@pockethost/common'
+} from '$public'
 import { MixinContext } from '.'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>

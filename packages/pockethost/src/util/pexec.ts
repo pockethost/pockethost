@@ -1,4 +1,4 @@
-import { Logger } from '@pockethost/common'
+import { Logger } from '$public'
 import { exec } from 'child_process'
 
 export const pexec = (logger: Logger) => (cmd: string) => {

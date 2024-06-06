@@ -44,7 +44,7 @@
     "prettier": "^3.0.3"
   },
   "dependencies": {
-    "@pockethost/common": "link:../common",
+    "pockethost": "workspace:../pockethost",
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.16",
     "boolean": "^3.2.0",

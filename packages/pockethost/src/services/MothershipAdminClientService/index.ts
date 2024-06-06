@@ -9,7 +9,7 @@ import {
   PocketBase,
   mergeConfig,
   mkSingleton,
-} from '@pockethost/common'
+} from '$public'
 import { createAdminPbClient } from './createAdminPbClient'
 
 export type ClientServiceConfig = {

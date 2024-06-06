@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pockethost/common": "workspace:../common"
+    "pockethost": "workspace:../pockethost"
   }
 }

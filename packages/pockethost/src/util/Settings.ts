@@ -1,4 +1,4 @@
-import { mkSingleton } from '@pockethost/common'
+import { mkSingleton } from '$public'
 import { boolean as castToBoolean } from 'boolean'
 import { existsSync, mkdirSync } from 'fs'
 

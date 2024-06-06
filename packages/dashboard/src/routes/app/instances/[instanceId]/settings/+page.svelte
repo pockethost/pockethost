@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { assertExists } from '@pockethost/common'
+  import { assertExists } from 'pockethost'
   import { instance } from '../store'
   import AdminSync from './AdminSync.svelte'
   import CustomDomain from './CustomDomain.svelte'

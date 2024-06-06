@@ -1,7 +1,7 @@
 import { MOTHERSHIP_INTERNAL_URL } from '$constants'
+import { LoggerService } from '$public'
 import { ftpService } from '$services'
 import { tryFetch } from '$util'
-import { LoggerService } from '@pockethost/common'
 
 export async function ftp() {
   const logger = LoggerService().create(`EdgeFtpCommand`)

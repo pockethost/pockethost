@@ -5,7 +5,7 @@ import {
   PocketBase,
   SingletonBaseConfig,
   stringify,
-} from '@pockethost/common'
+} from '$public'
 import { text } from 'node:stream/consumers'
 import { JsonifiableObject } from 'type-fest/source/jsonifiable'
 import { InstanceLogger } from './InstanceLoggerService'

@@ -1,5 +1,5 @@
 import { SYSLOGD_PORT } from '$constants'
-import { LoggerService } from '@pockethost/common'
+import { LoggerService } from '$public'
 import * as winston from 'winston'
 import 'winston-syslog'
 

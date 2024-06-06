@@ -3,8 +3,8 @@ import {
   DISCORD_HEALTH_CHANNEL_URL,
   MOTHERSHIP_PORT,
 } from '$constants'
+import { LoggerService, stringify } from '$public'
 import { discordAlert } from '$util'
-import { LoggerService, stringify } from '@pockethost/common'
 import Bottleneck from 'bottleneck'
 import { execSync } from 'child_process'
 import fetch from 'node-fetch'

@@ -1,4 +1,4 @@
-import { LoggerService, LogLevelName } from '@pockethost/common'
+import { LoggerService, LogLevelName } from 'pockethost'
 import { PUBLIC_DEBUG } from './env'
 
 // Initiate the logging service

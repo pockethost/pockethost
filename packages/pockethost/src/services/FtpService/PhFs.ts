@@ -1,6 +1,6 @@
 import { DATA_ROOT } from '$constants'
+import { InstanceFields, Logger, PocketBase, newId } from '$public'
 import { assert } from '$util'
-import { InstanceFields, Logger, PocketBase, newId } from '@pockethost/common'
 import { compact, map } from '@s-libs/micro-dash'
 import {
   Mode,

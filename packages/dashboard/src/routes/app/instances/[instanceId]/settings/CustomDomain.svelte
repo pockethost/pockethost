@@ -6,7 +6,7 @@
   import { DOCS_URL, INSTANCE_BARE_HOST } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { userSubscriptionType } from '$util/stores'
-  import { SubscriptionType } from '@pockethost/common'
+  import { SubscriptionType } from 'pockethost'
   import { dns } from 'svelte-highlight/languages'
   import { instance } from '../store'
 

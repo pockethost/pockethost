@@ -3,6 +3,7 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_INTERNAL_URL,
 } from '$constants'
+import { LoggerService } from '$public'
 import {
   MothershipAdminClientService,
   PocketbaseService,
@@ -13,7 +14,6 @@ import {
   realtimeLog,
 } from '$services'
 import { discordAlert, tryFetch } from '$util'
-import { LoggerService } from '@pockethost/common'
 import { ErrorRequestHandler } from 'express'
 
 export async function daemon() {
