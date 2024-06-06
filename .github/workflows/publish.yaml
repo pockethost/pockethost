@@ -11,6 +11,8 @@ on:
         default: ''
         # https://github.com/pockethost/pockethost/actions/workflows/publish.yaml
 
+env:
+  PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
 
 jobs:
   publish:
@@ -39,8 +41,6 @@ jobs:
           pnpm i
           pnpm lint
           pnpm build-frontends
-          ls
-          ls dist
 
       - name: Expose git commit data
         uses: rlespinasse/git-commit-data-action@v1.5.0
