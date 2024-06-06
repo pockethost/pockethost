@@ -5,7 +5,7 @@
   "main": "./src/app.html",
   "scripts": {
     "check:types": "svelte-check",
-    "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
+    "preview": "npx http-server@latest ../../dist/dashboard -P \"http://localhost:8080?\"",
     "dev": "vite dev --force --host=0.0.0.0 --port=5174",
     "build": "NODE_ENV=production vite build",
     "lint": "prettier --check .",
@@ -38,9 +38,7 @@
     "svelte-highlight": "^7.3.0",
     "svelte-preprocess": "^5.0.4",
     "tailwindcss": "^3.3.3",
-    "vite": "^4.4.9"
-  },
-  "dependencies": {
+    "vite": "^4.4.9",
     "@pockethost/plugin-console-logger": "link:../plugin-console-logger"
   }
 }
