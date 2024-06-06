@@ -2,7 +2,7 @@
 
 import chalk from 'chalk'
 import stringify from 'json-stringify-safe'
-import { mergeConfig } from '../../pockethost/src/util/mergeConfig'
+import { mergeConfig } from './mergeConfig'
 import { mkSingleton } from './mkSingleton'
 import { PocketHostAction, action } from './plugin'
 

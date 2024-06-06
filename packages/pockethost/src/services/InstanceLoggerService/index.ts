@@ -1,8 +1,9 @@
 import { mkInstanceDataPath } from '$constants'
-import { asyncExitHook, mergeConfig } from '$util'
+import { asyncExitHook } from '$util'
 import {
   LoggerService,
   createCleanupManager,
+  mergeConfig,
   stringify,
 } from '@pockethost/common'
 import * as fs from 'fs'

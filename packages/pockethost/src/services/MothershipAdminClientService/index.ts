@@ -3,11 +3,11 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
 } from '$constants'
-import { mergeConfig } from '$util'
 import {
   Logger,
   LoggerService,
   PocketBase,
+  mergeConfig,
   mkSingleton,
 } from '@pockethost/common'
 import { createAdminPbClient } from './createAdminPbClient'
