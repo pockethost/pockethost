@@ -13,7 +13,7 @@ import { writable } from 'svelte/store'
 // Theres a reference inside of `createPocketbaseClient.ts` that needs the information that comes from this file
 import '../services'
 
-await loadPlugins([consoleLogger])
+loadPlugins([consoleLogger])
 
 const { onAuthChange } = client()
 
