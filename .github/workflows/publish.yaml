@@ -56,6 +56,8 @@ jobs:
         with:
           files: |
             packages/dashboard/**
+            .github/workflows/**
+            packages/common/**
 
       - name: DASHBOARD - Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
@@ -100,6 +102,8 @@ jobs:
         with:
           files: |
             packages/lander/**
+            .github/workflows/**
+            packages/common/**
 
       - name: LANDER - Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
@@ -143,6 +147,8 @@ jobs:
         with:
           files: |
             packages/superadmin/**
+            .github/workflows/**
+            packages/common/**
 
       - name: SUPERADMIN - Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
