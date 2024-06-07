@@ -3,7 +3,7 @@ import { LoggerService } from '../common'
 
 export const TRYFETCH_RETRY_MS = 50
 
-export type Config = {
+export type TryFetchConfig = {
   preflight: () => Promise<boolean>
   retryMs: number
 }
@@ -21,8 +21,11 @@ export type Config = {
  *
  *   Note: tryFetch exits ONLY on success or a rejected preflight.
  */
-export const tryFetch = async (url: string, config?: Partial<Config>) => {
-  const { preflight, retryMs }: Config = {
+export const tryFetch = async (
+  url: string,
+  config?: Partial<TryFetchConfig>,
+) => {
+  const { preflight, retryMs }: TryFetchConfig = {
     preflight: async () => true,
     retryMs: TRYFETCH_RETRY_MS,
     ...config,
