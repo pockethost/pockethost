@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { InstanceStatus } from 'pockethost'
+  import { InstanceStatus } from 'pockethost/common'
   import { onMount } from 'svelte'
 
   export let status: InstanceStatus = InstanceStatus.Idle

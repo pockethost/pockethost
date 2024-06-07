@@ -1,6 +1,6 @@
 <script lang="ts">
   import { INSTANCE_ADMIN_URL } from '$src/env.js'
-  import { InstanceFields } from 'pockethost'
+  import { InstanceFields } from 'pockethost/common'
 
   export let instance: InstanceFields
   export let index: number

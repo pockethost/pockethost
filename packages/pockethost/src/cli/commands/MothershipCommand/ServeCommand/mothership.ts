@@ -1,19 +1,19 @@
+import copyfiles from 'copyfiles'
+import { GobotOptions, gobot } from 'gobot'
+import { rimraf } from 'rimraf'
 import {
   DEBUG,
   IS_DEV,
   LS_WEBHOOK_SECRET,
+  LoggerService,
   MOTHERSHIP_DATA_ROOT,
   MOTHERSHIP_HOOKS_DIR,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
   mkContainerHomePath,
-} from '$constants'
-import { LoggerService } from '$public'
-import { PortService } from '$services'
-import copyfiles from 'copyfiles'
-import { GobotOptions, gobot } from 'gobot'
-import { rimraf } from 'rimraf'
+} from '../../../../../core'
+import { PortService } from '../../../../services'
 import { freshenPocketbaseVersions } from '../freshenPocketbaseVersions'
 
 export type MothershipConfig = { isolate: boolean }

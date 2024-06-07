@@ -1,15 +1,13 @@
 import {
+  Logger,
+  LoggerService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
-} from '$constants'
-import {
-  Logger,
-  LoggerService,
   PocketBase,
   mergeConfig,
   mkSingleton,
-} from '$public'
+} from '../../../core'
 import { createAdminPbClient } from './createAdminPbClient'
 
 export type ClientServiceConfig = {

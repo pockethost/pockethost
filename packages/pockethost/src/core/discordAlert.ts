@@ -1,5 +1,5 @@
-import { DISCORD_ALERT_CHANNEL_URL } from '$constants'
-import { stringify } from '$public'
+import { DISCORD_ALERT_CHANNEL_URL } from '.'
+import { stringify } from '../common'
 
 const cache: { [_: string]: NodeJS.Timeout } = {}
 

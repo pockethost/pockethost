@@ -3,8 +3,8 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
   import { globalInstancesStore } from '$util/stores'
-  import { InstanceFields } from 'pockethost'
   import { values } from '@s-libs/micro-dash'
+  import { InstanceFields } from 'pockethost/common'
 
   let arrayOfActiveInstances: InstanceFields[] = []
   let arrayOfMaintenanceInstances: InstanceFields[] = []

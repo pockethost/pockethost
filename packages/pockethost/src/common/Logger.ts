@@ -2,9 +2,7 @@
 
 import chalk from 'chalk'
 import stringify from 'json-stringify-safe'
-import { mergeConfig } from './mergeConfig'
-import { mkSingleton } from './mkSingleton'
-import { PocketHostAction, action } from './plugin'
+import { PocketHostAction, action, mergeConfig, mkSingleton } from '.'
 
 export type LoggerConfig = {
   level: LogLevelName

@@ -1,5 +1,5 @@
 import { JSONSchemaType } from 'ajv'
-import { UserId } from '../types'
+import { UserId } from '..'
 
 export type GetUserTokenPayload = {
   id: UserId

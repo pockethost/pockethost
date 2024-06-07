@@ -1,5 +1,4 @@
-import { BaseFields, RecordId, Subdomain, UserId } from './types'
-import { UserFields } from './User'
+import { BaseFields, RecordId, Subdomain, UserFields, UserId } from '.'
 
 export type VersionId = string
 

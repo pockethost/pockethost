@@ -23,7 +23,7 @@ import {
   type InstanceFields,
   type InstanceId,
   type InstanceLogFields,
-} from 'pockethost'
+} from 'pockethost/common'
 
 export type AuthToken = string
 export type AuthStoreProps = {

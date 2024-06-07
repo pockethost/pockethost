@@ -10,7 +10,7 @@
     userStore,
     userSubscriptionType,
   } from '$util/stores'
-  import { PLAN_NAMES, SubscriptionType } from 'pockethost'
+  import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
   import { onMount } from 'svelte'
   import { writable } from 'svelte/store'
 

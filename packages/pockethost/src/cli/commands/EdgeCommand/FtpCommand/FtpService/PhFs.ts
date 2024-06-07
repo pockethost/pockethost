@@ -1,5 +1,3 @@
-import { DATA_ROOT } from '$constants'
-import { InstanceFields, Logger, PocketBase, assert, newId } from '$public'
 import { compact, map } from '@s-libs/micro-dash'
 import {
   Mode,
@@ -18,6 +16,14 @@ import {
   VirtualFolderNames,
   virtualFolderGuard,
 } from '.'
+import {
+  InstanceFields,
+  Logger,
+  PocketBase,
+  assert,
+  newId,
+} from '../../../../../common'
+import { DATA_ROOT } from '../../../../../core'
 import * as fsAsync from './fs-async'
 
 export type PathError = {

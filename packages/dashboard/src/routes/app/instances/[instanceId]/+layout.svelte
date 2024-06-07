@@ -3,7 +3,7 @@
   import AlertBar from '$components/AlertBar.svelte'
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
-  import { assert } from 'pockethost'
+  import { assert } from 'pockethost/common'
   import { instance } from './store'
 
   let isReady = false

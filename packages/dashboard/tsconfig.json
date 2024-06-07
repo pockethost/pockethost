@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
+    "baseUrl": ".",
     "paths": {
       "$util/*": ["./src/util/*"],
       "$src/*": ["./src/*"],

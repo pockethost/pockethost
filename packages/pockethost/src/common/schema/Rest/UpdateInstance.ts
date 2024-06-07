@@ -1,6 +1,5 @@
 import { JSONSchemaType } from 'ajv'
-import { InstanceFields } from '../Instance'
-import { InstanceId } from '../types'
+import { InstanceFields, InstanceId } from '..'
 
 export type UpdateInstancePayload = {
   id: InstanceId

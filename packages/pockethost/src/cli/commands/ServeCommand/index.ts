@@ -1,5 +1,5 @@
-import { LoggerService } from '$public'
 import { Command } from 'commander'
+import { LoggerService } from '../../../common'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { syslog } from '../EdgeCommand/SyslogCommand/ServeCommand/syslog'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'

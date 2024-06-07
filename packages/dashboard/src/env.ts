@@ -1,5 +1,5 @@
 import { boolean } from 'boolean'
-import { InstanceFields } from 'pockethost'
+import { InstanceFields } from 'pockethost/common'
 
 /**
  * These environment variables default to pointing to the production build so

@@ -1,6 +1,6 @@
-import { mkSingleton } from '$public'
 import { boolean as castToBoolean } from 'boolean'
 import { existsSync, mkdirSync } from 'fs'
+import { mkSingleton } from '../common'
 
 export type SettingsCaster<TValue, TConfig = {}> = {
   stringToType: (value: string, config?: Partial<TConfig>) => TValue

@@ -1,3 +1,13 @@
+import { forEach } from '@s-libs/micro-dash'
+import cors from 'cors'
+import express, { ErrorRequestHandler } from 'express'
+import 'express-async-errors'
+import enforce from 'express-sslify'
+import fs from 'fs'
+import http from 'http'
+import { createProxyMiddleware } from 'http-proxy-middleware'
+import https from 'https'
+import { LoggerService } from '../../../../../common'
 import {
   APEX_DOMAIN,
   APP_NAME,
@@ -8,17 +18,8 @@ import {
   MOTHERSHIP_PORT,
   SSL_CERT,
   SSL_KEY,
-} from '$constants'
-import { LoggerService, discordAlert } from '$public'
-import { forEach } from '@s-libs/micro-dash'
-import cors from 'cors'
-import express, { ErrorRequestHandler } from 'express'
-import 'express-async-errors'
-import enforce from 'express-sslify'
-import fs from 'fs'
-import http from 'http'
-import { createProxyMiddleware } from 'http-proxy-middleware'
-import https from 'https'
+  discordAlert,
+} from '../../../../../core'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 
