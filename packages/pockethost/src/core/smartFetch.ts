@@ -1,7 +1,7 @@
-import { LoggerService } from '$public'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import fetch from 'node-fetch'
 import { dirname } from 'path'
+import { LoggerService } from '../common'
 
 export const smartFetch = async <TRet>(
   url: string,

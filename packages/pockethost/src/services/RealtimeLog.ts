@@ -1,3 +1,5 @@
+import { text } from 'node:stream/consumers'
+import { JsonifiableObject } from 'type-fest/source/jsonifiable'
 import {
   InstanceFields,
   LoggerService,
@@ -5,9 +7,7 @@ import {
   PocketBase,
   SingletonBaseConfig,
   stringify,
-} from '$public'
-import { text } from 'node:stream/consumers'
-import { JsonifiableObject } from 'type-fest/source/jsonifiable'
+} from '../../core'
 import { InstanceLogger } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
 

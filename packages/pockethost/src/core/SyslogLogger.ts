@@ -1,7 +1,7 @@
-import { SYSLOGD_PORT } from '$constants'
-import { LoggerService } from '$public'
 import * as winston from 'winston'
 import 'winston-syslog'
+import { SYSLOGD_PORT } from '..'
+import { LoggerService } from '../common'
 
 export function SyslogLogger(instanceId: string, target: string) {
   // @ts-ignore

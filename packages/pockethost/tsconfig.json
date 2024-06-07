@@ -14,14 +14,7 @@
     "moduleResolution": "node",
     "noUncheckedIndexedAccess": true,
     "strictNullChecks": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "$public": ["./src/public-api"],
-      "$services": ["./src/services"],
-      "$constants": ["./src/constants"],
-      "$src/*": ["./src/*"]
-    }
+    "noEmit": true
   },
   "include": ["**/*.ts"],
   "exclude": ["./src/mothership-app/**/*", "./src/instance-app/**/*"]

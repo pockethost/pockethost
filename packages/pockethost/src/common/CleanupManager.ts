@@ -1,6 +1,6 @@
 import { reduce, values } from '@s-libs/micro-dash'
 import { nanoid } from 'nanoid'
-import { LoggerService } from './Logger'
+import { LoggerService } from '.'
 
 export type CleanupFunc = () => Promise<void> | void
 

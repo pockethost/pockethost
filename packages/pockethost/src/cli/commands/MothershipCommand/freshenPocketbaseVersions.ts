@@ -1,7 +1,6 @@
-import { MOTHERSHIP_DATA_ROOT } from '$constants'
-import { stringify } from '$public'
 import { writeFileSync } from 'fs'
 import { gobot } from 'gobot'
+import { MOTHERSHIP_DATA_ROOT, stringify } from '../../../../core'
 
 function compareSemVer(a: string, b: string): number {
   // Consider wildcards as higher than any version number, hence represented by a large number for comparison

@@ -1,5 +1,5 @@
-import { LoggerService } from '$public'
 import { Command } from 'commander'
+import { LoggerService } from '../../../../core'
 import { sendMail } from './sendmail'
 
 type Options = {

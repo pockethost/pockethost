@@ -1,11 +1,11 @@
+import knex from 'knex'
 import {
   createCleanupManager,
   LoggerService,
   mkSingleton,
   serialAsyncExecutionGuard,
   SingletonBaseConfig,
-} from '$public'
-import knex from 'knex'
+} from '../../../../../core'
 
 export type SqliteServiceApi = ReturnType<typeof knex>
 export type SqliteServiceConfig = SingletonBaseConfig & {}

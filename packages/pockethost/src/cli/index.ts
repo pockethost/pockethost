@@ -1,15 +1,23 @@
 #!/usr/bin/env node
 
-import { DEBUG, DefaultSettingsService, PH_PLUGINS, SETTINGS } from '$constants'
-import { LogLevelName, LoggerService, loadPlugins } from '$public'
 import { program } from 'commander'
 import EventSource from 'eventsource'
+import {
+  DEBUG,
+  DefaultSettingsService,
+  LogLevelName,
+  LoggerService,
+  PH_PLUGINS,
+  SETTINGS,
+  loadPlugins,
+} from '../../core'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
 import { HealthCommand } from './commands/HealthCommand'
 import { MothershipCommand } from './commands/MothershipCommand'
 import { SendMailCommand } from './commands/SendMailCommand'
 import { ServeCommand } from './commands/ServeCommand'
+
 export type GlobalOptions = {
   logLevel?: LogLevelName
   debug: boolean

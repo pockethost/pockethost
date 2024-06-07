@@ -5,7 +5,7 @@ import {
   ClientResponseError,
   PocketBase,
   type AuthModel,
-} from 'pockethost'
+} from 'pockethost/common'
 
 export type AuthToken = string
 export type AuthStoreProps = {

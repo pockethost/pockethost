@@ -1,5 +1,5 @@
-import { Logger } from '$public'
 import { exec } from 'child_process'
+import { Logger } from '../common'
 
 export const pexec = (logger: Logger) => (cmd: string) => {
   const { dbg, error } = logger.create('pexec')

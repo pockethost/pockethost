@@ -1,5 +1,5 @@
 import { JSONSchemaType } from 'ajv'
-import { InstanceId } from '../types'
+import { InstanceId } from '..'
 
 export type DeleteInstancePayload = {
   id: InstanceId

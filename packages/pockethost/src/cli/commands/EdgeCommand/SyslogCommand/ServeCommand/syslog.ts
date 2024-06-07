@@ -1,8 +1,8 @@
-import { SYSLOGD_PORT } from '$constants'
-import { LoggerService } from '$public'
-import { InstanceLogger } from '$services'
 import * as dgram from 'dgram'
 import parse from 'syslog-parse'
+import { LoggerService } from '../../../../../common'
+import { SYSLOGD_PORT } from '../../../../../core'
+import { InstanceLogger } from '../../../../../services'
 
 export function syslog() {
   return new Promise<void>((resolve) => {

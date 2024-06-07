@@ -1,8 +1,8 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client/index.js'
-  import { SECRET_KEY_REGEX, UpdateInstancePayload } from 'pockethost'
   import { reduce } from '@s-libs/micro-dash'
+  import { SECRET_KEY_REGEX, UpdateInstancePayload } from 'pockethost/common'
   import { instance } from '../store.js'
   import { items } from './stores.js'
 

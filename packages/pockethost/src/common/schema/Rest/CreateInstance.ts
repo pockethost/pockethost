@@ -1,6 +1,5 @@
 import { JSONSchemaType } from 'ajv'
-import { InstanceFields } from '../Instance'
-import { Subdomain } from '../types'
+import { InstanceFields, Subdomain } from '..'
 
 export type CreateInstancePayload = {
   subdomain: Subdomain

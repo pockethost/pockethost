@@ -1,7 +1,7 @@
 import { uniqueId } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { SetReturnType } from 'type-fest'
-import { LoggerService } from './Logger'
+import { LoggerService } from '../common/Logger'
 
 const limiters: { [lane: string]: Bottleneck } = {}
 export const serialAsyncExecutionGuard = <

@@ -1,7 +1,6 @@
 import { isString } from '@s-libs/micro-dash'
 import { Request } from 'express'
-import { LogLevelName } from './Logger'
-import { InstanceFields } from './schema'
+import { InstanceFields, LogLevelName } from '.'
 
 export enum PocketHostAction {
   Request = 'request',

@@ -1,5 +1,5 @@
 import { forEach, values } from '@s-libs/micro-dash'
-import { LoggerService } from './Logger'
+import { LoggerService } from '.'
 
 export type UnixTimestampMs = number
 export type TimerCanceler = () => void

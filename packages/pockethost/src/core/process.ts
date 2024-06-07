@@ -1,4 +1,4 @@
-import { ioc } from '$constants'
+import { ioc } from '.'
 import { discordAlert } from './discordAlert'
 import { gracefulExit } from './exit'
 ;['unhandledRejection', 'uncaughtException'].forEach((type) => {
