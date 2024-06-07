@@ -251,7 +251,8 @@ export const instanceService = mkSingleton(
         Obtain empty port
         */
         dbg(`Obtaining port`)
-        const [newPort, releasePort] = await PortService().alloc()
+        const [newPortPromise, releasePort] = PortService().alloc()
+        const newPort = await newPortPromise
         shutdownManager.add(() => {
           dbg(`shut down: releasing port`)
           releasePort()

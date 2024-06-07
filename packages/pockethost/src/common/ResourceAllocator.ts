@@ -1,12 +1,13 @@
+export type Deallocator = () => void
+
 export type Allocator<T> = {
   free: (item: T) => void
-  alloc: () => Promise<[T, () => void]>
+  alloc: () => [T, Deallocator]
 }
 
-export type PortReleaser = () => void
-export function PromiseAllocator<T>(
+export function ResourceAllocator<T>(
   initialPoolSize: number,
-  initializer: () => Promise<T>,
+  initializer: () => T,
 ): Allocator<T> {
   // Available queue to hold resolved items of type T
   const available: T[] = []
@@ -18,27 +19,17 @@ export function PromiseAllocator<T>(
 
   // Pre-populate the available queue with initial items
   for (let i = 0; i < initialPoolSize; i++) {
-    initializer().then((item) => {
-      available.push(item)
-    })
-  }
-
-  const alloc = async (): Promise<[T, PortReleaser]> => {
-    // If an item is available, return it along with the free function
-    if (available.length > 0) {
-      const item = available.pop()
-      if (item) {
-        return [item, () => free(item)]
-      }
-    }
-
-    // If no items are available, wait for a new initializer call and return it
-    const newItem = await initializer()
-    return [newItem, () => free(newItem)]
+    available.push(initializer())
   }
 
   return {
-    alloc,
+    alloc() {
+      if (available.length === 0) {
+        available.push(initializer())
+      }
+      const newItem = initializer()
+      return [newItem, () => free(newItem)]
+    },
     free,
   }
 }
