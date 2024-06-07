@@ -1,107 +1,49 @@
 import { isString } from '@s-libs/micro-dash'
-import { Request } from 'express'
-import { InstanceFields, LogLevelName } from '.'
 
-export enum PocketHostAction {
-  Request = 'request',
-  BeforeDaemonStart = 'before_daemon_start',
-  Log = 'log',
-  InstanceApiTimeout = 'instance_api_timeout',
-  UpdateInstance = 'update_instance',
-}
+export type PocketHostAction = string
 
-export enum PocketHostFilter {
-  ExtraBinds = 'extra_binds',
-}
+export type PocketHostFilter = string
 
 export type PocketHostPlugin = (api: PocketHostPluginApi) => Promise<void>
 
-const filters: { [key in PocketHostFilter]: FilterHandler[] } = {
-  [PocketHostFilter.ExtraBinds]: [],
-}
+const filters: { [key in PocketHostFilter]: FilterHandler[] } = {}
 
 const actions: {
   [key in PocketHostAction]: ActionHandler[]
-} = {
-  [PocketHostAction.Request]: [],
-  [PocketHostAction.BeforeDaemonStart]: [],
-  [PocketHostAction.Log]: [],
-  [PocketHostAction.InstanceApiTimeout]: [],
-  [PocketHostAction.UpdateInstance]: [],
-}
+} = {}
 
 export type FilterHandler = (carry: any) => any
 export type ActionHandler = (...args: any[]) => void
 
 export async function registerFilter(
-  filter: PocketHostFilter.ExtraBinds,
-  handler: (carry: string[]) => string[],
+  filter: PocketHostFilter,
+  handler: (carry: any) => any,
 ) {
-  filters[filter].push(handler)
+  if (!(filter in filters)) filters[filter] = []
+  filters[filter]!.push(handler)
 }
 
-export async function registerAction(
-  action: PocketHostAction.BeforeDaemonStart,
-  handler: (req: Request) => void,
-): Promise<void>
-export async function registerAction(
-  action: PocketHostAction.Request,
-  handler: (req: Request) => void,
-): Promise<void>
-export async function registerAction(
-  action: PocketHostAction.Log,
-  handler: (
-    currentLevel: LogLevelName,
-    level: LogLevelName,
-    args: any[],
-  ) => void,
-): Promise<void>
-export async function registerAction(
-  action: PocketHostAction.InstanceApiTimeout,
-  handler: (instance: InstanceFields) => void,
-): Promise<void>
-export async function registerAction(
-  action: PocketHostAction.UpdateInstance,
-  handler: (id: string, fields: InstanceFields) => void,
-): Promise<void>
 export async function registerAction(
   action: PocketHostAction,
-  handler: ActionHandler,
-): Promise<void> {
-  actions[action].push(handler)
-}
-
-export async function filter(
-  filter: PocketHostFilter.ExtraBinds,
-  initial: string[],
+  handler: (...args: any[]) => Promise<void>,
 ) {
-  return filters[filter].reduce((carry, handler) => handler(carry), initial)
+  if (!(action in actions)) actions[action] = []
+  actions[action]!.push(handler)
 }
 
-export async function action(
-  action: PocketHostAction.Request,
-  req: Request,
-): Promise<void>
-export async function action(
-  action: PocketHostAction.BeforeDaemonStart,
-): Promise<void>
-export async function action(
-  action: PocketHostAction.Log,
-  currentLevel: LogLevelName,
-  levelIn: LogLevelName,
-  ...rest: any[]
-): Promise<void>
-export async function action(
-  action: PocketHostAction.InstanceApiTimeout,
-  instance: InstanceFields,
-): Promise<void>
-export async function action(
-  action: PocketHostAction.UpdateInstance,
-  id: string,
-  fields: Partial<InstanceFields>,
-): Promise<void>
-export async function action(action: PocketHostAction, ...args: any[]) {
-  await Promise.all(actions[action].map((handler) => handler(...args)))
+export async function filter<T>(filterName: PocketHostFilter, initialValue: T) {
+  const filter = filters[filterName]
+  if (!filter) return initialValue
+  return filter.reduce(
+    (carry, handler) => carry.then((carryRes) => handler(carryRes)),
+    Promise.resolve(initialValue),
+  )
+}
+
+export async function action(actionName: PocketHostAction, ...rest: any[]) {
+  const action = actions[actionName]
+  if (!action) return
+  await Promise.all(action.map((handler) => handler(...rest)))
 }
 
 export type PocketHostPluginApi = {

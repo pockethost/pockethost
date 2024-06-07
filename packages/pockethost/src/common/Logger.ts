@@ -2,7 +2,7 @@
 
 import chalk from 'chalk'
 import stringify from 'json-stringify-safe'
-import { PocketHostAction, action, mergeConfig, mkSingleton } from '.'
+import { action, mergeConfig, mkSingleton } from '.'
 
 export type LoggerConfig = {
   level: LogLevelName
@@ -74,7 +74,7 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
       .join(' ')
 
   const _log = (levelIn: LogLevelName, ...args: any[]) => {
-    action(PocketHostAction.Log, _config.level, levelIn, args)
+    action(`log`, _config.level, levelIn, args)
   }
 
   const raw = (...args: any[]) => {
