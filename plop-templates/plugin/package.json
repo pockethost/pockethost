@@ -21,8 +21,8 @@
     "url": "https://github.com/benallfree"
   },
   "license": "MIT",
-  "dependencies": {
-    "pockethost": "workspace:^1.0.0"
+  "peerDependencies": {
+    "pockethost": "workspace:^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.10",

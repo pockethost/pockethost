@@ -27,7 +27,7 @@
     "pocketbase": "^0.21.3"
   },
   "peerDependencies": {
-    "pockethost": "workspace:^1.3.0"
+    "pockethost": "workspace:^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.10",

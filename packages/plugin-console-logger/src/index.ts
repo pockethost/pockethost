@@ -6,6 +6,8 @@ import {
   isLevelLte,
   onLogAction,
 } from 'pockethost'
+import { PLUGIN_NAME } from './constants'
+import { dbg } from './log'
 
 export const LogLevelConsoleMap = {
   [LogLevelName.Trace]: console.trace,
@@ -49,6 +51,8 @@ const plugin: PocketHostPlugin = async ({}) => {
     }
     LogLevelConsoleMap[levelIn](...finalArgs)
   })
+
+  dbg(`initializing ${PLUGIN_NAME}`)
 }
 
 export default plugin

@@ -1,5 +1,12 @@
 import { join } from 'path'
-import { PH_HOME, Settings, mkPath, mkString } from 'pockethost/core'
+import { DEBUG } from 'pockethost'
+import {
+  PH_HOME,
+  Settings,
+  logSettings,
+  mkPath,
+  mkString,
+} from 'pockethost/core'
 
 export const PLUGIN_NAME = `plugin-auto-admin`
 
@@ -14,3 +21,7 @@ const settings = Settings({
 
 export const LOGIN = () => settings.PH_AUTO_ADMIN_LOGIN
 export const PASSWORD = () => settings.PH_AUTO_ADMIN_PASSWORD
+
+if (DEBUG()) {
+  logSettings(settings)
+}

@@ -1,10 +1,9 @@
 import { Mutex } from 'async-mutex'
+import { info } from 'console'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import getPort from 'get-port'
 import { gobot } from 'gobot'
-import { join } from 'path'
 import {
-  LoggerService,
   PocketHostPlugin,
   doAfterInstanceStartedAction,
   doAfterInstanceStoppedAction,
@@ -19,18 +18,13 @@ import {
 import {
   APEX_DOMAIN,
   INSTANCE_DATA_DIR,
-  PH_HOME,
   PORT,
   exitHook,
   tryFetch,
 } from 'pockethost/core'
 import { gte } from 'semver'
-
-const HOME =
-  process.env.PH_BASIC_LAUNCHER_HOME || join(PH_HOME(), `plugin-basic-launcher`)
-
-const logger = LoggerService().create('plugin-basic-launcher')
-export const { dbg, info } = logger
+import { PLUGIN_NAME } from './constants'
+import { dbg } from './log'
 
 export type InstanceFields = {
   subdomain: string
@@ -71,6 +65,8 @@ const writeMeta = async (instance: InstanceFields) => {
 }
 
 const plugin: PocketHostPlugin = async ({}) => {
+  dbg(`initializing ${PLUGIN_NAME}`)
+
   /** Display some informational alerts to help the user get started. */
   onAfterServerStartAction(async () => {
     info(`Listening for requests on *.${APEX_DOMAIN()}`)
