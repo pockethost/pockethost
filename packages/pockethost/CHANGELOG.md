@@ -1,5 +1,17 @@
 # pockethost
 
+## 1.3.2
+
+### Patch Changes
+
+- b0a78d8: Updated plugin authoring guide
+- ac63ea7: Updated plugin documentation
+- Updated dependencies [eb0d011]
+- Updated dependencies [38d2c93]
+  - @pockethost/plugin-launcher-spawn@0.2.0
+  - @pockethost/plugin-console-logger@0.2.0
+  - @pockethost/plugin-auto-admin@0.1.0
+
 ## 1.3.1
 
 ### Patch Changes

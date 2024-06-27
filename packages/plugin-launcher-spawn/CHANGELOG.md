@@ -1,5 +1,18 @@
 # @pockethost/plugin-launcher-spawn
 
+## 0.2.0
+
+### Minor Changes
+
+- 38d2c93: pockethost package is now a peer dependency
+
+### Patch Changes
+
+- eb0d011: Added check-types support for Turbo
+- Updated dependencies [b0a78d8]
+- Updated dependencies [ac63ea7]
+  - pockethost@1.3.2
+
 ## 0.1.0
 
 ### Minor Changes
