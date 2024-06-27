@@ -96,7 +96,7 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
   const info = (...args: any[]) => {
     const _args = (() => {
       if (isLevelGt(LogLevelName.Info, _config.level)) {
-        return [chalk.gray(`INFO`), ...args]
+        return [_pfx(chalk.gray(`INFO`)), ...args]
       }
       return [...args]
     })()
