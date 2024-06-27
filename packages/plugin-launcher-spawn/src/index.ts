@@ -1,5 +1,4 @@
 import { Mutex } from 'async-mutex'
-import { info } from 'console'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import getPort from 'get-port'
 import { gobot } from 'gobot'
@@ -24,7 +23,7 @@ import {
 } from 'pockethost/core'
 import { gte } from 'semver'
 import { PLUGIN_NAME } from './constants'
-import { dbg } from './log'
+import { dbg, info } from './log'
 
 export type InstanceFields = {
   subdomain: string
