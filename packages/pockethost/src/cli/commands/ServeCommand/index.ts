@@ -3,11 +3,16 @@ import {
   LoggerService,
   doServeAction,
   doServeSlugsFilter,
+  loadPlugins,
 } from '../../../common'
 
-type Options = {
-  isolate: boolean
+type GlobalOptions = {
+  extraPlugins: string[]
 }
+
+type Options = {
+  only: string[]
+} & GlobalOptions
 
 export const ServeCommand = async () => {
   const serveSlugs = await doServeSlugsFilter([])
@@ -24,12 +29,15 @@ export const ServeCommand = async () => {
           .filter((s) => serveSlugs.includes(s)),
       serveSlugs,
     )
-    .action(async (options: Options) => {
+    .action(async (unused: Options, cmd: Command) => {
       const logger = LoggerService().create(`ServeCommand`)
       const { dbg, error, info, warn } = logger
       info(`Starting`)
 
-      await doServeAction({ only: serveSlugs })
+      const { only, extraPlugins } = cmd.optsWithGlobals<Options>()
+      await loadPlugins(extraPlugins)
+      dbg(`CLI:`, cmd.optsWithGlobals())
+      await doServeAction({ only })
     })
   return cmd
 }

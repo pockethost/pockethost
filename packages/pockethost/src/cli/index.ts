@@ -35,6 +35,7 @@ export const main = async () => {
     .name('pockethost')
     .description('Multitenant PocketBase hosting')
     .version(version)
+    .option(`-e, --extra-plugins <plugins...>`, `Extra plugins to load`, [])
 
   const commands = await doCliCommandsFilter([
     await ServeCommand(),
