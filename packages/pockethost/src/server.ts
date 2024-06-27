@@ -2,10 +2,7 @@ import express, { ErrorRequestHandler } from 'express'
 import 'express-async-errors'
 import { default as httpProxy } from 'http-proxy'
 import {
-  APEX_DOMAIN,
   LoggerService,
-  PORT,
-  asyncExitHook,
   doAfterInstanceFoundAction,
   doAfterServerStartAction,
   doAppMountedAction,
@@ -15,7 +12,8 @@ import {
   doRequestErrorAction,
   doRequestErrorMessageFilter,
   onInstanceLogAction,
-} from '../core'
+} from '../common'
+import { APEX_DOMAIN, PORT, asyncExitHook } from '../core'
 
 export const serve = async () => {
   const _proxyLogger = LoggerService().create('ProxyService')

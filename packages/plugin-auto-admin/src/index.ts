@@ -3,7 +3,7 @@ import {
   PocketHostPlugin,
   onAfterInstanceStartedAction,
   parseError,
-} from 'pockethost/core'
+} from 'pockethost'
 import { LOGIN, PASSWORD, PLUGIN_NAME } from './constants'
 import { dbg, info } from './log'
 

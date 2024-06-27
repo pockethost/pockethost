@@ -4,15 +4,14 @@ import { uniq } from '@s-libs/micro-dash'
 import { program } from 'commander'
 import { readFileSync } from 'fs'
 import updateNotifier from 'update-notifier'
+import { PH_PLUGINS, PH_PROJECT_DIR } from '../../core'
 import {
   DEBUG,
   LogLevelName,
   LoggerService,
-  PH_PLUGINS,
-  PH_PROJECT_DIR,
   doCliCommandsFilter,
   loadPlugins,
-} from '../../core'
+} from '../common'
 import { ConfigCommand } from './commands/ConfigCommand'
 import { PluginCommand } from './commands/PluginCommand'
 import { ServeCommand } from './commands/ServeCommand'

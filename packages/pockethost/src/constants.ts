@@ -4,14 +4,8 @@ import envPaths from 'env-paths'
 import { dirname, join } from 'path'
 import { cwd } from 'process'
 import { fileURLToPath } from 'url'
-import {
-  InstanceId,
-  mkBoolean,
-  mkCsvString,
-  mkNumber,
-  mkPath,
-  mkString,
-} from '../core'
+import { mkBoolean, mkCsvString, mkNumber, mkPath, mkString } from '../core'
+import { InstanceId } from './common'
 import { DEBUG, IS_DEV } from './common/debug'
 import { Settings } from './core/Settings'
 

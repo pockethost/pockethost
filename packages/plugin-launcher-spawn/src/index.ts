@@ -4,22 +4,24 @@ import getPort from 'get-port'
 import { gobot } from 'gobot'
 import { join } from 'path'
 import {
-  APEX_DOMAIN,
-  INSTANCE_DATA_DIR,
   LoggerService,
-  PH_HOME,
-  PORT,
   PocketHostPlugin,
   doAfterInstanceStartedAction,
   doAfterInstanceStoppedAction,
   doInstanceLogAction,
-  exitHook,
   mkInstance,
   onAfterInstanceFoundAction,
   onAfterServerStartAction,
   onGetInstanceByRequestInfoFilter,
   onGetOrProvisionInstanceUrlFilter,
   onNewInstanceRecordFilter,
+} from 'pockethost'
+import {
+  APEX_DOMAIN,
+  INSTANCE_DATA_DIR,
+  PH_HOME,
+  PORT,
+  exitHook,
   tryFetch,
 } from 'pockethost/core'
 import { gte } from 'semver'
