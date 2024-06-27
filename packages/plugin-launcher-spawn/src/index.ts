@@ -68,11 +68,17 @@ const plugin: PocketHostPlugin = async ({}) => {
 
   /** Display some informational alerts to help the user get started. */
   onAfterServerStartAction(async () => {
-    info(`Listening for requests on *.${APEX_DOMAIN()}`)
     const protocol = PORT() === 443 ? 'https' : 'http'
-    const url = new URL(`${protocol}://hello.${APEX_DOMAIN()}`)
-    url.port = `${PORT() === 80 || PORT() == 443 ? '' : PORT()}`
-    info(`Try visiting ${url}`)
+    {
+      const url = new URL(`${protocol}://*.${APEX_DOMAIN()}`)
+      url.port = `${PORT() === 80 || PORT() == 443 ? '' : PORT()}`
+      info(`Listening for requests on ${url}`)
+    }
+    {
+      const url = new URL(`${protocol}://hello.${APEX_DOMAIN()}`)
+      url.port = `${PORT() === 80 || PORT() == 443 ? '' : PORT()}`
+      info(`Try visiting ${url}`)
+    }
   })
 
   /** When a request comes in, return an instance based on subdomain */
