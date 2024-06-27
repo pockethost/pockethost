@@ -26,8 +26,10 @@
     "@types/node": "^20.8.10",
     "typescript": "^5.4.5"
   },
-  "dependencies": {
-    "json-stringify-safe": "^5.0.1",
+  "peerDependencies": {
     "pockethost": "workspace:^1.3.0"
+  },
+  "dependencies": {
+    "json-stringify-safe": "^5.0.1"
   }
 }

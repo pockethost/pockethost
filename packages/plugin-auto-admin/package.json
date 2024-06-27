@@ -24,7 +24,9 @@
   "dependencies": {
     "@types/json-stringify-safe": "^5.0.2",
     "json-stringify-safe": "^5.0.1",
-    "pocketbase": "^0.21.3",
+    "pocketbase": "^0.21.3"
+  },
+  "peerDependencies": {
     "pockethost": "workspace:^1.0.0"
   },
   "devDependencies": {
