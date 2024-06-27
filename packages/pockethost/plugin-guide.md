@@ -51,5 +51,6 @@ A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to c
 
 ## Core Filters
 
-| Name | Description | Context | Since |
-| ---- | ----------- | ------- | ----- |
+| Name        | Description             | Context | Since |
+| ----------- | ----------------------- | ------- | ----- |
+| CliCommands | Gather all CLI commands |         | 1.3.0 |
