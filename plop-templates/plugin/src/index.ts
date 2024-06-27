@@ -1,4 +1,4 @@
-import { PocketHostPlugin } from 'pockethost/core'
+import { PocketHostPlugin } from 'pockethost'
 import { PLUGIN_NAME } from './constants'
 import { dbg } from './log'
 
