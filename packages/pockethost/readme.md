@@ -63,7 +63,7 @@ Coming soon:
 | plugin-waf-enforce-ssl | Enforce SSL at the
 WAF
 
-See the [./plugin-guide.md](Plugin Authoring Guide) for details about what hooks and filters are available.
+See the [Plugin Authoring Guide](https://github.com/pockethost/pockethost/blob/master/packages/pockethost/plugin-guide.md) for details about what hooks and filters are available.
 
 ## Support
 
