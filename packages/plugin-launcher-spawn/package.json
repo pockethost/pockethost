@@ -5,6 +5,9 @@
     "type": "git",
     "url": "http://github.com/pockethost/pockethost/packages/plugin-launcher-spawn"
   },
+  "scripts": {
+    "check-types": "tsc --noEmit "
+  },
   "description": "A spawn()-based launcher for pockethost.",
   "main": "src/index.ts",
   "module": "src/index.ts",
