@@ -1,0 +1,31 @@
+{
+  "name": "@pockethost/plugin-cloudflare-request-logger",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/pockethost/pockethost/packages/plugin-cloudflare-request-logger"
+  },
+  "description": "A pockethost plugin.",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit "
+  },
+  "keywords": [
+    "pockethost"
+  ],
+  "author": {
+    "name": "Ben Allfree",
+    "url": "https://github.com/benallfree"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "pockethost": "workspace:^1.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "typescript": "^5.4.5"
+  }
+}

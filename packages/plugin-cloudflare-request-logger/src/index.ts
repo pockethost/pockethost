@@ -1,14 +1,12 @@
-import {
-  LoggerService,
-  PocketHostAction,
-  PocketHostPlugin,
-} from 'pockethost/core'
+import { info } from 'console'
+import { PocketHostPlugin, onIncomingRequestAction } from 'pockethost'
+import { PLUGIN_NAME } from './constants'
+import { dbg } from './log'
 
-export const logger = LoggerService().create('cloudflare-request-logger')
-export const { info, dbg } = logger
+const plugin: PocketHostPlugin = async ({}) => {
+  dbg(`initializing ${PLUGIN_NAME}`)
 
-const plugin: PocketHostPlugin = async ({ registerAction }) => {
-  registerAction(PocketHostAction.Core_Request, async ({ req, res }) => {
+  onIncomingRequestAction(async ({ req, res }) => {
     const url = new URL(`http://${req.headers.host}${req.url}`)
     const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
     const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'

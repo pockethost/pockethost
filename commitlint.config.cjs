@@ -10,6 +10,7 @@ module.exports = {
         'console-logger',
         'auto-admin',
         'launcher-spawn',
+        'cfr-logger',
         'multi',
       ],
     ],
