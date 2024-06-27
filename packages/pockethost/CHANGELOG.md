@@ -1,5 +1,11 @@
 # pockethost
 
+## 1.4.0
+
+### Minor Changes
+
+- b7e4323: Added ability for plugins to respond to `pockethost serve`
+
 ## 1.3.2
 
 ### Patch Changes
