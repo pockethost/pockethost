@@ -11,6 +11,7 @@ module.exports = {
         'auto-admin',
         'launcher-spawn',
         'cfr-logger',
+        `template`,
         'multi',
       ],
     ],
