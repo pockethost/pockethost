@@ -1,0 +1,36 @@
+{
+  "name": "@pockethost/plugin-maildev",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/pockethost/pockethost/packages/plugin-maildev"
+  },
+  "description": "A pockethost plugin.",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit "
+  },
+  "keywords": [
+    "pockethost"
+  ],
+  "author": {
+    "name": "Ben Allfree",
+    "url": "https://github.com/benallfree"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "maildev": "^2.1.0"
+  },
+  "peerDependencies": {
+    "pockethost": "workspace:^1.4.0"
+  },
+  "devDependencies": {
+    "@types/maildev": "^0.0.7",
+    "@types/node": "^20.8.10",
+    "typescript": "^5.4.5"
+  }
+}

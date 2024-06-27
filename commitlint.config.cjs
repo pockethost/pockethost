@@ -12,6 +12,7 @@ module.exports = {
         'launcher-spawn',
         'cfr-logger',
         `template`,
+        `maildev`,
         'multi',
       ],
     ],
