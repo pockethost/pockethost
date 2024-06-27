@@ -12,6 +12,7 @@ import {
   doCliCommandsFilter,
   loadPlugins,
 } from '../common'
+import { pockethost } from '../server'
 import { ConfigCommand } from './commands/ConfigCommand'
 import { PluginCommand } from './commands/PluginCommand'
 import { ServeCommand } from './commands/ServeCommand'
@@ -21,7 +22,8 @@ export const { dbg, info, error } = LoggerService({
 })
 
 export const main = async () => {
-  await loadPlugins(uniq(PH_PLUGINS()))
+  await loadPlugins([pockethost, ...uniq(PH_PLUGINS())])
+
   const pkg = await JSON.parse(
     readFileSync(PH_PROJECT_DIR(`package.json`), 'utf8').toString(),
   )
@@ -35,7 +37,7 @@ export const main = async () => {
     .version(version)
 
   const commands = await doCliCommandsFilter([
-    ServeCommand(),
+    await ServeCommand(),
     ConfigCommand(),
     PluginCommand(),
   ])

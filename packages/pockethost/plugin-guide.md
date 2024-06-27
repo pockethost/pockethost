@@ -42,15 +42,18 @@ A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to c
 
 ## Core Actions
 
-| Name                  | Description             | Context                         | Example                                                                                                                                            | Since |
-| --------------------- | ----------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| BeforeInstanceStarted | An instance will start  | instance                        | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L215) | 1.3.0 |
-| AfterInstanceStarted  | An instance has started | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L215) | 1.3.0 |
-| AfterInstanceStopped  | An instance has stopped | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L199) | 1.3.0 |
-| InstanceLog           | A log action            | logLevel, currentLogLevel, args | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L147) | 1.3.0 |
+| Name                  | Description                                    | Context                         | Example                                                                                                                                            | Since |
+| --------------------- | ---------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| BeforeInstanceStarted | An instance will start                         | instance                        | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L215) | 1.3.0 |
+| AfterInstanceStarted  | An instance has started                        | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L215) | 1.3.0 |
+| AfterInstanceStopped  | An instance has stopped                        | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L199) | 1.3.0 |
+| InstanceLog           | A log action                                   | logLevel, currentLogLevel, args | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L147) | 1.3.0 |
+| Serve                 | The `pockethost serve` command has been called | only[]                          |                                                                                                                                                    | 1.4.0 |
+| 1.4.0                 |
 
 ## Core Filters
 
-| Name        | Description             | Context | Since |
-| ----------- | ----------------------- | ------- | ----- |
-| CliCommands | Gather all CLI commands |         | 1.3.0 |
+| Name        | Description                                                                                                                              | Context | Since |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
+| CliCommands | Gather all CLI commands                                                                                                                  |         | 1.3.0 |
+| ServerSlugs | The items available to the `--only` switch of `pockethost serve`. `--only` controls which services should respond to the `Serve` action. |         | 1.4.0 |

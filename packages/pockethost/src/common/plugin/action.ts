@@ -5,6 +5,7 @@ import { InstanceFields } from '../schema'
 
 enum CoreActions {
   Init = 'core_init',
+  Serve = 'core_serve',
   AppMounted = 'core_on_app_mount',
   AfterServeStart = 'core_after_serve_start',
 
@@ -125,3 +126,7 @@ export const [doAfterInstanceStoppedAction, onAfterInstanceStoppedAction] =
   createCustomActionWithContext<{ instance: InstanceFields; url: string }>(
     CoreActions.AfterInstanceStopped,
   )
+
+export const [doServeAction, onServeAction] = createCustomActionWithContext<{
+  only: string[]
+}>(CoreActions.Serve)

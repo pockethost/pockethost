@@ -5,6 +5,7 @@ import { InstanceFields, InstanceId } from '../schema'
 
 export enum CoreFilters {
   CliCommands = 'core_cli_commands',
+  ServeSlugs = 'core_serve_slugs',
   SpawnConfig = 'core_spawn_config',
   GetInstanceByRequestInfo = 'core_get_instance_by_request_info',
   GetInstanceById = 'core_get_instance_by_id',
@@ -113,3 +114,7 @@ export const [
     instance: InstanceFields
   }
 >(CoreFilters.GetOrProvisionInstanceUrl)
+
+export const [doServeSlugsFilter, onServeSlugsFilter] = createCustomFilter<
+  string[]
+>(CoreFilters.ServeSlugs)
