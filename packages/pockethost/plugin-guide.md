@@ -42,4 +42,14 @@ A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to c
 
 ## Core Actions
 
+| Name                  | Description             | Context                         | Example                                                                                                                                            | Since |
+| --------------------- | ----------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| BeforeInstanceStarted | An instance will start  | instance                        | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L215) | 1.3.0 |
+| AfterInstanceStarted  | An instance has started | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L215) | 1.3.0 |
+| AfterInstanceStopped  | An instance has stopped | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L199) | 1.3.0 |
+| InstanceLog           | A log action            | logLevel, currentLogLevel, args | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L147) | 1.3.0 |
+
 ## Core Filters
+
+| Name | Description | Context | Since |
+| ---- | ----------- | ------- | ----- |
