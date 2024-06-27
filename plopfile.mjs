@@ -7,6 +7,8 @@ import ora from 'ora'
 import { join } from 'path'
 import { cwd } from 'process'
 import factory from 'rizzdown'
+import pkg from './package.json' assert { type: 'json' }
+const { version } = pkg
 
 /** @typedef {import('plop').NodePlopAPI} Plop */
 
@@ -179,6 +181,31 @@ export default function (/** @type {Plop} */ plop) {
           type: 'add',
           path: 'packages/lander/content/blog/{{dashCase title}}.md',
           templateFile: 'plop-templates/blog.hbs',
+        },
+      ]
+    },
+  })
+
+  plop.setGenerator('plugin', {
+    description: 'Generate a new plugin',
+    prompts: [
+      {
+        type: 'input',
+        name: 'name',
+        message: 'Plugin Name (dash case)',
+      },
+    ],
+    actions: (data) => {
+      data.version = version
+      return [
+        {
+          type: 'addMany',
+          destination: 'packages/plugin-{{dashCase name}}',
+          base: 'plop-templates/plugin',
+          templateFiles: `plop-templates/plugin/**/*`,
+        },
+        async () => {
+          console.log(execSync(`pnpm i`).toString())
         },
       ]
     },

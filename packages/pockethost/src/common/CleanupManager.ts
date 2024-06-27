@@ -1,5 +1,4 @@
-import { reduce, values } from '@s-libs/micro-dash'
-import { nanoid } from 'nanoid'
+import { reduce, uniqueId, values } from '@s-libs/micro-dash'
 import { LoggerService } from '.'
 
 export type CleanupFunc = () => Promise<void> | void
@@ -16,10 +15,8 @@ export const CLEANUP_PRIORITY_LAST = 1000
 
 export type CleanupManagerApi = ReturnType<typeof createCleanupManager>
 
-// TODO: Document this
-// This is currently only used in the Logging.svelte file for unsubscribing from real-time events from PocketBase
 export const createCleanupManager = (slug?: string) => {
-  const _slug = slug || nanoid()
+  const _slug = slug || uniqueId()
 
   const { error, warn, dbg } = LoggerService().create(`cleanupManager:${_slug}`)
 

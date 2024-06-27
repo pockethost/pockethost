@@ -1,4 +1,4 @@
-import { BaseFields, RecordId, Subdomain, UserFields, UserId } from '.'
+import { doNewInstanceRecordFilter } from '../plugin'
 
 export type VersionId = string
 
@@ -13,33 +13,24 @@ export enum InstanceStatus {
   Failed = 'failed',
 }
 
+export type InstanceId = string
 export type InstanceSecretKey = string
 export type InstanceSecretValue = string
 export type InstanceSecretCollection = {
   [name: InstanceSecretKey]: InstanceSecretValue
 }
 
-export type InstanceFields = BaseFields & {
-  subdomain: Subdomain
-  uid: UserId
-  status: InstanceStatus
+export type InstanceFields = {
+  subdomain: string
   version: VersionId
-  secrets: InstanceSecretCollection | null
-  maintenance: boolean
-  suspension: string
-  syncAdmin: boolean
-  cname: string
-  dev: boolean
-  cname_active: boolean
-  notifyMaintenanceMode: boolean
+  secrets: InstanceSecretCollection
+  dev: boolean // Should instance run in --dev mode
 }
 
-export type WithUser = {
-  expand: { uid: UserFields }
-}
-
-export type InstanceFields_WithUser = InstanceFields & WithUser
-
-export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
-
-export type InstanceRecordsById = { [_: RecordId]: InstanceFields }
+export const mkInstance = (subdomain: string) =>
+  doNewInstanceRecordFilter({
+    subdomain,
+    version: '*',
+    secrets: {},
+    dev: false,
+  })

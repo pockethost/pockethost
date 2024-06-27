@@ -1,0 +1,6 @@
+*
+!**/*.ts
+!package.json
+!readme.md
+!LICENSE.md
+!CHANGELOG.md

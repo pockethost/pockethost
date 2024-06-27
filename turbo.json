@@ -1,0 +1,25 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "^check-types"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "check-types": {
+      "dependsOn": ["^sherif", "^lint", "^check-types"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "lint-fix": {
+      "dependsOn": ["^lint-fix"]
+    },
+    "sherif": {
+      "dependsOn": ["^sherif"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false
+    }
+  }
+}

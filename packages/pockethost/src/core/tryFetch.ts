@@ -13,11 +13,11 @@ export type TryFetchConfig = {
  * @param config { preflight: ()=>Promise<boolean>, retryMs: number}
  * @returns Promise<Response>
  *
- *   TryFetch will contiously try to fetch a URL every `retryMs`, with an optinoal
- *   `preflight`. If `preflight` is specificed, it must resolve to `true` before
- *   tryFetch will attempt to fetch the URL. If `preflight` resolves to `false`,
- *   tryFetch will delay by `retryMs` and then check again. If `preflight`
- *   rejects, then tryFetch rejects and exits.
+ *   TryFetch will continuously try to fetch a URL every `retryMs`, with an
+ *   optional `preflight`. If `preflight` is specified, it must resolve to
+ *   `true` before tryFetch will attempt to fetch the URL. If `preflight`
+ *   resolves to `false`, tryFetch will delay by `retryMs` and then check again.
+ *   If `preflight` rejects, then tryFetch rejects and exits.
  *
  *   Note: tryFetch exits ONLY on success or a rejected preflight.
  */

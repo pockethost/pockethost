@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2021.String"],
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["./src/mothership-app/**/*"]
+}

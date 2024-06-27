@@ -2,7 +2,7 @@
 
 import chalk from 'chalk'
 import stringify from 'json-stringify-safe'
-import { action, mergeConfig, mkSingleton } from '.'
+import { doLogAction, mergeConfig, mkSingleton } from '.'
 
 export type LoggerConfig = {
   level: LogLevelName
@@ -68,13 +68,17 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
   }
 
   const _pfx = (s: string) =>
-    [new Date().toISOString(), s, ...pfx]
+    [s, ...pfx]
       .filter((v) => !!v)
       .map((p) => `[${p}]`)
       .join(' ')
 
   const _log = (levelIn: LogLevelName, ...args: any[]) => {
-    action(`log`, _config.level, levelIn, args)
+    doLogAction({
+      currentLevel: _config.level,
+      levelIn,
+      args,
+    })
   }
 
   const raw = (...args: any[]) => {
@@ -90,12 +94,16 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
   }
 
   const info = (...args: any[]) => {
+    const _args = (() => {
+      if (isLevelGt(LogLevelName.Info, _config.level)) {
+        return [chalk.gray(`INFO`), ...args]
+      }
+      return [...args]
+    })()
     _log(
       LogLevelName.Info,
-      _pfx(
-        isLevelGt(LogLevelName.Info, _config.level) ? chalk.gray(`INFO`) : '',
-      ),
-      ...args,
+
+      ..._args,
     )
   }
 

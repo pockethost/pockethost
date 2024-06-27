@@ -1,6 +1,5 @@
 import { boolean as castToBoolean } from 'boolean'
 import { existsSync, mkdirSync } from 'fs'
-import { mkSingleton } from '../common'
 
 export type SettingsCaster<TValue, TConfig = {}> = {
   stringToType: (value: string, config?: Partial<TConfig>) => TValue
@@ -103,22 +102,18 @@ type Config<T> = {
   [K in keyof T]: SettingsHandlerFactory<T[K]>
 }
 
-export const SettingsService = <T extends Object>(config: Config<T>) => {
-  const singleton = mkSingleton<Config<T>, T>((config) => {
-    const lookup: Partial<T> = {}
+export const Settings = <T extends Object>(config: Config<T>) => {
+  const lookup: Partial<T> = {}
 
-    for (const key in config) {
-      const handler = config[key as keyof T](key)
-      Object.defineProperty(lookup, key, {
-        get: () => handler.get(),
-        set: (value) => handler.set(value),
-        enumerable: true,
-      })
-      handler.get() // Initialize process.env
-    }
+  for (const key in config) {
+    const handler = config[key as keyof T](key)
+    Object.defineProperty(lookup, key, {
+      get: () => handler.get(),
+      set: (value) => handler.set(value),
+      enumerable: true,
+    })
+    handler.get() // Initialize process.env
+  }
 
-    return lookup as T
-  })
-
-  return singleton(config)
+  return lookup as T
 }

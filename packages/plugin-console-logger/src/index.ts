@@ -1,9 +1,10 @@
+import stringify from 'json-stringify-safe'
 import {
   LogLevelName,
   PocketHostPlugin,
   isLevelGte,
   isLevelLte,
-  stringify,
+  onLogAction,
 } from 'pockethost'
 
 export const LogLevelConsoleMap = {
@@ -16,39 +17,38 @@ export const LogLevelConsoleMap = {
   [LogLevelName.Abort]: console.error,
 } as const
 
-const plugin: PocketHostPlugin = async ({ registerAction }) => {
-  registerAction(
-    `log`,
-    async (currentLevel: LogLevelName, levelIn: LogLevelName, args: any[]) => {
-      if (!isLevelGte(levelIn, currentLevel)) return
-      const finalArgs = [args.shift()]
-      while (args.length > 0) {
-        let arg = args.shift()
-        const t = typeof arg
-        if (arg instanceof Error) {
-          finalArgs.push(...[arg.name, arg.message.toString()])
-          if (isLevelLte(levelIn, LogLevelName.Debug) && arg.stack) {
-            finalArgs.push(...arg.stack.split(/\n/))
-          }
-          continue
+const plugin: PocketHostPlugin = async ({}) => {
+  onLogAction(async ({ currentLevel, levelIn, args }) => {
+    if (!isLevelGte(levelIn, currentLevel)) return
+    const finalArgs = []
+    if (args.length > 0) {
+      finalArgs.push(args.shift())
+    }
+    while (args.length > 0) {
+      let arg = args.shift()
+      if (arg instanceof Error) {
+        finalArgs.push(...[arg.name, arg.message.toString()])
+        if (isLevelLte(levelIn, LogLevelName.Debug) && arg.stack) {
+          finalArgs.push(...arg.stack.split(/\n/))
         }
-        if (t === 'string' && !!arg.match(/\n/)) {
-          finalArgs.push(...arg.split(/\n/))
-          continue
-        }
-        if (t === 'object') {
-          finalArgs.push(...stringify(arg, undefined, 2).split(/\n/))
-          continue
-        }
-        if (t === 'function') {
-          finalArgs.push(`<<function ${stringify(arg.toString())}>>`)
-          continue
-        }
-        finalArgs.push(arg)
+        continue
       }
-      LogLevelConsoleMap[levelIn](...finalArgs)
-    },
-  )
+      if (typeof arg === 'string') {
+        finalArgs.push(arg)
+        continue
+      }
+      if (typeof arg === 'object') {
+        finalArgs.push(stringify(arg, null, 2))
+        continue
+      }
+      if (typeof arg === 'function') {
+        finalArgs.push(`<<function ${stringify(arg.toString())}>>`)
+        continue
+      }
+      finalArgs.push(arg)
+    }
+    LogLevelConsoleMap[levelIn](...finalArgs)
+  })
 }
 
 export default plugin
