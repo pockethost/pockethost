@@ -1,4 +1,3 @@
-import { forEach } from '@s-libs/micro-dash'
 import { config } from 'dotenv'
 import envPaths from 'env-paths'
 import { dirname, join } from 'path'
@@ -8,6 +7,7 @@ import { mkBoolean, mkCsvString, mkNumber, mkPath, mkString } from '../core'
 import { InstanceId } from './common'
 import { DEBUG, IS_DEV } from './common/debug'
 import { Settings } from './core/Settings'
+import { logSettings } from './core/logSettings'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -58,12 +58,6 @@ export const NODE_ENV = () => process.env.NODE_ENV
 export const INSTANCE_DATA_DIR = (id: InstanceId, ...paths: string[]) =>
   join(DATA_DIR(), id, ...paths)
 
-export const logConstants = () => {
-  forEach(settings, (v, k) => {
-    console.log(`${k}: ${v}`)
-  })
-}
-
 if (DEBUG()) {
-  logConstants()
+  logSettings(settings)
 }
