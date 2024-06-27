@@ -48,11 +48,12 @@ PocketHost uses a hook architecture and features a growing list plugins. Some pl
 
 Current plugins:
 
-| name                  | description                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------- |
-| plugin-console-logger | Routes log messages to the console                                                                |
-| plugin-auto-admin     | Auto-creates a default admin account on instance launch                                           |
-| plugin-launcher-spawn | Launches PocketBase instances via `spawn()` on the local machine. PocketHost uses this by default |
+| name                             | description                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| plugin-console-logger            | Routes log messages to the console                                                                |
+| plugin-auto-admin                | Auto-creates a default admin account on instance launch                                           |
+| plugin-launcher-spawn            | Launches PocketBase instances via `spawn()` on the local machine. PocketHost uses this by default |
+| plugin-cloudflare-request-logger | Log additional data when running behind Cloudflare                                                |
 
 Coming soon:
 | name | description |
