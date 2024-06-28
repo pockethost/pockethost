@@ -1,9 +1,3 @@
-import { PocketHostPlugin } from 'pockethost'
-import { PLUGIN_NAME } from './constants'
-import { dbg } from './log'
-
-const plugin: PocketHostPlugin = async ({}) => {
-  dbg(`initializing ${PLUGIN_NAME}`)
-}
+import { plugin } from './plugin'
 
 export default plugin
