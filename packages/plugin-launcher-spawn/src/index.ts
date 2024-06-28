@@ -1,11 +1,16 @@
 import { Mutex } from 'async-mutex'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import fs, { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import getPort from 'get-port'
+import { globSync } from 'glob'
 import { gobot } from 'gobot'
+import path from 'path'
 import {
+  Bind,
+  InstanceFields,
   PocketHostPlugin,
   doAfterInstanceStartedAction,
   doAfterInstanceStoppedAction,
+  doInstanceConfigFilter,
   doInstanceLogAction,
   mkInstance,
   onAfterInstanceFoundAction,
@@ -25,11 +30,30 @@ import { gte } from 'semver'
 import { PLUGIN_NAME } from './constants'
 import { dbg, info } from './log'
 
-export type InstanceFields = {
-  subdomain: string
-  version: string
-  secrets: { [_: string]: string }
-  dev: boolean
+const deleteFiles = (globPattern: string) => {
+  const files = globSync(globPattern)
+  files.forEach((file) => {
+    dbg(`Deleting ${file}`)
+    fs.unlinkSync(file)
+  })
+}
+
+const copyFiles = (binds: Bind[], destination: string) => {
+  binds.forEach((bind) => {
+    const srcFiles = globSync(bind.src)
+    srcFiles.forEach((srcFile) => {
+      const relativePath = path.relative(bind.base, srcFile)
+      const destFile = path.join(destination, relativePath)
+      const destDir = path.dirname(destFile)
+      dbg(`Copying ${srcFile} to ${destFile}`, { relativePath, destDir, bind })
+
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true })
+      }
+
+      fs.copyFileSync(srcFile, destFile)
+    })
+  })
 }
 
 const escape = (path: string) => `"${path}"`
@@ -130,19 +154,45 @@ const plugin: PocketHostPlugin = async ({}) => {
           throw new Error(`No PocketBase version satisfying ${version}`)
         }
 
+        const instanceConfig = await doInstanceConfigFilter({
+          env: {},
+          binds: {
+            data: [],
+            hooks: [],
+            migrations: [],
+            public: [],
+          },
+        })
+
+        dbg(`instanceConfig`, { instanceConfig })
+
+        const dataDir = INSTANCE_DATA_DIR(subdomain, `pb_data`)
+        const hooksDir = INSTANCE_DATA_DIR(subdomain, `pb_hooks`)
+        const migrationsDir = INSTANCE_DATA_DIR(subdomain, `pb_migrations`)
+        const publicDir = INSTANCE_DATA_DIR(subdomain, `pb_public`)
+
+        ;[dataDir, hooksDir, migrationsDir, publicDir].forEach((dir) => {
+          return mkdirSync(dir, { recursive: true })
+        })
+        const { binds, env } = instanceConfig
+        copyFiles(binds.data, dataDir)
+        copyFiles(binds.hooks, hooksDir)
+        copyFiles(binds.migrations, migrationsDir)
+        copyFiles(binds.public, publicDir)
+
         return launchMutex.runExclusive(async () => {
           dbg(`got lock`)
           const port = await getPort()
           const args = [
             `serve`,
             `--dir`,
-            escape(INSTANCE_DATA_DIR(subdomain, `pb_data`)),
+            escape(dataDir),
             `--hooksDir`,
-            escape(INSTANCE_DATA_DIR(subdomain, `pb_hooks`)),
+            escape(hooksDir),
             `--migrationsDir`,
-            escape(INSTANCE_DATA_DIR(subdomain, `pb_migrations`)),
+            escape(migrationsDir),
             `--publicDir`,
-            escape(INSTANCE_DATA_DIR(subdomain, `pb_public`)),
+            escape(publicDir),
             `--http`,
             `0.0.0.0:${port}`,
           ]
@@ -154,7 +204,7 @@ const plugin: PocketHostPlugin = async ({}) => {
               ' ',
             )}`,
           })
-          bot.run(args, { env: secrets }, (proc) => {
+          bot.run(args, { env: { ...secrets, ...env } }, (proc) => {
             proc.stdout.on('data', (data) => {
               data
                 .toString()
