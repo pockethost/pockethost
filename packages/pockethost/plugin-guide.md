@@ -53,7 +53,44 @@ A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to c
 
 ## Core Filters
 
-| Name        | Description                                                                                                                              | Context | Since |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
-| CliCommands | Gather all CLI commands                                                                                                                  |         | 1.3.0 |
-| ServerSlugs | The items available to the `--only` switch of `pockethost serve`. `--only` controls which services should respond to the `Serve` action. |         | 1.4.0 |
+### ServerSlugs (since 1.4.0)
+
+The items available to the `--only` switch of `pockethost serve`. `--only` controls which services should respond to the `Serve` action.
+
+```ts
+const slugs = await doServeSlugsFilter([])
+```
+
+```ts
+onServeSlugsFilter(async (slugs) => {
+  return [...slugs, 'maildev']
+})
+```
+
+### InstanceConfig (since 1.5.0)
+
+Configure instance `env` and `binds` before launch.
+
+```ts
+const config = await doInstanceConfigFilter({
+  env: {},
+  binds: {
+    data: [],
+    hooks: [],
+    migrations: [],
+    public: [],
+  },
+})
+```
+
+```ts
+import { produce } from 'immer'
+onInstanceConfigFilter(async (config) => {
+  return produce(config, (draft) => {
+    draft.binds.hooks.push({
+      src: PH_PROJECT_DIR(`src/instance-app/hooks/**/*`),
+      base: PH_PROJECT_DIR(`src/instance-app/hooks`),
+    })
+  })
+})
+```
