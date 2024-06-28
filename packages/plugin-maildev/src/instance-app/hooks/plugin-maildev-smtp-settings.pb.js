@@ -117,7 +117,12 @@ $app.onBeforeServe().add((e) => {
   const { mkLog } = /** @type {Lib} */ (require(`${__hooks}/_ph_lib.js`))
 
   const log = mkLog(`plugin-maildev`)
-  log(`Starting plugin-maildev`)
+  if (!$os.getenv(`PH_PLUGIN_MAILDEV_ENABLED`)) {
+    log(`Starting `)
+  } else {
+    log(`Not enabled. Skipping...`)
+    return
+  }
 
   try {
     const settings = dao.findSettings()

@@ -40,6 +40,18 @@ onLogAction(async ({ currentLevel, levelIn, args }) => {
 
 A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to create a new plugin in the current directory. From there, use `import { onLogAction } from 'pockethost/core` to import hooks. Define your own with `createCustomFilter`/`createCustomFilterWithContext` and `createCustomAction`/`createCustomActionWithContext`.
 
+### Hook/migration notes
+
+PocketHost does not delete leftover hook and migration files when the plugin is not present. Write hooks so they won't run if the plugin is disabled. The easiest way is to add this to your hooks:
+
+```js
+$app.onXXXX(() => {
+  // Perform this check inside any hook
+  const isEnabled = $os.getenv('PH_<PLUGIN_NAME>_ENABLED')
+  if (!isEnabled) return
+})
+```
+
 ## Core Actions
 
 | Name                  | Description                                    | Context                         | Example                                                                                                                                            | Since |
@@ -49,7 +61,6 @@ A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to c
 | AfterInstanceStopped  | An instance has stopped                        | instance, url                   | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L199) | 1.3.0 |
 | InstanceLog           | A log action                                   | logLevel, currentLogLevel, args | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L147) | 1.3.0 |
 | Serve                 | The `pockethost serve` command has been called | only[]                          |                                                                                                                                                    | 1.4.0 |
-| 1.4.0                 |
 
 ## Core Filters
 

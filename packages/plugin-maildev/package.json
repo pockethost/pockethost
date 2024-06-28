@@ -24,6 +24,7 @@
   "dependencies": {
     "commander": "^11.1.0",
     "immer": "^10.1.1",
+    "inflection": "^3.0.0",
     "maildev": "^2.1.0"
   },
   "peerDependencies": {
