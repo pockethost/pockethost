@@ -1,5 +1,22 @@
 # PocketHost Plugin Authoring Guide
 
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Introduction](#introduction)
+- [Creating a basic plugin](#creating-a-basic-plugin)
+- [Plugin Events Lifecycle](#plugin-events-lifecycle)
+- [PocketBase JS Hooks and Migrations](#pocketbase-js-hooks-and-migrations)
+- [Extending the PocketHost CLI](#extending-the-pockethost-cli)
+- [Reference](#reference)
+  - [Core Actions](#core-actions)
+  - [Core Filters](#core-filters)
+    - [ServerSlugs (since 1.4.0)](#serverslugs-since-140)
+    - [InstanceConfig (since 1.5.0)](#instanceconfig-since-150)
+
+<!-- /code_chunk_output -->
+
 ## Introduction
 
 PocketHost features a plugin architecture where various hooks and events are exposed throughout the lifecycle of the server and PocketBase instances.
@@ -36,11 +53,21 @@ onLogAction(async ({ currentLevel, levelIn, args }) => {
 })
 ```
 
-## Creating a plugin
+## Creating a basic plugin
 
-A plugin is an npm package. Run `pockethost plugin create <my-plugin-name>` to create a new plugin in the current directory. From there, use `import { onLogAction } from 'pockethost/core` to import hooks. Define your own with `createCustomFilter`/`createCustomFilterWithContext` and `createCustomAction`/`createCustomActionWithContext`.
+A plugin is an npm package.
 
-### Hook/migration notes
+Use PocketHost to generate a Typescript plugin starter, and follow that code.
+
+```bash
+pockethost plugin create <my-plugin-name>
+```
+
+## Plugin Events Lifecycle
+
+PocketHost executes many actions and filters that your plugin can access to add, extend, and enhance various features.
+
+## PocketBase JS Hooks and Migrations
 
 PocketHost does not delete leftover hook and migration files when the plugin is not present. Write hooks so they won't run if the plugin is disabled. The easiest way is to add this to your hooks:
 
@@ -52,7 +79,51 @@ $app.onXXXX(() => {
 })
 ```
 
-## Core Actions
+## Extending the PocketHost CLI
+
+```ts
+import { Command } from 'commander'
+
+// Create some operation that you want to run via CLI
+const myCmd = async () => {
+  console.log(`Do something`)
+}
+
+// Add the command. By convention, create a top-level
+// command named after your plugin, then add sub-commands.
+onCliCommandsFilter(async (commands) => {
+  return [
+    ...commands,
+    new Command(`my-plugin`).description(`my-plugin commands`).addCommand(
+      new Command(`serve`).description(`Run a task`).action(async (options) => {
+        myCmd()
+      }),
+    ),
+  ]
+})
+
+/**
+ * The following two hooks make it possible to run one or more of your custom
+ * commands when the standard `pockethost serve` is called
+ */
+
+// Register a unique slug (your plugin name)
+onServeSlugsFilter(async (slugs) => {
+  return [...slugs, 'my-plugin']
+})
+
+// When the Serve action fires, check to see if
+// your command is one of the commands the user
+// specified (true by default)
+onServeAction(async ({ only }) => {
+  if (!only.includes('my-plugin')) return
+  myCmd()
+})
+```
+
+## Reference
+
+### Core Actions
 
 | Name                  | Description                                    | Context                         | Example                                                                                                                                            | Since |
 | --------------------- | ---------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
@@ -62,9 +133,9 @@ $app.onXXXX(() => {
 | InstanceLog           | A log action                                   | logLevel, currentLogLevel, args | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L147) | 1.3.0 |
 | Serve                 | The `pockethost serve` command has been called | only[]                          |                                                                                                                                                    | 1.4.0 |
 
-## Core Filters
+### Core Filters
 
-### ServerSlugs (since 1.4.0)
+#### ServerSlugs (since 1.4.0)
 
 The items available to the `--only` switch of `pockethost serve`. `--only` controls which services should respond to the `Serve` action.
 
@@ -78,7 +149,7 @@ onServeSlugsFilter(async (slugs) => {
 })
 ```
 
-### InstanceConfig (since 1.5.0)
+#### InstanceConfig (since 1.5.0)
 
 Configure instance `env` and `binds` before launch.
 
