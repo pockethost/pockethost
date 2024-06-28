@@ -53,6 +53,12 @@ export const LogLevels = {
   [LogLevelName.Abort]: 6,
 } as const
 
+export const namespace = (...names: string[]) =>
+  names
+    .filter((v) => !!v)
+    .map((p) => `[${p}]`)
+    .join(' ')
+
 export const createLogger = (config: Partial<LoggerConfig>) => {
   const _config = mergeConfig<LoggerConfig>(
     {
@@ -67,11 +73,7 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
     _config.level = level
   }
 
-  const _pfx = (s: string) =>
-    [s, ...pfx]
-      .filter((v) => !!v)
-      .map((p) => `[${p}]`)
-      .join(' ')
+  const _pfx = (s: string) => namespace(s, ...pfx)
 
   const _log = (levelIn: LogLevelName, ...args: any[]) => {
     doLogAction({

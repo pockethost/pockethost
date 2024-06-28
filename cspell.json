@@ -19,6 +19,7 @@
     "getenv",
     "gobot",
     "goja",
+    "immer",
     "IPCIDR",
     "ipcountry",
     "jsonifiable",
