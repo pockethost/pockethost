@@ -1,5 +1,13 @@
 # @pockethost/plugin-console-logger
 
+## 0.2.1
+
+### Patch Changes
+
+- 517f602: Settings are now logged in DEBUG mode
+- Updated dependencies [114b1d2]
+  - pockethost@1.5.0
+
 ## 0.2.0
 
 ### Minor Changes

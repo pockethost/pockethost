@@ -1,5 +1,26 @@
 # pockethost
 
+## 1.5.0
+
+### Minor Changes
+
+- 5e9ed51: Added `--extra-plugins` global switch to temporarily load extra plugins from CLI
+- 2376b0d: Add InstanceConfig filter, fix instance logger namespace, add core instance app lib
+- 737b4b8: logSettings now exported from core
+- 114b1d2: Add namespace() export to core Logger service
+
+### Patch Changes
+
+- 211fba6: Plugin authoring docs update
+- 675e634: Added docs and updated maildev with plugin hook guards
+- 3daf7f5: Fix: [INFO] logging prefixes
+- 139468f: Updated documentation
+- 1e5321b: Fix: improve plugin loading order
+- Updated dependencies [517f602]
+  - @pockethost/plugin-launcher-spawn@0.3.0
+  - @pockethost/plugin-console-logger@0.2.1
+  - @pockethost/plugin-auto-admin@0.1.1
+
 ## 1.4.0
 
 ### Minor Changes

@@ -1,5 +1,0 @@
----
-'pockethost': patch
----
-
-Updated documentation
