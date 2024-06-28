@@ -9,6 +9,7 @@ export enum CoreFilters {
   SpawnConfig = 'core_spawn_config',
   GetInstanceByRequestInfo = 'core_get_instance_by_request_info',
   GetInstanceById = 'core_get_instance_by_id',
+  InstanceConfig = 'core_instance_config',
   ErrorSpawningInstanceMessage = 'core_error_spawning_instance_message',
   FailedToLaunchInstanceMessage = 'core_failed_to_launch_instance_message',
   AuthenticateRequest = 'core_authenticate_request',
@@ -118,3 +119,20 @@ export const [
 export const [doServeSlugsFilter, onServeSlugsFilter] = createCustomFilter<
   string[]
 >(CoreFilters.ServeSlugs)
+
+export type Bind = {
+  base: string
+  src: string
+}
+export type Binds = {
+  data: Bind[]
+  hooks: Bind[]
+  migrations: Bind[]
+  public: Bind[]
+}
+export type InstanceConfig = {
+  binds: Binds
+  env: { [_: string]: string }
+}
+export const [doInstanceConfigFilter, onInstanceConfigFilter] =
+  createCustomFilter<InstanceConfig>(CoreFilters.InstanceConfig)

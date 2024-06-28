@@ -13,7 +13,7 @@ import {
   doCliCommandsFilter,
   loadPlugins,
 } from '../common'
-import { pockethost } from '../server'
+import { pockethost } from '../plugin'
 import { ConfigCommand } from './commands/ConfigCommand'
 import { PluginCommand } from './commands/PluginCommand'
 import { ServeCommand } from './commands/ServeCommand'

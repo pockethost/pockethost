@@ -3,7 +3,6 @@ import 'express-async-errors'
 import { default as httpProxy } from 'http-proxy'
 import {
   LoggerService,
-  PocketHostPlugin,
   doAfterInstanceFoundAction,
   doAfterServerStartAction,
   doAppMountedAction,
@@ -12,14 +11,10 @@ import {
   doIncomingRequestAction,
   doRequestErrorAction,
   doRequestErrorMessageFilter,
-  onInstanceLogAction,
-  onServeAction,
-  onServeSlugsFilter,
 } from '../common'
 import { APEX_DOMAIN, PORT, asyncExitHook } from '../core'
-import { dbg } from './cli'
 
-const serve = async () => {
+export const serve = async () => {
   const _proxyLogger = LoggerService().create('ProxyService')
   const { dbg, error, info, trace, warn } = _proxyLogger
 
@@ -109,20 +104,5 @@ const serve = async () => {
 
   asyncExitHook(async () => {
     info(`Shutting down pockethost`)
-  })
-}
-
-export const pockethost: PocketHostPlugin = async ({}) => {
-  onInstanceLogAction(async ({ instance, type, data }) => {
-    dbg(data.toString())
-  })
-
-  onServeAction(async ({ only }) => {
-    if (!only.includes(`pockethost`)) return
-    serve()
-  })
-
-  onServeSlugsFilter(async (slugs) => {
-    return [...slugs, `pockethost`]
   })
 }
