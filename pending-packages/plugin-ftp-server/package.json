@@ -13,8 +13,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@s-libs/micro-dash": "^16.1.0",
+    "commander": "^11.1.0",
     "devcert": "^1.2.2",
     "ftp-srv": "github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59",
+    "pocketbase": "^0.21.3",
     "pockethost": "workspace:^"
   },
   "devDependencies": {

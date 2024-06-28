@@ -1,13 +1,7 @@
+import { keys, values } from '@s-libs/micro-dash'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
-import { keys, values } from 'pockethost/core'
-import {
-  LoggerService,
-  PocketBase,
-  PocketHostFilter,
-  filter,
-  mkSingleton,
-} from 'pockethost/src/common'
+import { LoggerService, mkSingleton } from 'pockethost/src/common'
 import { asyncExitHook } from 'pockethost/src/core'
 import {
   PASV_IP,
@@ -16,7 +10,7 @@ import {
   PORT,
   SSL_CERT,
   SSL_KEY,
-} from '../..'
+} from '../../constants'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = {}

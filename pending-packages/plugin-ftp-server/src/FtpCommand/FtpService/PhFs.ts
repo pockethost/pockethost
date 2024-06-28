@@ -1,3 +1,4 @@
+import { map } from '@s-libs/micro-dash'
 import {
   Mode,
   constants,
@@ -8,16 +9,8 @@ import {
 } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
-import {
-  DATA_ROOT,
-  InstanceFields,
-  Logger,
-  PocketBase,
-  assert,
-  compact,
-  map,
-  newId,
-} from 'pockethost/core'
+import PocketBase from 'pocketbase'
+import { InstanceFields, Logger, assert } from 'pockethost'
 import {
   FolderNamesMap,
   INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES,
@@ -51,9 +44,13 @@ export class PhFs implements FileSystem {
   private _root: string
   client: PocketBase
 
-  constructor(connection: FtpConnection, client: PocketBase, logger: Logger) {
+  constructor(
+    connection: FtpConnection,
+    client: PocketBase,
+    logger: Logger,
+    root: string,
+  ) {
     const cwd = `/`
-    const root = DATA_ROOT()
     this.connection = connection
     this.client = client
     this.log = logger.create(`PhFs`)

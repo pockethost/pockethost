@@ -1,4 +1,4 @@
-import { Command } from 'pockethost/core'
+import { Command } from 'commander'
 import { ftp } from './ftp'
 
 type Options = {
