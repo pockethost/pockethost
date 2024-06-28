@@ -1,0 +1,329 @@
+{
+  "adminAuthToken": {
+    "duration": 1209600,
+    "secret": "TxmGmMf91xixFDppollsByz7gc0kEgNPGR4MD4lMBCBxmYLKh7"
+  },
+  "adminFileToken": {
+    "duration": 120,
+    "secret": "BrYUNzmQ6819CY9LqfcTFFZ3v6bMs34aZxAmjym1BxqiaUmMNJ"
+  },
+  "adminPasswordResetToken": {
+    "duration": 1800,
+    "secret": "ODnVe9kQaR0PByFTtpILOTFJNzooaMyFTQh2jJRbUxD31N280T"
+  },
+  "appleAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "backups": {
+    "cron": "0 0 * * *",
+    "cronMaxKeep": 3,
+    "s3": {
+      "accessKey": "",
+      "bucket": "",
+      "enabled": false,
+      "endpoint": "",
+      "forcePathStyle": false,
+      "region": "",
+      "secret": ""
+    }
+  },
+  "discordAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "emailAuth": {
+    "enabled": true,
+    "exceptDomains": null,
+    "minPasswordLength": 8,
+    "onlyDomains": null
+  },
+  "facebookAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "giteaAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "giteeAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "githubAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "gitlabAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "googleAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "instagramAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "kakaoAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "livechatAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "logs": {
+    "logIp": true,
+    "maxDays": 7,
+    "minLevel": 0
+  },
+  "mailcowAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "meta": {
+    "appName": "PocketHost",
+    "appUrl": "https://pockethost-central.pockethost.io",
+    "confirmEmailChangeTemplate": {
+      "actionUrl": "{APP_URL}/_/#/users/confirm-email-change/{TOKEN}",
+      "body": "<p>Hello,</p>\n<p>Click on the button below to confirm your new email address.</p>\n<p>\n  <a class=\"btn\" href=\"{ACTION_URL}\" target=\"_blank\" rel=\"noopener\">Confirm new email</a>\n</p>\n<p><i>If you didn't ask to change your email address, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
+      "subject": "Confirm your {APP_NAME} new email address"
+    },
+    "hideControls": false,
+    "resetPasswordTemplate": {
+      "actionUrl": "https://app.pockethost.io/login/password-reset/confirm?token={TOKEN}",
+      "body": "<p>Hello,</p>\n<p>Click on the button below to reset your password.</p>\n<p>\n  <a class=\"btn\" href=\"{ACTION_URL}\" target=\"_blank\" rel=\"noopener\">Reset password</a>\n</p>\n<p><i>If you didn't ask to reset your password, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
+      "subject": "Reset your {APP_NAME} password"
+    },
+    "senderAddress": "ben@pockethost.io",
+    "senderName": "Ben",
+    "verificationTemplate": {
+      "actionUrl": "https://app.pockethost.io/login/confirm-account?token={TOKEN}",
+      "body": "<p>Hello,</p>\n<p>Thank you for joining us at {APP_NAME}.</p>\n<p>Click on the button below to verify your email address.</p>\n<p>\n  <a class=\"btn\" href=\"{ACTION_URL}\" target=\"_blank\" rel=\"noopener\">Verify</a>\n</p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
+      "subject": "Verify your {APP_NAME} email"
+    }
+  },
+  "microsoftAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "oidc2Auth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "oidc3Auth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "oidcAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "patreonAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "recordAuthToken": {
+    "duration": 1209600,
+    "secret": "7DgE4l39rrhFKF97V9yadQdolXGRHg0jSVA7j97CSHZ9QoK6Bn"
+  },
+  "recordEmailChangeToken": {
+    "duration": 1800,
+    "secret": "XbDSjPSPBISzRJbVj02mP2xHLpGrwegpAnqnUqrHbJWoMmhCid"
+  },
+  "recordFileToken": {
+    "duration": 120,
+    "secret": "rjZuZ3vofE30E7q4l3XjgADmwBo4gSCVSUS66aEB4gZBOs6kMV"
+  },
+  "recordPasswordResetToken": {
+    "duration": 1800,
+    "secret": "s3jkwjDqtboL9JCju73IPslQrflLngBIFO1JY2FH3Vf9oX4gkl"
+  },
+  "recordVerificationToken": {
+    "duration": 604800,
+    "secret": "8qNJXE3z90UwCzxafChqEPuNyeaEzAgSmvGKBPAOmM23yQzhv5"
+  },
+  "s3": {
+    "accessKey": "",
+    "bucket": "",
+    "enabled": false,
+    "endpoint": "",
+    "forcePathStyle": false,
+    "region": "",
+    "secret": ""
+  },
+  "smtp": {
+    "authMethod": "PLAIN",
+    "enabled": true,
+    "host": "host.docker.internal",
+    "localName": "",
+    "password": "",
+    "port": 1025,
+    "tls": false,
+    "username": ""
+  },
+  "spotifyAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "stravaAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "twitchAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "twitterAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "vkAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  },
+  "yandexAuth": {
+    "authUrl": "",
+    "clientId": "",
+    "clientSecret": "",
+    "displayName": "",
+    "enabled": false,
+    "pkce": null,
+    "tokenUrl": "",
+    "userApiUrl": ""
+  }
+}
