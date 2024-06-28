@@ -201,8 +201,8 @@ export default function (/** @type {Plop} */ plop) {
         {
           type: 'addMany',
           destination: 'packages/plugin-{{dashCase name}}',
-          base: 'packages/plugin-template',
-          templateFiles: `packages/plugin-template/**/*`,
+          base: 'plop-templates/plugin-template',
+          templateFiles: `plop-templates/plugin-template/**/*`,
         },
         async () => {
           console.log(execSync(`pnpm i`).toString())

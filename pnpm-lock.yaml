@@ -170,19 +170,6 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  packages/plugin-template:
-    dependencies:
-      pockethost:
-        specifier: workspace:^1.4.0
-        version: link:../pockethost
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.10
-        version: 20.14.2
-      typescript:
-        specifier: ^5.4.5
-        version: 5.4.5
-
   packages/pockethost:
     dependencies:
       '@pockethost/plugin-auto-admin':
