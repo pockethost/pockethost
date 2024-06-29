@@ -1,8 +1,8 @@
 # plugin-auto-admin
 
-A plugin for [pockethost](https://www.npmjs.com/package/pockethost).
+Automatically create an admin user for the PocketBase instance if one doesn't already exist.
 
-This auto-admin plugin will automatically create an admin user for the PocketBase instance if one doesn't already exist.
+A plugin for [pockethost](https://www.npmjs.com/package/pockethost).
 
 ## Quickstart
 
