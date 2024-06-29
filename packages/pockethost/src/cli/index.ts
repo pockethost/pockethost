@@ -10,6 +10,7 @@ import {
   DEBUG,
   LogLevelName,
   LoggerService,
+  doAfterPluginsLoadedAction,
   doCliCommandsFilter,
   loadPlugins,
 } from '../common'
@@ -44,6 +45,8 @@ export const main = async () => {
     .filter((v) => !!v)
 
   await loadPlugins([pockethost, ...uniq(PH_PLUGINS()), ...extraPlugins])
+
+  await doAfterPluginsLoadedAction()
 
   program
     .name('pockethost')

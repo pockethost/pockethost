@@ -4,6 +4,7 @@ import { DEBUG } from '../debug'
 import { InstanceFields } from '../schema'
 
 enum CoreActions {
+  AfterPluginsLoaded = 'core_after_plugins_loaded',
   Init = 'core_init',
   Serve = 'core_serve',
   AppMounted = 'core_on_app_mount',
@@ -69,6 +70,9 @@ export function createCustomAction(actionName: CoreActions) {
     async (handler: ActionHandler) => registerAction(actionName, handler),
   ] as const
 }
+
+export const [doAfterPluginsLoadedAction, onAfterPluginsLoadedAction] =
+  createCustomAction(CoreActions.AfterPluginsLoaded)
 
 export const [doRequestErrorAction, onRequestErrorAction] =
   createCustomActionWithContext<{

@@ -133,6 +133,10 @@ onServeAction(async ({ only }) => {
 | InstanceLog           | A log action                                   | logLevel, currentLogLevel, args | [example](https://github.com/pockethost/pockethost/blob/e6355c1aea2484ffba9d95110faa2af40e922855/packages/plugin-launcher-spawn/src/index.ts#L147) | 1.3.0 |
 | Serve                 | The `pockethost serve` command has been called | only[]                          |                                                                                                                                                    | 1.4.0 |
 
+#### AfterPluginsLoaded (since 1.6.0)
+
+Fired after all plugins have been loaded. This is a good time to perform initialization that may depend upon other plugins.
+
 ### Core Filters
 
 #### ServerSlugs (since 1.4.0)
