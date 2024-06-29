@@ -66,7 +66,9 @@ async function action(actionName: string, context: any) {
   }
   const action = actions[actionName]
   if (!action) return false
-  await Promise.all(action.map((handler) => handler(context)))
+  for (const { handler } of action) {
+    await handler(context)
+  }
   return true
 }
 
