@@ -36,11 +36,13 @@ export const main = async () => {
 
   const argv = minimist<{ e: string }>(process.argv.slice(2), {
     alias: { e: 'extra-plugins' },
+    default: { e: '' },
   })
   const extraPlugins = argv.e
     .split(/,/)
     .map((s) => s.trim())
     .filter((v) => !!v)
+
   await loadPlugins([pockethost, ...uniq(PH_PLUGINS()), ...extraPlugins])
 
   program
