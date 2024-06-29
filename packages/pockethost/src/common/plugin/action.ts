@@ -1,4 +1,6 @@
+import { uniqueId } from '@s-libs/micro-dash'
 import { Express, Request, Response } from 'express'
+import { dbg } from '../../cli'
 import { LogLevelName } from '../Logger'
 import { DEBUG } from '../debug'
 import { InstanceFields } from '../schema'
@@ -28,20 +30,34 @@ enum CoreActions {
   Request = 'core_edge_request',
 }
 
-const actions: {
-  [key: string]: ActionHandler<any>[]
-} = {}
-
 export type ActionHandler<TContext = {}> = (
   context: TContext extends never ? [] : TContext,
 ) => Promise<void>
 
-async function registerAction(
+interface Action {
+  priority: number
+  handler: ActionHandler<any>
+}
+
+const actions: {
+  [key: string]: Action[]
+} = {}
+
+function registerAction(
   action: string,
   handler: (...args: any[]) => Promise<void>,
-) {
+  priority: number = 10,
+): () => void {
   if (!(action in actions)) actions[action] = []
-  actions[action]!.push(handler)
+  const uid = uniqueId(`a:${action}:`)
+  dbg(`${uid}:subscribe`)
+  actions[action]!.push({ priority, handler })
+  actions[action]!.sort((a, b) => a.priority - b.priority)
+
+  return () => {
+    dbg(`${uid}:unsubscribe`)
+    actions[action] = actions[action]!.filter((a) => a.handler !== handler)
+  }
 }
 
 async function action(actionName: string, context: any) {
@@ -59,15 +75,16 @@ export function createCustomActionWithContext<TContext extends {}>(
 ) {
   return [
     async (context: TContext) => action(actionName, context),
-    async (handler: ActionHandler<TContext>) =>
-      registerAction(actionName, handler),
+    (handler: ActionHandler<TContext>, priority = 10) =>
+      registerAction(actionName, handler, priority),
   ] as const
 }
 
 export function createCustomAction(actionName: CoreActions) {
   return [
     async () => action(actionName, {}),
-    async (handler: ActionHandler) => registerAction(actionName, handler),
+    (handler: ActionHandler, priority = 10) =>
+      registerAction(actionName, handler, priority),
   ] as const
 }
 
