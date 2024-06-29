@@ -4,6 +4,7 @@ import { DEBUG } from '../debug'
 import { InstanceFields, InstanceId } from '../schema'
 
 export enum CoreFilters {
+  Settings = 'core_settings',
   CliCommands = 'core_cli_commands',
   ServeSlugs = 'core_serve_slugs',
   SpawnConfig = 'core_spawn_config',
@@ -77,6 +78,16 @@ function createCustomFilter<TCarry>(filterName: string) {
       registerFilter<TCarry, {}>(filterName, handler, priority),
   ] as const
 }
+
+export const [doSettingsFilter, onSettingsFilter] = createCustomFilter<{
+  [_: string]: any
+}>(CoreFilters.Settings)
+
+export const [doAuthenticateUserFilter, onAuthenticateUserFilter] =
+  createCustomFilterWithContext<
+    UserId | undefined,
+    { username: string; password: string }
+  >(CoreFilters.AuthenticateUser)
 
 export const [
   doGetInstanceByRequestInfoFilter,

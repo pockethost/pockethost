@@ -5,8 +5,9 @@ import {
   isLevelGte,
   isLevelLte,
   onLogAction,
+  onSettingsFilter,
 } from 'pockethost'
-import { PLUGIN_NAME } from './constants'
+import { PLUGIN_NAME, settings } from './constants'
 import { dbg } from './log'
 
 export const LogLevelConsoleMap = {
@@ -53,4 +54,6 @@ export const plugin: PocketHostPlugin = async ({}) => {
   })
 
   dbg(`initializing ${PLUGIN_NAME}`)
+
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 }

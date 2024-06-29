@@ -8,7 +8,7 @@ export const HOME_DIR =
 
 export const TLS_PFX = `tls`
 
-const settings = Settings({
+export const settings = Settings({
   PH_FTP_HOME: mkPath(HOME_DIR, { create: true }),
   PH_FTP_PORT: mkNumber(21),
   PH_FTP_SSL_KEY: mkPath(join(HOME_DIR, `${TLS_PFX}.key`), {

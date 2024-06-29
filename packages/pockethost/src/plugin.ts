@@ -1,14 +1,17 @@
+import { forEach } from '@s-libs/micro-dash'
 import { produce } from 'immer'
 import {
   PocketHostPlugin,
+  doSettingsFilter,
   namespace,
+  onAfterPluginsLoadedAction,
   onInstanceConfigFilter,
   onInstanceLogAction,
   onServeAction,
   onServeSlugsFilter,
 } from '../common'
-import { dbg } from './cli'
-import { PH_PROJECT_DIR } from './constants'
+import { dbg, info } from './cli'
+import { INTERNAL_APP_SECRET, PH_PROJECT_DIR, settings } from './constants'
 import { serve } from './server'
 
 export const pockethost: PocketHostPlugin = async ({}) => {
@@ -33,4 +36,12 @@ export const pockethost: PocketHostPlugin = async ({}) => {
   onServeSlugsFilter(async (slugs) => {
     return [...slugs, `pockethost`]
   })
+
+  onAfterPluginsLoadedAction(async () => {
+    const allSettings = await doSettingsFilter(settings)
+    forEach(allSettings, (v, k) => {
+      dbg(`${k}: ${v}`)
+    })
+  }, 99)
+
 }

@@ -6,6 +6,7 @@ import {
   onInstanceConfigFilter,
   onServeAction,
   onServeSlugsFilter,
+  onSettingsFilter,
 } from 'pockethost'
 import { MailDevCommand, serve } from '.'
 import {
@@ -13,6 +14,7 @@ import {
   PLUGIN_NAME_CONSTANT_CASE,
   PORT,
   PROJECT_DIR,
+  settings,
 } from './constants'
 import { dbg } from './log'
 
@@ -50,4 +52,6 @@ export const plugin: PocketHostPlugin = async ({}) => {
     if (!only.includes('maildev')) return
     serve()
   })
+
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 }

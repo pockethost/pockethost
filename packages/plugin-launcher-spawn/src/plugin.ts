@@ -26,8 +26,8 @@ import {
   exitHook,
   tryFetch,
 } from 'pockethost/core'
-import { gte } from 'semver'
-import { PLUGIN_NAME } from './constants'
+import { PLUGIN_NAME, settings } from './constants'
+import { DbService } from './db'
 import { dbg, info } from './log'
 
 const deleteFiles = (globPattern: string) => {
@@ -146,138 +146,10 @@ export const plugin: PocketHostPlugin = async ({}) => {
     if (subdomain in instances) return instances[subdomain]!
 
     dbg({ instance })
-    return (instances[subdomain] = new Promise<string>(
-      async (resolve, reject) => {
-        const bot = await gobot(`pocketbase`, { version })
-        const realVersion = await bot.maxSatisfyingVersion(version)
-        if (!realVersion) {
-          throw new Error(`No PocketBase version satisfying ${version}`)
-        }
+    return (instances[subdomain] = mkLauncher(instance))
+  })
 
-        const instanceConfig = await doInstanceConfigFilter({
-          env: {},
-          binds: {
-            data: [],
-            hooks: [],
-            migrations: [],
-            public: [],
-          },
-        })
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 
-        dbg(`instanceConfig`, { instanceConfig })
-
-        const dataDir = INSTANCE_DATA_DIR(subdomain, `pb_data`)
-        const hooksDir = INSTANCE_DATA_DIR(subdomain, `pb_hooks`)
-        const migrationsDir = INSTANCE_DATA_DIR(subdomain, `pb_migrations`)
-        const publicDir = INSTANCE_DATA_DIR(subdomain, `pb_public`)
-        ;[dataDir, hooksDir, migrationsDir, publicDir].forEach((dir) => {
-          return mkdirSync(dir, { recursive: true })
-        })
-        const { binds, env } = instanceConfig
-        copyFiles(binds.data, dataDir)
-        copyFiles(binds.hooks, hooksDir)
-        copyFiles(binds.migrations, migrationsDir)
-        copyFiles(binds.public, publicDir)
-
-        return launchMutex.runExclusive(async () => {
-          dbg(`got lock`)
-          const port = await getPort()
-          const args = [
-            `serve`,
-            `--dir`,
-            escape(dataDir),
-            `--hooksDir`,
-            escape(hooksDir),
-            `--migrationsDir`,
-            escape(migrationsDir),
-            `--publicDir`,
-            escape(publicDir),
-            `--http`,
-            `0.0.0.0:${port}`,
-          ]
-          if (dev && gte(realVersion, `0.20.1`)) args.push(`--dev`)
-          doInstanceLogAction({
-            instance,
-            type: 'stdout',
-            data: `Launching: ${await bot.getBinaryFilePath()} ${args.join(
-              ' ',
-            )}`,
-          })
-          bot.run(args, { env: { ...secrets, ...env } }, (proc) => {
-            proc.stdout.on('data', (data) => {
-              data
-                .toString()
-                .trim()
-                .split(`\n`)
-                .forEach((line: string) => {
-                  doInstanceLogAction({
-                    instance,
-                    type: 'stdout',
-                    data: line,
-                  })
-                })
-            })
-            proc.stderr.on('data', (data) => {
-              data
-                .toString()
-                .trim()
-                .split(`\n`)
-                .forEach((line: string) => {
-                  doInstanceLogAction({
-                    instance,
-                    type: 'stderr',
-                    data: line,
-                  })
-                })
-            })
-
-            const unsub = exitHook(() => {
-              dbg(`killing ${subdomain}`)
-              doInstanceLogAction({
-                instance,
-                type: 'stdout',
-                data: `Forcibly killing PocketBase process`,
-              })
-              proc.kill()
-            })
-            proc.on('exit', (code) => {
-              unsub()
-              delete instances[subdomain]
-              doInstanceLogAction({
-                instance,
-                type: 'stdout',
-                data: `PocketBase process exited with code ${code}`,
-              })
-              doAfterInstanceStoppedAction({ instance, url })
-              dbg(`${subdomain} process exited with code ${code}`)
-            })
-            const url = `http://localhost:${port}`
-            doInstanceLogAction({
-              instance,
-              type: 'stdout',
-              data: `Waiting for PocketBase to start on ${url}`,
-            })
-            tryFetch(url)
-              .then(() => {
-                doInstanceLogAction({
-                  instance,
-                  type: 'stdout',
-                  data: `PocketBase started on ${url}`,
-                })
-                doAfterInstanceStartedAction({ instance, url })
-                return resolve(url)
-              })
-              .catch((e) => {
-                doInstanceLogAction({
-                  instance,
-                  type: 'stderr',
-                  data: `PocketBase failed to start on ${url}: ${e}`,
-                })
-                reject(e)
-              })
-          })
-        })
-      },
-    ))
   })
 }

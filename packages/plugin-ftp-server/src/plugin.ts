@@ -6,11 +6,17 @@ import {
   onCliCommandsFilter,
   onServeAction,
   onServeSlugsFilter,
+  onSettingsFilter,
 } from 'pockethost'
 import { APEX_DOMAIN, gracefulExit } from 'pockethost/core'
 import { FtpCommand } from './FtpCommand'
-import { ftp } from './FtpCommand/ServeCommand/ftp'
-import { HOME_DIR, PLUGIN_NAME, SSL_CERT, SSL_KEY } from './constants'
+import {
+  HOME_DIR,
+  PLUGIN_NAME,
+  SSL_CERT,
+  SSL_KEY,
+  settings,
+} from './constants'
 import { error, info } from './log'
 
 export const plugin: PocketHostPlugin = async ({}) => {
@@ -27,6 +33,7 @@ export const plugin: PocketHostPlugin = async ({}) => {
     ftp()
   })
 
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
   if (!existsSync(SSL_KEY())) {
     if (!existsSync(SSL_CERT())) {
       const answers = await inquirer.prompt<{ ssl: boolean }>([

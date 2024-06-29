@@ -2,9 +2,10 @@ import PocketBase from 'pocketbase'
 import {
   PocketHostPlugin,
   onAfterInstanceStartedAction,
+  onSettingsFilter,
   parseError,
 } from 'pockethost'
-import { LOGIN, PASSWORD, PLUGIN_NAME } from './constants'
+import { LOGIN, PASSWORD, PLUGIN_NAME, settings } from './constants'
 import { dbg, info } from './log'
 
 export const plugin: PocketHostPlugin = async ({}) => {
@@ -25,4 +26,6 @@ export const plugin: PocketHostPlugin = async ({}) => {
       info(`Default admin login for ${subdomain} is ${email}/${password}`)
     }
   })
+
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 }

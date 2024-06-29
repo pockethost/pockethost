@@ -1,6 +1,10 @@
 import { info } from 'console'
-import { PocketHostPlugin, onIncomingRequestAction } from 'pockethost'
-import { PLUGIN_NAME } from './constants'
+import {
+  PocketHostPlugin,
+  onIncomingRequestAction,
+  onSettingsFilter,
+} from 'pockethost'
+import { PLUGIN_NAME, settings } from './constants'
 import { dbg } from './log'
 
 export const plugin: PocketHostPlugin = async ({}) => {
@@ -20,4 +24,6 @@ export const plugin: PocketHostPlugin = async ({}) => {
     info(`Incoming request ${sig}`)
     res.locals.sig = sig
   })
+
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 }
