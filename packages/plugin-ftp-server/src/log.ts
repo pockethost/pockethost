@@ -1,4 +1,4 @@
 import { LoggerService } from 'pockethost'
 
 const logger = LoggerService().create('plugin-ftp-server')
-export const { dbg, info } = logger
+export const { dbg, info, error } = logger

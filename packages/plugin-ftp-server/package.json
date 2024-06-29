@@ -17,10 +17,14 @@
     "commander": "^11.1.0",
     "devcert": "^1.2.2",
     "ftp-srv": "github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59",
-    "pocketbase": "^0.21.3",
-    "pockethost": "workspace:^"
+    "inquirer": "^9.2.15",
+    "pocketbase": "^0.21.3"
+  },
+  "peerDependencies": {
+    "pockethost": "workspace:^1.5.0"
   },
   "devDependencies": {
+    "@types/inquirer": "^9.0.7",
     "typescript": "^5.4.5"
   }
 }

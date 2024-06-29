@@ -13,6 +13,7 @@ module.exports = {
         'cfr-logger',
         `template`,
         `maildev`,
+        'ftp-server',
         'multi',
       ],
     ],
