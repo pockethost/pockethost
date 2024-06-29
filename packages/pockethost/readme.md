@@ -10,21 +10,48 @@ Extend PocketHost with its Plugin ecosystem. Start with the bare-bones dev serve
 
 ---
 
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=2 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Quickstart](#quickstart)
+- [Introduction](#introduction)
+- [Configuration](#configuration)
+- [Plugins Directory](#plugins-directory)
+- [Writing Plugins](#writing-plugins)
+- [Support](#support)
+
+<!-- /code_chunk_output -->
+
+---
+
 ## Quickstart
 
 ```
 npx pockethost serve
 ```
 
+## Introduction
+
+PocketHost is a multitenant PocketBase hosting system. With it, you can run multiple instances of PocketBase on different subdomains, all on the same server.
+
+Use PocketHost for development or production purposes.
+
+PocketHost can be easily extended using its thoughtful plugin architecture. By choosing additional plugins, PocketHost's features can be extended according to your exact needs. You can even write your own plugins.
+
 ## Configuration
 
-PocketHost supports configuration by environment variable. All PocketHost environment variables begin with `PH_`.
+PocketHost supports configuration by environment variable, `.env` file, and also built-in settings via `pockethost config`.
+
+All PocketHost variables begin with `PH_`.
 
 PocketHost will search the current directory for an `.env` when it loads. Anything in `.env` will be merged with and override any `<PH_HOME>/.env` that may exist.
 
-Use `pockethost config` to set global defaults stored in `<PH_HOME>/.env`.
+Use `pockethost config` to list and set global defaults.
 
-### Variables
+### Core Variables
+
+See `pockethost config ls` for a full list of variables. Plugin variables will also be listed for loaded plugins.
 
 | Name           | Default                    | Discussion                                                                    |
 | -------------- | -------------------------- | ----------------------------------------------------------------------------- |
@@ -42,29 +69,32 @@ Use `pockethost config` to set global defaults stored in `<PH_HOME>/.env`.
 - `@pockethost/plugin-launcher-spawn`
 - `@pockethost/plugin-auto-admin`
 
-## Plugins
+## Plugins Directory
 
-PocketHost uses a hook architecture and features a growing list plugins. Some plugins have a CLI component, whereas others add purely programmatic support to alter how PocketHost works:
+PocketHost uses an action/filter architecture to support a growing list plugins. Some plugins have a CLI component, whereas others add purely programmatic support to alter how PocketHost works.
 
-Current plugins:
+### Core plugins
 
-| name                             | description                                                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------------- |
-| plugin-console-logger            | Routes log messages to the console                                                                |
-| plugin-auto-admin                | Auto-creates a default admin account on instance launch                                           |
-| plugin-launcher-spawn            | Launches PocketBase instances via `spawn()` on the local machine. PocketHost uses this by default |
-| plugin-cloudflare-request-logger | Log additional data when running behind Cloudflare                                                |
+These plugins are maintained by the PocketHost project.
+
+| Name                                           | Description                                                                                                             |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `@pockethost/plugin-console-logger`            | Routes log messages to the console                                                                                      |
+| `@pockethost/plugin-auto-admin`                | Auto-creates a default admin account on instance launch                                                                 |
+| `@pockethost/plugin-launcher-spawn`            | Launches PocketBase instances via `spawn()` on the local machine. PocketHost uses this by default                       |
+| `@pockethost/plugin-cloudflare-request-logger` | Log additional data when running behind Cloudflare                                                                      |
+| `@pockethost/plugin-ftp-server`                | Used to provide secure FTPS access to PocketBase instance data. This FTP server can run along-side a PocketHost server. |
 
 Coming soon:
 | name | description |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| plugin-ftp-server | Used to provide secure FTPS access to PocketBase instance data. This FTP server can run along-side a PocketHost server. |
 | plugin-launcher-docker | Launches PocketBase instances via Docker. This is useful for running untrusted PocketBase code and instances. pockethost.io uses this. |
 | plugin-waf | A Web Application Firewall |
-| plugin-waf-enforce-ssl | Enforce SSL at the
-WAF
+| plugin-waf-enforce-ssl | Enforce SSL at the WAF
 
-See the [Plugin Authoring Guide](https://github.com/pockethost/pockethost/blob/master/packages/pockethost/plugin-guide.md) for details about what hooks and filters are available.
+## Writing Plugins
+
+See the [Plugin Authoring Guide](https://github.com/pockethost/pockethost/blob/master/packages/pockethost/plugin-guide.md) for details about how to write your own plugins.
 
 ## Support
 
