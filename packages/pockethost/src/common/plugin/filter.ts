@@ -143,12 +143,8 @@ export const [
   doGetOrProvisionInstanceUrlFilter,
   onGetOrProvisionInstanceUrlFilter,
 ] = createCustomFilterWithContext<
-  string,
+  string | undefined,
   {
-    req: Request
-    res: Response
-    host: string
-    subdomain: string
     instance: InstanceFields
   }
 >(CoreFilters.GetOrProvisionInstanceUrl)
