@@ -63,7 +63,14 @@ async function filter<TCarry, TContext extends {} = {}>(
   if (!filter) return initialValue
   return filter.reduce(
     (carry, entry) =>
-      carry.then((carryRes) => entry.handler(carryRes, context)),
+      carry
+        .then((carryRes) => entry.handler(carryRes, context))
+        .then((carryRes) => {
+          if (DEBUG()) {
+            console.log(`f:${filterName}`, carryRes, context)
+          }
+          return carryRes
+        }),
     Promise.resolve(initialValue),
   ) as TCarry
 }
