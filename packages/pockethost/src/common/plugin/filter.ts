@@ -32,14 +32,23 @@ const filters: {
   [key: string]: FilterEntry<any>[]
 } = {}
 
-async function registerFilter<TCarry, TContext extends {} = {}>(
+function registerFilter<TCarry, TContext extends {} = {}>(
   filter: string,
   handler: FilterHandler<TCarry, TContext>,
   priority = 10,
-) {
+): () => void {
   if (!(filter in filters)) filters[filter] = []
   filters[filter]!.push({ priority, handler })
   filters[filter]!.sort((a, b) => a.priority - b.priority)
+
+  return () => {
+    const index = filters[filter]!.findIndex(
+      (entry) => entry.handler === handler,
+    )
+    if (index !== -1) {
+      filters[filter]!.splice(index, 1)
+    }
+  }
 }
 
 async function filter<TCarry, TContext extends {} = {}>(
