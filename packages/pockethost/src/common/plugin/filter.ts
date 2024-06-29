@@ -81,8 +81,15 @@ function createCustomFilterWithContext<TCarry, TContext extends {} = {}>(
   return [
     async (initialValue: TCarry, context: TContext) =>
       filter<TCarry, TContext>(filterName, initialValue, context),
-    async (handler: FilterHandler<TCarry, TContext>, priority = 10) =>
-      registerFilter<TCarry, TContext>(filterName, handler, priority),
+    async <TExtraCarry = unknown>(
+      handler: FilterHandler<TCarry & TExtraCarry, TContext>,
+      priority = 10,
+    ) =>
+      registerFilter<TCarry & TExtraCarry, TContext>(
+        filterName,
+        handler,
+        priority,
+      ),
   ] as const
 }
 
@@ -90,8 +97,11 @@ function createCustomFilter<TCarry>(filterName: string) {
   return [
     async (initialValue: TCarry) =>
       filter<TCarry>(filterName, initialValue, {}),
-    async (handler: FilterHandler<TCarry, {}>, priority = 10) =>
-      registerFilter<TCarry, {}>(filterName, handler, priority),
+    async <TExtraCarry = unknown>(
+      handler: FilterHandler<TCarry & TExtraCarry, {}>,
+      priority = 10,
+    ) =>
+      registerFilter<TCarry & TExtraCarry, {}>(filterName, handler, priority),
   ] as const
 }
 
