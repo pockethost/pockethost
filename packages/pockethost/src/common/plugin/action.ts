@@ -21,6 +21,8 @@ enum CoreActions {
   BeforeInstanceStarted = 'core_before_instance_started',
   AfterInstanceStarted = 'core_after_instance_started',
 
+  KillInstance = 'core_kill_instance',
+
   BeforeInstanceStopped = 'core_before_instance_stopped',
   AfterInstanceStopped = 'core_after_instance_stopped',
 
@@ -138,6 +140,11 @@ export const [doBeforeInstanceStartedAction, onBeforeInstanceStartedAction] =
 export const [doAfterInstanceStartedAction, onAfterInstanceStartedAction] =
   createCustomActionWithContext<{ instance: InstanceFields; url: string }>(
     CoreActions.AfterInstanceStarted,
+  )
+
+export const [doKillInstanceAction, onKillInstanceAction] =
+  createCustomActionWithContext<{ instance: InstanceFields }>(
+    CoreActions.KillInstance,
   )
 
 export const [doBeforeInstanceStoppedAction, onBeforeInstanceStoppedAction] =

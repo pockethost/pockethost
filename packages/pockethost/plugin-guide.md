@@ -137,6 +137,12 @@ onServeAction(async ({ only }) => {
 
 Fired after all plugins have been loaded. This is a good time to perform initialization that may depend upon other plugins.
 
+#### KillInstance (since 1.6.0)
+
+```ts
+await doKillInstanceAction({ instance })
+```
+
 ### Core Filters
 
 #### ServerSlugs (since 1.4.0)
