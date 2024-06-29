@@ -1,6 +1,7 @@
 export * from '../constants'
 export * from './Settings'
 export * from './asyncExecutionGuard'
+export * from './config'
 export * from './exit'
 export * from './internal'
 export * from './smartFetch'

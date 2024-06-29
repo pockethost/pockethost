@@ -1,21 +1,9 @@
-import { uniq } from '@s-libs/micro-dash'
 import { Command } from 'commander'
-import { parse } from 'dotenv'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { readFileSync } from 'fs'
 import { error, info } from '../..'
-import { PH_HOME, PH_PLUGINS, PH_PROJECT_DIR } from '../../../constants'
+import { PH_PLUGINS, PH_PROJECT_DIR } from '../../../constants'
+import { appendConfig, filterConfig } from '../../../core'
 import { getCompatibleVersions, getPackageJson, removePackage } from './util'
-
-const envFile = () => {
-  const envFile = PH_HOME(`.env`)
-  if (!existsSync(envFile)) {
-    writeFileSync(envFile, '')
-  }
-  return envFile
-}
-
-const _parse = () =>
-  parse(readFileSync(envFile(), { encoding: 'utf8' }).toString())
 
 export const PluginCommand = () => {
   const cmd = new Command(`plugin`)
@@ -33,22 +21,7 @@ export const PluginCommand = () => {
             const { version } = pkg
             await getCompatibleVersions(`pockethost`, version, [name])
 
-            const values = _parse()
-            values[`PH_PLUGINS`] = uniq([
-              ...(values[`PH_PLUGINS`]
-                ?.split(/,/)
-                .map((v) => v.trim())
-                .filter((v) => !!v) || []),
-              name,
-            ]).join(`,`)
-            writeFileSync(
-              envFile(),
-              Object.entries(values)
-                .map(([k, v]) => `${k}=${v}`)
-                .join('\n'),
-            )
-            info(`Installed ${name}`)
-            info(`Written to ${envFile()}`)
+            appendConfig(`PH_PLUGINS`, name)
           } catch (e) {
             error(`${e}`)
           }
@@ -81,21 +54,7 @@ export const PluginCommand = () => {
         .action(async (name) => {
           try {
             await removePackage(name)
-            const values = _parse()
-            values[`PH_PLUGINS`] = uniq([
-              ...(values[`PH_PLUGINS`]
-                ?.split(/,/)
-                .map((v) => v.trim())
-                .filter((v) => v !== name) || []),
-            ]).join(`,`)
-            writeFileSync(
-              envFile(),
-              Object.entries(values)
-                .map(([k, v]) => `${k}=${v}`)
-                .join('\n'),
-            )
-            info(`Removed ${name}`)
-            info(`Written to ${envFile()}`)
+            filterConfig(`PH_PLUGINS`, name)
           } catch (e) {
             error(`${e}`)
           }
