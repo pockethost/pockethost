@@ -1,0 +1,34 @@
+{
+  "name": "@pockethost/plugin-instance-logger-file",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/pockethost/pockethost/packages/plugin-instance-logger-file"
+  },
+  "description": "A pockethost plugin.",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit "
+  },
+  "keywords": [
+    "pockethost"
+  ],
+  "author": {
+    "name": "Ben Allfree",
+    "url": "https://github.com/benallfree"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "pockethost": "workspace:^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "inflection": "^3.0.0"
+  }
+}
