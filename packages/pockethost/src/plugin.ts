@@ -4,6 +4,7 @@ import {
   PocketHostPlugin,
   doSettingsFilter,
   namespace,
+  newId,
   onAfterPluginsLoadedAction,
   onInstanceConfigFilter,
   onInstanceLogAction,
@@ -12,6 +13,7 @@ import {
 } from '../common'
 import { dbg, info } from './cli'
 import { INTERNAL_APP_SECRET, PH_PROJECT_DIR, settings } from './constants'
+import { setConfig } from './core/config'
 import { serve } from './server'
 
 export const pockethost: PocketHostPlugin = async ({}) => {
@@ -44,4 +46,9 @@ export const pockethost: PocketHostPlugin = async ({}) => {
     })
   }, 99)
 
+  onAfterPluginsLoadedAction(async () => {
+    if (INTERNAL_APP_SECRET()) return
+    info(`Generating internal app secret...`)
+    setConfig(`PH_INTERNAL_APP_SECRET`, newId(30))
+  })
 }

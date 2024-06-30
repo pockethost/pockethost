@@ -12,7 +12,14 @@ import {
   doRequestErrorAction,
   doRequestErrorMessageFilter,
 } from '../common'
-import { APEX_DOMAIN, PORT, asyncExitHook } from '../core'
+import {
+  APEX_DOMAIN,
+  INTERNAL_APP_AUTH_HEADER,
+  INTERNAL_APP_PREFIX,
+  INTERNAL_APP_SECRET,
+  PORT,
+  asyncExitHook,
+} from '../core'
 
 export const serve = async () => {
   const _proxyLogger = LoggerService().create('ProxyService')
@@ -45,7 +52,25 @@ export const serve = async () => {
   }
   app.use(errorHandler)
 
-  doAppMountedAction({ app })
+  const internalApp = express()
+  internalApp.use((req, res, next) => {
+    dbg(`Got a request to internal app ${req.url}`)
+    next()
+  })
+  internalApp.use((req, res, next) => {
+    const authHeader = req.headers[INTERNAL_APP_AUTH_HEADER]
+    const internalAppSecret = INTERNAL_APP_SECRET()
+
+    if (authHeader !== internalAppSecret) {
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    next()
+  })
+  app.use(`/${INTERNAL_APP_PREFIX}`, internalApp)
+
+  doAppMountedAction({ app, internalApp })
 
   app.all(`*`, async (req, res, next) => {
     const method = req.method

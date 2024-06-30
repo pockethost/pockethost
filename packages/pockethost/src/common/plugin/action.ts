@@ -117,7 +117,9 @@ export const [doInstanceLogAction, onInstanceLogAction] =
   }>(CoreActions.InstanceLog)
 
 export const [doAppMountedAction, onAppMountedAction] =
-  createCustomActionWithContext<{ app: Express }>(CoreActions.AppMounted)
+  createCustomActionWithContext<{ app: Express; internalApp: Express }>(
+    CoreActions.AppMounted,
+  )
 
 export const [doIncomingRequestAction, onIncomingRequestAction] =
   createCustomActionWithContext<{ req: Request; res: Response; host: string }>(

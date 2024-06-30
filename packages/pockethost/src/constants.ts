@@ -4,7 +4,7 @@ import { dirname, join } from 'path'
 import { cwd } from 'process'
 import { fileURLToPath } from 'url'
 import { mkBoolean, mkCsvString, mkNumber, mkPath, mkString } from '../core'
-import { InstanceId } from './common'
+import { InstanceFields, InstanceId } from './common'
 import { DEBUG, IS_DEV } from './common/debug'
 import { Settings } from './core/Settings'
 import { logSettings } from './core/logSettings'
@@ -32,6 +32,7 @@ export const settings = Settings({
   PH_HOME: mkPath(_PH_HOME),
   PH_PROJECT_DIR: mkPath(_PH_PROJECT_DIR),
 
+  PH_INTERNAL_HOST: mkString('localhost'),
   PH_APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
   PH_PORT: mkNumber(3000),
@@ -39,6 +40,7 @@ export const settings = Settings({
   PH_DATA_DIR: mkPath(join(_PH_HOME, 'data'), { create: true }),
   PH_DEV: mkBoolean(IS_DEV()),
   PH_DEBUG: mkBoolean(DEBUG()),
+  PH_INTERNAL_APP_SECRET: mkString(''),
 })
 
 /** Accessors */
@@ -57,6 +59,14 @@ export const DATA_DIR = (...paths: string[]) =>
 export const NODE_ENV = () => process.env.NODE_ENV
 export const INSTANCE_DATA_DIR = (id: InstanceId, ...paths: string[]) =>
   join(DATA_DIR(), id, ...paths)
+export const INTERNAL_HOST = () => settings.PH_INTERNAL_HOST
+export const INTERNAL_APP_SECRET = () => settings.PH_INTERNAL_APP_SECRET
+export const INTERNAL_APP_URL = (...paths: string[]) =>
+  `${HTTP_PROTOCOL()}//${INTERNAL_HOST()}:${PORT()}/${INTERNAL_APP_PREFIX}/${join(
+    ...paths,
+  )}`
+export const INTERNAL_APP_PREFIX = `_internal`
+export const INTERNAL_APP_AUTH_HEADER = `x-pockethost-authorization`
 export const HTTP_PROTOCOL = () => (PORT() === 443 ? 'https:' : 'http:')
 export const PUBLIC_INSTANCE_URL = ({ subdomain }: Partial<InstanceFields>) => {
   const url = new URL(`${HTTP_PROTOCOL()}//${subdomain}.${APEX_DOMAIN()}`)
