@@ -1,5 +1,18 @@
 # @pockethost/plugin-launcher-spawn
 
+## 0.4.0
+
+### Minor Changes
+
+- b7277cf: Add public instance URL calculators and refactor HTTP protocol detection
+- 478dfa6: Relocated instance database, added support for starting/stopping/listing instances via CLI, added remote internal API for starting/stopping/listing instances.
+- c32b845: Added support for Settings filter whereby all settings are collected and displayed in DEBUG() mode
+
+### Patch Changes
+
+- Updated dependencies [52b70cb]
+  - pockethost@1.6.0
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,17 @@
 # @pockethost/plugin-auto-admin
 
+## 0.2.0
+
+### Minor Changes
+
+- c32b845: Added support for Settings filter whereby all settings are collected and displayed in DEBUG() mode
+
+### Patch Changes
+
+- 5aa29c8: Docs update
+- Updated dependencies [52b70cb]
+  - pockethost@1.6.0
+
 ## 0.1.1
 
 ### Patch Changes

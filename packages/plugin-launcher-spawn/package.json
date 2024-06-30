@@ -1,6 +1,6 @@
 {
   "name": "@pockethost/plugin-launcher-spawn",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "http://github.com/pockethost/pockethost/packages/plugin-launcher-spawn"
@@ -37,7 +37,7 @@
     "semver": "^7.6.2"
   },
   "peerDependencies": {
-    "pockethost": "workspace:^1.5.0"
+    "pockethost": "workspace:^1.6.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

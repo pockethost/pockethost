@@ -1,6 +1,6 @@
 {
   "name": "@pockethost/plugin-maildev",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "http://github.com/pockethost/pockethost/packages/plugin-maildev"
@@ -28,7 +28,7 @@
     "maildev": "^2.1.0"
   },
   "peerDependencies": {
-    "pockethost": "workspace:^1.5.0"
+    "pockethost": "workspace:^1.6.0"
   },
   "devDependencies": {
     "@types/maildev": "^0.0.7",
