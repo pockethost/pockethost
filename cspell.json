@@ -4,6 +4,7 @@
     "authstore",
     "autocancel",
     "automigrate",
+    "bcryptjs",
     "Certbot",
     "copyfiles",
     "czvf",
