@@ -111,6 +111,7 @@ These plugins are maintained by the PocketHost project.
 | `@pockethost/plugin-launcher-spawn`            | Launches PocketBase instances via `spawn()` on the local machine. PocketHost uses this by default                       |
 | `@pockethost/plugin-cloudflare-request-logger` | Log additional data when running behind Cloudflare                                                                      |
 | `@pockethost/plugin-ftp-server`                | Used to provide secure FTPS access to PocketBase instance data. This FTP server can run along-side a PocketHost server. |
+| `@pockethost/plugin-local-auth`                | A light-weight username/password auth provider for associating instances with users.                                    |
 
 Coming soon:
 | name | description |
