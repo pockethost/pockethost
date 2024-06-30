@@ -52,13 +52,16 @@
     "url-pattern": "^1.0.3"
   },
   "devDependencies": {
+    "@types/conventional-commits-parser": "^5.0.0",
     "@types/express": "^4.17.21",
     "@types/http-proxy": "^1.17.13",
+    "@types/inquirer": "^9.0.7",
     "@types/json-stringify-safe": "^5.0.2",
     "@types/minimist": "^1.2.5",
     "@types/node": "^20.8.10",
     "@types/semver": "^7.5.4",
     "@types/tmp": "^0.2.5",
-    "@types/update-notifier": "^6.0.8"
+    "@types/update-notifier": "^6.0.8",
+    "conventional-commits-parser": "^5.0.0"
   }
 }
