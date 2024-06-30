@@ -1,5 +1,11 @@
 # pockethost
 
+## 1.7.0
+
+### Minor Changes
+
+- 3c7e9bf: Added plugin template command and updated docs
+
 ## 1.6.1
 
 ### Patch Changes
