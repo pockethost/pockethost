@@ -1,14 +1,22 @@
 #!/usr/bin/env tsx
-
 import { execSync } from 'child_process'
+import { sync } from 'conventional-commits-parser'
 import fs, { readFileSync } from 'fs'
-import inquirer from 'inquirer'
+import minimist from 'minimist'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const repoRootDir = join(__dirname, `../..`)
 
-let commitMessage = ''
+const argv = minimist(process.argv.slice(2))
+const commitMessage = argv._[0]!
+const { type, subject } = sync(commitMessage)
+if (!type) {
+  console.log('Invalid commit message type')
+  process.exit(1)
+}
+
 function getStagedPackageNames(filePaths: string[]): string[] {
   const packageNames = new Set<string>()
 
@@ -24,7 +32,7 @@ function getStagedPackageNames(filePaths: string[]): string[] {
 
 function getPackageName(filePath: string): string | null {
   const packagePath = filePath.split('/').slice(0, 2).join('/')
-  const packageJsonPath = join(__dirname, `${packagePath}/package.json`)
+  const packageJsonPath = join(repoRootDir, `${packagePath}/package.json`)
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
   try {
     return packageJson.name
@@ -52,35 +60,33 @@ async function createChangesetFile() {
   }
   console.log('Staged packages:', packageNames)
 
-  const answers = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'versionType',
-      message: 'Select the version type:',
-      choices: ['major', 'minor', 'patch'],
-    },
-    {
-      type: 'input',
-      name: 'commitMessage',
-      message: 'Enter the commit message:',
-    },
-  ])
+  const prefixMap = {
+    feat: 'minor',
+    enh: 'minor',
+    fix: 'patch',
+    docs: 'patch',
+    chore: 'patch',
+  } as const
 
-  commitMessage = answers.commitMessage
-  const { versionType } = answers
+  if (!(type! in prefixMap)) {
+    console.log('Invalid prefix found in commit message')
+    process.exit(1)
+  }
+
+  const versionType = prefixMap[type as keyof typeof prefixMap]
 
   const changesetFile = [
     `---`,
     ...packageNames.map((packageName) => `'${packageName}': ${versionType}`),
     `---`,
     ``,
-    commitMessage,
+    subject,
   ].join('\n')
   return changesetFile
 }
 
 async function writeChangesetFile(changesetFile: string) {
-  const filePath = join(__dirname, `.changeset`, `${+new Date()}.md`)
+  const filePath = join(repoRootDir, `.changeset`, `${+new Date()}.md`)
   try {
     fs.writeFileSync(filePath, changesetFile)
     console.log(`Changeset file written successfully at ${filePath}`)
@@ -92,7 +98,7 @@ async function writeChangesetFile(changesetFile: string) {
 }
 
 function commit() {
-  execSync(`git commit -m "${commitMessage}"`).toString()
+  execSync(`git commit -m "${commitMessage}"`)
 }
 
 async function main() {
