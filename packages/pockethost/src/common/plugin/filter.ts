@@ -8,6 +8,7 @@ export enum CoreFilters {
   CliCommands = 'core_cli_commands',
   ServeSlugs = 'core_serve_slugs',
   SpawnConfig = 'core_spawn_config',
+  AuthenticateUser = 'core_authenticate_user',
   GetInstanceByRequestInfo = 'core_get_instance_by_request_info',
   GetInstanceById = 'core_get_instance_by_id',
   InstanceConfig = 'core_instance_config',
