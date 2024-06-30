@@ -7,7 +7,6 @@ import { mkBoolean, mkCsvString, mkNumber, mkPath, mkString } from '../core'
 import { InstanceFields, InstanceId } from './common'
 import { DEBUG, IS_DEV } from './common/debug'
 import { Settings } from './core/Settings'
-import { logSettings } from './core/logSettings'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -17,11 +16,7 @@ config({ path: [join(_PH_HOME, '.env'), join(cwd(), `.env`)] })
 
 export const _PH_PROJECT_DIR = join(__dirname, '..')
 export const _APEX_DOMAIN = process.env.APEX_DOMAIN || 'pockethost.lvh.me'
-export const _HTTP_PROTOCOL = process.env.HTTP_PROTOCOL || `https:`
 
-export function isSettingKey(key: string): key is keyof typeof settings {
-  return key in settings
-}
 export const settings = Settings({
   PH_PLUGINS: mkCsvString([
     `@pockethost/plugin-console-logger`,
