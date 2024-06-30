@@ -16,6 +16,7 @@ Extend PocketHost with its Plugin ecosystem. Start with the bare-bones dev serve
 
 - [Quickstart](#quickstart)
 - [Introduction](#introduction)
+- [The magic `serve` command](#the-magic-serve-command)
 - [Configuration](#configuration)
 - [Plugins Directory](#plugins-directory)
 - [Writing Plugins](#writing-plugins)
@@ -38,6 +39,32 @@ PocketHost is a multitenant PocketBase hosting system. With it, you can run mult
 Use PocketHost for development or production purposes.
 
 PocketHost can be easily extended using its thoughtful plugin architecture. By choosing additional plugins, PocketHost's features can be extended according to your exact needs. You can even write your own plugins.
+
+## The magic `serve` command
+
+`pockethost serve` is a special command that can be decorated with plugins. Plugins can respond to the `serve` command by running their own services.
+
+By convention, plugins that have some kind of `serve` functionality such as running a server, will make it available in two ways.
+
+The first way runs ONLY the plugin's `serve` functionality:
+
+```bash
+pockethost <plugin-name> serve
+```
+
+The second way runs ALL `serve` functionality from ALL plugins:
+
+```bash
+pockethost serve
+```
+
+The exact plugins can also be narrowed:
+
+```bash
+pockethost serve --only=plugin1,plugin2,plugin3
+```
+
+See the plugin authoring guide for more information on how to make a plugin that responds to both methods.
 
 ## Configuration
 
