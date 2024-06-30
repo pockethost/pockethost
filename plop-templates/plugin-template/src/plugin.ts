@@ -12,6 +12,7 @@ import {
   PLUGIN_NAME,
   PLUGIN_NAME_CONSTANT_CASE,
   PROJECT_DIR,
+  settings,
 } from './constants'
 import { DbService } from './db'
 import { dbg } from './log'
