@@ -22,7 +22,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "pockethost": "workspace:^1.5.0"
+    "pockethost": "workspace:^1.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.10",
