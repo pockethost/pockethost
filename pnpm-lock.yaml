@@ -75,7 +75,7 @@ importers:
         specifier: ^0.21.3
         version: 0.21.3
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
     devDependencies:
       '@types/node':
@@ -88,7 +88,7 @@ importers:
   packages/plugin-cloudflare-request-logger:
     dependencies:
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
     devDependencies:
       '@types/node':
@@ -104,7 +104,7 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
     devDependencies:
       '@types/json-stringify-safe':
@@ -144,7 +144,7 @@ importers:
         specifier: ^0.21.3
         version: 0.21.3
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
     devDependencies:
       '@types/bcryptjs':
@@ -153,6 +153,22 @@ importers:
       '@types/inquirer':
         specifier: ^9.0.7
         version: 9.0.7
+      typescript:
+        specifier: ^5.4.5
+        version: 5.4.5
+
+  packages/plugin-instance-logger-file:
+    dependencies:
+      inflection:
+        specifier: ^3.0.0
+        version: 3.0.0
+      pockethost:
+        specifier: workspace:^1.5.0
+        version: link:../pockethost
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.10
+        version: 20.14.2
       typescript:
         specifier: ^5.4.5
         version: 5.4.5
@@ -196,7 +212,7 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
       semver:
         specifier: ^7.6.2
@@ -236,7 +252,7 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
     devDependencies:
       '@types/bcryptjs':
@@ -270,7 +286,7 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       pockethost:
-        specifier: workspace:^1.5.0
+        specifier: workspace:^1.6.0
         version: link:../pockethost
     devDependencies:
       '@types/maildev':
