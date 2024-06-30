@@ -11,6 +11,8 @@
 - [Extending the PocketHost CLI](#extending-the-pockethost-cli)
 - [Reference](#reference)
   - [Core Actions](#core-actions)
+    - [AfterPluginsLoaded (since 1.6.0)](#afterpluginsloaded-since-160)
+    - [KillInstance (since 1.6.0)](#killinstance-since-160)
   - [Core Filters](#core-filters)
     - [ServerSlugs (since 1.4.0)](#serverslugs-since-140)
     - [InstanceConfig (since 1.5.0)](#instanceconfig-since-150)
@@ -62,6 +64,14 @@ Use PocketHost to generate a Typescript plugin starter, and follow that code.
 ```bash
 pockethost plugin create <my-plugin-name>
 ```
+
+Plugin template features:
+
+- Listen to PocketHost events
+- Install a PocketBase JS Hooks file when instances launch
+- Use a local JSON database to store local settings and config
+- Add custom commands to the PocketHost CLI
+- Attach to the `serve` PocketHost event
 
 ## Plugin Events Lifecycle
 

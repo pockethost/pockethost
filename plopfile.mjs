@@ -185,29 +185,4 @@ export default function (/** @type {Plop} */ plop) {
       ]
     },
   })
-
-  plop.setGenerator('plugin', {
-    description: 'Generate a new plugin',
-    prompts: [
-      {
-        type: 'input',
-        name: 'name',
-        message: 'Plugin Name (dash case)',
-      },
-    ],
-    actions: (data) => {
-      data.version = version
-      return [
-        {
-          type: 'addMany',
-          destination: 'packages/plugin-{{dashCase name}}',
-          base: 'plop-templates/plugin-template',
-          templateFiles: `plop-templates/plugin-template/**/*`,
-        },
-        async () => {
-          console.log(execSync(`pnpm i`).toString())
-        },
-      ]
-    },
-  })
 }
