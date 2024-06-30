@@ -108,11 +108,7 @@ export const serve = async () => {
     })
 
     const url = await doGetOrProvisionInstanceUrlFilter('', {
-      req,
-      res,
       instance,
-      host,
-      subdomain,
     })
 
     dbg(`Forwarding request for ${req.url} to instance ${url}`)
