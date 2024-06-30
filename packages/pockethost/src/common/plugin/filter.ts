@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import { Request, Response } from 'express'
 import { DEBUG } from '../debug'
 import { InstanceFields, InstanceId } from '../schema'
+import { UserId } from '../schema/BaseFields'
 
 export enum CoreFilters {
   Settings = 'core_settings',
@@ -11,6 +12,8 @@ export enum CoreFilters {
   AuthenticateUser = 'core_authenticate_user',
   GetInstanceByRequestInfo = 'core_get_instance_by_request_info',
   GetInstanceById = 'core_get_instance_by_id',
+  GetOneInstanceByExactCriteria = 'core_get_one_instance_by_exact_criteria',
+  GetAllInstancesByExactCriteria = 'core_get_all_instances_by_exact_criteria',
   InstanceConfig = 'core_instance_config',
   ErrorSpawningInstanceMessage = 'core_error_spawning_instance_message',
   FailedToLaunchInstanceMessage = 'core_failed_to_launch_instance_message',
@@ -19,6 +22,7 @@ export enum CoreFilters {
   GetOrProvisionInstanceUrl = 'core_get_or_provision_instance_url',
   PocketBaseLaunchHandler = 'core_pocket_base_launch_handler',
   NewInstanceRecord = 'core_new_instance_record',
+  IsInstanceRunning = 'core_is_instance_running',
 }
 
 export type FilterHandler<TCarry, TContext> = (
@@ -130,6 +134,22 @@ export const [doGetInstanceByIdFilter, onGetInstanceByIdFilter] =
     { instanceId: InstanceId }
   >(CoreFilters.GetInstanceById)
 
+export const [
+  doGetOneInstanceByExactCriteriaFilter,
+  onGetOneInstanceByExactCriteriaFilter,
+] = createCustomFilterWithContext<
+  InstanceFields | undefined,
+  Partial<InstanceFields & { [_: string]: string | number }>
+>(CoreFilters.GetOneInstanceByExactCriteria)
+
+export const [
+  doGetAllInstancesByExactCriteriaFilter,
+  onGetAllInstancesByExactCriteriaFilter,
+] = createCustomFilterWithContext<
+  InstanceFields[],
+  Partial<InstanceFields & { [_: string]: string | number }>
+>(CoreFilters.GetAllInstancesByExactCriteria)
+
 export const [doCliCommandsFilter, onCliCommandsFilter] = createCustomFilter<
   Command[]
 >(CoreFilters.CliCommands)
@@ -170,3 +190,8 @@ export type InstanceConfig = {
 }
 export const [doInstanceConfigFilter, onInstanceConfigFilter] =
   createCustomFilter<InstanceConfig>(CoreFilters.InstanceConfig)
+
+export const [doIsInstanceRunningFilter, onIsInstanceRunningFilter] =
+  createCustomFilterWithContext<boolean, { instance: InstanceFields }>(
+    CoreFilters.IsInstanceRunning,
+  )
