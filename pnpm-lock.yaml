@@ -122,6 +122,9 @@ importers:
       '@s-libs/micro-dash':
         specifier: ^16.1.0
         version: 16.1.0
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
       commander:
         specifier: ^11.1.0
         version: 11.1.0
@@ -134,6 +137,9 @@ importers:
       inquirer:
         specifier: ^9.2.15
         version: 9.2.15
+      nanoid:
+        specifier: ^5.0.2
+        version: 5.0.7
       pocketbase:
         specifier: ^0.21.3
         version: 0.21.3
@@ -141,6 +147,9 @@ importers:
         specifier: workspace:^1.5.0
         version: link:../pockethost
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@types/inquirer':
         specifier: ^9.0.7
         version: 9.0.7
@@ -150,6 +159,9 @@ importers:
 
   packages/plugin-launcher-spawn:
     dependencies:
+      '@s-libs/micro-dash':
+        specifier: ^16.1.0
+        version: 16.1.0
       '@types/node':
         specifier: ^20.8.10
         version: 20.14.2
@@ -159,9 +171,18 @@ importers:
       async-mutex:
         specifier: ^0.5.0
         version: 0.5.0
+      boolean:
+        specifier: ^3.2.0
+        version: 3.2.0
       bottleneck:
         specifier: ^2.19.5
         version: 2.19.5
+      commander:
+        specifier: ^11.1.0
+        version: 11.1.0
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
       get-port:
         specifier: ^6.1.2
         version: 6.1.2
@@ -171,6 +192,9 @@ importers:
       gobot:
         specifier: 1.0.0-alpha.40
         version: 1.0.0-alpha.40
+      lowdb:
+        specifier: ^7.0.1
+        version: 7.0.1
       pockethost:
         specifier: workspace:^1.5.0
         version: link:../pockethost
@@ -178,6 +202,55 @@ importers:
         specifier: ^7.6.2
         version: 7.6.2
     devDependencies:
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
+      '@types/lowdb':
+        specifier: ^1.0.15
+        version: 1.0.15
+      typescript:
+        specifier: ^5.4.5
+        version: 5.4.5
+
+  packages/plugin-local-auth:
+    dependencies:
+      '@s-libs/micro-dash':
+        specifier: ^16.1.0
+        version: 16.1.0
+      bcryptjs:
+        specifier: ^2.4.3
+        version: 2.4.3
+      commander:
+        specifier: ^11.1.0
+        version: 11.1.0
+      immer:
+        specifier: ^10.1.1
+        version: 10.1.1
+      inflection:
+        specifier: ^3.0.0
+        version: 3.0.0
+      inquirer:
+        specifier: ^9.2.15
+        version: 9.2.15
+      lowdb:
+        specifier: ^7.0.1
+        version: 7.0.1
+      pockethost:
+        specifier: workspace:^1.5.0
+        version: link:../pockethost
+    devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
+      '@types/inquirer':
+        specifier: ^9.0.7
+        version: 9.0.7
+      '@types/lowdb':
+        specifier: ^1.0.15
+        version: 1.0.15
+      '@types/node':
+        specifier: ^20.8.10
+        version: 20.14.2
       typescript:
         specifier: ^5.4.5
         version: 5.4.5
@@ -306,12 +379,18 @@ importers:
         specifier: ^1.0.3
         version: 1.0.3
     devDependencies:
+      '@types/conventional-commits-parser':
+        specifier: ^5.0.0
+        version: 5.0.0
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
       '@types/http-proxy':
         specifier: ^1.17.13
         version: 1.17.13
+      '@types/inquirer':
+        specifier: ^9.0.7
+        version: 9.0.7
       '@types/json-stringify-safe':
         specifier: ^5.0.2
         version: 5.0.2
@@ -330,6 +409,9 @@ importers:
       '@types/update-notifier':
         specifier: ^6.0.8
         version: 6.0.8
+      conventional-commits-parser:
+        specifier: ^5.0.0
+        version: 5.0.0
 
 packages:
 
@@ -766,6 +848,9 @@ packages:
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
     engines: {node: '>= 10'}
 
+  '@types/bcryptjs@2.4.6':
+    resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
+
   '@types/body-parser@1.19.5':
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
 
@@ -831,6 +916,9 @@ packages:
 
   '@types/lodash@4.17.6':
     resolution: {integrity: sha512-OpXEVoCKSS3lQqjx9GGGOapBeuW5eUboYHRlHP9urXPX25IKZ6AnP5ZRxtVf63iieUbsHxLn8NQ5Nlftc6yzAA==}
+
+  '@types/lowdb@1.0.15':
+    resolution: {integrity: sha512-xaMNIveDCryK4UvnUJOc2BCOH0lPivdvWHrutsLryo9r9Id3RqZq2RDmT4eddiEPYzu7nJMw6nFIcVifcqjWqg==}
 
   '@types/maildev@0.0.7':
     resolution: {integrity: sha512-8Xs2PFd7SA2tAojYuAISTcE+IrrZysfuDQcwiE/cDMbErw2OyAHbO1yiJyYODnmdb/7dUIH7uaTrqK8H+kPB5w==}
@@ -1048,6 +1136,9 @@ packages:
   base64id@2.0.0:
     resolution: {integrity: sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==}
     engines: {node: ^4.5.0 || >= 5.9}
+
+  bcryptjs@2.4.3:
+    resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
 
   binary-searching@2.0.5:
     resolution: {integrity: sha512-v4N2l3RxL+m4zDxyxz3Ne2aTmiPn8ZUpKFpdPtO+ItW1NcTCXA7JeHG5GMBSvoKSkQZ9ycS+EouDVxYB9ufKWA==}
@@ -2393,6 +2484,10 @@ packages:
     resolution: {integrity: sha512-niTvB4gqvtof056rRIrTZvjNYE4rCUzO6X/X+kYjd7WFxXeJ0NwEFnRxX6ehkvv3jTwrXnNdtAak5XYZuIyPFw==}
     engines: {node: '>=18'}
 
+  lowdb@7.0.1:
+    resolution: {integrity: sha512-neJAj8GwF0e8EpycYIDFqEPcx9Qz4GUho20jWFR7YiFeXzF1YMLdxB36PypcTSPMA+4+LvgyMacYhlr18Zlymw==}
+    engines: {node: '>=18'}
+
   lower-case@2.0.2:
     resolution: {integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==}
 
@@ -3265,6 +3360,10 @@ packages:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
 
+  steno@4.0.2:
+    resolution: {integrity: sha512-yhPIQXjrlt1xv7dyPQg2P17URmXbuM5pdGkpiMB3RenprfiBlvK415Lctfe0eshk90oA7/tNq7WEiMK8RSP39A==}
+    engines: {node: '>=18'}
+
   string-width@4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
     engines: {node: '>=8'}
@@ -4055,6 +4154,8 @@ snapshots:
 
   '@tootallnate/once@2.0.0': {}
 
+  '@types/bcryptjs@2.4.6': {}
+
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
@@ -4130,6 +4231,10 @@ snapshots:
       '@types/node': 20.14.2
 
   '@types/lodash@4.17.6': {}
+
+  '@types/lowdb@1.0.15':
+    dependencies:
+      '@types/lodash': 4.17.6
 
   '@types/maildev@0.0.7':
     dependencies:
@@ -4329,6 +4434,8 @@ snapshots:
   base64-js@1.5.1: {}
 
   base64id@2.0.0: {}
+
+  bcryptjs@2.4.3: {}
 
   binary-searching@2.0.5: {}
 
@@ -5840,6 +5947,10 @@ snapshots:
       strip-ansi: 7.1.0
       wrap-ansi: 9.0.0
 
+  lowdb@7.0.1:
+    dependencies:
+      steno: 4.0.2
+
   lower-case@2.0.2:
     dependencies:
       tslib: 2.6.2
@@ -6805,6 +6916,8 @@ snapshots:
       bl: 5.1.0
 
   stdin-discarder@0.2.2: {}
+
+  steno@4.0.2: {}
 
   string-width@4.2.3:
     dependencies:
