@@ -21,10 +21,9 @@ import {
 } from 'pockethost'
 import {
   APEX_DOMAIN,
-  INSTANCE_DATA_DIR,
+  HTTP_PROTOCOL,
   PORT,
-  exitHook,
-  tryFetch,
+  PUBLIC_INSTANCE_URL,
 } from 'pockethost/core'
 import { PLUGIN_NAME, settings } from './constants'
 import { DbService } from './db'
@@ -92,15 +91,14 @@ export const plugin: PocketHostPlugin = async ({}) => {
 
   /** Display some informational alerts to help the user get started. */
   onAfterServerStartAction(async () => {
-    const protocol = PORT() === 443 ? 'https' : 'http'
+    const protocol = HTTP_PROTOCOL()
     {
-      const url = new URL(`${protocol}://*.${APEX_DOMAIN()}`)
+      const url = new URL(`${protocol}//*.${APEX_DOMAIN()}`)
       url.port = `${PORT() === 80 || PORT() == 443 ? '' : PORT()}`
       info(`Listening for requests on ${url}`)
     }
     {
-      const url = new URL(`${protocol}://hello.${APEX_DOMAIN()}`)
-      url.port = `${PORT() === 80 || PORT() == 443 ? '' : PORT()}`
+      const url = PUBLIC_INSTANCE_URL({ subdomain: 'hello' })
       info(`Try visiting ${url}`)
     }
   })

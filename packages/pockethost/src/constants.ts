@@ -57,7 +57,9 @@ export const DATA_DIR = (...paths: string[]) =>
 export const NODE_ENV = () => process.env.NODE_ENV
 export const INSTANCE_DATA_DIR = (id: InstanceId, ...paths: string[]) =>
   join(DATA_DIR(), id, ...paths)
-
-if (DEBUG()) {
-  logSettings(settings)
+export const HTTP_PROTOCOL = () => (PORT() === 443 ? 'https:' : 'http:')
+export const PUBLIC_INSTANCE_URL = ({ subdomain }: Partial<InstanceFields>) => {
+  const url = new URL(`${HTTP_PROTOCOL()}//${subdomain}.${APEX_DOMAIN()}`)
+  url.port = `${PORT() === 80 || PORT() == 443 ? '' : PORT()}`
+  return url
 }
