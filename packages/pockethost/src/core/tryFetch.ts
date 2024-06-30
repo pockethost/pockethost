@@ -1,4 +1,4 @@
-import fetch, { Response } from 'node-fetch'
+import fetch, { RequestInit, Response } from 'node-fetch'
 import { LoggerService } from '../common'
 
 export const TRYFETCH_RETRY_MS = 50
@@ -6,7 +6,7 @@ export const TRYFETCH_RETRY_MS = 50
 export type TryFetchConfig = {
   preflight: () => Promise<boolean>
   retryMs: number
-}
+} & RequestInit
 
 /**
  * @param url The URL to fetch
@@ -53,7 +53,10 @@ export const tryFetch = async (
       }
       try {
         dbg(`Fetch: START`)
-        const res = await fetch(url, { signal: AbortSignal.timeout(500) })
+        const res = await fetch(url, {
+          ...config,
+          signal: AbortSignal.timeout(500),
+        })
         dbg(`Fetch: SUCCESS`)
         resolve(res)
       } catch (e) {
