@@ -26,11 +26,13 @@
   },
   "devDependencies": {
     "@types/node": "^20.8.10",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "@types/lowdb": "^1.0.15"
   },
   "dependencies": {
     "commander": "^11.1.0",
     "immer": "^10.1.1",
-    "inflection": "^3.0.0"
+    "inflection": "^3.0.0",
+    "lowdb": "^7.0.1"
   }
 }

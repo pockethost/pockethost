@@ -6,16 +6,20 @@ import {
   onInstanceConfigFilter,
   onServeAction,
   onServeSlugsFilter,
+  onSettingsFilter,
 } from 'pockethost'
 import {
   PLUGIN_NAME,
   PLUGIN_NAME_CONSTANT_CASE,
   PROJECT_DIR,
 } from './constants'
+import { DbService } from './db'
 import { dbg } from './log'
 
 export const plugin: PocketHostPlugin = async ({}) => {
   dbg(`initializing ${PLUGIN_NAME}`)
+
+  await DbService({})
 
   onInstanceConfigFilter(async (config) => {
     return produce(config, (draft) => {
@@ -48,4 +52,6 @@ export const plugin: PocketHostPlugin = async ({}) => {
     if (!only.includes(PLUGIN_NAME)) return
     // Do something
   })
+
+  onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 }
