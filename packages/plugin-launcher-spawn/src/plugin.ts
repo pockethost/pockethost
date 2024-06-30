@@ -1,23 +1,18 @@
-import { Mutex } from 'async-mutex'
-import fs, { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import getPort from 'get-port'
-import { globSync } from 'glob'
-import { gobot } from 'gobot'
-import path from 'path'
 import {
-  Bind,
-  InstanceFields,
   PocketHostPlugin,
-  doAfterInstanceStartedAction,
-  doAfterInstanceStoppedAction,
-  doInstanceConfigFilter,
-  doInstanceLogAction,
   mkInstance,
   onAfterInstanceFoundAction,
+  onAfterInstanceStoppedAction,
   onAfterServerStartAction,
+  onAppMountedAction,
+  onCliCommandsFilter,
+  onGetAllInstancesByExactCriteriaFilter,
   onGetInstanceByRequestInfoFilter,
+  onGetOneInstanceByExactCriteriaFilter,
   onGetOrProvisionInstanceUrlFilter,
+  onIsInstanceRunningFilter,
   onNewInstanceRecordFilter,
+  onSettingsFilter,
 } from 'pockethost'
 import {
   APEX_DOMAIN,
@@ -25,69 +20,30 @@ import {
   PORT,
   PUBLIC_INSTANCE_URL,
 } from 'pockethost/core'
+import { InternalApp } from './InternalApp'
+import { LauncherCommand } from './LauncherCommand'
 import { PLUGIN_NAME, settings } from './constants'
 import { DbService } from './db'
+import { mkLauncher } from './launcher'
 import { dbg, info } from './log'
-
-const deleteFiles = (globPattern: string) => {
-  const files = globSync(globPattern)
-  files.forEach((file) => {
-    dbg(`Deleting ${file}`)
-    fs.unlinkSync(file)
-  })
-}
-
-const copyFiles = (binds: Bind[], destination: string) => {
-  binds.forEach((bind) => {
-    const srcFiles = globSync(bind.src)
-    srcFiles.forEach((srcFile) => {
-      const relativePath = path.relative(bind.base, srcFile)
-      const destFile = path.join(destination, relativePath)
-      const destDir = path.dirname(destFile)
-      dbg(`Copying ${srcFile} to ${destFile}`, { relativePath, destDir, bind })
-
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true })
-      }
-
-      fs.copyFileSync(srcFile, destFile)
-    })
-  })
-}
-
-const escape = (path: string) => `"${path}"`
-
-const metaPath = (name: string) => {
-  const instanceRootDir = INSTANCE_DATA_DIR(name)
-  mkdirSync(instanceRootDir, { recursive: true })
-  const instanceMetaFile = INSTANCE_DATA_DIR(name, `meta.json`)
-  return instanceMetaFile
-}
-
-const readMeta = (path: string) =>
-  JSON.parse(readFileSync(path, 'utf-8').toString())
-
-const getOrCreateMeta = async (name: string) => {
-  const instanceMetaFile = metaPath(name)
-  const meta = await (async () => {
-    if (!existsSync(instanceMetaFile)) {
-      const meta = await mkInstance(name)
-      writeFileSync(instanceMetaFile, JSON.stringify(meta, null, 2))
-    }
-    const meta = readMeta(instanceMetaFile)
-    return meta
-  })()
-  return meta
-}
-
-const writeMeta = async (instance: InstanceFields) => {
-  const { subdomain } = instance
-  const instanceMetaFile = metaPath(subdomain)
-  writeFileSync(instanceMetaFile, JSON.stringify(instance, null, 2))
-}
 
 export const plugin: PocketHostPlugin = async ({}) => {
   dbg(`initializing ${PLUGIN_NAME}`)
+
+  const {
+    getInstanceBySubdomain,
+    createOrUpdateInstance,
+    getInstancesByExactCriteria,
+  } = await DbService({})
+
+  onCliCommandsFilter(async (commands) => {
+    return [...commands, LauncherCommand()]
+  })
+
+  onAppMountedAction(async ({ internalApp }) => {
+    dbg(`Mounting internal app`)
+    internalApp.use(InternalApp())
+  })
 
   /** Display some informational alerts to help the user get started. */
   onAfterServerStartAction(async () => {
@@ -106,8 +62,10 @@ export const plugin: PocketHostPlugin = async ({}) => {
   /** When a request comes in, return an instance based on subdomain */
   onGetInstanceByRequestInfoFilter(async (instance, context) => {
     const { subdomain } = context
-    const meta = await getOrCreateMeta(subdomain)
-    return { ...instance, ...meta }
+    return {
+      ...(instance || (await mkInstance(subdomain))),
+      ...getInstanceBySubdomain(subdomain),
+    }
   })
 
   /**
@@ -118,27 +76,23 @@ export const plugin: PocketHostPlugin = async ({}) => {
    */
   onNewInstanceRecordFilter(async (instance) => {
     const { subdomain } = instance
-    const path = metaPath(subdomain)
-    if (!existsSync(path)) return instance
-    const meta = await readMeta(path)
-    return { ...instance, ...meta }
+    return { ...instance, ...getInstanceBySubdomain(subdomain), id: subdomain }
   })
 
   /** After an instance has been found, store it to the db */
   onAfterInstanceFoundAction(async (context) => {
     const { instance } = context
-    await writeMeta(instance)
+    dbg({ instance })
+    createOrUpdateInstance(instance)
   })
 
   const instances: { [_: string]: Promise<string> } = {}
-
-  const launchMutex = new Mutex()
 
   /**
    * The workhorse. This filter is responsible for launching PocketBase and
    * returning an endpoint URL.
    */
-  onGetOrProvisionInstanceUrlFilter(async (url: string, { instance }) => {
+  onGetOrProvisionInstanceUrlFilter(async (url, { instance }) => {
     const { dev, subdomain, version, secrets } = instance
 
     if (subdomain in instances) return instances[subdomain]!
@@ -147,7 +101,22 @@ export const plugin: PocketHostPlugin = async ({}) => {
     return (instances[subdomain] = mkLauncher(instance))
   })
 
+  onAfterInstanceStoppedAction(async ({ instance }) => {
+    const { subdomain } = instance
+    delete instances[subdomain]
+  })
+
   onSettingsFilter(async (allSettings) => ({ ...allSettings, ...settings }))
 
+  onIsInstanceRunningFilter(async (isRunning, { instance }) => {
+    return isRunning || !!instances[instance.subdomain]
+  })
+
+  onGetOneInstanceByExactCriteriaFilter(async (instance, criteria) => {
+    return instance || getInstancesByExactCriteria(criteria)[0]
+  })
+
+  onGetAllInstancesByExactCriteriaFilter(async (instances, criteria) => {
+    return [...instances, ...getInstancesByExactCriteria(criteria)]
   })
 }
