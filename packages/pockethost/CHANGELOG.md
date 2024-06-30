@@ -1,5 +1,11 @@
 # pockethost
 
+## 1.6.1
+
+### Patch Changes
+
+- dc8f70b: Updated docs
+
 ## 1.6.0
 
 ### Minor Changes
