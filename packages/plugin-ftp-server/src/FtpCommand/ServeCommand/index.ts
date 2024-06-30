@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { ftp } from './ftp'
+import { ftp } from '../../FtpService/ftp'
 
 type Options = {
   debug: boolean

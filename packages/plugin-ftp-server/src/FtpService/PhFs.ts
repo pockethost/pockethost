@@ -1,4 +1,4 @@
-import { map } from '@s-libs/micro-dash'
+import { compact, map } from '@s-libs/micro-dash'
 import {
   Mode,
   constants,
@@ -9,8 +9,16 @@ import {
 } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
-import PocketBase from 'pocketbase'
-import { InstanceFields, Logger, assert } from 'pockethost'
+import {
+  Logger,
+  assert,
+  doGetAllInstancesByExactCriteriaFilter,
+  doGetOneInstanceByExactCriteriaFilter,
+  doIsInstanceRunningFilter,
+  newId,
+} from 'pockethost'
+import { DATA_DIR } from 'pockethost/core'
+import { UserId } from 'pockethost/src/common/schema/BaseFields'
 import {
   FolderNamesMap,
   INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES,
@@ -42,20 +50,19 @@ export class PhFs implements FileSystem {
   connection: FtpConnection
   cwd: string
   private _root: string
-  client: PocketBase
+  uid: string | undefined
 
   constructor(
     connection: FtpConnection,
-    client: PocketBase,
+    uid: UserId | undefined,
     logger: Logger,
-    root: string,
   ) {
     const cwd = `/`
     this.connection = connection
-    this.client = client
     this.log = logger.create(`PhFs`)
+    this.uid = uid
     this.cwd = normalize((cwd || '/').replace(WIN_SEP_REGEX, '/'))
-    this._root = resolve(root || process.cwd())
+    this._root = resolve(DATA_DIR() || process.cwd())
   }
 
   get root() {
@@ -94,9 +101,13 @@ export class PhFs implements FileSystem {
     // Check if the instance is valid
     const instance = await (async () => {
       if (subdomain) {
-        const instance = await this.client
-          .collection(`instances`)
-          .getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
+        const instance = await doGetOneInstanceByExactCriteriaFilter(
+          undefined,
+          {
+            uid: this.uid,
+            subdomain,
+          },
+        )
         if (!instance) {
           throw new Error(`${subdomain} not found.`)
         }
@@ -112,10 +123,10 @@ export class PhFs implements FileSystem {
           })
           if (
             MAINTENANCE_ONLY_FOLDER_NAMES.includes(virtualRootFolderName) &&
-            !instance.maintenance
+            (await doIsInstanceRunningFilter(false, { instance }))
           ) {
             throw new Error(
-              `Instance must be in maintenance mode to access ${virtualRootFolderName}`,
+              `Instance must be OFF to access ${virtualRootFolderName}`,
             )
           }
           fsPathParts.push(physicalFolderName)
@@ -195,7 +206,9 @@ export class PhFs implements FileSystem {
     If a subdomain is not specified, we are in the user's root. List all subdomains.
     */
     if (subdomain === '') {
-      const instances = await this.client.collection(`instances`).getFullList()
+      const instances = await doGetAllInstancesByExactCriteriaFilter([], {
+        uid: this.uid,
+      })
       return instances.map((i) => {
         return {
           isDirectory: () => true,

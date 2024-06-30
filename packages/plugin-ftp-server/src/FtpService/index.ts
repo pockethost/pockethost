@@ -1,16 +1,23 @@
 import { keys, values } from '@s-libs/micro-dash'
+import bcrypt from 'bcryptjs'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
-import { LoggerService, mkSingleton } from 'pockethost/src/common'
+import {
+  LoggerService,
+  doAuthenticateUserFilter,
+  mkSingleton,
+} from 'pockethost/src/common'
 import { asyncExitHook } from 'pockethost/src/core'
 import {
+  FALLBACK_PASSWORD,
+  FALLBACK_USERNAME,
   PASV_IP,
   PASV_PORT_MAX,
   PASV_PORT_MIN,
   PORT,
   SSL_CERT,
   SSL_KEY,
-} from '../../constants'
+} from '../constants'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = {}
@@ -81,21 +88,24 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
     async ({ connection, username, password }, resolve, reject) => {
       dbg(`Got a connection`)
       dbg(`Finding ${username}`)
-      const client = new PocketBase(
-        await filter<string>(
-          PocketHostFilter.Mothership_MothershipPublicUrl,
-          ``,
-        ),
-      )
-      try {
-        await client.collection('users').authWithPassword(username, password)
-        dbg(`Logged in`)
-        const fs = new PhFs(connection, client, _ftpServiceLogger)
-        resolve({ fs })
-      } catch (e) {
-        reject(new Error(`Invalid username or password`))
-        return
+      const uid = await doAuthenticateUserFilter(undefined, {
+        username,
+        password,
+      })
+      if (!uid) {
+        if (
+          username === FALLBACK_USERNAME() &&
+          bcrypt.compareSync(password, FALLBACK_PASSWORD())
+        ) {
+          /// Allow authentication to proceed
+        } else {
+          reject(new Error(`Invalid username or password`))
+          return
+        }
       }
+      dbg(`Logged in`)
+      const fs = new PhFs(connection, uid, _ftpServiceLogger)
+      resolve({ fs })
     },
   )
 

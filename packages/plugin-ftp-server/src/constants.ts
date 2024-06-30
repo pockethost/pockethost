@@ -10,7 +10,7 @@ export const TLS_PFX = `tls`
 
 export const settings = Settings({
   PH_FTP_HOME: mkPath(HOME_DIR, { create: true }),
-  PH_FTP_PORT: mkNumber(21),
+  PH_FTP_PORT: mkNumber(9021),
   PH_FTP_SSL_KEY: mkPath(join(HOME_DIR, `${TLS_PFX}.key`), {
     required: false,
   }),
@@ -20,6 +20,8 @@ export const settings = Settings({
   PH_FTP_PASV_IP: mkString(`0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
+  PH_FTP_FALLBACK_USERNAME: mkString(``),
+  PH_FTP_FALLBACK_PASSWORD: mkString(``),
 })
 
 export const PORT = () => settings.PH_FTP_PORT
@@ -28,3 +30,5 @@ export const SSL_CERT = () => settings.PH_FTP_SSL_CERT
 export const PASV_IP = () => settings.PH_FTP_PASV_IP
 export const PASV_PORT_MIN = () => settings.PH_FTP_PASV_PORT_MIN
 export const PASV_PORT_MAX = () => settings.PH_FTP_PASV_PORT_MAX
+export const FALLBACK_USERNAME = () => settings.PH_FTP_FALLBACK_USERNAME
+export const FALLBACK_PASSWORD = () => settings.PH_FTP_FALLBACK_PASSWORD
