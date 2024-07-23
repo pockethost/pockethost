@@ -12,13 +12,15 @@ import {
   SettingsHandlerFactory,
   SettingsService,
   UserFields,
+  mkSingleton,
+} from '../core'
+import {
   mkBoolean,
   mkCsvString,
   mkNumber,
   mkPath,
-  mkSingleton,
   mkString,
-} from '../core'
+} from './core/Settings'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
