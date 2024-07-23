@@ -120,6 +120,7 @@ routerAdd(
     const email = parsed.email?.trim()
     const password = parsed.password?.trim()
     const desiredInstanceName = parsed.instanceName?.trim()
+    const region = parsed.region?.trim()
 
     /**
      * @param {string} fieldName
@@ -190,6 +191,7 @@ routerAdd(
       try {
         const instance = new Record(instanceCollection)
         instance.set('subdomain', desiredInstanceName)
+        instance.set('region', region || `sfo-1`)
         instance.set('uid', user.get('id'))
         instance.set('status', 'idle')
         instance.set('notifyMaintenanceMode', true)

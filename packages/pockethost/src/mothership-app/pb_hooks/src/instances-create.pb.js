@@ -37,9 +37,9 @@ routerAdd(
     // This is necessary for destructuring to work correctly
     data = JSON.parse(JSON.stringify(data))
 
-    const { subdomain } = data
+    const { subdomain, region } = data
 
-    log(`***vars`, JSON.stringify({ subdomain }))
+    log(`***vars`, JSON.stringify({ subdomain, region }))
 
     if (!subdomain) {
       throw new BadRequestError(
@@ -50,6 +50,7 @@ routerAdd(
     const collection = dao.findCollectionByNameOrId('instances')
     const record = new Record(collection)
     record.set('uid', authRecord.getId())
+    record.set('region', region || `sfo-1`)
     record.set('subdomain', subdomain)
     record.set('status', 'idle')
     record.set('version', versions[0])
