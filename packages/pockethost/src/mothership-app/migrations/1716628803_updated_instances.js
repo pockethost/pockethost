@@ -1,4 +1,4 @@
-/// <reference path="../pb_data/types.d.ts" />
+/// <reference path="../pb_hooks/types/types.d.ts" />
 migrate((db) => {
   const dao = new Dao(db)
   const collection = dao.findCollectionByNameOrId("etae8tuiaxl6xfv")
