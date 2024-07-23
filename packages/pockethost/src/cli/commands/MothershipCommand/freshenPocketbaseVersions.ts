@@ -51,6 +51,7 @@ function expandAndSortSemVers(semvers: string[]): string[] {
 
 export async function freshenPocketbaseVersions() {
   const bot = await gobot(`pocketbase`)
+  await bot.update()
   const rawVersions = await bot.versions()
   const versions = expandAndSortSemVers(rawVersions)
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
