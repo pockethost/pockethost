@@ -1,5 +1,4 @@
 export * from '../constants'
-export * from './PromiseAllocator'
 export * from './Settings'
 export * from './SyslogLogger'
 export * from './asyncExecutionGuard'

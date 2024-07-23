@@ -1,5 +1,6 @@
 export * from './CleanupManager'
 export * from './Logger'
+export * from './ResourceAllocator'
 export * from './TimerManager'
 export * from './assert'
 export * from './events'
