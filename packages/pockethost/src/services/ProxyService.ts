@@ -118,7 +118,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   })
 
   server.use((req, res, next) => {
-    info(`Incoming request ${res.locals.sig}`, req.headers)
+    info(`Incoming request ${res.locals.sig}`)
     next()
   })
 
