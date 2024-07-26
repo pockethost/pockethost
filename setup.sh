@@ -13,6 +13,8 @@ echo "pockethost ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/pockethost
 
 # Update configurations
 ufw allow OpenSSH
+ufw allow https
+ufw allow http
 echo "y" | ufw enable
 
 # Copy root's authorized_keys to pockethost
