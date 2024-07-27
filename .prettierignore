@@ -9,6 +9,5 @@ build
 _site
 forks
 
-packages/pockethost/src/mothership-app/migrations
 packages/pockethost/src/mothership-app/pb_hooks/types/types.d.ts
 packages/pockethost/src/instance-app/types/types.d.ts
