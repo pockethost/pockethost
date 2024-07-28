@@ -8,7 +8,7 @@ onModelBeforeUpdate((e) => {
   const version = e.model.get('version')
   if (!versions.includes(version)) {
     throw new BadRequestError(
-      `Invalid version ${version}. Version must be one of: ${versions.join(
+      `Invalid version '${version}'. Version must be one of: ${versions.join(
         ', ',
       )}`,
     )
