@@ -1,6 +1,10 @@
 import { writeFileSync } from 'fs'
 import { gobot } from 'gobot'
-import { MOTHERSHIP_DATA_ROOT, stringify } from '../../../../core'
+import {
+  MOTHERSHIP_DATA_ROOT,
+  MOTHERSHIP_HOOKS_DIR,
+  stringify,
+} from '../../../../core'
 
 function compareSemVer(a: string, b: string): number {
   // Consider wildcards as higher than any version number, hence represented by a large number for comparison
@@ -56,5 +60,6 @@ export async function freshenPocketbaseVersions() {
   const versions = expandAndSortSemVers(rawVersions)
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
   writeFileSync(MOTHERSHIP_DATA_ROOT(`pb_hooks`, `versions.cjs`), cjs)
+  writeFileSync(MOTHERSHIP_HOOKS_DIR(`versions.cjs`), cjs)
   return cjs
 }
