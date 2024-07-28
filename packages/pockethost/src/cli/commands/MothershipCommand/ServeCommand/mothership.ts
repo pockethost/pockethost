@@ -14,7 +14,6 @@ import {
   mkContainerHomePath,
 } from '../../../../../core'
 import { PortService } from '../../../../services'
-import { freshenPocketbaseVersions } from '../freshenPocketbaseVersions'
 
 export type MothershipConfig = { isolate: boolean }
 
@@ -63,7 +62,7 @@ export async function mothership(cfg: MothershipConfig) {
     MOTHERSHIP_MIGRATIONS_DIR(`**/*`),
     MOTHERSHIP_DATA_ROOT(`pb_migrations`),
   )
-  await freshenPocketbaseVersions()
+  // await freshenPocketbaseVersions()
   const args = [
     `serve`,
     `--http`,
