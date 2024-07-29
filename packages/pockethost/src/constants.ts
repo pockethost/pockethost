@@ -1,6 +1,7 @@
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import envPaths from 'env-paths'
+import * as env from 'env-var'
 import { mkdirSync, realpathSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -26,7 +27,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const realScriptPath = realpathSync(process.argv[1]!)
 
-export const _PH_HOME = process.env.PH_HOME || envPaths(`pockethost`).data
+export const _PH_HOME = env
+  .get('PH_HOME')
+  .default(envPaths(`pockethost`).data)
+  .asString()
 
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
