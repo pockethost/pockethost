@@ -110,5 +110,10 @@
     "tsx": "^3.14.0",
     "type-fest": "^4.6.0",
     "typescript": "^5.2.2"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "eventsource@2.0.2": "patches/eventsource@2.0.2.patch"
+    }
   }
 }
