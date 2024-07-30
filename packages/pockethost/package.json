@@ -45,7 +45,7 @@
     "ftp-srv": "github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59",
     "get-port": "^6.1.2",
     "glob": "^10.3.10",
-    "gobot": "1.0.0-alpha.40",
+    "gobot": "1.0.0-alpha.41",
     "gobot-pocketbase": "0.22.8-alpha.22",
     "http-proxy": "^1.18.1",
     "http-proxy-middleware": "^2.0.6",
