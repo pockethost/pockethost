@@ -1,6 +1,7 @@
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import envPaths from 'env-paths'
+import * as env from 'env-var'
 import { mkdirSync, realpathSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -26,27 +27,44 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const realScriptPath = realpathSync(process.argv[1]!)
 
-export const _PH_HOME = process.env.PH_HOME || envPaths(`pockethost`).data
+export const _PH_HOME = env
+  .get('PH_HOME')
+  .default(envPaths(`pockethost`).data)
+  .asString()
 
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
 export const _PH_PROJECT_ROOT = join(__dirname, '..')
-export const _APEX_DOMAIN = process.env.APEX_DOMAIN || 'pockethost.lvh.me'
-export const _HTTP_PROTOCOL = process.env.HTTP_PROTOCOL || `https:`
-export const _APP_NAME = process.env.APP_NAME || 'app'
-export const _MOTHERSHIP_NAME =
-  process.env.MOTHERSHIP_NAME || 'pockethost-central'
+export const _APEX_DOMAIN = env
+  .get('APEX_DOMAIN')
+  .default('pockethost.lvh.me')
+  .asString()
+export const _HTTP_PROTOCOL = env
+  .get('HTTP_PROTOCOL')
+  .default('https:')
+  .asString()
+export const _APP_NAME = env.get('APP_NAME').default('app').asString()
+export const _MOTHERSHIP_NAME = env
+  .get('MOTHERSHIP_NAME')
+  .default('pockethost-central')
+  .asString()
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
   join(
-    process.env.PH_MOTHERSHIP_APP_ROOT || join(__dirname, 'mothership-app'),
+    env
+      .get('PH_MOTHERSHIP_APP_ROOT')
+      .default(join(__dirname, 'mothership-app'))
+      .asString(),
     ...paths,
   )
 
 export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
   join(
-    process.env.PH_INSTANCE_APP_ROOT || join(__dirname, 'instance-app'),
+    env
+      .get('PH_INSTANCE_APP_ROOT')
+      .default(join(__dirname, 'instance-app'))
+      .asString(),
     ...paths,
   )
 
@@ -131,6 +149,8 @@ export const SETTINGS = {
   DISCORD_HEALTH_CHANNEL_URL: mkString(''),
 
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
+
+  PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
 }
 
 export type Settings = ReturnType<typeof DefaultSettingsService>
@@ -259,6 +279,9 @@ export const DISCORD_HEALTH_CHANNEL_URL = () =>
   settings().DISCORD_HEALTH_CHANNEL_URL
 
 export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
+
+export const PH_GOBOT_ROOT = (...paths: string[]) =>
+  join(settings().PH_GOBOT_ROOT, ...paths)
 
 /** Helpers */
 

@@ -11,6 +11,7 @@ import {
   SETTINGS,
   loadPlugins,
 } from '../../core'
+import { GobotService } from '../services/GobotService'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
 import { HealthCommand } from './commands/HealthCommand'
@@ -26,6 +27,7 @@ export type GlobalOptions = {
 DefaultSettingsService(SETTINGS)
 
 LoggerService({ level: DEBUG() ? LogLevelName.Debug : LogLevelName.Info })
+GobotService({})
 
 //@ts-ignore
 global.EventSource = EventSource

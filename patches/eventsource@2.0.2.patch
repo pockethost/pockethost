@@ -1,0 +1,22 @@
+diff --git a/lib/eventsource.js b/lib/eventsource.js
+index bd401a106c16ca1f5aa6a965db51d9a38f10a1c6..a271b2d391df5a62ccf5d4e69e81afe1fa36c704 100644
+--- a/lib/eventsource.js
++++ b/lib/eventsource.js
+@@ -87,7 +87,7 @@ function EventSource (url, eventSourceInitDict) {
+   var reconnectUrl = null
+ 
+   function connect () {
+-    var options = parse(url)
++    var options = new URL(url)
+     var isSecure = options.protocol === 'https:'
+     options.headers = { 'Cache-Control': 'no-cache', 'Accept': 'text/event-stream' }
+     if (lastEventId) options.headers['Last-Event-ID'] = lastEventId
+@@ -113,7 +113,7 @@ function EventSource (url, eventSourceInitDict) {
+     // and include the original url in path and Host headers
+     var useProxy = eventSourceInitDict && eventSourceInitDict.proxy
+     if (useProxy) {
+-      var proxy = parse(eventSourceInitDict.proxy)
++      var proxy = new URL(eventSourceInitDict.proxy)
+       isSecure = proxy.protocol === 'https:'
+ 
+       options.protocol = isSecure ? 'https:' : 'http:'

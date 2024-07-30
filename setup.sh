@@ -37,3 +37,4 @@ git clone git@github.com:pockethost/pockethost.git
 cd pockethost
 nvm install
 npm i -g pnpm pm2
+pnpm i
