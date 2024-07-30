@@ -47,7 +47,7 @@ export type PocketbaseProcess = {
   exitCode: Promise<number>
 }
 
-const INSTANCE_IMAGE_NAME = `pockethost-instance`
+const INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
 
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig,
