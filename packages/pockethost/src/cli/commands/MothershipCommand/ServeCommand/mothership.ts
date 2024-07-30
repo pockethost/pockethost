@@ -1,5 +1,5 @@
 import copyfiles from 'copyfiles'
-import { GobotOptions, gobot } from 'gobot'
+import { GobotOptions } from 'gobot'
 import { rimraf } from 'rimraf'
 import {
   DEBUG,
@@ -14,6 +14,7 @@ import {
   mkContainerHomePath,
 } from '../../../../../core'
 import { PortService } from '../../../../services'
+import { GobotService } from '../../../../services/GobotService'
 
 export type MothershipConfig = { isolate: boolean }
 
@@ -85,6 +86,7 @@ export async function mothership(cfg: MothershipConfig) {
   }
   dbg(`args`, args)
   dbg(`options`, options)
+  const { gobot } = GobotService()
   const bot = await gobot(`pocketbase`, options)
   bot.run(args, { env })
 }

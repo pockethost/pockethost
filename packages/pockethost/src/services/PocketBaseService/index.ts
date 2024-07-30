@@ -1,7 +1,6 @@
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
-import { gobot } from 'gobot'
 import MemoryStream from 'memorystream'
 import { gte } from 'semver'
 import { EventEmitter } from 'stream'
@@ -21,6 +20,7 @@ import {
   mkSingleton,
   tryFetch,
 } from '../../../core'
+import { GobotService } from '../GobotService'
 import { PortService } from '../PortService'
 
 export type Env = { [_: string]: string }
@@ -55,6 +55,7 @@ export const createPocketbaseService = async (
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
+  const { gobot } = GobotService()
   const bot = await gobot(`pocketbase`, { os: 'linux' })
   const maxVersion = (await bot.versions())[0]
   if (!maxVersion) {
