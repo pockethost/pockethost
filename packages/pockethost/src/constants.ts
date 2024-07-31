@@ -83,7 +83,7 @@ export const SETTINGS = {
   PH_PLUGINS: mkCsvString([`@pockethost/plugin-console-logger`]),
   UPGRADE_MODE: mkBoolean(false),
 
-  PH_HOME: mkPath(_PH_HOME),
+  PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
 
   DEBUG: mkBoolean(_IS_DEV),
