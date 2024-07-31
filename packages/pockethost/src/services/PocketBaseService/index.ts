@@ -47,7 +47,7 @@ export type PocketbaseProcess = {
   exitCode: Promise<number>
 }
 
-const INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
+export const DOCKER_INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
 
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig,
@@ -141,7 +141,7 @@ export const createPocketbaseService = async (
       }
 
       const createOptions: ContainerCreateOptions = {
-        Image: INSTANCE_IMAGE_NAME,
+        Image: DOCKER_INSTANCE_IMAGE_NAME,
         Env: map(
           {
             ...env,
@@ -194,7 +194,7 @@ export const createPocketbaseService = async (
 
       const emitter = docker
         .run(
-          INSTANCE_IMAGE_NAME,
+          DOCKER_INSTANCE_IMAGE_NAME,
           [''], // Supplied by createOptions
           [stdout, stderr],
           createOptions,

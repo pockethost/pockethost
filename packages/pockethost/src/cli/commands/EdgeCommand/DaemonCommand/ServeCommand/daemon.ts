@@ -1,3 +1,4 @@
+import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
 import { LoggerService } from '../../../../../common'
 import {
@@ -8,6 +9,7 @@ import {
   tryFetch,
 } from '../../../../../core'
 import {
+  DOCKER_INSTANCE_IMAGE_NAME,
   MothershipAdminClientService,
   PocketbaseService,
   PortService,
@@ -20,6 +22,22 @@ export async function daemon() {
   const logger = LoggerService().create(`EdgeDaemonCommand`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
+
+  const docker = new Dockerode()
+
+  // Stop all running containers
+  info(`Stopping all running Docker containers`)
+  const containers = await docker.listContainers({ all: true })
+  await Promise.all(
+    containers.map(async (container) => {
+      if (
+        container.State === 'running' &&
+        container.Image === DOCKER_INSTANCE_IMAGE_NAME
+      ) {
+        await docker.getContainer(container.Id).stop()
+      }
+    }),
+  )
 
   await PortService({})
   await PocketbaseService({})
