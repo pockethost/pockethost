@@ -8,7 +8,7 @@ import {
   mkSingleton,
 } from '../../../../../common'
 import {
-  MOTHERSHIP_INTERNAL_URL,
+  MOTHERSHIP_URL,
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
   PH_FTP_PASV_PORT_MIN,
@@ -67,7 +67,7 @@ export function virtualFolderGuard(
 export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
   const { mothershipUrl } = mergeConfig(
     {
-      mothershipUrl: MOTHERSHIP_INTERNAL_URL(),
+      mothershipUrl: MOTHERSHIP_URL(),
     },
     config,
   )

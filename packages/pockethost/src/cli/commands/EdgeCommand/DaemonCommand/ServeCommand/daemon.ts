@@ -3,7 +3,7 @@ import { LoggerService } from '../../../../../common'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
-  MOTHERSHIP_INTERNAL_URL,
+  MOTHERSHIP_URL,
   discordAlert,
   tryFetch,
 } from '../../../../../core'
@@ -24,19 +24,19 @@ export async function daemon() {
   await PortService({})
   await PocketbaseService({})
 
-  await tryFetch(`${MOTHERSHIP_INTERNAL_URL(`/api/health`)}`, {})
+  await tryFetch(`${MOTHERSHIP_URL(`/api/health`)}`, {})
 
   info(`Serving`)
 
   /** Launch services */
   await MothershipAdminClientService({
-    url: MOTHERSHIP_INTERNAL_URL(),
+    url: MOTHERSHIP_URL(),
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
 
   await proxyService({
-    coreInternalUrl: MOTHERSHIP_INTERNAL_URL(),
+    coreInternalUrl: MOTHERSHIP_URL(),
   })
   await realtimeLog({})
   await instanceService({

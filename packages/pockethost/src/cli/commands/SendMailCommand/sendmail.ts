@@ -6,7 +6,6 @@ import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_DATA_DB,
-  MOTHERSHIP_INTERNAL_URL,
   MOTHERSHIP_URL,
   TEST_EMAIL,
 } from '../../../core'
@@ -51,7 +50,7 @@ export const sendMail = async () => {
 
       info(MOTHERSHIP_URL())
 
-      const client = new PocketBase(MOTHERSHIP_INTERNAL_URL())
+      const client = new PocketBase(MOTHERSHIP_URL())
       await client.admins.authWithPassword(
         MOTHERSHIP_ADMIN_USERNAME(),
         MOTHERSHIP_ADMIN_PASSWORD(),

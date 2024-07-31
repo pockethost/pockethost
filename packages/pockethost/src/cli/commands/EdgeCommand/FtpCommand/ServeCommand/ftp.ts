@@ -1,5 +1,5 @@
 import { LoggerService } from '../../../../../common'
-import { MOTHERSHIP_INTERNAL_URL, tryFetch } from '../../../../../core'
+import { MOTHERSHIP_URL, tryFetch } from '../../../../../core'
 import { ftpService } from '../FtpService'
 
 export async function ftp() {
@@ -7,9 +7,9 @@ export async function ftp() {
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
-  await tryFetch(`${MOTHERSHIP_INTERNAL_URL(`/api/health`)}`, {})
+  await tryFetch(`${MOTHERSHIP_URL(`/api/health`)}`, {})
 
   await ftpService({
-    mothershipUrl: MOTHERSHIP_INTERNAL_URL(),
+    mothershipUrl: MOTHERSHIP_URL(),
   })
 }

@@ -98,11 +98,7 @@ export const SETTINGS = {
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 60 * 5), // 5 minutes
 
-  MOTHERSHIP_URL: mkString(
-    `${_HTTP_PROTOCOL}//${_MOTHERSHIP_NAME}.${_APEX_DOMAIN}`,
-  ),
   MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
-  MOTHERSHIP_INTERNAL_HOST: mkString(`localhost`),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
   PH_MOTHERSHIP_APP_ROOT: mkString(_MOTHERSHIP_APP_ROOT()),
@@ -224,9 +220,15 @@ export const IPCIDR_LIST = () => settings().IPCIDR_LIST
 export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
-export const MOTHERSHIP_URL = () => settings().MOTHERSHIP_URL
-export const MOTHERSHIP_INTERNAL_HOST = () =>
-  settings().MOTHERSHIP_INTERNAL_HOST
+export const MOTHERSHIP_URL = (...path: string[]) =>
+  join(
+    env
+      .get('MOTHERSHIP_URL')
+      .default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}:${APEX_DOMAIN()}`)
+      .asString(),
+    ...path,
+  )
+
 export const MOTHERSHIP_NAME = () => settings().MOTHERSHIP_NAME
 export const MOTHERSHIP_ADMIN_USERNAME = () =>
   settings().MOTHERSHIP_ADMIN_USERNAME
@@ -286,8 +288,6 @@ export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
   join(INSTANCE_DATA_ROOT(MOTHERSHIP_NAME()), ...paths)
 export const MOTHERSHIP_DATA_DB = () =>
   join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
-export const MOTHERSHIP_INTERNAL_URL = (path = '') =>
-  `http://${MOTHERSHIP_INTERNAL_HOST()}:${MOTHERSHIP_PORT()}${path}`
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
 export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
