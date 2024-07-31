@@ -27,6 +27,5 @@ onModelBeforeUpdate((e) => {
     newModel.set(`welcome`, new DateTime())
   } catch (e) {
     audit(`ERROR`, `${e}`, { log, dao, extra: { user: newModel.getId() } })
-    throw e
   }
 }, 'users')
