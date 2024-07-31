@@ -20,6 +20,7 @@ export type InstanceSecretCollection = {
 }
 
 export type InstanceFields = BaseFields & {
+  region: string
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
