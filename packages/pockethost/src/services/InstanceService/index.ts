@@ -17,7 +17,6 @@ import {
   InstanceStatus,
   LoggerService,
   SingletonBaseConfig,
-  UPGRADE_MODE,
   asyncExitHook,
   createCleanupManager,
   createTimerManager,
@@ -327,18 +326,10 @@ export const instanceService = mkSingleton(
         const childProcess = await (async () => {
           try {
             const cp = await pbService.spawn(spawnArgs)
-
             return cp
           } catch (e) {
             warn(`Error spawning: ${e}`)
             userInstanceLogger.error(`Error spawning: ${e}`)
-            if (UPGRADE_MODE()) {
-              // Noop
-            } else {
-              updateInstance(instance.id, {
-                maintenance: true,
-              })
-            }
             throw new Error(
               `Could not launch container. Instance has been placed in maintenance mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
@@ -347,19 +338,6 @@ export const instanceService = mkSingleton(
         const { exitCode } = childProcess
         exitCode.then((code) => {
           info(`Processes exited with ${code}.`)
-          if (code !== 0 && !UPGRADE_MODE()) {
-            shutdownManager.add(async () => {
-              userInstanceLogger.error(
-                `Putting instance in maintenance mode because it shut down with return code ${code}. `,
-              )
-              error(
-                `Putting instance in maintenance mode because it shut down with return code ${code}. `,
-              )
-              updateInstance(instance.id, {
-                maintenance: true,
-              })
-            })
-          }
           setImmediate(() => {
             _safeShutdown().catch(error)
           })
