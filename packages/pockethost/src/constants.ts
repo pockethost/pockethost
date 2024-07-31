@@ -85,8 +85,6 @@ export const SETTINGS = {
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
 
-  DEBUG: mkBoolean(_IS_DEV),
-
   HTTP_PROTOCOL: mkString(_HTTP_PROTOCOL),
   APP_NAME: mkString(_APP_NAME),
   APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APP_NAME}.${_APEX_DOMAIN}`),
@@ -159,7 +157,7 @@ export const DefaultSettingsService = mkSingleton(
 
     ioc.register('settings', _settings)
 
-    if (ioc.service('settings').DEBUG) {
+    if (DEBUG()) {
       logConstants()
     }
 
@@ -203,7 +201,8 @@ export const PH_PLUGINS = () => settings().PH_PLUGINS
 export const PH_HOME = () => settings().PH_HOME
 export const PH_PROJECT_ROOT = () => settings().PH_PROJECT_ROOT
 
-export const DEBUG = () => settings().DEBUG
+export const DEBUG = () =>
+  env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
 export const APP_URL = () => settings().APP_URL
