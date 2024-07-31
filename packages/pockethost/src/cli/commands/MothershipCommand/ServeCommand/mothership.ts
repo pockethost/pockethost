@@ -56,8 +56,18 @@ export async function mothership(cfg: MothershipConfig) {
     LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
   }
   dbg(env)
+
+  const options: Partial<GobotOptions> = {
+    version: MOTHERSHIP_SEMVER(),
+    env,
+  }
+  dbg(`options`, options)
+  const { gobot } = GobotService()
+  const bot = await gobot(`pocketbase`, options)
+
   await rimraf(MOTHERSHIP_DATA_ROOT(`pb_hooks`))
   await _copy(MOTHERSHIP_HOOKS_DIR(`**/*`), MOTHERSHIP_DATA_ROOT(`pb_hooks`))
+  await _copy(bot.cachePath(`versions.cjs`), MOTHERSHIP_DATA_ROOT(`pb_hooks`))
   await rimraf(MOTHERSHIP_DATA_ROOT(`pb_migrations`))
   await _copy(
     MOTHERSHIP_MIGRATIONS_DIR(`**/*`),
@@ -80,13 +90,6 @@ export async function mothership(cfg: MothershipConfig) {
   if (IS_DEV()) {
     args.push(`--dev`)
   }
-  const options: Partial<GobotOptions> = {
-    version: MOTHERSHIP_SEMVER(),
-    env,
-  }
   dbg(`args`, args)
-  dbg(`options`, options)
-  const { gobot } = GobotService()
-  const bot = await gobot(`pocketbase`, options)
   bot.run(args, { env })
 }

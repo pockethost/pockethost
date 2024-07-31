@@ -1,10 +1,10 @@
 import { writeFileSync } from 'fs'
-import { gobot } from 'gobot'
 import {
+  LoggerService,
   MOTHERSHIP_DATA_ROOT,
-  MOTHERSHIP_HOOKS_DIR,
   stringify,
-} from '../../../../core'
+} from '../../../../../core'
+import { GobotService } from '../../../../services/GobotService'
 
 function compareSemVer(a: string, b: string): number {
   // Consider wildcards as higher than any version number, hence represented by a large number for comparison
@@ -54,12 +54,27 @@ function expandAndSortSemVers(semvers: string[]): string[] {
 }
 
 export async function freshenPocketbaseVersions() {
+  const { info } = LoggerService().create(`freshenPocketbaseVersions`)
+
+  const { gobot } = await GobotService()
+
+  info(`Updating pocketbase`)
   const bot = await gobot(`pocketbase`)
   await bot.update()
+  await bot.download()
   const rawVersions = await bot.versions()
   const versions = expandAndSortSemVers(rawVersions)
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
-  writeFileSync(MOTHERSHIP_DATA_ROOT(`pb_hooks`, `versions.cjs`), cjs)
-  writeFileSync(MOTHERSHIP_HOOKS_DIR(`versions.cjs`), cjs)
+
+  {
+    const path = MOTHERSHIP_DATA_ROOT(`pb_hooks`, `versions.cjs`)
+    info(`Writing to ${path}`)
+    writeFileSync(path, cjs)
+  }
+  {
+    const path = bot.cachePath(`versions.cjs`)
+    info(`Writing to ${path}`)
+    writeFileSync(path, cjs)
+  }
   return cjs
 }
