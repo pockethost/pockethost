@@ -127,7 +127,6 @@ export const SETTINGS = {
 
   EDGE_SASS_DOMAINS_AUTH_TOKEN: mkString(``),
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
-  EDGE_MAX_ACTIVE_INSTANCES: mkNumber(20),
 
   PH_INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
   INSTANCE_APP_HOOKS_DIR: mkPath(_INSTANCE_APP_ROOT(`pb_hooks`), {
@@ -256,8 +255,6 @@ export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
 export const EDGE_SASS_DOMAINS_AUTH_TOKEN = () =>
   settings().EDGE_SASS_DOMAINS_AUTH_TOKEN
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
-export const EDGE_MAX_ACTIVE_INSTANCES = () =>
-  settings().EDGE_MAX_ACTIVE_INSTANCES
 
 export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
 export const INSTANCE_APP_MIGRATIONS_DIR = () =>
