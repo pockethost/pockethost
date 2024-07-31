@@ -1,10 +1,6 @@
-import { default as env } from 'env-var'
 import { GobotOptions, gobot } from 'gobot'
 import { mkSingleton } from '../common'
 import { PH_GOBOT_ROOT } from '../constants'
-
-export const PH_GOBOT_VERBOSITY = () =>
-  env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
 
 export const GobotService = mkSingleton(() => {
   return {

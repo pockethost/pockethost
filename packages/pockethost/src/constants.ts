@@ -279,6 +279,9 @@ export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
 export const PH_GOBOT_ROOT = (...paths: string[]) =>
   join(settings().PH_GOBOT_ROOT, ...paths)
 
+export const PH_GOBOT_VERBOSITY = () =>
+  env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
+
 /** Helpers */
 
 export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
@@ -303,7 +306,56 @@ export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
   join(settings().DATA_ROOT, instanceId, ...path)
 
 export const logConstants = () => {
-  forEach(settings(), (v, k) => {
-    console.log(`${k}: ${v}`)
+  const vars = {
+    DEBUG,
+    PH_PLUGINS,
+    PH_HOME,
+    PH_PROJECT_ROOT,
+    HTTP_PROTOCOL,
+    APP_URL,
+    APP_NAME,
+    BLOG_URL,
+    DOCS_URL,
+    APEX_DOMAIN,
+    IPCIDR_LIST,
+    DAEMON_PORT,
+    DAEMON_PB_IDLE_TTL,
+    MOTHERSHIP_URL,
+    MOTHERSHIP_NAME,
+    MOTHERSHIP_ADMIN_USERNAME,
+    MOTHERSHIP_ADMIN_PASSWORD,
+    MOTHERSHIP_MIGRATIONS_DIR,
+    MOTHERSHIP_HOOKS_DIR,
+    MOTHERSHIP_APP_DIR,
+    MOTHERSHIP_SEMVER,
+    INITIAL_PORT_POOL_SIZE,
+    DATA_ROOT,
+    NODE_ENV,
+    IS_DEV,
+    TRACE,
+    PH_FTP_PORT,
+    SSL_KEY,
+    SSL_CERT,
+    PH_FTP_PASV_IP,
+    PH_FTP_PASV_PORT_MIN,
+    PH_FTP_PASV_PORT_MAX,
+    EDGE_SASS_DOMAINS_AUTH_TOKEN,
+    EDGE_APEX_DOMAIN,
+    INSTANCE_APP_HOOK_DIR,
+    INSTANCE_APP_MIGRATIONS_DIR,
+    DISCORD_POCKETSTREAM_URL,
+    DISCORD_ALERT_CHANNEL_URL,
+    TEST_EMAIL,
+    LS_WEBHOOK_SECRET,
+    SYSLOGD_PORT,
+    DISCORD_HEALTH_CHANNEL_URL,
+    DOCKER_CONTAINER_HOST,
+    PH_GOBOT_ROOT,
+    MOTHERSHIP_DATA_ROOT,
+    MOTHERSHIP_DATA_DB,
+    PH_GOBOT_VERBOSITY,
+  }
+  forEach(vars, (v, k) => {
+    console.log(`${k}: ${v()}`)
   })
 }
