@@ -296,10 +296,12 @@ export const mkContainerHomePath = (...path: string[]) =>
 export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
 export const mkBlogUrl = (path = '') => `${BLOG_URL()}${path}`
 export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))
-export const mkEdgeSubdomain = (subdomain: string) =>
-  `${settings().HTTP_PROTOCOL}//${subdomain}.${settings().EDGE_APEX_DOMAIN}`
-export const mkEdgeUrl = (subdomain: string, path = '') =>
-  `${mkEdgeSubdomain(subdomain)}${path}`
+export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
+  `${instance.id}.${instance.region}.${APEX_DOMAIN()}`
+export const mkInstanceHostname = (instance: InstanceFields) =>
+  `${instance.subdomain}.${instance.region}.${APEX_DOMAIN()}`
+export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
+  join(`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}}`, ...paths)
 export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
   join(settings().DATA_ROOT, instanceId, ...path)
 

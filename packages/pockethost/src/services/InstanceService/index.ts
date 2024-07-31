@@ -24,7 +24,7 @@ import {
   mkAppUrl,
   mkContainerHomePath,
   mkDocUrl,
-  mkEdgeUrl,
+  mkInstanceUrl,
   mkInternalUrl,
   mkSingleton,
   now,
@@ -301,7 +301,7 @@ export const instanceService = mkSingleton(
           env: {
             ...instance.secrets,
             PH_APP_NAME: instance.subdomain,
-            PH_INSTANCE_URL: mkEdgeUrl(instance.subdomain),
+            PH_INSTANCE_URL: mkInstanceUrl(instance),
           },
           version,
         }
