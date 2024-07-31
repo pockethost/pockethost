@@ -7,7 +7,7 @@ export async function ftp() {
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
-  await tryFetch(`${MOTHERSHIP_URL(`/api/health`)}`, {})
+  await tryFetch(MOTHERSHIP_URL(`/api/health`), {})
 
   await ftpService({
     mothershipUrl: MOTHERSHIP_URL(),

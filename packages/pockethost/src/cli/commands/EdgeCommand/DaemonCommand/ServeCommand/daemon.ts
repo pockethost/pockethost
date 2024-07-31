@@ -24,7 +24,7 @@ export async function daemon() {
   await PortService({})
   await PocketbaseService({})
 
-  await tryFetch(`${MOTHERSHIP_URL(`/api/health`)}`, {})
+  await tryFetch(MOTHERSHIP_URL(`/api/health`), {})
 
   info(`Serving`)
 
