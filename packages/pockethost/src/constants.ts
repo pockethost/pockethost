@@ -1,7 +1,7 @@
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
 import envPaths from 'env-paths'
-import * as env from 'env-var'
+import { default as env } from 'env-var'
 import { mkdirSync, realpathSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
