@@ -49,6 +49,8 @@ export const _MOTHERSHIP_NAME = env
   .get('MOTHERSHIP_NAME')
   .default('pockethost-central')
   .asString()
+export const MOTHERSHIP_PORT = () =>
+  env.get('MOTHERSHIP_PORT').default(8090).asPortNumber()
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
   join(
@@ -110,7 +112,6 @@ export const SETTINGS = {
     required: false,
   }),
   MOTHERSHIP_SEMVER: mkString('*'),
-  MOTHERSHIP_PORT: mkNumber(8091),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(join(_PH_HOME, 'data')),
@@ -237,7 +238,6 @@ export const MOTHERSHIP_HOOKS_DIR = (...paths: string[]) =>
   join(settings().MOTHERSHIP_HOOKS_DIR, ...paths)
 export const MOTHERSHIP_APP_DIR = () => settings().MOTHERSHIP_APP_DIR
 export const MOTHERSHIP_SEMVER = () => settings().MOTHERSHIP_SEMVER
-export const MOTHERSHIP_PORT = () => settings().MOTHERSHIP_PORT
 
 export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
 export const DATA_ROOT = () => settings().DATA_ROOT
