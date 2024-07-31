@@ -114,7 +114,7 @@ export const SETTINGS = {
   MOTHERSHIP_SEMVER: mkString('*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
-  DATA_ROOT: mkPath(join(_PH_HOME, 'data')),
+  DATA_ROOT: mkPath(join(_PH_HOME, 'data'), { create: true }),
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
   TRACE: mkBoolean(false),
