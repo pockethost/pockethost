@@ -198,7 +198,8 @@ export const instanceLogger = () => ioc.service('instanceLogger')
 /** Accessors */
 export const PH_PLUGINS = () => settings().PH_PLUGINS
 
-export const PH_HOME = () => settings().PH_HOME
+export const PH_HOME = (...paths: string[]) =>
+  join(settings().PH_HOME, ...paths)
 export const PH_PROJECT_ROOT = () => settings().PH_PROJECT_ROOT
 
 export const DEBUG = () =>
