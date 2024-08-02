@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { MirrorCommand } from './MirrorCommand'
 import { SchemaCommand } from './SchemaCommand'
 import { ServeCommand } from './ServeCommand'
 
@@ -11,5 +12,7 @@ export const MothershipCommand = () => {
     .description(`Mothership commands`)
     .addCommand(ServeCommand())
     .addCommand(SchemaCommand())
+    .addCommand(MirrorCommand())
+
   return cmd
 }

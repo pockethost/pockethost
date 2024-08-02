@@ -14,15 +14,15 @@ import {
 } from '../../../../../../core'
 import { MothershipAdminClientService } from '../../../../../services'
 
-export const EdgeMirror = mkSingleton(async () => {
+export type MirrorUserFields = UserFields<WithCredentials>
+export type MirrorInstanceFields = InstanceFields<WithUser<MirrorUserFields>>
+
+export const MirrorService = mkSingleton(async () => {
   const { dbg, info, error } = LoggerService().create(`EdgeMirror`)
 
   info(`Initializing edge mirror`)
   const adminSvc = await MothershipAdminClientService()
   const { client } = adminSvc.client
-
-  type MirrorUserFields = UserFields<WithCredentials>
-  type MirrorInstanceFields = InstanceFields<WithUser<MirrorUserFields>>
 
   const instanceCleanupsById: { [_: InstanceId]: () => void } = {}
   const instancesById: { [_: InstanceId]: InstanceFields | undefined } = {}
@@ -107,7 +107,7 @@ export const EdgeMirror = mkSingleton(async () => {
     dbg(`Updating instance ${record.subdomain} (${record.id})`)
   }
 
-  function getItem(host: string): MirrorInstanceFields | null {
+  function getInstanceByHost(host: string): MirrorInstanceFields | null {
     const instance = instancesByHostName[host]
     if (!instance) return null
     const user = usersById[instance.uid]
@@ -119,5 +119,5 @@ export const EdgeMirror = mkSingleton(async () => {
     return { ...instance, expand: { uid: user } }
   }
 
-  return { getItem }
+  return { getInstanceByHost }
 })

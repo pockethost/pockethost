@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { startInstanceMirrorServer } from './server'
+import { startMothershipMirrorServer } from './server'
 
 type Options = {
   debug: boolean
@@ -7,9 +7,9 @@ type Options = {
 
 export const ServeCommand = () => {
   const cmd = new Command(`serve`)
-    .description(`Run an edge cache server`)
+    .description(`Run a mothership mirror`)
     .action(async (options: Options) => {
-      await startInstanceMirrorServer()
+      await startMothershipMirrorServer()
     })
   return cmd
 }

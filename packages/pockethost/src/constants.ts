@@ -280,7 +280,7 @@ export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
 export const PH_GOBOT_ROOT = (...paths: string[]) =>
   join(settings().PH_GOBOT_ROOT, ...paths)
 
-export const PH_EDGE_MIRROR_PORT = () =>
+export const PH_MOTHERSHIP_MIRROR_PORT = () =>
   env.get('PH_EDGE_MIRROR_PORT').default(3001).asPortNumber()
 
 export const PH_GOBOT_VERBOSITY = () =>
@@ -357,7 +357,7 @@ export const logConstants = () => {
     PH_GOBOT_ROOT,
     MOTHERSHIP_DATA_ROOT,
     MOTHERSHIP_DATA_DB,
-    PH_EDGE_MIRROR_PORT,
+    PH_EDGE_MIRROR_PORT: PH_MOTHERSHIP_MIRROR_PORT,
     PH_GOBOT_VERBOSITY,
   }
   forEach(vars, (v, k) => {
