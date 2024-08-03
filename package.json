@@ -1,15 +1,10 @@
 {
   "name": "pockethost-root",
-  "version": "0.11.0",
   "author": {
     "name": "Ben Allfree",
     "url": "https://github.com/benallfree"
   },
   "license": "MIT",
-  "main": "dist/index.mjs",
-  "bin": {
-    "pockethost": "dist/index.mjs"
-  },
   "scripts": {
     "check:types": "concurrently 'pnpm:check:types:*'",
     "check:types:dashboard": "cd packages/dashboard && pnpm check:types",
