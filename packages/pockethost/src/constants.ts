@@ -261,19 +261,17 @@ export const INSTANCE_APP_MIGRATIONS_DIR = () =>
   settings().INSTANCE_APP_MIGRATIONS_DIR
 
 export const DISCORD_POCKETSTREAM_URL = () =>
-  settings().DISCORD_POCKETSTREAM_URL
-
+  env.get('DISCORD_POCKETSTREAM_URL').asString()
+export const DISCORD_HEALTH_CHANNEL_URL = () =>
+  env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
 export const DISCORD_ALERT_CHANNEL_URL = () =>
-  settings().DISCORD_ALERT_CHANNEL_URL
+  env.get('DISCORD_ALERT_CHANNEL_URL').asString()
 
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
 
 export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
-
-export const DISCORD_HEALTH_CHANNEL_URL = () =>
-  settings().DISCORD_HEALTH_CHANNEL_URL
 
 export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
 
