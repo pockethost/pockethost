@@ -41,6 +41,6 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "@pockethost/plugin-console-logger": "link:../plugin-console-logger"
+    "@pockethost/plugin-console-logger": "workspace:*"
   }
 }

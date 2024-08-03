@@ -39,6 +39,6 @@
     "svelte-preprocess": "^5.0.4",
     "tailwindcss": "^3.3.3",
     "vite": "^4.4.9",
-    "@pockethost/plugin-console-logger": "link:../plugin-console-logger"
+    "@pockethost/plugin-console-logger": "workspace:*"
   }
 }
