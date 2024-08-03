@@ -16,6 +16,9 @@ export const checkHealth = async () => {
   const { cpu, drive } = osu
 
   const DISCORD_URL = DISCORD_HEALTH_CHANNEL_URL()
+  if (!DISCORD_URL) {
+    throw new Error('DISCORD_HEALTH_CHANNEL_URL not set')
+  }
 
   const { dbg, error, info, warn } = LoggerService().create('edge-health.ts')
 
