@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 import { program } from 'commander'
 import EventSource from 'eventsource'
