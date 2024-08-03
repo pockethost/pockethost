@@ -15,8 +15,7 @@
   "scripts": {
     "check:types": "tsc --noEmit ",
     "dev": "NODE_ENV=development tsx ./src/cli/index.ts",
-    "start": "tsx ./src/cli/index.ts",
-    "mail": "tsx ./src/cli/sendmail.ts"
+    "start": "tsx ./src/cli/index.ts"
   },
   "dependencies": {
     "@pockethost/plugin-console-logger": "workspace:*",
