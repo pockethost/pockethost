@@ -1,6 +1,6 @@
 branch="$(git rev-parse --abbrev-ref HEAD)"
-if [ "$branch" = "master" ]; then
-  pnpm check:types
-  pnpm build-frontends
+if [ "$branch" = "v0/main" ]; then
+  pnpm -r check:types
+  pnpm -r build
 fi
 
