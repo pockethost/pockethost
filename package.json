@@ -37,17 +37,6 @@
     "gobot:update": "gobot update pocketbase",
     "prepare": "husky"
   },
-  "prettier": {
-    "semi": false,
-    "useTabs": false,
-    "singleQuote": true,
-    "trailingComma": "all",
-    "plugins": [
-      "./node_modules/prettier-plugin-organize-imports/index.js",
-      "./node_modules/prettier-plugin-svelte/plugin.js",
-      "./node_modules/prettier-plugin-jsdoc/dist/index.js"
-    ]
-  },
   "type": "module",
   "devDependencies": {
     "@changesets/cli": "^2.27.5",
