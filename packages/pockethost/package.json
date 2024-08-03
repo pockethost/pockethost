@@ -14,12 +14,11 @@
   },
   "scripts": {
     "check:types": "tsc --noEmit ",
-    "dev": "NODE_ENV=development dotenvx run -f ../../.env -- tsx ./src/cli/index.ts",
-    "start": "dotenvx run -f ../../.env -- tsx ./src/cli/index.ts",
-    "mail": "dotenvx run -f ../../.env -- tsx ./src/cli/sendmail.ts"
+    "dev": "NODE_ENV=development tsx ./src/cli/index.ts",
+    "start": "tsx ./src/cli/index.ts",
+    "mail": "tsx ./src/cli/sendmail.ts"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^0.44.1",
     "@pockethost/plugin-console-logger": "workspace:*",
     "@s-libs/micro-dash": "^16.1.0",
     "@types/node-os-utils": "^1.3.4",
@@ -34,6 +33,7 @@
     "decompress-unzip": "https://github.com/pockethost/decompress-unzip.git#6ef397b9a2df11d39c7b26ce779e123833844751",
     "devcert": "^1.2.2",
     "dockerode": "^3.3.5",
+    "dotenv": "^16.4.5",
     "env-paths": "^3.0.0",
     "env-var": "^7.5.0",
     "event-source-polyfill": "^1.0.31",

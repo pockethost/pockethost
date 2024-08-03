@@ -1,8 +1,9 @@
 import { forEach } from '@s-libs/micro-dash'
 import devcert from 'devcert'
+import dotenv from 'dotenv'
 import envPaths from 'env-paths'
 import { default as env } from 'env-var'
-import { mkdirSync, realpathSync, writeFileSync } from 'fs'
+import { mkdirSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { LogEntry } from 'winston'
@@ -25,7 +26,10 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const realScriptPath = realpathSync(process.argv[1]!)
+export const PH_PROJECT_ROOT = (...paths: string[]) =>
+  join(__dirname, '..', '..', '..', ...paths)
+
+dotenv.config({ path: [`.env`, PH_PROJECT_ROOT('.env')] })
 
 export const _PH_HOME = env
   .get('PH_HOME')
@@ -35,7 +39,6 @@ export const _PH_HOME = env
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
-export const _PH_PROJECT_ROOT = join(__dirname, '..')
 export const _APEX_DOMAIN = env
   .get('APEX_DOMAIN')
   .default('pockethost.lvh.me')
@@ -81,7 +84,7 @@ export const SETTINGS = {
   PH_PLUGINS: mkCsvString([`@pockethost/plugin-console-logger`]),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
-  PH_PROJECT_ROOT: mkPath(_PH_PROJECT_ROOT),
+  PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
 
   HTTP_PROTOCOL: mkString(_HTTP_PROTOCOL),
   APP_NAME: mkString(_APP_NAME),
@@ -198,7 +201,6 @@ export const PH_PLUGINS = () => settings().PH_PLUGINS
 
 export const PH_HOME = (...paths: string[]) =>
   join(settings().PH_HOME, ...paths)
-export const PH_PROJECT_ROOT = () => settings().PH_PROJECT_ROOT
 
 export const DEBUG = () =>
   env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
