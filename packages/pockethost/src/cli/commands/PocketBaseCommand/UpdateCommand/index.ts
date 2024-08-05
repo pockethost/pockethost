@@ -3,7 +3,7 @@ import { freshenPocketbaseVersions } from './freshenPocketbaseVersions'
 
 export const UpdateCommand = () => {
   const cmd = new Command(`update`)
-    .description(`Update all Gobot dependencies`)
+    .description(`Update PocketBase versions`)
     .action(async (options) => {
       await freshenPocketbaseVersions()
     })

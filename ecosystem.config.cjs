@@ -27,9 +27,9 @@ module.exports = {
       script: 'pnpm prod:cli mothership mirror serve',
     },
     {
-      name: `gobot`,
+      name: `pocketbase-update`,
       restart_delay: 60 * 60 * 1000, // 1 hour
-      script: 'pnpm prod:cli gobot update',
+      script: 'pnpm prod:cli pocketbase update',
     },
     {
       name: `health`,
