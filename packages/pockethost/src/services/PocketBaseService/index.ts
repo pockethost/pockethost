@@ -233,7 +233,11 @@ export const createPocketbaseService = async (
           started = true
           resolve({
             on: emitter.on.bind(emitter),
-            kill: () => container.stop({ signal: `SIGKILL` }).catch(error),
+            kill: () =>
+              container.stop({ signal: `SIGINT` }).catch((e) => {
+                error(e)
+                return container.stop({ signal: `SIGKILL` }).catch(error)
+              }),
           })
         })
     }).catch((e) => {
