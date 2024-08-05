@@ -5,10 +5,6 @@ module.exports = {
       script: 'pnpm prod:cli firewall serve',
     },
     {
-      name: `edge-mirror`,
-      script: 'pnpm prod:cli edge mirror serve',
-    },
-    {
       name: `edge-daemon`,
       script: 'pnpm prod:cli edge daemon serve',
       cron_restart: '0 0 * * *',
@@ -25,6 +21,10 @@ module.exports = {
     {
       name: `mothership`,
       script: 'pnpm prod:cli mothership serve',
+    },
+    {
+      name: `mothership-mirror`,
+      script: 'pnpm prod:cli mothership mirror serve',
     },
     {
       name: `gobot`,
