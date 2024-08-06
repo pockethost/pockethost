@@ -14,9 +14,9 @@ import {
 import { GobotService } from '../services/GobotService'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
-import { GobotCommand } from './commands/GobotCommand'
 import { HealthCommand } from './commands/HealthCommand'
 import { MothershipCommand } from './commands/MothershipCommand'
+import { PocketBaseCommand } from './commands/PocketBaseCommand'
 import { SendMailCommand } from './commands/SendMailCommand'
 import { ServeCommand } from './commands/ServeCommand'
 
@@ -44,7 +44,7 @@ export const main = async () => {
     .addCommand(FirewallCommand())
     .addCommand(SendMailCommand())
     .addCommand(ServeCommand())
-    .addCommand(GobotCommand())
+    .addCommand(PocketBaseCommand())
 
   await program.parseAsync()
 }
