@@ -34,8 +34,12 @@ export async function daemon() {
         container.State === 'running' &&
         container.Image === DOCKER_INSTANCE_IMAGE_NAME
       ) {
-        await docker.getContainer(container.Id).stop()
-        info(`Stopped ${container.Id}`)
+        try {
+          await docker.getContainer(container.Id).stop()
+          info(`Stopped ${container.Id}`)
+        } catch (e) {
+          warn(`Failed to stop ${container.Id}, but that's probably OK`, e)
+        }
       }
     }),
   )
