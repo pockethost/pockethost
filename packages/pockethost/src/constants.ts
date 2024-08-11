@@ -305,7 +305,10 @@ export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
 export const mkInstanceHostname = (instance: InstanceFields) =>
   `${instance.subdomain}.${instance.region}.${APEX_DOMAIN()}`
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
-  join(`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}}`, ...paths)
+  [
+    `${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`,
+    paths.length ? join(...paths) : '',
+  ].join('')
 export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
   join(settings().DATA_ROOT, instanceId, ...path)
 
