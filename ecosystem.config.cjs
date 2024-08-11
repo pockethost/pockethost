@@ -32,9 +32,14 @@ module.exports = {
       script: 'pnpm prod:cli pocketbase update',
     },
     {
-      name: `health`,
+      name: `health-check`,
       restart_delay: 60 * 1000, // 1 minute
-      script: 'pnpm prod:cli health',
+      script: 'pnpm prod:cli health check',
+    },
+    {
+      name: `health-compact`,
+      restart_delay: 60 * 1000, // 1 minute
+      script: 'pnpm prod:cli health compact',
     },
   ],
 }
