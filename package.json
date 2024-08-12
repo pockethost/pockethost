@@ -15,8 +15,7 @@
     "prod:cli": "cd packages/pockethost && pnpm start",
     "plop": "plop --no-progress",
     "nofile": "cat /proc/sys/fs/file-nr",
-    "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts",
-    "prepare": "husky"
+    "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts"
   },
   "type": "module",
   "devDependencies": {
