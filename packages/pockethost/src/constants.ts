@@ -301,9 +301,9 @@ export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
 export const mkBlogUrl = (path = '') => `${BLOG_URL()}${path}`
 export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))
 export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
-  `${instance.id}.${instance.region}.${APEX_DOMAIN()}`
+  (instance.cname_active && instance.cname) || `${instance.id}.${APEX_DOMAIN()}`
 export const mkInstanceHostname = (instance: InstanceFields) =>
-  `${instance.subdomain}.${instance.region}.${APEX_DOMAIN()}`
+  `${instance.subdomain}.${APEX_DOMAIN()}`
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
   [
     `${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`,
