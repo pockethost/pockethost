@@ -30,8 +30,6 @@ export const checkHealth = async () => {
         .toString()
         .split(`\n`)
 
-    const openFiles = _exec(`lsof -n | awk '$4 ~ /^[0-9]/ {print}'`)
-
     type DockerPs = {
       Command: string
       CreatedAt: string
@@ -153,6 +151,8 @@ export const checkHealth = async () => {
         ),
       )
 
+    const openFiles = _exec(`cat /proc/sys/fs/file-nr`)[0]?.trim() || `Unknown`
+
     await send([
       `===================`,
       `Server: SFO-1`,
@@ -164,7 +164,7 @@ export const checkHealth = async () => {
       `Free Storage /mnt/pockethost: ${
         (await drive.info(`/mnt/pockethost`)).freeGb
       }GB`,
-      `Open files: ${openFiles.length}`,
+      `Open files: ${openFiles}`,
       `Containers: ${containers.length}`,
     ])
 
