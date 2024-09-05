@@ -75,6 +75,7 @@ export class PhFs implements FileSystem {
       ? normalize(resolvedPath)
       : join('/', this.cwd, resolvedPath)
 
+    console.log(`***joinedPath`, { joinedPath })
     // Create local filesystem path using the platform separator
     const [empty, subdomain, virtualRootFolderName, ...pathFromRootFolder] =
       joinedPath.split('/')
@@ -95,6 +96,7 @@ export class PhFs implements FileSystem {
 
     // Check if the instance is valid
     const instance = await (async () => {
+      console.log(`***checking validity`, { subdomain })
       if (subdomain) {
         const instance = await this.client
           .collection(`instances`)

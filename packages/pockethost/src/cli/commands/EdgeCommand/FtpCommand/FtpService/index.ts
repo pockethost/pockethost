@@ -91,7 +91,7 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
   ftpServer.on(
     'login',
     async ({ connection, username, password }, resolve, reject) => {
-      dbg(`Got a connection`)
+      dbg(`Got a connection with credentials ${username}:${password}`)
       dbg(`Finding ${mothershipUrl}`)
       const client = new PocketBase(mothershipUrl)
       try {
