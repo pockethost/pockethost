@@ -16,7 +16,7 @@ import {
 import { PortService } from '../../../../services'
 import { GobotService } from '../../../../services/GobotService'
 
-export type MothershipConfig = { isolate: boolean }
+export type MothershipConfig = {}
 
 const _copy = (src: string, dst: string) => {
   const { error } = LoggerService().create(`copy`)
@@ -40,12 +40,9 @@ const _copy = (src: string, dst: string) => {
 }
 
 export async function mothership(cfg: MothershipConfig) {
-  const { isolate } = cfg
   const logger = LoggerService().create(`Mothership`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
-
-  dbg(`Isolation mode:`, { isolate })
 
   await PortService({})
 
