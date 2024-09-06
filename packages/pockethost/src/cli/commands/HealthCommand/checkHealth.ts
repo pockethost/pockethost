@@ -155,7 +155,6 @@ export const checkHealth = async () => {
 
     await send([
       `===================`,
-      `Server: SFO-1`,
       `${new Date()}`,
       `CPUs: ${cpu.count()}`,
       `CPU Usage: ${await cpu.usage()}%`,
