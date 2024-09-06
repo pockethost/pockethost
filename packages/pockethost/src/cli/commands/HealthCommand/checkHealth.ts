@@ -161,8 +161,8 @@ export const checkHealth = async () => {
       `CPU Usage: ${await cpu.usage()}%`,
       `Free RAM: ${getFreeMemoryInGB()}GB`,
       `Free Storage /: ${(await drive.info(`/`)).freeGb}GB`,
-      `Free Storage /mnt/pockethost: ${
-        (await drive.info(`/mnt/pockethost`)).freeGb
+      `Free Storage /mnt/sfo_data: ${
+        (await drive.info(`/mnt/sfo_data`)).freeGb
       }GB`,
       `Open files: ${openFiles}`,
       `Containers: ${containers.length}`,
