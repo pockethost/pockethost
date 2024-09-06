@@ -331,7 +331,7 @@ export const instanceService = mkSingleton(
             warn(`Error spawning: ${e}`)
             userInstanceLogger.error(`Error spawning: ${e}`)
             throw new Error(
-              `Could not launch container. Instance has been placed in maintenance mode. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
+              `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support`,
             )
           }
         })()
