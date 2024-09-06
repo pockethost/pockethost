@@ -3,6 +3,7 @@ name: Publish Dashboard to Cloudflare Pages
 on:
   push:
     paths:
+      - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
 
 env:
@@ -33,8 +34,7 @@ jobs:
       - name: Prepare build
         run: |
           pnpm i
-          pnpm lint
-          cd dashboard
+          cd packages/dashboard
           pnpm build
 
       - name: Expose git commit data
