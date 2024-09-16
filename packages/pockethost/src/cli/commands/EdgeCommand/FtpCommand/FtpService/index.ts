@@ -22,6 +22,7 @@ import { PhFs } from './PhFs'
 export type FtpConfig = { mothershipUrl: string }
 
 export enum VirtualFolderNames {
+  Cache = `.cache`,
   Data = 'pb_data',
   Public = 'pb_public',
   Migrations = 'pb_migrations',
@@ -29,6 +30,7 @@ export enum VirtualFolderNames {
 }
 
 export enum PhysicalFolderNames {
+  Cache = `.cache`,
   Data = 'pb_data',
   Public = 'pb_public',
   Migrations = 'pb_migrations',
@@ -41,6 +43,7 @@ export const MAINTENANCE_ONLY_FOLDER_NAMES: VirtualFolderNames[] = [
 export const FolderNamesMap: {
   [_ in VirtualFolderNames]: PhysicalFolderNames
 } = {
+  [VirtualFolderNames.Cache]: PhysicalFolderNames.Cache,
   [VirtualFolderNames.Data]: PhysicalFolderNames.Data,
   [VirtualFolderNames.Public]: PhysicalFolderNames.Public,
   [VirtualFolderNames.Migrations]: PhysicalFolderNames.Migrations,
@@ -95,7 +98,14 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
       dbg(`Finding ${mothershipUrl}`)
       const client = new PocketBase(mothershipUrl)
       try {
-        await client.collection('users').authWithPassword(username, password)
+        if (username === `__auth__`) {
+          client.authStore.loadFromCookie(password)
+          if (!client.authStore.isValid) {
+            throw new Error(`Invalid cookie`)
+          }
+        } else {
+          await client.collection('users').authWithPassword(username, password)
+        }
         dbg(`Logged in`)
         const fs = new PhFs(connection, client, _ftpServiceLogger)
         resolve({ fs })
