@@ -33,22 +33,24 @@ export type PathError = {
 const UNIX_SEP_REGEX = /\//g
 const WIN_SEP_REGEX = /\\/g
 
-const checkBun = (virtualPath: string, cwd: string) => {
+const checkBun = (
+  instance: InstanceFields,
+  virtualPath: string,
+  cwd: string,
+) => {
   const [subdomain, maybeImportant, ...rest] = virtualPath
     .split('/')
     .filter((p) => !!p)
-  if (!subdomain) {
-    throw new Error(`Subdomain not found in path: ${virtualPath}`)
-  }
 
   const isImportant =
-    rest.length === 0 &&
-    [`bun.lockb`, `package.json`].includes(maybeImportant || '')
+    maybeImportant === 'patches' ||
+    (rest.length === 0 &&
+      [`bun.lockb`, `package.json`].includes(maybeImportant || ''))
 
   if (isImportant) {
-    const logger = InstanceLogger(subdomain, `exec`, { ttl: 5000 })
+    const logger = InstanceLogger(instance.id, `exec`, { ttl: 5000 })
     logger.info(`${maybeImportant} changed, running bun install`)
-    launchBunInstall(subdomain, virtualPath, cwd).catch(console.error)
+    launchBunInstall(instance, virtualPath, cwd).catch(console.error)
   }
 }
 
@@ -60,7 +62,13 @@ const runBun = (() => {
         new Promise<number | null>((resolve) => {
           const proc = spawn(
             '/root/.bun/bin/bun',
-            ['install', `--no-save`, `--production`, `--ignore-scripts`],
+            [
+              'install',
+              `--no-save`,
+              `--production`,
+              `--ignore-scripts`,
+              `--frozen-lockfile`,
+            ],
             { cwd },
           )
           const tid = setTimeout(() => {
@@ -84,7 +92,7 @@ const runBun = (() => {
 
 const launchBunInstall = (() => {
   const runCache: { [key: string]: { runAgain: boolean } } = {}
-  return async (subdomain: string, virtualPath: string, cwd: string) => {
+  return async (instance: InstanceFields, virtualPath: string, cwd: string) => {
     if (cwd in runCache) {
       runCache[cwd]!.runAgain = true
       return
@@ -92,7 +100,7 @@ const launchBunInstall = (() => {
     runCache[cwd] = { runAgain: true }
     while (runCache[cwd]!.runAgain) {
       runCache[cwd]!.runAgain = false
-      const logger = InstanceLogger(subdomain, `exec`)
+      const logger = InstanceLogger(instance.id, `exec`)
       logger.info(`Launching 'bun install' in ${virtualPath}`)
       await runBun(cwd, logger)
     }
@@ -340,7 +348,7 @@ export class PhFs implements FileSystem {
       const virtualPath = join(this.cwd, fileName)
       dbg(`write(${virtualPath}) closing`)
       stream.end()
-      checkBun(virtualPath, dirname(fsPath))
+      checkBun(instance, virtualPath, dirname(fsPath))
     })
     return {
       stream,
