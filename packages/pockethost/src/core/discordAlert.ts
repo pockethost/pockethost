@@ -6,7 +6,7 @@ const cache: { [_: string]: NodeJS.Timeout } = {}
 export const discordAlert = (message: { toString: () => string }) => {
   const url = DISCORD_ALERT_CHANNEL_URL()
   if (!url) return
-  const m = message.toString()
+  const m = `${message}${message instanceof Error ? `\n${message.stack}` : ''}`
   const isCached = !!cache[m]
   if (isCached) {
     clearTimeout(cache[m])
