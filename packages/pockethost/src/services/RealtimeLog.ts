@@ -32,7 +32,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     const json = await text(req)
     dbg(`JSON payload is`, json)
     const payload = JSON.parse(json)
-    dbg(`Parsed payload is`, parsed)
+    dbg(`Parsed payload is`, payload)
     const { instanceId, auth, n: nInitialRecords } = payload
 
     if (!instanceId) {
@@ -67,7 +67,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     dbg(`Instance is `, instance)
 
     /** Get a database connection */
-    const instanceLogger = InstanceLogger(instanceId, `exec`)
+    const instanceLogger = InstanceLogger(instance.id, `exec`)
 
     /** Start the stream */
     res.writeHead(200, {
