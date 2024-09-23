@@ -5,6 +5,7 @@ import {
   LoggerService,
   asyncExitHook,
   createCleanupManager,
+  discordAlert,
   mergeConfig,
   mkInstanceDataPath,
   stringify,
@@ -103,12 +104,13 @@ export function InstanceLogger(
   const api = {
     info: (msg: string) => {
       resetTtl()
-      dbg(`info: `, msg)
+      info(`info: `, msg)
       logger.info(msg)
     },
     error: (msg: string) => {
       resetTtl()
-      dbg(`error: `, msg)
+      error(`error: `, msg)
+      discordAlert(`error: ${msg}`)
       logger.error(msg)
     },
     tail: (

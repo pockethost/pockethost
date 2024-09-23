@@ -23,10 +23,6 @@ module.exports = {
       script: 'pnpm prod:cli mothership serve',
     },
     {
-      name: `mothership-mirror`,
-      script: 'pnpm prod:cli mothership mirror serve',
-    },
-    {
       name: `pocketbase-update`,
       restart_delay: 60 * 60 * 1000, // 1 hour
       script: 'pnpm prod:cli pocketbase update',

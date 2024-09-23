@@ -59,8 +59,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     /** Validate instance and ownership */
     dbg(`Got a log request for instance ID ${instanceId}`)
     const instance = await client
-      .collection('instances')
-      .getOne<InstanceFields>(instanceId)
+      .collection('instances').getFirstListItem<InstanceFields>(`id = '${instanceId}' || subdomain='${instanceId}'` )
     if (!instance) {
       throw new Error(`instanceId ${instanceId} not found for user ${user.id}`)
     }

@@ -22,6 +22,15 @@ apt-get update
 
 apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+certbot certonly \
+  --dns-cloudflare \
+  --dns-cloudflare-credentials ~/certbot-creds.ini \
+  -d *.sfo-2.pockethost.io \
+  --agree-tos \
+  --no-eff-email \
+  --email xxx@xxxx.com
+
+
 # Create user pockethost with no password
 adduser --disabled-password --gecos "" pockethost
 
