@@ -1,0 +1,5 @@
+---
+'pockethost': patch
+---
+
+Internal refactorings

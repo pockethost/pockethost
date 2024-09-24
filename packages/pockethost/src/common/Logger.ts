@@ -123,20 +123,24 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
     throw new Error(`Fatal error: ${stringify(args)}`)
   }
 
-  const create = (s: string, configOverride?: Partial<LoggerConfig>) =>
+  const create = (name: string, configOverride?: Partial<LoggerConfig>) =>
     createLogger({
       ..._config,
       ...configOverride,
-      pfx: [..._config.pfx, s],
+      pfx: [..._config.pfx, name],
     })
 
-  const breadcrumb = (s: string) => {
-    pfx.push(s)
+  const breadcrumb = (s: string | object) => {
+    if (typeof s === 'string') {
+      pfx.push(s)
+    } else {
+      Object.entries(s).forEach(([k, v]) => pfx.push(`${k}: ${v}`))
+    }
     return api
   }
 
   // Compatibility func
-  const child = (extra: any) => create(stringify(extra))
+  const child = (name: string) => create(name)
 
   const api = {
     raw,
@@ -158,6 +162,8 @@ export const createLogger = (config: Partial<LoggerConfig>) => {
   }
   return api
 }
+
+export type LoggerServiceApi = ReturnType<typeof createLogger>
 
 export const LoggerService = mkSingleton((config: Partial<LoggerConfig> = {}) =>
   createLogger(config),
