@@ -31,5 +31,8 @@ export const HealthCommand = () => {
           await compact()
         }),
     )
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

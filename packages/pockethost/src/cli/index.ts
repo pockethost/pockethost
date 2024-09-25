@@ -11,6 +11,7 @@ import {
   SETTINGS,
   loadPlugins,
 } from '../../core'
+import { version } from '../../package.json'
 import { GobotService } from '../services/GobotService'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
@@ -45,6 +46,12 @@ export const main = async () => {
     .addCommand(SendMailCommand())
     .addCommand(ServeCommand())
     .addCommand(PocketBaseCommand())
+    .action(async () => {
+      const { info, dbg } = LoggerService()
+      info('PocketHost CLI')
+      info(`Version: ${version}`, { version })
+      program.help()
+    })
 
   await program.parseAsync()
 }

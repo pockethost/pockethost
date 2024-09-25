@@ -11,6 +11,8 @@ export const MothershipCommand = () => {
     .description(`Mothership commands`)
     .addCommand(ServeCommand())
     .addCommand(SchemaCommand())
-
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

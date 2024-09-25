@@ -9,5 +9,8 @@ export const DaemonCommand = () => {
   const cmd = new Command(`daemon`)
     .description(`Daemon commands`)
     .addCommand(ServeCommand())
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

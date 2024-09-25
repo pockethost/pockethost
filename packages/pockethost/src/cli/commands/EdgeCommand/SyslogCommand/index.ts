@@ -9,5 +9,8 @@ export const SyslogCommand = () => {
   const cmd = new Command(`syslog`)
     .description(`Syslog commands`)
     .addCommand(ServeCommand())
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

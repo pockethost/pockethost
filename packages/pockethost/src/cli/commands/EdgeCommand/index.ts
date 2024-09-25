@@ -14,5 +14,8 @@ export const EdgeCommand = () => {
     .addCommand(DaemonCommand())
     .addCommand(FtpCommand())
     .addCommand(SyslogCommand())
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

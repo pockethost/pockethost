@@ -9,5 +9,8 @@ export const FirewallCommand = () => {
   const cmd = new Command(`firewall`)
     .description(`Root firewall commands`)
     .addCommand(ServeCommand())
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }
