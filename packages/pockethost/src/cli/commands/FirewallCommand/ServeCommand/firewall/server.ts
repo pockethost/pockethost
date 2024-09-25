@@ -7,7 +7,6 @@ import fs from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
-import { LoggerService } from '../../../../../common'
 import {
   APEX_DOMAIN,
   APP_NAME,
@@ -18,13 +17,13 @@ import {
   MOTHERSHIP_PORT,
   SSL_CERT,
   SSL_KEY,
-  discordAlert,
 } from '../../../../../core'
+import { logger } from '../../../../../core/ioc'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 
 export const firewall = async () => {
-  const { debug } = LoggerService().create(`proxy`)
+  const { dbg, error } = logger()
 
   const PROD_ROUTES = {
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
@@ -49,10 +48,12 @@ export const firewall = async () => {
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
 
   forEach(hostnameRoutes, (target, host) => {
+    dbg(`Creating ${host}->${target}`)
     app.use(createVhostProxyMiddleware(host, target, IS_DEV()))
   })
 
   app.get(`/_api/health`, (req, res, next) => {
+    dbg(`Health check`)
     res.json({ status: 'ok' })
     res.end()
   })
@@ -65,19 +66,19 @@ export const firewall = async () => {
     const method = req.method
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
 
-    debug(`${method} ${fullUrl} -> ${`http://localhost:${DAEMON_PORT()}`}`)
+    dbg(`${method} ${fullUrl} -> ${`http://localhost:${DAEMON_PORT()}`}`)
 
     handler(req, res, next)
   })
 
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    discordAlert(err.toString())
+    error(err)
     res.status(500).send(err.toString())
   }
   app.use(errorHandler)
 
   http.createServer(app).listen(80, () => {
-    console.log('SSL redirect server listening on 80')
+    dbg('SSL redirect server listening on 80')
   })
 
   // HTTPS server options
@@ -88,6 +89,6 @@ export const firewall = async () => {
 
   // Create HTTPS server
   https.createServer(httpsOptions, app).listen(443, () => {
-    console.log('HTTPS server running on port 443')
+    dbg('HTTPS server running on port 443')
   })
 }

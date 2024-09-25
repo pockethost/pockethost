@@ -33,7 +33,7 @@ export const tryFetch = async (
     timeoutMs: TRYFETCH_TIMEOUT_MS,
     ...config,
   }
-  const logger = LoggerService().create(`tryFetch`).breadcrumb(url)
+  const logger = LoggerService().create(`tryFetch`).breadcrumb({ url })
   const { dbg } = logger
   return new Promise<Response>((resolve, reject) => {
     const again = () => setTimeout(_real_tryFetch, retryMs)

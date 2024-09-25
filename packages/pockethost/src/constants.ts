@@ -6,15 +6,11 @@ import { default as env } from 'env-var'
 import { mkdirSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { LogEntry } from 'winston'
 import {
   InstanceFields,
   InstanceId,
-  IoCManager,
   SettingsHandlerFactory,
   SettingsService,
-  UserFields,
-  mkSingleton,
 } from '../core'
 import {
   mkBoolean,
@@ -23,6 +19,7 @@ import {
   mkPath,
   mkString,
 } from './core/Settings'
+import { ioc, settings } from './core/ioc'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -147,54 +144,22 @@ export const SETTINGS = {
   PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
 }
 
-export type Settings = ReturnType<typeof DefaultSettingsService>
+export type Settings = ReturnType<typeof RegisterEnvSettingsService>
 export type SettingsDefinition = {
   [_ in keyof Settings]: SettingsHandlerFactory<Settings[_]>
 }
 
-export const DefaultSettingsService = mkSingleton(
-  (settings: typeof SETTINGS) => {
-    const _settings = SettingsService(settings)
+export const RegisterEnvSettingsService = () => {
+  const _settings = SettingsService(SETTINGS)
 
-    ioc.register('settings', _settings)
+  ioc.register('settings', _settings)
 
-    if (DEBUG()) {
-      logConstants()
-    }
+  if (DEBUG()) {
+    logConstants()
+  }
 
-    return _settings
-  },
-)
-
-export type MothershipProvider = {
-  getAllInstances(): Promise<InstanceFields[]>
-  getInstanceById(id: InstanceId): Promise<[InstanceFields, UserFields] | []>
-  getInstanceBySubdomain(
-    subdomain: InstanceFields['subdomain'],
-  ): Promise<[InstanceFields, UserFields] | []>
-  updateInstance(id: InstanceId, fields: Partial<InstanceFields>): Promise<void>
+  return _settings
 }
-
-type UnsubFunc = () => void
-
-export type InstanceLogProvider = (
-  instanceId: InstanceId,
-  target: string,
-) => {
-  info(msg: string): void
-  error(msg: string): void
-  tail(linesBack: number, data: (line: LogEntry) => void): UnsubFunc
-}
-
-export const ioc = new IoCManager<{
-  settings: Settings
-  mothership: MothershipProvider
-  instanceLogger: InstanceLogProvider
-}>()
-
-export const settings = () => ioc.service('settings')
-export const mothership = () => ioc.service('mothership')
-export const instanceLogger = () => ioc.service('instanceLogger')
 
 /** Accessors */
 export const PH_PLUGINS = () => settings().PH_PLUGINS

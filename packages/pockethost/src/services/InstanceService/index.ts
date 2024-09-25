@@ -72,7 +72,7 @@ export const instanceService = mkSingleton(
     const getInstanceApi = (instance: InstanceFields): Promise<InstanceApi> => {
       const _logger = instanceServiceLogger.create(`getInstanceApi`)
       const { id, subdomain, version } = instance
-      _logger.breadcrumb(`${subdomain}:${id}:${version}`)
+      _logger.breadcrumb({ subdomain, id, version })
       const { dbg, trace } = _logger
       return new Promise<InstanceApi>((resolve, reject) => {
         let maxTries = instanceApiTimeoutMs / instanceApiCheckIntervalMs
@@ -256,7 +256,7 @@ export const instanceService = mkSingleton(
           dbg(`shut down: releasing port`)
           releasePort()
         }, CLEANUP_PRIORITY_LAST)
-        systemInstanceLogger.breadcrumb(`port:${newPort}`)
+        systemInstanceLogger.breadcrumb({ port: newPort })
         dbg(`Found port`)
 
         /*

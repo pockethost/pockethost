@@ -94,7 +94,7 @@ export const createPocketbaseService = async (
       dev,
     } = _cfg
 
-    logger.breadcrumb(subdomain).breadcrumb(instanceId)
+    logger.breadcrumb({ subdomain, instanceId })
     const iLogger = SyslogLogger(instanceId, 'exec')
     cm.add(async () => {
       dbg(`Shutting down iLogger`)
@@ -259,7 +259,7 @@ export const createPocketbaseService = async (
       cm.shutdown().catch(error)
     })
     const url = mkInternalUrl(port)
-    logger.breadcrumb(url)
+    logger.breadcrumb({ url })
     dbg(`Making exit hook for ${url}`)
     const unsub = asyncExitHook(async () => {
       await api.kill()

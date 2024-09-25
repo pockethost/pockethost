@@ -25,7 +25,7 @@ export const SqliteService = mkSingleton((config: SqliteServiceConfig) => {
     filename: string,
   ): Promise<SqliteServiceApi> => {
     const _dbLogger = LoggerService().create(`SqliteService`)
-    _dbLogger.breadcrumb(filename)
+    _dbLogger.breadcrumb({ filename })
     const { dbg, error, abort } = _dbLogger
 
     trace(`Fetching database`, connections)

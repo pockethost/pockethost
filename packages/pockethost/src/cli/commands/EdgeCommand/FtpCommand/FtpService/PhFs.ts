@@ -140,7 +140,6 @@ export class PhFs implements FileSystem {
       ? normalize(resolvedVirtualPath)
       : join('/', this.cwd, resolvedVirtualPath)
 
-    console.log(`***finalVirtualPath`, { finalVirtualPath })
     // Create local filesystem path using the platform separator
     const [empty, subdomain, ...restOfVirtualPath] = finalVirtualPath.split('/')
     dbg({
@@ -154,7 +153,7 @@ export class PhFs implements FileSystem {
 
     // Check if the instance is valid
     const instance = await (async () => {
-      console.log(`***checking validity`, { subdomain })
+      dbg(`checking validity`, { subdomain })
       if (!subdomain) return
       const instance = await this.client
         .collection(`instances`)
@@ -225,8 +224,7 @@ export class PhFs implements FileSystem {
   async list(path = '.') {
     const { dbg, error } = this.log
       .create(`list`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
+      .breadcrumb({ cwd: this.cwd, path })
 
     const { fsPath, instance } = await this._resolvePath(path)
 
@@ -277,9 +275,7 @@ export class PhFs implements FileSystem {
 
     const { dbg, error } = this.log
       .create(`get`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(fileName)
-      .breadcrumb(fsPath)
+      .breadcrumb({ cwd: this.cwd, fileName, fsPath })
     dbg(`get`)
 
     /*
@@ -325,8 +321,7 @@ export class PhFs implements FileSystem {
   ) {
     const { dbg, error } = this.log
       .create(`write`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(fileName)
+      .breadcrumb({ cwd: this.cwd, fileName })
     dbg(`write`)
 
     const { fsPath, clientPath, instance } = await this._resolvePath(fileName)
@@ -362,8 +357,7 @@ export class PhFs implements FileSystem {
   ): Promise<any> {
     const { dbg, error } = this.log
       .create(`read`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(fileName)
+      .breadcrumb({ cwd: this.cwd, fileName })
     dbg(`read`)
 
     const { fsPath, clientPath } = await this._resolvePath(fileName)
@@ -387,8 +381,7 @@ export class PhFs implements FileSystem {
   async delete(path: string) {
     const { dbg, error } = this.log
       .create(`delete`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
+      .breadcrumb({ cwd: this.cwd, path })
     dbg(`delete`)
 
     const { fsPath, instance } = await this._resolvePath(path)
@@ -405,8 +398,7 @@ export class PhFs implements FileSystem {
   async mkdir(path: string) {
     const { dbg, error } = this.log
       .create(`mkdir`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
+      .breadcrumb({ cwd: this.cwd, path })
     dbg(`mkdir`)
 
     const { fsPath } = await this._resolvePath(path)
@@ -417,9 +409,7 @@ export class PhFs implements FileSystem {
   async rename(from: string, to: string) {
     const { dbg, error } = this.log
       .create(`rename`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(from)
-      .breadcrumb(to)
+      .breadcrumb({ cwd: this.cwd, from, to })
     dbg(`rename`)
 
     const { fsPath: fromPath, instance } = await this._resolvePath(from)
@@ -434,9 +424,7 @@ export class PhFs implements FileSystem {
   async chmod(path: string, mode: Mode) {
     const { dbg, error } = this.log
       .create(`chmod`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
-      .breadcrumb(mode.toString())
+      .breadcrumb({ cwd: this.cwd, path, mode })
     dbg(`chmod`)
 
     const { fsPath } = await this._resolvePath(path)

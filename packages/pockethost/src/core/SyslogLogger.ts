@@ -20,8 +20,7 @@ export function SyslogLogger(instanceId: string, target: string) {
 
   const { error, warn } = LoggerService()
     .create('SyslogLogger')
-    .breadcrumb(instanceId)
-    .breadcrumb(target)
+    .breadcrumb({ instanceId, target })
 
   const api = {
     info: (msg: string) => {

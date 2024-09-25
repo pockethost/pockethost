@@ -33,7 +33,9 @@ export function InstanceLogger(
   target: string,
   options: Partial<InstanceLoggerOptions> = {},
 ) {
-  const { dbg, info } = LoggerService().create(instanceId).breadcrumb(target)
+  const { dbg, info } = LoggerService()
+    .create(instanceId)
+    .breadcrumb({ target })
   const { ttl } = mergeConfig<InstanceLoggerOptions>({ ttl: 0 }, options)
 
   dbg({ ttl })
@@ -85,8 +87,7 @@ export function InstanceLogger(
 
   const { error, warn } = LoggerService()
     .create('InstanceLogger')
-    .breadcrumb(instanceId)
-    .breadcrumb(target)
+    .breadcrumb({ instanceId, target })
 
   const resetTtl = (() => {
     let tid: ReturnType<typeof setTimeout>
