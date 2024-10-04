@@ -13,7 +13,6 @@ import {
   MOTHERSHIP_SEMVER,
   mkContainerHomePath,
 } from '../../../../../core'
-import { PortService } from '../../../../services'
 import { GobotService } from '../../../../services/GobotService'
 
 export type MothershipConfig = {}
@@ -43,8 +42,6 @@ export async function mothership(cfg: MothershipConfig) {
   const logger = LoggerService().create(`Mothership`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
-
-  await PortService({})
 
   /** Launch central database */
   info(`Serving`)

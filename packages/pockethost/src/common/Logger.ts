@@ -1,7 +1,5 @@
-/// <require "node">
-
-import { mkSingleton } from '.'
-import { logger } from '../core/ioc'
+import { ioc } from '.'
+import { ConsoleLogger } from './ConsoleLogger'
 
 export type LoggerConfig = {
   level: LogLevelName
@@ -67,6 +65,13 @@ export type Logger = {
   setLevel: (level: LogLevelName) => void
 }
 
-export const LoggerService = mkSingleton((config: Partial<LoggerConfig> = {}) =>
-  logger(),
-)
+export const logger = () => {
+  try {
+    return ioc<Logger>('logger')
+  } catch (e) {
+    console.warn('No logger found, using default console logger')
+    return ioc('logger', new ConsoleLogger({ level: LogLevelName.Debug }))
+  }
+}
+
+export const LoggerService = logger

@@ -1,7 +1,7 @@
 import { exec } from 'child_process'
 import { globSync } from 'glob'
 import { DATA_ROOT } from '../../../../core'
-import { logger } from '../../../core/ioc'
+import { logger } from '../../../common/Logger'
 
 export const compact = async () => {
   const { info } = logger()

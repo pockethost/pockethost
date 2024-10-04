@@ -12,7 +12,6 @@ import {
   DOCKER_INSTANCE_IMAGE_NAME,
   MothershipAdminClientService,
   PocketbaseService,
-  PortService,
   instanceService,
   proxyService,
   realtimeLog,
@@ -44,7 +43,6 @@ export async function daemon() {
     }),
   )
 
-  await PortService({})
   await PocketbaseService({})
 
   await tryFetch(MOTHERSHIP_URL(`/api/health`), {})

@@ -7,6 +7,7 @@ import fs from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
+import { logger } from '../../../../../common/Logger'
 import {
   APEX_DOMAIN,
   APP_NAME,
@@ -18,7 +19,6 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '../../../../../core'
-import { logger } from '../../../../../core/ioc'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 
