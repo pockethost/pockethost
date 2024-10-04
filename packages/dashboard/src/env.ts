@@ -9,7 +9,7 @@ import { InstanceFields } from 'pockethost/common'
 
 // The apex domain of this whole operation.
 export const PUBLIC_APEX_DOMAIN =
-  import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.lvh.me`
+  import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
 
 // The domain name where this dashboard lives
 export const PUBLIC_APP_URL =
