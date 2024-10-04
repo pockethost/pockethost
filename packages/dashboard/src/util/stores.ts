@@ -14,7 +14,7 @@ import { writable } from 'svelte/store'
 
 ioc(
   `logger`,
-  new ConsoleLogger({
+  ConsoleLogger({
     level: PUBLIC_DEBUG ? LogLevelName.Debug : LogLevelName.Info,
   }),
 )
