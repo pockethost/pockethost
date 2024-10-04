@@ -15,21 +15,12 @@
 <AuthStateGuard>
   <div>
     <UserLoggedIn>
-      <MediaQuery query="(max-width: 700px)" let:matches>
-        {#if matches}
-          <MobileNavDrawer>
-            <Navbar />
-          </MobileNavDrawer>
-        {:else}
-          <Navbar />
-        {/if}
-      </MediaQuery>
+      <Navbar />
     </UserLoggedIn>
 
-    <main class="py-10 {$isUserLoggedIn ? `lg:pl-72` : ``}">
+    <main class="">
       <div class="px-4 sm:px-6 lg:px-8">
         <VerifyAccountBar />
-
         <slot />
       </div>
     </main>

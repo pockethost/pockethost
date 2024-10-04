@@ -1,55 +1,48 @@
 <script lang="ts">
-  import Card from '$components/cards/Card.svelte'
-  import CardHeader from '$components/cards/CardHeader.svelte'
-  import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
+  import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-  import { InstanceFields } from 'pockethost/common'
-
-  let arrayOfActiveInstances: InstanceFields[] = []
-  let arrayOfMaintenanceInstances: InstanceFields[] = []
-
-  $: {
-    if ($globalInstancesStore) {
-      arrayOfActiveInstances = values($globalInstancesStore).filter(
-        (app) => !app.maintenance,
-      )
-      arrayOfMaintenanceInstances = values($globalInstancesStore).filter(
-        (app) => app.maintenance,
-      )
-    }
-  }
 </script>
 
-<Card height="h-auto">
-  <CardHeader>Active Instances</CardHeader>
+{#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
+  <div class="card w-80 bg-neutral m-4">
+    <div class="card-body">
+      <div class="card-title">{instance.subdomain}</div>
 
-  <div class="grid mb-24">
-    {#each arrayOfActiveInstances as instance, index}
-      <InstanceRow {instance} {index} />
-    {/each}
+      <div class="flex flex-wrap gap-2">
+        <div class="badge badge-accent badge-outline">
+          Status: &nbsp;<span class="capitalize">{instance.status}</span>
+        </div>
+        <div class="badge badge-accent badge-outline">
+          Version: {instance.version}
+        </div>
 
-    {#if arrayOfActiveInstances.length === 0}
-      <p class="italic">
-        None of your instances are active. Create a new app to use PocketBase!
-      </p>
-    {/if}
+        {#if instance.maintenance}
+          <div class="badge badge-outline border-warning gap-2">
+            <i class="fa-regular fa-triangle-person-digging text-warning"></i>
+            <span class="text-warning">Maintenance Mode</span>
+          </div>
+        {/if}
+      </div>
+      <div class="card-actions">
+        <a href={`/app/instances/${instance.id}`} class="btn btn-primary">
+          <i class="fa-regular fa-circle-info"></i>
+          <span>Details</span>
+        </a>
+
+        <a
+          class="btn btn-secondary"
+          href={INSTANCE_ADMIN_URL(instance)}
+          target="_blank"
+        >
+          <img
+            src="/images/pocketbase-logo.svg"
+            alt="PocketBase Logo"
+            class="w-6"
+          />
+          <span>Admin</span>
+        </a>
+      </div>
+    </div>
   </div>
-
-  <CardHeader>Instances in Maintenance Mode</CardHeader>
-
-  <p class="mb-4 opacity-50">
-    Maintenance Mode will prevent these instances process from running. No
-    requests are processed while your instance is in Maintenance Mode.
-  </p>
-
-  <div class="grid">
-    {#each arrayOfMaintenanceInstances as instance, index}
-      <InstanceRow {instance} {index} />
-    {/each}
-
-    {#if arrayOfMaintenanceInstances.length === 0}
-      <p class="italic">None of your instances in Maintenance Mode</p>
-    {/if}
-  </div>
-</Card>
+{/each}
