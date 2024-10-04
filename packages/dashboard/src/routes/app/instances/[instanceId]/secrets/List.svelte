@@ -1,8 +1,32 @@
-<script type="ts">
+<script lang="ts">
   import { fade } from 'svelte/transition'
   import { items } from './stores'
+  import { client } from '$src/pocketbase-client'
+  import { instance } from '../store'
+  import { reduce } from '@s-libs/micro-dash'
+  import { logger, UpdateInstancePayload } from 'pockethost'
 
   let showSecretKeys = false
+
+  const handleDelete = (name: string) => async (e: Event) => {
+    e.preventDefault()
+    logger().debug(`Deleting ${name}`)
+    items.delete(name)
+    await client().updateInstance({
+      id: $instance.id,
+      fields: {
+        secrets: reduce(
+          $items,
+          (c, v) => {
+            const { name, value } = v
+            c[name] = value
+            return c
+          },
+          {} as NonNullable<UpdateInstancePayload['fields']['secrets']>,
+        ),
+      },
+    })
+  }
 </script>
 
 <div class="flex items-center justify-between mb-3 h-9">
@@ -42,7 +66,7 @@
         <td class="text-right">
           <button
             aria-label="Delete"
-            on:click={() => items.delete(item.name)}
+            on:click={handleDelete(item.name)}
             type="button"
             class="btn btn-sm btn-square btn-outline btn-warning"
             ><i class="fa-regular fa-trash"></i></button
