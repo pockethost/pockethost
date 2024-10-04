@@ -70,7 +70,7 @@ export const logger = () => {
     return ioc<Logger>('logger')
   } catch (e) {
     console.warn('No logger found, using default console logger')
-    return ioc('logger', new ConsoleLogger({ level: LogLevelName.Debug }))
+    return ioc('logger', ConsoleLogger({ level: LogLevelName.Debug }))
   }
 }
 

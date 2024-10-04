@@ -10,79 +10,73 @@ const CONSOLE_METHODS = {
   [LogLevelName.Abort]: console.error,
 }
 
-export class ConsoleLogger implements Logger {
-  private config: LoggerConfig
-
-  constructor(config: Partial<LoggerConfig> = {}) {
-    this.config = {
-      level: LogLevelName.Info,
-      pfx: [],
-      ...config,
-    }
+export function ConsoleLogger(
+  initialConfig: Partial<LoggerConfig> = {},
+): Logger {
+  let config: LoggerConfig = {
+    level: LogLevelName.Info,
+    pfx: [],
+    ...initialConfig,
   }
 
-  private log(level: LogLevelName, ...args: any[]) {
-    if (isLevelGte(level, this.config.level)) {
-      const prefix =
-        this.config.pfx.length > 0 ? `[${this.config.pfx.join(':')}] ` : ''
-
+  function log(level: LogLevelName, ...args: any[]) {
+    if (isLevelGte(level, config.level)) {
+      const prefix = config.pfx.length > 0 ? `[${config.pfx.join(':')}] ` : ''
       CONSOLE_METHODS[level](`${prefix}${level.toUpperCase()}:`, ...args)
     }
   }
 
-  raw(...args: any[]) {
-    this.log(LogLevelName.Raw, ...args)
-  }
-  trace(...args: any[]) {
-    this.log(LogLevelName.Trace, ...args)
-  }
-  debug(...args: any[]) {
-    this.log(LogLevelName.Debug, ...args)
-  }
-  dbg(...args: any[]) {
-    this.debug(...args)
-  }
-  info(...args: any[]) {
-    this.log(LogLevelName.Info, ...args)
-  }
-  warn(...args: any[]) {
-    this.log(LogLevelName.Warn, ...args)
-  }
-  error(...args: any[]) {
-    this.log(LogLevelName.Error, ...args)
-  }
-  criticalError(...args: any[]) {
-    this.error('CRITICAL:', ...args)
+  const logger: Logger = {
+    raw(...args: any[]) {
+      log(LogLevelName.Raw, ...args)
+    },
+    trace(...args: any[]) {
+      log(LogLevelName.Trace, ...args)
+    },
+    debug(...args: any[]) {
+      log(LogLevelName.Debug, ...args)
+    },
+    dbg(...args: any[]) {
+      logger.debug(...args)
+    },
+    info(...args: any[]) {
+      log(LogLevelName.Info, ...args)
+    },
+    warn(...args: any[]) {
+      log(LogLevelName.Warn, ...args)
+    },
+    error(...args: any[]) {
+      log(LogLevelName.Error, ...args)
+    },
+    criticalError(...args: any[]) {
+      logger.error('CRITICAL:', ...args)
+    },
+    create(name: string, configOverride?: Partial<LoggerConfig>): Logger {
+      const newConfig = {
+        ...config,
+        pfx: [...config.pfx, name],
+        ...configOverride,
+      }
+      return ConsoleLogger(newConfig)
+    },
+    child(name: string): Logger {
+      return logger.create(name)
+    },
+    breadcrumb(s: object): Logger {
+      console.log('Breadcrumb:', s)
+      return logger
+    },
+    abort(...args: any[]): never {
+      log(LogLevelName.Abort, ...args)
+      process.exit(1)
+    },
+    shutdown() {
+      // No-op for console logger
+    },
+    setLevel(level: LogLevelName) {
+      config.level = level
+    },
   }
 
-  create(name: string, configOverride?: Partial<LoggerConfig>): Logger {
-    const newConfig = {
-      ...this.config,
-      pfx: [...this.config.pfx, name],
-      ...configOverride,
-    }
-    return new ConsoleLogger(newConfig)
-  }
-
-  child(name: string): Logger {
-    return this.create(name)
-  }
-
-  breadcrumb(s: object): Logger {
-    console.log('Breadcrumb:', s)
-    return this
-  }
-
-  abort(...args: any[]): never {
-    this.log(LogLevelName.Abort, ...args)
-    process.exit(1)
-  }
-
-  shutdown() {
-    // No-op for console logger
-  }
-
-  setLevel(level: LogLevelName) {
-    this.config.level = level
-  }
+  return logger
 }
