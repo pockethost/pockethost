@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{svelte,js,ts,md}'],
-  safelist: [`lg:pl-72`],
+  safelist: [`lg:pl-72`, `toggle-error`, `toggle-success`],
   theme: {
     extend: {
       animation: {

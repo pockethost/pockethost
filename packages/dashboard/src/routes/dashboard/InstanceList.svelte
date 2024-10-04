@@ -1,29 +1,48 @@
 <script lang="ts">
   import { INSTANCE_ADMIN_URL } from '$src/env'
+  import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
+  import { InstanceId } from 'pockethost'
+
+  const { updateInstance } = client()
+
+  const handleMaintenanceChange = (id: InstanceId) => (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const maintenance = !target.checked
+
+    // Update the database with the new value
+    updateInstance({ id, fields: { maintenance } })
+      .then(() => 'saved')
+      .catch((error) => {
+        error.data.message || error.message
+      })
+  }
 </script>
 
 {#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
   <div class="card w-80 bg-neutral m-4">
     <div class="card-body">
-      <div class="card-title">{instance.subdomain}</div>
-
-      <div class="flex flex-wrap gap-2">
-        <div class="badge badge-accent badge-outline">
-          Status: &nbsp;<span class="capitalize">{instance.status}</span>
+      <div class="card-title">
+        <div class="flex justify-between items-center w-full">
+          <span
+            >{instance.subdomain}
+            <span class="text-xs text-gray-400">
+              v{instance.version}
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            class="toggle {instance.maintenance
+              ? 'toggle-error'
+              : 'toggle-success'}"
+            checked={!instance.maintenance}
+            on:change={handleMaintenanceChange(instance.id)}
+          />
         </div>
-        <div class="badge badge-accent badge-outline">
-          Version: {instance.version}
-        </div>
-
-        {#if instance.maintenance}
-          <div class="badge badge-outline border-warning gap-2">
-            <i class="fa-regular fa-triangle-person-digging text-warning"></i>
-            <span class="text-warning">Maintenance Mode</span>
-          </div>
-        {/if}
       </div>
+
+      <div class="flex flex-wrap gap-2"></div>
       <div class="card-actions">
         <a href={`/app/instances/${instance.id}`} class="btn btn-primary">
           <i class="fa-regular fa-circle-info"></i>

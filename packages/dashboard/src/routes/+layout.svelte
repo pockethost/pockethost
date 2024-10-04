@@ -6,7 +6,6 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
-  import { isUserLoggedIn } from '$util/stores'
   import '../app.css'
 </script>
 
