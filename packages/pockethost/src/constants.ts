@@ -78,7 +78,7 @@ if (_IS_DEV) {
 }
 
 export const SETTINGS = {
-  PH_PLUGINS: mkCsvString([`@pockethost/plugin-console-logger`]),
+  PH_PLUGINS: mkCsvString([]),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
