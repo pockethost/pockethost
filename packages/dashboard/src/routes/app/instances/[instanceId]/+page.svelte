@@ -1,7 +1,7 @@
 <script lang="ts">
   import { assertExists } from 'pockethost/common'
   import Code from './Code.svelte'
-  import Ftp from './Ftpx.svelte'
+  import Ftp from './ftp/+page.svelte'
   import { instance } from './store'
 
   $: ({ status, version, id } = $instance)
@@ -10,7 +10,4 @@
   const { subdomain } = $instance
 </script>
 
-<div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-4">
-  <Code />
-  <Ftp />
-</div>
+<Code />

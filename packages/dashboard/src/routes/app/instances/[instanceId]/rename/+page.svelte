@@ -56,37 +56,35 @@
   }
 </script>
 
-<Card>
-  <CardHeader documentation={DOCS_URL(`/usage/rename-instance`)}>
-    Rename Instance
-  </CardHeader>
+<CardHeader documentation={DOCS_URL(`/usage/rename-instance`)}>
+  Rename Instance
+</CardHeader>
 
-  <p class="mb-8">
-    Renaming your instance will cause it to become <strong class="text-error"
-      >inaccessible</strong
-    > by the old instance name. You also may not be able to change it back if someone
-    else choose it.
-  </p>
+<p class="mb-8">
+  Renaming your instance will cause it to become <strong class="text-error"
+    >inaccessible</strong
+  > by the old instance name. You also may not be able to change it back if someone
+  else choose it.
+</p>
 
-  <AlertBar message={errorMessage} type="error" />
+<AlertBar message={errorMessage} type="error" />
 
-  <form
-    class="flex rename-instance-form-container-query gap-4"
-    on:submit={onRename}
+<form
+  class="flex rename-instance-form-container-query gap-4"
+  on:submit={onRename}
+>
+  <input
+    title="Only letters and dashes are allowed"
+    required
+    type="text"
+    bind:value={formSubdomain}
+    class="input input-bordered w-full"
+  />
+
+  <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
+    >Rename Instance</button
   >
-    <input
-      title="Only letters and dashes are allowed"
-      required
-      type="text"
-      bind:value={formSubdomain}
-      class="input input-bordered w-full"
-    />
-
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
-      >Rename Instance</button
-    >
-  </form>
-</Card>
+</form>
 
 <style>
   .rename-instance-form-container-query {

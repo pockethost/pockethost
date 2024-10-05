@@ -1,14 +1,13 @@
 <script lang="ts">
   import { assertExists } from 'pockethost/common'
   import { instance } from '../store'
-  import AdminSync from './AdminSync.svelte'
-  import CustomDomain from './CustomDomain.svelte'
+  import AdminSync from '../admin-sync/+page.svelte'
+  import CustomDomain from '../domain/+page.svelte'
   import DangerZoneTitle from './DangerZoneTitle.svelte'
-  import DeleteInstance from './DeleteInstance.svelte'
-  import DevMode from './DevMode.svelte'
-  import Maintenance from './Maintenance.svelte'
-  import RenameInstance from './RenameInstance.svelte'
-  import VersionChange from './VersionChange/VersionChange.svelte'
+  import DeleteInstance from '../delete/+page.svelte'
+  import DevMode from '../dev/+page.svelte'
+  import RenameInstance from '../rename/+page.svelte'
+  import VersionChange from '../version/+page.svelte'
 
   $: ({ status, version, id } = $instance)
 
@@ -24,8 +23,6 @@
 
 <div class="grid lg:grid-cols-3 gap-4 mb-4">
   <RenameInstance />
-
-  <Maintenance />
 
   <VersionChange />
 

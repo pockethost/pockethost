@@ -3,7 +3,7 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  import { instance } from '../../store'
+  import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
 
@@ -58,35 +58,39 @@
   }
 </script>
 
-<Card>
-  <CardHeader documentation={DOCS_URL(`/usage/upgrading`)}>
-    Version Change
-  </CardHeader>
+<CardHeader documentation={DOCS_URL(`/usage/upgrading`)}>
+  Version Change
+</CardHeader>
 
-  <p class="mb-8">
-    Changing your version can only be done when the instance is in maintenance
-    mode. We recommend you <strong>do a full backup</strong> before making a
-    change. We support
-    <a href="https://github.com/pocketbase/pocketbase/releases" class="link"
-      >every release</a
-    > of PocketBase.
-  </p>
+{#if !maintenance}
+  <AlertBar
+    message="Your instance must be powered off to change the version."
+    type="error"
+  />
+{/if}
 
-  <AlertBar message={errorMessage} type="error" />
+<div class="mb-8">
+  We recommend you <strong>do a full backup</strong>
+  before making a change. We support the latest patch of
+  <a href="https://github.com/pocketbase/pocketbase/releases" class="link"
+    >every minor release</a
+  > of PocketBase.
+</div>
 
-  <form
-    class="flex change-version-form-container-query gap-4"
-    on:submit={handleSave}
+<AlertBar message={errorMessage} type="error" />
+
+<form
+  class="flex change-version-form-container-query gap-4"
+  on:submit={handleSave}
+>
+  <VersionPicker bind:selectedVersion />
+
+  <button
+    type="submit"
+    class="btn btn-error"
+    disabled={!maintenance || isButtonDisabled}>Change Version</button
   >
-    <VersionPicker bind:selectedVersion disabled={!maintenance} />
-
-    <button
-      type="submit"
-      class="btn btn-error"
-      disabled={!maintenance || isButtonDisabled}>Change Version</button
-    >
-  </form>
-</Card>
+</form>
 
 <style>
   .change-version-form-container-query {

@@ -6,7 +6,8 @@
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
   import { instance } from '../store'
-  import ErrorMessage from './ErrorMessage.svelte'
+  import ErrorMessage from '../settings/ErrorMessage.svelte'
+  import AlertBar from '$src/components/AlertBar.svelte'
 
   $: ({ id, maintenance, version } = $instance)
 
@@ -63,37 +64,41 @@
   }
 </script>
 
-<Card>
-  <CardHeader documentation={DOCS_URL(`/usage/delete`)}>
-    Delete Instance
-  </CardHeader>
+<CardHeader documentation={DOCS_URL(`/usage/delete`)}>
+  Delete Instance
+</CardHeader>
 
-  <div class="mb-8">
-    Deleting your instance will immediately and permanently delete your
-    instance:
-    <ul class="ml-10 text-error">
-      <li>Your subdomain</li>
-      <li><pre>pb_data/*</pre></li>
-      <li><pre>pb_public/*</pre></li>
-      <li><pre>pb_migrations/*</pre></li>
-      <li><pre>pb_static/*</pre></li>
-    </ul>
-    If you are storing files on S3, you must delete them separately.
-  </div>
+{#if !maintenance}
+  <AlertBar
+    message="Instance must be powered off before deleting."
+    type="error"
+  />
+{/if}
 
-  <ErrorMessage message={errorMessage} />
+<div class="mb-8">
+  Deleting your instance will immediately and permanently delete your instance:
+  <ul class="ml-10 text-error">
+    <li>Your subdomain</li>
+    <li><pre>pb_data/*</pre></li>
+    <li><pre>pb_public/*</pre></li>
+    <li><pre>pb_migrations/*</pre></li>
+    <li><pre>pb_static/*</pre></li>
+  </ul>
+  If you are storing files on S3, you must delete them separately.
+</div>
 
-  <form
-    class="flex change-version-form-container-query gap-4"
-    on:submit={handleSave}
+<ErrorMessage message={errorMessage} />
+
+<form
+  class="flex change-version-form-container-query gap-4"
+  on:submit={handleSave}
+>
+  <button
+    type="submit"
+    class="btn btn-error"
+    disabled={!maintenance || isButtonDisabled}>Delete Instance</button
   >
-    <button
-      type="submit"
-      class="btn btn-error"
-      disabled={!maintenance || isButtonDisabled}>Delete Instance</button
-    >
-  </form>
-</Card>
+</form>
 
 <style>
   .change-version-form-container-query {

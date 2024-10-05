@@ -34,7 +34,7 @@
           <input
             type="checkbox"
             class="toggle {instance.maintenance
-              ? 'toggle-error'
+              ? 'bg-red-500 hover:bg-red-500'
               : 'toggle-success'}"
             checked={!instance.maintenance}
             on:change={handleMaintenanceChange(instance.id)}
@@ -42,8 +42,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-2"></div>
-      <div class="card-actions">
+      <div class="card-actions flex justify-between mt-5">
         <a href={`/app/instances/${instance.id}`} class="btn btn-primary">
           <i class="fa-regular fa-circle-info"></i>
           <span>Details</span>

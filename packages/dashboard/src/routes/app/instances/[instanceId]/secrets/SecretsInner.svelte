@@ -6,8 +6,6 @@
   import List from './List.svelte'
   import { items } from './stores'
 
-  // TODO: Hot Reload is causing an infinite loop in the network tab for some reason. Wasn't able to figure out why
-
   $: {
     const { id, secrets } = $instance
     items.clear()
@@ -17,24 +15,27 @@
     })
   }
 
-  // Keep track of which tab the user has selected
-  let activeTab = 0
-
-  // Toggle between the tabs on click
-  const handleTabChange = (id: number) => {
-    activeTab = id
-  }
+  $: code =
+    `// pb_hooks/env-test.pb.js\n\n` +
+    ($items.length > 0
+      ? $items
+          .map(
+            ({ name, value }) =>
+              `const ${name} = process.env.${name}\nconsole.log("${name}: ", ${name})`,
+          )
+          .join('\n')
+      : `const YOUR_KEY = process.env.YOUR_KEY`)
 </script>
 
-<p class="mb-4">
+<div class="mb-4">
   These secrets are forwarded to your <code>pocketbase</code> as environment
   variables, which are also accessible from any <code>pb_hooks</code> you have created.
-</p>
+</div>
 
 <!-- If the user has any secrets, render them in a code block -->
 {#if $items.length > 0}
   <div class="mb-8">
-    <CodeSample code={`const YOUR_KEY = process.env.YOUR_KEY`} />
+    <CodeSample {code} />
   </div>
 {/if}
 
@@ -45,32 +46,5 @@
   </div>
 {/if}
 
-<div class="tabs mb-4 border-b-[1px] border-neutral">
-  <button
-    on:click={() => handleTabChange(0)}
-    type="button"
-    class="tab border-b-2 {activeTab === 0
-      ? 'tab-active font-bold border-base-content'
-      : 'border-neutral'}"
-    ><i class="fa-regular fa-plus mr-2"></i> Add New</button
-  >
-
-  <button
-    on:click={() => handleTabChange(1)}
-    type="button"
-    class="tab border-b-2 {activeTab === 1
-      ? 'tab-active font-bold border-base-content'
-      : 'border-neutral'}"
-    ><i class="fa-regular fa-list mr-2"></i> Current List</button
-  >
-</div>
-
-<div>
-  {#if activeTab === 0}
-    <Form />
-  {/if}
-
-  {#if activeTab === 1}
-    <List />
-  {/if}
-</div>
+<List />
+<Form />

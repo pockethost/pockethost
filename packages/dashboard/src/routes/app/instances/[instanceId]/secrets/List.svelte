@@ -6,8 +6,6 @@
   import { reduce } from '@s-libs/micro-dash'
   import { logger, UpdateInstancePayload } from 'pockethost'
 
-  let showSecretKeys = false
-
   const handleDelete = (name: string) => async (e: Event) => {
     e.preventDefault()
     logger().debug(`Deleting ${name}`)
@@ -29,21 +27,6 @@
   }
 </script>
 
-<div class="flex items-center justify-between mb-3 h-9">
-  <h4 class="font-bold text-lg">Current Environment Variables</h4>
-
-  <div class="form-control">
-    <label class="label cursor-pointer">
-      <span class="label-text text-accent mr-2">Show Secrets</span>
-      <input
-        type="checkbox"
-        class="toggle toggle-sm"
-        bind:checked={showSecretKeys}
-      />
-    </label>
-  </div>
-</div>
-
 <table class="table">
   <thead>
     <tr>
@@ -58,10 +41,8 @@
       <tr transition:fade>
         <th>{item.name}</th>
         <td
-          >{showSecretKeys
-            ? item.value
-            : item.value.slice(0, 2) +
-              item.value.slice(2).replaceAll(/./g, '*')}</td
+          >{item.value.slice(0, 2) +
+            item.value.slice(2).replaceAll(/./g, '*')}</td
         >
         <td class="text-right">
           <button
