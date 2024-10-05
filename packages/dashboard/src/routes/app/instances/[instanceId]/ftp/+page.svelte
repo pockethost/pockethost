@@ -16,7 +16,7 @@
   const ftpUrl = FTP_URL(email)
 </script>
 
-<h2>FTP Access</h2>
+<CardHeader documentation={DOCS_URL(`/usage/ftp`)}>FTP Access</CardHeader>
 <div class="mb-8">
   Securely access your instance files via FTPS. Use your PocketHost account
   login and password.
