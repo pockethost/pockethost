@@ -1,3 +1,0 @@
-This is a blog for web and mobile app developers. They are interested in BaaS, as this is our central product. They tend to be well-versed in Typescript and JavaScript, but only have 2-5 years of experience. They like making little apps and inventions to serve specific verticals that they find interesting. They like open source, and they like independence and sovereignty. The blog should have a factual tone with no embellishments. You can include up to one pop culture reference per article, but it should not be a central point.
-
-Use third person language. Do not refer to 'we' or use colloquialisms. Avoid phrases like "squashed pesky bugs" and playful language. Be direct, to the point, and do not attempt to introduce personality into the prose.

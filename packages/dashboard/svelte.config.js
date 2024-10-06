@@ -8,7 +8,6 @@ const config = {
   preprocess: [preprocess(), mdsvex({ extensions: ['.svx', '.md'] })],
   kit: {
     adapter: adapter({
-      pages: '../../dist/dashboard',
       fallback: 'fallback.html',
     }),
     alias: {

@@ -48,7 +48,7 @@ jobs:
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: pockethost-dashboard
-          directory: ./dist/dashboard
+          directory: ./packages/dashboard/build
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
 
