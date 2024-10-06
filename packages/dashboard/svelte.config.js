@@ -9,7 +9,7 @@ const config = {
   kit: {
     adapter: adapter({
       pages: '../../dist/dashboard',
-      fallback: 'index.html',
+      fallback: 'fallback.html',
     }),
     alias: {
       $components: './src/components',
