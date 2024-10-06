@@ -1,13 +1,9 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  import { globalInstancesStore } from '$util/stores'
   import { instance } from '../store'
-  import ErrorMessage from '../settings/ErrorMessage.svelte'
-  import AlertBar from '$src/components/AlertBar.svelte'
+  import VersionPicker from './VersionPicker.svelte'
+  import AlertBar from '$components/AlertBar.svelte'
 
   $: ({ id, maintenance, version } = $instance)
 
@@ -32,27 +28,23 @@
 
     // Prompt the user to confirm the version change
     const confirmVersionChange = confirm(
-      `LAST CHANCE - Are you sure you want to delete this instance? Your database, all local files, logs, and subdomain will be lost.`,
+      `Are you sure you want to change the version to ${selectedVersion}?`,
     )
 
     // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
+      // Save to the database
       errorMessage = ''
       client()
-        .deleteInstance({
+        .updateInstance({
           id,
+          fields: { version: selectedVersion },
         })
         .then(() => {
-          globalInstancesStore.update((instances) => {
-            const newInstances = { ...instances }
-            delete newInstances[id]
-            return newInstances
-          })
-          goto('/')
+          return 'saved'
         })
         .catch((error) => {
-          console.error(error)
-          errorMessage = error.data.message || error.message
+          errorMessage = error.message
         })
     } else {
       // If they hit cancel, reset the version number back to what it was initially
@@ -64,39 +56,35 @@
   }
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/delete`)}>
-  Delete Instance
-</CardHeader>
+<CardHeader documentation={`/docs/upgrading`}>Version Change</CardHeader>
 
 {#if !maintenance}
   <AlertBar
-    message="Instance must be powered off before deleting."
+    message="Your instance must be powered off to change the version."
     type="error"
   />
 {/if}
 
 <div class="mb-8">
-  Deleting your instance will immediately and permanently delete your instance:
-  <ul class="ml-10 text-error">
-    <li>Your subdomain</li>
-    <li><pre>pb_data/*</pre></li>
-    <li><pre>pb_public/*</pre></li>
-    <li><pre>pb_migrations/*</pre></li>
-    <li><pre>pb_static/*</pre></li>
-  </ul>
-  If you are storing files on S3, you must delete them separately.
+  We recommend you <strong>do a full backup</strong>
+  before making a change. We support the latest patch of
+  <a href="https://github.com/pocketbase/pocketbase/releases" class="link"
+    >every minor release</a
+  > of PocketBase.
 </div>
 
-<ErrorMessage message={errorMessage} />
+<AlertBar message={errorMessage} type="error" />
 
 <form
   class="flex change-version-form-container-query gap-4"
   on:submit={handleSave}
 >
+  <VersionPicker bind:selectedVersion />
+
   <button
     type="submit"
     class="btn btn-error"
-    disabled={!maintenance || isButtonDisabled}>Delete Instance</button
+    disabled={!maintenance || isButtonDisabled}>Change Version</button
   >
 </form>
 

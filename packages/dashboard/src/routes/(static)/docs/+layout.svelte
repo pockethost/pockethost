@@ -10,11 +10,10 @@
     <div class="heading">Overview</div>
     <a href="/docs">Hello.</a>
     <a href="/docs/getting-started">Getting Started</a>
-    <a href="/docs/faq">FAQ</a>
 
     <div class="heading">Core Concepts</div>
     <a href="/docs/admin-sync">Admin Sync</a>
-    <a href="">Creating an Instance</a>
+    <a href="/docs/create">Creating an Instance</a>
     <a href="">Custom Domains</a>
     <a href="">Deleting an Instance</a>
     <a href="">Dev Mode</a>
@@ -38,6 +37,7 @@
     <div class="heading">Appendix</div>
     <a href="/docs/account-creation">Account Creation</a>
     <a href="/docs/pricing-ethos">Pricing Ethos</a>
+    <a href="/docs/faq">FAQ</a>
 
     <!-- Sidebar content goes here -->
   </div>

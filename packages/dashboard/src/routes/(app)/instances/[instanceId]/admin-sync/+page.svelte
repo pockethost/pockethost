@@ -1,7 +1,6 @@
 <script lang="ts">
   import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
@@ -23,9 +22,7 @@
   }
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/admin-sync`)}>
-  Admin Sync
-</CardHeader>
+<CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
 
 <p class="mb-8">
   Your instance will have an admin login that matches your pockethost.io login.

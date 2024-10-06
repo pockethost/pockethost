@@ -39,9 +39,9 @@ onAfterBootstrap((e) => {
   const name = 'Hooks!'
   const fxTest = config.hello(name)
 
-  console.log('App initialized!')
+  console.log('Instance initialized!')
   console.log(`fxTest: ${fxTest}`)
-  console.log(`App name: ${JSON.stringify(config)}`)
+  console.log(`Instance name: ${JSON.stringify(config)}`)
 })
 ```
 

@@ -1,8 +1,7 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL, FTP_URL } from '$src/env'
+  import { FTP_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { bash } from 'svelte-highlight/languages'
 
@@ -16,7 +15,7 @@
   const ftpUrl = FTP_URL(email)
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/ftp`)}>FTP Access</CardHeader>
+<CardHeader documentation={`/docs/ftp`}>FTP Access</CardHeader>
 <div class="mb-8">
   Securely access your instance files via FTPS. Use your PocketHost account
   login and password.

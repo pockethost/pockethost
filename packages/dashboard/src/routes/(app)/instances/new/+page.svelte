@@ -21,7 +21,7 @@
 </svelte:head>
 
 <h2 class="text-4xl text-base-content font-bold capitalize mb-6">
-  Create A New App
+  Create A New Instance
 </h2>
 
 {#if canCreate}

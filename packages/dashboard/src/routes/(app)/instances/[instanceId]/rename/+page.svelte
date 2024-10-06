@@ -1,7 +1,5 @@
 <script lang="ts">
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import AlertBar from '$components/AlertBar.svelte'
@@ -56,9 +54,7 @@
   }
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/rename-instance`)}>
-  Rename Instance
-</CardHeader>
+<CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
 
 <p class="mb-8">
   Renaming your instance will cause it to become <strong class="text-error"

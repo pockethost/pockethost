@@ -1,14 +1,14 @@
 import adapter from '@sveltejs/adapter-static'
 import { mdsvex } from 'mdsvex'
 import preprocess from 'svelte-preprocess'
-// mdsvex.config.js
+import fancyImage from './src/lib/mdsvex-url-to-import.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   extensions: ['.svelte', '.svx', '.md'],
   preprocess: [
     preprocess(),
-    mdsvex({ extensions: ['.svx', '.md'], remarkPlugins: [] }),
+    mdsvex({ extensions: ['.svx', '.md'], remarkPlugins: [fancyImage] }),
   ],
   kit: {
     adapter: adapter({

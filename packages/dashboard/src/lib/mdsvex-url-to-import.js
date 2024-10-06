@@ -11,7 +11,7 @@ export default function fancyImages() {
     const images = new Map()
     const image_count = new Map()
 
-    visit(tree, 'image', (node) => {
+    visit(tree, 'image', (node, index, parent) => {
       let camel = `i${camelCase(node.url)}`
       const count = image_count.get(camel)
       const dupe = images.get(node.url)
@@ -27,13 +27,18 @@ export default function fancyImages() {
         path: node.url.startsWith('.') ? node.url : `./${node.url}`,
         id: camel,
       })
-      console.log({ images })
 
-      node.url = `{${camel}}`
+      parent.children[index] = {
+        type: 'html',
+        value: `<enhanced:img src={${camel}}/>`,
+      }
     })
+    console.log(tree)
 
     let scripts = ''
-    images.forEach((x) => (scripts += `import ${x.id} from "${x.path}";\n`))
+    images.forEach(
+      (x) => (scripts += `import ${x.id} from "${x.path}?enhanced";\n`),
+    )
 
     let is_script = false
 

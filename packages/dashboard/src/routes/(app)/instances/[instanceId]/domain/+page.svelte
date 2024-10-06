@@ -1,9 +1,8 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
   import CodeSample from '$components/CodeSample.svelte'
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL, INSTANCE_BARE_HOST } from '$src/env'
+  import { INSTANCE_BARE_HOST } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { userSubscriptionType } from '$util/stores'
   import { SubscriptionType } from 'pockethost/common'
@@ -78,7 +77,7 @@
   }
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/custom-domain`)}>
+<CardHeader documentation={`/docs/custom-domain`}>
   Custom Domain (CNAME)
 </CardHeader>
 

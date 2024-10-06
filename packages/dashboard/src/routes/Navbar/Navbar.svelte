@@ -1,6 +1,5 @@
 <script lang="ts">
   import Logo from '$src/routes/Navbar/Logo.svelte'
-  import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import InstancesGuard from '$src/routes/Navbar/InstancesGuard.svelte'
   import { globalInstancesStore, userStore } from '$util/stores'
@@ -104,13 +103,13 @@
       <UserLoggedIn>
         <li>
           <details>
-            <summary class="apps">Apps</summary>
+            <summary class="apps">Instances</summary>
             <ul class="bg-base-100 rounded-t-none p-2">
               <InstancesGuard>
                 <ul role="list" class="z-50 bg-base-100">
                   <li>
-                    <a href="/app/new" on:click={handleMobileNavDismiss}
-                      >+ New App</a
+                    <a href="/instances/new" on:click={handleMobileNavDismiss}
+                      >+ New Instance</a
                     >
                   </li>
                   {#each arrayOfActiveInstances as app}

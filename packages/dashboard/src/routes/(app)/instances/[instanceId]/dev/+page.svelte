@@ -1,7 +1,5 @@
 <script lang="ts">
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
@@ -22,7 +20,7 @@
   }
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/dev-mode`)}>Dev Mode</CardHeader>
+<CardHeader documentation={`/docs/dev-mode`}>Dev Mode</CardHeader>
 
 <p class="mb-8">
   Starting with PocketBase v0.20.1, your instance will show debugging output in

@@ -1,7 +1,7 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import CardHeader from '$src/components/cards/CardHeader.svelte'
-  import { DISCORD_URL, DOCS_URL, INSTANCE_URL } from '$src/env'
+  import { DISCORD_URL, INSTANCE_URL } from '$src/env'
   import { instance } from './store'
 
   let installSnippet = `npm i pocketbase`
@@ -18,9 +18,7 @@
 });`
 </script>
 
-<CardHeader documentation={DOCS_URL(`/usage/accessing-instance/`)}
-  >Overview</CardHeader
->
+<CardHeader documentation={`/docs/accessing-instance/`}>Overview</CardHeader>
 
 <div class="mb-4">
   <p>Your PocketBase URL is</p>

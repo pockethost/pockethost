@@ -1,12 +1,8 @@
-# Overview
-
-## What is PocketHost?
+# Welcome to PocketHost
 
 PocketHost is a hosting platform tailored for developers, indie hackers, makers, and small businesses using [PocketBase](https://pocketbase.io/) for their web and mobile applications. It offers a streamlined, efficient, and scalable solution to deploy and manage PocketBase instances without the complexities of setting up and maintaining your own servers.
 
 Founded by [Ben Allfree](https://github.com/benallfree) in 2021, PocketHost was born out of the need for a simpler way to handle PocketBase deployments. Tired of the repetitive process of setting up PocketBase every time he started a new project, Ben created PocketHost to save time and effort—not just for himself but for the entire developer community.
-
-## Why Use PocketHost?
 
 ## **Simplicity and Ease of Use**
 
@@ -51,24 +47,3 @@ Founded by [Ben Allfree](https://github.com/benallfree) in 2021, PocketHost was 
 - **Flexible Plans**: From free forever plans to premium subscriptions and exclusive lifetime offers.
 - **Easy Integration**: Seamlessly integrate with PocketBase and other tools.
 - **Community Support**: Access to a community of like-minded developers and comprehensive documentation.
-
-## Getting Started
-
-Ready to simplify your PocketBase hosting experience? Get started with PocketHost today:
-
-1. **Sign Up**: [Create your free account](https://pockethost.io/signup) using a valid email address.
-2. **Deploy an Instance**: Use our intuitive dashboard to deploy your first PocketBase instance.
-3. **Manage and Scale**: Easily manage your projects and watch them scale effortlessly as they grow.
-4. **Explore Features**: Take advantage of our advanced features and consider upgrading to the Pro Tier for even more benefits.
-
----
-
-_PocketHost is here to empower you to focus on what you do best—building amazing applications. Let us handle the hosting so you can bring your ideas to life._
-
----
-
-**Next Steps**:
-
-- **[Getting Started Guide](/docs/getting-started)**: A step-by-step tutorial to launch your first project.
-- **[Pricing Information](/pricing)**: Detailed breakdown of our plans and offerings.
-- **[Community Support](/support)**: Join our Discord server to connect with other users and get support.

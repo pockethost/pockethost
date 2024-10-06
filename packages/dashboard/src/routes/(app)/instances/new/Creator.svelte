@@ -88,7 +88,7 @@
 <div class="grid lg:grid-cols-2 grid-cols-1">
   <Card>
     <form on:submit={handleSubmit}>
-      <CardHeader>Choose a name for your PocketBase app.</CardHeader>
+      <CardHeader>Choose a name for your PocketBase instance.</CardHeader>
 
       <div class="flex rename-instance-form-container-query gap-4">
         <input

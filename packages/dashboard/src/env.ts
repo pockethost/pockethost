@@ -11,13 +11,8 @@ import { InstanceFields } from 'pockethost/common'
 export const PUBLIC_APEX_DOMAIN =
   import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
 
-// The domain name where this dashboard lives
 export const PUBLIC_APP_URL =
-  import.meta.env.PUBLIC_APP_URL || `https://app.${PUBLIC_APEX_DOMAIN}`
-
-// The domain name of the lander/marketing site
-export const PUBLIC_BLOG_URL =
-  import.meta.env.PUBLIC_BLOG_URL || `https://${PUBLIC_APEX_DOMAIN}`
+  import.meta.env.PUBLIC_APP_URL || `https://${PUBLIC_APEX_DOMAIN}`
 
 // The protocol to use, almost always will be https
 export const PUBLIC_HTTP_PROTOCOL =
@@ -43,48 +38,6 @@ export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
  */
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
-}
-
-/**
- * Helpful alias for the lander url.
- *
- * @example
- *   LANDER_URL() // https://pockethost.io/
- *   LANDER_URL('showcase') // https://pockethost.io/showcase/
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the lander URL.
- */
-export const LANDER_URL = (...paths: string[]) => {
-  return `${PUBLIC_BLOG_URL}/${mkPath(...paths)}`
-}
-
-/**
- * Helpful alias for the blog url.
- *
- * @example
- *   BLOG_URL() // https://pockethost.io/blog
- *   BLOG_URL('new-features-2023') // https://pockethost.io/blog/new-features-2023/
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the blogs URL.
- */
-export const BLOG_URL = (...paths: string[]) => {
-  return LANDER_URL(`blog`, ...paths)
-}
-
-/**
- * Helpful alias for the docs url.
- *
- * @example
- *   DOCS_URL() // https://pockethost.io/docs
- *   DOCS_URL('overview', 'help') // https://pockethost.io/docs/overview/help/
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the docs URL.
- */
-export const DOCS_URL = (...paths: string[]) => {
-  return LANDER_URL(`docs`, ...paths)
 }
 
 /**
