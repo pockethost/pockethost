@@ -1,4 +1,7 @@
 <script>
+  import AuthStateGuard from '$src/components/helpers/AuthStateGuard.svelte'
+  import UserLoggedIn from '$src/components/helpers/UserLoggedIn.svelte'
+  import UserLoggedOut from '$src/components/helpers/UserLoggedOut.svelte'
   import MainFeatureBlock from './MainFeatureBlock.svelte'
   import PrimaryButton from './PrimaryButton.svelte'
   import SubFeatureBlock from './SubFeatureBlock.svelte'
@@ -15,11 +18,29 @@
       app.
     </p>
 
-    <PrimaryButton
-      text="Get Started"
-      url="/get-started"
-      icon="fa-solid fa-arrow-right"
-    />
+    <AuthStateGuard>
+      <div slot="loading">
+        <PrimaryButton
+          text="Get Started"
+          url="/get-started"
+          icon="fa-solid fa-arrow-right"
+        />
+      </div>
+      <UserLoggedIn>
+        <PrimaryButton
+          text="Dashboard"
+          url="/dashboard"
+          icon="fa-solid fa-arrow-right"
+        />
+      </UserLoggedIn>
+      <UserLoggedOut>
+        <PrimaryButton
+          text="Get Started"
+          url="/get-started"
+          icon="fa-solid fa-arrow-right"
+        />
+      </UserLoggedOut>
+    </AuthStateGuard>
   </div>
 
   <div class="w-full p-8 lg:w-1/2 lg:block hidden">

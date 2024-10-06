@@ -86,6 +86,9 @@
       </UserLoggedOut>
       <UserLoggedIn>
         <li>
+          <a href="/dashboard" rel="noreferrer">Dashboard</a>
+        </li>
+        <li>
           <details>
             <summary class="apps">Apps</summary>
             <ul class="bg-base-100 rounded-t-none p-2">
@@ -119,13 +122,13 @@
 
       <UserLoggedIn>
         <li>
-          <div class="dropdown dropdown-end">
+          <div class="dropdown dropdown-end p-0 m-0">
             <div
               tabindex="0"
               role="button"
-              class="btn btn-ghost btn-circle avatar"
+              class="btn btn-ghost btn-circle avatar p-0 m-0 min-h-0 min-w-0 h-min"
             >
-              <div class="w-10 rounded-full">
+              <div class="w-8 rounded-full">
                 <img src={$avatar} />
               </div>
             </div>

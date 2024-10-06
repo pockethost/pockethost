@@ -101,7 +101,7 @@
 {#if cname}
   {#if !cname_active}
     <AlertBar
-      message={`Your custom domain name is pending. Go find <a class='btn btn-primary' target='_blank' href="https://discord.com/channels/1128192380500193370/1189948945967882250">@noaxis on Discord</a> to complete setup.`}
+      message={`Your custom domain name is pending. Go to <a href="/support" class="link text-warning-content">Support</a> to complete the setup.`}
       type="warning"
     />
   {:else}

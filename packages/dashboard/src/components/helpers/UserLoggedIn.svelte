@@ -5,7 +5,7 @@
   export let redirect = false
   $: {
     if ($isAuthStateInitialized && redirect && !$isUserLoggedIn) {
-      window.location.href = '/'
+      window.location.href = '/get-started'
     }
   }
 </script>

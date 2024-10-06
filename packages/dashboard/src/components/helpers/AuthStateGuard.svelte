@@ -4,4 +4,6 @@
 
 {#if $isAuthStateInitialized}
   <slot />
+{:else}
+  <slot name="loading" />
 {/if}

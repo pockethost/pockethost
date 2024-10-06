@@ -16,7 +16,12 @@ const config = {
       $util: './src/util',
       $src: './src',
     },
+    prerender: {
+      crawl: true, // crawls links to prerender other pages
+      entries: ['*'], // specify routes to prerender
+    },
   },
+  ssr: true,
   target: '#svelte',
 }
 
