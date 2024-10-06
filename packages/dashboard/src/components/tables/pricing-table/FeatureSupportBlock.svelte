@@ -11,5 +11,5 @@
 {:else if item === 'NoBlock'}
   <NoBlock />
 {:else}
-  <TextBlock>{item}</TextBlock>
+  <TextBlock>{@html item}</TextBlock>
 {/if}

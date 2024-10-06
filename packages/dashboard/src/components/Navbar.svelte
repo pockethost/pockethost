@@ -6,6 +6,8 @@
   import { globalInstancesStore, userStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import { writable } from 'svelte/store'
+  import UserLoggedIn from './helpers/UserLoggedIn.svelte'
+  import UserLoggedOut from './helpers/UserLoggedOut.svelte'
 
   type TypeInstanceObject = {
     id: string
@@ -77,63 +79,78 @@
   </div>
   <div class="flex-none gap-2">
     <ul class="menu menu-horizontal px-1">
-      <li>
-        <details>
-          <summary class="apps">Apps</summary>
-          <ul class="bg-base-100 rounded-t-none p-2">
-            <InstancesGuard>
-              <ul role="list" class="z-50 bg-base-100">
-                <li>
-                  <a href="/app/new" on:click={handleMobileNavDismiss}
-                    >+ New App</a
-                  >
-                </li>
-                {#each arrayOfActiveInstances as app}
+      <UserLoggedOut>
+        <li>
+          <a href="/pricing" rel="noreferrer">Pricing</a>
+        </li>
+      </UserLoggedOut>
+      <UserLoggedIn>
+        <li>
+          <details>
+            <summary class="apps">Apps</summary>
+            <ul class="bg-base-100 rounded-t-none p-2">
+              <InstancesGuard>
+                <ul role="list" class="z-50 bg-base-100">
                   <li>
-                    <a
-                      href={`/app/instances/${app.id}`}
-                      on:click={handleMobileNavDismiss}>{app.subdomain}</a
+                    <a href="/app/new" on:click={handleMobileNavDismiss}
+                      >+ New App</a
                     >
                   </li>
-                {/each}
-              </ul>
-            </InstancesGuard>
-          </ul>
-        </details>
-      </li>
-    </ul>
-    <ul class="menu menu-horizontal px-1">
+                  {#each arrayOfActiveInstances as app}
+                    <li>
+                      <a
+                        href={`/app/instances/${app.id}`}
+                        on:click={handleMobileNavDismiss}>{app.subdomain}</a
+                      >
+                    </li>
+                  {/each}
+                </ul>
+              </InstancesGuard>
+            </ul>
+          </details>
+        </li>
+      </UserLoggedIn>
       <li>
-        <a href="https://pockethost.io/support" target="_blank" rel="noreferrer"
-          >Support</a
-        >
+        <a href="/support" rel="noreferrer">Support</a>
       </li>
       <li>
-        <a href={`${DOCS_URL()}`} target="_blank" rel="noreferrer">Docs</a>
+        <a href="/docs" rel="noreferrer">Docs</a>
       </li>
+
+      <UserLoggedIn>
+        <li>
+          <div class="dropdown dropdown-end">
+            <div
+              tabindex="0"
+              role="button"
+              class="btn btn-ghost btn-circle avatar"
+            >
+              <div class="w-10 rounded-full">
+                <img src={$avatar} />
+              </div>
+            </div>
+            <ul
+              tabindex="0"
+              class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+            >
+              <li><a href="/account">Settings</a></li>
+              <li><a on:click={handleLogoutAndRedirect}>Logout</a></li>
+            </ul>
+          </div>
+        </li>
+      </UserLoggedIn>
+      <UserLoggedOut>
+        <li>
+          <a href="/get-started" class="">Login</a>
+        </li>
+      </UserLoggedOut>
       <li>
-        <a
-          href="https://github.com/pockethost/pockethost"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <i class="fa-brands fa-github mt-1" />
+        <a href="https://github.com/pockethost/pockethost" rel="noreferrer">
+          <img
+            src="https://img.shields.io/github/stars/pockethost/pockethost"
+          />
         </a>
       </li>
     </ul>
-    <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-        <div class="w-10 rounded-full">
-          <img src={$avatar} />
-        </div>
-      </div>
-      <ul
-        tabindex="0"
-        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
-      >
-        <li><a href="/account">Settings</a></li>
-        <li><a on:click={handleLogoutAndRedirect}>Logout</a></li>
-      </ul>
-    </div>
   </div>
 </div>

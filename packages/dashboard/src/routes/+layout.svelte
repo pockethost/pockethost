@@ -13,9 +13,7 @@
 
 <AuthStateGuard>
   <div>
-    <UserLoggedIn>
-      <Navbar />
-    </UserLoggedIn>
+    <Navbar />
 
     <main class="">
       <div class="px-4 sm:px-6 lg:px-8">
@@ -25,3 +23,13 @@
     </main>
   </div>
 </AuthStateGuard>
+<div
+  class="p-10 text-xs text-neutral-content flex flex-col text-center items-center"
+>
+  <div class="flex flex-row space-x-5">
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+  </div>
+  <div>(c) 2024, PocketHost</div>
+  <div>Proudly hacking open source in Reno, NV</div>
+</div>

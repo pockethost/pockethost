@@ -39,6 +39,7 @@
 
     isFormButtonDisabled = false
     isButtonLoading = false
+    window.location.href = '/'
   }
 </script>
 

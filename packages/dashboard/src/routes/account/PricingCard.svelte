@@ -9,7 +9,7 @@
   export let checkoutYearURL = ''
   export let active = false
   export let qtyMax = 0
-  export let qtyRemaining = writable(0)
+  export let qtyRemaining = 0
 </script>
 
 <div
@@ -36,9 +36,9 @@
       class="animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black"
     >
       <i class="fa-regular fa-clock"></i>
-      {$qtyRemaining}/{qtyMax} Remaining
+      {qtyRemaining}/{qtyMax} Remaining
     </p>
-    {#if $qtyRemaining <= 0}
+    {#if qtyRemaining <= 0}
       <p class="text-error text-xl font-black">SOLD OUT</p>
     {/if}
   {/if}
@@ -55,7 +55,7 @@
     {#if priceAnnually[0] > 0}
       <a
         href={qtyMax > 0
-          ? $qtyRemaining > 0
+          ? qtyRemaining > 0
             ? checkoutMonthURL
             : 'javascript:alert(`sold out`)'
           : checkoutMonthURL}
@@ -72,7 +72,7 @@
     {#if priceMonthly[0] > 0}
       <a
         href={qtyMax > 0
-          ? $qtyRemaining > 0
+          ? qtyRemaining > 0
             ? checkoutYearURL
             : 'javascript:alert(`sold out`)'
           : checkoutYearURL}

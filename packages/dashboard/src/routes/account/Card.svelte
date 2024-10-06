@@ -65,8 +65,8 @@
             {/each}
           </div>
           {#if !upgradable}
-            To change to this plan, contact @noaxis on <a
-              href={`"${DISCORD_URL}"`}>Discord</a
+            To change to this plan, <a href="/support" class="link"
+              >contact support</a
             >
           {/if}
         {/if}
