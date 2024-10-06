@@ -1,5 +1,5 @@
 <script lang="ts">
-  import PricingCard from '$src/routes/account/PricingCard.svelte'
+  import PricingCard from '$src/routes/(app)/account/PricingCard.svelte'
   import { PLAN_NAMES, SubscriptionType } from 'pockethost'
   import PricingTable from '$src/routes/pricing/PricingTable.svelte'
   import { userStore } from '$util/stores'

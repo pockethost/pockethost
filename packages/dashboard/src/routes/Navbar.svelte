@@ -6,8 +6,9 @@
   import { globalInstancesStore, userStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import { writable } from 'svelte/store'
-  import UserLoggedIn from './helpers/UserLoggedIn.svelte'
-  import UserLoggedOut from './helpers/UserLoggedOut.svelte'
+  import UserLoggedIn from '../components/helpers/UserLoggedIn.svelte'
+  import UserLoggedOut from '../components/helpers/UserLoggedOut.svelte'
+  import AuthStateGuard from '$src/components/helpers/AuthStateGuard.svelte'
 
   type TypeInstanceObject = {
     id: string
@@ -72,10 +73,26 @@
 
 <div class="navbar bg-base-100">
   <div class="flex-1">
-    <a href="/" role="tab" class="tab">
-      <Logo hideLogoText={true} logoWidth="h-8" />
-      <div class="hidden md:block ml-1">PocketHost</div>
-    </a>
+    <AuthStateGuard>
+      <div slot="loading">
+        <a href="/" role="tab" class="tab">
+          <Logo hideLogoText={true} logoWidth="h-8" />
+          <div class="hidden md:block ml-1">PocketHost</div>
+        </a>
+      </div>
+      <UserLoggedIn>
+        <a href="/dashboard" role="tab" class="tab">
+          <Logo hideLogoText={true} logoWidth="h-8" />
+          <div class="hidden md:block ml-1">PocketHost</div>
+        </a>
+      </UserLoggedIn>
+      <UserLoggedOut>
+        <a href="/" role="tab" class="tab">
+          <Logo hideLogoText={true} logoWidth="h-8" />
+          <div class="hidden md:block ml-1">PocketHost</div>
+        </a>
+      </UserLoggedOut>
+    </AuthStateGuard>
   </div>
   <div class="flex-none gap-2">
     <ul class="menu menu-horizontal px-1">
@@ -85,9 +102,6 @@
         </li>
       </UserLoggedOut>
       <UserLoggedIn>
-        <li>
-          <a href="/dashboard" rel="noreferrer">Dashboard</a>
-        </li>
         <li>
           <details>
             <summary class="apps">Apps</summary>
@@ -119,6 +133,11 @@
       <li>
         <a href="/docs" rel="noreferrer">Docs</a>
       </li>
+      <UserLoggedOut>
+        <li>
+          <a href="/about" rel="noreferrer">About</a>
+        </li>
+      </UserLoggedOut>
 
       <UserLoggedIn>
         <li>

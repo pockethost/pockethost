@@ -1,6 +1,6 @@
 <script>
   import { DISCORD_URL } from '$src/env'
-  import FAQItem from '$src/routes/account/FAQItem.svelte'
+  import FAQItem from '$src/routes/(app)/account/FAQItem.svelte'
 </script>
 
 <div

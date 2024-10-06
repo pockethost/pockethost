@@ -3,6 +3,8 @@
   import { PLAN_NAMES } from 'pockethost'
 </script>
 
+<div class="text-xl">My Account</div>
+
 <div>
   Your plan: <span class="text-success font-bold"
     >{PLAN_NAMES[$userSubscriptionType]}</span

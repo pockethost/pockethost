@@ -39,7 +39,7 @@
 
     isFormButtonDisabled = false
     isButtonLoading = false
-    window.location.href = '/'
+    window.location.href = '/dashboard'
   }
 </script>
 

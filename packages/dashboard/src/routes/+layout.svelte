@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Navbar from '$components/Navbar.svelte'
+  import Navbar from '$src/routes/Navbar.svelte'
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import '../app.css'
