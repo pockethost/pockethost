@@ -115,7 +115,7 @@
                   {#each arrayOfActiveInstances as app}
                     <li>
                       <a
-                        href={`/app/instances/${app.id}`}
+                        href={`/instances/${app.id}`}
                         on:click={handleMobileNavDismiss}>{app.subdomain}</a
                       >
                     </li>

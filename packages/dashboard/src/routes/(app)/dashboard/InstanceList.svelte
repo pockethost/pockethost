@@ -43,7 +43,7 @@
       </div>
 
       <div class="card-actions flex justify-between mt-5">
-        <a href={`/app/instances/${instance.id}`} class="btn btn-primary">
+        <a href={`/instances/${instance.id}`} class="btn btn-primary">
           <i class="fa-regular fa-circle-info"></i>
           <span>Details</span>
         </a>

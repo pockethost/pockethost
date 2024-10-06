@@ -26,30 +26,10 @@ export const PUBLIC_MOTHERSHIP_URL =
 // Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
-/**
- * This helper function will take a dynamic list of values and join them
- * together with a slash.
- *
- * @example
- *   mkPath('a', 'b', 'c') // a/b/c
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the lander URL.
- */
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
 }
 
-/**
- * Helpful alias for the app url.
- *
- * @example
- *   APP_URL() // https://app.pockethost.io/
- *   APP_URL('dashboard') // https://app.pockethost.io/dashboard
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the app URL.
- */
 export const APP_URL = (...paths: string[]) => {
   return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
 }

@@ -78,21 +78,18 @@
     <div class="w-48">
       <ul>
         <li>
-          <a href={`/app/instances/${id}`} class={activeClass(id)}>Overview</a>
+          <a href={`/instances/${id}`} class={activeClass(id)}>Overview</a>
         </li>
         <li>
-          <a
-            href={`/app/instances/${id}/secrets`}
-            class={activeClass(`secrets`)}>Secrets</a
+          <a href={`/instances/${id}/secrets`} class={activeClass(`secrets`)}
+            >Secrets</a
           >
         </li>
         <li>
-          <a href={`/app/instances/${id}/logs`} class={activeClass(`logs`)}
-            >Logs</a
-          >
+          <a href={`/instances/${id}/logs`} class={activeClass(`logs`)}>Logs</a>
         </li>
         <li>
-          <a href={`/app/instances/${id}/ftp`} class={activeClass(`ftp`)}
+          <a href={`/instances/${id}/ftp`} class={activeClass(`ftp`)}
             >FTP Access</a
           >
         </li>
@@ -119,13 +116,13 @@
         <i class="fa-solid fa-siren-on text-error"></i>
       </div>
       <ul>
-        <li><a href={`/app/instances/${id}/version`}>Change Version</a></li>
-        <li><a href={`/app/instances/${id}/domain`}>Custom Domain</a></li>
-        <li><a href={`/app/instances/${id}/admin-sync`}>Admin Sync</a></li>
-        <li><a href={`/app/instances/${id}/dev`}>Dev Mode</a></li>
-        <li><a href={`/app/instances/${id}/rename`}>Rename</a></li>
+        <li><a href={`/instances/${id}/version`}>Change Version</a></li>
+        <li><a href={`/instances/${id}/domain`}>Custom Domain</a></li>
+        <li><a href={`/instances/${id}/admin-sync`}>Admin Sync</a></li>
+        <li><a href={`/instances/${id}/dev`}>Dev Mode</a></li>
+        <li><a href={`/instances/${id}/rename`}>Rename</a></li>
         <li>
-          <a href={`/app/instances/${id}/delete`} class="btn btn-error btn-xs"
+          <a href={`/instances/${id}/delete`} class="btn btn-error btn-xs"
             >Delete</a
           >
         </li>
