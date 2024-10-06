@@ -77,7 +77,7 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/custom-domain`}>
+<CardHeader documentation={`/docs/custom-domains`}>
   Custom Domain (CNAME)
 </CardHeader>
 

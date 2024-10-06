@@ -22,6 +22,7 @@ const config = {
     prerender: {
       crawl: true, // crawls links to prerender other pages
       entries: ['*'], // specify routes to prerender
+      handleMissingId: 'warn',
     },
   },
   ssr: true,

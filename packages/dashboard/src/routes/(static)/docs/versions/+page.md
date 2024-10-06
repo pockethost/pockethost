@@ -6,7 +6,7 @@ PocketHost supports the latest minor release of each PocketBase version (e.g., `
 
 Upgrading your instance to the latest version of PocketBase is straightforward but requires careful planning to avoid data loss or unexpected behavior. Here’s the recommended approach:
 
-1. [Back up your instance](/docs/backup) to ensure your data is safe.  
+1. [Back up your instance](/docs/backup-restore) to ensure your data is safe.  
    ![](2024-10-06-15-31-47.png)
 2. **Create a second instance**: We recommend creating a second PocketHost instance and restoring your backup to it. This allows you to test the upgrade without affecting your live instance.
 3. Perform the upgrade on the second instance, ensuring all functionality is intact and working as expected.  
@@ -18,7 +18,7 @@ Upgrading your instance to the latest version of PocketBase is straightforward b
 
 For most cases, automatic upgrades are possible by simply switching to the latest version:
 
-1. [Back up your instance](/docs/backup).  
+1. [Back up your instance](/docs/backup-restore).  
    ![](2024-10-06-15-31-47.png)
 2. Change to the latest supported version in the PocketHost dashboard (e.g., `0.16.*`).  
    ![](2024-10-06-15-36-44.png)

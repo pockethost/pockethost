@@ -20,7 +20,7 @@ If the admin panel’s backup and restore feature is unavailable or your instanc
 
 Automating your backups is a recommended practice, especially as your instance grows in complexity and usage. However, there are some important caveats:
 
-- **Hibernation**: If your instance is in [hibernation](/docs/limits), automated backups may fail to execute. Waking up the instance on a schedule will not trigger any missed backup intervals. As your instance becomes busier, hibernation will become less frequent, minimizing this issue. To learn more, see [S3](/docs/s3) and [Cron](/docs/cron).
+- **Hibernation**: If your instance is in [hibernation](/docs/limits), automated backups may fail to execute. Waking up the instance on a schedule will not trigger any missed backup intervals. As your instance becomes busier, hibernation will become less frequent, minimizing this issue. To learn more, see [S3](/docs/s3) and [Limits](/docs/limits).
 
 - **S3 backups**: Backing up to S3 (or another external storage solution) is highly recommended. Using S3 allows you to conserve your PocketHost storage space for critical resources such as your database and logs, which cannot be stored elsewhere. Files such as uploads and backups, on the other hand, can easily live on S3.
 

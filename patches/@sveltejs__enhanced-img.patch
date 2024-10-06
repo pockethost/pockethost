@@ -2,15 +2,6 @@ diff --git a/src/preprocessor.js b/src/preprocessor.js
 index 0222037e593b554cae5b8712fa8c8e51fd071932..051d57097d4844ee3474b2f0d60584ca6578f8ba 100644
 --- a/src/preprocessor.js
 +++ b/src/preprocessor.js
-@@ -270,6 +270,8 @@ function serialize_img_attributes(content, attributes, details) {
- 		);
- 	}
- 
-+	console.log({details, attribute_strings})
-+
- 	return attribute_strings.join(' ');
- }
- 
 @@ -304,8 +306,8 @@ function img_to_picture(consts, content, node, image) {
  
  	res += `<img ${serialize_img_attributes(content, attributes, {

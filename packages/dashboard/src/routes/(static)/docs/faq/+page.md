@@ -42,7 +42,7 @@ While the data volume is not encrypted at the OS level (see [#143](https://githu
 
 ### Can I import data into PocketHost?
 
-Yes, data import is possible via [SFTP](/docs/usage/ftp/).
+Yes, data import is possible via [SFTP](/docs/ftp/).
 
 ### How do I migrate away from PocketHost and host PocketBase on my own?
 

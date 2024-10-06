@@ -38,7 +38,7 @@
     <div class="heading">Self-Hosting</div>
 
     <div class="heading">Appendix</div>
-    <a href="/docs/create">Account Creation</a>
+    <a href="/docs/account-creation">Account Creation</a>
     <a href="/docs/pricing-ethos">Pricing Ethos</a>
     <a href="/docs/faq">FAQ</a>
     <a href="/docs/gs-gmail">Google Suite Gmail Setup</a>

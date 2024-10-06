@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@sveltejs/enhanced-img':
-    hash: 2cpkchxgi62oaiabnl5eja646i
+    hash: 3476pbfrpexm3jnvpmrprzpwwa
     path: patches/@sveltejs__enhanced-img.patch
   eventsource@2.0.2:
     hash: tygaxpd33h24mrpcadqkqji6vy
@@ -201,7 +201,7 @@ importers:
         version: 2.0.3(@sveltejs/kit@1.27.2(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5)))
       '@sveltejs/enhanced-img':
         specifier: ^0.3.8
-        version: 0.3.8(patch_hash=2cpkchxgi62oaiabnl5eja646i)(rollup@3.29.4)(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5))
+        version: 0.3.8(patch_hash=3476pbfrpexm3jnvpmrprzpwwa)(rollup@3.29.4)(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5))
       '@sveltejs/kit':
         specifier: ^1.25.2
         version: 1.27.2(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5))
@@ -5902,7 +5902,7 @@ snapshots:
     dependencies:
       '@sveltejs/kit': 1.27.2(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5))
 
-  '@sveltejs/enhanced-img@0.3.8(patch_hash=2cpkchxgi62oaiabnl5eja646i)(rollup@3.29.4)(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5))':
+  '@sveltejs/enhanced-img@0.3.8(patch_hash=3476pbfrpexm3jnvpmrprzpwwa)(rollup@3.29.4)(svelte@4.2.2)(vite@4.5.0(@types/node@20.14.2)(sass@1.69.5))':
     dependencies:
       magic-string: 0.30.5
       svelte: 4.2.2

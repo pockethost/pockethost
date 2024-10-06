@@ -20,7 +20,7 @@
 
 To receive emails, you'll need an email provider. I use Google Suite, but you can choose any provider you prefer.
 
-[Setting up a new email domain in Google Suite](/docs/speedruns/gs-gmail).
+[Setting up a new email domain in Google Suite](/docs/gs-gmail).
 
 (Someone should write about how to do it using Proton.me)
 

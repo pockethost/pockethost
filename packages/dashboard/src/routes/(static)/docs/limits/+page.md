@@ -8,7 +8,7 @@ Rate limiting is imposed by **Cloudflare**, which restricts requests to **50 req
 
 In special cases, such as during conferences or events where a large amount of traffic originates from a single IP, we have ways to expand or bypass these rate limits. If this applies to you, please contact [PocketHost Support](/support).
 
-In general, exceeding the rate limit often indicates a coding issue. Another option is to write custom routes using [JS Hooks](/docs/js-hooks) to perform bulk fetching and filtering server-side, which can be difficult to manage effectively on the client side.
+In general, exceeding the rate limit often indicates a coding issue. Another option is to write custom routes using [JS Hooks](/docs/programming) to perform bulk fetching and filtering server-side, which can be difficult to manage effectively on the client side.
 
 ## Hibernation
 

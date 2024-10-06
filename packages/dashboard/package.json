@@ -5,7 +5,7 @@
   "main": "./src/app.html",
   "scripts": {
     "check:types": "svelte-check",
-    "preview": "npx http-server@latest ../../dist/dashboard -P \"http://localhost:8080?\"",
+    "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
     "dev": "vite dev",
     "build": "NODE_ENV=production vite build",
     "lint": "prettier --check .",
