@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Navbar from '$src/routes/Navbar.svelte'
+  import Navbar from '$src/routes/Navbar/Navbar.svelte'
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import '../app.css'
@@ -10,12 +10,10 @@
 <div>
   <Navbar />
 
-  <main class="">
-    <div class="px-4 sm:px-6 lg:px-8">
-      <VerifyAccountBar />
-      <slot />
-    </div>
-  </main>
+  <div class="px-4 sm:px-6 lg:px-8">
+    <VerifyAccountBar />
+  </div>
+  <slot />
 </div>
 <div
   class="p-10 text-xs text-neutral-content flex flex-col text-center items-center"

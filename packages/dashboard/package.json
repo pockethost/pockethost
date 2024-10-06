@@ -17,6 +17,7 @@
     "@pockethost/plugin-console-logger": "workspace:*",
     "@s-libs/micro-dash": "^16.1.0",
     "@sveltejs/adapter-static": "^2.0.3",
+    "@sveltejs/enhanced-img": "^0.3.8",
     "@sveltejs/kit": "^1.25.2",
     "@tailwindcss/typography": "^0.5.10",
     "@types/bootstrap": "^5.2.6",
@@ -31,7 +32,9 @@
     "daisyui": "^4.4.23",
     "date-fns": "^2.30.0",
     "highlight.js": "^11.8.0",
+    "just-camel-case": "^6.2.0",
     "mdsvex": "^0.12.3",
+    "mdsvex-relative-images": "^1.0.3",
     "pockethost": "workspace:../pockethost",
     "sass": "^1.68.0",
     "svelte": "^4.2.1",
@@ -40,6 +43,7 @@
     "svelte-highlight": "^7.3.0",
     "svelte-preprocess": "^5.0.4",
     "tailwindcss": "^3.3.3",
+    "unist-util-visit": "^5.0.0",
     "vite": "^4.4.9"
   }
 }

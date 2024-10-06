@@ -9,7 +9,6 @@
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "dev:cli": "cd packages/pockethost && pnpm dev",
-    "dev:lander": "cd packages/lander && pnpm start",
     "dev:dashboard": "cd packages/dashboard && pnpm dev",
     "dev:superadmin": "cd packages/superadmin && pnpm dev",
     "prod:cli": "cd packages/pockethost && pnpm start",
