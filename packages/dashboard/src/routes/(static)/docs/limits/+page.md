@@ -10,6 +10,15 @@ In special cases, such as during conferences or events where a large amount of t
 
 In general, exceeding the rate limit often indicates a coding issue. Another option is to write custom routes using [JS Hooks](/docs/js-hooks) to perform bulk fetching and filtering server-side, which can be difficult to manage effectively on the client side.
 
+## Hibernation
+
+To conserve resources, PocketHost instances may enter a **hibernation** state during periods of inactivity. When in hibernation, your instance won't immediately respond to incoming requests but will wake up when a new request is received.
+
+### Important Caveats:
+
+- **Scheduled Tasks and Backups**: Automated tasks like scheduled backups may fail to execute if the instance is in hibernation at the scheduled time. Waking up the instance on a schedule will not trigger any missed intervals. This is generally less of an issue as your instance grows and becomes more active.
+- **Instance Waking**: While the instance will wake up for new requests, the first request after hibernation may experience a delay as the instance restarts.
+
 ## Usage Limits
 
 In addition to rate limits, we monitor:

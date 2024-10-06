@@ -19,9 +19,9 @@
     <a href="/docs/delete">Delete</a>
     <a href="/docs/limits">Limits</a>
     <a href="/docs/smtp">Outgoing Email</a>
-    <a href="">Custom Binaries</a>
-    <a href="">Changing Versions</a>
+    <a href="/docs/versions">Changing Versions</a>
     <a href="">Using S3 Storage</a>
+    <a href="#">Custom Binaries (soon)</a>
 
     <div class="heading">Daily Use Guide</div>
     <a href="/docs/logs">Logging</a>
@@ -30,9 +30,9 @@
     <a href="/docs/ftp">FTP Access</a>
     <a href="/docs/admin-sync">Admin Sync</a>
     <a href="/docs/custom-domains">Custom Domains</a>
+    <a href="/docs/backup-restore">Backup/Restore</a>
     <a href="">Using S3 Storage</a>
     <a href="">Cron</a>
-    <a href="">Backups</a>
 
     <div class="heading">Programming Guide</div>
     <a href="/docs/frontends">Frontends</a>
