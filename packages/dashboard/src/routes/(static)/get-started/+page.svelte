@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Logo from '$components/Logo.svelte'
+  import Logo from '$src/routes/Navbar/Logo.svelte'
   import InstanceGeneratorWidget from '$components/login-register/InstanceGeneratorWidget.svelte'
 </script>
 

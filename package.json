@@ -76,7 +76,8 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "eventsource@2.0.2": "patches/eventsource@2.0.2.patch"
+      "eventsource@2.0.2": "patches/eventsource@2.0.2.patch",
+      "@sveltejs/enhanced-img": "patches/@sveltejs__enhanced-img.patch"
     }
   }
 }

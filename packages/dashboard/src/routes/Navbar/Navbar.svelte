@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Logo from '$components/Logo.svelte'
+  import Logo from '$src/routes/Navbar/Logo.svelte'
   import { DOCS_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import InstancesGuard from '$src/routes/Navbar/InstancesGuard.svelte'
@@ -76,19 +76,19 @@
     <AuthStateGuard>
       <div slot="loading">
         <a href="/" role="tab" class="tab">
-          <Logo hideLogoText={true} logoWidth="h-8" />
+          <Logo hideLogoText={true} size={32} />
           <div class="hidden md:block ml-1">PocketHost</div>
         </a>
       </div>
       <UserLoggedIn>
         <a href="/dashboard" role="tab" class="tab">
-          <Logo hideLogoText={true} logoWidth="h-8" />
+          <Logo hideLogoText={true} size={32} />
           <div class="hidden md:block ml-1">PocketHost</div>
         </a>
       </UserLoggedIn>
       <UserLoggedOut>
         <a href="/" role="tab" class="tab">
-          <Logo hideLogoText={true} logoWidth="h-8" />
+          <Logo hideLogoText={true} size={32} />
           <div class="hidden md:block ml-1">PocketHost</div>
         </a>
       </UserLoggedOut>

@@ -12,3 +12,7 @@
 .prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
   @apply mt-0 mb-0;
 }
+
+.docs-content img {
+  @apply border-neutral rounded-lg border;
+}

@@ -41,7 +41,7 @@
 
     <!-- Sidebar content goes here -->
   </div>
-  <div class="content w-fit prose p-5">
+  <div class="docs-content w-fit prose p-5">
     <slot />
   </div>
 </div>

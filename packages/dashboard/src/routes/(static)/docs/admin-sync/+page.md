@@ -1,6 +1,10 @@
+<script>
+    import png from './2024-10-06-09-11-52.png?enhanced'
+</script>
+
 Admin Sync will make sure your instance always has an admin account that matches the login credentials of your pockethost.io account.
 
-![](2024-10-06-08-06-47.png)
+<enhanced:img src={png} c>
 
 ## Admin Sync `Enabled` (default)
 

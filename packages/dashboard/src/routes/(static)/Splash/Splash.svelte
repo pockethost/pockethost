@@ -44,8 +44,8 @@
   </div>
 
   <div class="w-full p-8 lg:w-1/2 lg:block hidden">
-    <img
-      src="/images/futuristic-server-room.png"
+    <enhanced:img
+      src="./futuristic-server-room.png"
       alt="A series of tubes moving the data around to represent PocketHost"
       class="rounded-[250px] mix-blend-lighten animated-hero-banner"
     />
