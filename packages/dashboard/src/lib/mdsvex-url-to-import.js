@@ -33,7 +33,6 @@ export default function fancyImages() {
         value: `<enhanced:img src={${camel}}/>`,
       }
     })
-    console.log(tree)
 
     let scripts = ''
     images.forEach(
