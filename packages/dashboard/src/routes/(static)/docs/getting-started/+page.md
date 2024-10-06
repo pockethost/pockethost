@@ -75,14 +75,4 @@ Now that you're set up, you can start building your application!
 
 ---
 
-**Need Help?**
-
-- **Documentation**: Check out our comprehensive [Documentation](https://pockethost.io/docs) for more guides and tutorials.
-- **Community Support**: Join our [Discord Community](https://discord.gg/pockethost) to ask questions and share ideas.
-- **Contact Us**: Reach out at [support@pockethost.io](mailto:support@pockethost.io) for assistance.
-
-_All the topics mentioned are covered in detail in other sections of our documentation._
-
----
-
 _Happy building with PocketHost!_

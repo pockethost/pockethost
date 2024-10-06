@@ -69,6 +69,6 @@ _PocketHost is here to empower you to focus on what you do best—building amazi
 
 **Next Steps**:
 
-- **[Getting Started Guide](https://pockethost.io/docs/getting-started)**: A step-by-step tutorial to launch your first project.
-- **[Pricing Information](https://pockethost.io/pricing)**: Detailed breakdown of our plans and offerings.
-- **[Community Support](https://discord.gg/pockethost)**: Join our Discord server to connect with other users and get support.
+- **[Getting Started Guide](/docs/getting-started)**: A step-by-step tutorial to launch your first project.
+- **[Pricing Information](/pricing)**: Detailed breakdown of our plans and offerings.
+- **[Community Support](/support)**: Join our Discord server to connect with other users and get support.
