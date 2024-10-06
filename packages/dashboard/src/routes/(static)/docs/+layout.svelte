@@ -11,35 +11,41 @@
     <a href="/docs">Hello.</a>
     <a href="/docs/getting-started">Getting Started</a>
 
-    <div class="heading">Core Concepts</div>
-    <a href="/docs/create">Creating an Instance</a>
-    <a href="/docs/power">Powering on/off</a>
+    <div class="heading">Instance Management</div>
+    <a href="/docs/create">Create</a>
+    <a href="/docs/accessing">Connect</a>
+    <a href="/docs/power">Power</a>
+    <a href="/docs/rename-instance">Rename</a>
+    <a href="/docs/delete">Delete</a>
+    <a href="/docs/limits">Limits</a>
+    <a href="/docs/smtp">Outgoing Email</a>
+    <a href="">Custom Binaries</a>
+    <a href="">Changing Versions</a>
+    <a href="">Using S3 Storage</a>
+
+    <div class="heading">Daily Use Guide</div>
     <a href="/docs/logs">Logging</a>
-    <a href="/docs/delete">Deleting an Instance</a>
     <a href="/docs/dev-mode">Dev Mode</a>
     <a href="/docs/secrets">Secrets</a>
     <a href="/docs/ftp">FTP Access</a>
     <a href="/docs/admin-sync">Admin Sync</a>
-    <a href="">Custom Domains</a>
-    <a href="">Using JS Hooks</a>
+    <a href="/docs/custom-domains">Custom Domains</a>
     <a href="">Using S3 Storage</a>
     <a href="">Cron</a>
     <a href="">Backups</a>
-    <a href="">Changing Versions</a>
-    <a href="">Usage Limits</a>
-    <a href="">Outgoing Email</a>
-    <a href="">Custom Binaries</a>
-    <a href="">Rate Limits</a>
 
-    <div class="heading">Speed Runs</div>
-    <a href="">Migrating to S3 Storage</a>
+    <div class="heading">Programming Guide</div>
+    <a href="/docs/frontends">Frontends</a>
+    <a href="/docs/js-hooks">Using JS Hooks</a>
 
     <div class="heading">Self-Hosting</div>
 
     <div class="heading">Appendix</div>
-    <a href="/docs/account-creation">Account Creation</a>
+    <a href="/docs/create">Account Creation</a>
     <a href="/docs/pricing-ethos">Pricing Ethos</a>
     <a href="/docs/faq">FAQ</a>
+    <a href="/docs/gs-gmail">Google Suite Gmail Setup</a>
+    <a href="/docs/ses">Amazon SES Setup</a>
 
     <!-- Sidebar content goes here -->
   </div>
