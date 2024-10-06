@@ -12,17 +12,19 @@
     <a href="/docs/getting-started">Getting Started</a>
 
     <div class="heading">Core Concepts</div>
-    <a href="/docs/admin-sync">Admin Sync</a>
     <a href="/docs/create">Creating an Instance</a>
+    <a href="/docs/power">Powering on/off</a>
+    <a href="/docs/logs">Logging</a>
+    <a href="/docs/delete">Deleting an Instance</a>
+    <a href="/docs/dev-mode">Dev Mode</a>
+    <a href="/docs/secrets">Secrets</a>
+    <a href="/docs/ftp">FTP Access</a>
+    <a href="/docs/admin-sync">Admin Sync</a>
     <a href="">Custom Domains</a>
-    <a href="">Deleting an Instance</a>
-    <a href="">Dev Mode</a>
     <a href="">Using JS Hooks</a>
-    <a href="">FTP Access</a>
     <a href="">Using S3 Storage</a>
     <a href="">Cron</a>
     <a href="">Backups</a>
-    <a href="">Powering on/off</a>
     <a href="">Changing Versions</a>
     <a href="">Usage Limits</a>
     <a href="">Outgoing Email</a>

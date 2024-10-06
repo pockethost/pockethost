@@ -1,4 +1,8 @@
-# Powering on and Off
+# Power
+
+## Power On
+
+![](2024-10-06-14-32-38.png)
 
 To power on the instance, follow these steps:
 
@@ -7,6 +11,10 @@ To power on the instance, follow these steps:
 3. The instance is now active.
 
 Once powered on, your PocketBase instance will be able to receive requests and respond accordingly.
+
+## Power Off
+
+![](2024-10-06-14-32-05.png)
 
 To power off the instance, follow these steps:
 
