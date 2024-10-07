@@ -172,7 +172,11 @@
         </li>
       </UserLoggedOut>
       <li>
-        <a href="https://github.com/pockethost/pockethost" rel="noreferrer">
+        <a
+          href="https://github.com/pockethost/pockethost"
+          rel="noreferrer"
+          style="width:120px; heigh:36px"
+        >
           <img
             src="https://img.shields.io/github/stars/pockethost/pockethost"
           />
