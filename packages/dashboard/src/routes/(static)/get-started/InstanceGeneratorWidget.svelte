@@ -1,6 +1,6 @@
 <script lang="ts">
-  import LoginForm from '$components/login-register/LoginForm.svelte'
-  import RegisterForm from '$components/login-register/RegisterForm.svelte'
+  import LoginForm from './LoginForm.svelte'
+  import RegisterForm from './RegisterForm.svelte'
   import { onMount } from 'svelte'
   import { slide } from 'svelte/transition'
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
+  import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import { globalInstancesStoreReady } from '$util/stores'
 </script>
 

@@ -4,7 +4,6 @@
     isUserLoggedIn,
     userStore,
   } from '$util/stores'
-  import AuthStateGuard from './AuthStateGuard.svelte'
 
   export let role = ''
   let hasRole = false

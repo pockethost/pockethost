@@ -1,6 +1,6 @@
 <script lang="ts">
-  import FeatureName from '$components/tables/pricing-table/FeatureName.svelte'
-  import FeatureSupportBlock from '$components/tables/pricing-table/FeatureSupportBlock.svelte'
+  import FeatureName from '$src/routes/(static)/pricing/FeatureName.svelte'
+  import FeatureSupportBlock from './FeatureSupportBlock.svelte'
   import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
 
   interface Item {

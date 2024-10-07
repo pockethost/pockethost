@@ -1,5 +1,5 @@
 <script lang="ts">
-  import FeatureSupportBlock from '$components/tables/pricing-table/FeatureSupportBlock.svelte'
+  import FeatureSupportBlock from './FeatureSupportBlock.svelte'
 
   export let feature: string
   export let item: string

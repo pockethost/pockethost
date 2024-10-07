@@ -1,7 +1,7 @@
 <script lang="ts">
   import Navbar from '$src/routes/Navbar/Navbar.svelte'
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
-  import Meta from '$components/helpers/Meta.svelte'
+  import Meta from '$components/guards/Meta.svelte'
   import '../app.css'
 </script>
 

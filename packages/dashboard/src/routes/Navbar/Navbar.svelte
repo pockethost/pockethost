@@ -5,10 +5,10 @@
   import { globalInstancesStore, userStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import { writable } from 'svelte/store'
-  import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
-  import UserLoggedOut from '$components/helpers/UserLoggedOut.svelte'
-  import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
-  import UserHasRole from '$src/components/helpers/UserHasRole.svelte'
+  import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
+  import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
+  import AuthStateGuard from '$components/guards/AuthStateGuard.svelte'
+  import UserHasRole from '$components/guards/UserHasRole.svelte'
 
   type TypeInstanceObject = {
     id: string

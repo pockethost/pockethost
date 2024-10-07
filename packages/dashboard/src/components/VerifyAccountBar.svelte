@@ -2,7 +2,7 @@
   import { slide } from 'svelte/transition'
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
   import { client } from '$src/pocketbase-client'
-  import UserLoggedIn from './helpers/UserLoggedIn.svelte'
+  import UserLoggedIn from './guards/UserLoggedIn.svelte'
   import { faCheck, faEnvelopeSquare } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 

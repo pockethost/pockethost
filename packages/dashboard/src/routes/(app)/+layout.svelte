@@ -1,6 +1,6 @@
 <script>
-  import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
-  import UserLoggedOut from '$src/components/helpers/UserLoggedOut.svelte'
+  import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
+  import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
 </script>
 
 <div class="m-4">

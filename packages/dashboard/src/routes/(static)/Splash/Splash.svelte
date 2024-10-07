@@ -1,7 +1,7 @@
 <script>
-  import AuthStateGuard from '$src/components/helpers/AuthStateGuard.svelte'
-  import UserLoggedIn from '$src/components/helpers/UserLoggedIn.svelte'
-  import UserLoggedOut from '$src/components/helpers/UserLoggedOut.svelte'
+  import AuthStateGuard from '$components/guards/AuthStateGuard.svelte'
+  import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
+  import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
   import MainFeatureBlock from './MainFeatureBlock.svelte'
   import PrimaryButton from './PrimaryButton.svelte'
   import SubFeatureBlock from './SubFeatureBlock.svelte'
