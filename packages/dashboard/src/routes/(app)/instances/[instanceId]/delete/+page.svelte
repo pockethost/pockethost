@@ -47,7 +47,7 @@
             delete newInstances[id]
             return newInstances
           })
-          goto('/')
+          goto('/dashboard')
         })
         .catch((error) => {
           console.error(error)
