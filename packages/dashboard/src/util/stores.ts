@@ -40,6 +40,7 @@ onAuthChange((authStoreProps) => {
 })
 
 userStore.subscribe((user) => {
+  console.log({ user })
   isUserLegacy.set(!!user?.isLegacy)
   isUserFounder.set(!!user?.isFounder)
   userSubscriptionType.set(user?.subscription || SubscriptionType.Free)

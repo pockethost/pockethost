@@ -1,5 +1,5 @@
 import { boolean } from 'boolean'
-import { InstanceFields } from 'pockethost/common'
+import { InstanceFields, SubscriptionType } from 'pockethost/common'
 
 /**
  * These environment variables default to pointing to the production build so
@@ -29,6 +29,14 @@ export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
 }
+
+export const MAX_INSTANCE_COUNTS = {
+  [SubscriptionType.Free]: 25,
+  [SubscriptionType.Legacy]: 25,
+  [SubscriptionType.Lifetime]: 999,
+  [SubscriptionType.Premium]: 250,
+}
+export const FREE_MAX_INSTANCE_COUNT = 25
 
 export const APP_URL = (...paths: string[]) => {
   return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
