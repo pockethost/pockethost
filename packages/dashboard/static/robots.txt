@@ -1,0 +1,11 @@
+# www.robotstxt.org/
+
+# Allow crawling of all content
+User-agent: *
+Allow: /
+
+# Disallow crawling of specific paths (examples)
+Disallow: /instances/
+
+# Sitemap location (if you have one)
+Sitemap: https://pockethost.io/sitemap.xml
