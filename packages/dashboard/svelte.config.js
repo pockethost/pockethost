@@ -12,7 +12,7 @@ const config = {
   ],
   kit: {
     adapter: adapter({
-      fallback: 'fallback.html',
+      fallback: 'index.html',
     }),
     alias: {
       $components: './src/components',
@@ -27,6 +27,10 @@ const config = {
   },
   ssr: true,
   target: '#svelte',
+  onwarn: (warning, handler) => {
+    if (warning.code.includes('a11y')) return
+    handler(warning)
+  },
 }
 
 export default config
