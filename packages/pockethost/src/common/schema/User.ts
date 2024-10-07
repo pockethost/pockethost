@@ -21,6 +21,7 @@ export type UserFields<TExtra = {}> = BaseFields & {
   isFounder: boolean
   subscription: SubscriptionType
   notifyMaintenanceMode: boolean
+  isStatsRole: boolean
 } & TExtra
 
 export type WithCredentials = {

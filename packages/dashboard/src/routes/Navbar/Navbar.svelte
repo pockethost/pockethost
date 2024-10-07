@@ -8,6 +8,7 @@
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/helpers/UserLoggedOut.svelte'
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
+  import UserHasRole from '$src/components/helpers/UserHasRole.svelte'
 
   type TypeInstanceObject = {
     id: string
@@ -124,6 +125,11 @@
               </InstancesGuard>
             </ul>
           </details>
+        </li>
+        <li>
+          <UserHasRole role="stats">
+            <a href="/stats">Stats</a>
+          </UserHasRole>
         </li>
       </UserLoggedIn>
       <li>
