@@ -1,6 +1,6 @@
 import adapter from '@sveltejs/adapter-static'
 import { mdsvex } from 'mdsvex'
-import { mdsvexEnhancedImages } from 'mdsvex-enhanced-images'
+import { enhancedImages } from 'mdsvex-enhanced-images'
 import { sveltePreprocess } from 'svelte-preprocess'
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -10,7 +10,7 @@ const config = {
     sveltePreprocess(),
     mdsvex({
       extensions: ['.svx', '.md'],
-      remarkPlugins: [mdsvexEnhancedImages],
+      remarkPlugins: [enhancedImages],
     }),
   ],
   kit: {
