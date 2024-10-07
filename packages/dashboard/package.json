@@ -33,7 +33,7 @@
     "highlight.js": "^11.10.0",
     "just-camel-case": "^6.2.0",
     "mdsvex": "^0.12.3",
-    "mdsvex-relative-images": "^1.0.3",
+    "mdsvex-enhanced-images": "link:../../../mdsvex-enhanced-images",
     "pockethost": "workspace:^",
     "sass": "^1.79.4",
     "svelte": "^4.2.19",
