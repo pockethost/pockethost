@@ -5,6 +5,8 @@ on:
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
+      - package.json
+      - pnpm-lock.yaml
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
