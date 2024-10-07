@@ -1,7 +1,10 @@
 <script lang="ts">
+  import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
+
   export let text: string
   export let url: string
-  export let icon: string
+  export let icon: IconDefinition
   export let target = ''
 </script>
 
@@ -18,7 +21,7 @@
   >
     {text}
     {#if icon}
-      <i class={icon}></i>
+      <Fa {icon} />
     {/if}
   </a>
 </div>

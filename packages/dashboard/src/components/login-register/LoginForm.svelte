@@ -1,6 +1,8 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
+  import Fa from 'svelte-fa'
+  import { faArrowRight } from '@fortawesome/free-solid-svg-icons'
 
   const { authViaEmail } = client()
 
@@ -88,7 +90,7 @@
       {#if isButtonLoading}
         <span class="loading loading-spinner"></span>
       {:else}
-        Log In <i class="fa-solid fa-arrow-right"></i>
+        Log In <Fa icon={faArrowRight} />
       {/if}
     </button>
   </div>

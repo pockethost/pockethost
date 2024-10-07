@@ -21,7 +21,6 @@
   async function gravatarHash(email: string) {
     // Normalize the email by trimming and converting to lowercase
     const normalizedEmail = email.trim().toLowerCase()
-    console.log('normalizedEmail', normalizedEmail)
 
     // Convert the normalized email to a UTF-8 byte array
     const msgBuffer = new TextEncoder().encode(normalizedEmail)
@@ -153,15 +152,16 @@
               class="btn btn-ghost btn-circle avatar p-0 m-0 min-h-0 min-w-0 h-min"
             >
               <div class="w-8 rounded-full">
-                <img src={$avatar} />
+                <img src={$avatar} alt="Gravatar" />
               </div>
             </div>
             <ul
-              tabindex="0"
               class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
             >
               <li><a href="/account">Settings</a></li>
-              <li><a on:click={handleLogoutAndRedirect}>Logout</a></li>
+              <li>
+                <button on:click={handleLogoutAndRedirect}>Logout</button>
+              </li>
             </ul>
           </div>
         </li>
@@ -172,13 +172,12 @@
         </li>
       </UserLoggedOut>
       <li>
-        <a
-          href="https://github.com/pockethost/pockethost"
-          rel="noreferrer"
-          style="width:120px; heigh:36px"
-        >
+        <a href="https://github.com/pockethost/pockethost" rel="noreferrer">
           <img
             src="https://img.shields.io/github/stars/pockethost/pockethost"
+            width="88"
+            height="20"
+            alt="GitHub stars"
           />
         </a>
       </li>

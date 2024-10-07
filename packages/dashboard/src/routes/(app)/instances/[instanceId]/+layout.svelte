@@ -8,6 +8,11 @@
   import { client } from '$src/pocketbase-client'
   import { type InstanceId } from 'pockethost/common'
   import Toggle from './Toggle.svelte'
+  import Fa from 'svelte-fa'
+  import {
+    faExternalLinkAlt,
+    faTriangleExclamation,
+  } from '@fortawesome/free-solid-svg-icons'
 
   let isReady = false
   $: {
@@ -98,22 +103,23 @@
             href={INSTANCE_ADMIN_URL($instance)}
             rel="noreferrer"
             target="_blank"
+            class="inline-flex items-center"
           >
             <img
               src="/images/pocketbase-logo.svg"
               alt="PocketBase Logo"
-              class="w-6 inline-block"
+              class="w-6"
             />
-            Admin
-            <i class="fa-solid fa-external-link-alt text-xs"></i>
+            <span class="ml-2">Admin</span>
+            <Fa icon={faExternalLinkAlt} class="ml-2 text-xs" />
           </a>
         </li>
       </ul>
       <div class="divider"></div>
-      <div class="mt-2 mb-2">
-        <i class="fa-solid fa-siren-on text-error"></i>
+      <div class="mt-2 mb-2 flex items-center space-x-3">
+        <Fa icon={faTriangleExclamation} class="text-error" />
         <span class=" font-bold text-error">Danger Zone</span>
-        <i class="fa-solid fa-siren-on text-error"></i>
+        <Fa icon={faTriangleExclamation} class="text-error" />
       </div>
       <ul>
         <li><a href={`/instances/${id}/version`}>Change Version</a></li>

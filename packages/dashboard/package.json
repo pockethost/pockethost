@@ -13,6 +13,9 @@
   },
   "type": "module",
   "devDependencies": {
+    "@fortawesome/free-brands-svg-icons": "^6.6.0",
+    "@fortawesome/free-regular-svg-icons": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@microsoft/fetch-event-source": "github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0",
     "@s-libs/micro-dash": "^18.0.0",
     "@sveltejs/adapter-static": "^3.0.5",
@@ -38,6 +41,7 @@
     "sass": "^1.79.4",
     "svelte": "^4.2.19",
     "svelte-check": "^4.0.4",
+    "svelte-fa": "^4.0.3",
     "svelte-highlight": "^7.7.0",
     "svelte-preprocess": "^6.0.3",
     "tailwindcss": "^3.4.13",

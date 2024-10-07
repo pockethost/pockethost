@@ -94,7 +94,7 @@
   </div>
 {/if}
 
-<AlertBar message={successMessage} type="success" />
+<AlertBar message={successMessage} type="success" flash />
 <AlertBar message={errorMessage} type="error" />
 
 {#if cname}
@@ -104,7 +104,11 @@
       type="warning"
     />
   {:else}
-    <AlertBar message={`Your custom domain name is active.`} type="success" />
+    <AlertBar
+      message={`Your custom domain name is active.`}
+      type="success"
+      flash
+    />
   {/if}
 {/if}
 

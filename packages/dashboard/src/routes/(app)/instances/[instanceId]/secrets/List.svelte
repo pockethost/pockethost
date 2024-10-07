@@ -5,6 +5,8 @@
   import { instance } from '../store'
   import { reduce } from '@s-libs/micro-dash'
   import { logger, type UpdateInstancePayload } from 'pockethost'
+  import Fa from 'svelte-fa'
+  import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
   const handleDelete = (name: string) => async (e: Event) => {
     e.preventDefault()
@@ -50,7 +52,7 @@
             on:click={handleDelete(item.name)}
             type="button"
             class="btn btn-sm btn-square btn-outline btn-warning"
-            ><i class="fa-regular fa-trash"></i></button
+            ><Fa icon={faTrash} /></button
           >
         </td>
       </tr>

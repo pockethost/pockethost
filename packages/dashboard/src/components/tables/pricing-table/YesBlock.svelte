@@ -1,6 +1,11 @@
+<script>
+  import { faCheck } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
+</script>
+
 <td class="relative w-1/4 px-4 py-0 text-center">
   <span class="relative h-full w-full py-3">
-    <i class="fa-regular fa-check text-primary"></i>
+    <Fa icon={faCheck} class="text-primary" />
     <span class="sr-only">Yes</span>
   </span>
 </td>

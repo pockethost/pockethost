@@ -4,6 +4,8 @@
   import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
   import { SubscriptionType } from 'pockethost'
+  import { faPlus } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
 
   $: instanceCount = values($globalInstancesStore).length
 </script>
@@ -15,8 +17,8 @@
 <div class="flex items-center justify-between mb-6">
   <h2 class="text-4xl text-base-content font-bold capitalize">Dashboard</h2>
 
-  <a href="/instances/new" class="m-3 btn btn-primary"
-    ><i class="fa-solid fa-plus"></i> New Instance</a
+  <a href="/instances/new" class="m-3 btn btn-primary">
+    <Fa icon={faPlus} /> New Instance</a
   >
 </div>
 

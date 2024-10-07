@@ -8,6 +8,8 @@
   } from 'pockethost/common'
   import { instance } from '../store.js'
   import { items } from './stores.js'
+  import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
 
   // Keep track of the new key and value to be added
   let secretKey: string = ''
@@ -70,11 +72,6 @@
 
       // Show the success message
       successfulSave = true
-
-      // Remove the success toast after a few seconds
-      setTimeout(() => {
-        successfulSave = false
-      }, 5000)
     } catch (error: any) {
       errorMessage = error.message
     }
@@ -86,6 +83,7 @@
     <AlertBar
       message="Your new environment variable has been saved."
       type="success"
+      flash
     />
   {/if}
 
@@ -123,7 +121,7 @@
 
     <div class="text-right">
       <button type="submit" class="btn btn-primary" disabled={!isFormValid}
-        >Add <i class="fa-regular fa-floppy-disk"></i></button
+        >Add <Fa icon={faFloppyDisk} /></button
       >
     </div>
   </form>

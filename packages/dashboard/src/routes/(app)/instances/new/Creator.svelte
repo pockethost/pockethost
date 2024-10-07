@@ -3,6 +3,11 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase-client'
   import { handleCreateNewInstance } from '$util/database'
+  import {
+    faArrowsRotate,
+    faCircleExclamation,
+  } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
 
@@ -101,7 +106,7 @@
         class="btn btn-outline btn-secondary"
         aria-label="Regenerate Instance Name"
         on:click={handleInstanceNameRegeneration}
-        ><i class="fa-regular fa-arrows-rotate"></i></button
+        ><Fa icon={faArrowsRotate} /></button
       >
     </div>
 
@@ -121,7 +126,7 @@
 
     {#if formError}
       <div transition:slide class="alert alert-error mb-5">
-        <i class="fa-solid fa-circle-exclamation"></i>
+        <Fa icon={faCircleExclamation} />
         <span>{formError}</span>
       </div>
     {/if}

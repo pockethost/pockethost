@@ -3,6 +3,8 @@
   import { isUserLoggedIn, isUserVerified } from '$util/stores'
   import { client } from '$src/pocketbase-client'
   import UserLoggedIn from './helpers/UserLoggedIn.svelte'
+  import { faCheck, faEnvelopeSquare } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
 
   const { resendVerificationEmail } = client()
 
@@ -30,14 +32,14 @@
 <UserLoggedIn>
   {#if !$isUserVerified}
     <div class="alert alert-info mb-8">
-      <i class="fa-light fa-envelopes"></i>
+      <Fa icon={faEnvelopeSquare} />
 
       <div>Please verify your account by clicking the link in your email</div>
 
       <div class="text-right">
         {#if isButtonProcessing}
           <div class="btn btn-success">
-            <i class="fa-regular fa-check"></i> Sent!
+            <Fa icon={faCheck} /> Sent!
           </div>
         {:else}
           <button

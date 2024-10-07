@@ -2,8 +2,10 @@
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
+  import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
   import { values } from '@s-libs/micro-dash'
   import { type InstanceId } from 'pockethost'
+  import Fa from 'svelte-fa'
 
   const { updateInstance } = client()
 
@@ -44,7 +46,7 @@
 
       <div class="card-actions flex justify-between mt-5">
         <a href={`/instances/${instance.id}`} class="btn btn-primary">
-          <i class="fa-regular fa-circle-info"></i>
+          <Fa icon={faCircleInfo} />
           <span>Details</span>
         </a>
 

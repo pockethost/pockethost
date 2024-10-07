@@ -5,6 +5,16 @@
   import MainFeatureBlock from './MainFeatureBlock.svelte'
   import PrimaryButton from './PrimaryButton.svelte'
   import SubFeatureBlock from './SubFeatureBlock.svelte'
+  import {
+    faShield,
+    faCloud,
+    faServer,
+    faEnvelope,
+    faTruck,
+    faLaptopCode,
+    faDragon,
+    faArrowRight,
+  } from '@fortawesome/free-solid-svg-icons'
 </script>
 
 <div class="container mx-auto text-white flex items-center">
@@ -23,21 +33,17 @@
         <PrimaryButton
           text="Get Started"
           url="/get-started"
-          icon="fa-solid fa-arrow-right"
+          icon={faArrowRight}
         />
       </div>
       <UserLoggedIn>
-        <PrimaryButton
-          text="Dashboard"
-          url="/dashboard"
-          icon="fa-solid fa-arrow-right"
-        />
+        <PrimaryButton text="Dashboard" url="/dashboard" icon={faArrowRight} />
       </UserLoggedIn>
       <UserLoggedOut>
         <PrimaryButton
           text="Get Started"
           url="/get-started"
-          icon="fa-solid fa-arrow-right"
+          icon={faArrowRight}
         />
       </UserLoggedOut>
     </AuthStateGuard>
@@ -57,7 +63,7 @@
 >
   <div class="bg-zinc-900 md:w-1/2">
     <MainFeatureBlock
-      icon="fa-laptop-code"
+      icon={faLaptopCode}
       title="Up in 30 seconds"
       tagline="Work Smarter, Not Harder"
       content="A backend for your next app is as fast as signing up. No provisioning servers, no Docker fiddling, just B(ad)aaS productivity. Pick a unique project name and connect with our JS Client."
@@ -68,7 +74,7 @@
 
   <div class="bg-zinc-800 md:w-1/2">
     <MainFeatureBlock
-      icon="fa-webhook"
+      icon={faDragon}
       title="Zero Config"
       tagline="Move Fast, Build Fast"
       content="With PocketHost, batteries are included. You get a database, outgoing email, SSL, authentication, cloud functions, and high concurrency all in one stop."
@@ -82,31 +88,31 @@
       class="bg-zinc-900 p-[75px] border-zinc-700 border-t-2 rounded-[75px] flex flex-wrap justify-center"
     >
       <SubFeatureBlock
-        icon="fa-server"
+        icon={faServer}
         title="Database"
         content="Your PocketHost instance is powered by its own internal SQLite instance. SQLite is more performant than mySQL or Postgres and is perfect for powering your next app."
       />
 
       <SubFeatureBlock
-        icon="fa-shield-keyhole"
+        icon={faShield}
         title="Auth"
         content="Email and oAuth authentication options work out of the box. Send transactional email to your users from our verified domain and your custom address."
       />
 
       <SubFeatureBlock
-        icon="fa-cloud"
+        icon={faCloud}
         title="Cloud Functions"
         content="Run your own custom code on PocketHost with our cloud functions. Use the JS Client to call your functions from your frontend."
       />
 
       <SubFeatureBlock
-        icon="fa-envelope"
+        icon={faEnvelope}
         title="Email"
         content="Send transactional email to your users from our verified domain and your custom address."
       />
 
       <SubFeatureBlock
-        icon="fa-transporter-3"
+        icon={faTruck}
         title="Self-host"
         content="When you're ready to take your project in-house, we have you covered. You can export your entire PocketHost environment along with a Dockerfile to run it."
       />

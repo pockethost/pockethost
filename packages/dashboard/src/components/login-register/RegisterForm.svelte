@@ -5,6 +5,8 @@
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
   import NewInstanceProcessingBlock from './NewInstanceProcessingBlock.svelte'
+  import Fa from 'svelte-fa'
+  import { faArrowRight, faRotate } from '@fortawesome/free-solid-svg-icons'
 
   export let isSignUpView: boolean = false
   let isProcessing: boolean = false
@@ -132,8 +134,7 @@
             type="button"
             class="btn btn-square"
             on:click={handleInstanceNameRegeneration}
-          >
-            <i class="fa-solid fa-rotate"></i>
+            ><Fa icon={faRotate} />
           </button>
         </div>
 
@@ -191,7 +192,7 @@
           class="btn btn-primary"
           disabled={isFormButtonDisabled}
         >
-          Create <i class="fa-solid fa-arrow-right"></i>
+          Create <Fa icon={faArrowRight} />
         </button>
       </div>
     </form>

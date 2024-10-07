@@ -5,6 +5,8 @@
   import Form from './Form.svelte'
   import List from './List.svelte'
   import { items } from './stores'
+  import Fa from 'svelte-fa'
+  import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
 
   $: {
     const { id, secrets } = $instance
@@ -40,11 +42,11 @@
 {/if}
 
 {#if $items.length === 0}
-  <div class="alert border-2 border-neutral mb-8">
-    <i class="fa-regular fa-shield-keyhole"></i>
-    <span>No Environment Variables Found</span>
+  <div class="alert border-2 border-primary mb-8">
+    <Fa icon={faUserSecret} />
+    <span>Create your first secret to get started.</span>
   </div>
+{:else}
+  <List />
 {/if}
-
-<List />
 <Form />

@@ -9,6 +9,12 @@
   import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'
+  import Fa from 'svelte-fa'
+  import {
+    faArrowDown,
+    faClose,
+    faUpRightAndDownLeftFromCenter,
+  } from '@fortawesome/free-solid-svg-icons'
 
   $: ({ id } = $instance)
 
@@ -95,11 +101,7 @@
       class="btn btn-sm absolute top-[6px] right-[6px]"
       on:click={() => (autoScroll = !autoScroll)}
       >AutoScroll
-      <i
-        class="fa-regular"
-        class:fa-close={!autoScroll}
-        class:fa-arrow-down={autoScroll}
-      />
+      <Fa icon={autoScroll ? faArrowDown : faClose} />
     </button>
     <h3 class="font-bold text-lg">Instance Logging</h3>
 
@@ -132,14 +134,10 @@
   <div class="flex flex-row absolute top-[6px] right-[6px] gap-1">
     <button class="btn btn-sm" on:click={() => (autoScroll = !autoScroll)}
       >AutoScroll
-      <i
-        class="fa-regular"
-        class:fa-close={!autoScroll}
-        class:fa-arrow-down={autoScroll}
-      />
+      <Fa icon={autoScroll ? faArrowDown : faClose} />
     </button>
     <button class="btn btn-sm" on:click={handleFullScreenModal}
-      >Fullscreen <i class="fa-regular fa-arrows-maximize" /></button
+      >Fullscreen <Fa icon={faUpRightAndDownLeftFromCenter} /></button
     >
   </div>
   <div class="h-[450px] flex flex-col overflow-y-scroll" bind:this={logElement}>

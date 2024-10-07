@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { writable } from 'svelte/store'
-
+  import { faClock } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
   export let name = ''
   export let description = ''
   export let priceMonthly: [number, string?] = [0, '']
@@ -35,7 +35,7 @@
     <p
       class="animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black"
     >
-      <i class="fa-regular fa-clock"></i>
+      <Fa icon={faClock} />
       {qtyRemaining}/{qtyMax} Remaining
     </p>
     {#if qtyRemaining <= 0}
