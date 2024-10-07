@@ -30,7 +30,7 @@ export default function fancyImages() {
 
       parent.children[index] = {
         type: 'html',
-        value: `<enhanced:img src={${camel}}/>`,
+        value: `<enhanced:img src={${camel}} alt="image"/>`,
       }
     })
 
