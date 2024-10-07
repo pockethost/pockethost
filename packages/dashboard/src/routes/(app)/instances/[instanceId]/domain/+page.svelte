@@ -45,7 +45,7 @@
         $userSubscriptionType,
       )
     ) {
-      errorMessage = `Oof, you hit a paywall. This is a Pro feature only. Please <a class='link' href="/account">upgrade your account.</a>`
+      errorMessage = `Oof, you hit a paywall. This is a Pro feature only. Please <a class='link' href="/pricing">upgrade your account.</a>`
       return
     }
 
