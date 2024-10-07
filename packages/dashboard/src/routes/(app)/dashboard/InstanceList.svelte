@@ -3,7 +3,7 @@
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-  import { InstanceId } from 'pockethost'
+  import { type InstanceId } from 'pockethost'
 
   const { updateInstance } = client()
 

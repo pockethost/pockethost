@@ -4,7 +4,7 @@
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import { reduce } from '@s-libs/micro-dash'
-  import { logger, UpdateInstancePayload } from 'pockethost'
+  import { logger, type UpdateInstancePayload } from 'pockethost'
 
   const handleDelete = (name: string) => async (e: Event) => {
     e.preventDefault()

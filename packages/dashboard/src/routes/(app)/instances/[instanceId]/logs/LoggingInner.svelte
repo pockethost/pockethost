@@ -3,7 +3,7 @@
   import { mkCleanup } from '$util/componentCleanup'
   import {
     StreamNames,
-    Unsubscribe,
+    type Unsubscribe,
     type InstanceLogFields,
   } from 'pockethost/common'
   import { onMount, tick } from 'svelte'

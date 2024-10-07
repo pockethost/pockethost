@@ -1,4 +1,4 @@
-import { BaseFields } from './types'
+import { type BaseFields } from './types'
 
 export enum SubscriptionType {
   Legacy = 'legacy',

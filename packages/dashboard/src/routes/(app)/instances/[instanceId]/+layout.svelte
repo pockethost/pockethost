@@ -6,7 +6,7 @@
   import { assert } from 'pockethost/common'
   import { instance } from './store'
   import { client } from '$src/pocketbase-client'
-  import { InstanceId } from 'pockethost/common'
+  import { type InstanceId } from 'pockethost/common'
   import Toggle from './Toggle.svelte'
 
   let isReady = false

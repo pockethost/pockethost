@@ -2,22 +2,26 @@ import { PUBLIC_DEBUG } from '$src/env'
 import { client } from '$src/pocketbase-client'
 import {
   ConsoleLogger,
+  ioc,
   LogLevelName,
   SubscriptionType,
-  UserFields,
-  ioc,
   type InstanceFields,
   type InstanceId,
   type UnsubscribeFunc,
+  type UserFields,
 } from 'pockethost/common'
 import { writable } from 'svelte/store'
 
-ioc(
-  `logger`,
-  ConsoleLogger({
-    level: PUBLIC_DEBUG ? LogLevelName.Debug : LogLevelName.Info,
-  }),
-)
+try {
+  ioc(
+    `logger`,
+    ConsoleLogger({
+      level: PUBLIC_DEBUG ? LogLevelName.Debug : LogLevelName.Info,
+    }),
+  )
+} catch (e) {
+  console.warn(e)
+}
 
 const { onAuthChange } = client()
 
