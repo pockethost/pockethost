@@ -21,7 +21,7 @@
     <a href="/docs/smtp">Outgoing Email</a>
     <a href="/docs/versions">Changing Versions</a>
     <a href="/docs/s3">Using S3 Storage</a>
-    <a href="#">Custom Binaries (soon)</a>
+    <a href="/docs/custom-binaries">Custom Binaries</a>
     <a href="/docs/custom-domains">Custom Domains</a>
     <a href="/docs/backup-restore">Backup/Restore</a>
 
@@ -31,11 +31,10 @@
     <a href="/docs/secrets">Secrets</a>
     <a href="/docs/ftp">FTP Access</a>
     <a href="/docs/admin-sync">Admin Sync</a>
+    <a href="/docs/js">Extending via JS</a>
 
     <div class="heading">Programming Guide</div>
     <a href="/docs/programming">Frontends and JS Hooks</a>
-
-    <div class="heading">Self-Hosting</div>
 
     <div class="heading">Appendix</div>
     <a href="/docs/account-creation">Account Creation</a>
@@ -43,6 +42,7 @@
     <a href="/docs/faq">FAQ</a>
     <a href="/docs/gs-gmail">Google Suite Gmail Setup</a>
     <a href="/docs/ses">Amazon SES Setup</a>
+    <a href="/docs/self-hosting">Self-Hosting</a>
 
     <!-- Sidebar content goes here -->
   </div>

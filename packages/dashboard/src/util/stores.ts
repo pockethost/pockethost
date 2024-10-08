@@ -1,3 +1,4 @@
+import { browser } from '$app/environment'
 import { PUBLIC_DEBUG } from '$src/env'
 import { client } from '$src/pocketbase-client'
 import {
@@ -38,7 +39,9 @@ onAuthChange((authStoreProps) => {
   isUserLoggedIn.set(isLoggedIn)
   userStore.set(isLoggedIn ? (authStoreProps.model as UserFields) : undefined)
   isAuthStateInitialized.set(true)
-  window.createLemonSqueezy()
+  if (browser) {
+    window.createLemonSqueezy()
+  }
 })
 
 userStore.subscribe((user) => {

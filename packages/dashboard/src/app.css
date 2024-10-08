@@ -16,3 +16,8 @@
 .docs-content img {
   @apply border-accent rounded-lg border;
 }
+
+.prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  @apply mt-0 mb-0;
+  line-height: 1.5em;
+}
