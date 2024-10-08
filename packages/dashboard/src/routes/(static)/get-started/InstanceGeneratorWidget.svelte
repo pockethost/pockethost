@@ -4,8 +4,9 @@
   import { onMount } from 'svelte'
   import { slide } from 'svelte/transition'
 
+  export let login = false
   // Create a toggle to hold the Sign-Up view or the Register view
-  let isSignUpView: boolean = true
+  let isSignUpView: boolean = !login
 
   onMount(() => {
     // Check the url if the parameter "view" is set and change the form view

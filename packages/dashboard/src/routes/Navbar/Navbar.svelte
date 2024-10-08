@@ -70,67 +70,29 @@
   }
 </script>
 
-<div class="navbar bg-base-100">
-  <div class="flex-1">
-    <AuthStateGuard>
-      <div slot="loading">
-        <a href="/" role="tab" class="tab">
-          <Logo hideLogoText={true} size={32} />
-          <div class="hidden md:block ml-1">PocketHost</div>
-        </a>
-      </div>
-      <UserLoggedIn>
-        <a href="/dashboard" role="tab" class="tab">
-          <Logo hideLogoText={true} size={32} />
-          <div class="hidden md:block ml-1">PocketHost</div>
-        </a>
-      </UserLoggedIn>
-      <UserLoggedOut>
-        <a href="/" role="tab" class="tab">
-          <Logo hideLogoText={true} size={32} />
-          <div class="hidden md:block ml-1">PocketHost</div>
-        </a>
-      </UserLoggedOut>
-    </AuthStateGuard>
+<div class="navbar bg-base-100 min-w-[375px]">
+  <div class="flex-1 min-w-10">
+    <a href="/" class="flex items-center">
+      <Logo hideLogoText={true} size={32} />
+      <div class="hidden md:block ml-1 text-sm">PocketHost</div>
+    </a>
   </div>
-  <div class="flex-none gap-2">
-    <ul class="menu menu-horizontal px-1">
-      <UserLoggedOut>
-        <li>
-          <a href="/pricing" rel="noreferrer">Pricing</a>
-        </li>
-      </UserLoggedOut>
+  <div class="flex-none">
+    <ul class="menu menu-horizontal px-1 text-xs">
       <UserLoggedIn>
         <li>
-          <details>
-            <summary class="apps">Instances</summary>
-            <ul class="bg-base-100 rounded-t-none p-2">
-              <InstancesGuard>
-                <ul role="list" class="z-50 bg-base-100">
-                  <li>
-                    <a href="/instances/new" on:click={handleMobileNavDismiss}
-                      >+ New Instance</a
-                    >
-                  </li>
-                  {#each arrayOfActiveInstances as app}
-                    <li>
-                      <a
-                        href={`/instances/${app.id}`}
-                        on:click={handleMobileNavDismiss}>{app.subdomain}</a
-                      >
-                    </li>
-                  {/each}
-                </ul>
-              </InstancesGuard>
-            </ul>
-          </details>
+          <a href="/dashboard" rel="noreferrer">Dashboard</a>
         </li>
+
         <li>
           <UserHasRole role="stats">
             <a href="/stats">Stats</a>
           </UserHasRole>
         </li>
       </UserLoggedIn>
+      <li>
+        <a href="/pricing" rel="noreferrer">Pricing</a>
+      </li>
       <li>
         <a href="/support" rel="noreferrer">Support</a>
       </li>
@@ -168,7 +130,7 @@
       </UserLoggedIn>
       <UserLoggedOut>
         <li>
-          <a href="/get-started" class="">Login</a>
+          <a href="/login" class="">Login</a>
         </li>
       </UserLoggedOut>
       <li>

@@ -5,6 +5,8 @@ export enum SubscriptionType {
   Free = 'free',
   Premium = 'premium',
   Lifetime = 'lifetime',
+  Flounder = 'flounder',
+  BF24 = 'bf24',
 }
 
 export const PLAN_NAMES = {
@@ -12,6 +14,8 @@ export const PLAN_NAMES = {
   [SubscriptionType.Free]: 'Hacker',
   [SubscriptionType.Premium]: `Pro`,
   [SubscriptionType.Lifetime]: `Founder's Edition`,
+  [SubscriptionType.Flounder]: `Flounder's Edition`,
+  [SubscriptionType.BF24]: `Black Friday 2024 Edition`,
 }
 
 export type UserFields<TExtra = {}> = BaseFields & {

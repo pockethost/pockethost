@@ -32,15 +32,13 @@ export const isUserFounder = writable(false)
 export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)
 export const userStore = writable<UserFields | undefined>()
-/**
- * Listen for auth change events. When we get at least one, the auth state is
- * initialized.
- */
+
 onAuthChange((authStoreProps) => {
   const isLoggedIn = authStoreProps.isValid
   isUserLoggedIn.set(isLoggedIn)
   userStore.set(isLoggedIn ? (authStoreProps.model as UserFields) : undefined)
   isAuthStateInitialized.set(true)
+  window.createLemonSqueezy()
 })
 
 userStore.subscribe((user) => {
