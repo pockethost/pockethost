@@ -15,7 +15,7 @@ const config = {
   ],
   kit: {
     adapter: adapter({
-      fallback: 'index.html',
+      fallback: 'fallback.html',
     }),
     alias: {
       $components: './src/components',
