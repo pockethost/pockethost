@@ -4,8 +4,8 @@
   import { onMount, onDestroy } from 'svelte'
   export let name = ''
   export let description = ''
-  export let priceMonthly: [number, string?] = [0, '']
-  export let priceAnnually: [number, string?] = [0, '']
+  export let priceMonthly: [number, string?, number?] = [0, '']
+  export let priceAnnually: [number, string?, number?] = [0, '']
   export let checkoutMonthURL = ''
   export let checkoutYearURL = ''
   export let qtyMax = 0
@@ -16,6 +16,7 @@
   export let availableText = 'AVAILABLE'
   export let features: string[] = []
   export let fundingGoals: string[] = []
+  export let startDate: Date | null = null
 
   const qtySold = qtyMax - qtyRemaining
 
@@ -23,13 +24,17 @@
   let countdownInterval: ReturnType<typeof setInterval>
 
   function updateCountdown() {
+    if (!startDate) return
+
     const now = new Date()
-    const blackFriday = new Date(now.getFullYear(), 10, 24) // November is 10 (0-indexed)
-    if (now > blackFriday) {
-      blackFriday.setFullYear(blackFriday.getFullYear() + 1)
+    const difference = startDate.getTime() - now.getTime()
+
+    if (difference <= 0) {
+      countdown = ''
+      clearInterval(countdownInterval)
+      return
     }
 
-    const difference = blackFriday.getTime() - now.getTime()
     const days = Math.floor(difference / (1000 * 60 * 60 * 24))
     const hours = Math.floor(
       (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
@@ -41,8 +46,11 @@
   }
 
   onMount(() => {
-    updateCountdown()
-    countdownInterval = setInterval(updateCountdown, 1000)
+    if (startDate) {
+      updateCountdown()
+      countdownInterval = setInterval(updateCountdown, 1000)
+    }
+    window.createLemonSqueezy()
   })
 
   onDestroy(() => {
@@ -67,12 +75,14 @@
     <div class="text-secondary text-xl font-black text-center">
       {comingSoonText}
     </div>
-    <div class="text-center">
-      <div class="flex items-center justify-center">
-        <Fa icon={faClock} class="mr-2 text-accent" />
-        <span class="text-lg font-semibold text-accent">{countdown}</span>
+    {#if startDate && countdown}
+      <div class="text-center">
+        <div class="flex items-center justify-center">
+          <Fa icon={faClock} class="mr-2 text-accent" />
+          <span class="text-lg font-semibold text-accent">{countdown}</span>
+        </div>
       </div>
-    </div>
+    {/if}
   {:else}
     <div class="text-accent text-xl font-black text-center">
       {availableText}
@@ -141,12 +151,23 @@
     {#if priceAnnually[0] > 0}
       <a
         href={checkoutMonthURL}
-        class="mt-auto mb-4 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white"
+        class="mt-auto mb-4 block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white lemonsqueezy-button"
         on:click={handlePricingClick}
       >
-        <span class="text-xl font-bold tracking-tight text-white">
-          ${priceMonthly[0]}
-        </span>
+        {#if priceMonthly[2]}
+          <span
+            class="text-xl font-bold tracking-tight text-white line-through"
+          >
+            ${priceMonthly[0]}
+          </span>
+          <span class="text-xl font-bold tracking-tight text-white">
+            ${priceMonthly[2]}
+          </span>
+        {:else}
+          <span class="text-xl font-bold tracking-tight text-white">
+            ${priceMonthly[0]}
+          </span>
+        {/if}
         <span class="text-sm font-semibold leading-6 text-gray-300">
           / {priceMonthly[1]}</span
         >
@@ -155,12 +176,23 @@
     {#if priceMonthly[0] > 0}
       <a
         href={checkoutYearURL}
-        class="block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white"
+        class="block rounded-md py-2 px-3 text-center text-sm font-semibold leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white lemonsqueezy-button"
         on:click={handlePricingClick}
       >
-        <span class="text-xl font-bold tracking-tight text-white">
-          ${priceAnnually[0]}
-        </span>
+        {#if priceAnnually[2]}
+          <span
+            class="text-xl font-bold tracking-tight text-white line-through"
+          >
+            ${priceAnnually[0]}
+          </span>
+          <span class="text-xl font-bold tracking-tight text-white">
+            ${priceAnnually[2]}
+          </span>
+        {:else}
+          <span class="text-xl font-bold tracking-tight text-white">
+            ${priceAnnually[0]}
+          </span>
+        {/if}
         <span class="text-sm font-semibold leading-6 text-gray-300">
           / {priceAnnually[1]}</span
         >

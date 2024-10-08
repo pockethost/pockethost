@@ -91,13 +91,13 @@
                   <div class="flex flex-col justify-center">
                     {#if $userStore && $isUserVerified}
                       <a
-                        href="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]={$userStore?.id}"
+                        href="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
                         class="btn btn-sm btn-neutral lemonsqueezy-button mb-2"
                       >
                         $20/mo
                       </a>
                       <a
-                        href="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]={$userStore?.id}"
+                        href="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
                         class="btn btn-sm btn-neutral lemonsqueezy-button"
                       >
                         $199/yr (save 20%)

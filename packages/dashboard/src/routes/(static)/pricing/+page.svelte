@@ -43,14 +43,15 @@
         <PricingCard
           comingSoonText="ON SALE BLACK FRIDAY"
           comingSoon
+          startDate={new Date(2024, 10, 29)}
           name={`${PLAN_NAMES[SubscriptionType.Flounder]}`}
           qtyRemaining={1000}
           qtyMax={1000}
-          description="Epic elite! The Flounder's Edition is almost as good as the Founder's edition, and you'll help PocketHost go global"
+          description="Epic elite! The Flounder's Edition is almost as good as the Founder's edition, and you'll help PocketHost go global."
           priceMonthly={[359, 'once, use forever']}
           priceAnnually={[159, 'year (save 30%)']}
-          checkoutMonthURL="https://store.pockethost.io/buy/82d79f7c-64f6-4c2b-9f58-dcc8951f1cdd?checkout[custom][user_id]={$userStore?.id}"
-          checkoutYearURL="https://store.pockethost.io/buy/9ff8775b-6b9e-4aa8-a0ab-dc5e58e25408?checkout[custom][user_id]={$userStore?.id}"
+          checkoutMonthURL="https://store.pockethost.io/buy/82d79f7c-64f6-4c2b-9f58-dcc8951f1cdd?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
+          checkoutYearURL="https://store.pockethost.io/buy/9ff8775b-6b9e-4aa8-a0ab-dc5e58e25408?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
           features={[
             `Everything in the ${PLAN_NAMES[SubscriptionType.Premium]} tier`,
             `Commemorative Flounder's badge`,
