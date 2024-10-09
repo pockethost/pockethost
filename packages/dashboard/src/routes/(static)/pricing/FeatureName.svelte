@@ -11,7 +11,10 @@
   }
 </script>
 
-<th scope="row" class="w-1/4 py-3 pr-4 text-left text-sm font-normal leading-6">
+<th
+  scope="row"
+  class="w-1/4 py-3 pr-4 text-left text-xs text-neutral-content leading-6"
+>
   <div class="flex items-center">
     <span class="flex-shrink-0">{item.name}</span>
     {#if item.isNew}

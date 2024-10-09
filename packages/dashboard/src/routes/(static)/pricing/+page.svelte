@@ -72,10 +72,4 @@
   <div class="p-6">
     <PricingTable />
   </div>
-  <div class="text-neutral-content text-sm p-2">
-    Learn more about our <a href="/docs/pricing-ethos" class="link"
-      >pricing ethos</a
-    >
-    and <a href="/terms" class="link">Fair Use</a>.
-  </div>
 </div>

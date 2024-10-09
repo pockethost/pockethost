@@ -64,69 +64,65 @@
   ]
 </script>
 
-<div class="mx-auto">
-  <section aria-labelledby="comparison-heading">
-    <h2 id="comparison-heading" class="sr-only">Feature comparison</h2>
-
-    <div class="-mt-6 space-y-16">
-      <div>
-        <div class="relative -mx-8 mt-10">
-          <table class="relative w-full border-separate border-spacing-x-8">
-            <thead>
-              <tr class="text-left">
-                <th scope="col">
-                  <span class="sr-only">Feature</span>
-                </th>
-                <th scope="col" class="text-center">
-                  {PLAN_NAMES[SubscriptionType.Free]}
-                </th>
-                <th scope="col" class="text-center">
-                  {PLAN_NAMES[SubscriptionType.Premium]}
-                </th>
-              </tr>
-              <tr>
-                <th></th>
-                <th>Free Forever</th>
-                <th>
-                  <div class="flex flex-col justify-center">
-                    {#if $userStore && $isUserVerified}
-                      <a
-                        href="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-                        class="btn btn-sm btn-neutral lemonsqueezy-button mb-2"
-                      >
-                        $20/mo
-                      </a>
-                      <a
-                        href="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-                        class="btn btn-sm btn-neutral lemonsqueezy-button"
-                      >
-                        $199/yr (save 20%)
-                      </a>
-                    {:else}
-                      <a href="/login" class="btn btn-sm btn-neutral mb-2">
-                        $20/mo
-                      </a>
-                      <a href="/login" class="btn btn-sm btn-neutral">
-                        $199/yr (save 20%)
-                      </a>
-                    {/if}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {#each items as item}
-                <tr>
-                  <FeatureName {item} />
-                  <FeatureSupportBlock item={item.items[0] ?? ''} />
-                  <FeatureSupportBlock item={item.items[1] ?? ''} />
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-      </div>
+<div class="flex justify-center items-center flex-col space-y-10">
+  <div class="text-xl text-center">
+    Feature comparison
+    <div class="text-neutral-content text-sm p-2">
+      Learn more about our <a href="/docs/pricing-ethos" class="link"
+        >pricing ethos</a
+      >
+      and <a href="/terms" class="link">Fair Use</a>.
     </div>
-  </section>
+  </div>
+
+  <table class="border-separate border-spacing-x-8 max-w-md">
+    <thead>
+      <tr class="text-left">
+        <th class="min-w-48"> </th>
+        <th class="text-center min-w-48">
+          {PLAN_NAMES[SubscriptionType.Free]}
+        </th>
+        <th class="text-center min-w-48">
+          {PLAN_NAMES[SubscriptionType.Premium]}
+        </th>
+      </tr>
+      <tr>
+        <th></th>
+        <th>Free Forever</th>
+        <th>
+          <div class="flex flex-col justify-center">
+            {#if $userStore && $isUserVerified}
+              <a
+                href="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
+                class="btn btn-sm btn-neutral lemonsqueezy-button mb-2"
+              >
+                $20/mo
+              </a>
+              <a
+                href="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
+                class="btn btn-sm btn-neutral lemonsqueezy-button"
+              >
+                $199/yr (save 20%)
+              </a>
+            {:else}
+              <a href="/login" class="btn btn-sm btn-neutral mb-2"> $20/mo </a>
+              <a href="/login" class="btn btn-sm btn-neutral">
+                $199/yr (save 20%)
+              </a>
+            {/if}
+          </div>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {#each items as item}
+        <tr>
+          <FeatureName {item} />
+          <FeatureSupportBlock item={item.items[0] ?? ''} />
+          <FeatureSupportBlock item={item.items[1] ?? ''} />
+        </tr>
+      {/each}
+    </tbody>
+  </table>
 </div>
