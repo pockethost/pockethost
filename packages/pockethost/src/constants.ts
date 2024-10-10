@@ -79,6 +79,8 @@ if (_IS_DEV) {
 }
 
 export const SETTINGS = {
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.21`),
+
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
 
@@ -101,7 +103,7 @@ export const SETTINGS = {
   MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
     required: false,
   }),
-  MOTHERSHIP_SEMVER: mkString('*'),
+  MOTHERSHIP_SEMVER: mkString('0.22.*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(join(_PH_HOME, 'data'), { create: true }),
@@ -161,6 +163,10 @@ export const RegisterEnvSettingsService = () => {
 }
 
 /** Accessors */
+
+export const PH_ALLOWED_POCKETBASE_SEMVER = () =>
+  settings().PH_ALLOWED_POCKETBASE_SEMVER
+
 export const PH_HOME = (...paths: string[]) =>
   join(settings().PH_HOME, ...paths)
 
@@ -277,6 +283,7 @@ export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
 export const logConstants = () => {
   const vars = {
     DEBUG,
+    PH_ALLOWED_POCKETBASE_SEMVER,
     PH_HOME,
     PH_PROJECT_ROOT,
     HTTP_PROTOCOL,
