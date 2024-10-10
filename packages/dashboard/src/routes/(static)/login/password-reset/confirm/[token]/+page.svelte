@@ -6,7 +6,7 @@
   const { requestPasswordResetConfirm } = client()
 
   let password: string = ''
-  let formError: string = ''
+  let formErrors: string[] = []
 
   // Check for a token in the URL
   $: ({ token } = $page.params)
@@ -18,12 +18,13 @@
     e.preventDefault()
 
     // Clear out the error message
-    formError = ''
+    formErrors = []
 
     // Check for the token and block the request if it doesn't exist
     if (!token) {
-      formError =
-        'No token was found. Please check your email again for the link.'
+      formErrors = [
+        'No token was found. Please check your email again for the link.',
+      ]
       return
     }
 
@@ -34,10 +35,15 @@
       await requestPasswordResetConfirm(token, password)
 
       // Hard refresh and send the user back to the login screen
-      window.location.href = '/?view=login'
+      // window.location.href = '/login'
     } catch (error) {
-      const e = error as Error
-      formError = `Something went wrong with confirming your password change. ${e.message}`
+      if (error instanceof Error) {
+        formErrors = client().parseError(error)
+      } else {
+        formErrors = [
+          'Something went wrong with confirming your password change.',
+        ]
+      }
     }
 
     isFormButtonDisabled = false
@@ -66,7 +72,9 @@
           />
         </div>
 
-        <AlertBar message={formError} type="error" />
+        {#each formErrors as error}
+          <AlertBar message={error} type="error" />
+        {/each}
 
         <div class="mt-4 card-actions justify-end">
           <button

@@ -1,29 +1,28 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import { client } from '$src/pocketbase-client'
+  import { onMount } from 'svelte'
   import { slide } from 'svelte/transition'
 
   const { confirmVerification } = client()
 
   let formError: string = ''
-  $: ({ token } = $page.params)
+  const { token } = $page.params
 
-  $: {
+  onMount(() => {
     if (!token) {
       formError = 'Invalid link'
+    } else {
+      try {
+        confirmVerification(token).then(() => {
+          window.location.href = '/dashboard'
+        })
+      } catch (error) {
+        const e = error as Error
+        formError = `Something went wrong with confirming your account. ${e.message}`
+      }
     }
-
-    try {
-      if (!token) throw new Error(`token expected here`)
-
-      confirmVerification(token).then(() => {
-        window.location.href = '/dashboard'
-      })
-    } catch (error) {
-      const e = error as Error
-      formError = `Something went wrong with confirming your account. ${e.message}`
-    }
-  }
+  })
 </script>
 
 <svelte:head>

@@ -1,14 +1,12 @@
 <script lang="ts">
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import { client } from '$src/pocketbase-client'
-  import InstancesGuard from '$src/routes/Navbar/InstancesGuard.svelte'
-  import { globalInstancesStore, userStore } from '$util/stores'
+  import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-  import { writable } from 'svelte/store'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
-  import AuthStateGuard from '$components/guards/AuthStateGuard.svelte'
   import UserHasRole from '$components/guards/UserHasRole.svelte'
+  import Avatar from './Avatar.svelte'
 
   type TypeInstanceObject = {
     id: string
@@ -17,34 +15,6 @@
   }
 
   let arrayOfActiveInstances: TypeInstanceObject[] = []
-
-  async function gravatarHash(email: string) {
-    // Normalize the email by trimming and converting to lowercase
-    const normalizedEmail = email.trim().toLowerCase()
-
-    // Convert the normalized email to a UTF-8 byte array
-    const msgBuffer = new TextEncoder().encode(normalizedEmail)
-
-    // Hash the email using MD5
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
-
-    // Convert the hash to a hex stringc
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
-
-    return hashHex
-  }
-
-  const avatar = writable('')
-  $: {
-    if ($userStore?.email) {
-      gravatarHash($userStore.email).then((hash) => {
-        avatar.set(`https://www.gravatar.com/avatar/${hash}`)
-      })
-    }
-  }
 
   $: {
     if ($globalInstancesStore) {
@@ -83,13 +53,12 @@
         <li>
           <a href="/dashboard" rel="noreferrer">Dashboard</a>
         </li>
-
-        <li>
-          <UserHasRole role="stats">
-            <a href="/stats">Stats</a>
-          </UserHasRole>
-        </li>
       </UserLoggedIn>
+      <UserHasRole role="stats">
+        <li>
+          <a href="/stats">Stats</a>
+        </li>
+      </UserHasRole>
       <li>
         <a href="/pricing" rel="noreferrer">Pricing</a>
       </li>
@@ -108,15 +77,8 @@
       <UserLoggedIn>
         <li>
           <div class="dropdown dropdown-end p-0 m-0">
-            <div
-              tabindex="0"
-              role="button"
-              class="btn btn-ghost btn-circle avatar p-0 m-0 min-h-0 min-w-0 h-min"
-            >
-              <div class="w-8 rounded-full">
-                <img src={$avatar} alt="Gravatar" />
-              </div>
-            </div>
+            <Avatar />
+
             <ul
               class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
             >

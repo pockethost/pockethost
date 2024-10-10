@@ -258,7 +258,7 @@ importers:
         version: 0.12.3(svelte@4.2.19)
       mdsvex-enhanced-images:
         specifier: ^0.0.2
-        version: 0.0.2(svelte@4.2.19)
+        version: link:../../../mdsvex-enhanced-images
       pockethost:
         specifier: workspace:^
         version: link:../pockethost
@@ -3596,11 +3596,6 @@ packages:
 
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
-
-  mdsvex-enhanced-images@0.0.2:
-    resolution: {integrity: sha512-KifrEbsfw9LVpk1ipwCrmx7gA+OLAsyCGKph1YDecpW5vtHW8nwCpDcFxjRdGkIsstdsHQ3R+yZ5QLWM6IVidw==}
-    peerDependencies:
-      svelte: ^4.2.19
 
   mdsvex@0.12.3:
     resolution: {integrity: sha512-C/uIJamjNo5PHHnR3JHqsBPoLcfUBpzRmAEB6FLMXI/s7XHOceswjDMKqSPEW2WHmYpKm0taZ3U20GSyhMridA==}
@@ -8482,12 +8477,6 @@ snapshots:
       '@types/mdast': 4.0.3
 
   mdn-data@2.0.30: {}
-
-  mdsvex-enhanced-images@0.0.2(svelte@4.2.19):
-    dependencies:
-      just-camel-case: 6.2.0
-      svelte: 4.2.19
-      unist-util-visit: 5.0.0
 
   mdsvex@0.12.3(svelte@4.2.19):
     dependencies:

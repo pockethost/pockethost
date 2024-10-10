@@ -34,14 +34,13 @@
 
     try {
       await authViaEmail(email, password)
+      window.location.href = '/dashboard'
     } catch (error) {
       const e = error as Error
       formError = `Something went wrong with logging you in. ${e.message}`
     }
-
     isFormButtonDisabled = false
     isButtonLoading = false
-    window.location.href = '/dashboard'
   }
 </script>
 

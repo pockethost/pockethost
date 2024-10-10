@@ -3,6 +3,12 @@
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import Meta from '$components/guards/Meta.svelte'
   import '../app.css'
+  import { onMount } from 'svelte'
+  import { init } from '$util/stores'
+
+  onMount(() => {
+    init()
+  })
 </script>
 
 <Meta />

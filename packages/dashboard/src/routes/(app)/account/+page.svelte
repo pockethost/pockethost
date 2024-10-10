@@ -3,11 +3,8 @@
   import { PLAN_NAMES, SubscriptionType } from 'pockethost'
   import { userStore } from '$util/stores'
   import { onMount } from 'svelte'
-  import PricingCard from '$src/routes/(static)/pricing/PricingCard.svelte'
   import FlounderCard from './FlounderCard.svelte'
-
-  $: checkoutAnnualUrl = `https://store.pockethost.io/buy/82d79f7c-64f6-4c2b-9f58-dcc8951f1cdd?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}&checkout[discount_code]=FLPRESALE24`
-  $: checkoutLifeUrl = `https://store.pockethost.io/buy/9ff8775b-6b9e-4aa8-a0ab-dc5e58e25408?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}&checkout[discount_code]=FLPRESALE24`
+  import Avatar from '$src/routes/Navbar/Avatar.svelte'
 
   onMount(() => {
     window.createLemonSqueezy()
@@ -15,7 +12,11 @@
 </script>
 
 <div class="text-xl">My Account</div>
-
+<div>
+  <Avatar class="w-5 h-5" />
+  Change your avatar on
+  <a href="https://gravatar.com/profile" class="link">Gravatar</a>
+</div>
 <div>
   Your plan: <span class="text-success font-bold"
     >{PLAN_NAMES[$userSubscriptionType]}</span
