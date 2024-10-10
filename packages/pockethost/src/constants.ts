@@ -102,7 +102,7 @@ export const SETTINGS = {
   MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
     required: false,
   }),
-  MOTHERSHIP_SEMVER: mkString('*'),
+  MOTHERSHIP_SEMVER: mkString('0.22.*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(join(_PH_HOME, 'data'), { create: true }),
