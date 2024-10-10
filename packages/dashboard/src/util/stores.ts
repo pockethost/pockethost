@@ -1,19 +1,23 @@
+import { PUBLIC_DEBUG } from '$src/env'
 import { client } from '$src/pocketbase-client'
-import consoleLogger from '@pockethost/plugin-console-logger'
 import {
+  ConsoleLogger,
+  LogLevelName,
   SubscriptionType,
   UserFields,
-  loadPlugins,
+  ioc,
   type InstanceFields,
   type InstanceId,
   type UnsubscribeFunc,
 } from 'pockethost/common'
 import { writable } from 'svelte/store'
-// TODO: Removing this will cause the app to crash
-// Theres a reference inside of `createPocketbaseClient.ts` that needs the information that comes from this file
-import '../services'
 
-loadPlugins([consoleLogger])
+ioc(
+  `logger`,
+  ConsoleLogger({
+    level: PUBLIC_DEBUG ? LogLevelName.Debug : LogLevelName.Info,
+  }),
+)
 
 const { onAuthChange } = client()
 

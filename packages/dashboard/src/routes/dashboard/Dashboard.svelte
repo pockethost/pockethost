@@ -16,5 +16,7 @@
     >
   </div>
 
-  <InstanceList />
+  <div class="flex flex-wrap gap-2">
+    <InstanceList />
+  </div>
 </AuthStateGuard>

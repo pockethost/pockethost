@@ -82,10 +82,12 @@
   })
 </script>
 
-<p class="mb-4">
+<h2>Logs</h2>
+
+<div class="mb-4">
   Instance logs appear here in realtime, including <code>console.log</code> from
   JavaScript hooks.
-</p>
+</div>
 
 <dialog id="loggingFullscreenModal" class="modal backdrop-blur">
   <div class="modal-box max-w-[90vw] h-[90vh]">

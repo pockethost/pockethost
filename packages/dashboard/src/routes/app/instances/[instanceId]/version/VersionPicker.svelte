@@ -10,8 +10,12 @@
 
   // Function to fetch versions - replace with your actual fetch logic
   async function fetchVersions(): Promise<string[]> {
-    const { versions } = await client().client.send(`/api/versions`, {})
-    return versions
+    const { versions } = await client().client.send<{ versions: string[] }>(
+      `/api/versions`,
+      {},
+    )
+
+    return versions.filter((v) => v.endsWith('*'))
   }
 
   onMount(() => {

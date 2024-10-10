@@ -6,7 +6,6 @@
   import AuthStateGuard from '$components/helpers/AuthStateGuard.svelte'
   import Meta from '$components/helpers/Meta.svelte'
   import UserLoggedIn from '$components/helpers/UserLoggedIn.svelte'
-  import { isUserLoggedIn } from '$util/stores'
   import '../app.css'
 </script>
 
@@ -15,21 +14,12 @@
 <AuthStateGuard>
   <div>
     <UserLoggedIn>
-      <MediaQuery query="(max-width: 700px)" let:matches>
-        {#if matches}
-          <MobileNavDrawer>
-            <Navbar />
-          </MobileNavDrawer>
-        {:else}
-          <Navbar />
-        {/if}
-      </MediaQuery>
+      <Navbar />
     </UserLoggedIn>
 
-    <main class="py-10 {$isUserLoggedIn ? `lg:pl-72` : ``}">
+    <main class="">
       <div class="px-4 sm:px-6 lg:px-8">
         <VerifyAccountBar />
-
         <slot />
       </div>
     </main>

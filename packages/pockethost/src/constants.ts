@@ -11,6 +11,7 @@ import {
   InstanceId,
   SettingsHandlerFactory,
   SettingsService,
+  ioc,
 } from '../core'
 import {
   mkBoolean,
@@ -19,7 +20,7 @@ import {
   mkPath,
   mkString,
 } from './core/Settings'
-import { ioc, settings } from './core/ioc'
+import { settings } from './core/ioc'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -79,7 +80,6 @@ if (_IS_DEV) {
 
 export const SETTINGS = {
   PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.21`),
-  PH_PLUGINS: mkCsvString([]),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
@@ -153,7 +153,7 @@ export type SettingsDefinition = {
 export const RegisterEnvSettingsService = () => {
   const _settings = SettingsService(SETTINGS)
 
-  ioc.register('settings', _settings)
+  ioc('settings', _settings)
 
   if (DEBUG()) {
     logConstants()
@@ -164,7 +164,6 @@ export const RegisterEnvSettingsService = () => {
 
 /** Accessors */
 
-export const PH_PLUGINS = () => settings().PH_PLUGINS
 export const PH_ALLOWED_POCKETBASE_SEMVER = () =>
   settings().PH_ALLOWED_POCKETBASE_SEMVER
 
@@ -284,7 +283,7 @@ export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
 export const logConstants = () => {
   const vars = {
     DEBUG,
-    PH_PLUGINS,
+    PH_ALLOWED_POCKETBASE_SEMVER,
     PH_HOME,
     PH_PROJECT_ROOT,
     HTTP_PROTOCOL,

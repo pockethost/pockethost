@@ -79,34 +79,33 @@
 </script>
 
 <div class="mb-8">
-  <h4 class="flex items-center font-bold h-9 text-lg mb-3">
-    Add an Environment Variable
-  </h4>
+  {#if successfulSave}
+    <AlertBar
+      message="Your new environment variable has been saved."
+      type="success"
+    />
+  {/if}
+
+  <AlertBar message={errorMessage} type="error" />
 
   <form on:submit={handleSubmit} class="mb-4">
     <div class="grid grid-cols-2 gap-4 mb-4">
       <div>
-        <label class="label" for="secret-key">
-          <span class="label-text">Key</span>
-        </label>
-
         <input
           id="secret-key"
           type="text"
           bind:value={secretKey}
+          placeholder="KEY"
           class="input input-bordered w-full max-w-xs"
         />
       </div>
 
       <div>
-        <label class="label" for="secret-value">
-          <span class="label-text">Value</span>
-        </label>
-
         <input
           id="secret-value"
           type="text"
           bind:value={secretValue}
+          placeholder="VALUE"
           class="input input-bordered w-full max-w-xs"
         />
       </div>
@@ -125,13 +124,4 @@
       >
     </div>
   </form>
-
-  {#if successfulSave}
-    <AlertBar
-      message="Your new environment variable has been saved."
-      type="success"
-    />
-  {/if}
-
-  <AlertBar message={errorMessage} type="error" />
 </div>

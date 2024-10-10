@@ -1,6 +1,5 @@
 import { LogEntry } from 'winston'
-import { InstanceFields, InstanceId, Logger, UserFields } from '../common'
-import { IoCManager } from '../common/ioc'
+import { InstanceFields, InstanceId, ioc, UserFields } from '../common'
 import { Settings } from '../constants'
 
 export type MothershipProvider = {
@@ -22,14 +21,6 @@ export type InstanceLogProvider = (
   tail(linesBack: number, data: (line: LogEntry) => void): UnsubFunc
 }
 
-export const ioc = new IoCManager<{
-  settings: Settings
-  mothership: MothershipProvider
-  instanceLogger: InstanceLogProvider
-  logger: Logger
-}>()
-
-export const settings = () => ioc.service('settings')
-export const mothership = () => ioc.service('mothership')
-export const instanceLogger = () => ioc.service('instanceLogger')
-export const logger = () => ioc.service('logger')
+export const settings = () => ioc('settings') as Settings
+export const mothership = () => ioc('mothership') as MothershipProvider
+export const instanceLogger = () => ioc('instanceLogger') as InstanceLogProvider

@@ -31,7 +31,9 @@
     /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}$/
 
   $: {
-    isButtonDisabled = !!formCname.trim() && !regex.test(formCname)
+    isButtonDisabled =
+      (!!formCname.trim() && !regex.test(formCname)) ||
+      (!formCname.trim() && !cname.trim())
   }
   const onRename = (e: Event) => {
     e.preventDefault()
@@ -76,54 +78,52 @@
   }
 </script>
 
-<Card>
-  <CardHeader documentation={DOCS_URL(`/usage/custom-domain`)}>
-    Custom Domain (CNAME)
-  </CardHeader>
+<CardHeader documentation={DOCS_URL(`/usage/custom-domain`)}>
+  Custom Domain (CNAME)
+</CardHeader>
 
-  <div class="mb-8">
-    Use a custom domain (CNAME) with your PocketHost instance.
-  </div>
-  {#if formCname && regex.test(formCname.trim())}
-    <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
-    <div class="mb-4">
-      <CodeSample
-        code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`}
-        language={dns}
-      />
-    </div>
-  {/if}
-
-  <AlertBar message={successMessage} type="success" />
-  <AlertBar message={errorMessage} type="error" />
-
-  {#if cname}
-    {#if !cname_active}
-      <AlertBar
-        message={`Your custom domain name is pending. Go find <a class='btn btn-primary' target='_blank' href="https://discord.com/channels/1128192380500193370/1189948945967882250">@noaxis on Discord</a> to complete setup.`}
-        type="warning"
-      />
-    {:else}
-      <AlertBar message={`Your custom domain name is active.`} type="success" />
-    {/if}
-  {/if}
-
-  <form
-    class="flex rename-instance-form-container-query gap-4"
-    on:submit={onRename}
-  >
-    <input
-      title="Only valid domain name patterns are allowed"
-      type="text"
-      bind:value={formCname}
-      class="input input-bordered w-full"
+<div class="mb-8">
+  Use a custom domain (CNAME) with your PocketHost instance.
+</div>
+{#if formCname && regex.test(formCname.trim())}
+  <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
+  <div class="mb-4">
+    <CodeSample
+      code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`}
+      language={dns}
     />
+  </div>
+{/if}
 
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
-      >Update Custom Domain</button
-    >
-  </form>
-</Card>
+<AlertBar message={successMessage} type="success" />
+<AlertBar message={errorMessage} type="error" />
+
+{#if cname}
+  {#if !cname_active}
+    <AlertBar
+      message={`Your custom domain name is pending. Go find <a class='btn btn-primary' target='_blank' href="https://discord.com/channels/1128192380500193370/1189948945967882250">@noaxis on Discord</a> to complete setup.`}
+      type="warning"
+    />
+  {:else}
+    <AlertBar message={`Your custom domain name is active.`} type="success" />
+  {/if}
+{/if}
+
+<form
+  class="flex rename-instance-form-container-query gap-4"
+  on:submit={onRename}
+>
+  <input
+    title="Only valid domain name patterns are allowed"
+    type="text"
+    bind:value={formCname}
+    class="input input-bordered w-full"
+  />
+
+  <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
+    >Update Custom Domain</button
+  >
+</form>
 
 <style>
   .rename-instance-form-container-query {

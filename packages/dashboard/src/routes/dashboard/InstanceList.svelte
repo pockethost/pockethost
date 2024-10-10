@@ -1,55 +1,66 @@
 <script lang="ts">
-  import Card from '$components/cards/Card.svelte'
-  import CardHeader from '$components/cards/CardHeader.svelte'
-  import InstanceRow from '$src/routes/dashboard/InstanceRow.svelte'
+  import { INSTANCE_ADMIN_URL } from '$src/env'
+  import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-  import { InstanceFields } from 'pockethost/common'
+  import { InstanceId } from 'pockethost'
 
-  let arrayOfActiveInstances: InstanceFields[] = []
-  let arrayOfMaintenanceInstances: InstanceFields[] = []
+  const { updateInstance } = client()
 
-  $: {
-    if ($globalInstancesStore) {
-      arrayOfActiveInstances = values($globalInstancesStore).filter(
-        (app) => !app.maintenance,
-      )
-      arrayOfMaintenanceInstances = values($globalInstancesStore).filter(
-        (app) => app.maintenance,
-      )
-    }
+  const handleMaintenanceChange = (id: InstanceId) => (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const maintenance = !target.checked
+
+    // Update the database with the new value
+    updateInstance({ id, fields: { maintenance } })
+      .then(() => 'saved')
+      .catch((error) => {
+        error.data.message || error.message
+      })
   }
 </script>
 
-<Card height="h-auto">
-  <CardHeader>Active Instances</CardHeader>
+{#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
+  <div class="card w-80 bg-neutral m-4">
+    <div class="card-body">
+      <div class="card-title">
+        <div class="flex justify-between items-center w-full">
+          <span
+            >{instance.subdomain}
+            <span class="text-xs text-gray-400">
+              v{instance.version}
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            class="toggle {instance.maintenance
+              ? 'bg-red-500 hover:bg-red-500'
+              : 'toggle-success'}"
+            checked={!instance.maintenance}
+            on:change={handleMaintenanceChange(instance.id)}
+          />
+        </div>
+      </div>
 
-  <div class="grid mb-24">
-    {#each arrayOfActiveInstances as instance, index}
-      <InstanceRow {instance} {index} />
-    {/each}
+      <div class="card-actions flex justify-between mt-5">
+        <a href={`/app/instances/${instance.id}`} class="btn btn-primary">
+          <i class="fa-regular fa-circle-info"></i>
+          <span>Details</span>
+        </a>
 
-    {#if arrayOfActiveInstances.length === 0}
-      <p class="italic">
-        None of your instances are active. Create a new app to use PocketBase!
-      </p>
-    {/if}
+        <a
+          class="btn btn-secondary"
+          href={INSTANCE_ADMIN_URL(instance)}
+          target="_blank"
+        >
+          <img
+            src="/images/pocketbase-logo.svg"
+            alt="PocketBase Logo"
+            class="w-6"
+          />
+          <span>Admin</span>
+        </a>
+      </div>
+    </div>
   </div>
-
-  <CardHeader>Instances in Maintenance Mode</CardHeader>
-
-  <p class="mb-4 opacity-50">
-    Maintenance Mode will prevent these instances process from running. No
-    requests are processed while your instance is in Maintenance Mode.
-  </p>
-
-  <div class="grid">
-    {#each arrayOfMaintenanceInstances as instance, index}
-      <InstanceRow {instance} {index} />
-    {/each}
-
-    {#if arrayOfMaintenanceInstances.length === 0}
-      <p class="italic">None of your instances in Maintenance Mode</p>
-    {/if}
-  </div>
-</Card>
+{/each}

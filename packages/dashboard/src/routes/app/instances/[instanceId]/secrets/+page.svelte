@@ -13,4 +13,5 @@
   <title>{subdomain} secrets - PocketHost</title>
 </svelte:head>
 
+<h2>Secrets</h2>
 <SecretsInner />
