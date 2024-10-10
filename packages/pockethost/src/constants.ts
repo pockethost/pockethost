@@ -78,6 +78,7 @@ if (_IS_DEV) {
 }
 
 export const SETTINGS = {
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.21`),
   PH_PLUGINS: mkCsvString([]),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
@@ -162,7 +163,10 @@ export const RegisterEnvSettingsService = () => {
 }
 
 /** Accessors */
+
 export const PH_PLUGINS = () => settings().PH_PLUGINS
+export const PH_ALLOWED_POCKETBASE_SEMVER = () =>
+  settings().PH_ALLOWED_POCKETBASE_SEMVER
 
 export const PH_HOME = (...paths: string[]) =>
   join(settings().PH_HOME, ...paths)

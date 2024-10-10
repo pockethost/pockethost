@@ -1,7 +1,9 @@
 import { writeFileSync } from 'fs'
+import { lte, prerelease } from 'semver'
 import {
   LoggerService,
   MOTHERSHIP_DATA_ROOT,
+  PH_ALLOWED_POCKETBASE_SEMVER,
   stringify,
 } from '../../../../../core'
 import { GobotService } from '../../../../services/GobotService'
@@ -63,7 +65,10 @@ export async function freshenPocketbaseVersions() {
   await bot.update()
   await bot.download()
   const rawVersions = await bot.versions()
-  const versions = expandAndSortSemVers(rawVersions)
+  const allowedVersions = rawVersions.filter(
+    (v) => lte(v, PH_ALLOWED_POCKETBASE_SEMVER()) && prerelease(v) === null,
+  )
+  const versions = expandAndSortSemVers(allowedVersions)
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
 
   {
