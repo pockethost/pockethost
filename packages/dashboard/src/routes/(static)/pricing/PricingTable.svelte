@@ -18,19 +18,24 @@
       info: `Each instance can have its own domain, database, and files.`,
     },
     {
-      name: 'Bandwidth (per month, per instance)',
-      items: ['1GB', '100GB'],
-      info: `Bandwidth means all data transferred in or out of your PocketHost instance. This includes all HTTP traffic, file downloads, and admin panel usage.`,
+      name: 'Premium Bandwidth',
+      items: ['10GB', '100GB'],
+      info: `Premium Bandwidth is pooled per account and refreshes monthly. Any data data transferred in or out of any PocketHost instance you own counts against this pool. This includes all HTTP traffic, file downloads, and admin panel usage.`,
     },
     {
-      name: 'Local Storage (per instance)',
+      name: 'Standard Bandwidth',
+      items: ['Unlimited', 'Unlimited'],
+      info: `Standard Bandwidth may be slower than Premium. It is provided so your app doesn't just stop working when you exceed your Premium quota.`,
+    },
+    {
+      name: 'Storage',
       items: ['1GB', '10GB'],
-      info: `Local storage means storage on the PocketBase disk volume. S3 storage is recommended for large files and does not count toward the local storage limit.`,
+      info: `Database Storage is pooled per account. This is anything file you are storing, including uplaoded user files and database backups. S3 storage is recommended for user file uploads and database backups so you don't run out of room for essential data.`,
     },
     {
-      name: 'Max local inodes (per instance)',
-      items: ['100', '1,000'],
-      info: `An inode is typically a file or directory on disk. The inode limit counts toward static files, databases, and other files that are stored on the local volume of your PocketHost instance. Files stored using the S3 link (recommended) do not count toward the inode limit.`,
+      name: 'Max local inodes',
+      items: ['1k', '100k'],
+      info: `An inode is typically a file or directory on disk. This limit is pooled per account. The inode limit counts toward any file you or your users upload. S3 storage is recommended for user file uploads and database backups so you don't run out of inodes for essential data.`,
     },
     {
       name: 'CPU',
