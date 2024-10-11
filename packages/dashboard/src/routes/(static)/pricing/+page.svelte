@@ -3,6 +3,7 @@
   import { PLAN_NAMES, SubscriptionType } from 'pockethost'
   import PricingTable from './PricingTable.svelte'
   import { userStore } from '$util/stores'
+  import FlounderCard from '$src/routes/(app)/account/FlounderCard.svelte'
 </script>
 
 <div class=" mt-2">
@@ -40,30 +41,10 @@
       </div>
 
       <div class="w-[300px] mx-4">
-        <PricingCard
+        <FlounderCard
           comingSoonText="ON SALE BLACK FRIDAY"
           comingSoon
           startDate={new Date(2024, 10, 29)}
-          name={`${PLAN_NAMES[SubscriptionType.Flounder]}`}
-          qtyRemaining={1000}
-          qtyMax={1000}
-          description="Epic elite! The Flounder's Edition is almost as good as the Founder's edition, and you'll help PocketHost go global."
-          priceMonthly={[359, 'once, use forever']}
-          priceAnnually={[159, 'year (save 30%)']}
-          checkoutMonthURL="https://store.pockethost.io/buy/9ff8775b-6b9e-4aa8-a0ab-dc5e58e25408?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-          checkoutYearURL="https://store.pockethost.io/buy/82d79f7c-64f6-4c2b-9f58-dcc8951f1cdd?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-          features={[
-            `Everything in the ${PLAN_NAMES[SubscriptionType.Premium]} tier`,
-            `Commemorative Flounder's badge`,
-            `PocketHost t-shirt`,
-            `-Girlfriend`,
-          ]}
-          fundingGoals={[
-            `Global regions (approx 40)`,
-            `Global low latency from anywhere`,
-            `PITR (Point-in-Time-Recovery)`,
-            `Dedicated instances`,
-          ]}
         />
       </div>
     </div>

@@ -128,18 +128,20 @@
     {/each}
   </div>
 
-  <div class="flex flex-col gap-y-2 mb-4">
-    <div>Feature Goals</div>
-    <div class="text-sm">
-      When Flounders sell out, we'll use the funds to achieve these goals.
-    </div>
-    {#each fundingGoals as goal}
-      <div class="text-gray-300 flex items-center text-xs space-x-2">
-        <span class="text-primary">▢</span>
-        <span>{goal}</span>
+  {#if fundingGoals.length > 0}
+    <div class="flex flex-col gap-y-2 mb-4">
+      <div>Feature Goals</div>
+      <div class="text-sm">
+        When Flounders sell out, we'll use the funds to achieve these goals.
       </div>
-    {/each}
-  </div>
+      {#each fundingGoals as goal}
+        <div class="text-gray-300 flex items-center text-xs space-x-2">
+          <span class="text-primary">▢</span>
+          <span>{goal}</span>
+        </div>
+      {/each}
+    </div>
+  {/if}
 
   {#if priceMonthly[0] === 0}
     <p class="mt-6 mb-12 flex items-baseline gap-x-1">

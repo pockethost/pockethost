@@ -257,8 +257,8 @@ importers:
         specifier: ^0.12.3
         version: 0.12.3(svelte@4.2.19)
       mdsvex-enhanced-images:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.2
+        version: 0.2.2(@sveltejs/enhanced-img@0.3.8(patch_hash=3476pbfrpexm3jnvpmrprzpwwa)(rollup@4.24.0)(svelte@4.2.19)(vite@5.4.8(@types/node@22.7.5)(sass@1.79.4)))(mdsvex@0.12.3(svelte@4.2.19))
       pockethost:
         specifier: workspace:^
         version: link:../pockethost
@@ -3597,8 +3597,11 @@ packages:
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
 
-  mdsvex-enhanced-images@0.1.0:
-    resolution: {integrity: sha512-cbGF0aBr48MhiGx5wc08/YSxLg55TOhYur6FKh++moIroe/IYWHOcEa8BQkeRcKdeLjLEePXfMtEH5kQbu2Kcw==}
+  mdsvex-enhanced-images@0.2.2:
+    resolution: {integrity: sha512-3hQnTO+dNrgwoJ1r93KMPk2gDbt9Eyye3fadTtzzDDeXAPS/iOL+nyUvhkBfqq8PDobN9aEheNOt1cYvaZAudQ==}
+    peerDependencies:
+      '@sveltejs/enhanced-img': ^0.3.8
+      mdsvex: ^0.12.3
 
   mdsvex@0.12.3:
     resolution: {integrity: sha512-C/uIJamjNo5PHHnR3JHqsBPoLcfUBpzRmAEB6FLMXI/s7XHOceswjDMKqSPEW2WHmYpKm0taZ3U20GSyhMridA==}
@@ -8481,10 +8484,10 @@ snapshots:
 
   mdn-data@2.0.30: {}
 
-  mdsvex-enhanced-images@0.1.0:
+  mdsvex-enhanced-images@0.2.2(@sveltejs/enhanced-img@0.3.8(patch_hash=3476pbfrpexm3jnvpmrprzpwwa)(rollup@4.24.0)(svelte@4.2.19)(vite@5.4.8(@types/node@22.7.5)(sass@1.79.4)))(mdsvex@0.12.3(svelte@4.2.19)):
     dependencies:
-      just-camel-case: 6.2.0
-      unist-util-visit: 5.0.0
+      '@sveltejs/enhanced-img': 0.3.8(patch_hash=3476pbfrpexm3jnvpmrprzpwwa)(rollup@4.24.0)(svelte@4.2.19)(vite@5.4.8(@types/node@22.7.5)(sass@1.79.4))
+      mdsvex: 0.12.3(svelte@4.2.19)
 
   mdsvex@0.12.3(svelte@4.2.19):
     dependencies:
