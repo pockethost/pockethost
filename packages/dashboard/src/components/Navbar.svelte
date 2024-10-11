@@ -40,6 +40,11 @@
     if ($userStore?.email) {
       gravatarHash($userStore.email).then((hash) => {
         avatar.set(`https://www.gravatar.com/avatar/${hash}`)
+      }).catch(err => {
+        // Default when the avatar is not found
+        // There's one on /images/logo-square.png
+        console.error(err)
+        avatar.set(`/images/logo-square.png`)
       })
     }
   }
@@ -68,23 +73,24 @@
   }
 </script>
 
-<div class="navbar bg-base-100">
+<div class="navbar bg-base-100 pl-6 pr-4">
   <div class="flex-1">
-    <a href="/" role="tab" class="tab">
-      <Logo hideLogoText={true} logoWidth="h-8" />
-      <div class="hidden md:block ml-1">PocketHost</div>
+    <a href="/" role="tab">
+      <Logo logoWidth="h-12" />
+      <!-- Redundant with the Logo component -->
+      <!-- <div class="hidden md:block ml-1 text-xl">PocketHost</div> -->
     </a>
   </div>
   <div class="flex-none gap-2">
-    <ul class="menu menu-horizontal px-1">
+    <ul class="menu menu-horizontal items-center">
       <li>
         <details>
           <summary class="apps">Apps</summary>
-          <ul class="bg-base-100 rounded-t-none p-2">
+          <ul class="bg-base-300 p-2 w-44 z-50">
+            <!--Dunno why there's a nested ul here before but it messed up the dropdown layout-->
             <InstancesGuard>
-              <ul role="list" class="z-50 bg-base-100">
                 <li>
-                  <a href="/app/new" on:click={handleMobileNavDismiss}
+                  <a class="font-bold" href="/app/new" on:click={handleMobileNavDismiss}
                     >+ New App</a
                   >
                 </li>
@@ -96,13 +102,10 @@
                     >
                   </li>
                 {/each}
-              </ul>
             </InstancesGuard>
           </ul>
         </details>
       </li>
-    </ul>
-    <ul class="menu menu-horizontal px-1">
       <li>
         <a href="https://pockethost.io/support" target="_blank" rel="noreferrer"
           >Support</a
@@ -117,19 +120,19 @@
           target="_blank"
           rel="noreferrer"
         >
-          <i class="fa-brands fa-github mt-1" />
+          <i class="fa-brands fa-github text-xl" />
         </a>
       </li>
     </ul>
     <div class="dropdown dropdown-end">
       <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
         <div class="w-10 rounded-full">
-          <img src={$avatar} />
+          <img alt="Avatar" src={$avatar} />
         </div>
       </div>
       <ul
         tabindex="0"
-        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+        class="menu dropdown-content bg-base-300 rounded-box z-[1] mt-3 w-52 p-2 shadow"
       >
         <li><a href="/account">Settings</a></li>
         <li><a on:click={handleLogoutAndRedirect}>Logout</a></li>

@@ -9,7 +9,7 @@
     class="mix-blend-lighten {logoWidth}"
     alt="PocketHost Logo"
   />
-  <h1 class="text-white font-bold text-2xl {hideLogoText && 'sr-only'}">
+  <h1 class="text-white font-bold text-xl hidden md:block ml-1 {hideLogoText && 'sr-only'}">
     PocketHost
   </h1>
 </div>
