@@ -40,15 +40,16 @@
   }
 </script>
 
-<div class="navbar bg-base-100 min-w-[375px]">
+<div class="navbar bg-base-100 pl-6 pr-4">
   <div class="flex-1 min-w-10">
     <a href="/" class="flex items-center">
-      <Logo hideLogoText={true} size={32} />
-      <div class="hidden md:block ml-1 text-sm">PocketHost</div>
+      <Logo />
+      <!-- Redundant with the Logo component -->
+      <!-- <div class="hidden md:block ml-1 text-sm">PocketHost</div> -->
     </a>
   </div>
   <div class="flex-none">
-    <ul class="menu menu-horizontal px-1 text-xs">
+    <ul class="menu menu-horizontal items-center">
       <UserLoggedIn>
         <li>
           <a href="/dashboard" rel="noreferrer">Dashboard</a>
@@ -80,7 +81,7 @@
             <Avatar />
 
             <ul
-              class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+              class="menu dropdown-content bg-base-300 rounded-box z-[1] mt-24 w-52 p-2 shadow"
             >
               <li><a href="/account">Settings</a></li>
               <li>

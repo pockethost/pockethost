@@ -29,6 +29,11 @@
     if ($userStore?.email) {
       gravatarHash($userStore.email).then((hash) => {
         avatar.set(`https://www.gravatar.com/avatar/${hash}`)
+      }).catch(err => {
+        // Default when the avatar is not found
+        // There's one on /images/logo-square.png
+        console.error(err)
+        avatar.set(`/images/logo-square.png`)
       })
     }
   }
@@ -37,7 +42,7 @@
 <div
   tabindex="0"
   role="button"
-  class="btn btn-ghost btn-circle avatar p-0 m-0 min-h-0 min-w-0 h-min {className}"
+  class="avatar p-2 {className}"
 >
   <div class="w-8 rounded-full">
     <img src={$avatar} alt="Gravatar" />
