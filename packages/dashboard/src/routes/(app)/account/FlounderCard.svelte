@@ -46,7 +46,5 @@
   fundingGoals={[
     `Global regions (approx 40)`,
     `Global low latency from anywhere`,
-    `PITR (Point-in-Time-Recovery)`,
-    `Dedicated instances`,
   ]}
 />
