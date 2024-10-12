@@ -50,7 +50,7 @@
     {
       name: 'Run every version of PocketBase',
       items: ['YesBlock', 'YesBlock'],
-      info: `We support the latest version of every minor release of PocketBase.`,
+      info: `We support the latest patch of every minor release of PocketBase.`,
     },
     {
       name: 'Secure infrastructure',
