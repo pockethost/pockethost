@@ -4,7 +4,7 @@ export enum SubscriptionType {
   Legacy = 'legacy',
   Free = 'free',
   Premium = 'premium',
-  Lifetime = 'lifetime',
+  Founder = 'lifetime',
   Flounder = 'flounder',
 }
 
@@ -12,7 +12,7 @@ export const PLAN_NAMES = {
   [SubscriptionType.Legacy]: 'Legacy',
   [SubscriptionType.Free]: 'Hacker',
   [SubscriptionType.Premium]: `Pro`,
-  [SubscriptionType.Lifetime]: `Founder's Edition`,
+  [SubscriptionType.Founder]: `Founder's Edition`,
   [SubscriptionType.Flounder]: `Flounder's Edition`,
 }
 

@@ -41,7 +41,7 @@
 
     if (
       trimmed &&
-      ![SubscriptionType.Premium, SubscriptionType.Lifetime].includes(
+      ![SubscriptionType.Premium, SubscriptionType.Founder].includes(
         $userSubscriptionType,
       )
     ) {
