@@ -14,7 +14,7 @@
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-4">
   <h2 class="text-4xl text-base-content font-bold capitalize">Dashboard</h2>
 
   <a href="/instances/new" class="m-3 btn btn-primary">
