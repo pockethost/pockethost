@@ -44,7 +44,7 @@
 {#if $items.length === 0}
   <div class="alert border-2 border-primary mb-8">
     <Fa icon={faUserSecret} />
-    <span>Create your first secret to get started.</span>
+    <span>No secrets yet. Create your first secret to get started.</span>
   </div>
 {:else}
   <List />

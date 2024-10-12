@@ -6,17 +6,18 @@
   import FlounderCard from '$src/routes/(app)/account/FlounderCard.svelte'
 </script>
 
-<div class=" mt-2">
+<!-- Flex them up -->
+<div class="flex flex-col mt-2">
   <div
-    class="mx-auto max-w-4xl text-center font-semibold leading-7 text-primary text-4xl"
+    class="flex-1 text-center font-bold text-primary text-4xl mb-6"
   >
     Pricing
   </div>
-
-  <div class="mt-10 bg-neutral text-neutral-content p-5 flex flex-col mx-auto">
+  
+  <div class="flex-1 bg-neutral text-neutral-content p-5 flex flex-col">
     <div class="text-xl text-center pb-5">Rare deals</div>
     <div class="flex flex-wrap justify-center">
-      <div class="w-[300px] mx-4">
+      <div class="w-96 mx-4">
         <PricingCard
           name={`${PLAN_NAMES[SubscriptionType.Lifetime]}`}
           qtyRemaining={0}
@@ -35,12 +36,12 @@
             `Priority support`,
             `Commemorative Founder's badge`,
             `PocketHost t-shirt`,
-            `Girlfriend`,
+            `-Girlfriend`,
           ]}
         />
       </div>
 
-      <div class="w-[300px] mx-4">
+      <div class="w-96 mx-4">
         <FlounderCard
           comingSoonText="ON SALE BLACK FRIDAY"
           comingSoon

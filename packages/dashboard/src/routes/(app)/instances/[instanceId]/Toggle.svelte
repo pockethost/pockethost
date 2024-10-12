@@ -1,10 +1,9 @@
 <script lang="ts">
   export let checked = false
-  export let title = ''
   export let onClass = 'success'
   export let offClass = 'red-500'
-  export let onText = 'on'
-  export let offText = 'off'
+  export let onText = 'ON'
+  export let offText = 'OFF'
   export let onChange = (isChecked: boolean) => {}
 
   const handleChange = (e: Event) => {
@@ -17,9 +16,9 @@
 
 <div class="form-control w-fit">
   <label class="label cursor-pointer">
-    <span class="label-text mr-2"
-      >{title} is
-      <span class="text-{checked ? onClass : offClass}"
+    <span class="label-text text-lg mr-2"
+      >
+      <span class="font-bold text-{checked ? onClass : offClass}"
         >{checked ? onText : offText}</span
       ></span
     >
