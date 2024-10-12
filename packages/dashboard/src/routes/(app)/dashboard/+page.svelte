@@ -25,14 +25,14 @@
 <div class="flex flex-row space-x-4 items-center justify-center">
   <div>Instances</div>
   <progress
-    class="progress progress-primary w-56"
+    class="progress progress-primary w-64"
     value={instanceCount}
     max={MAX_INSTANCE_COUNTS[$userSubscriptionType]}
   ></progress>
   <div>
     {instanceCount}/{MAX_INSTANCE_COUNTS[$userSubscriptionType]}
     {#if $userSubscriptionType === SubscriptionType.Free}
-      <a href="/pricing" class="link text-xs text-success">upgrade</a>
+      <a href="/pricing" class="link text-xs text-success">Upgrade</a>
     {/if}
   </div>
 </div>
