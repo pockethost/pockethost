@@ -32,7 +32,6 @@
 <ErrorMessage message={errorMessage} />
 
 <Toggle
-  title="Dev Mode"
   onChange={handleChange}
   checked={!!dev}
   onClass="warning"
