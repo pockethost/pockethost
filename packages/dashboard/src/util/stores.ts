@@ -26,6 +26,7 @@ try {
 
 export const isUserLegacy = writable(false)
 export const userSubscriptionType = writable(SubscriptionType.Legacy)
+export const isUserPaid = writable(false)
 export const isUserLoggedIn = writable(false)
 export const isUserFounder = writable(false)
 export const isUserVerified = writable(false)
@@ -50,6 +51,11 @@ export const init = () => {
 
   userStore.subscribe((user) => {
     console.log({ user })
+    isUserPaid.set(
+      [SubscriptionType.Founder, SubscriptionType.Premium].includes(
+        user?.subscription || SubscriptionType.Free,
+      ),
+    )
     isUserLegacy.set(!!user?.isLegacy)
     isUserFounder.set(!!user?.isFounder)
     userSubscriptionType.set(user?.subscription || SubscriptionType.Free)

@@ -4,7 +4,7 @@ export enum SubscriptionType {
   Legacy = 'legacy',
   Free = 'free',
   Premium = 'premium',
-  Founder = 'lifetime',
+  Founder = 'founder',
   Flounder = 'flounder',
 }
 
