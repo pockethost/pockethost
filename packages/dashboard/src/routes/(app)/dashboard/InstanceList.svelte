@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
@@ -24,8 +25,9 @@
 
 {#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
   <div class="w-80">
-    <div
-      class={`card flex-1 m-4 transition ${instance.maintenance ? 'bg-base-200' : 'bg-neutral'}`}
+    <button
+      class={`card flex-1 m-4 transition hover:bg-base-300 ${instance.maintenance ? 'bg-base-200' : 'bg-neutral'}`}
+      on:click={_=>goto(`/instances/${instance.id}`)}
     >
       <div class="card-body">
         <div class="card-title">
@@ -37,11 +39,12 @@
                 ? 'bg-red-500 hover:bg-red-500'
                 : 'toggle-success'}"
               checked={!instance.maintenance}
+              on:click={e=>e.stopPropagation()}
               on:change={handleMaintenanceChange(instance.id)}
             />
           </div>
         </div>
-        <p>
+        <p class="text-left">
           <span class="text-gray-400"
             >Version {instance.version}
             <span class={!instance.maintenance ? 'hidden' : ''}
@@ -70,6 +73,6 @@
           </a>
         </div>
       </div>
-    </div>
+    </button>
   </div>
 {/each}
