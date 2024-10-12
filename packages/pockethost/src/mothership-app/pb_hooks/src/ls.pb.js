@@ -73,13 +73,11 @@ routerAdd('POST', '/api/ls', (c) => {
       159792: () => {
         userRec.set(`subscription`, `founder`)
         userRec.set(`subscription_interval`, `year`)
-        userRec.set(`isFounder`, true)
       },
       // Founder's lifetime
       159794: () => {
         userRec.set(`subscription`, `founder`)
         userRec.set(`subscription_interval`, `life`)
-        userRec.set(`isFounder`, true)
       },
       // Pro annual
       159791: () => {

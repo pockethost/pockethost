@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { isUserFounder, userSubscriptionType } from '$util/stores'
+  import { userSubscriptionType } from '$util/stores'
   import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
-
-  isUserFounder
 
   export let handleClick: any = () => {}
 </script>
@@ -13,7 +11,7 @@
   >
     <div class="card-body backdrop-blur-md text-white">
       <h2 class="card-title">
-        {$isUserFounder ? `Founder` : PLAN_NAMES[$userSubscriptionType]}
+        {PLAN_NAMES[$userSubscriptionType]}
       </h2>
 
       {#if $userSubscriptionType === SubscriptionType.Free}
@@ -43,13 +41,13 @@
         </div>
       {/if}
 
-      {#if $userSubscriptionType === SubscriptionType.Premium && !$isUserFounder}
+      {#if $userSubscriptionType === SubscriptionType.Premium}
         <p>
           Your Pro membership is active. Thank you for supporting PocketHost!
         </p>
       {/if}
 
-      {#if $isUserFounder}
+      {#if $userSubscriptionType === SubscriptionType.Founder}
         <p>
           What an absolute chad you are. Thank you for supporting PocketHost
           with a Founder's membership!

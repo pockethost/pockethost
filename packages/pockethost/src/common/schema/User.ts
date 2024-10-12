@@ -11,14 +11,13 @@ export const PLAN_NAMES = {
   [SubscriptionType.Legacy]: 'Legacy',
   [SubscriptionType.Free]: 'Hacker',
   [SubscriptionType.Premium]: `Pro`,
-  [SubscriptionType.Founder]: `Founder's Edition`,
+  [SubscriptionType.Founder]: `Founder`,
 }
 
 export type UserFields<TExtra = {}> = BaseFields & {
   email: string
   verified: boolean
   isLegacy: boolean
-  isFounder: boolean
   subscription: SubscriptionType
   notifyMaintenanceMode: boolean
 } & TExtra

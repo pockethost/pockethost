@@ -4,7 +4,7 @@
   import FeatureSupportBlock from '$components/tables/pricing-table/FeatureSupportBlock.svelte'
   import MobileTable from '$components/tables/pricing-table/MobileTable.svelte'
   import { DISCORD_URL, DOCS_URL } from '$src/env'
-  import { isUserFounder, userSubscriptionType } from '$util/stores'
+  import { userSubscriptionType } from '$util/stores'
   import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
 
   type ItemValue = '1' | 'Unlimited' | 'YesBlock' | 'NoBlock'
@@ -137,13 +137,13 @@
                     <div class="rounded-lg ring-1 ring-transparent"></div>
                   {/if}
 
-                  {#if $userSubscriptionType === SubscriptionType.Premium && !$isUserFounder}
+                  {#if $userSubscriptionType === SubscriptionType.Premium}
                     <div class="rounded-lg ring-2 ring-primary"></div>
                   {:else}
                     <div class="rounded-lg ring-1 ring-transparent"></div>
                   {/if}
 
-                  {#if $userSubscriptionType === SubscriptionType.Founder || (SubscriptionType.Premium && $isUserFounder)}
+                  {#if $userSubscriptionType === SubscriptionType.Founder}
                     <div class="rounded-lg ring-2 ring-primary"></div>
                   {:else}
                     <div class="rounded-lg ring-1 ring-transparent"></div>
