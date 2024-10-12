@@ -10,7 +10,7 @@
   <title>Home - PocketHost</title>
 </svelte:head>
 
-<div>
+<div class="px-4 sm:px-6 lg:px-8">
   <UserLoggedIn>
     <Dashboard />
   </UserLoggedIn>

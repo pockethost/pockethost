@@ -4,7 +4,7 @@
 
 {#if documentation}
   <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-    <h3 class="text-xl font-bold"><slot /></h3>
+    <h2 class="text-2xl font-bold"><slot /></h2>
 
     <a
       href={documentation}
@@ -18,7 +18,7 @@
 {/if}
 
 {#if !documentation}
-  <h3 class="text-xl font-bold mb-4">
+  <h2 class="text-2xl font-bold mb-4">
     <slot />
-  </h3>
+  </h2>
 {/if}

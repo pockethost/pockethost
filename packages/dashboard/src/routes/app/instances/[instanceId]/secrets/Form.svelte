@@ -78,10 +78,12 @@
   }
 </script>
 
+<h3 class="text-xl">Add New Secret</h3>
+
 <div class="mb-8">
   {#if successfulSave}
     <AlertBar
-      message="Your new environment variable has been saved."
+      message="Your new secret has been saved."
       type="success"
     />
   {/if}
@@ -89,39 +91,50 @@
   <AlertBar message={errorMessage} type="error" />
 
   <form on:submit={handleSubmit} class="mb-4">
-    <div class="grid grid-cols-2 gap-4 mb-4">
-      <div>
+
+    <div class="flex flex-row gap-4 mb-4">
+      <label class="flex-1 form-control">
         <input
           id="secret-key"
           type="text"
           bind:value={secretKey}
-          placeholder="KEY"
-          class="input input-bordered w-full max-w-xs"
+          placeholder="Key"
+          class={`input input-bordered ${!isKeyValid && secretKey.length > 0 ? "input-error text-error" : ""}`}
         />
-      </div>
+        {#if !isKeyValid && secretKey.length > 0}
+          <div class="label">
+            <span class="text-error">
+              All key names must be upper case, alphanumeric, and may include underscore (_).
+            </span>
+          </div>
+        {/if}
 
-      <div>
+      </label>
+
+      <div class="flex-1 form-control">
         <input
           id="secret-value"
           type="text"
           bind:value={secretValue}
-          placeholder="VALUE"
-          class="input input-bordered w-full max-w-xs"
+          placeholder="Value"
+          class="input input-bordered"
         />
+      </div>
+
+      <div class="flex-none text-right">
+        <button type="submit" class="btn btn-primary" disabled={!isFormValid}>
+          Add <i class="fa-regular fa-floppy-disk"></i>
+        </button>
       </div>
     </div>
 
-    {#if !isKeyValid && secretKey.length > 0}
+
+    <!-- {#if !isKeyValid && secretKey.length > 0}
       <AlertBar
         message="All key names must be upper case, alphanumeric, and may include underscore (_)."
         type="error"
       />
-    {/if}
+    {/if} -->
 
-    <div class="text-right">
-      <button type="submit" class="btn btn-primary" disabled={!isFormValid}
-        >Add <i class="fa-regular fa-floppy-disk"></i></button
-      >
-    </div>
   </form>
 </div>

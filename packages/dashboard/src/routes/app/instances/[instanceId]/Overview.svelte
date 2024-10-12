@@ -19,21 +19,21 @@
 </script>
 
 <CardHeader documentation={DOCS_URL(`/usage/accessing-instance/`)}
-  >Overview</CardHeader
->
+  >Overview</CardHeader>
 
-<div class="mb-4">
-  <p>Your PocketBase URL is</p>
-  <CodeSample code={url} />
+<!-- These should be p but the inside already has p -->
+<div>
+  <p class="mb-2">Your PocketBase URL is</p>
+  <CodeSample code={url} isUrl={true} />
 </div>
 
-<div class="mb-4">
-  <p>Installing PocketBase</p>
+<div>
+  <p class="mb-2">Installing PocketBase</p>
   <CodeSample code={installSnippet} />
 </div>
 
-<div class="mb-4">
-  <p>Connecting to Your Instance</p>
+<div>
+  <p class="mb-2">Connecting to Your Instance</p>
   {#if $instance.cname}
     {#if $instance.cname_active}
       <div class="text-accent">Notice: You are in Custom Domain mode</div>
@@ -49,25 +49,28 @@
   <CodeSample code={connectionSnippet} />
 </div>
 
-<div class="mb-4">
-  <p>Making Your First Query</p>
+<div>
+  <p class="mb-2">Making Your First Query</p>
   <CodeSample code={firstQuerySnippet} />
 </div>
 
-<p>Additional Resources:</p>
-<ul class="list-disc pl-4">
-  <li>
-    <a
-      href={`https://pocketbase.io/docs/api-records/`}
-      target="_blank"
-      class="link">PocketBase Web APIs</a
-    >
-  </li>
-  <li>
-    <a
-      href="https://www.npmjs.com/package/pocketbase"
-      target="_blank"
-      class="link">PocketBase NPM Package</a
-    >
-  </li>
-</ul>
+<div>
+  <p>Additional Resources:</p>
+  <ul class="list-disc pl-4">
+    <li>
+      <a
+        href={`https://pocketbase.io/docs/api-records/`}
+        target="_blank"
+        class="link">PocketBase Web APIs</a
+      >
+    </li>
+    <li>
+      <a
+        href="https://www.npmjs.com/package/pocketbase"
+        target="_blank"
+        class="link">PocketBase NPM Package</a
+      >
+    </li>
+  </ul>
+</div>
+

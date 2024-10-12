@@ -33,4 +33,4 @@
 
 <ErrorMessage message={errorMessage} />
 
-<Toggle title="Admin Sync" checked={!!syncAdmin} onChange={handleChange} />
+<Toggle checked={!!syncAdmin} onChange={handleChange} />

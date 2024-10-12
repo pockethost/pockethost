@@ -40,7 +40,7 @@
 </script>
 
 <select
-  class="select w-full max-w-xs"
+  class="select select-bordered w-full"
   bind:value={selectedVersion}
   on:change={handleSelect}
   {disabled}

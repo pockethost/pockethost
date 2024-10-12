@@ -4,13 +4,21 @@
   import { typescript, type LanguageType } from 'svelte-highlight/languages'
 
   export let code: string
+  export let isUrl = false;
   export let language: LanguageType<'typescript' | 'bash' | 'dns'> = typescript
 
   const handleCopy = () => {}
 </script>
 
 <div class="copy-container">
-  <Highlight {language} {code} />
+  {#if isUrl}
+    <a href={code + "_/"}>
+      <Highlight {language} {code} />
+    </a>
+  {:else}
+    <Highlight {language} {code} />
+  {/if}
+  
 
   <div class="copy-button">
     <CopyButton {code} copy={handleCopy} />

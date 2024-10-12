@@ -16,9 +16,9 @@
     <UserLoggedIn>
       <Navbar />
     </UserLoggedIn>
-
-    <main class="">
-      <div class="px-4 sm:px-6 lg:px-8">
+    <!-- Remove global padding so child pages can define their own -->
+    <main>
+      <div>
         <VerifyAccountBar />
         <slot />
       </div>

@@ -9,6 +9,7 @@
   import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'
+  import CardHeader from '$src/components/cards/CardHeader.svelte'
 
   $: ({ id } = $instance)
 
@@ -82,7 +83,8 @@
   })
 </script>
 
-<h2>Logs</h2>
+<!-- Consistency is key -->
+<CardHeader>Logs</CardHeader>
 
 <div class="mb-4">
   Instance logs appear here in realtime, including <code>console.log</code> from
@@ -109,7 +111,7 @@
     >
       {#each $logs as log}
         <div
-          class="px-4 text-[11px] font-mono flex align-center"
+          class="px-4 text-[16px] font-mono flex align-center"
           data-prefix=">"
         >
           <div>
@@ -142,9 +144,9 @@
       >Fullscreen <i class="fa-regular fa-arrows-maximize" /></button
     >
   </div>
-  <div class="h-[450px] flex flex-col overflow-y-scroll" bind:this={logElement}>
+  <div class="h-[50vh] flex flex-col overflow-y-scroll" bind:this={logElement}>
     {#each $logs as log}
-      <div class="px-4 text-[11px] font-mono flex align-center" data-prefix=">">
+      <div class="px-4 text-[16px] font-mono flex align-center" data-prefix=">">
         <div>
           <span class="mr-1 text-accent">{log.time}</span>
 

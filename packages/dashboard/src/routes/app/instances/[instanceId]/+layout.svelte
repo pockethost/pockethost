@@ -46,45 +46,47 @@
 </svelte:head>
 
 {#if isReady}
-  <div class="flex flex-row items-center justify-between mb-6 gap-4">
+  <div class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-2">
     <div>
       <h2
-        class="text-4xl md:text-left text-center text-base-content font-bold mb-3 break-words"
+        class="text-4xl md:text-left text-base-content font-bold mb-3 break-words"
       >
-        {$instance.subdomain}<span class="text-xs text-gray-400"
-          >.pockethost.io</span
-        >
-        <span class="text-xs text-gray-400">v{$instance.version}</span>
+        {$instance.subdomain}
+        
       </h2>
+      <span class="text-gray-400">
+        Version {$instance.version} - <span class="capitalize">{$instance.status}</span>
+      </span>
     </div>
-
+    
     <div>
       <Toggle
-        title="Power"
         checked={!$instance.maintenance}
         onChange={handleMaintenanceChange($instance.id)}
       />
     </div>
   </div>
-
+  
   {#if $instance.maintenance}
-    <AlertBar
-      message="This instance is turned off and will not respond to requests"
-      type="warning"
-    />
+    <div class="px-4 mb-8">
+      <AlertBar
+        message="This instance is turned off and will not respond to requests"
+        type="warning"
+      />
+    </div>
   {/if}
 
-  <div class="flex gap-4">
-    <div class="w-48">
-      <ul>
+  <!-- Consistency is key -->
+  <div class="flex gap-4 mr-4">
+    <div class="flex flex-col w-56">
+      <ul class="menu text-base-content mb-6">
         <li>
-          <a href={`/app/instances/${id}`} class={activeClass(id)}>Overview</a>
+          <a href={`/app/instances/${id}`} class={`${activeClass(id)}`}>Overview</a>
         </li>
         <li>
           <a
             href={`/app/instances/${id}/secrets`}
-            class={activeClass(`secrets`)}>Secrets</a
-          >
+            class={activeClass(`secrets`)}>Secrets</a>
         </li>
         <li>
           <a href={`/app/instances/${id}/logs`} class={activeClass(`logs`)}
@@ -111,21 +113,20 @@
             <i class="fa-solid fa-external-link-alt text-xs"></i>
           </a>
         </li>
-      </ul>
-      <div class="divider"></div>
-      <div class="mt-2 mb-2">
+      </ul>          
+      <div class="pl-6">
         <i class="fa-solid fa-siren-on text-error"></i>
-        <span class=" font-bold text-error">Danger Zone</span>
+        <span class="font-bold text-error">Danger Zone</span>
         <i class="fa-solid fa-siren-on text-error"></i>
       </div>
-      <ul>
-        <li><a href={`/app/instances/${id}/version`}>Change Version</a></li>
-        <li><a href={`/app/instances/${id}/domain`}>Custom Domain</a></li>
-        <li><a href={`/app/instances/${id}/admin-sync`}>Admin Sync</a></li>
-        <li><a href={`/app/instances/${id}/dev`}>Dev Mode</a></li>
-        <li><a href={`/app/instances/${id}/rename`}>Rename</a></li>
+      <ul class="menu text-base-content">
+        <li><a href={`/app/instances/${id}/version`} class={activeClass(`version`)}>Change Version</a></li>
+        <li><a href={`/app/instances/${id}/domain`} class={activeClass(`domain`)}>Custom Domain</a></li>
+        <li><a href={`/app/instances/${id}/admin-sync`} class={activeClass(`admin-sync`)}>Admin Sync</a></li>
+        <li><a href={`/app/instances/${id}/dev`} class={activeClass(`dev`)}>Dev Mode</a></li>
+        <li><a href={`/app/instances/${id}/rename`} class={activeClass(`rename`)}>Rename</a></li>
         <li>
-          <a href={`/app/instances/${id}/delete`} class="btn btn-error btn-xs"
+          <a href={`/app/instances/${id}/delete`} class={`text-error ${activeClass(`delete`)}`}
             >Delete</a
           >
         </li>
@@ -134,7 +135,7 @@
 
     <div class="w-full">
       {#key $page.url.pathname}
-        <article class="prose">
+        <article class="flex flex-col gap-4">
           <slot />
         </article>
       {/key}

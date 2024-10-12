@@ -2,6 +2,7 @@
   import { assertExists } from 'pockethost/common'
   import { instance } from '../store'
   import SecretsInner from './SecretsInner.svelte'
+  import CardHeader from '$src/components/cards/CardHeader.svelte';
 
   $: ({ status, version, id } = $instance)
 
@@ -13,5 +14,6 @@
   <title>{subdomain} secrets - PocketHost</title>
 </svelte:head>
 
-<h2>Secrets</h2>
+<!-- Consistency is key -->
+<CardHeader>Secrets</CardHeader>
 <SecretsInner />
