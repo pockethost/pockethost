@@ -5,7 +5,7 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { DOCS_URL, INSTANCE_BARE_HOST } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  import { userSubscriptionType } from '$util/stores'
+  import { isUserPaid, userSubscriptionType } from '$util/stores'
   import { SubscriptionType } from 'pockethost/common'
   import { dns } from 'svelte-highlight/languages'
   import { instance } from '../store'
@@ -40,12 +40,7 @@
 
     const trimmed = formCname.trim()
 
-    if (
-      trimmed &&
-      ![SubscriptionType.Premium, SubscriptionType.Lifetime].includes(
-        $userSubscriptionType,
-      )
-    ) {
+    if (trimmed && !$isUserPaid) {
       errorMessage = `Oof, you hit a paywall. This is a Pro feature only. Please <a class='link' href="/account">upgrade your account.</a>`
       return
     }

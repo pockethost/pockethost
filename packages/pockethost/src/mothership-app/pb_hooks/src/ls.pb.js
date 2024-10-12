@@ -71,21 +71,25 @@ routerAdd('POST', '/api/ls', (c) => {
     const editions = {
       // Founder's annual
       159792: () => {
-        userRec.set(`subscription`, `premium`)
+        userRec.set(`subscription`, `founder`)
+        userRec.set(`subscription_interval`, `year`)
         userRec.set(`isFounder`, true)
       },
       // Founder's lifetime
       159794: () => {
-        userRec.set(`subscription`, `lifetime`)
+        userRec.set(`subscription`, `founder`)
+        userRec.set(`subscription_interval`, `life`)
         userRec.set(`isFounder`, true)
       },
       // Pro annual
       159791: () => {
         userRec.set(`subscription`, `premium`)
+        userRec.set(`subscription_interval`, `year`)
       },
       // Pro monthly
       159790: () => {
         userRec.set(`subscription`, `premium`)
+        userRec.set(`subscription_interval`, `month`)
       },
     }
 

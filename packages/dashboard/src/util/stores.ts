@@ -23,6 +23,7 @@ const { onAuthChange } = client()
 
 export const isUserLegacy = writable(false)
 export const userSubscriptionType = writable(SubscriptionType.Legacy)
+export const isUserPaid = writable(false)
 export const isUserLoggedIn = writable(false)
 export const isUserFounder = writable(false)
 export const isUserVerified = writable(false)
@@ -42,6 +43,11 @@ onAuthChange((authStoreProps) => {
 userStore.subscribe((user) => {
   isUserLegacy.set(!!user?.isLegacy)
   isUserFounder.set(!!user?.isFounder)
+  isUserPaid.set(
+    [SubscriptionType.Founder, SubscriptionType.Premium].includes(
+      user?.subscription || SubscriptionType.Free,
+    ),
+  )
   userSubscriptionType.set(user?.subscription || SubscriptionType.Free)
   isUserVerified.set(!!user?.verified)
 })

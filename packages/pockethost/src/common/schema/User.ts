@@ -4,14 +4,14 @@ export enum SubscriptionType {
   Legacy = 'legacy',
   Free = 'free',
   Premium = 'premium',
-  Lifetime = 'lifetime',
+  Founder = 'founder',
 }
 
 export const PLAN_NAMES = {
   [SubscriptionType.Legacy]: 'Legacy',
   [SubscriptionType.Free]: 'Hacker',
   [SubscriptionType.Premium]: `Pro`,
-  [SubscriptionType.Lifetime]: `Founder's Edition`,
+  [SubscriptionType.Founder]: `Founder's Edition`,
 }
 
 export type UserFields<TExtra = {}> = BaseFields & {

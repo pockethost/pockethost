@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { globalInstancesStore, userSubscriptionType } from '$util/stores'
+  import {
+    globalInstancesStore,
+    isUserPaid,
+    userSubscriptionType,
+  } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import { SubscriptionType } from 'pockethost/common'
   import Creator from './Creator.svelte'
@@ -9,10 +13,7 @@
   let canCreate = false
   $: {
     instanceCount = values($globalInstancesStore).length
-    canCreate =
-      [SubscriptionType.Lifetime, SubscriptionType.Premium].includes(
-        $userSubscriptionType,
-      ) || instanceCount === 0
+    canCreate = $isUserPaid || instanceCount === 0
   }
 </script>
 

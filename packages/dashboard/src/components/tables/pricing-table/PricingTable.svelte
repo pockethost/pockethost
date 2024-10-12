@@ -95,7 +95,7 @@
                         {PLAN_NAMES[SubscriptionType.Premium]}
                       </th>
                       <th scope="col" class="text-center">
-                        {PLAN_NAMES[SubscriptionType.Lifetime]}
+                        {PLAN_NAMES[SubscriptionType.Founder]}
                       </th>
                     </tr>
                   </thead>
@@ -143,7 +143,7 @@
                     <div class="rounded-lg ring-1 ring-transparent"></div>
                   {/if}
 
-                  {#if $userSubscriptionType === SubscriptionType.Lifetime || (SubscriptionType.Premium && $isUserFounder)}
+                  {#if $userSubscriptionType === SubscriptionType.Founder || (SubscriptionType.Premium && $isUserFounder)}
                     <div class="rounded-lg ring-2 ring-primary"></div>
                   {:else}
                     <div class="rounded-lg ring-1 ring-transparent"></div>
@@ -269,7 +269,7 @@
             <div class="border-t border-gray-900/10">
               <div class="-mt-px pt-10">
                 <h3 class="text-sm font-semibold leading-6 text-primary">
-                  {PLAN_NAMES[SubscriptionType.Lifetime]}
+                  {PLAN_NAMES[SubscriptionType.Founder]}
                 </h3>
                 <p class="mt-1 text-sm leading-6">
                   Super elite! The Founder's Edition is our way of saying thanks
@@ -304,7 +304,7 @@
                     </div>
 
                     <!-- Fake card border -->
-                    {#if $userSubscriptionType === SubscriptionType.Lifetime}
+                    {#if $userSubscriptionType === SubscriptionType.Founder}
                       <div
                         aria-hidden="true"
                         class="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 rounded-lg sm:block ring-2 ring-primary"
