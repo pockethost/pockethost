@@ -77,56 +77,58 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/custom-domains`}>
-  Custom Domain (CNAME)
-</CardHeader>
+<div class="max-w-2xl">
+  <CardHeader documentation={`/docs/custom-domains`}>
+    Custom Domain (CNAME)
+  </CardHeader>
 
-<div class="mb-8">
-  Use a custom domain (CNAME) with your PocketHost instance.
-</div>
-{#if formCname && regex.test(formCname.trim())}
-  <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
-  <div class="mb-4">
-    <CodeSample
-      code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`}
-      language={dns}
-    />
+  <div class="mb-8">
+    Use a custom domain (CNAME) with your PocketHost instance.
   </div>
-{/if}
-
-<AlertBar message={successMessage} type="success" flash />
-<AlertBar message={errorMessage} type="error" />
-
-{#if cname}
-  {#if !cname_active}
-    <AlertBar
-      message={`Your custom domain name is pending. Go to <a href="/support" class="link text-warning-content">Support</a> to complete the setup.`}
-      type="warning"
-    />
-  {:else}
-    <AlertBar
-      message={`Your custom domain name is active.`}
-      type="success"
-      flash
-    />
+  {#if cname && regex.test(formCname.trim())}
+    <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
+    <div class="mb-4">
+      <CodeSample
+        code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`}
+        language={dns}
+      />
+    </div>
   {/if}
-{/if}
 
-<form
-  class="flex rename-instance-form-container-query gap-4"
-  on:submit={onRename}
->
-  <input
-    title="Only valid domain name patterns are allowed"
-    type="text"
-    bind:value={formCname}
-    class="input input-bordered w-full"
-  />
+  <AlertBar message={successMessage} type="success" flash />
+  <AlertBar message={errorMessage} type="error" />
 
-  <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
-    >Update Custom Domain</button
+  {#if cname}
+    {#if !cname_active}
+      <AlertBar
+        message={`Your custom domain name is pending. Go to <a href="/support" class="link text-warning-content">Support</a> to complete the setup.`}
+        type="warning"
+      />
+    {:else}
+      <AlertBar
+        message={`Your custom domain name is active.`}
+        type="success"
+        flash
+      />
+    {/if}
+  {/if}
+
+  <form
+    class="flex rename-instance-form-container-query gap-4"
+    on:submit={onRename}
   >
-</form>
+    <input
+      title="Only valid domain name patterns are allowed"
+      type="text"
+      bind:value={formCname}
+      class="input input-bordered w-full"
+    />
+
+    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
+      >Update Custom Domain</button
+    >
+  </form>
+</div>
 
 <style>
   .rename-instance-form-container-query {
