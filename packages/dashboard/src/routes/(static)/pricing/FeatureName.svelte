@@ -4,6 +4,7 @@
   import { writable } from 'svelte/store'
 
   export let item: any
+  export let enlarge = false
 
   const showInfo = writable(false)
   const handleInfoClick = () => {
@@ -13,7 +14,8 @@
 
 <th
   scope="row"
-  class="w-1/4 py-3 pr-4 text-left text-xs text-neutral-content leading-6"
+  class={`${enlarge ? "text-md" : "text-sm w-1/4"} py-3 pr-4 text-left text-neutral-content leading-6`}
+  colspan={enlarge ? 2 : 1}
 >
   <div class="flex items-center">
     <span class="flex-shrink-0">{item.name}</span>
@@ -31,7 +33,7 @@
   </div>
 
   {#if $showInfo}
-    <div class="text-neutral-content text-xs">
+    <div class={`text-neutral-content font-normal ${enlarge ? "text-md" : "text-sm"}`}>
       {item.info}
     </div>
   {/if}

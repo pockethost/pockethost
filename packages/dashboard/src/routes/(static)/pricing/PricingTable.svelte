@@ -11,6 +11,26 @@
     info?: string
   }
 
+  const plans = [
+    {
+      name: PLAN_NAMES[SubscriptionType.Free],
+      price: null
+    },
+    {
+      name: PLAN_NAMES[SubscriptionType.Premium],
+      price: [
+        {
+          text: "$20/mo",
+          link: `https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`
+        },
+        {
+          text: "$199/yr (save 20%)",
+          link: `https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`
+        }
+      ]
+    }
+  ]
+
   const items: Item[] = [
     {
       name: 'Number of Instances',
@@ -80,53 +100,62 @@
     </div>
   </div>
 
-  <table class="border-separate border-spacing-x-8 max-w-md">
-    <thead>
+  <table class="border-spacing-x-8 max-w-[354px] md:max-w-md">
+    <thead class="hidden md:table-header-group">
       <tr class="text-left">
         <th class="min-w-48"> </th>
-        <th class="text-center min-w-48">
-          {PLAN_NAMES[SubscriptionType.Free]}
-        </th>
-        <th class="text-center min-w-48">
-          {PLAN_NAMES[SubscriptionType.Premium]}
-        </th>
+        {#each plans as plan}
+          <th class="text-center min-w-48">
+            {plan.name}
+          </th>
+        {/each}
       </tr>
       <tr>
         <th></th>
-        <th>Free Forever</th>
-        <th>
-          <div class="flex flex-col justify-center">
-            {#if $userStore && $isUserVerified}
-              <a
-                href="https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-                class="btn btn-sm btn-neutral lemonsqueezy-button mb-2"
-              >
-                $20/mo
-              </a>
-              <a
-                href="https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-                class="btn btn-sm btn-neutral lemonsqueezy-button"
-              >
-                $199/yr (save 20%)
-              </a>
-            {:else}
-              <a href="/login" class="btn btn-sm btn-neutral mb-2"> $20/mo </a>
-              <a href="/login" class="btn btn-sm btn-neutral">
-                $199/yr (save 20%)
-              </a>
-            {/if}
-          </div>
-        </th>
+        {#each plans as plan}
+          {#if !plan.price}
+            <th>Free Forever</th>
+          {:else}
+            <th>
+              <div class="flex flex-col justify-center">
+                {#each plan.price as pPrice}
+                  {#if $userStore && $isUserVerified}
+                    <a
+                      href={pPrice.link}
+                      class="btn btn-sm btn-neutral lemonsqueezy-button mb-2"
+                    >
+                      {pPrice.text}
+                    </a>
+                  {:else}
+                    <a href="/login" class="btn btn-sm btn-neutral mb-2"> {pPrice.text}</a>
+                  {/if}
+                {/each}
+              </div>
+            </th>
+          {/if}
+        {/each}
       </tr>
     </thead>
 
     <tbody>
       {#each items as item}
-        <tr>
+        <tr class="hidden md:table-row">
           <FeatureName {item} />
-          <FeatureSupportBlock item={item.items[0] ?? ''} />
-          <FeatureSupportBlock item={item.items[1] ?? ''} />
+          {#each item.items as itemVal}
+            <FeatureSupportBlock item={itemVal ?? ''} />
+          {/each}
         </tr>
+        <tr class="table-row md:hidden text-md border-b border-gray-700">
+          <FeatureName {item} enlarge />
+        </tr>          
+        {#each item.items as itemVal, idx}
+          <tr class="table-row md:hidden border-b even:border-0 border-gray-800">
+            <th class="text-left">
+              {plans[idx]?.name}
+            </th>
+            <FeatureSupportBlock item={itemVal ?? ''} />
+          </tr>    
+        {/each}
       {/each}
     </tbody>
   </table>
