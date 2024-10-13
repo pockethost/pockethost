@@ -25,7 +25,7 @@
 
 {#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
   <button
-    class={`card min-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.maintenance ? 'bg-base-200' : 'bg-neutral'}`}
+    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.maintenance ? 'bg-base-200' : 'bg-neutral'}`}
     on:click={_=>goto(`/instances/${instance.id}`)}
   >
     <div class="card-body w-full">
