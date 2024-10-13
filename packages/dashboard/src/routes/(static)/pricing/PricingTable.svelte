@@ -105,7 +105,7 @@
       <tr class="text-left">
         <th class="min-w-48"> </th>
         {#each plans as plan}
-          <th class="text-center min-w-48">
+          <th class="text-center text-lg min-w-48">
             {plan.name}
           </th>
         {/each}
@@ -117,17 +117,17 @@
             <th>Free Forever</th>
           {:else}
             <th>
-              <div class="flex flex-col justify-center">
+              <div class="flex flex-col justify-center py-4">
                 {#each plan.price as pPrice}
                   {#if $userStore && $isUserVerified}
                     <a
                       href={pPrice.link}
-                      class="btn btn-sm btn-neutral lemonsqueezy-button mb-2"
+                      class="btn btn-sm btn-neutral text-base lemonsqueezy-button mb-2"
                     >
                       {pPrice.text}
                     </a>
                   {:else}
-                    <a href="/login" class="btn btn-sm btn-neutral mb-2"> {pPrice.text}</a>
+                    <a href="/login" class="btn btn-sm btn-neutral text-base mb-2"> {pPrice.text}</a>
                   {/if}
                 {/each}
               </div>
@@ -145,7 +145,7 @@
             <FeatureSupportBlock item={itemVal ?? ''} />
           {/each}
         </tr>
-        <tr class="table-row md:hidden text-md border-b border-gray-700">
+        <tr class="table-row md:hidden text-base border-b border-gray-700">
           <FeatureName {item} enlarge />
         </tr>          
         {#each item.items as itemVal, idx}
