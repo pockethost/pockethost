@@ -1,6 +1,5 @@
 import copyfiles from 'copyfiles'
 import { GobotOptions } from 'gobot'
-import { rimraf } from 'rimraf'
 import {
   DEBUG,
   IS_DEV,
@@ -11,6 +10,7 @@ import {
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
+  _MOTHERSHIP_APP_ROOT,
   mkContainerHomePath,
 } from '../../../../../core'
 import { GobotService } from '../../../../services/GobotService'
@@ -59,15 +59,6 @@ export async function mothership(cfg: MothershipConfig) {
   const { gobot } = GobotService()
   const bot = await gobot(`pocketbase`, options)
 
-  await rimraf(MOTHERSHIP_DATA_ROOT(`pb_hooks`))
-  await _copy(MOTHERSHIP_HOOKS_DIR(`**/*`), MOTHERSHIP_DATA_ROOT(`pb_hooks`))
-  await _copy(bot.cachePath(`versions.cjs`), MOTHERSHIP_DATA_ROOT(`pb_hooks`))
-  await rimraf(MOTHERSHIP_DATA_ROOT(`pb_migrations`))
-  await _copy(
-    MOTHERSHIP_MIGRATIONS_DIR(`**/*`),
-    MOTHERSHIP_DATA_ROOT(`pb_migrations`),
-  )
-  // await freshenPocketbaseVersions()
   const args = [
     `serve`,
     `--http`,
@@ -75,11 +66,11 @@ export async function mothership(cfg: MothershipConfig) {
     `--dir`,
     MOTHERSHIP_DATA_ROOT(`pb_data`),
     `--hooksDir`,
-    MOTHERSHIP_DATA_ROOT(`pb_hooks`),
+    MOTHERSHIP_HOOKS_DIR(),
     `--migrationsDir`,
-    MOTHERSHIP_DATA_ROOT(`pb_migrations`),
+    MOTHERSHIP_MIGRATIONS_DIR(`pb_migrations`),
     `--publicDir`,
-    MOTHERSHIP_DATA_ROOT(`pb_public`),
+    _MOTHERSHIP_APP_ROOT(`pb_public`),
   ]
   if (IS_DEV()) {
     args.push(`--dev`)

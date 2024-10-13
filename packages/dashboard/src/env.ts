@@ -33,9 +33,9 @@ const mkPath = (...paths: string[]) => {
 export const MAX_INSTANCE_COUNTS = {
   [SubscriptionType.Free]: 25,
   [SubscriptionType.Legacy]: 25,
-  [SubscriptionType.Lifetime]: 999,
+  [SubscriptionType.Founder]: 999,
   [SubscriptionType.Premium]: 250,
-  [SubscriptionType.Flounder]: 999, // Added to get the error away
+  [SubscriptionType.Flounder]: 250, // Added to get the error away
 }
 export const FREE_MAX_INSTANCE_COUNT = 25
 

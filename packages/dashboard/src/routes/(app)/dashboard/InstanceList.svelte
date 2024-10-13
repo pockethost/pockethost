@@ -48,7 +48,7 @@
           <span class="text-gray-400"
             >Version {instance.version}
             <span class={!instance.maintenance ? 'hidden' : ''}
-              >- Maintenance</span
+              >- Powered Off</span
             ></span
           >
         </p>

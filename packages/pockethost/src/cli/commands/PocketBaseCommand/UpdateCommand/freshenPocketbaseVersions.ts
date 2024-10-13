@@ -2,7 +2,7 @@ import { writeFileSync } from 'fs'
 import { lte, prerelease } from 'semver'
 import {
   LoggerService,
-  MOTHERSHIP_DATA_ROOT,
+  MOTHERSHIP_HOOKS_DIR,
   PH_ALLOWED_POCKETBASE_SEMVER,
   stringify,
 } from '../../../../../core'
@@ -72,7 +72,7 @@ export async function freshenPocketbaseVersions() {
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
 
   {
-    const path = MOTHERSHIP_DATA_ROOT(`pb_hooks`, `versions.cjs`)
+    const path = MOTHERSHIP_HOOKS_DIR(`versions.cjs`)
     info(`Writing to ${path}`)
     writeFileSync(path, cjs)
   }
