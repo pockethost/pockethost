@@ -4,9 +4,9 @@
   import { page } from '$app/stores';
 </script>
 
-<div class="container-fluid mt-4 flex gap-6">
-  <div class="w-fit bg-base-200 rounded-r-lg py-4">
-    <ul class="menu">
+<div class="container-fluid mt-4 flex gap-6 flex-col-reverse md:flex-row">
+  <div class="w-full md:w-fit bg-base-200 rounded-r-lg py-4">
+    <ul class="menu text-base">
       <li class="menu-title">Overview</li>
       <li><a class:active={$page.url.pathname.endsWith("/docs")} href="/docs">Introduction</a></li>
       <li><a class:active={$page.url.pathname.endsWith("/docs/getting-started")} href="/docs/getting-started">Getting Started</a></li>
@@ -49,14 +49,13 @@
       <li><a class:active={$page.url.pathname.endsWith("/docs/self-hosting")} href="/docs/self-hosting">Self-Hosting</a></li>
     </ul>
   </div>
-  <div class="docs-content w-fit prose p-5 max-w-[50%]">
+  <div class="docs-content prose p-5 w-full md:w-fit md:max-w-[50%]">
     <slot />
   </div>
 </div>
 
 <style lang="scss">
   .menu, .menu-title {
-    font-size: 1rem;
-    line-height: 1.5rem;
+    @apply text-base
   }
 </style>

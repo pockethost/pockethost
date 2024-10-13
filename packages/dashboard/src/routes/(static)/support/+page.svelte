@@ -6,9 +6,9 @@
 
   <div class="mt-10 text-center">
     <iframe
+      class="w-full max-w-[500px]"
       title="Discord"
       src="https://discord.com/widget?id=1128192380500193370&theme=dark"
-      width="500"
       height="800"
       allowtransparency
       frameborder="0"

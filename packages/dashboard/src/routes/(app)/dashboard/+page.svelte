@@ -25,7 +25,7 @@
 <div class="flex flex-row space-x-4 items-center justify-center">
   <div>Instances</div>
   <progress
-    class="progress progress-primary w-64"
+    class="progress progress-primary w-48 md:w-80"
     value={instanceCount}
     max={MAX_INSTANCE_COUNTS[$userSubscriptionType]}
   ></progress>

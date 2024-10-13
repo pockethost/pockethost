@@ -14,8 +14,8 @@
 
   <div class="flex-1 bg-neutral text-neutral-content p-5 flex flex-col">
     <div class="text-xl text-center pb-5">Rare deals</div>
-    <div class="flex flex-wrap justify-center">
-      <div class="w-96 mx-4">
+    <div class="flex flex-wrap gap-6 justify-center">
+      <div class="w-96">
         <PricingCard
           name={`${PLAN_NAMES[SubscriptionType.Founder]}`}
           qtyRemaining={0}
@@ -39,7 +39,7 @@
         />
       </div>
 
-      <div class="w-96 mx-4">
+      <div class="w-96">
         <FlounderCard
           comingSoonText="ON SALE BLACK FRIDAY"
           comingSoon
