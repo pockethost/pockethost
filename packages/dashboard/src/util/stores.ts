@@ -3,9 +3,9 @@ import { PUBLIC_DEBUG } from '$src/env'
 import { client } from '$src/pocketbase-client'
 import {
   ConsoleLogger,
-  ioc,
   LogLevelName,
   SubscriptionType,
+  ioc,
   type InstanceFields,
   type InstanceId,
   type UnsubscribeFunc,
@@ -28,7 +28,6 @@ export const isUserLegacy = writable(false)
 export const userSubscriptionType = writable(SubscriptionType.Legacy)
 export const isUserPaid = writable(false)
 export const isUserLoggedIn = writable(false)
-export const isUserFounder = writable(false)
 export const isUserVerified = writable(false)
 export const isAuthStateInitialized = writable(false)
 export const userStore = writable<UserFields | undefined>()
@@ -57,7 +56,6 @@ export const init = () => {
       ),
     )
     isUserLegacy.set(!!user?.isLegacy)
-    isUserFounder.set(!!user?.isFounder)
     userSubscriptionType.set(user?.subscription || SubscriptionType.Free)
     isUserVerified.set(!!user?.verified)
   })
