@@ -8,7 +8,7 @@ At PocketHost, we believe in keeping things simple and transparent. Our pricing 
 
 Our Free Tier is perfect for getting started with PocketHost without any upfront costs. It includes:
 
-- **Unlimited Projects**: Create as many projects as you need.
+- **Multiple Projects**: Create up to 25 projects as you need.
 - **Generous Resources**: Fair use of storage, bandwidth, and CPU.
 - **Essential Features**: Access to the core functionalities of PocketHost.
 
@@ -52,7 +52,7 @@ Many users opt for our standard Pro Tier, which continues to provide excellent v
 
 **Unlimited Doesn't Mean Infinite**
 
-While we offer unlimited projects, storage, bandwidth, and CPU, all usage is subject to our [Fair Use Policy](/terms):
+While we offer ample limits for projects, storage, bandwidth, and CPU, all usage is subject to our [Fair Use Policy](/terms):
 
 - **Fair Use Basis**: Use resources similarly to the average active app on our platform.
 - **Resource Management**: Your app scales up or down based on its needs.

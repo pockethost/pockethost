@@ -34,7 +34,7 @@
             `Priority support`,
             `Commemorative Founder's badge`,
             `PocketHost t-shirt`,
-            `-Girlfriend`,
+            `Girlfriend`,
           ]}
         />
       </div>

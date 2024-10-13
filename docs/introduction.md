@@ -6,10 +6,10 @@ PocketHost hosts your [PocketBase](https://pocketbase.io) projects, so you don't
 
 PocketHost is a cloud hosting platform for PocketBase. You can use it to instantly provision a PocketBase backend for your latest project. Features include:
 
-- Create unlimited PocketBase projects, each with a custom subdomain
+- Create PocketBase projects, each with a custom subdomain
 - Each instance runs on a subdomain of `pockethost.io`
-- Access your PocketBase instance using the PocketBase JavaScript SDK as easily as 
-`new PocketBase('https://my-project.pockethost.io')`
+- Access your PocketBase instance using the PocketBase JavaScript SDK as easily as
+  `new PocketBase('https://my-project.pockethost.io')`
 - Run your instance in an ultra-beefy shared environment.
 
 ## 🎯 Focus on your app
@@ -26,7 +26,7 @@ import PocketBase from 'pocketbase'
 const client = new PocketBase(`https://harvest.pockethost.io`)
 ```
 
-## 🔋Batteries Included 
+## 🔋Batteries Included
 
 Here's all the Linux/DevOps stuff that PocketHost does for you:
 

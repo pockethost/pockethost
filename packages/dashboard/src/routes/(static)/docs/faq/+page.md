@@ -75,7 +75,7 @@ We offer a paid plan that includes:
 
 ### Can I run multiple projects on PocketHost?
 
-Yes! You can provision as many PocketBase instances as you need. The free tier allows for 1 project, while the paid plan allows for unlimited projects.
+Yes! You can provision as many PocketBase instances as you need. The free tier allows up to 25 projects, while the paid plan allows for 250 projects.
 
 ## PocketBase
 

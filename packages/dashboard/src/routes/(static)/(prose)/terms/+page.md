@@ -39,7 +39,7 @@ There are no age restrictions for using our services. However, by using PocketHo
 
 ## 5. Fair Use Policy
 
-PocketHost offers unlimited projects, storage, bandwidth, and CPU on a Fair Use basis.
+PocketHost offers generous free projects, storage, bandwidth, and CPU on a Fair Use basis.
 
 ### 5.1 What is 'Fair'?
 

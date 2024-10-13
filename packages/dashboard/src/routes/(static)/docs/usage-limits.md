@@ -1,10 +1,4 @@
----
-title: Usage Limits
-category: usage
-description: PocketHost is an unlimited (fair use) bandwidth, storage, and CPU platform.
----
-
-PocketHost offers unlimited projects, storage, bandwidth, and CPU on a Fair Use basis.
+PocketHost offers generous free projects, storage, bandwidth, and CPU on a Fair Use basis.
 
 ## What is 'Fair'?
 
