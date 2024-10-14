@@ -5,10 +5,6 @@
   import { onMount } from 'svelte'
   import FlounderCard from './FlounderCard.svelte'
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
-
-  onMount(() => {
-    window.createLemonSqueezy()
-  })
 </script>
 
 <div class="text-xl">My Account</div>

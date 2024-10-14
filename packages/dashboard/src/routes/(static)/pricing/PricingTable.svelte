@@ -14,21 +14,21 @@
   const plans = [
     {
       name: PLAN_NAMES[SubscriptionType.Free],
-      price: null
+      price: null,
     },
     {
       name: PLAN_NAMES[SubscriptionType.Premium],
       price: [
         {
-          text: "$20/mo",
-          link: `https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`
+          text: '$20/mo',
+          link: `https://store.pockethost.io/checkout/buy/8e7cfb35-846a-4fd6-adcb-c2db5589275d?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`,
         },
         {
-          text: "$199/yr (save 20%)",
-          link: `https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`
-        }
-      ]
-    }
+          text: '$199/yr (save 20%)',
+          link: `https://store.pockethost.io/checkout/buy/96e4ab4b-f646-4fb2-b830-5584db983e73?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`,
+        },
+      ],
+    },
   ]
 
   const items: Item[] = [
@@ -122,12 +122,17 @@
                   {#if $userStore && $isUserVerified}
                     <a
                       href={pPrice.link}
-                      class="btn btn-sm btn-neutral text-base lemonsqueezy-button mb-2"
+                      class="btn btn-sm btn-neutral text-base mb-2"
                     >
                       {pPrice.text}
                     </a>
                   {:else}
-                    <a href="/login" class="btn btn-sm btn-neutral text-base mb-2"> {pPrice.text}</a>
+                    <a
+                      href="/login"
+                      class="btn btn-sm btn-neutral text-base mb-2"
+                    >
+                      {pPrice.text}</a
+                    >
                   {/if}
                 {/each}
               </div>
@@ -147,14 +152,16 @@
         </tr>
         <tr class="table-row md:hidden text-base border-b border-gray-700">
           <FeatureName {item} enlarge />
-        </tr>          
+        </tr>
         {#each item.items as itemVal, idx}
-          <tr class="table-row md:hidden border-b even:border-0 border-gray-800">
+          <tr
+            class="table-row md:hidden border-b even:border-0 border-gray-800"
+          >
             <th class="text-left">
               {plans[idx]?.name}
             </th>
             <FeatureSupportBlock item={itemVal ?? ''} />
-          </tr>    
+          </tr>
         {/each}
       {/each}
     </tbody>

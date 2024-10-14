@@ -50,7 +50,6 @@
       updateCountdown()
       countdownInterval = setInterval(updateCountdown, 1000)
     }
-    window.createLemonSqueezy()
   })
 
   onDestroy(() => {
@@ -98,7 +97,9 @@
     {/if}
 
     {#if qtyMax > 0}
-      <div class="w-full animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black">
+      <div
+        class="w-full animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black"
+      >
         <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
           <div
             class="bg-blue-600 h-2.5 rounded-full"
@@ -146,17 +147,18 @@
           <span class="text-4xl font-bold tracking-tight text-white">Free</span>
         </p>
       {/if}
-    
+
       {#if priceAnnually[0] > 0}
+        {console.log('priceAnnually', priceAnnually)}
         <a
-          href={checkoutMonthURL}
-          class={`btn ${qtyRemaining <= 0 ? "btn-disabled" : ""} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 hover:bg-white/20 focus-visible:outline-white lemonsqueezy-button`}
+          href={comingSoon ? undefined : checkoutMonthURL}
+          class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 hover:bg-white/20 focus-visible:outline-white `}
           on:click={handlePricingClick}
           aria-disabled={qtyRemaining <= 0}
         >
           {#if priceMonthly[2]}
             <span
-              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? "text-gray-700" : "text-gray-400"} line-through`}
+              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through`}
             >
               ${priceMonthly[0]}
             </span>
@@ -168,20 +170,22 @@
               ${priceMonthly[0]}
             </span>
           {/if}
-          <span class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? "text-gray-600" : "text-gray-300"}`}>
+          <span
+            class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}`}
+          >
             / {priceMonthly[1]}
           </span>
         </a>
       {/if}
       {#if priceMonthly[0] > 0}
         <a
-          href={checkoutYearURL}
-          class={`btn ${qtyRemaining <= 0 ? "btn-disabled" : ""} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white lemonsqueezy-button`}
+          href={comingSoon ? undefined : checkoutYearURL}
+          class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white `}
           on:click={handlePricingClick}
         >
           {#if priceAnnually[2]}
             <span
-              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? "text-gray-700" : "text-gray-400"} line-through`}
+              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through`}
             >
               ${priceAnnually[0]}
             </span>
@@ -193,14 +197,15 @@
               ${priceAnnually[0]}
             </span>
           {/if}
-          <span class="text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? "text-gray-600" : "text-gray-300"}">
+          <span
+            class="text-sm font-semibold leading-6 ${qtyRemaining <= 0
+              ? 'text-gray-600'
+              : 'text-gray-300'}"
+          >
             / {priceAnnually[1]}</span
           >
         </a>
       {/if}
     </div>
   </div>
-  
-
-  
 </div>

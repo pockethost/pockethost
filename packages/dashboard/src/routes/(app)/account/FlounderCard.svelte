@@ -17,10 +17,6 @@
   export let comingSoonText = ''
   export let comingSoon = false
   export let startDate: Date | null = null
-
-  onMount(() => {
-    window.createLemonSqueezy()
-  })
 </script>
 
 <PricingCard
