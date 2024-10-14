@@ -1,74 +1,124 @@
 routerAdd('POST', '/api/ls', (c) => {
   const dao = $app.dao()
-  const { audit, mkLog, enqueueNotification } = /** @type {Lib} */ (
+  const { mkAudit, mkLog, mkNotifier } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
 
   const log = mkLog(`ls`)
+  const audit = mkAudit(log, dao)
+  const context = {}
 
-  const secret = $os.getenv('LS_WEBHOOK_SECRET')
-  log(`Secret`, secret)
-
-  const raw = readerToString(c.request().body)
-  const data = JSON.parse(raw)
-  log(`payload`, JSON.stringify(data, null, 2))
-
-  /** @type {WebHook} */
-  let {
-    meta: {
-      custom_data: { user_id },
-    },
-    data: {
-      type,
-      attributes: {
-        order_number,
-        first_order_item: { product_name, /** @type {number} */ product_id },
-        status,
-        user_email: email,
-      },
-    },
-  } = data
-
-  log({ user_id, order_number, product_name, product_id, status, email })
-
+  log(`Top of ls`)
   try {
-    if (!user_id) {
+    context.secret = $os.getenv('LS_WEBHOOK_SECRET')
+    log(`Secret`, context.secret)
+
+    context.raw = readerToString(c.request().body)
+
+    context.body_hash = $security.hs256(context.raw, context.secret)
+    log(`Body hash`, context.body_hash)
+
+    context.xsignature_header = c.request().header.get('X-Signature')
+    log(`Signature`, context.xsignature_header)
+
+    if (
+      context.xsignature_header == undefined ||
+      !$security.equal(context.body_hash, context.xsignature_header)
+    ) {
+      throw new BadRequestError(`Invalid signature`)
+    }
+    log(`Signature verified`)
+
+    context.data = JSON.parse(context.raw)
+    log(`payload`, JSON.stringify(context.data, null, 2))
+
+    context.type = context.data?.data?.type
+    if (!context.type) {
+      throw new Error(`No type`)
+    } else {
+      log(`type ok`, context.type)
+    }
+
+    context.event_name = context.data?.meta?.event_name
+    if (!context.event_name) {
+      throw new Error(`No event name`)
+    } else {
+      log(`event name ok`, context.event_name)
+    }
+
+    context.user_id = context.data?.meta?.custom_data?.user_id
+    if (!context.user_id) {
       throw new Error(`No user ID`)
     } else {
-      log(`user ID ok`, user_id)
+      log(`user ID ok`, context.user_id)
     }
 
-    if (![`orders`].includes(type)) {
-      throw new Error(`Unsupported event: ${type}`)
+    context.product_id =
+      context.type === 'orders'
+        ? context.data?.data?.attributes.first_order_item?.product_id
+        : context.data?.data?.attributes?.product_id
+    if (!context.product_id) {
+      throw new Error(`No product ID`)
     } else {
-      log(`event type ok`)
+      log(`product ID ok`, context.product_id)
     }
 
-    if (![`active`, `paid`].includes(status)) {
-      throw new Error(`Unsupported status: ${status}`)
+    context.product_name =
+      context.type === 'orders'
+        ? context.data?.data?.attributes.first_order_item?.product_name
+        : context.data?.data?.attributes?.product_name
+    if (!context.product_name) {
+      throw new Error(`No product name`)
     } else {
-      log(`status ok`, status)
-    }
-
-    if (!order_number) {
-      throw new Error(`No order #`)
-    } else {
-      log(`order # ok`, order_number)
+      log(`product name ok`, context.product_name)
     }
 
     const userRec = (() => {
       try {
-        return dao.findFirstRecordByData('users', 'id', user_id)
-      } catch (e) {}
+        return dao.findFirstRecordByData('users', 'id', context.user_id)
+      } catch (e) {
+        throw new Error(`User ${user_id} not found`)
+      }
     })()
-    if (!userRec) {
-      throw new Error(`User ${user_id} not found`)
+    log(`user record ok`, userRec)
+
+    const event_name_map = {
+      order_created: () => {
+        signup_finalizer()
+      },
+      order_refunded: () => {
+        signup_canceller()
+      },
+      subscription_created: () => {
+        signup_finalizer()
+      },
+      subscription_expired: () => {
+        signup_canceller()
+      },
+    }
+    const event_handler = event_name_map[context.event_name]
+    if (!event_handler) {
+      log(`unsupported event`, context.event_name)
+      return c.json(200, {
+        status: `warning: unsupported event ${context.event_name}`,
+      })
     } else {
-      log(`user record ok`, userRec)
+      log(`event handler ok`, event_handler)
     }
 
-    /** @type{{[_:number]: ()=>void}} */
-    const editions = {
+    const SUBSCRIPTION_PRODUCT_IDS = [159792, 159791, 159790, 367781]
+
+    if (
+      context.event_name === 'order_created' &&
+      SUBSCRIPTION_PRODUCT_IDS.includes(context.product_id)
+    ) {
+      log(`ignoring order event for subscription`)
+      return c.json(200, {
+        status: `warning: order event ignored for subscription`,
+      })
+    }
+
+    const product_handler_map = {
       // Founder's annual
       159792: () => {
         userRec.set(`subscription`, `founder`)
@@ -89,73 +139,55 @@ routerAdd('POST', '/api/ls', (c) => {
         userRec.set(`subscription`, `premium`)
         userRec.set(`subscription_interval`, `month`)
       },
+      // Flounder lifetime
+      306534: () => {
+        userRec.set(`subscription`, `flounder`)
+        userRec.set(`subscription_interval`, `life`)
+      },
+      // Flounder annual
+      367781: () => {
+        userRec.set(`subscription`, `flounder`)
+        userRec.set(`subscription_interval`, `year`)
+      },
     }
-
-    const applyEditionSpecifics = editions[product_id]
-    if (!applyEditionSpecifics) {
-      throw new Error(`Product ID not found: ${product_id}`)
+    const product_handler = product_handler_map[context.product_id]
+    if (!product_handler) {
+      throw new Error(`No product handler for ${context.product_id}`)
     } else {
-      log(`product id ok`, product_id)
+      log(`product handler ok`, product_handler)
     }
-    applyEditionSpecifics()
 
-    const payment = new Record(dao.findCollectionByNameOrId('payments'), {
-      user: user_id,
-      payment_id: `ls_${order_number}`,
-    })
+    const signup_finalizer = () => {
+      product_handler()
+      dao.runInTransaction((txDao) => {
+        log(`transaction started`)
+        txDao.saveRecord(userRec)
+        log(`saved user`)
 
-    dao.runInTransaction((txDao) => {
-      log(`transaction started`)
-      if (!userRec.getDateTime(`welcome`)) {
-        enqueueNotification(`email`, `welcome`, user_id, { log, dao: txDao })
-        userRec.set(`welcome`, new DateTime())
-      }
-      txDao.saveRecord(userRec)
-      log(`saved user`)
-      txDao.saveRecord(payment)
-      log(`saved payment`)
-      txDao
-        .db()
-        .newQuery(
-          `update settings set value=value-1 where name='founders-edition-count'`,
-        )
-        .execute()
-      log(`saved founder count`)
-
-      log(`about to enqueue email`)
-      enqueueNotification(`email`, `lemon_order_email`, user_id, {
-        dao: txDao,
-        log,
+        const notify = mkNotifier(log, txDao)
+        notify(`lemonbot`, `lemon_order_discord`, context.user_id, context)
+        log(`saved discord notice`)
       })
-      log(`about to enqueue lemonbot`)
-      enqueueNotification(`lemonbot`, `lemon_order_discord`, user_id, {
-        dao: txDao,
-        log,
-      })
+      log(`database updated`)
+      audit(`LS`, `Signup processed.`, context)
+    }
 
-      log(`saved discord notice`)
-    })
-    log(`database updated`)
-    audit(`LS`, `Order ${order_number} ${product_name} processed.`, {
-      log,
-      dao,
-      extra: {
-        email,
-        user: user_id,
-      },
-    })
+    const signup_canceller = () => {
+      userRec.set(`subscription`, `free`)
+      userRec.set(`subscription_interval`, ``)
+      dao.runInTransaction((txDao) => {
+        txDao.saveRecord(userRec)
+        log(`saved user`)
+      })
+      log(`database updated`)
+      audit(`LS`, `Signup cancelled.`, context)
+    }
+
+    event_handler()
+
+    return c.json(200, { status: 'ok' })
   } catch (e) {
-    audit(`LS_ERR`, `${e}`, {
-      log,
-      dao,
-      extra: {
-        email,
-        user: user_id,
-        raw_payload: raw,
-      },
-    })
-    return c.json(500, `${e}`)
+    audit(`LS_ERR`, `${e}`, context)
+    return c.json(500, { status: `error`, error: e.message })
   }
-
-  return c.json(200, { status: 'ok' })
 })

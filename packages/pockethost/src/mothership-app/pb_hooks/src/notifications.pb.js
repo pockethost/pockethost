@@ -1,13 +1,21 @@
 /// <reference path="../types/types.d.ts" />
+/// <reference path="../types/lib.d.ts" />
 
 routerAdd(`GET`, `api/process_single_notification`, (c) => {
-  const { mkLog, processNotification } = /** @type {Lib} */ (
+  const { mkLog, mkNotificationProcessor } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
   const log = mkLog(`process_single_notification`)
   log(`start`)
 
   const dao = $app.dao()
+
+  const processNotification = mkNotificationProcessor(
+    log,
+    dao,
+    !!c.queryParam(`test`),
+  )
+
   try {
     const notification = dao.findFirstRecordByData(
       `notifications`,
@@ -17,11 +25,7 @@ routerAdd(`GET`, `api/process_single_notification`, (c) => {
     if (!notification) {
       return c.json(200, `No notifications to send`)
     }
-    processNotification(notification, {
-      log,
-      dao,
-      test: !!c.queryParam(`test`),
-    })
+    processNotification(notification)
   } catch (e) {
     c.json(500, `${e}`)
   }
@@ -30,11 +34,12 @@ routerAdd(`GET`, `api/process_single_notification`, (c) => {
 
 onModelAfterCreate((e) => {
   const dao = e.dao || $app.dao()
-  return
-  const { processNotification, mkLog, audit } = /** @type {Lib} */ (
+  const { mkNotificationProcessor, mkLog, mkAudit } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
   const log = mkLog(`notification:sendImmediately`)
+  const audit = mkAudit(log, dao)
+  const processNotification = mkNotificationProcessor(log, dao, false)
 
   const notificationRec = /** @type {models.Record} */ (e.model)
 
@@ -47,16 +52,10 @@ onModelAfterCreate((e) => {
     if (!messageTemplateRec) {
       throw new Error(`Missing message template`)
     }
-    if ([`maintenance-mode`].includes(messageTemplateRec.getString(`slug`))) {
-      processNotification(notificationRec, { log, dao })
-    }
+    processNotification(notificationRec)
   } catch (e) {
     audit(`ERROR`, `${e}`, {
-      log,
-      dao,
-      extra: {
-        notification: notificationRec.getId(),
-      },
+      notification: notificationRec.getId(),
     })
   }
 }, `notifications`)

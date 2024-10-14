@@ -15,7 +15,7 @@ routerAdd(
   '/api/instance/:id',
   (c) => {
     const dao = $app.dao()
-    const { mkLog, audit, removeEmptyKeys } = /** @type {Lib} */ (
+    const { mkLog, removeEmptyKeys } = /** @type {Lib} */ (
       require(`${__hooks}/lib.js`)
     )
     const log = mkLog(`PUT:instance`)

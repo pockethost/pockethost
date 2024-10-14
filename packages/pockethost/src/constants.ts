@@ -129,16 +129,16 @@ export const SETTINGS = {
     create: true,
   }),
 
-  DISCORD_POCKETSTREAM_URL: mkString(''),
+  DISCORD_HEALTH_CHANNEL_URL: mkString(''),
   DISCORD_ALERT_CHANNEL_URL: mkString(''),
+  DISCORD_TEST_CHANNEL_URL: mkString(''),
+  DISCORD_STREAM_CHANNEL_URL: mkString(''),
 
   TEST_EMAIL: mkString(),
 
   LS_WEBHOOK_SECRET: mkString(''),
 
   SYSLOGD_PORT: mkNumber(6514),
-
-  DISCORD_HEALTH_CHANNEL_URL: mkString(''),
 
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
 
@@ -230,12 +230,14 @@ export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
 export const INSTANCE_APP_MIGRATIONS_DIR = () =>
   settings().INSTANCE_APP_MIGRATIONS_DIR
 
-export const DISCORD_POCKETSTREAM_URL = () =>
-  env.get('DISCORD_POCKETSTREAM_URL').asString()
 export const DISCORD_HEALTH_CHANNEL_URL = () =>
   env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
 export const DISCORD_ALERT_CHANNEL_URL = () =>
   env.get('DISCORD_ALERT_CHANNEL_URL').asString()
+export const DISCORD_TEST_CHANNEL_URL = () =>
+  env.get('DISCORD_TEST_CHANNEL_URL').asString()
+export const DISCORD_STREAM_CHANNEL_URL = () =>
+  env.get('DISCORD_STREAM_CHANNEL_URL').asString()
 
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
@@ -318,12 +320,13 @@ export const logConstants = () => {
     EDGE_APEX_DOMAIN,
     INSTANCE_APP_HOOK_DIR,
     INSTANCE_APP_MIGRATIONS_DIR,
-    DISCORD_POCKETSTREAM_URL,
+    DISCORD_HEALTH_CHANNEL_URL,
     DISCORD_ALERT_CHANNEL_URL,
+    DISCORD_TEST_CHANNEL_URL,
+    DISCORD_STREAM_CHANNEL_URL,
     TEST_EMAIL,
     LS_WEBHOOK_SECRET,
     SYSLOGD_PORT,
-    DISCORD_HEALTH_CHANNEL_URL,
     DOCKER_CONTAINER_HOST,
     PH_GOBOT_ROOT,
     MOTHERSHIP_DATA_ROOT,

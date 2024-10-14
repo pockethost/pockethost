@@ -4,7 +4,7 @@ routerAdd(
   'POST',
   '/api/mail',
   (c) => {
-    const { mkLog, audit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+    const { mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
     const log = mkLog(`mail`)
 
     let data = /** @type {{ to: string; subject: string; body: string }} */ (
