@@ -27,23 +27,21 @@
   const avatar = writable('')
   $: {
     if ($userStore?.email) {
-      gravatarHash($userStore.email).then((hash) => {
-        avatar.set(`https://www.gravatar.com/avatar/${hash}`)
-      }).catch(err => {
-        // Default when the avatar is not found
-        // There's one on /images/logo-square.png
-        console.error(err)
-        avatar.set(`/images/logo-square.png`)
-      })
+      gravatarHash($userStore.email)
+        .then((hash) => {
+          avatar.set(`https://www.gravatar.com/avatar/${hash}`)
+        })
+        .catch((err) => {
+          // Default when the avatar is not found
+          // There's one on /images/logo-square.png
+          console.error(err)
+          avatar.set(`/images/logo-square.png`)
+        })
     }
   }
 </script>
 
-<div
-  tabindex="0"
-  role="button"
-  class="avatar p-2 {className}"
->
+<div tabindex="0" role="button" class="avatar {className}">
   <div class="w-8 rounded-full">
     <img src={$avatar} alt="Gravatar" />
   </div>
