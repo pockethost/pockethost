@@ -2,11 +2,12 @@
 
 onModelAfterCreate((e) => {
   const dao = e.dao || $app.dao()
-  const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const { mkAudit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
 
   const log = mkLog(`instances:create:discord:notify`)
+  const audit = mkAudit(log, dao)
 
-  const webhookUrl = $os.getenv('DISCORD_POCKETSTREAM_URL')
+  const webhookUrl = process.env.DISCORD_STREAM_CHANNEL_URL
   if (!webhookUrl) {
     return
   }
@@ -23,9 +24,6 @@ onModelAfterCreate((e) => {
       timeout: 5, // in seconds
     })
   } catch (e) {
-    audit(`ERROR`, `Instance creation discord notify failed with ${e}`, {
-      log,
-      dao,
-    })
+    audit(`ERROR`, `Instance creation discord notify failed with ${e}`)
   }
 }, 'instances')

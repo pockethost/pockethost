@@ -3,7 +3,9 @@
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
   const dao = e.dao || $app.dao()
-  const { versions } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const { versions, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+
+  const log = mkLog(`instances-validate-before-update`)
 
   const version = e.model.get('version')
   if (!versions.includes(version)) {
@@ -30,7 +32,7 @@ onModelBeforeUpdate((e) => {
           )
           .one(result)
       } catch (e) {
-        console.log(`*** cname OK ${cname}`)
+        // log(`*** cname OK ${cname}`)
         return false
       }
       return true

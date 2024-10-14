@@ -2,8 +2,9 @@
 
 routerAdd('GET', '/api/unsubscribe', (c) => {
   const dao = $app.dao()
-  const { mkLog, audit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const { mkLog, mkAudit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
   const log = mkLog(`unsubscribe`)
+  const audit = mkAudit(log, dao)
 
   const id = c.queryParam('e')
 
@@ -13,7 +14,7 @@ routerAdd('GET', '/api/unsubscribe', (c) => {
     dao.saveRecord(record)
 
     const email = record.getString('email')
-    audit('UNSUBSCRIBE', '', { dao, log, extra: { email, user: id } })
+    audit('UNSUBSCRIBE', '', { email, user: id })
 
     $app.newMailClient().send(
       new MailerMessage({
@@ -27,7 +28,7 @@ routerAdd('GET', '/api/unsubscribe', (c) => {
     )
     return c.html(200, `<p>${email} has been unsubscribed.`)
   } catch (e) {
-    audit('UNSUBSCRIBE_ERR', `User ${id} not found`, { dao, log })
+    audit('UNSUBSCRIBE_ERR', `User ${id} not found`)
     return c.html(200, `<p>Looks like you're already unsubscribed.`)
   }
 })

@@ -5,11 +5,14 @@ onModelBeforeUpdate((e) => {
   const newModel = /** @type {models.Record} */ (e.model)
   const oldModel = newModel.originalCopy()
 
-  const { audit, mkLog, enqueueNotification } = /** @type {Lib} */ (
+  const { mkAudit, mkLog, mkNotifier } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
 
   const log = mkLog(`user-welcome-msg`)
+  const notify = mkNotifier(log, dao)
+  const audit = mkAudit(log, dao)
+
   try {
     log({ newModel, oldModel })
 
@@ -23,9 +26,9 @@ onModelBeforeUpdate((e) => {
     log(`user just became verified`)
     const uid = newModel.getId()
 
-    enqueueNotification(`email`, `welcome`, uid, { log, dao })
+    notify(`email`, `welcome`, uid)
     newModel.set(`welcome`, new DateTime())
   } catch (e) {
-    audit(`ERROR`, `${e}`, { log, dao, extra: { user: newModel.getId() } })
+    audit(`ERROR`, `${e}`, { user: newModel.getId() })
   }
 }, 'users')

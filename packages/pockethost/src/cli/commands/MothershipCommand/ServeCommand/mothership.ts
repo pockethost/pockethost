@@ -2,6 +2,10 @@ import copyfiles from 'copyfiles'
 import { GobotOptions } from 'gobot'
 import {
   DEBUG,
+  DISCORD_ALERT_CHANNEL_URL,
+  DISCORD_HEALTH_CHANNEL_URL,
+  DISCORD_STREAM_CHANNEL_URL,
+  DISCORD_TEST_CHANNEL_URL,
   IS_DEV,
   LS_WEBHOOK_SECRET,
   LoggerService,
@@ -48,6 +52,10 @@ export async function mothership(cfg: MothershipConfig) {
   const env = {
     DATA_ROOT: mkContainerHomePath(`data`),
     LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
+    DISCORD_TEST_CHANNEL_URL: DISCORD_TEST_CHANNEL_URL(),
+    DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),
+    DISCORD_HEALTH_CHANNEL_URL: DISCORD_HEALTH_CHANNEL_URL(),
+    DISCORD_ALERT_CHANNEL_URL: DISCORD_ALERT_CHANNEL_URL(),
   }
   dbg(env)
 
