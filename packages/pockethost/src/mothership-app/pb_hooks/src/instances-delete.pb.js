@@ -13,7 +13,7 @@ routerAdd(
   '/api/instance/:id',
   (c) => {
     const dao = $app.dao()
-    const { audit, mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+    const { mkLog } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
 
     const log = mkLog(`DELETE:instance`)
 

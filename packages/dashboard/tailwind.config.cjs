@@ -7,6 +7,9 @@ module.exports = {
       pattern: /(toggle|text|bg)-(error|success|warning|red-500)/,
       variants: ['responsive', 'hover'],
     },
+    {
+      pattern: /size-.*/,
+    },
   ],
   theme: {
     extend: {

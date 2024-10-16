@@ -1,0 +1,26 @@
+diff --git a/src/preprocessor.js b/src/preprocessor.js
+index 0222037e593b554cae5b8712fa8c8e51fd071932..051d57097d4844ee3474b2f0d60584ca6578f8ba 100644
+--- a/src/preprocessor.js
++++ b/src/preprocessor.js
+@@ -304,8 +306,8 @@ function img_to_picture(consts, content, node, image) {
+ 
+ 	res += `<img ${serialize_img_attributes(content, attributes, {
+ 		src: to_value(consts, image.img.src),
+-		width: image.img.w,
+-		height: image.img.h
++		width: image.img.w/2,
++		height: image.img.h/2
+ 	})} />`;
+ 
+ 	return (res += '</picture>');
+@@ -345,8 +347,8 @@ function dynamic_img_to_picture(content, node, src_var_name) {
+ 
+ 	const details = {
+ 		src: `{${src_var_name}.img.src}`,
+-		width: `{${src_var_name}.img.w}`,
+-		height: `{${src_var_name}.img.h}`
++		width: `{${src_var_name}.img.w/2}`,
++		height: `{${src_var_name}.img.h/2}`
+ 	};
+ 
+ 	return `{#if typeof ${src_var_name} === 'string'}

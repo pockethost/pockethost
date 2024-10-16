@@ -1,10 +1,11 @@
-import { BaseFields } from './types'
+import { type BaseFields } from './types'
 
 export enum SubscriptionType {
   Legacy = 'legacy',
   Free = 'free',
   Premium = 'premium',
   Founder = 'founder',
+  Flounder = 'flounder',
 }
 
 export const PLAN_NAMES = {
@@ -12,6 +13,7 @@ export const PLAN_NAMES = {
   [SubscriptionType.Free]: 'Hacker',
   [SubscriptionType.Premium]: `Pro`,
   [SubscriptionType.Founder]: `Founder`,
+  [SubscriptionType.Flounder]: `Flounder`,
 }
 
 export type UserFields<TExtra = {}> = BaseFields & {
@@ -20,6 +22,7 @@ export type UserFields<TExtra = {}> = BaseFields & {
   isLegacy: boolean
   subscription: SubscriptionType
   notifyMaintenanceMode: boolean
+  isStatsRole: boolean
 } & TExtra
 
 export type WithCredentials = {

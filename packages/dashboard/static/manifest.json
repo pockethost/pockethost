@@ -1,7 +1,7 @@
 {
   "name": "PocketHost",
   "short_name": "PocketHost",
-  "description": "Get a pocketbase backend for your next app is as fast as signing up.",
+  "description": "You are 30 seconds away from your next PocketBase backend.",
   "theme_color": "#222222",
   "background_color": "#222222",
   "display": "standalone",
@@ -9,28 +9,14 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "/icons/icon-512x512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "type": "image/png",
-      "sizes": "384x384",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-256x256.png",
-      "type": "image/png",
-      "sizes": "256x256",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "type": "image/png",
+      "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "purpose": "any"
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }

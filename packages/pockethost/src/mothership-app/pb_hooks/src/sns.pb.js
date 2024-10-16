@@ -2,8 +2,9 @@
 
 routerAdd('POST', '/api/sns', (c) => {
   const dao = $app.dao()
-  const { mkLog, audit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
+  const { mkLog, mkAudit } = /** @type {Lib} */ (require(`${__hooks}/lib.js`))
   const log = mkLog(`sns`)
+  const audit = mkAudit(log, dao)
 
   const processBounce = (emailAddress) => {
     log(`Processing ${emailAddress}`)
@@ -16,14 +17,9 @@ routerAdd('POST', '/api/sns', (c) => {
       extra.user = user.getId()
       user.setVerified(false)
       dao.saveRecord(user)
-      audit('PBOUNCE', `User ${emailAddress} has been disabled`, {
-        dao,
-        extra,
-        log,
-      })
+      audit('PBOUNCE', `User ${emailAddress} has been disabled`, extra)
     } catch (e) {
-      audit('PBOUNCE_ERR', `${e}`, { dao, log, extra })
-      log(`After audit`)
+      audit('PBOUNCE_ERR', `${e}`, extra)
     }
   }
 
@@ -62,9 +58,7 @@ routerAdd('POST', '/api/sns', (c) => {
               break
             default:
               audit('SNS_ERR', `Unrecognized bounce type ${bounceType}`, {
-                dao,
-                log,
-                extra: { raw_payload: raw },
+                raw,
               })
           }
           break
@@ -87,22 +81,14 @@ routerAdd('POST', '/api/sns', (c) => {
                 audit(
                   'COMPLAINT',
                   `User ${emailAddress} has been unsubscribed`,
-                  {
-                    log,
-                    dao,
-                    extra: { email: emailAddress, user: user.getId() },
-                  },
+                  { emailAddress, user: user.getId() },
                 )
               } catch (e) {
                 audit(
                   'COMPLAINT_ERR',
                   `${emailAddress} is not in the system.`,
                   {
-                    log,
-                    dao,
-                    extra: {
-                      email: emailAddress,
-                    },
+                    emailAddress,
                   },
                 )
               }
@@ -113,19 +99,13 @@ routerAdd('POST', '/api/sns', (c) => {
           audit(
             'SNS_ERR',
             `Unrecognized notification type ${notificationType}`,
-            {
-              log,
-              dao,
-              extra: { raw_payload: raw },
-            },
+            { raw },
           )
       }
       break
     default:
       audit(`SNS_ERR`, `Message ${Type} not handled`, {
-        log,
-        dao,
-        extra: { raw_payload: raw },
+        raw,
       })
   }
 

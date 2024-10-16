@@ -1,5 +1,5 @@
 import { boolean } from 'boolean'
-import { InstanceFields } from 'pockethost/common'
+import { type InstanceFields, SubscriptionType } from 'pockethost/common'
 
 /**
  * These environment variables default to pointing to the production build so
@@ -11,13 +11,8 @@ import { InstanceFields } from 'pockethost/common'
 export const PUBLIC_APEX_DOMAIN =
   import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
 
-// The domain name where this dashboard lives
 export const PUBLIC_APP_URL =
-  import.meta.env.PUBLIC_APP_URL || `https://app.${PUBLIC_APEX_DOMAIN}`
-
-// The domain name of the lander/marketing site
-export const PUBLIC_BLOG_URL =
-  import.meta.env.PUBLIC_BLOG_URL || `https://${PUBLIC_APEX_DOMAIN}`
+  import.meta.env.PUBLIC_APP_URL || `https://${PUBLIC_APEX_DOMAIN}`
 
 // The protocol to use, almost always will be https
 export const PUBLIC_HTTP_PROTOCOL =
@@ -31,72 +26,19 @@ export const PUBLIC_MOTHERSHIP_URL =
 // Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
-/**
- * This helper function will take a dynamic list of values and join them
- * together with a slash.
- *
- * @example
- *   mkPath('a', 'b', 'c') // a/b/c
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the lander URL.
- */
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
 }
 
-/**
- * Helpful alias for the lander url.
- *
- * @example
- *   LANDER_URL() // https://pockethost.io/
- *   LANDER_URL('showcase') // https://pockethost.io/showcase/
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the lander URL.
- */
-export const LANDER_URL = (...paths: string[]) => {
-  return `${PUBLIC_BLOG_URL}/${mkPath(...paths)}`
+export const MAX_INSTANCE_COUNTS = {
+  [SubscriptionType.Free]: 25,
+  [SubscriptionType.Legacy]: 25,
+  [SubscriptionType.Founder]: 999,
+  [SubscriptionType.Premium]: 250,
+  [SubscriptionType.Flounder]: 250, // Added to get the error away
 }
+export const FREE_MAX_INSTANCE_COUNT = 25
 
-/**
- * Helpful alias for the blog url.
- *
- * @example
- *   BLOG_URL() // https://pockethost.io/blog
- *   BLOG_URL('new-features-2023') // https://pockethost.io/blog/new-features-2023/
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the blogs URL.
- */
-export const BLOG_URL = (...paths: string[]) => {
-  return LANDER_URL(`blog`, ...paths)
-}
-
-/**
- * Helpful alias for the docs url.
- *
- * @example
- *   DOCS_URL() // https://pockethost.io/docs
- *   DOCS_URL('overview', 'help') // https://pockethost.io/docs/overview/help/
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the docs URL.
- */
-export const DOCS_URL = (...paths: string[]) => {
-  return LANDER_URL(`docs`, ...paths)
-}
-
-/**
- * Helpful alias for the app url.
- *
- * @example
- *   APP_URL() // https://app.pockethost.io/
- *   APP_URL('dashboard') // https://app.pockethost.io/dashboard
- *
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the app URL.
- */
 export const APP_URL = (...paths: string[]) => {
   return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
 }

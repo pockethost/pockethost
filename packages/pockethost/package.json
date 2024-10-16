@@ -18,7 +18,6 @@
     "start": "./src/cli/index.ts"
   },
   "dependencies": {
-    "@pockethost/plugin-console-logger": "workspace:*",
     "@s-libs/micro-dash": "^16.1.0",
     "@types/node-os-utils": "^1.3.4",
     "@types/winston-syslog": "^2.4.3",

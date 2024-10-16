@@ -1,4 +1,12 @@
 <script lang="ts">
+  import {
+    faCircleCheck,
+    faCircleInfo,
+    faCircleXmark,
+    faTriangleExclamation,
+    type IconDefinition,
+  } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
   import { slide } from 'svelte/transition'
 
   // https://daisyui.com/components/alert/
@@ -7,45 +15,54 @@
   export let message: string = ''
   export let type: AlertTypes
   export let additionalClasses: string = ''
+  export let flash = false
+
+  let isHidden = false
+  $: {
+    if (flash) {
+      setTimeout(() => {
+        isHidden = true
+      }, 5000)
+    }
+  }
 
   // Set up the default alert classes and icon
   let alertTypeClass = ''
-  let alertTypeIcon = `<i class="fa-regular fa-circle-info"></i>`
+  let alertTypeIcon: IconDefinition = faCircleInfo
 
   if (type === 'default') {
     alertTypeClass = ''
-    alertTypeIcon = `<i class="fa-regular fa-circle-info"></i>`
+    alertTypeIcon = faCircleInfo
   }
 
   if (type === 'info') {
     alertTypeClass = 'alert-info'
-    alertTypeIcon = `<i class="fa-regular fa-circle-info"></i>`
+    alertTypeIcon = faCircleInfo
   }
 
   if (type === 'success') {
     alertTypeClass = 'alert-success'
-    alertTypeIcon = `<i class="fa-regular fa-circle-check"></i>`
+    alertTypeIcon = faCircleCheck
   }
 
   if (type === 'warning') {
     alertTypeClass = 'alert-warning'
-    alertTypeIcon = `<i class="fa-regular fa-triangle-exclamation"></i>`
+    alertTypeIcon = faTriangleExclamation
   }
 
   if (type === 'error') {
     alertTypeClass = 'alert-error'
-    alertTypeIcon = `<i class="fa-regular fa-circle-xmark"></i>`
+    alertTypeIcon = faCircleXmark
   }
 </script>
 
-{#if message}
+{#if message && !isHidden}
   <div
     class="alert mb-4 {alertTypeClass} {additionalClasses} justify-center"
     transition:slide
     role="alert"
   >
-    {@html alertTypeIcon}
-
+    <Fa icon={alertTypeIcon} />
     <span>{@html message}</span>
   </div>
 {/if}

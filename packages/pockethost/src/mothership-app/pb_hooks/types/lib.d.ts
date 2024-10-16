@@ -17,11 +17,15 @@ type AuditEvents =
 
 interface Lib {
   mkLog: (namespace: string) => Logger
-  processNotification: (
-    notificationRec: models.Record,
-    context: { log: Logger; test?: boolean; dao: daos.Dao },
-  ) => void
-  enqueueNotification: (
+  mkNotificationProcessor: (
+    log: Logger,
+    dao: daos.Dao,
+    test?: boolean,
+  ) => (notificationRec: models.Record) => void
+  mkNotifier: (
+    log: Logger,
+    dao: daos.dao,
+  ) => (
     channel: 'email' | 'lemonbot',
     template:
       | 'maintenance-mode'
@@ -29,28 +33,12 @@ interface Lib {
       | 'lemon_order_discord'
       | 'welcome',
     user_id: string,
-    context: {
-      message_template_vars?: { [_: string]: string }
-      dao: daos.Dao
-      log: Logger
-    },
+    context: { [_: string]: any },
   ) => void
-
-  audit: (
-    event: AuditEvents,
-    note: string,
-    context: {
-      log: Logger
-
-      dao: daos.Dao
-      extra?: Partial<{
-        notification: string
-        email: string
-        user: string
-        raw_payload: string
-      }>
-    },
-  ) => void
+  mkAudit: (
+    log: Logger,
+    dao: daos.Dao,
+  ) => (event: AuditEvents, note: string, context: { [_: string]: any }) => void
   removeEmptyKeys: <T>(obj: T) => T
   versions: string[]
 }

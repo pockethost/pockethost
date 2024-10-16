@@ -8,12 +8,11 @@ routerAdd(
   '/api/instance',
   (c) => {
     const dao = $app.dao()
-    const { audit, mkLog, versions } = /** @type {Lib} */ (
+    const { mkLog, versions } = /** @type {Lib} */ (
       require(`${__hooks}/lib.js`)
     )
 
     const log = mkLog(`POST:instance`)
-
     const authRecord = /** @type {models.Record} */ (c.get('authRecord')) // empty if not authenticated as regular auth record
     log(`***authRecord`, JSON.stringify(authRecord))
 

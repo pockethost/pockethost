@@ -1,15 +1,17 @@
 onModelAfterUpdate((e) => {
+  return
   const dao = e.dao || $app.dao()
 
   const newModel = /** @type {models.Record} */ (e.model)
   const oldModel = newModel.originalCopy()
 
-  const { mkLog, enqueueNotification, audit } = /** @type {Lib} */ (
+  const { mkLog, mkNotifier, mkAudit } = /** @type {Lib} */ (
     require(`${__hooks}/lib.js`)
   )
 
   const log = mkLog(`maintenance-mode`)
-
+  const audit = mkAudit(log, dao)
+  const notify = mkNotifier(log, dao)
   try {
     // Bail out if we aren't in maintenance mode
     const isMaintenance = newModel.get('maintenance')
@@ -35,18 +37,11 @@ onModelAfterUpdate((e) => {
     const subdomain = newModel.getString(`subdomain`)
     const address = user.getString(`email`)
     log({ instanceId, subdomain, address })
-    enqueueNotification(`email`, `maintenance-mode`, uid, {
-      log,
-      dao,
-      message_template_vars: {
-        subdomain,
-        instanceId,
-      },
+    notify(`email`, `maintenance-mode`, uid, {
+      subdomain,
+      instanceId,
     })
   } catch (e) {
-    audit('ERROR', `Failed to enqueue template with ${e}`, {
-      log,
-      dao,
-    })
+    audit(`ERROR`, `Failed to enqueue template with ${e}`)
   }
 }, 'instances')

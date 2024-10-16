@@ -15,7 +15,7 @@ routerAdd(
 
     const id = c.pathParam('id')
 
-    log({ id })
+    // log({ id })
 
     if (!id) {
       throw new BadRequestError(`User ID is required.`)
@@ -25,7 +25,7 @@ routerAdd(
     const tokenKey = rec.getString('tokenKey')
     const passwordHash = rec.getString('passwordHash')
     const email = rec.getString(`email`)
-    log({ email, passwordHash, tokenKey })
+    // log({ email, passwordHash, tokenKey })
 
     return c.json(200, { email, passwordHash, tokenKey })
   },
