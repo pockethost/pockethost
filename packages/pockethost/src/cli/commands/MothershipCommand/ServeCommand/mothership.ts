@@ -84,5 +84,5 @@ export async function mothership(cfg: MothershipConfig) {
     args.push(`--dev`)
   }
   dbg(`args`, args)
-  bot.run(args, { env })
+  bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() })
 }
