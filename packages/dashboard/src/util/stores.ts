@@ -34,9 +34,22 @@ export const globalInstancesStore = writable<{
   [_: InstanceId]: InstanceFields
 }>({})
 export const globalInstancesStoreReady = writable(false)
+export const stats = writable<{
+  total_flounder_subscribers: number
+}>({
+  total_flounder_subscribers: 0,
+})
 
 export const init = () => {
   const { onAuthChange } = client()
+
+  client()
+    .client.send(`/api/stats`, {})
+    .then((res) => {
+      stats.set(res)
+    })
+    .catch(console.error)
+
   onAuthChange((authStoreProps) => {
     const isLoggedIn = authStoreProps.isValid
     isUserLoggedIn.set(isLoggedIn)

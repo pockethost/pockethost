@@ -1,8 +1,10 @@
 <script lang="ts">
   import { PLAN_NAMES, SubscriptionType } from 'pockethost'
-  import { userStore } from '$util/stores'
+  import { stats, userStore } from '$util/stores'
   import { onMount } from 'svelte'
   import PricingCard from '$src/routes/(static)/pricing/PricingCard.svelte'
+  import { client } from '$src/pocketbase-client'
+  import { writable } from 'svelte/store'
 
   export let priceMonthly: [number, string?, number?] = [
     359,
@@ -21,7 +23,7 @@
 
 <PricingCard
   name={`${PLAN_NAMES[SubscriptionType.Flounder]}`}
-  qtyRemaining={999}
+  qtyRemaining={1000 - $stats.total_flounder_subscribers}
   qtyMax={1000}
   {comingSoonText}
   {comingSoon}

@@ -18,7 +18,7 @@
   export let fundingGoals: string[] = []
   export let startDate: Date | null = null
 
-  const qtySold = qtyMax - qtyRemaining
+  $: qtySold = qtyMax - qtyRemaining
 
   let countdown = ''
   let countdownInterval: ReturnType<typeof setInterval>
