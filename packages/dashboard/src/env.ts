@@ -33,7 +33,7 @@ const mkPath = (...paths: string[]) => {
 export const MAX_INSTANCE_COUNTS = {
   [SubscriptionType.Free]: 25,
   [SubscriptionType.Legacy]: 25,
-  [SubscriptionType.Founder]: 999,
+  [SubscriptionType.Founder]: 2147483647, // https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718
   [SubscriptionType.Premium]: 250,
   [SubscriptionType.Flounder]: 250, // Added to get the error away
 }

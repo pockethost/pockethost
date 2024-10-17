@@ -14,7 +14,9 @@
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
-<div class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-4">
+<div
+  class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-4"
+>
   <h2 class="text-4xl text-base-content font-bold capitalize">Dashboard</h2>
 
   <a href="/instances/new" class="m-3 btn btn-primary">
@@ -30,7 +32,15 @@
     max={MAX_INSTANCE_COUNTS[$userSubscriptionType]}
   ></progress>
   <div>
-    {instanceCount}/{MAX_INSTANCE_COUNTS[$userSubscriptionType]}
+    {#if $userSubscriptionType === SubscriptionType.Founder}
+      {instanceCount}/<a
+        href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
+        class="link"
+        target="_blank">{MAX_INSTANCE_COUNTS[$userSubscriptionType]}</a
+      >
+    {:else}
+      {instanceCount}/{MAX_INSTANCE_COUNTS[$userSubscriptionType]}
+    {/if}
     {#if $userSubscriptionType === SubscriptionType.Free}
       <a href="/pricing" class="link text-xs text-success">Upgrade</a>
     {/if}
