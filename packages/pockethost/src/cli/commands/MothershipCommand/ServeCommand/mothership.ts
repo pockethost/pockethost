@@ -14,6 +14,7 @@ import {
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
+  TEST_EMAIL,
   _MOTHERSHIP_APP_ROOT,
   mkContainerHomePath,
 } from '../../../../../core'
@@ -56,6 +57,7 @@ export async function mothership(cfg: MothershipConfig) {
     DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),
     DISCORD_HEALTH_CHANNEL_URL: DISCORD_HEALTH_CHANNEL_URL(),
     DISCORD_ALERT_CHANNEL_URL: DISCORD_ALERT_CHANNEL_URL(),
+    TEST_EMAIL: TEST_EMAIL(),
   }
   dbg(env)
 
