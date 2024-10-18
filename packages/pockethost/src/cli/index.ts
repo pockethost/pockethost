@@ -9,7 +9,7 @@ import { FirewallCommand } from './commands/FirewallCommand'
 import { HealthCommand } from './commands/HealthCommand'
 import { MothershipCommand } from './commands/MothershipCommand'
 import { PocketBaseCommand } from './commands/PocketBaseCommand'
-import { SendMailCommand } from './commands/SendMailCommand'
+import { MailCommand } from './commands/SendMailCommand'
 import { ServeCommand } from './commands/ServeCommand'
 import './ioc'
 
@@ -29,7 +29,7 @@ export const main = async () => {
     .addCommand(EdgeCommand())
     .addCommand(HealthCommand())
     .addCommand(FirewallCommand())
-    .addCommand(SendMailCommand())
+    .addCommand(MailCommand())
     .addCommand(ServeCommand())
     .addCommand(PocketBaseCommand())
     .action(async () => {

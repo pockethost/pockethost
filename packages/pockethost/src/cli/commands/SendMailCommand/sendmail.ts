@@ -1,7 +1,7 @@
 import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { InvalidArgumentError, program } from 'commander'
-import { LoggerService, PocketBase, UserFields } from '../../../common'
+import { Command, InvalidArgumentError } from 'commander'
+import { PocketBase, UserFields, logger } from '../../../common'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
@@ -13,35 +13,36 @@ import { SqliteService } from './SqliteService'
 
 const TBL_SENT_MESSAGES = `sent_messages`
 
-export const sendMail = async () => {
-  const { dbg, info } = LoggerService().create(`mail.ts`)
-
-  function myParseInt(value: string) {
-    // parseInt takes a string and a radix
-    const parsedValue = parseInt(value, 10)
-    if (isNaN(parsedValue)) {
-      throw new InvalidArgumentError('Not a number.')
-    }
-    return parsedValue
+function myParseInt(value: string) {
+  // parseInt takes a string and a radix
+  const parsedValue = parseInt(value, 10)
+  if (isNaN(parsedValue)) {
+    throw new InvalidArgumentError('Not a number.')
   }
+  return parsedValue
+}
 
-  function interpolateString(
-    template: string,
-    dict: { [key: string]: string },
-  ): string {
-    return template.replace(/\{\$(\w+)\}/g, (match, key) => {
-      dbg({ match, key })
-      const lowerKey = key.toLowerCase()
-      return dict.hasOwnProperty(lowerKey) ? dict[lowerKey]! : match
-    })
-  }
-
-  program
+export const SendMailCommand = () =>
+  new Command(`send`)
+    .description(`Send a PocketHost bulk mail`)
     .argument(`<messageId>`, `ID of the message to send`)
     .option('--limit <number>', `Max messages to send`, myParseInt, 1)
     .option('--confirm', `Really send messages`, false)
 
     .action(async (messageId, { limit, confirm }) => {
+      const { dbg, info } = logger().create(`mail.ts`)
+
+      function interpolateString(
+        template: string,
+        dict: { [key: string]: string },
+      ): string {
+        return template.replace(/\{\$(\w+)\}/g, (match, key) => {
+          dbg({ match, key })
+          const lowerKey = key.toLowerCase()
+          return dict.hasOwnProperty(lowerKey) ? dict[lowerKey]! : match
+        })
+      }
+
       dbg({ messageId, confirm, limit })
 
       const { getDatabase } = SqliteService({})
@@ -103,7 +104,7 @@ export const sendMail = async () => {
               body: {
                 to: user.email,
                 subject,
-                body: `${body}<hr/>I only send PocketHost annoucements. But I get it. <a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">[[unsub]]</a>`,
+                body: `${body}<hr/>[[<a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
               },
             })
             info(`Sent`)
@@ -120,6 +121,3 @@ export const sendMail = async () => {
 
       SqliteService().shutdown()
     })
-
-  program.parseAsync()
-}

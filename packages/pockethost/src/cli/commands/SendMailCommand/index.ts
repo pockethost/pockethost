@@ -1,20 +1,14 @@
 import { Command } from 'commander'
-import { LoggerService } from '../../../../core'
-import { sendMail } from './sendmail'
+import { SendMailCommand } from './sendmail'
 
 type Options = {
   debug: boolean
 }
 
-export const SendMailCommand = () => {
-  const cmd = new Command(`mail:send`)
-    .description(`Send a PocketHost bulk mail`)
-    .action(async (options: Options) => {
-      const logger = LoggerService().create(`SendMailCommand`)
-      const { dbg, error, info, warn } = logger
-      info(`Starting`)
+export const MailCommand = () => {
+  const cmd = new Command(`mail`)
+    .description(`PocketHost bulk mail`)
+    .addCommand(SendMailCommand())
 
-      await sendMail()
-    })
   return cmd
 }
