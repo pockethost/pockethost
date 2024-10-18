@@ -117,7 +117,7 @@ routerAdd(
         )
       }
     })()
-    const email = parsed.email?.trim()
+    const email = parsed.email?.trim().toLowerCase()
     const password = parsed.password?.trim()
     const desiredInstanceName = parsed.instanceName?.trim()
     const region = parsed.region?.trim()
