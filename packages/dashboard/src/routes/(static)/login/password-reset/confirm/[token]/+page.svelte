@@ -34,8 +34,7 @@
     try {
       await requestPasswordResetConfirm(token, password)
 
-      // Hard refresh and send the user back to the login screen
-      // window.location.href = '/login'
+      window.location.href = '/login'
     } catch (error) {
       if (error instanceof Error) {
         formErrors = client().parseError(error)
