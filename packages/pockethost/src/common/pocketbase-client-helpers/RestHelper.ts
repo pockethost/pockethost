@@ -1,12 +1,6 @@
 import Ajv, { JSONSchemaType } from 'ajv'
 import type { JsonObject } from 'type-fest'
-import {
-  ClientResponseError,
-  LoggerService,
-  PocketBase,
-  RestCommands,
-  RestMethods,
-} from '..'
+import { LoggerService, PocketBase, RestCommands, RestMethods } from '..'
 
 export type RestHelperConfig = {
   client: PocketBase
@@ -55,18 +49,9 @@ export const createRestHelper = (config: RestHelperConfig) => {
 
       dbg({ url, options })
 
-      try {
-        const res = await client.send(url, options)
-        dbg(res)
-        return res
-      } catch (e) {
-        if (e instanceof ClientResponseError) {
-          error(`REST error: ${e.originalError}`)
-          throw e.originalError
-        }
-        error(`REST error: ${e}`)
-        throw e
-      }
+      const res = await client.send(url, options)
+      dbg(res)
+      return res
     }
   }
 

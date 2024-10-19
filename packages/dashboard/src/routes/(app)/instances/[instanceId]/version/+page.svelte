@@ -18,10 +18,14 @@
 
   // Controls visibility of an error message
   let errorMessage = ''
+  let successMessage = ''
 
   // Update the version number
   const handleSave = async (e: Event) => {
     e.preventDefault()
+
+    errorMessage = ''
+    successMessage = ''
 
     // Disable the button to prevent double submissions
     isButtonDisabled = true
@@ -41,7 +45,7 @@
           fields: { version: selectedVersion },
         })
         .then(() => {
-          return 'saved'
+          successMessage = 'Version updated successfully'
         })
         .catch((error) => {
           errorMessage = error.message
@@ -73,6 +77,7 @@
   > of PocketBase.
 </div>
 
+<AlertBar message={successMessage} type="success" flash />
 <AlertBar message={errorMessage} type="error" />
 
 <form
