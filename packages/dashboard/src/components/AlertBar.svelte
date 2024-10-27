@@ -19,7 +19,8 @@
 
   let isHidden = false
   $: {
-    if (flash) {
+    isHidden = false
+    if (flash && message) {
       setTimeout(() => {
         isHidden = true
       }, 5000)

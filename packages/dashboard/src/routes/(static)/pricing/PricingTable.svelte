@@ -102,40 +102,33 @@
     </div>
   </div>
 
-  <table class="border-spacing-x-8 max-w-[354px] md:max-w-md">
-    <thead class="hidden md:table-header-group">
-      <tr class="text-left">
-        <th class="min-w-48"> </th>
+  <table class="hidden md:table border-spacing-x-8 max-w-[354px] md:max-w-md">
+    <thead class="table-header-group">
+      <tr class=" text-left">
+        <th class=" md:min-w-48"> </th>
         {#each plans as plan}
           <th class="text-center text-lg min-w-48">
             {plan.name}
           </th>
         {/each}
       </tr>
-      <tr>
-        <th></th>
+      <tr class="">
+        <th class=""></th>
         {#each plans as plan}
           {#if !plan.price}
-            <th>Free Forever</th>
+            <th class="text-center">Free Forever</th>
           {:else}
             <th>
               <div class="flex flex-col justify-center py-4">
                 {#each plan.price as pPrice}
-                  {#if $userStore && $isUserVerified}
-                    <a
-                      href={pPrice.link}
-                      class="btn btn-sm btn-neutral text-base mb-2"
-                    >
-                      {pPrice.text}
-                    </a>
-                  {:else}
-                    <a
-                      href="/login"
-                      class="btn btn-sm btn-neutral text-base mb-2"
-                    >
-                      {pPrice.text}</a
-                    >
-                  {/if}
+                  <a
+                    href={$userStore && $isUserVerified
+                      ? pPrice.link
+                      : `/login`}
+                    class="btn btn-sm btn-neutral text-base mb-2"
+                  >
+                    {pPrice.text}
+                  </a>
                 {/each}
               </div>
             </th>
@@ -146,22 +139,55 @@
 
     <tbody>
       {#each items as item}
-        <tr class="hidden md:table-row">
-          <FeatureName {item} />
-          {#each item.items as itemVal}
+        <tr class="table-row text-base border-b border-gray-700">
+          <FeatureName {item} enlarge />
+          {#each item.items as itemVal, idx}
             <FeatureSupportBlock item={itemVal ?? ''} />
           {/each}
         </tr>
-        <tr class="table-row md:hidden text-base border-b border-gray-700">
+      {/each}
+    </tbody>
+  </table>
+
+  <table class="md:hidden border-spacing-x-8 max-w-[354px] md:max-w-md">
+    <thead class="table-header-group">
+      {#each plans as plan}
+        <tr class="text-left">
+          <th class=" text-lg min-w-48">
+            {plan.name}
+          </th>
+          {#if !plan.price}
+            <th>Free Forever</th>
+          {:else}
+            <th>
+              <div class="flex flex-col justify-center py-4">
+                {#each plan.price as pPrice}
+                  <a
+                    href={$userStore && $isUserVerified
+                      ? pPrice.link
+                      : `/login`}
+                    class="btn btn-xs w-40 btn-primary mb-2"
+                  >
+                    {pPrice.text}
+                  </a>
+                {/each}
+              </div>
+            </th>
+          {/if}
+        </tr>
+      {/each}
+    </thead>
+
+    <tbody>
+      {#each items as item}
+        <tr class="table-row text-base border-b border-gray-700 col-span-2">
           <FeatureName {item} enlarge />
         </tr>
         {#each item.items as itemVal, idx}
-          <tr
-            class="table-row md:hidden border-b even:border-0 border-gray-800"
-          >
-            <th class="text-left">
+          <tr class="table-row border-b even:border-0 border-gray-800">
+            <td class="text-left">
               {plans[idx]?.name}
-            </th>
+            </td>
             <FeatureSupportBlock item={itemVal ?? ''} />
           </tr>
         {/each}

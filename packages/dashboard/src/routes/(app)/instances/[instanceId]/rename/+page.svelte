@@ -20,9 +20,14 @@
   // Controls visibility of an error message
   let errorMessage = ''
 
+  let successMessage = ''
+
   // TODO: What are the limits for this?
   const onRename = (e: Event) => {
     e.preventDefault()
+
+    errorMessage = ''
+    successMessage = ''
 
     // Disable the button to prevent double submissions
     isButtonDisabled = true
@@ -43,9 +48,11 @@
           subdomain: instanceNameValidation,
         },
       })
-        .then(() => 'saved')
+        .then(() => {
+          successMessage = 'Instance renamed successfully'
+        })
         .catch((error) => {
-          errorMessage = error.message
+          errorMessage = client().parseError(error).join('\n')
         })
     }
 
@@ -54,42 +61,47 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
-
-<p class="mb-8">
-  Renaming your instance will cause it to become <strong class="text-error"
-    >inaccessible</strong
-  > by the old instance name. You also may not be able to change it back if someone
-  else choose it.
-</p>
-
-<AlertBar message={errorMessage} type="error" />
-
-<form
-  class="flex rename-instance-form-container-query gap-4"
-  on:submit={onRename}
->
-  <input
-    title="Only letters and dashes are allowed"
-    required
-    type="text"
-    bind:value={formSubdomain}
-    class="input input-bordered w-full"
-  />
-
-  <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
-    >Rename Instance</button
+<div class="max-w-lg">
+  <CardHeader documentation={`/docs/rename-instance`}
+    >Rename Instance</CardHeader
   >
-</form>
 
-<style>
-  .rename-instance-form-container-query {
-    flex-direction: column;
-  }
+  <p class="mb-8">
+    Renaming your instance will cause it to become <strong class="text-error"
+      >inaccessible</strong
+    > by the old instance name. You also may not be able to change it back if someone
+    else choose it.
+  </p>
 
-  @container (min-width: 400px) {
+  <AlertBar message={successMessage} type="success" flash />
+  <AlertBar message={errorMessage} type="error" />
+
+  <form
+    class="flex rename-instance-form-container-query gap-4"
+    on:submit={onRename}
+  >
+    <input
+      title="Only letters and dashes are allowed"
+      required
+      type="text"
+      bind:value={formSubdomain}
+      class="input input-bordered w-full"
+    />
+
+    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
+      >Rename Instance</button
+    >
+  </form>
+
+  <style>
     .rename-instance-form-container-query {
-      flex-direction: row;
+      flex-direction: column;
     }
-  }
-</style>
+
+    @container (min-width: 400px) {
+      .rename-instance-form-container-query {
+        flex-direction: row;
+      }
+    }
+  </style>
+</div>

@@ -12,12 +12,8 @@
   }
 </script>
 
-<th
-  scope="row"
-  class={`${enlarge ? "text-md" : "text-sm w-1/4"} py-3 pr-4 text-left text-neutral-content leading-6`}
-  colspan={enlarge ? 2 : 1}
->
-  <div class="flex items-center">
+<td class={` py-3 pr-4 text-left text-neutral-content leading-6`}>
+  <div class="">
     <span class="flex-shrink-0">{item.name}</span>
     {#if item.isNew}
       <span class="badge badge-primary ml-2">new</span>
@@ -33,8 +29,10 @@
   </div>
 
   {#if $showInfo}
-    <div class={`text-neutral-content font-normal ${enlarge ? "text-md" : "text-sm"}`}>
+    <div
+      class={`text-neutral-content font-normal ${enlarge ? 'text-md' : 'text-sm'}`}
+    >
       {item.info}
     </div>
   {/if}
-</th>
+</td>

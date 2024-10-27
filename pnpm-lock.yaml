@@ -187,6 +187,9 @@ importers:
 
   packages/dashboard:
     devDependencies:
+      '@beyonk/gdpr-cookie-consent-banner':
+        specifier: ^12.1.4
+        version: 12.1.4
       '@fortawesome/free-brands-svg-icons':
         specifier: ^6.6.0
         version: 6.6.0
@@ -580,6 +583,9 @@ packages:
 
   '@balena/dockerignore@1.0.2':
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
+
+  '@beyonk/gdpr-cookie-consent-banner@12.1.4':
+    resolution: {integrity: sha512-W4S50psrX5WMAihwwqFsnNzL0ZF91OHv4EuIMelTD4yTMU09qTU1cKgUJ7Tt8qRvIyTzfbPwiXGrDYUtFJuOtw==}
 
   '@changesets/apply-release-plan@7.0.5':
     resolution: {integrity: sha512-1cWCk+ZshEkSVEZrm2fSj1Gz8sYvxgUL4Q78+1ZZqeqfuevPTPk033/yUZ3df8BKMohkqqHfzj0HOOrG0KtXTw==}
@@ -3380,6 +3386,10 @@ packages:
     resolution: {integrity: sha512-EX4oNDwcXSivPrw2qKH2LB5PoFxEvgtv2JgwW0bU858HoLQ+kutSvjLMUqBd0PeJYEinLWhoI9Ol0eYMqj/wNQ==}
     hasBin: true
 
+  js-cookie@3.0.5:
+    resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
+    engines: {node: '>=14'}
+
   js-stringify@1.0.2:
     resolution: {integrity: sha512-rtS5ATOo2Q5k1G+DADISilDA6lv79zIiwFd6CcjuIxGKLFm5C+RLImRscVap9k55i+MOZwgliw+NejvkLuGD5g==}
 
@@ -5330,6 +5340,10 @@ snapshots:
     optional: true
 
   '@balena/dockerignore@1.0.2': {}
+
+  '@beyonk/gdpr-cookie-consent-banner@12.1.4':
+    dependencies:
+      js-cookie: 3.0.5
 
   '@changesets/apply-release-plan@7.0.5':
     dependencies:
@@ -8254,6 +8268,8 @@ snapshots:
 
   jiti@2.3.3:
     optional: true
+
+  js-cookie@3.0.5: {}
 
   js-stringify@1.0.2:
     optional: true

@@ -165,7 +165,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     )
 
   const parseError = (e: Error): string[] => {
-    if (!(e instanceof ClientResponseError)) return [e.message]
+    if (!(e instanceof ClientResponseError)) return [`${e}`]
     if (e.data.message && keys(e.data.data).length === 0)
       return [e.data.message]
     return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter(

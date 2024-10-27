@@ -60,9 +60,11 @@ export const init = () => {
   userStore.subscribe((user) => {
     console.log({ user })
     isUserPaid.set(
-      [SubscriptionType.Founder, SubscriptionType.Premium].includes(
-        user?.subscription || SubscriptionType.Free,
-      ),
+      [
+        SubscriptionType.Founder,
+        SubscriptionType.Premium,
+        SubscriptionType.Flounder,
+      ].includes(user?.subscription || SubscriptionType.Free),
     )
     isUserLegacy.set(!!user?.isLegacy)
     userSubscriptionType.set(user?.subscription || SubscriptionType.Free)
