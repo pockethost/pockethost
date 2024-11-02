@@ -19,53 +19,29 @@ $app.onBeforeServe().add((e) => {
     return
   }
 
-  const updateByEmail = (email) =>
+  const update = () =>
     dao
       .db()
       .newQuery(
-        'update _admins set tokenKey={:tokenKey}, passwordHash={:passwordHash} where email={:email}',
-      )
-      .bind({ email, tokenKey, passwordHash })
-      .execute()
-
-  const updateById = () =>
-    dao
-      .db()
-      .newQuery(
-        'update _admins set tokenKey={:tokenKey}, passwordHash={:passwordHash}, email={:email} where id={:id}',
-      )
-      .bind({ id, tokenKey, passwordHash, email })
-      .execute()
-
-  const insert = () =>
-    dao
-      .db()
-      .newQuery(
-        'insert into _admins (id, email, tokenKey, passwordHash) VALUES ({:id}, {:email}, {:tokenKey}, {:passwordHash})',
+        `
+        insert into _admins (id, email, tokenKey, passwordHash) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})
+        ON CONFLICT(email) DO UPDATE SET
+          id=excluded.id,
+          tokenKey=excluded.tokenKey,
+          passwordHash=excluded.passwordHash
+        ON CONFLICT(id) DO UPDATE SET
+          email=excluded.email,
+          tokenKey=excluded.tokenKey,
+          passwordHash=excluded.passwordHash
+          `,
       )
       .bind({ id, email, tokenKey, passwordHash })
       .execute()
 
   try {
-    updateById()
-    log(`Success updating admin credentials by id ${id}`)
+    update()
+    log(`Success updating admin credentials ${email}`)
   } catch (e) {
-    log(
-      `Failed to update admin credentials by id ${id}. Trying by email ${email}`,
-    )
-    try {
-      updateByEmail()
-      log(`Success updating admin credentials by email ${email}`)
-    } catch (e) {
-      log(
-        `Failed to update admin credentials by email ${email} or uid ${id}. Attempting insert.`,
-      )
-      try {
-        insert()
-        log(`Success inserting admin credentials`)
-      } catch (e) {
-        log(`Failed to insert admin credentials: ${e}`)
-      }
-    }
+    log(`Failed to update admin credentials ${email}`)
   }
 })
