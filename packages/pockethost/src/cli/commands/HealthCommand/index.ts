@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { LoggerService } from '../../../../core'
+import { logger } from '../../../../core'
 
 type Options = {
   debug: boolean
@@ -11,8 +11,8 @@ export const HealthCommand = () => {
       new Command(`check`)
         .description(`Perform a health check on the PocketHost system`)
         .action(async (options: Options) => {
-          const logger = LoggerService().create(`HealthCommand`)
-          const { dbg, error, info, warn } = logger
+          logger().context({ cli: 'health:check' })
+          const { dbg, error, info, warn } = logger()
           info(`Starting`)
           const { checkHealth } = await import(`./checkHealth`)
           await checkHealth()
@@ -24,8 +24,8 @@ export const HealthCommand = () => {
           `Compact SQLite databases by removing old SHM and WAL files`,
         )
         .action(async (options: Options) => {
-          const logger = LoggerService().create(`HealthCommand`)
-          const { dbg, error, info, warn } = logger
+          logger().context({ cli: 'health:compact' })
+          const { dbg, error, info, warn } = logger()
           info(`Starting`)
           const { compact } = await import(`./compact`)
           await compact()

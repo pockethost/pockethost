@@ -2,7 +2,7 @@
 
 import { program } from 'commander'
 import EventSource from 'eventsource'
-import { LogLevelName, LoggerService } from '../../core'
+import { LogLevelName, gracefulExit, logger } from '../../core'
 import { version } from '../../package.json'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
@@ -11,7 +11,7 @@ import { MothershipCommand } from './commands/MothershipCommand'
 import { PocketBaseCommand } from './commands/PocketBaseCommand'
 import { MailCommand } from './commands/SendMailCommand'
 import { ServeCommand } from './commands/ServeCommand'
-import './ioc'
+import { initIoc } from './ioc'
 
 export type GlobalOptions = {
   logLevel?: LogLevelName
@@ -22,6 +22,7 @@ export type GlobalOptions = {
 global.EventSource = EventSource
 
 export const main = async () => {
+  await initIoc()
   program.name('pockethost').description('Multitenant PocketBase hosting')
 
   program
@@ -33,13 +34,15 @@ export const main = async () => {
     .addCommand(ServeCommand())
     .addCommand(PocketBaseCommand())
     .action(async () => {
-      const { info, dbg } = LoggerService()
+      logger().context({ cli: 'main' })
+      const { info, dbg } = logger()
       info('PocketHost CLI')
       info(`Version: ${version}`, { version })
       program.help()
     })
 
   await program.parseAsync()
+  await gracefulExit()
 }
 
 main()

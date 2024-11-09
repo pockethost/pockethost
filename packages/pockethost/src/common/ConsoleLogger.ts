@@ -66,6 +66,10 @@ export function ConsoleLogger(
       console.log('Breadcrumb:', s)
       return logger
     },
+    context(name: string | object, value?: string | number): Logger {
+      console.log('Context:', name, value)
+      return logger
+    },
     abort(...args: any[]): never {
       log(LogLevelName.Abort, ...args)
       process.exit(1)

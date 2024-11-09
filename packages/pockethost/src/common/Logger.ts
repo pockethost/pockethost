@@ -60,6 +60,7 @@ export type Logger = {
   trace: (...args: any[]) => void
   debug: (...args: any[]) => void
   breadcrumb: (s: object) => Logger
+  context: (name: string | object, value?: string | number) => Logger
   abort: (...args: any[]) => never
   shutdown: () => void
   setLevel: (level: LogLevelName) => void

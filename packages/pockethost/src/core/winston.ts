@@ -1,5 +1,6 @@
 import { inspect } from 'node:util'
 import winston from 'winston'
+import { exitHook } from '..'
 import { Logger, mkSingleton } from '../common'
 import { DEBUG, DISCORD_ALERT_CHANNEL_URL } from '../constants'
 import { DiscordTransport } from './DiscordTransport'
@@ -8,11 +9,15 @@ const format = winston.format.combine(
   winston.format.colorize(),
   winston.format.printf(({ level, message, timestamp, ...meta }) => {
     const final: string[] = []
-    message.forEach((m: string) => {
+    ;[...message, meta].forEach((m: string) => {
       if (typeof m === 'string' && !!m.match(/\n/)) {
         final.push(...m.split(/\n/))
       } else if (typeof m === 'object') {
-        final.push(inspect(m, { depth: null }))
+        // Filter out Symbol properties and inspect the object
+        const filtered = Object.fromEntries(
+          Object.entries(m).filter(([key]) => typeof key === 'string'),
+        )
+        final.push(inspect(filtered, { depth: null }))
       } else {
         final.push(m)
       }
@@ -72,6 +77,11 @@ export const WinstonLoggerService = mkSingleton<{}, Logger>(() => {
   })
   logger.exitOnError = true
 
+  exitHook(() => {
+    // console.log('Closing Winston logger')
+    logger.close()
+  })
+
   {
     const url = DISCORD_ALERT_CHANNEL_URL()
     if (url) {
@@ -97,8 +107,20 @@ export const WinstonLoggerService = mkSingleton<{}, Logger>(() => {
         Object.assign(logger.defaultMeta, s)
         return api
       },
+      context: (name: string | object, value?: string | number) => {
+        if (typeof name === 'string') {
+          if (value !== undefined) {
+            logger.defaultMeta[name] = value
+          } else {
+            delete logger.defaultMeta[name]
+          }
+        } else {
+          Object.assign(logger.defaultMeta, name)
+        }
+        return api
+      },
       shutdown: () => {},
-      child: (name) => createApi(logger.child({ name })),
+      child: (name) => api.create(name),
       abort: (...args) => {
         logger.error(args)
         process.exit(1)

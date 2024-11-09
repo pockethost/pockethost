@@ -1,6 +1,6 @@
 import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
-import { LoggerService } from '../../../../../common'
+import { logger } from '../../../../../common'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
@@ -18,8 +18,7 @@ import {
 } from '../../../../../services'
 
 export async function daemon() {
-  const logger = LoggerService().create(`EdgeDaemonCommand`)
-  const { dbg, error, info, warn } = logger
+  const { info, warn } = logger()
   info(`Starting`)
 
   const docker = new Dockerode()

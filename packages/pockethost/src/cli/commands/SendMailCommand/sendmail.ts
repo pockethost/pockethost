@@ -30,7 +30,8 @@ export const SendMailCommand = () =>
     .option('--confirm', `Really send messages`, false)
 
     .action(async (messageId, { limit, confirm }) => {
-      const { dbg, info } = logger().create(`mail.ts`)
+      logger().context({ cli: 'sendmail' })
+      const { dbg, info } = logger()
 
       function interpolateString(
         template: string,

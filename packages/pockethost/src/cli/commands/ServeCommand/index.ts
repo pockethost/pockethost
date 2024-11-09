@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { logger } from '../../../common'
 import { LoggerService } from '../../../common'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { syslog } from '../EdgeCommand/SyslogCommand/ServeCommand/syslog'
@@ -13,8 +14,8 @@ export const ServeCommand = () => {
   const cmd = new Command(`serve`)
     .description(`Run the entire PocketHost stack`)
     .action(async (options: Options) => {
-      const logger = LoggerService().create(`ServeCommand`)
-      const { dbg, error, info, warn } = logger
+      logger().context({ cli: 'serve' })
+      const { dbg, error, info, warn } = logger()
       info(`Starting`)
 
       await syslog()

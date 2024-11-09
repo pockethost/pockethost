@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { logger } from '../../../../common'
 import { ServeCommand } from './ServeCommand'
 
 type Options = {
@@ -10,6 +11,7 @@ export const FirewallCommand = () => {
     .description(`Root firewall commands`)
     .addCommand(ServeCommand())
     .action(() => {
+      logger().context({ cli: 'firewall' })
       cmd.help()
     })
   return cmd

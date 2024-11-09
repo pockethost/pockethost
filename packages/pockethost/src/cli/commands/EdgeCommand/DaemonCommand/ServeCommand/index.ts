@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { logger } from '../../../../../../common'
 import { daemon } from './daemon'
 
 type Options = {
@@ -9,6 +10,7 @@ export const ServeCommand = () => {
   const cmd = new Command(`serve`)
     .description(`Run an edge daemon server`)
     .action(async (options: Options) => {
+      logger().context({ cli: 'edge:daemon:serve' })
       await daemon()
     })
   return cmd

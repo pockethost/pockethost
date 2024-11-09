@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import {
-  LoggerService,
   PocketBase,
+  logger,
   mergeConfig,
   mkSingleton,
 } from '../../../../../common'
@@ -31,13 +31,13 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
     key: readFileSync(SSL_KEY()),
     cert: readFileSync(SSL_CERT()),
   }
-  const _ftpServiceLogger = LoggerService().create('FtpService')
+  const _ftpServiceLogger = logger()
   const { dbg, info } = _ftpServiceLogger
 
   const ftpServer = new FtpSrv({
     url: 'ftp://0.0.0.0:' + PH_FTP_PORT(),
     anonymous: false,
-    log: _ftpServiceLogger.create(`ftpServer`),
+    log: _ftpServiceLogger,
     tls,
     pasv_url: PH_FTP_PASV_IP(),
     pasv_max: PH_FTP_PASV_PORT_MAX(),
@@ -60,7 +60,11 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
           await client.collection('users').authWithPassword(username, password)
         }
         dbg(`Logged in`)
-        const fs = new PhFs(connection, client, _ftpServiceLogger)
+        const fs = new PhFs(
+          connection,
+          client,
+          _ftpServiceLogger.child(username).context({ ftpSession: Date.now() }),
+        )
         resolve({ fs })
       } catch (e) {
         reject(new Error(`Invalid username or password`))
