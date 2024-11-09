@@ -78,13 +78,14 @@ export async function mothership(cfg: MothershipConfig) {
     `--hooksDir`,
     MOTHERSHIP_HOOKS_DIR(),
     `--migrationsDir`,
-    MOTHERSHIP_MIGRATIONS_DIR(`pb_migrations`),
+    MOTHERSHIP_MIGRATIONS_DIR(),
     `--publicDir`,
     _MOTHERSHIP_APP_ROOT(`pb_public`),
   ]
   if (IS_DEV()) {
     args.push(`--dev`)
   }
-  dbg(`args`, args)
-  bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() })
+  dbg({ args })
+  const code = await bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() })
+  dbg({ code })
 }

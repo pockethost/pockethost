@@ -35,6 +35,6 @@ export async function schema() {
   if (IS_DEV()) {
     args.push(`--dev`)
   }
-  dbg(`args`, args)
+  dbg({ args })
   bot.run(args)
 }
