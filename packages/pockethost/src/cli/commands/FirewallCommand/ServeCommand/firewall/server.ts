@@ -46,7 +46,6 @@ export const firewall = async () => {
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
 
   forEach(hostnameRoutes, (target, host) => {
-    dbg(`Creating ${host}->${target}`)
     app.use(createVhostProxyMiddleware(host, target, IS_DEV()))
   })
 
@@ -75,7 +74,11 @@ export const firewall = async () => {
   }
   app.use(errorHandler)
 
-  http.createServer(app).listen(80, () => {
+  const httpServer = http.createServer(app)
+  httpServer.on('error', (err) => {
+    error(err)
+  })
+  httpServer.listen(80, () => {
     dbg('SSL redirect server listening on 80')
   })
 
@@ -86,7 +89,12 @@ export const firewall = async () => {
   }
 
   // Create HTTPS server
-  https.createServer(httpsOptions, app).listen(443, () => {
+  const httpsServer = https.createServer(httpsOptions, app)
+  httpsServer.on('error', (err) => {
+    error(err)
+  })
+
+  httpsServer.listen(443, () => {
     dbg('HTTPS server running on port 443')
   })
 
