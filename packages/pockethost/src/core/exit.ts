@@ -1,4 +1,5 @@
 import exitHook, { asyncExitHook as _, gracefulExit as __ } from 'exit-hook'
+import { logger } from '../common'
 
 export const asyncExitHook = (cb: () => Promise<void>) => _(cb, { wait: 5000 })
 
@@ -9,3 +10,8 @@ export const gracefulExit = async (signal?: number) => {
   })
 }
 export { exitHook }
+
+export const neverendingPromise = () =>
+  new Promise((resolve) => {
+    logger().dbg('Neverending promise')
+  })

@@ -6,6 +6,7 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
   discordAlert,
+  neverendingPromise,
   tryFetch,
 } from '../../../../../core'
 import {
@@ -70,4 +71,6 @@ export async function daemon() {
     res.status(500).send(err.toString())
   }
   ;(await proxyService()).use(errorHandler)
+
+  await neverendingPromise()
 }

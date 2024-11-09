@@ -16,6 +16,7 @@ import {
   IS_DEV,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
+  neverendingPromise,
   SSL_CERT,
   SSL_KEY,
 } from '../../../../../core'
@@ -91,4 +92,6 @@ export const firewall = async () => {
   https.createServer(httpsOptions, app).listen(443, () => {
     dbg('HTTPS server running on port 443')
   })
+
+  await neverendingPromise()
 }

@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { logger } from '../../../common'
-import { LoggerService } from '../../../common'
+import { neverendingPromise } from '../../../core'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { syslog } from '../EdgeCommand/SyslogCommand/ServeCommand/syslog'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
@@ -22,6 +22,8 @@ export const ServeCommand = () => {
       await mothership(options)
       await daemon()
       await firewall()
+
+      await neverendingPromise()
     })
   return cmd
 }

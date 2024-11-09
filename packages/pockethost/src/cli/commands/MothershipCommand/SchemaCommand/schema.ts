@@ -36,5 +36,8 @@ export async function schema() {
     args.push(`--dev`)
   }
   dbg({ args })
-  bot.run(args)
+  const code = await bot.run(args)
+  if (code !== 0) {
+    error(`Failed to migrate schema ${code}`)
+  }
 }

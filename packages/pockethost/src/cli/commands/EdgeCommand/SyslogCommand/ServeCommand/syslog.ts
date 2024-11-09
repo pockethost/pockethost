@@ -5,7 +5,7 @@ import { SYSLOGD_PORT } from '../../../../../core'
 import { InstanceLogger } from '../../../../../services'
 
 export function syslog() {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((resolve, reject) => {
     const logger = LoggerService().create(`EdgeSyslogCommand`)
     const { dbg, error, info, warn } = logger
     info(`Starting`)
@@ -18,6 +18,7 @@ export function syslog() {
     server.on('error', (err) => {
       console.log(`Server error:\n${err.stack}`)
       server.close()
+      reject(err)
     })
 
     server.on('message', (msg, rinfo) => {
@@ -41,7 +42,6 @@ export function syslog() {
     server.on('listening', () => {
       const address = server.address()
       info(`Server listening ${address.address}:${address.port}`)
-      resolve()
     })
 
     server.bind(PORT, HOST)
