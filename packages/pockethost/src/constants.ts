@@ -79,7 +79,7 @@ if (_IS_DEV) {
 }
 
 export const SETTINGS = {
-  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.21`),
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),

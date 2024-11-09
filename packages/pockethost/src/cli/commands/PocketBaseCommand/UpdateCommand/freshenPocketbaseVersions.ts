@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs'
-import { lte, prerelease } from 'semver'
+import { prerelease, satisfies } from 'semver'
 import {
   LoggerService,
   MOTHERSHIP_HOOKS_DIR,
@@ -66,7 +66,8 @@ export async function freshenPocketbaseVersions() {
   await bot.download()
   const rawVersions = await bot.versions()
   const allowedVersions = rawVersions.filter(
-    (v) => lte(v, PH_ALLOWED_POCKETBASE_SEMVER()) && prerelease(v) === null,
+    (v) =>
+      satisfies(v, PH_ALLOWED_POCKETBASE_SEMVER()) && prerelease(v) === null,
   )
   const versions = expandAndSortSemVers(allowedVersions)
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
