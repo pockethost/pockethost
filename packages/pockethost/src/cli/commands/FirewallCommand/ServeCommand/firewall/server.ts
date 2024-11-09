@@ -10,7 +10,6 @@ import https from 'https'
 import { logger } from '../../../../../common/Logger'
 import {
   APEX_DOMAIN,
-  APP_NAME,
   DAEMON_PORT,
   IPCIDR_LIST,
   IS_DEV,
@@ -32,8 +31,6 @@ export const firewall = async () => {
   const DEV_ROUTES = {
     [`mail.${APEX_DOMAIN()}`]: `http://localhost:${1080}`,
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
-    [`${APP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${5174}`,
-    [`superadmin.${APEX_DOMAIN()}`]: `http://localhost:${5175}`,
     [`${APEX_DOMAIN()}`]: `http://localhost:${8080}`,
   }
   const hostnameRoutes = IS_DEV() ? DEV_ROUTES : PROD_ROUTES
