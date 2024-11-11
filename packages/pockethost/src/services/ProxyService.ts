@@ -53,6 +53,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
   // Default locals
   server.use((req, res, next) => {
     const host = req.headers.host
+    res.locals.requestId = seqid()
     res.locals.host = host
     res.locals.coreInternalUrl = coreInternalUrl
     next()
@@ -65,7 +66,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
     const method = req.method || '<m>'
     const sig = [
-      seqid(),
+      res.locals.requestId,
       method.padStart(10),
       country.padStart(5),
       ip.padEnd(45),
