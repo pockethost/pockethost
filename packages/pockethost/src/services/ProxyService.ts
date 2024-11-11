@@ -11,6 +11,7 @@ import {
   SingletonBaseConfig,
   asyncExitHook,
   mkSingleton,
+  seqid,
 } from '../../core'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
@@ -65,6 +66,7 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
     const method = req.method || '<m>'
     const sig = [
+      seqid(),
       method.padStart(10),
       country.padStart(5),
       ip.padEnd(45),

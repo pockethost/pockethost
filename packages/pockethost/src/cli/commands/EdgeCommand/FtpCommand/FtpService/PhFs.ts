@@ -9,7 +9,7 @@ import {
   Logger,
   PocketBase,
   assert,
-  newId,
+  seqid,
 } from '../../../../../common'
 import { DATA_ROOT } from '../../../../../core'
 import { InstanceLogger, InstanceLoggerApi } from '../../../../../services'
@@ -434,6 +434,6 @@ export class PhFs implements FileSystem {
   }
 
   getUniqueName() {
-    return newId(30)
+    return seqid()
   }
 }
