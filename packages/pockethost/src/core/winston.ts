@@ -17,7 +17,13 @@ const format = winston.format.combine(
         const filtered = Object.fromEntries(
           Object.entries(m).filter(([key]) => typeof key === 'string'),
         )
-        final.push(inspect(filtered, { depth: null }))
+        final.push(
+          inspect(filtered, {
+            depth: null,
+            compact: true,
+            breakLength: Infinity,
+          }),
+        )
       } else {
         final.push(m)
       }
