@@ -14,10 +14,10 @@ import {
   type DeleteInstanceResult,
   type InstanceFields,
   type InstanceId,
-  type InstanceLogFields,
   PocketBase,
   RestCommands,
   RestMethods,
+  type UntrustedInstanceLogFields,
   type UpdateInstancePayload,
   UpdateInstancePayloadSchema,
   type UpdateInstanceResult,
@@ -245,7 +245,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const watchInstanceLog = (
     instance: InstanceFields,
-    update: (log: InstanceLogFields) => void,
+    update: (log: UntrustedInstanceLogFields) => void,
     nInitial = 100,
   ): (() => void) => {
     const auth = client.authStore.exportToCookie()
@@ -269,7 +269,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         }),
         onmessage: (event) => {
           const {} = event
-          const log = JSON.parse(event.data) as InstanceLogFields
+          const log = JSON.parse(event.data) as UntrustedInstanceLogFields
 
           update(log)
         },

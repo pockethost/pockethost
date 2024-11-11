@@ -30,9 +30,11 @@
   // This will take in the log message and return either the message or a string
   const logText = (log: any) => {
     try {
-      return JSON.parse(log.message)
+      const parsed = JSON.parse(log.message)
+      // Split on newlines and join with <br> tags
+      return parsed.split('\n').join('<br>')
     } catch (e) {
-      return log.message
+      return log.message.split('\n').join('<br>')
     }
   }
 
@@ -80,7 +82,15 @@
       logs.set([])
       unwatch = client().watchInstanceLog($instance, (newLog) => {
         logs.update((currentLogs) => {
-          return [...currentLogs, newLog]
+          return [
+            ...currentLogs,
+            {
+              time: `<no time>`,
+              stream: StreamNames.StdOut,
+              message: `<no message>`,
+              ...newLog,
+            },
+          ]
         })
       })
     })
@@ -119,7 +129,7 @@
           <div>
             <span class="mr-1 text-accent">{log.time}</span>
             <span class="mr-1 text-base-content {logColor(log.stream)}"
-              >{logText(log)}</span
+              >{@html logText(log)}</span
             >
           </div>
         </div>
@@ -149,7 +159,7 @@
           <span class="mr-1 text-accent">{log.time}</span>
 
           <span class="mr-1 text-base-content {logColor(log.stream)}"
-            >{logText(log)}</span
+            >{@html logText(log)}</span
           >
         </div>
       </div>
