@@ -78,8 +78,10 @@ export const WinstonLoggerService = mkSingleton<{}, Logger>(() => {
   logger.exitOnError = true
 
   exitHook(() => {
-    // console.log('Closing Winston logger')
-    logger.close()
+    console.log('Closing Winston logger')
+    setImmediate(() => {
+      logger.close()
+    })
   })
 
   {
