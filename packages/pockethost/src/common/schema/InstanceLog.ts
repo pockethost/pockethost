@@ -9,4 +9,4 @@ export type InstanceLogFields = {
   stream: StreamNames
 }
 
-export type InstanceLogFields_Create = InstanceLogFields
+export type UntrustedInstanceLogFields = Partial<InstanceLogFields>
