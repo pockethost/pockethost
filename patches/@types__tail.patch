@@ -1,0 +1,11 @@
+diff --git a/index.d.ts b/index.d.ts
+index f44c8ac6e04f97fe9e5bac2159115f8b40e6561e..a419c547967c4a084203998a42ab57d57357d33a 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -21,4 +21,6 @@ export class Tail {
+     unwatch(): void;
+     /** Start watching file if previously stopped */
+     watch(): void;
++    /** Close the tail object */
++    close(): void;
+ }

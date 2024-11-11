@@ -8,6 +8,9 @@ patchedDependencies:
   '@sveltejs/enhanced-img':
     hash: 3476pbfrpexm3jnvpmrprzpwwa
     path: patches/@sveltejs__enhanced-img.patch
+  '@types/tail':
+    hash: ixlzsmhzgpwnzxmh2x3rpalkme
+    path: patches/@types__tail.patch
   eventsource@2.0.2:
     hash: tygaxpd33h24mrpcadqkqji6vy
     path: patches/eventsource@2.0.2.patch
@@ -96,7 +99,7 @@ importers:
         version: 7.5.8
       '@types/tail':
         specifier: ^2.2.2
-        version: 2.2.3
+        version: 2.2.3(patch_hash=ixlzsmhzgpwnzxmh2x3rpalkme)
       '@types/tmp':
         specifier: ^0.2.5
         version: 0.2.6
@@ -492,8 +495,8 @@ importers:
         specifier: ^7.5.4
         version: 7.5.8
       '@types/tail':
-        specifier: ^2.2.2
-        version: 2.2.3
+        specifier: ^2.2.3
+        version: 2.2.3(patch_hash=ixlzsmhzgpwnzxmh2x3rpalkme)
       '@types/tmp':
         specifier: ^0.2.5
         version: 0.2.6
@@ -6411,7 +6414,7 @@ snapshots:
     dependencies:
       '@types/node': 18.19.55
 
-  '@types/tail@2.2.3': {}
+  '@types/tail@2.2.3(patch_hash=ixlzsmhzgpwnzxmh2x3rpalkme)': {}
 
   '@types/through@0.0.32':
     dependencies:

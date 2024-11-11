@@ -145,7 +145,7 @@ export function InstanceLogger(
             error(`Caught a tail error ${e}`)
           })
 
-          cm.add(() => tail.unwatch())
+          cm.add(() => tail.close())
         } catch (e) {
           warn(e)
           tid = setTimeout(check, 1000)

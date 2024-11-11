@@ -84,7 +84,7 @@
     "@types/ncp": "^2.0.8",
     "@types/node": "^20.8.10",
     "@types/semver": "^7.5.4",
-    "@types/tail": "^2.2.2",
+    "@types/tail": "^2.2.3",
     "@types/tmp": "^0.2.5",
     "@types/unzipper": "^0.10.8",
     "@types/vhost": "^3.0.9",
