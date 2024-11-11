@@ -66,7 +66,6 @@ export async function daemon() {
   })
 
   const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
-    console.log(`###error`, err)
     discordAlert(err)
     res.status(500).send(err.toString())
   }
