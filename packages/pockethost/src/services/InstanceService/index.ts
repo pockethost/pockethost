@@ -232,8 +232,7 @@ export const instanceService = mkSingleton(
               dbg(`Updated instance fields`, fields)
             })
             .catch((e) => {
-              dbg(`Error updating instance fields`, fields)
-              error(e)
+              error(`Error updating instance fields`, { fields, e })
             })
         },
       )
@@ -339,12 +338,16 @@ export const instanceService = mkSingleton(
         exitCode.then((code) => {
           info(`Processes exited with ${code}.`)
           setImmediate(() => {
-            _safeShutdown().catch(error)
+            _safeShutdown().catch((err) => {
+              error(`Error shutting down ${id}`, { err })
+            })
           })
         })
         shutdownManager.add(async () => {
           dbg(`killing ${id}`)
-          await childProcess.kill().catch(error)
+          await childProcess.kill().catch((err) => {
+            error(`Error killing ${id}`, { err })
+          })
           dbg(`killed ${id}`)
         })
 
@@ -379,7 +382,9 @@ export const instanceService = mkSingleton(
               userInstanceLogger.info(
                 `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
               )
-              await _safeShutdown().catch(error)
+              await _safeShutdown().catch((err) => {
+                error(`Error shutting down ${id}`, { err })
+              })
               return false
             } else {
               trace(`${openRequestCount} requests remain open`)
@@ -407,7 +412,9 @@ export const instanceService = mkSingleton(
           return `${e}`
         })()
         warn(`Instance failed to start: ${detail}`)
-        _safeShutdown(e).catch(error)
+        _safeShutdown(e).catch((err) => {
+          error(`Error shutting down ${id}`, { err })
+        })
       })
 
       return api
