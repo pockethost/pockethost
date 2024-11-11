@@ -5,7 +5,6 @@ import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
 import {
   DAEMON_PORT,
-  EDGE_SASS_DOMAINS_AUTH_TOKEN,
   Logger,
   LoggerService,
   SingletonBaseConfig,
@@ -67,36 +66,6 @@ export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
     const method = req.method || '<m>'
     const sig = [
       seqid(),
-      method.padStart(10),
-      country.padStart(5),
-      ip.padEnd(45),
-      url.toString(),
-    ].join(' ')
-    res.locals.sig = sig
-    next()
-  })
-
-  // SaaS domains overrides
-  server.use((req, res, next) => {
-    if (!(`x-saas-domains-auth-token` in req.headers)) {
-      next()
-      return
-    }
-
-    const secret = EDGE_SASS_DOMAINS_AUTH_TOKEN()
-    if (req.headers[`x-saas-domains-auth-token`] !== secret) {
-      throw new Error(`Invalid SaaS domain secret`)
-    }
-
-    const host = req.headers[`x-served-for`]
-    res.locals.host = host
-
-    const url = new URL(`https://${host}${req.url}`)
-    const country =
-      (req.headers['x-saas-geoip-country-code'] as string) || '<ct>'
-    const ip = (req.headers['x-saas-domains-ip'] as string) || '<ip>'
-    const method = req.method || '<m>'
-    const sig = [
       method.padStart(10),
       country.padStart(5),
       ip.padEnd(45),

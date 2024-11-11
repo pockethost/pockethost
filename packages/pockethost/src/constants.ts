@@ -118,7 +118,6 @@ export const SETTINGS = {
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
 
-  EDGE_SASS_DOMAINS_AUTH_TOKEN: mkString(``),
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
   PH_INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
@@ -222,8 +221,6 @@ export const PH_FTP_PASV_IP = () => settings().PH_FTP_PASV_IP
 export const PH_FTP_PASV_PORT_MIN = () => settings().PH_FTP_PASV_PORT_MIN
 export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
 
-export const EDGE_SASS_DOMAINS_AUTH_TOKEN = () =>
-  settings().EDGE_SASS_DOMAINS_AUTH_TOKEN
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 
 export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
@@ -316,7 +313,6 @@ export const logConstants = () => {
     PH_FTP_PASV_IP,
     PH_FTP_PASV_PORT_MIN,
     PH_FTP_PASV_PORT_MAX,
-    EDGE_SASS_DOMAINS_AUTH_TOKEN,
     EDGE_APEX_DOMAIN,
     INSTANCE_APP_HOOK_DIR,
     INSTANCE_APP_MIGRATIONS_DIR,
