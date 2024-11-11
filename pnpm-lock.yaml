@@ -14,6 +14,9 @@ patchedDependencies:
   eventsource@2.0.2:
     hash: tygaxpd33h24mrpcadqkqji6vy
     path: patches/eventsource@2.0.2.patch
+  tail:
+    hash: qtngcupkvsqixn44vtprfahrre
+    path: patches/tail.patch
 
 importers:
 
@@ -97,9 +100,6 @@ importers:
       '@types/semver':
         specifier: ^7.5.4
         version: 7.5.8
-      '@types/tail':
-        specifier: ^2.2.2
-        version: 2.2.3(patch_hash=ixlzsmhzgpwnzxmh2x3rpalkme)
       '@types/tmp':
         specifier: ^0.2.5
         version: 0.2.6
@@ -423,7 +423,7 @@ importers:
         version: 2.0.0
       tail:
         specifier: ^2.2.6
-        version: 2.2.6
+        version: 2.2.6(patch_hash=qtngcupkvsqixn44vtprfahrre)
       tmp:
         specifier: ^0.2.1
         version: 0.2.3
@@ -9848,7 +9848,7 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
 
-  tail@2.2.6: {}
+  tail@2.2.6(patch_hash=qtngcupkvsqixn44vtprfahrre): {}
 
   tailwindcss@3.4.13:
     dependencies:
