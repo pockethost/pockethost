@@ -18,14 +18,12 @@ import {
 } from '../../../core'
 import { GobotService } from '../GobotService'
 import { InstanceLogger } from '../InstanceLoggerService'
-import { PortService } from '../PortService'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
   subdomain: string
   instanceId: string
   version?: string
-  port?: number
   extraBinds?: string[]
   env?: Env
   stdout?: MemoryStream
@@ -65,16 +63,9 @@ export const createPocketbaseService = async (
     const cm = createCleanupManager()
     const logger = LoggerService().create('spawn')
     const { dbg, warn, error } = logger
-    const port =
-      cfg.port ||
-      (await (async () => {
-        const [defaultPort, freeDefaultPort] = await PortService().alloc()
-        cm.add(freeDefaultPort)
-        return defaultPort
-      })())
+
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-      port,
       extraBinds: [],
       env: {},
       stderr: new MemoryStream(),
@@ -119,6 +110,7 @@ export const createPocketbaseService = async (
     const container = await new Promise<{
       on: EventEmitter['on']
       kill: () => Promise<void>
+      portBinding: number
     }>((resolve, reject) => {
       const docker = new Docker()
       iLogger.info(`Starting instance`)
@@ -153,7 +145,7 @@ export const createPocketbaseService = async (
         HostConfig: {
           AutoRemove: true,
           PortBindings: {
-            '8090/tcp': [{ HostPort: `${port}` }],
+            '8090/tcp': [{ HostPort: `0` }],
           },
           Binds,
           Ulimits: [
@@ -225,17 +217,44 @@ export const createPocketbaseService = async (
             }
           },
         )
-        .on('start', (container: Container) => {
+        .on('start', async (container: Container) => {
           dbg(`Got started container`, container)
           started = true
-          resolve({
-            on: emitter.on.bind(emitter),
-            kill: () =>
-              container.stop({ signal: `SIGINT` }).catch((e) => {
-                error(e)
-                return container.stop({ signal: `SIGKILL` }).catch(error)
-              }),
-          })
+
+          try {
+            // Get container info to retrieve the assigned port
+            const containerInfo = await container.inspect()
+            const ports = containerInfo.NetworkSettings?.Ports?.['8090/tcp']
+
+            if (!ports || !ports[0] || !ports[0].HostPort) {
+              throw new Error('Could not get port binding from container')
+            }
+
+            const portBinding = parseInt(ports[0].HostPort, 10)
+            if (isNaN(portBinding)) {
+              throw new Error(`Invalid port binding: ${ports[0].HostPort}`)
+            }
+
+            resolve({
+              on: emitter.on.bind(emitter),
+              kill: () =>
+                container.stop({ signal: `SIGINT` }).catch((e) => {
+                  error(e)
+                  return container.stop({ signal: `SIGKILL` }).catch(error)
+                }),
+              portBinding,
+            })
+          } catch (e) {
+            error(`Failed to get port binding: ${e}`)
+            reject(e)
+            try {
+              await container.stop()
+            } catch (stopError) {
+              error(
+                `Failed to stop container after port binding error: ${stopError}`,
+              )
+            }
+          }
         })
     }).catch((e) => {
       error(`Error starting container: ${e}`)
@@ -255,7 +274,8 @@ export const createPocketbaseService = async (
       dbg(`Instance exited with ${code}`)
       cm.shutdown().catch(error)
     })
-    const url = mkInternalUrl(port)
+
+    const url = mkInternalUrl(container.portBinding)
     logger.breadcrumb({ url })
     dbg(`Making exit hook for ${url}`)
     const unsub = asyncExitHook(async () => {

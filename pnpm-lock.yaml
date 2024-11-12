@@ -370,9 +370,6 @@ importers:
       ftp-srv:
         specifier: github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59
         version: https://codeload.github.com/pockethost/ftp-srv/tar.gz/0fc708bae0d5d7a55ce948767f082d6fcfb2af59
-      get-port:
-        specifier: ^6.1.2
-        version: 6.1.2
       glob:
         specifier: ^10.3.10
         version: 10.4.5
@@ -2967,10 +2964,6 @@ packages:
   get-port@3.2.0:
     resolution: {integrity: sha512-x5UJKlgeUiNT8nyo/AcnwLnZuZNcSjSw0kogRB+Whd1fjjFq4B1hySFxSFWWSn4mIBzg3sRNUDFYc4g5gjPoLg==}
     engines: {node: '>=4'}
-
-  get-port@6.1.2:
-    resolution: {integrity: sha512-BrGGraKm2uPqurfGVj/z97/zv8dPleC6x9JBNRTrDNtCkkRF4rPwrQXFgL7+I+q8QSdU4ntLQX2D7KIxSy8nGw==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   get-stream@2.3.1:
     resolution: {integrity: sha512-AUGhbbemXxrZJRD5cDvKtQxLuYaIbNtDTK8YqupCI393Q2KSTreEsLUN3ZxAWFGiKTzL6nKuzfcIvieflUX9qA==}
@@ -7777,8 +7770,6 @@ snapshots:
   get-package-type@0.1.0: {}
 
   get-port@3.2.0: {}
-
-  get-port@6.1.2: {}
 
   get-stream@2.3.1:
     dependencies:

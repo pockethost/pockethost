@@ -19,7 +19,6 @@ import {
   mkContainerHomePath,
   mkDocUrl,
   mkInstanceUrl,
-  mkInternalUrl,
   mkSingleton,
   now,
   stringify,
@@ -29,7 +28,6 @@ import {
   InstanceLogger,
   MothershipAdminClientService,
   PocketbaseService,
-  PortService,
   SpawnConfig,
   proxyService,
 } from '../../services'
@@ -121,24 +119,10 @@ export const instanceService = mkSingleton(
           updateInstanceStatus(id, InstanceStatus.Idle)
         })
 
-        /** Obtain empty port */
-        dbg(`Obtaining port`)
-        const [newPortPromise, releasePort] = PortService().alloc()
-        const newPort = await newPortPromise
-        shutdownManager.push(() => {
-          dbg(`shut down: releasing port`)
-          releasePort()
-        })
-        systemInstanceLogger.breadcrumb({ port: newPort })
-        dbg(`Found port`)
-        const internalUrl = mkInternalUrl(newPort)
-        dbg(`internalUrl`, internalUrl)
-
         /** Create spawn config */
         const spawnArgs: SpawnConfig = {
           subdomain: instance.subdomain,
           instanceId: instance.id,
-          port: newPort,
           dev: instance.dev,
           extraBinds: flatten([
             globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
@@ -178,7 +162,7 @@ export const instanceService = mkSingleton(
         /** Spawn the child process */
         const childProcess = await pbService.spawn(spawnArgs)
 
-        const { exitCode, stopped, started } = childProcess
+        const { exitCode, stopped, started, url: internalUrl } = childProcess
 
         shutdownManager.push(() => {
           dbg(`killing ${id}`)
