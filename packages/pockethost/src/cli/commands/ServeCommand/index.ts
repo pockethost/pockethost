@@ -2,7 +2,6 @@ import { Command } from 'commander'
 import { logger } from '../../../common'
 import { neverendingPromise } from '../../../core'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
-import { syslog } from '../EdgeCommand/SyslogCommand/ServeCommand/syslog'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
 import { mothership } from '../MothershipCommand/ServeCommand/mothership'
 
@@ -18,7 +17,6 @@ export const ServeCommand = () => {
       const { dbg, error, info, warn } = logger()
       info(`Starting`)
 
-      await syslog()
       await mothership(options)
       await daemon()
       await firewall()

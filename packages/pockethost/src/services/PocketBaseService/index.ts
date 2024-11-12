@@ -7,20 +7,17 @@ import { EventEmitter } from 'stream'
 import { AsyncReturnType } from 'type-fest'
 import {
   APEX_DOMAIN,
-  DOCKER_CONTAINER_HOST,
   LoggerService,
-  SYSLOGD_PORT,
   SingletonBaseConfig,
-  SyslogLogger,
   asyncExitHook,
   createCleanupManager,
   mkContainerHomePath,
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
-  tryFetch,
 } from '../../../core'
 import { GobotService } from '../GobotService'
+import { InstanceLogger } from '../InstanceLoggerService'
 import { PortService } from '../PortService'
 
 export type Env = { [_: string]: string }
@@ -45,6 +42,8 @@ export type PocketbaseProcess = {
   url: string
   kill: () => Promise<void>
   exitCode: Promise<number>
+  stopped: () => boolean
+  started: () => boolean
 }
 
 export const DOCKER_INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
@@ -95,11 +94,7 @@ export const createPocketbaseService = async (
     } = _cfg
 
     logger.breadcrumb({ subdomain, instanceId })
-    const iLogger = SyslogLogger(instanceId, 'exec')
-    cm.add(async () => {
-      dbg(`Shutting down iLogger`)
-      await iLogger.shutdown()
-    })
+    const iLogger = InstanceLogger(instanceId, 'exec')
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await bot.maxSatisfyingVersion(_version)
@@ -119,18 +114,22 @@ export const createPocketbaseService = async (
 
     let started = false
     let stopped = false
+    let stopping = false
 
     const container = await new Promise<{
       on: EventEmitter['on']
       kill: () => Promise<void>
-    }>((resolve) => {
+    }>((resolve, reject) => {
       const docker = new Docker()
       iLogger.info(`Starting instance`)
-      const handleData = (data: Buffer) => {
+      stdout.on('data', (data) => {
+        iLogger.info(data.toString())
         dbg(data.toString())
-      }
-      stdout.on('data', handleData)
-      stderr.on('data', handleData)
+      })
+      stderr.on('data', (data) => {
+        iLogger.error(data.toString())
+        dbg(data.toString())
+      })
       const Binds = [
         `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
         `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
@@ -164,19 +163,11 @@ export const createPocketbaseService = async (
               Hard: 4096,
             },
           ],
-          LogConfig: {
-            Type: 'syslog',
-            Config: {
-              'syslog-address': `udp://${DOCKER_CONTAINER_HOST()}:${SYSLOGD_PORT()}`,
-              tag: instanceId,
-            },
-          },
         },
         Tty: false,
         ExposedPorts: {
           [`8090/tcp`]: {},
         },
-        // User: 'pockethost',
       }
 
       createOptions.Cmd = ['node', `index.mjs`]
@@ -200,8 +191,8 @@ export const createPocketbaseService = async (
           createOptions,
           (err, data) => {
             stopped = true
-            stderr.off(`data`, handleData)
-            stdout.off(`data`, handleData)
+            stderr.removeAllListeners(`data`)
+            stdout.removeAllListeners(`data`)
             const StatusCode = (() => {
               if (!data?.StatusCode) return 0
               return parseInt(data.StatusCode, 10)
@@ -216,13 +207,19 @@ export const createPocketbaseService = async (
             137 - SIGKILL (expected)
             */
             if ((StatusCode > 0 && StatusCode !== 137) || err) {
+              const castStatusCode = StatusCode || 999
               iLogger.error(
-                `Unexpected stop with code ${StatusCode} and error ${err}`,
+                `Unexpected stop with code ${castStatusCode} and error ${err}`,
               )
               error(
-                `${instanceId} stopped unexpectedly with code ${StatusCode} and error ${err}`,
+                `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`,
               )
-              emitter.emit(Events.Exit, StatusCode || 999)
+              emitter.emit(Events.Exit, castStatusCode)
+              reject(
+                new Error(
+                  `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`,
+                ),
+              )
             } else {
               emitter.emit(Events.Exit, 0)
             }
@@ -241,7 +238,7 @@ export const createPocketbaseService = async (
           })
         })
     }).catch((e) => {
-      error(`Error starting container`, e)
+      error(`Error starting container: ${e}`)
       cm.shutdown()
       throw e
     })
@@ -264,17 +261,18 @@ export const createPocketbaseService = async (
     const unsub = asyncExitHook(async () => {
       await api.kill()
     })
-    await tryFetch(`${url}/api/health`, {
-      preflight: async () => {
-        dbg({ stopped, started, container: !!container })
-        if (stopped) throw new Error(`Container stopped`)
-        return started && !!container
-      },
-    })
+
     const api: PocketbaseProcess = {
       url,
       exitCode,
+      stopped: () => stopped,
+      started: () => started,
       kill: async () => {
+        if (stopping) {
+          warn(`${instanceId} already stopping`)
+          return
+        }
+        stopping = true
         dbg(`Killing`)
         iLogger.info(`Stopping instance`)
         await container.kill()

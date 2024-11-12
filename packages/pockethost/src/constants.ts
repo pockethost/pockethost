@@ -92,7 +92,7 @@ export const SETTINGS = {
 
   IPCIDR_LIST: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
-  DAEMON_PB_IDLE_TTL: mkNumber(1000 * 60 * 5), // 5 minutes
+  DAEMON_PB_IDLE_TTL: mkNumber(1000 * 5), // 5 seconds
 
   MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
