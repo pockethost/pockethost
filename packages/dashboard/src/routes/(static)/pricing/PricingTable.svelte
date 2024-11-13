@@ -91,16 +91,17 @@
   ]
 </script>
 
-<div class="flex justify-center items-center flex-col space-y-10">
-  <div class="text-xl text-center">
-    Feature comparison
-    <div class="text-neutral-content text-sm p-2">
-      Learn more about our <a href="/docs/pricing-ethos" class="link"
-        >pricing ethos</a
-      >
-      and <a href="/terms" class="link">Fair Use</a>.
-    </div>
-  </div>
+<div class="bg-info text-info-content p-4 text-center text-lg">
+  Learn more about our <a href="/docs/pricing-ethos" class="link"
+    >pricing ethos</a
+  >
+  and <a href="/terms" class="link">Fair Use</a>.
+</div>
+
+<div
+  class="flex justify-center items-center flex-col space-y-10 p-10 bg-emerald-950"
+>
+  <div class="text-2xl text-center">Feature comparison</div>
 
   <table class="hidden md:table border-spacing-x-8 max-w-[354px] md:max-w-md">
     <thead class="table-header-group">
@@ -125,7 +126,7 @@
                     href={$userStore && $isUserVerified
                       ? pPrice.link
                       : `/login`}
-                    class="btn btn-sm btn-neutral text-base mb-2"
+                    class="btn btn-sm btn-secondary text-base mb-2"
                   >
                     {pPrice.text}
                   </a>

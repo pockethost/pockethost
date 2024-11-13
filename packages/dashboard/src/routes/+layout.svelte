@@ -8,6 +8,7 @@
   import '@beyonk/gdpr-cookie-consent-banner/banner.css' // optional, you can also define your own styles
   // @ts-ignore
   import GdprBanner from '@beyonk/gdpr-cookie-consent-banner'
+  import PromoBanner from './PromoBanner.svelte'
 
   onMount(() => {
     init()
@@ -18,6 +19,7 @@
 
 <div>
   <Navbar />
+  <PromoBanner />
 
   <div class="px-4 sm:px-6 lg:px-8">
     <VerifyAccountBar />

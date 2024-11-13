@@ -2,6 +2,7 @@
   import { faClock, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
   import { onMount, onDestroy } from 'svelte'
+  import { writable } from 'svelte/store'
   export let name = ''
   export let description = ''
   export let priceMonthly: [number, string?, number?] = [0, '']
@@ -10,24 +11,26 @@
   export let checkoutYearURL = ''
   export let qtyMax = 0
   export let qtyRemaining = 0
-  export let comingSoon = false
   export let soldOutText = 'SOLD OUT'
   export let comingSoonText = 'COMING SOON'
   export let availableText = 'AVAILABLE'
   export let features: string[] = []
   export let fundingGoals: string[] = []
   export let startDate: Date | null = null
+  export let endDate: Date | null = null
+
+  const comingSoon = startDate && startDate > new Date()
 
   $: qtySold = qtyMax - qtyRemaining
 
   let countdown = ''
   let countdownInterval: ReturnType<typeof setInterval>
 
-  function updateCountdown() {
-    if (!startDate) return
+  function updateCountdown(date: Date | null) {
+    if (!date) return
 
     const now = new Date()
-    const difference = startDate.getTime() - now.getTime()
+    const difference = date.getTime() - now.getTime()
 
     if (difference <= 0) {
       countdown = ''
@@ -46,10 +49,17 @@
   }
 
   onMount(() => {
-    if (startDate) {
-      updateCountdown()
-      countdownInterval = setInterval(updateCountdown, 1000)
+    if (!startDate && !endDate) return
+    const _update = () => {
+      if (startDate && comingSoon) {
+        updateCountdown(startDate)
+      }
+      if (endDate && !comingSoon) {
+        updateCountdown(endDate)
+      }
     }
+    countdownInterval = setInterval(_update, 1000)
+    _update()
   })
 
   onDestroy(() => {
@@ -78,18 +88,15 @@
 
     {#if qtyRemaining <= 0}
       <div class="text-error text-xl font-black text-center">{soldOutText}</div>
-    {:else if comingSoon}
-      <div class="text-secondary text-xl font-black text-center">
-        {comingSoonText}
-      </div>
-      {#if startDate && countdown}
-        <div class="text-center">
-          <div class="flex items-center justify-center">
-            <Fa icon={faClock} class="mr-2 text-accent" />
-            <span class="text-lg font-semibold text-accent">{countdown}</span>
-          </div>
+    {:else if startDate || endDate}
+      <div class="text-center">
+        <div class="flex items-center justify-center">
+          <Fa icon={faClock} class="mr-2 text-accent" />
+          <span class="text-lg font-semibold text-accent"
+            >{comingSoon ? comingSoonText : availableText} {countdown}</span
+          >
         </div>
-      {/if}
+      </div>
     {:else}
       <div class="text-accent text-xl font-black text-center">
         {availableText}

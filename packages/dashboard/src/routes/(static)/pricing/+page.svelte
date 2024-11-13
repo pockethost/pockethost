@@ -40,16 +40,10 @@
       </div>
 
       <div class="w-96">
-        <FlounderCard
-          comingSoonText="ON SALE BLACK FRIDAY"
-          comingSoon
-          startDate={new Date(2024, 10, 29)}
-        />
+        <FlounderCard endDate={new Date(2024, 11, 3)} />
       </div>
     </div>
   </div>
 
-  <div class="p-6">
-    <PricingTable />
-  </div>
+  <PricingTable />
 </div>
