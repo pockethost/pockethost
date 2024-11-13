@@ -35,7 +35,7 @@
           // Default when the avatar is not found
           // There's one on /images/logo-square.png
           console.error(err)
-          avatar.set(`/images/logo-square.png`)
+          avatar.set(`/logo.png`)
         })
     }
   }

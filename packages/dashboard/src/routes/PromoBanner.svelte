@@ -1,7 +1,7 @@
 <script lang="ts">
 </script>
 
-<div class="alert alert-info">
+<div class="alert alert-info bg-yellow-300 rounded-none">
   <div class="text-info-content">
     This promo banner will go away after Dec 2. Please spread the word and help
     close the Flouder's round.

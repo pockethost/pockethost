@@ -107,14 +107,8 @@
       <div
         class="w-full animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-xl font-black"
       >
-        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-          <div
-            class="bg-blue-600 h-2.5 rounded-full"
-            style="width: {(qtySold / qtyMax) * 100}%;"
-          ></div>
-        </div>
         <div>
-          {qtySold}/{qtyMax} Sold
+          {qtyRemaining} remaining
         </div>
       </div>
     {/if}
