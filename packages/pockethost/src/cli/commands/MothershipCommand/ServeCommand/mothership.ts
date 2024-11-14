@@ -1,7 +1,5 @@
-import copyfiles from 'copyfiles'
 import { GobotOptions } from 'gobot'
 import {
-  DEBUG,
   DISCORD_ALERT_CHANNEL_URL,
   DISCORD_HEALTH_CHANNEL_URL,
   DISCORD_STREAM_CHANNEL_URL,
@@ -21,27 +19,6 @@ import {
 import { GobotService } from '../../../../services/GobotService'
 
 export type MothershipConfig = {}
-
-const _copy = (src: string, dst: string) => {
-  const { error } = LoggerService().create(`copy`)
-
-  return new Promise<void>((resolve) => {
-    copyfiles(
-      [src, dst],
-      {
-        verbose: DEBUG(),
-        up: true,
-      },
-      (err) => {
-        if (err) {
-          error(err)
-          throw err
-        }
-        resolve()
-      },
-    )
-  })
-}
 
 export async function mothership(cfg: MothershipConfig) {
   const logger = LoggerService().create(`Mothership`)

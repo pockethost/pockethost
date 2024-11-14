@@ -1,4 +1,5 @@
 export * from './assert'
+export * from './boolean'
 export * from './CleanupManager'
 export * from './ConsoleLogger'
 export * from './events'

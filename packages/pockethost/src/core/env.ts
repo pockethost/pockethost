@@ -1,6 +1,6 @@
-import { boolean } from 'boolean'
 import { existsSync } from 'fs'
 import { env as _env } from 'process'
+import { parseBoolean } from '../common'
 
 export const env = (name: string, _default = '') => {
   const v = _env[name]
@@ -12,7 +12,7 @@ export const envi = (name: string, _default: number) =>
   parseInt(env(name, _default.toString()))
 
 export const envb = (name: string, _default: boolean) =>
-  boolean(env(name, _default.toString()))
+  parseBoolean(env(name, _default.toString()))
 
 export const envfile = (name: string, _default = '') => {
   const v = env(name, _default)

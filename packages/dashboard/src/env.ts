@@ -1,5 +1,8 @@
-import { boolean } from 'boolean'
-import { type InstanceFields, SubscriptionType } from 'pockethost/common'
+import {
+  type InstanceFields,
+  parseBoolean,
+  SubscriptionType,
+} from 'pockethost/common'
 
 /**
  * These environment variables default to pointing to the production build so
@@ -24,7 +27,7 @@ export const PUBLIC_MOTHERSHIP_URL =
   `https://pockethost-central.${PUBLIC_APEX_DOMAIN}`
 
 // Whether we are in debugging mode - default TRUE
-export const PUBLIC_DEBUG = boolean(import.meta.env.PUBLIC_DEBUG || 'true')
+export const PUBLIC_DEBUG = parseBoolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')

@@ -17,9 +17,7 @@ export const ServeCommand = () => {
       const { dbg, error, info, warn } = logger()
       info(`Starting`)
 
-      await mothership(options)
-      await daemon()
-      await firewall()
+      await Promise.all([mothership(options), daemon(), firewall()])
 
       await neverendingPromise()
     })

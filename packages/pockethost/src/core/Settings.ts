@@ -1,6 +1,5 @@
-import { boolean as castToBoolean } from 'boolean'
 import { existsSync, mkdirSync } from 'fs'
-import { mkSingleton } from '../common'
+import { mkSingleton, parseBoolean } from '../common'
 
 export type SettingsCaster<TValue, TConfig = {}> = {
   stringToType: (value: string, config?: Partial<TConfig>) => TValue
@@ -53,7 +52,7 @@ const mkMaker =
   }
 
 export const mkBoolean = mkMaker<boolean>({
-  stringToType: (v) => castToBoolean(v),
+  stringToType: (v) => parseBoolean(v),
   typeToString: (v) => `${v}`,
 })
 

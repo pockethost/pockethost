@@ -71,7 +71,7 @@ export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
 
 const TLS_PFX = `tls`
 
-if (_IS_DEV) {
+const createDevCert = async () => {
   mkdirSync(_SSL_HOME, { recursive: true })
   const { key, cert } = await devcert.certificateFor(_APEX_DOMAIN, {})
   writeFileSync(join(_SSL_HOME, `${TLS_PFX}.key`), key)

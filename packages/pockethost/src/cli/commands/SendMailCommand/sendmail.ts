@@ -1,4 +1,5 @@
 import { map } from '@s-libs/micro-dash'
+import Database from 'better-sqlite3'
 import Bottleneck from 'bottleneck'
 import { Command, InvalidArgumentError } from 'commander'
 import { PocketBase, UserFields, logger } from '../../../common'
@@ -9,7 +10,6 @@ import {
   MOTHERSHIP_URL,
   TEST_EMAIL,
 } from '../../../core'
-import { SqliteService } from './SqliteService'
 
 const TBL_SENT_MESSAGES = `sent_messages`
 
@@ -46,9 +46,7 @@ export const SendMailCommand = () =>
 
       dbg({ messageId, confirm, limit })
 
-      const { getDatabase } = SqliteService({})
-
-      const db = await getDatabase(MOTHERSHIP_DATA_DB())
+      const db = new Database(MOTHERSHIP_DATA_DB())
 
       info(MOTHERSHIP_URL())
 
@@ -69,9 +67,8 @@ export const SendMailCommand = () =>
       }
       await Promise.all(
         map(campaign.vars, async (sql, k) => {
-          const res = await db.raw(sql)
-          const [{ value }] = res
-          vars[k.toLocaleLowerCase()] = value
+          const result = db.prepare(sql).get() as { value: string }
+          vars[k.toLocaleLowerCase()] = result.value
         }),
       )
 
@@ -85,7 +82,7 @@ export const SendMailCommand = () =>
     WHERE sm.id IS NULL;
      `
       dbg(sql)
-      const users = (await db.raw<UserFields[]>(sql)).slice(0, limit)
+      const users = db.prepare(sql).all().slice(0, limit) as UserFields[]
 
       // dbg({ users })
 
@@ -120,5 +117,5 @@ export const SendMailCommand = () =>
         }),
       )
 
-      SqliteService().shutdown()
+      db.close()
     })
