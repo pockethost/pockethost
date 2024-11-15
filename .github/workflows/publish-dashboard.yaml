@@ -10,7 +10,7 @@ on:
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
-  MAIN_BRANCH: v0/main
+  MAIN_BRANCH: main
 
 jobs:
   publish:
