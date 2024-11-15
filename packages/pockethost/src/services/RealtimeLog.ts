@@ -8,7 +8,7 @@ import {
   SingletonBaseConfig,
   stringify,
 } from '../../core'
-import { InstanceLogger } from './InstanceLoggerService'
+import { InstanceLogReader } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
 
 export type RealtimeLogConfig = SingletonBaseConfig & {}
@@ -69,7 +69,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     dbg(`Instance is `, instance)
 
     /** Get a database connection */
-    const instanceLogger = InstanceLogger(instance.id, `exec`)
+    const instanceLogger = InstanceLogReader(instance.id, `exec`)
 
     /** Start the stream */
     res.writeHead(200, {

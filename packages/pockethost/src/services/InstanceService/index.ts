@@ -25,7 +25,7 @@ import {
   tryFetch,
 } from '../../../core'
 import {
-  InstanceLogger,
+  InstanceLogWriter,
   MothershipAdminClientService,
   PocketbaseService,
   SpawnConfig,
@@ -71,7 +71,7 @@ export const instanceService = mkSingleton(
         `${subdomain}:${id}:${version}`,
       )
       const { dbg, warn, error, info, trace } = systemInstanceLogger
-      const userInstanceLogger = InstanceLogger(instance.id, `exec`)
+      const userInstanceLogger = InstanceLogWriter(instance.id, `exec`)
 
       shutdownManager.push(() => {
         dbg(`Shutting down`)
