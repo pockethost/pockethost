@@ -15,6 +15,11 @@
   ]
   export let startDate: Date | null = null
   export let endDate: Date | null = null
+
+  const logInFirst = () => {
+    alert('Please log in and verify your account first.')
+    window.location.href = '/login'
+  }
 </script>
 
 <PricingCard
@@ -27,6 +32,7 @@
   description="Epic elite! The Flounder's Edition is almost as good as the Founder's edition, and you'll help PocketHost go global."
   {priceMonthly}
   {priceAnnually}
+  requireAuthenticatedUser
   checkoutMonthURL="https://store.pockethost.io/buy/9ff8775b-6b9e-4aa8-a0ab-dc5e58e25408?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}&checkout[discount_code]=G0MTI0OQ"
   checkoutYearURL="https://store.pockethost.io/buy/82d79f7c-64f6-4c2b-9f58-dcc8951f1cdd?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}&checkout[discount_code]=G0MTI0OQ"
   features={[
