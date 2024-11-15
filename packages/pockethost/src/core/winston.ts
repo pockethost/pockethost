@@ -9,6 +9,7 @@ const format = winston.format.combine(
   winston.format.colorize(),
   winston.format.printf(({ level, message, timestamp, ...meta }) => {
     const final: string[] = []
+    // @ts-expect-error
     ;[...message, meta].forEach((m: string) => {
       if (typeof m === 'string' && !!m.match(/\n/)) {
         final.push(...m.split(/\n/))
