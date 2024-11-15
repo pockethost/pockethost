@@ -30,79 +30,83 @@ export type ProxyMiddleware = (
 export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
 }
-export const proxyService = mkSingleton(async (config: ProxyServiceConfig) => {
-  const _proxyLogger = LoggerService().create('ProxyService')
-  const { dbg, error, info, trace, warn } = _proxyLogger
+export const proxyService = mkSingleton(
+  async (
+    config: ProxyServiceConfig,
+  ): Promise<{ use: ReturnType<typeof express>['use'] }> => {
+    const _proxyLogger = LoggerService().create('ProxyService')
+    const { dbg, error, info, trace, warn } = _proxyLogger
 
-  const { coreInternalUrl } = config
+    const { coreInternalUrl } = config
 
-  const proxy = httpProxy.createProxyServer({})
-  proxy.on('error', (err, req, res, target) => {
-    warn(`Proxy error ${err} on ${req.url} (${req.headers.host})`)
-  })
+    const proxy = httpProxy.createProxyServer({})
+    proxy.on('error', (err, req, res, target) => {
+      warn(`Proxy error ${err} on ${req.url} (${req.headers.host})`)
+    })
 
-  const server = express()
+    const server = express()
 
-  server.use(cors())
+    server.use(cors())
 
-  server.get('/_api/health', (req, res, next) => {
-    res.json({ status: 'ok' })
-    res.end
-  })
+    server.get('/_api/health', (req, res, next) => {
+      res.json({ status: 'ok' })
+      res.end
+    })
 
-  // Default locals
-  server.use((req, res, next) => {
-    const host = req.headers.host
-    res.locals.requestId = seqid()
-    res.locals.host = host
-    res.locals.coreInternalUrl = coreInternalUrl
-    next()
-  })
+    // Default locals
+    server.use((req, res, next) => {
+      const host = req.headers.host
+      res.locals.requestId = seqid()
+      res.locals.host = host
+      res.locals.coreInternalUrl = coreInternalUrl
+      next()
+    })
 
-  // Cloudflare signature
-  server.use((req, res, next) => {
-    const url = new URL(`https://${res.locals.host}${req.url}`)
-    const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
-    const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
-    const method = req.method || '<m>'
-    const sig = [
-      res.locals.requestId,
-      method.padStart(10),
-      country.padStart(5),
-      ip.padEnd(45),
-      url.toString(),
-    ].join(' ')
-    res.locals.sig = sig
-    next()
-  })
+    // Cloudflare signature
+    server.use((req, res, next) => {
+      const url = new URL(`https://${res.locals.host}${req.url}`)
+      const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
+      const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
+      const method = req.method || '<m>'
+      const sig = [
+        res.locals.requestId,
+        method.padStart(10),
+        country.padStart(5),
+        ip.padEnd(45),
+        url.toString(),
+      ].join(' ')
+      res.locals.sig = sig
+      next()
+    })
 
-  server.use((req, res, next) => {
-    res.locals.proxy = proxy
-    next()
-  })
+    server.use((req, res, next) => {
+      res.locals.proxy = proxy
+      next()
+    })
 
-  // Request logging
-  server.use((req, res, next) => {
-    if (!res.locals.host) {
-      throw new Error(`Host not found`)
-    }
-    next()
-  })
+    // Request logging
+    server.use((req, res, next) => {
+      if (!res.locals.host) {
+        throw new Error(`Host not found`)
+      }
+      next()
+    })
 
-  server.use((req, res, next) => {
-    info(`Incoming request ${res.locals.sig}`)
-    next()
-  })
+    server.use((req, res, next) => {
+      info(`Incoming request ${res.locals.sig}`)
+      next()
+    })
 
-  server.listen(DAEMON_PORT(), () => {
-    info(`daemon listening on port ${DAEMON_PORT()}`)
-  })
+    server.listen(DAEMON_PORT(), () => {
+      info(`daemon listening on port ${DAEMON_PORT()}`)
+    })
 
-  asyncExitHook(async () => {
-    info(`Shutting down proxy server`)
-  })
+    asyncExitHook(async () => {
+      info(`Shutting down proxy server`)
+    })
 
-  const use = server.use.bind(server)
+    const use = server.use.bind(server)
 
-  return { use }
-})
+    return { use }
+  },
+)
