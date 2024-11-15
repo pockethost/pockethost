@@ -7,7 +7,6 @@ import fs from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
-import { logger } from '../../../../../common/Logger'
 import {
   APEX_DOMAIN,
   DAEMON_PORT,
@@ -18,7 +17,8 @@ import {
   neverendingPromise,
   SSL_CERT,
   SSL_KEY,
-} from '../../../../../core'
+} from '../../../../..'
+import { logger } from '../../../../../common/Logger'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 

@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { logger } from '../../../../../../common'
+import { logger } from '../../../../../common'
 import { ftp } from './ftp'
 
 type Options = {

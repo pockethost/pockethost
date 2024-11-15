@@ -7,7 +7,7 @@ import {
   PocketBase,
   SingletonBaseConfig,
   stringify,
-} from '../../core'
+} from '..'
 import { InstanceLogReader } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
 

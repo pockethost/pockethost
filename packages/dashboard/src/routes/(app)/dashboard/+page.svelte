@@ -3,7 +3,7 @@
   import { globalInstancesStore, userSubscriptionType } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
-  import { SubscriptionType } from 'pockethost'
+  import { SubscriptionType } from 'pockethost/common'
   import { faPlus } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 

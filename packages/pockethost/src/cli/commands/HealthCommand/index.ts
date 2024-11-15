@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { logger } from '../../../../core'
+import { logger } from '../../..'
 
 type Options = {
   debug: boolean

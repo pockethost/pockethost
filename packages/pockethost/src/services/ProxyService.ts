@@ -11,7 +11,7 @@ import {
   asyncExitHook,
   mkSingleton,
   seqid,
-} from '../../core'
+} from '..'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 

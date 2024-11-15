@@ -4,6 +4,7 @@ import { spawn } from 'child_process'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
+import { DATA_ROOT } from '../../../../..'
 import {
   InstanceFields,
   Logger,
@@ -11,7 +12,6 @@ import {
   assert,
   seqid,
 } from '../../../../../common'
-import { DATA_ROOT } from '../../../../../core'
 import {
   InstanceLogWriter,
   InstanceLogWriterApi,

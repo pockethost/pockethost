@@ -12,15 +12,13 @@ import {
   SettingsHandlerFactory,
   SettingsService,
   ioc,
-} from '../core'
-import {
   mkBoolean,
   mkCsvString,
   mkNumber,
   mkPath,
   mkString,
-} from './core/Settings'
-import { settings } from './core/ioc'
+  settings,
+} from '.'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

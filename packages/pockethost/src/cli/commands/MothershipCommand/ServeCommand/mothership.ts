@@ -15,7 +15,7 @@ import {
   TEST_EMAIL,
   _MOTHERSHIP_APP_ROOT,
   mkContainerHomePath,
-} from '../../../../../core'
+} from '../../../..'
 import { GobotService } from '../../../../services/GobotService'
 
 export type MothershipConfig = {}

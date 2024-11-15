@@ -5,7 +5,7 @@ import {
   MOTHERSHIP_DATA_ROOT,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_SEMVER,
-} from '../../../../../core'
+} from '../../../..'
 import { GobotService } from '../../../../services/GobotService'
 
 export async function schema() {

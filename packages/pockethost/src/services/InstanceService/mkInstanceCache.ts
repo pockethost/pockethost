@@ -8,7 +8,7 @@ import {
   PocketBase,
   UserFields,
   UserId,
-} from '../../../core'
+} from '../..'
 
 export const mkInstanceCache = (client: PocketBase) => {
   const { dbg } = LoggerService().create(`InstanceCache`)

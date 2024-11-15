@@ -15,7 +15,7 @@ import {
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
-} from '../../../core'
+} from '../..'
 import { GobotService } from '../GobotService'
 import { InstanceLogWriter } from '../InstanceLoggerService'
 

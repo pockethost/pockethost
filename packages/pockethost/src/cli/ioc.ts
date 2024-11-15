@@ -1,7 +1,7 @@
+import { WinstonLoggerService } from '..'
 import { version } from '../../package.json'
 import { ioc } from '../common'
 import { RegisterEnvSettingsService } from '../constants'
-import { WinstonLoggerService } from '../core/winston'
 import { GobotService } from '../services/GobotService'
 
 export const initIoc = async () => {

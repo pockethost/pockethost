@@ -5,7 +5,7 @@ import {
   LoggerService,
   mkInstanceDataPath,
   stringify,
-} from '../../../core'
+} from '../..'
 
 type UnsubFunc = () => void
 

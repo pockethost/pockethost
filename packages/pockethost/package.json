@@ -6,8 +6,14 @@
     "url": "https://github.com/benallfree"
   },
   "license": "MIT",
-  "main": "./common.ts",
-  "module": "./common.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    },
+    "./common": {
+      "import": "./src/common/index.ts"
+    }
+  },
   "type": "module",
   "bin": {
     "pockethost": "src/cli/index.ts"

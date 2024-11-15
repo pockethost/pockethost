@@ -5,7 +5,7 @@
   import { globalInstancesStore } from '$util/stores'
   import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
   import { values } from '@s-libs/micro-dash'
-  import { type InstanceId } from 'pockethost'
+  import { type InstanceId } from 'pockethost/common'
   import Fa from 'svelte-fa'
 
   const { updateInstance } = client()
@@ -26,7 +26,7 @@
 {#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
   <button
     class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.maintenance ? 'bg-base-200' : 'bg-neutral'}`}
-    on:click={_=>goto(`/instances/${instance.id}`)}
+    on:click={(_) => goto(`/instances/${instance.id}`)}
   >
     <div class="card-body w-full">
       <div class="card-title">
@@ -38,7 +38,7 @@
               ? 'bg-red-500 hover:bg-red-500'
               : 'toggle-success'}"
             checked={!instance.maintenance}
-            on:click={e=>e.stopPropagation()}
+            on:click={(e) => e.stopPropagation()}
             on:change={handleMaintenanceChange(instance.id)}
           />
         </div>

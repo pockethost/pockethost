@@ -7,7 +7,7 @@ import {
   PocketBase,
   mergeConfig,
   mkSingleton,
-} from '../../../core'
+} from '../..'
 import { createAdminPbClient } from './createAdminPbClient'
 
 export type ClientServiceConfig = {

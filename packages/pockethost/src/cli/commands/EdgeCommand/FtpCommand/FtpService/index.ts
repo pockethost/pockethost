@@ -1,12 +1,6 @@
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import {
-  PocketBase,
-  logger,
-  mergeConfig,
-  mkSingleton,
-} from '../../../../../common'
-import {
   MOTHERSHIP_URL,
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
@@ -15,7 +9,13 @@ import {
   SSL_CERT,
   SSL_KEY,
   asyncExitHook,
-} from '../../../../../core'
+} from '../../../../..'
+import {
+  PocketBase,
+  logger,
+  mergeConfig,
+  mkSingleton,
+} from '../../../../../common'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = { mothershipUrl: string }
