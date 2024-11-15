@@ -1,5 +1,6 @@
 export * from '../constants'
 export * from './asyncExecutionGuard'
+export * from './dir'
 export * from './discordAlert'
 export * from './env'
 export * from './exit'
