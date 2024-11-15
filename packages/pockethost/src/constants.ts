@@ -76,7 +76,7 @@ const createDevCert = async () => {
   writeFileSync(join(_SSL_HOME, `${TLS_PFX}.cert`), cert)
 }
 
-export const SETTINGS = {
+export const createSettings = () => ({
   PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
@@ -140,7 +140,7 @@ export const SETTINGS = {
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
 
   PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
-}
+})
 
 export type Settings = ReturnType<typeof RegisterEnvSettingsService>
 export type SettingsDefinition = {
@@ -148,7 +148,7 @@ export type SettingsDefinition = {
 }
 
 export const RegisterEnvSettingsService = () => {
-  const _settings = SettingsService(SETTINGS)
+  const _settings = SettingsService(createSettings())
 
   ioc('settings', _settings)
 

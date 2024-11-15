@@ -78,5 +78,11 @@
     "@types/tail": "^2.2.3",
     "@types/unzipper": "^0.10.8",
     "@types/vhost": "^3.0.9"
-  }
+  },
+  "files": [
+    "src",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ]
 }
