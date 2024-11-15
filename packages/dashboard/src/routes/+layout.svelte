@@ -9,6 +9,7 @@
   // @ts-ignore
   import GdprBanner from '@beyonk/gdpr-cookie-consent-banner'
   import PromoBanner from './PromoBanner.svelte'
+  import MothershipStatus from './MothershipStatus.svelte'
 
   onMount(() => {
     init()
@@ -18,6 +19,7 @@
 <Meta />
 
 <div>
+  <MothershipStatus />
   <Navbar />
   <PromoBanner />
 

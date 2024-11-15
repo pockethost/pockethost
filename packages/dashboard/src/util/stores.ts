@@ -23,6 +23,7 @@ try {
   console.warn(e)
 }
 
+export const isMothershipReachable = writable(true)
 export const isUserLegacy = writable(false)
 export const userSubscriptionType = writable(SubscriptionType.Legacy)
 export const isUserPaid = writable(false)
@@ -43,12 +44,19 @@ export const stats = writable<{
 export const init = () => {
   const { onAuthChange } = client()
 
-  client()
-    .client.send(`/api/stats`, {})
-    .then((res) => {
-      stats.set(res)
-    })
-    .catch(console.error)
+  const checkStats = () => {
+    client()
+      .client.send(`/api/stats`, {})
+      .then((res) => {
+        stats.set(res)
+        setTimeout(checkStats, 1000 * 60 * 5)
+      })
+      .catch(() => {
+        isMothershipReachable.set(false)
+        setTimeout(checkStats, 1000)
+      })
+  }
+  checkStats()
 
   onAuthChange((authStoreProps) => {
     const isLoggedIn = authStoreProps.isValid
@@ -93,15 +101,35 @@ export const init = () => {
     globalInstancesStore.set(instances)
     globalInstancesStoreReady.set(true)
 
-    client()
-      .client.collection('instances')
-      .subscribe<InstanceFields>('*', (data) => {
-        globalInstancesStore.update((instances) => {
-          instances[data.record.id] = data.record
-          return instances
+    const tryInstanceSubscribe = () => {
+      client()
+        .client.collection('instances')
+        .subscribe<InstanceFields>('*', (data) => {
+          globalInstancesStore.update((instances) => {
+            instances[data.record.id] = data.record
+            return instances
+          })
         })
-      })
-      .then((u) => (unsub = u))
-      .catch(console.error)
+        .then((u) => {
+          unsub = u
+        })
+        .catch(() => {
+          console.error('Failed to subscribe to instances')
+          isMothershipReachable.set(false)
+          setTimeout(tryInstanceSubscribe, 1000)
+        })
+    }
+    tryInstanceSubscribe()
   })
+
+  setInterval(() => {
+    client()
+      .client.send(`/api/health`, {})
+      .then((res) => {
+        isMothershipReachable.set(true)
+      })
+      .catch(() => {
+        isMothershipReachable.set(false)
+      })
+  }, 5000)
 }
