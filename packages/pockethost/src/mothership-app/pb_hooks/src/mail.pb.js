@@ -34,9 +34,9 @@ routerAdd(
         name: $app.settings().meta.senderName,
       },
       to: [{ address: to }],
-      bcc: [process.env.TEST_EMAIL]
-        .filter((e) => !!e)
-        .map((e) => ({ address: e })),
+      // bcc: [process.env.TEST_EMAIL]
+      //   .filter((e) => !!e)
+      //   .map((e) => ({ address: e })),
       subject: subject,
       html: body,
     })
