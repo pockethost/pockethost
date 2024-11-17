@@ -59,6 +59,10 @@ While generally an anti-pattern, there are valid cases for server-side PocketBas
 
 However, even in these cases, consider whether the functionality could be implemented using PocketBase's native features first.
 
+## Further Reading
+
+Gani also posted about this on the PocketBase site: [JS SSR - issues and recommendations when interacting with PocketBase](https://github.com/pocketbase/pocketbase/discussions/5313)
+
 ## Conclusion
 
 PocketBase is designed to be a complete backend solution with built-in security and extensibility. Adding an additional server layer often complicates the architecture unnecessarily. Before implementing server-side PocketBase access, consider whether you can:
