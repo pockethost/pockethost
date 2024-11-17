@@ -50,7 +50,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: pockethost-lander
+          projectName: pockethost
           directory: ./packages/dashboard/build
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'
