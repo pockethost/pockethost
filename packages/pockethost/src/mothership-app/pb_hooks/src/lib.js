@@ -113,7 +113,9 @@ const mkNotificationProcessor =
             name: $app.settings().meta.senderName,
           },
           to: [{ address: to }],
-          bcc: [{ address: `pockethost+notifications@benallfree.com` }],
+          bcc: [process.env.TEST_EMAIL]
+            .filter((e) => !!e)
+            .map((e) => ({ address: e })),
           subject,
           html,
         }
