@@ -1,3 +1,4 @@
+import { browser } from '$app/environment'
 import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
@@ -210,13 +211,15 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * token may be out of date, or fields in the user record may have changed
      * in the backend.
      */
-    // refreshAuthToken()
-    //   .catch((error) => {
-    //     client.authStore.clear()
-    //   })
-    //   .finally(() => {
-    //     fireAuthChange(client.authStore)
-    //   })
+    if (browser) {
+      refreshAuthToken()
+        .catch((error) => {
+          client.authStore.clear()
+        })
+        .finally(() => {
+          fireAuthChange(client.authStore)
+        })
+    }
 
     /**
      * Listen for auth state changes and subscribe to realtime _user events.
