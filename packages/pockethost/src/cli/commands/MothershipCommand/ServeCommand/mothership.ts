@@ -1,5 +1,6 @@
 import { GobotOptions } from 'gobot'
 import {
+  APP_URL,
   DISCORD_ALERT_CHANNEL_URL,
   DISCORD_HEALTH_CHANNEL_URL,
   DISCORD_STREAM_CHANNEL_URL,
@@ -35,6 +36,7 @@ export async function mothership(cfg: MothershipConfig) {
     DISCORD_HEALTH_CHANNEL_URL: DISCORD_HEALTH_CHANNEL_URL(),
     DISCORD_ALERT_CHANNEL_URL: DISCORD_ALERT_CHANNEL_URL(),
     TEST_EMAIL: TEST_EMAIL(),
+    APP_URL: APP_URL(),
   }
   dbg(env)
 

@@ -31,7 +31,7 @@ export const firewall = async () => {
   const DEV_ROUTES = {
     [`mail.${APEX_DOMAIN()}`]: `http://localhost:${1080}`,
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
-    [`${APEX_DOMAIN()}`]: `http://localhost:${8080}`,
+    [`${APEX_DOMAIN()}`]: `http://localhost:${5174}`,
   }
   const hostnameRoutes = IS_DEV() ? DEV_ROUTES : PROD_ROUTES
 

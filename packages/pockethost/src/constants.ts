@@ -43,7 +43,6 @@ export const _HTTP_PROTOCOL = env
   .get('HTTP_PROTOCOL')
   .default('https:')
   .asString()
-export const _APP_NAME = env.get('APP_NAME').default('app').asString()
 export const _MOTHERSHIP_NAME = env
   .get('MOTHERSHIP_NAME')
   .default('pockethost-central')
@@ -83,9 +82,7 @@ export const createSettings = () => ({
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
 
   HTTP_PROTOCOL: mkString(_HTTP_PROTOCOL),
-  APP_NAME: mkString(_APP_NAME),
-  APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APP_NAME}.${_APEX_DOMAIN}`),
-  BLOG_URL: mkString(`${_HTTP_PROTOCOL}//${_APEX_DOMAIN}`),
+  APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APEX_DOMAIN}`),
   APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
   IPCIDR_LIST: mkCsvString([]),
@@ -171,11 +168,7 @@ export const DEBUG = () =>
   env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
-export const APP_URL = () => settings().APP_URL
-export const APP_NAME = () => settings().APP_NAME
-export const BLOG_URL = (...path: string[]) =>
-  join(settings().BLOG_URL, ...path)
-export const DOCS_URL = (...path: string[]) => BLOG_URL(`docs`, ...path)
+export const APP_URL = (...path: string[]) => join(settings().APP_URL, ...path)
 
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
@@ -263,8 +256,7 @@ export const INSTANCE_DATA_DB = (id: InstanceId) =>
 export const mkContainerHomePath = (...path: string[]) =>
   join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
-export const mkBlogUrl = (path = '') => `${BLOG_URL()}${path}`
-export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))
+export const mkDocUrl = (path = '') => mkAppUrl(join('/docs', path))
 export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
   (instance.cname_active && instance.cname) || `${instance.id}.${APEX_DOMAIN()}`
 export const mkInstanceHostname = (instance: InstanceFields) =>
@@ -285,9 +277,6 @@ export const logConstants = () => {
     PH_PROJECT_ROOT,
     HTTP_PROTOCOL,
     APP_URL,
-    APP_NAME,
-    BLOG_URL,
-    DOCS_URL,
     APEX_DOMAIN,
     IPCIDR_LIST,
     DAEMON_PORT,
