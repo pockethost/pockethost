@@ -210,13 +210,13 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * token may be out of date, or fields in the user record may have changed
      * in the backend.
      */
-    refreshAuthToken()
-      .catch((error) => {
-        client.authStore.clear()
-      })
-      .finally(() => {
-        fireAuthChange(client.authStore)
-      })
+    // refreshAuthToken()
+    //   .catch((error) => {
+    //     client.authStore.clear()
+    //   })
+    //   .finally(() => {
+    //     fireAuthChange(client.authStore)
+    //   })
 
     /**
      * Listen for auth state changes and subscribe to realtime _user events.
