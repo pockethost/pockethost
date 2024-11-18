@@ -4,8 +4,10 @@ import { globSync } from 'glob'
 import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import {
+  APP_URL,
   ClientResponseError,
   DAEMON_PB_IDLE_TTL,
+  DOC_URL,
   EDGE_APEX_DOMAIN,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
@@ -15,9 +17,7 @@ import {
   LoggerService,
   SingletonBaseConfig,
   asyncExitHook,
-  mkAppUrl,
   mkContainerHomePath,
-  mkDocUrl,
   mkInstanceUrl,
   mkSingleton,
   now,
@@ -332,7 +332,7 @@ export const instanceService = mkSingleton(
       dbg(`Checking for maintenance mode`)
       if (instance.maintenance) {
         throw new Error(
-          `This instance is powered off. See ${mkDocUrl(
+          `This instance is powered off. See ${DOC_URL(
             `power`,
           )} for more information.`,
         )
@@ -343,7 +343,7 @@ export const instanceService = mkSingleton(
         */
       dbg(`Checking for verified account`)
       if (!owner.verified) {
-        throw new Error(`Log in at ${mkAppUrl()} to verify your account.`)
+        throw new Error(`Log in at ${APP_URL()} to verify your account.`)
       }
 
       const api = await (instanceApis[instance.id] =

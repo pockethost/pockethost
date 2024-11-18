@@ -168,7 +168,8 @@ export const DEBUG = () =>
   env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
-export const APP_URL = (...path: string[]) => join(settings().APP_URL, ...path)
+export const APP_URL = (...path: string[]) =>
+  [settings().APP_URL, path.join(`/`)].filter(Boolean).join('/')
 
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
@@ -177,13 +178,15 @@ export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
-  join(
+  [
     env
       .get('MOTHERSHIP_URL')
       .default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}:${APEX_DOMAIN()}`)
       .asString(),
-    ...path,
-  )
+    path.join('/'),
+  ]
+    .filter(Boolean)
+    .join('/')
 
 export const MOTHERSHIP_NAME = () => settings().MOTHERSHIP_NAME
 export const MOTHERSHIP_ADMIN_USERNAME = () =>
@@ -255,17 +258,15 @@ export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) =>
   join(`/home/pockethost`, ...path.filter((v) => !!v))
-export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
-export const mkDocUrl = (path = '') => mkAppUrl(join('/docs', path))
+export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
 export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
   (instance.cname_active && instance.cname) || `${instance.id}.${APEX_DOMAIN()}`
 export const mkInstanceHostname = (instance: InstanceFields) =>
-  `${instance.subdomain}.${APEX_DOMAIN()}`
+  [instance.subdomain, APEX_DOMAIN()].filter(Boolean).join('.')
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
-  [
-    `${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`,
-    paths.length ? join(...paths) : '',
-  ].join('')
+  [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)]
+    .filter(Boolean)
+    .join('/')
 export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
   join(settings().DATA_ROOT, instanceId, ...path)
 
