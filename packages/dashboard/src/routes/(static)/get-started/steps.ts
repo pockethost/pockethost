@@ -2,7 +2,7 @@ export type StepState = {
   [_ in StepKey]: string
 }
 
-export type StepKey = keyof Steps
+export type StepKey = keyof typeof steps
 
 type ActionHandler = (
   state: Partial<StepState>,
@@ -14,6 +14,7 @@ type ActionResult = string | { message: string }
 export type Action = {
   display: string
   style?: string
+  mode?: 'back' | 'next' | 'submit'
   value: string | ActionHandler
 }
 
@@ -74,6 +75,7 @@ export const steps: Steps = {
     actions: [
       {
         display: 'Send code',
+        mode: 'submit',
         value: async () => {
           //   throw new Error(`todo`)
           return 'acknowledged'
@@ -106,21 +108,26 @@ export const steps: Steps = {
       },
       {
         display: 'Continue',
-        value: 'acknowledged',
+        value: async () => {
+          console.log(`LOGGING IN`)
+          return 'ok'
+        },
       },
     ],
   },
   marketing: {
     title: `Can we keep in touch?`,
-    question: 'Do you want stuff like our newsletter and lifetime offers?',
+    question:
+      'Do you want stuff like our newsletter, lifetime offers, announcements, etc.?',
     actions: [
-      {
-        display: 'Send me goodies',
-        value: 'opt_in',
-      },
       {
         display: 'Unsubscribe me now',
         value: 'opt_out',
+        style: 'btn-neutral',
+      },
+      {
+        display: 'Send me goodies',
+        value: 'opt_in',
       },
     ],
   },
@@ -128,8 +135,12 @@ export const steps: Steps = {
     title: `Tell us about your project`,
     question: 'Are you planning a real app, or just trying things out?',
     actions: [
+      {
+        display: 'Just Trying Things Out',
+        value: 'testing',
+        style: 'btn-neutral',
+      },
       { display: 'Real App', value: 'real' },
-      { display: 'Just Trying Things Out', value: 'testing' },
     ],
   },
   platform: {
@@ -145,17 +156,17 @@ export const steps: Steps = {
     title: `Tell us about your project`,
     question: 'How big do you think your database will be?',
     actions: [
-      { display: 'Under 1GB', value: 'small' },
+      { display: 'Under 1GB', value: 'small', style: 'btn-neutral' },
       { display: 'Over 1GB', value: 'large' },
     ],
   },
   customDomain: {
     title: `Tell us about your project`,
     question:
-      'Do you want to use a custom domain? If you say no, let me [tell you a story](/docs/why-custom-domains).',
+      'Do you want to use a custom domain like `api.foo.com` instead of `foo.pockethost.io`? If you say no, let me [tell you a story](/docs/why-custom-domains){.link}{.text-info}.',
     actions: [
+      { display: 'No', value: 'no', style: 'btn-neutral' },
       { display: 'Yes', value: 'yes' },
-      { display: 'No', value: 'no' },
     ],
   },
   fileCount: {

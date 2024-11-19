@@ -1,4 +1,6 @@
 <script lang="ts">
+  import markdownit from 'markdown-it'
+  import markdownItAttrs from 'markdown-it-attrs'
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import { every, keys, map, values } from '@s-libs/micro-dash'
   import StepContainer from './StepContainer.svelte'
@@ -19,9 +21,15 @@
   const infos = writable<string[]>([])
   const inputs = writable<Record<string, string>>({})
 
-  const state = writable<Partial<Record<StepKey, string>>>({
+  const stateDefaults: Partial<Record<StepKey, string>> = {
     email: 'foo@bar.com',
-  })
+    otp: 'ok',
+    marketing: 'opt_in',
+    appIntent: 'testing',
+    platform: 'web',
+    dbSize: 'large',
+  }
+  const state = writable<Partial<Record<StepKey, string>>>(stateDefaults)
 
   $: stepIdx = keys($state).length
   const setStep = (n: number) => {
@@ -40,21 +48,27 @@
     errors.set([])
     infos.set([])
     try {
-      await Promise.all(
-        map(step.inputs, async (input, name) => {
-          const validator = input.validator
-          if (validator) {
-            console.log(`validating ${name}`)
-            const res = await validator($inputs[name] || '', $state)
-            if (typeof res === 'string') {
-              errors.update((errors) => [...errors, `${res}`])
-            }
-          }
-        }),
-      )
-      const allValid = $errors.length === 0
-      if (!allValid) {
+      if (action.mode === 'back') {
+        setStep(stepIdx - 1)
         return
+      }
+      if (action.mode === 'next' || !action.mode) {
+        await Promise.all(
+          map(step.inputs, async (input, name) => {
+            const validator = input.validator
+            if (validator) {
+              console.log(`validating ${name}`)
+              const res = await validator($inputs[name] || '', $state)
+              if (typeof res === 'string') {
+                errors.update((errors) => [...errors, `${res}`])
+              }
+            }
+          }),
+        )
+        const allValid = $errors.length === 0
+        if (!allValid) {
+          return
+        }
       }
       const valueHandler = action.value
       const valueHandlerResult =
@@ -71,23 +85,39 @@
           infos.set([valueHandlerResult.message])
         }
       }
-      setStep(stepIdx + 1)
+      if (action.mode === 'next') {
+        setStep(stepIdx + 1)
+      }
     } catch (e) {
       errors.update((errors) => [...errors, `${(e as Error).message ?? e}`])
     }
-    console.log(
-      `clicked ${action.display}`,
-      JSON.stringify({ errors }, null, 2),
-    )
   }
 
+  const md = markdownit().use(markdownItAttrs)
   $: step = stepsArray[stepIdx]!
   $: stepKey = stepKeys[stepIdx]!
-  $: stepTitle =
-    typeof step.title === 'function' ? step.title($state) : step.title
-  $: stepQuestion =
-    typeof step.question === 'function' ? step.question($state) : step.question
-  $: console.log(JSON.stringify({ inputs, state, errors }, null, 2))
+  $: stepTitle = md.render(
+    typeof step.title === 'function' ? step.title($state) : step.title,
+  )
+  $: stepQuestion = md.render(
+    typeof step.question === 'function' ? step.question($state) : step.question,
+  )
+  $: console.log(
+    JSON.stringify(
+      {
+        step,
+        stepKey,
+        stepTitle,
+        stepQuestion,
+        inputs: $inputs,
+        state: $state,
+        errors: $errors,
+        infos: $infos,
+      },
+      null,
+      2,
+    ),
+  )
 </script>
 
 <svelte:head>
@@ -108,14 +138,16 @@
 
       <div class="relative h-[400px] w-[325px] overflow-hidden p-4">
         <StepContainer title={stepTitle}>
-          <div class="mt-2">{stepQuestion}</div>
+          <div class="mt-2">{@html stepQuestion}</div>
           <div class="mt-2">
             {#if $infos.length > 0}
-              {#each $infos as info}
+              <div class="pt-2 pb-2">
                 <div class="bg-info text-info-content rounded-md p-2">
-                  {info}
+                  {#each $infos as info}
+                    <div>{info}</div>
+                  {/each}
                 </div>
-              {/each}
+              </div>
             {/if}
             {#if $errors.length > 0}
               <div class="pt-2 pb-2">
@@ -151,7 +183,7 @@
           <div class="mt-2">
             {#each step.actions || [] as action}
               <button
-                class="btn btn-primary btn-sm {action.style} mr-2"
+                class="btn btn-primary btn-sm {action.style} mr-2 mb-2"
                 on:click={handleClick(action)}
               >
                 {action.display}

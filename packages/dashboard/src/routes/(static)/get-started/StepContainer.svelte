@@ -8,6 +8,6 @@
   in:fly={{ x: 400, duration: 300 }}
   out:fly={{ x: -400, duration: 300 }}
 >
-  <div class="text-2xl">{title}</div>
+  <div class="text-2xl">{@html title}</div>
   <slot />
 </div>
