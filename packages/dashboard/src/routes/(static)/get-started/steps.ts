@@ -5,8 +5,8 @@ export type StepState = {
 export type StepKey = keyof typeof steps
 
 type ActionHandler = (
-  state: Partial<StepState>,
   inputs: Record<string, string>,
+  state: Partial<StepState>,
 ) => Promise<ActionResult> | ActionResult
 
 type ActionResult = string | { message: string }
@@ -173,15 +173,15 @@ export const steps: Steps = {
     title: `Tell us about your project`,
     question: "How many files do you think you'll need to store?",
     actions: [
-      { display: 'Under 100', value: 'small' },
+      { display: 'Under 100', value: 'small', style: 'btn-neutral' },
       { display: 'Over 100', value: 'large' },
     ],
   },
   fileStorage: {
     title: `Tell us about your project`,
-    question: 'How much file storage do you expect?',
+    question: `How much file storage do you expect you'll need?`,
     actions: [
-      { display: 'Under 1GB', value: 'small' },
+      { display: 'Under 1GB', value: 'small', style: 'btn-neutral' },
       { display: 'Over 1GB', value: 'large' },
     ],
   },
@@ -189,7 +189,7 @@ export const steps: Steps = {
     title: `Tell us about your project`,
     question: 'How many users will your project have?',
     actions: [
-      { display: 'Under 100', value: 'small' },
+      { display: 'Under 100', value: 'small', style: 'btn-neutral' },
       { display: 'Over 100', value: 'large' },
     ],
   },
@@ -197,23 +197,21 @@ export const steps: Steps = {
     title: `Tell us about your project`,
     question: 'What kind of traffic do you expect?',
     actions: [
-      { display: 'Under 1000 visits/day', value: 'small' },
+      {
+        display: 'Under 1000 visits/day',
+        value: 'small',
+        style: 'btn-neutral',
+      },
       { display: 'Over 1000 visits/day', value: 'large' },
     ],
   },
-  mailInfo: {
-    title: `PocketHost Features`,
-    question:
-      'You need outgoing mail to communicate with your users for things like account creation and password resets.',
-    actions: [{ display: 'Got it', value: 'acknowledged' }],
-  },
   mailService: {
-    title: `PocketHost Features`,
+    title: `Outgoing SMTP?`,
     question:
-      'Do you want us to provide secure outgoing mail to communicate with your users?',
+      'You need outgoing mail to communicate with your users for things like account creation and password resets. Do you want us to provide secure outgoing mail to communicate with your users?',
     actions: [
+      { display: 'Nope - DIY', value: 'no', style: 'btn-neutral' },
       { display: 'Yes', value: 'yes' },
-      { display: 'No', value: 'no' },
     ],
   },
   hibernation: {
@@ -221,29 +219,28 @@ export const steps: Steps = {
     question:
       "Do you want your PocketBase instance on all the time, or can we hibernate it when it's idle?",
     actions: [
-      { display: 'Always on', value: 'always' },
-      { display: 'Hibernate', value: 'hibernate' },
+      { display: 'Hibernate', value: 'hibernate', style: 'btn-neutral' },
+      { display: 'Always on', value: 'always-on' },
     ],
   },
   ddosInfo: {
-    title: `PocketHost Features`,
-    question:
-      'Fun fact: PocketHost provides automatic bot and DDoS protection.',
-    actions: [{ display: 'Got it', value: 'acknowledged' }],
+    title: `DDoS Protection`,
+    question: 'PocketHost provides automatic bot and DDoS protection.',
+    actions: [{ display: 'Sweet', value: 'acknowledged' }],
   },
   support: {
-    title: `Need help?`,
-    question: "Do you think you'll need help setting up your project?",
+    title: `Project Support`,
+    question: "Do you think you'll need our pro help setting up your project?",
     actions: [
+      { display: 'No', value: 'no', style: 'btn-neutral' },
       { display: 'Yes', value: 'yes' },
-      { display: 'No', value: 'no' },
     ],
   },
   projectCount: {
-    title: `PocketHost Features`,
+    title: `Project Count`,
     question: 'Do you think ever start more than 25 different projects?',
     actions: [
-      { display: 'Under 25', value: 'small' },
+      { display: 'Under 25', value: 'small', style: 'btn-neutral' },
       { display: 'Over 25', value: 'large' },
     ],
   },
@@ -251,28 +248,18 @@ export const steps: Steps = {
     title: `Long Tall Texan`,
     question:
       'Are you doing anything with your app that would be illegal or unethical in your country or the United States?',
-    actions: [
-      { display: 'Yes', value: 'yes' },
-      { display: 'No', value: 'no' },
-    ],
-  },
-  edgeInfo: {
-    title: `PocketHost Features`,
-    question:
-      'PocketHost is working on a global edge network, so your users connect through the nearest edge and are routed to your origin over a private network for fastest speeds.',
-    actions: [{ display: '1337', value: 'acknowledged' }],
+    actions: [{ display: `I promise to be good`, value: 'no' }],
   },
   region: {
-    title: `PocketHost Region`,
-    question:
-      'In a perfect world, where would you like your project to run from (origin)?',
+    title: `Server Location`,
+    question: `---\n\nPocketHost is working on a global edge network, so your users connect through the nearest edge and are routed to your origin over a private network for fastest speeds.\n\n-----\n\n**In a perfect world, where would you like your project to run from (origin)?**`,
     inputs: {
       region: {
         type: 'select',
         label: 'Region',
         placeholder: 'Select a region',
-        validator: async () => '',
         values: [
+          { display: '--choose region--', value: '' },
           { display: 'Amsterdam, Netherlands', value: 'ams' },
           { display: 'Ashburn, Virginia (US)', value: 'iad' },
           { display: 'Atlanta, Georgia (US)', value: 'atl' },
@@ -309,9 +296,10 @@ export const steps: Steps = {
           { display: 'Toronto, Canada', value: 'yyz' },
           { display: 'Warsaw, Poland', value: 'waw' },
         ],
+        validator: (value, state) => !!value.trim() || `Please select a region`,
       },
     },
-    actions: [{ display: 'Keep going!', value: 'acknowledged' }],
+    actions: [{ display: 'Keep going!', value: (state) => state.region! }],
   },
   discordInfo: {
     title: `PocketHost Community`,
@@ -330,8 +318,30 @@ export const steps: Steps = {
     actions: [{ display: 'Your mom', value: 'acknowledged' }],
   },
   done: {
-    title: `You're All Set!`,
-    question: 'Your instance has been created and is ready to use.',
-    actions: [{ display: `Let's goooo, son!`, value: 'acknowledged' }],
+    title: `Get Started Today`,
+    question:
+      'Based on your answers, we recommend the **Hacker** plan, but you decide.\n\n---{class="mt-4"}\n\nAll plans include a 7 day free trial.{class="text-info p-8"}\n\n---{class="mb-4"}\n\n',
+    actions: [
+      {
+        display: `Hacker $7.99/month`,
+        value: 'hacker',
+        style: 'btn-success btn-wide',
+      },
+      {
+        display: `Pro $19.99/month`,
+        value: `pro`,
+        style: 'btn-neutral btn-wide',
+      },
+      {
+        display: `Pro $199.99/yr`,
+        value: `pro`,
+        style: 'btn-neutral btn-wide',
+      },
+      {
+        display: `Lifetime $299 once`,
+        value: 'flounder',
+        style: 'btn-neutral btn-wide',
+      },
+    ],
   },
 } as const

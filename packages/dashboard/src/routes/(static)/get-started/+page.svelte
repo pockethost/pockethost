@@ -28,6 +28,21 @@
     appIntent: 'testing',
     platform: 'web',
     dbSize: 'large',
+    customDomain: 'no',
+    fileCount: 'small',
+    fileStorage: 'small',
+    userCount: 'large',
+    traffic: 'large',
+    mailService: 'yes',
+    hibernation: 'always-on',
+    ddosInfo: 'acknowledged',
+    support: 'yes',
+    projectCount: 'large',
+    legal: 'no',
+    region: 'atl',
+    discordInfo: 'acknowledged',
+    userInfo: 'acknowledged',
+    openSourceInfo: 'acknowledged',
   }
   const state = writable<Partial<Record<StepKey, string>>>(stateDefaults)
 
@@ -74,7 +89,7 @@
       const valueHandlerResult =
         typeof valueHandler === 'string'
           ? valueHandler
-          : await valueHandler($state, $inputs)
+          : await valueHandler($inputs, $state)
       if (typeof valueHandlerResult === 'string') {
         state.update((state) => {
           state[stepKey] = valueHandlerResult
@@ -136,7 +151,7 @@
         max={keys(steps).length}
       ></progress>
 
-      <div class="relative h-[400px] w-[325px] overflow-hidden p-4">
+      <div class="relative h-[450px] w-[325px] overflow-hidden p-4">
         <StepContainer title={stepTitle}>
           <div class="mt-2">{@html stepQuestion}</div>
           <div class="mt-2">
@@ -180,7 +195,7 @@
               {/if}
             {/each}
           </div>
-          <div class="mt-2">
+          <div class="mt-2 flex justify-center flex-wrap">
             {#each step.actions || [] as action}
               <button
                 class="btn btn-primary btn-sm {action.style} mr-2 mb-2"
