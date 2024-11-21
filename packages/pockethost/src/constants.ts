@@ -12,15 +12,13 @@ import {
   SettingsHandlerFactory,
   SettingsService,
   ioc,
-} from '../core'
-import {
   mkBoolean,
   mkCsvString,
   mkNumber,
   mkPath,
   mkString,
-} from './core/Settings'
-import { settings } from './core/ioc'
+  settings,
+} from '.'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -45,7 +43,6 @@ export const _HTTP_PROTOCOL = env
   .get('HTTP_PROTOCOL')
   .default('https:')
   .asString()
-export const _APP_NAME = env.get('APP_NAME').default('app').asString()
 export const _MOTHERSHIP_NAME = env
   .get('MOTHERSHIP_NAME')
   .default('pockethost-central')
@@ -78,16 +75,14 @@ const createDevCert = async () => {
   writeFileSync(join(_SSL_HOME, `${TLS_PFX}.cert`), cert)
 }
 
-export const SETTINGS = {
+export const createSettings = () => ({
   PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
 
   HTTP_PROTOCOL: mkString(_HTTP_PROTOCOL),
-  APP_NAME: mkString(_APP_NAME),
-  APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APP_NAME}.${_APEX_DOMAIN}`),
-  BLOG_URL: mkString(`${_HTTP_PROTOCOL}//${_APEX_DOMAIN}`),
+  APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APEX_DOMAIN}`),
   APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
   IPCIDR_LIST: mkCsvString([]),
@@ -142,7 +137,7 @@ export const SETTINGS = {
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
 
   PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
-}
+})
 
 export type Settings = ReturnType<typeof RegisterEnvSettingsService>
 export type SettingsDefinition = {
@@ -150,7 +145,7 @@ export type SettingsDefinition = {
 }
 
 export const RegisterEnvSettingsService = () => {
-  const _settings = SettingsService(SETTINGS)
+  const _settings = SettingsService(createSettings())
 
   ioc('settings', _settings)
 
@@ -173,11 +168,8 @@ export const DEBUG = () =>
   env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
-export const APP_URL = () => settings().APP_URL
-export const APP_NAME = () => settings().APP_NAME
-export const BLOG_URL = (...path: string[]) =>
-  join(settings().BLOG_URL, ...path)
-export const DOCS_URL = (...path: string[]) => BLOG_URL(`docs`, ...path)
+export const APP_URL = (...path: string[]) =>
+  [settings().APP_URL, path.join(`/`)].filter(Boolean).join('/')
 
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
@@ -186,13 +178,15 @@ export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
-  join(
+  [
     env
       .get('MOTHERSHIP_URL')
       .default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}:${APEX_DOMAIN()}`)
       .asString(),
-    ...path,
-  )
+    path.join('/'),
+  ]
+    .filter(Boolean)
+    .join('/')
 
 export const MOTHERSHIP_NAME = () => settings().MOTHERSHIP_NAME
 export const MOTHERSHIP_ADMIN_USERNAME = () =>
@@ -264,18 +258,15 @@ export const INSTANCE_DATA_DB = (id: InstanceId) =>
   join(DATA_ROOT(), id, `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) =>
   join(`/home/pockethost`, ...path.filter((v) => !!v))
-export const mkAppUrl = (path = '') => `${APP_URL()}${path}`
-export const mkBlogUrl = (path = '') => `${BLOG_URL()}${path}`
-export const mkDocUrl = (path = '') => mkBlogUrl(join('/docs', path))
+export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
 export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
   (instance.cname_active && instance.cname) || `${instance.id}.${APEX_DOMAIN()}`
 export const mkInstanceHostname = (instance: InstanceFields) =>
-  `${instance.subdomain}.${APEX_DOMAIN()}`
+  [instance.subdomain, APEX_DOMAIN()].filter(Boolean).join('.')
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
-  [
-    `${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`,
-    paths.length ? join(...paths) : '',
-  ].join('')
+  [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)]
+    .filter(Boolean)
+    .join('/')
 export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
   join(settings().DATA_ROOT, instanceId, ...path)
 
@@ -287,9 +278,6 @@ export const logConstants = () => {
     PH_PROJECT_ROOT,
     HTTP_PROTOCOL,
     APP_URL,
-    APP_NAME,
-    BLOG_URL,
-    DOCS_URL,
     APEX_DOMAIN,
     IPCIDR_LIST,
     DAEMON_PORT,

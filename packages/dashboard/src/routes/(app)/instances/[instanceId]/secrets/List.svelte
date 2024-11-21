@@ -4,7 +4,7 @@
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import { reduce } from '@s-libs/micro-dash'
-  import { logger, type UpdateInstancePayload } from 'pockethost'
+  import { logger, type UpdateInstancePayload } from 'pockethost/common'
   import Fa from 'svelte-fa'
   import { faTrash } from '@fortawesome/free-solid-svg-icons'
 

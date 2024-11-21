@@ -10,7 +10,7 @@ on:
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
-  MAIN_BRANCH: v0/main
+  MAIN_BRANCH: main
 
 jobs:
   publish:
@@ -50,7 +50,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: pockethost-lander
+          projectName: pockethost
           directory: ./packages/dashboard/build
           branch: ${{ github.head_ref || github.ref_name }}
           wranglerVersion: '3'

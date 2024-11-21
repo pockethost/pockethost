@@ -15,9 +15,9 @@ import {
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
-} from '../../../core'
+} from '../..'
 import { GobotService } from '../GobotService'
-import { InstanceLogger } from '../InstanceLoggerService'
+import { InstanceLogWriter } from '../InstanceLoggerService'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
@@ -85,7 +85,7 @@ export const createPocketbaseService = async (
     } = _cfg
 
     logger.breadcrumb({ subdomain, instanceId })
-    const iLogger = InstanceLogger(instanceId, 'exec')
+    const iLogger = InstanceLogWriter(instanceId, 'exec')
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await bot.maxSatisfyingVersion(_version)

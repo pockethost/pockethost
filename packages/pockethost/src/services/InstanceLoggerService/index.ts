@@ -1,13 +1,20 @@
-import * as fs from 'fs'
 import { appendFile } from 'fs/promises'
 import { Tail } from 'tail'
-import { LoggerService, mkInstanceDataPath, stringify } from '../../../core'
+import {
+  ensureInstanceDirectoryStructure,
+  LoggerService,
+  mkInstanceDataPath,
+  stringify,
+} from '../..'
 
 type UnsubFunc = () => void
 
-export type InstanceLoggerApi = {
+export type InstanceLogWriterApi = {
   info: (msg: string) => void
   error: (msg: string) => void
+}
+
+export type InstanceLogReaderApi = {
   tail: (linesBack: number, data: (line: LogEntry) => void) => UnsubFunc
   shutdown: () => void
 }
@@ -18,26 +25,11 @@ export type LogEntry = {
   time: string
 }
 
-export type InstanceLoggerOptions = {}
+export function InstanceLogWriter(instanceId: string, target: string) {
+  const logger = LoggerService().create(instanceId).breadcrumb({ target })
+  const { dbg, info, error, warn } = logger
 
-const loggers: {
-  [key: string]: InstanceLoggerApi
-} = {}
-
-export function InstanceLogger(
-  instanceId: string,
-  target: string,
-  options: Partial<InstanceLoggerOptions> = {},
-) {
-  const { dbg, info, error, warn } = LoggerService()
-    .create(instanceId)
-    .breadcrumb({ target })
-
-  const logDirectory = mkInstanceDataPath(instanceId, `logs`)
-  if (!fs.existsSync(logDirectory)) {
-    dbg(`Creating ${logDirectory}`)
-    fs.mkdirSync(logDirectory, { recursive: true })
-  }
+  ensureInstanceDirectoryStructure(instanceId, logger)
 
   const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 
@@ -61,6 +53,18 @@ export function InstanceLogger(
       error(msg)
       appendLogEntry(msg, 'stderr')
     },
+  }
+
+  return api
+}
+
+export function InstanceLogReader(instanceId: string, target: string) {
+  const logger = LoggerService().create(instanceId).breadcrumb({ target })
+  const { dbg, info, error, warn } = logger
+
+  ensureInstanceDirectoryStructure(instanceId, logger)
+
+  const api = {
     tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
       const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 

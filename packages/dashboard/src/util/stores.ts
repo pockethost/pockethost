@@ -41,21 +41,33 @@ export const stats = writable<{
   total_flounder_subscribers: 0,
 })
 
+const checkStats = () => {
+  client()
+    .client.send(`/api/stats`, {})
+    .then((res) => {
+      stats.set(res)
+      isMothershipReachable.set(true)
+      // setTimeout(checkStats, 1000 * 60 * 5)
+    })
+    .catch(() => {
+      // isMothershipReachable.set(false)
+      // setTimeout(checkStats, 1000)
+    })
+}
+
+const continuouslyCheckMothershipReachability = () => {
+  setInterval(() => {
+    client()
+      .client.send(`/api/health`, {})
+      .then((res) => {
+        isMothershipReachable.set(true)
+      })
+  }, 5000)
+}
+
 export const init = () => {
   const { onAuthChange } = client()
 
-  const checkStats = () => {
-    client()
-      .client.send(`/api/stats`, {})
-      .then((res) => {
-        stats.set(res)
-        setTimeout(checkStats, 1000 * 60 * 5)
-      })
-      .catch(() => {
-        isMothershipReachable.set(false)
-        setTimeout(checkStats, 1000)
-      })
-  }
   checkStats()
 
   onAuthChange((authStoreProps) => {
@@ -121,15 +133,4 @@ export const init = () => {
     }
     tryInstanceSubscribe()
   })
-
-  setInterval(() => {
-    client()
-      .client.send(`/api/health`, {})
-      .then((res) => {
-        isMothershipReachable.set(true)
-      })
-      .catch(() => {
-        isMothershipReachable.set(false)
-      })
-  }, 5000)
 }

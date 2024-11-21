@@ -1,14 +1,14 @@
 import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
-import { logger } from '../../../../../common'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
   discordAlert,
+  logger,
   neverendingPromise,
   tryFetch,
-} from '../../../../../core'
+} from '../../../../..'
 import {
   DOCKER_INSTANCE_IMAGE_NAME,
   MothershipAdminClientService,

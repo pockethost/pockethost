@@ -2,14 +2,14 @@ import { map } from '@s-libs/micro-dash'
 import Database from 'better-sqlite3'
 import Bottleneck from 'bottleneck'
 import { Command, InvalidArgumentError } from 'commander'
-import { PocketBase, UserFields, logger } from '../../../common'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_DATA_DB,
   MOTHERSHIP_URL,
   TEST_EMAIL,
-} from '../../../core'
+} from '../../..'
+import { PocketBase, UserFields, logger } from '../../../common'
 
 const TBL_SENT_MESSAGES = `sent_messages`
 

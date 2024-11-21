@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { logger } from '../../../../../../common'
+import { logger } from '../../../../../common'
 import { daemon } from './daemon'
 
 type Options = {

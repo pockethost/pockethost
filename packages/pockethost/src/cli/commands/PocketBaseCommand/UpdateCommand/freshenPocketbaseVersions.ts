@@ -5,7 +5,7 @@ import {
   MOTHERSHIP_HOOKS_DIR,
   PH_ALLOWED_POCKETBASE_SEMVER,
   stringify,
-} from '../../../../../core'
+} from '../../../..'
 import { GobotService } from '../../../../services/GobotService'
 
 function compareSemVer(a: string, b: string): number {

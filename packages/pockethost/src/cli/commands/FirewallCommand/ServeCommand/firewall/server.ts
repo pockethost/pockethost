@@ -7,7 +7,6 @@ import fs from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
-import { logger } from '../../../../../common/Logger'
 import {
   APEX_DOMAIN,
   DAEMON_PORT,
@@ -18,7 +17,8 @@ import {
   neverendingPromise,
   SSL_CERT,
   SSL_KEY,
-} from '../../../../../core'
+} from '../../../../..'
+import { logger } from '../../../../../common/Logger'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 
@@ -31,7 +31,7 @@ export const firewall = async () => {
   const DEV_ROUTES = {
     [`mail.${APEX_DOMAIN()}`]: `http://localhost:${1080}`,
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
-    [`${APEX_DOMAIN()}`]: `http://localhost:${8080}`,
+    [`${APEX_DOMAIN()}`]: `http://localhost:${5174}`,
   }
   const hostnameRoutes = IS_DEV() ? DEV_ROUTES : PROD_ROUTES
 

@@ -4,6 +4,7 @@ import { spawn } from 'child_process'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
+import { DATA_ROOT } from '../../../../..'
 import {
   InstanceFields,
   Logger,
@@ -11,8 +12,10 @@ import {
   assert,
   seqid,
 } from '../../../../../common'
-import { DATA_ROOT } from '../../../../../core'
-import { InstanceLogger, InstanceLoggerApi } from '../../../../../services'
+import {
+  InstanceLogWriter,
+  InstanceLogWriterApi,
+} from '../../../../../services'
 import * as fsAsync from './fs-async'
 import { MAINTENANCE_ONLY_INSTANCE_ROOTS } from './guards'
 
@@ -48,7 +51,7 @@ const checkBun = (
       [`bun.lockb`, `package.json`].includes(maybeImportant || ''))
 
   if (isImportant) {
-    const logger = InstanceLogger(instance.id, `exec`, { ttl: 5000 })
+    const logger = InstanceLogWriter(instance.id, `exec`)
     logger.info(`${maybeImportant} changed, running bun install`)
     launchBunInstall(instance, virtualPath, cwd).catch(console.error)
   }
@@ -56,7 +59,7 @@ const checkBun = (
 
 const runBun = (() => {
   const bunLimiter = new Bottleneck({ maxConcurrent: 1 })
-  return (cwd: string, logger: InstanceLoggerApi) =>
+  return (cwd: string, logger: InstanceLogWriterApi) =>
     bunLimiter.schedule(
       () =>
         new Promise<number | null>((resolve) => {
@@ -100,7 +103,7 @@ const launchBunInstall = (() => {
     runCache[cwd] = { runAgain: true }
     while (runCache[cwd]!.runAgain) {
       runCache[cwd]!.runAgain = false
-      const logger = InstanceLogger(instance.id, `exec`)
+      const logger = InstanceLogWriter(instance.id, `exec`)
       logger.info(`Launching 'bun install' in ${virtualPath}`)
       await runBun(cwd, logger)
     }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { faClock, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
+  import { userStore } from '$util/stores'
   import Fa from 'svelte-fa'
   import { onMount, onDestroy } from 'svelte'
   import { writable } from 'svelte/store'
@@ -18,6 +19,7 @@
   export let fundingGoals: string[] = []
   export let startDate: Date | null = null
   export let endDate: Date | null = null
+  export let requireAuthenticatedUser = false
 
   const comingSoon = startDate && startDate > new Date()
 
@@ -73,6 +75,9 @@
     } else if (qtyRemaining <= 0) {
       event.preventDefault()
       alert(soldOutText)
+    } else if (requireAuthenticatedUser && !$userStore?.verified) {
+      event.preventDefault()
+      alert('Please create and verify your account first.')
     }
   }
 </script>

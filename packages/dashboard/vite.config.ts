@@ -13,7 +13,7 @@ const config: UserConfig = {
   server: {
     port: 5174,
     strictPort: true,
-    host: 'app.pockethost.lvh.me',
+    host: 'pockethost.lvh.me',
     hmr: {
       clientPort: 5174,
     },

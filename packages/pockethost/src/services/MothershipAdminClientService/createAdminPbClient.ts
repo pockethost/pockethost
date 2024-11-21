@@ -9,7 +9,7 @@ import {
   RestMethods,
   createRestHelper,
   stringify,
-} from '../../../core'
+} from '../..'
 import { createInstanceMixin } from './InstanceMIxin'
 
 export type PocketbaseClientApi = ReturnType<typeof createAdminPbClient>

@@ -7,6 +7,7 @@
   import NewInstanceProcessingBlock from './NewInstanceProcessingBlock.svelte'
   import Fa from 'svelte-fa'
   import { faArrowRight, faRotate } from '@fortawesome/free-solid-svg-icons'
+  import { onMount } from 'svelte'
 
   export let isSignUpView: boolean = false
   let isProcessing: boolean = false
@@ -30,34 +31,38 @@
     instanceNameField.set(name)
   }
 
-  instanceNameField.subscribe(async (name) => {
-    if (name === $instanceInfo.name) return
-    try {
-      instanceInfo.update((info) => ({
-        ...info,
-        fetching: true,
-      }))
-      const res = await client().client.send(
-        `/api/signup?name=${encodeURIComponent(name)}`,
-        {},
-      )
-      instanceInfo.update((info) => ({
-        ...info,
-        fetching: false,
-        available: true,
-        name,
-      }))
-    } catch (e) {
-      instanceInfo.update((info) => ({
-        ...info,
-        fetching: false,
-        available: false,
-        name,
-      }))
-    }
+  onMount(() => {
+    instanceNameField.subscribe(async (name) => {
+      if (name === $instanceInfo.name) return
+      try {
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: true,
+        }))
+        const res = await client().client.send(
+          `/api/signup?name=${encodeURIComponent(name)}`,
+          {},
+        )
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: false,
+          available: true,
+          name,
+        }))
+      } catch (e) {
+        instanceInfo.update((info) => ({
+          ...info,
+          fetching: false,
+          available: false,
+          name,
+        }))
+      }
+    })
   })
 
-  generateSlug()
+  onMount(() => {
+    generateSlug()
+  })
 
   // Set up the variables to hold the form information
   let email: string = ''

@@ -9,7 +9,7 @@ import {
   LoggerService,
   MOTHERSHIP_PORT,
   stringify,
-} from '../../../../core'
+} from '../../..'
 
 export const checkHealth = async () => {
   const { cpu, drive } = osu

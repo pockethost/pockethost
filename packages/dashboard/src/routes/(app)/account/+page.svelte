@@ -1,6 +1,6 @@
 <script lang="ts">
   import { userSubscriptionType } from '$util/stores'
-  import { PLAN_NAMES, SubscriptionType } from 'pockethost'
+  import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
   import { userStore } from '$util/stores'
   import { onMount } from 'svelte'
   import FlounderCard from './FlounderCard.svelte'
