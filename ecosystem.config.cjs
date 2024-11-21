@@ -15,10 +15,6 @@ module.exports = {
       cron_restart: '0 0 * * *',
     },
     {
-      name: `edge-syslog`,
-      script: 'pnpm prod:cli edge syslog serve',
-    },
-    {
       name: `mothership`,
       script: 'pnpm prod:cli mothership serve',
     },
