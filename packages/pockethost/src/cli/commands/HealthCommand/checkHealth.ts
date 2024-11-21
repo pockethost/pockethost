@@ -141,14 +141,23 @@ export const checkHealth = async () => {
               content,
             }),
             headers: { 'content-type': 'application/json' },
-          }),
+          })
+            .then((res) => {
+              if (res.status !== 200) {
+                throw new Error(`${res.status} ${res.statusText}`)
+              }
+            })
+            .catch((e) => {
+              console.error({ e })
+              throw e
+            }),
         ),
       ),
     )
 
   const openFiles = _exec(`cat /proc/sys/fs/file-nr`)[0]?.trim() || `Unknown`
 
-  await send([
+  const meta = [
     `===================`,
     `${new Date()}`,
     `CPUs: ${cpu.count()}`,
@@ -160,7 +169,9 @@ export const checkHealth = async () => {
     }GB`,
     `Open files: ${openFiles}`,
     `Containers: ${containers.length}`,
-  ])
+  ]
+  console.log(meta.join('\n'))
+  await send(meta)
 
   const checks: Check[] = [
     {
@@ -228,4 +239,5 @@ export const checkHealth = async () => {
         }
       }),
   ])
+  dbg(`done`)
 }
