@@ -143,7 +143,7 @@ export const checkHealth = async () => {
             headers: { 'content-type': 'application/json' },
           })
             .then((res) => {
-              if (res.status !== 200) {
+              if (res.status !== 204) {
                 throw new Error(`${res.status} ${res.statusText}`)
               }
             })
