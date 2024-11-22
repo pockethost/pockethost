@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "target": "ES6",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "$util/*": ["src/lib/util/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/lib/random-words.js"]
+}

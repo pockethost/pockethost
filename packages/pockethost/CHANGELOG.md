@@ -1,5 +1,11 @@
 # pockethost
 
+## 2.0.2
+
+### Patch Changes
+
+- Refactored mothership to TS using JSVM bundling
+
 ## 2.0.1
 
 ### Patch Changes
