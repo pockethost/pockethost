@@ -12,7 +12,10 @@ module.exports = {
     {
       name: `edge-ftp`,
       script: 'pnpm prod:cli edge ftp serve',
-      cron_restart: '0 0 * * *',
+    {
+      name: `edge-volume`,
+      script: 'pnpm prod:cli edge volume mount',
+      // cron_restart: '0 0 * * *',
     },
     {
       name: `mothership`,

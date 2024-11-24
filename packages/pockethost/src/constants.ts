@@ -8,7 +8,6 @@ import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import {
   InstanceFields,
-  InstanceId,
   SettingsHandlerFactory,
   SettingsService,
   ioc,
@@ -144,6 +143,22 @@ export const createSettings = () => ({
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
 
   PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
+
+  VOLUME_MOUNT_POINT: mkPath(join(_DATA_ROOT, 'cloud-storage-mount'), {
+    create: true,
+  }),
+  VOLUME_CACHE_DIR: mkPath(join(_PH_HOME, 'rclone', 'cloud-storage-cache'), {
+    create: true,
+  }),
+  VOLUME_REMOTE_NAME: mkString(``, { required: true }),
+  VOLUME_BUCKET_NAME: mkString(``, { required: true }),
+  VOLUME_VFS_CACHE_MAX_AGE: mkString(`100w`),
+  VOLUME_VFS_CACHE_MIN_FREE_SPACE: mkString(`10G`),
+  VOLUME_VFS_READ_CHUNK_SIZE: mkString(`1m`),
+  VOLUME_VFS_READ_CHUNK_STREAMS: mkString(`64`),
+  VOLUME_VFS_WRITE_BACK: mkString(`1h`),
+  VOLUME_DIR_CACHE_TIME: mkString(`100d`),
+  VOLUME_DEBUG: mkBoolean(_DEBUG),
 })
 
 export type Settings = ReturnType<typeof RegisterEnvSettingsService>
@@ -254,6 +269,22 @@ export const PH_MOTHERSHIP_MIRROR_PORT = () =>
 export const PH_GOBOT_VERBOSITY = () =>
   env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
 
+export const VOLUME_MOUNT_POINT = () => settings().VOLUME_MOUNT_POINT
+export const VOLUME_CACHE_DIR = () => settings().VOLUME_CACHE_DIR
+export const VOLUME_REMOTE_NAME = () => settings().VOLUME_REMOTE_NAME
+export const VOLUME_BUCKET_NAME = () => settings().VOLUME_BUCKET_NAME
+export const VOLUME_VFS_CACHE_MAX_AGE = () =>
+  settings().VOLUME_VFS_CACHE_MAX_AGE
+export const VOLUME_VFS_CACHE_MIN_FREE_SPACE = () =>
+  settings().VOLUME_VFS_CACHE_MIN_FREE_SPACE
+export const VOLUME_VFS_READ_CHUNK_SIZE = () =>
+  settings().VOLUME_VFS_READ_CHUNK_SIZE
+export const VOLUME_VFS_READ_CHUNK_STREAMS = () =>
+  settings().VOLUME_VFS_READ_CHUNK_STREAMS
+export const VOLUME_VFS_WRITE_BACK = () => settings().VOLUME_VFS_WRITE_BACK
+export const VOLUME_DIR_CACHE_TIME = () => settings().VOLUME_DIR_CACHE_TIME
+export const VOLUME_DEBUG = () => settings().VOLUME_DEBUG
+
 /** Helpers */
 
 export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
@@ -324,6 +355,15 @@ export const logConstants = () => {
     MOTHERSHIP_DATA_DB,
     PH_EDGE_MIRROR_PORT: PH_MOTHERSHIP_MIRROR_PORT,
     PH_GOBOT_VERBOSITY,
+    VOLUME_MOUNT_POINT,
+    VOLUME_CACHE_DIR,
+    VOLUME_REMOTE_NAME,
+    VOLUME_BUCKET_NAME,
+    VOLUME_VFS_CACHE_MAX_AGE,
+    VOLUME_VFS_CACHE_MIN_FREE_SPACE,
+    VOLUME_VFS_READ_CHUNK_SIZE,
+    VOLUME_VFS_READ_CHUNK_STREAMS,
+    VOLUME_VFS_WRITE_BACK,
   }
   forEach(vars, (v, k) => {
     console.log(`${k}: ${v()}`)
