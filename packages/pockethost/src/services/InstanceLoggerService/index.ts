@@ -25,13 +25,22 @@ export type LogEntry = {
   time: string
 }
 
-export function InstanceLogWriter(instanceId: string, target: string) {
+export function InstanceLogWriter(
+  instanceId: string,
+  volume: string,
+  target: string,
+) {
   const logger = LoggerService().create(instanceId).breadcrumb({ target })
   const { dbg, info, error, warn } = logger
 
-  ensureInstanceDirectoryStructure(instanceId, logger)
+  ensureInstanceDirectoryStructure(instanceId, volume, logger)
 
-  const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+  const logFile = mkInstanceDataPath(
+    volume,
+    instanceId,
+    `logs`,
+    `${target}.log`,
+  )
 
   const appendLogEntry = (msg: string, stream: 'stdout' | 'stderr') => {
     appendFile(
@@ -58,15 +67,24 @@ export function InstanceLogWriter(instanceId: string, target: string) {
   return api
 }
 
-export function InstanceLogReader(instanceId: string, target: string) {
+export function InstanceLogReader(
+  instanceId: string,
+  volume: string,
+  target: string,
+) {
   const logger = LoggerService().create(instanceId).breadcrumb({ target })
   const { dbg, info, error, warn } = logger
 
-  ensureInstanceDirectoryStructure(instanceId, logger)
+  ensureInstanceDirectoryStructure(instanceId, volume, logger)
 
   const api = {
     tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
-      const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+      const logFile = mkInstanceDataPath(
+        volume,
+        instanceId,
+        `logs`,
+        `${target}.log`,
+      )
 
       let tid: any
       let unsub: any

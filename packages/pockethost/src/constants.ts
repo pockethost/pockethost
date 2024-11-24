@@ -271,8 +271,11 @@ export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
   [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)]
     .filter(Boolean)
     .join('/')
-export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
-  join(settings().DATA_ROOT, instanceId, ...path)
+export const mkInstanceDataPath = (
+  volume: string,
+  instanceId: string,
+  ...path: string[]
+) => DATA_ROOT(volume, instanceId, ...path)
 
 export const logConstants = () => {
   const vars = {

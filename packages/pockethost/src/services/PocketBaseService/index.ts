@@ -23,6 +23,7 @@ export type Env = { [_: string]: string }
 export type SpawnConfig = {
   subdomain: string
   instanceId: string
+  volume: string
   version?: string
   extraBinds?: string[]
   env?: Env
@@ -77,6 +78,7 @@ export const createPocketbaseService = async (
       version,
       subdomain,
       instanceId,
+      volume,
       extraBinds,
       env,
       stderr,
@@ -85,7 +87,7 @@ export const createPocketbaseService = async (
     } = _cfg
 
     logger.breadcrumb({ subdomain, instanceId })
-    const iLogger = InstanceLogWriter(instanceId, 'exec')
+    const iLogger = InstanceLogWriter(instanceId, volume, 'exec')
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await bot.maxSatisfyingVersion(_version)
@@ -123,7 +125,7 @@ export const createPocketbaseService = async (
         dbg(data.toString())
       })
       const Binds = [
-        `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
+        `${mkInstanceDataPath(volume, instanceId)}:${mkContainerHomePath()}`,
         `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
       ]
 
@@ -155,6 +157,7 @@ export const createPocketbaseService = async (
               Hard: 4096,
             },
           ],
+          ExtraHosts: [`minio:host-gateway`],
         },
         Tty: false,
         ExposedPorts: {

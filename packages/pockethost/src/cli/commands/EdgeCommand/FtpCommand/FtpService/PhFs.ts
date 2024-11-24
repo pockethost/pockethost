@@ -51,7 +51,7 @@ const checkBun = (
       [`bun.lockb`, `package.json`].includes(maybeImportant || ''))
 
   if (isImportant) {
-    const logger = InstanceLogWriter(instance.id, `exec`)
+    const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
     logger.info(`${maybeImportant} changed, running bun install`)
     launchBunInstall(instance, virtualPath, cwd).catch(console.error)
   }
@@ -103,7 +103,7 @@ const launchBunInstall = (() => {
     runCache[cwd] = { runAgain: true }
     while (runCache[cwd]!.runAgain) {
       runCache[cwd]!.runAgain = false
-      const logger = InstanceLogWriter(instance.id, `exec`)
+      const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
       logger.info(`Launching 'bun install' in ${virtualPath}`)
       await runBun(cwd, logger)
     }
@@ -174,6 +174,9 @@ export class PhFs implements FileSystem {
           `Instance must be in maintenance mode to access ${instanceRootDir}`,
         )
       }
+      if (instance.volume) {
+        fsPathParts.push(instance.volume)
+      }
       fsPathParts.push(instance.id)
       dbg({
         fsPathParts,
@@ -221,6 +224,9 @@ export class PhFs implements FileSystem {
       .then(() => {
         this.cwd = clientPath
         return this.currentDirectory()
+      })
+      .catch((e) => {
+        throw new Error(`no such file or directory: ${path}`)
       })
   }
 
