@@ -35,6 +35,7 @@ export const _PH_HOME = env
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
+export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env
   .get('APEX_DOMAIN')
   .default('pockethost.lvh.me')
@@ -76,6 +77,7 @@ const createDevCert = async () => {
 }
 
 export const createSettings = () => ({
+  DEBUG: mkBoolean(_DEBUG),
   PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.22.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
@@ -164,8 +166,7 @@ export const PH_ALLOWED_POCKETBASE_SEMVER = () =>
 export const PH_HOME = (...paths: string[]) =>
   join(settings().PH_HOME, ...paths)
 
-export const DEBUG = () =>
-  env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
+export const DEBUG = () => _DEBUG
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
 export const APP_URL = (...path: string[]) =>
