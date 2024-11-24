@@ -203,7 +203,8 @@ export const MOTHERSHIP_PORT = () =>
   env.get('MOTHERSHIP_PORT').default(8090).asPortNumber()
 
 export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
-export const DATA_ROOT = () => settings().DATA_ROOT
+export const DATA_ROOT = (...paths: string[]) =>
+  join(settings().DATA_ROOT, ...paths)
 export const NODE_ENV = () => settings().NODE_ENV
 export const IS_DEV = () => settings().IS_DEV
 export const TRACE = () => settings().TRACE
