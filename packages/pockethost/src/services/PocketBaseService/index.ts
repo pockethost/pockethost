@@ -157,7 +157,6 @@ export const createPocketbaseService = async (
               Hard: 4096,
             },
           ],
-          ExtraHosts: [`minio:host-gateway`],
         },
         Tty: false,
         ExposedPorts: {
