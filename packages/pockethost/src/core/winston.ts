@@ -1,6 +1,6 @@
 import { inspect } from 'node:util'
 import winston from 'winston'
-import { exitHook } from '..'
+import { asyncExitHook } from '..'
 import { Logger, mkSingleton } from '../common'
 import { DEBUG, DISCORD_ALERT_CHANNEL_URL } from '../constants'
 import { DiscordTransport } from './DiscordTransport'
@@ -84,10 +84,15 @@ export const WinstonLoggerService = mkSingleton<{}, Logger>(() => {
   })
   logger.exitOnError = true
 
-  exitHook(() => {
-    console.log('Closing Winston logger')
-    setImmediate(() => {
-      logger.close()
+  asyncExitHook(async () => {
+    console.log('Closing Winston logger outside')
+    return new Promise<void>((resolve) => {
+      console.log('Closing Winston logger inside promise')
+      setTimeout(() => {
+        console.log('Closing Winston logger inside timeout')
+        logger.close()
+        resolve()
+      }, 2000)
     })
   })
 
