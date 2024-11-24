@@ -260,9 +260,6 @@ export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
   DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
 export const MOTHERSHIP_DATA_DB = () =>
   join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
-export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
-export const INSTANCE_DATA_DB = (id: InstanceId) =>
-  join(DATA_ROOT(), id, `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) =>
   join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
