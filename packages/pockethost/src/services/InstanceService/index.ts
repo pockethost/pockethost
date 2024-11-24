@@ -181,13 +181,14 @@ export const instanceService = mkSingleton(
         })
 
         /** Idle check */
+        const idleTtl = instance.idleTtl || DAEMON_PB_IDLE_TTL()
         const idleTid = setInterval(() => {
           const lastRequestAge = now() - lastRequest
           dbg(
             `idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`,
           )
-          if (openRequestCount === 0 && lastRequestAge > DAEMON_PB_IDLE_TTL()) {
-            info(`idle for ${DAEMON_PB_IDLE_TTL()}, shutting down`)
+          if (openRequestCount === 0 && lastRequestAge > idleTtl) {
+            info(`idle for ${idleTtl}, shutting down`)
             userInstanceLogger.info(
               `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
             )
