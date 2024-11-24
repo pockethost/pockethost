@@ -32,6 +32,11 @@ export const _PH_HOME = env
   .default(envPaths(`pockethost`).data)
   .asString()
 
+export const _DATA_ROOT = env
+  .get('DATA_ROOT')
+  .default(join(_PH_HOME, `data`))
+  .asString()
+
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
@@ -103,7 +108,7 @@ export const createSettings = () => ({
   MOTHERSHIP_SEMVER: mkString('0.22.*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
-  DATA_ROOT: mkPath(join(_PH_HOME, 'data'), { create: true }),
+  DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
   TRACE: mkBoolean(false),
@@ -252,7 +257,7 @@ export const PH_GOBOT_VERBOSITY = () =>
 /** Helpers */
 
 export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
-  join(INSTANCE_DATA_ROOT(MOTHERSHIP_NAME()), ...paths)
+  DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
 export const MOTHERSHIP_DATA_DB = () =>
   join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
