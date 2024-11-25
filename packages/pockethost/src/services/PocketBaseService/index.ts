@@ -63,7 +63,7 @@ export const createPocketbaseService = async (
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
     const logger = LoggerService().create('spawn')
-    const { dbg, warn, error } = logger
+    const { dbg, warn, error, info } = logger
 
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
@@ -173,10 +173,11 @@ export const createPocketbaseService = async (
       }
       createOptions.WorkingDir = `/home/pockethost`
 
-      logger.info(`Spawning ${instanceId}`)
+      info(`Spawning ${instanceId}`)
 
       dbg({ createOptions })
 
+      console.log(`*** running container`)
       const emitter = docker
         .run(
           DOCKER_INSTANCE_IMAGE_NAME,
@@ -258,11 +259,16 @@ export const createPocketbaseService = async (
             }
           }
         })
+        .on('error', (e) => {
+          error(`Error starting container: ${e}`)
+          cm.shutdown()
+        })
     }).catch((e) => {
       error(`Error starting container: ${e}`)
       cm.shutdown()
       throw e
     })
+    console.log(`*** got container`)
 
     const exitCode = new Promise<number>(async (resolveExit) => {
       container.on(Events.Exit, (code) => {

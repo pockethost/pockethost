@@ -42,17 +42,17 @@ export const firewall = async () => {
   app.use(cors())
   app.use(enforce.HTTPS())
 
+  app.get(`/_api/health`, (req, res, next) => {
+    dbg(`Health check`)
+    res.json({ status: 'ok' })
+    res.end()
+  })
+
   // Use the IP blocker middleware
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
 
   forEach(hostnameRoutes, (target, host) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV()))
-  })
-
-  app.get(`/_api/health`, (req, res, next) => {
-    dbg(`Health check`)
-    res.json({ status: 'ok' })
-    res.end()
   })
 
   // Fall-through
