@@ -23,6 +23,7 @@ try {
   console.warn(e)
 }
 
+export const versions = writable<string[]>([])
 export const isMothershipReachable = writable(true)
 export const isUserLegacy = writable(false)
 export const userSubscriptionType = writable(SubscriptionType.Legacy)
@@ -65,7 +66,21 @@ const continuouslyCheckMothershipReachability = () => {
   }, 5000)
 }
 
+async function fetchVersions(): Promise<string[]> {
+  const { versions } = await client().client.send<{ versions: string[] }>(
+    `/api/versions`,
+    {},
+  )
+
+  return versions
+}
+
 export const init = () => {
+  const periodicallyFetchVersions = () => {
+    fetchVersions().then((versionList) => versions.set(versionList))
+    setTimeout(periodicallyFetchVersions, 1000 * 60 * 5)
+  }
+  periodicallyFetchVersions()
   const { onAuthChange } = client()
 
   checkStats()
