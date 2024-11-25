@@ -61,9 +61,6 @@ var interpolateString = (template, dict) => {
   });
 };
 
-// src/lib/util/versions.ts
-var versions = require(`${__hooks}/versions.cjs`);
-
 // src/lib/handlers/instance/api/HandleInstanceCreate.ts
 var HandleInstanceCreate = (c) => {
   const dao = $app.dao();
@@ -76,14 +73,15 @@ var HandleInstanceCreate = (c) => {
   log(`***TOP OF POST`);
   let data = new DynamicModel({
     subdomain: "",
-    region: "sfo-1"
+    version: "0.23.*",
+    region: "sfo-2"
   });
   log(`***before bind`);
   c.bind(data);
   log(`***after bind`);
   data = JSON.parse(JSON.stringify(data));
-  const { subdomain, region } = data;
-  log(`***vars`, JSON.stringify({ subdomain, region }));
+  const { subdomain, version, region } = data;
+  log(`***vars`, JSON.stringify({ subdomain, version, region }));
   if (!subdomain) {
     throw new BadRequestError(
       `Subdomain is required when creating an instance.`
@@ -95,7 +93,8 @@ var HandleInstanceCreate = (c) => {
   record.set("region", region || `sfo-1`);
   record.set("subdomain", subdomain);
   record.set("status", "idle");
-  record.set("version", versions[0]);
+  record.set("version", version);
+  record.set("dev", true);
   record.set("syncAdmin", true);
   record.set("notifyMaintenanceMode", true);
   const form = new RecordUpsertForm($app, record);
@@ -276,6 +275,9 @@ var HandleInstancesResetIdle = (e) => {
   dao.db().newQuery(`update instances set status='idle'`).execute();
 };
 
+// src/lib/util/versions.ts
+var versions = require(`${__hooks}/versions.cjs`);
+
 // src/lib/handlers/instance/bootstrap/HandleMigrateInstanceVersions.ts
 var HandleMigrateInstanceVersions = (e) => {
   const dao = $app.dao();
@@ -283,7 +285,7 @@ var HandleMigrateInstanceVersions = (e) => {
   const records = dao.findRecordsByFilter(`instances`, "1=1").filter((r) => !!r);
   const unrecognized = [];
   records.forEach((record) => {
-    const v = record.get("version").trim();
+    const v = record.getString("version").trim();
     if (versions.includes(v)) return;
     const newVersion = (() => {
       if (v.startsWith(`~`)) {
@@ -295,6 +297,7 @@ var HandleMigrateInstanceVersions = (e) => {
           return versions[0];
         }
       }
+      return v;
     })();
     if (versions.includes(newVersion)) {
       record.set(`version`, newVersion);
@@ -2964,6 +2967,7 @@ var HandleSignupConfirm = (c) => {
       instance.set("status", "idle");
       instance.set("notifyMaintenanceMode", true);
       instance.set("syncAdmin", true);
+      instance.set("dev", true);
       instance.set("version", versions[0]);
       txDao.saveRecord(instance);
     } catch (e) {

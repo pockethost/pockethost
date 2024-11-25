@@ -1,5 +1,4 @@
 import { mkLog } from '$util/Logger'
-import { versions } from '$util/versions'
 
 export const HandleInstanceCreate = (c: echo.Context) => {
   const dao = $app.dao()
@@ -15,8 +14,9 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   log(`***TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
-    region: 'sfo-1',
-  }) as { subdomain?: string; region?: string }
+    version: '0.23.*',
+    region: 'sfo-2',
+  }) as { subdomain?: string; version?: string; region?: string }
 
   log(`***before bind`)
 
@@ -27,9 +27,9 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const { subdomain, region } = data
+  const { subdomain, version, region } = data
 
-  log(`***vars`, JSON.stringify({ subdomain, region }))
+  log(`***vars`, JSON.stringify({ subdomain, version, region }))
 
   if (!subdomain) {
     throw new BadRequestError(
@@ -43,7 +43,8 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   record.set('region', region || `sfo-1`)
   record.set('subdomain', subdomain)
   record.set('status', 'idle')
-  record.set('version', versions[0])
+  record.set('version', version)
+  record.set('dev', true)
   record.set('syncAdmin', true)
   record.set('notifyMaintenanceMode', true)
 
