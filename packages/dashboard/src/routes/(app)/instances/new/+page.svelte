@@ -12,7 +12,6 @@
   let instanceCount = 0
   let canCreate = false
   $: {
-    console.log(MAX_INSTANCE_COUNTS[$userSubscriptionType])
     instanceCount = values($globalInstancesStore).length
     canCreate =
       instanceCount < MAX_INSTANCE_COUNTS[$userSubscriptionType] &&

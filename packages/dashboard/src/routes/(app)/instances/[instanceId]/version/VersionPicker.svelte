@@ -1,15 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { versions as defaultVersions } from '$src/util/stores'
 
   // Props definition with default value if needed
-  export let versions = $defaultVersions
+  export let versions: string[]
   export let selectedVersion: string = ''
   export let disabled: boolean = false
-
-  console.log({ versions })
-
-  $: filteredVersions = versions.filter((v) => v.endsWith('*'))
 
   // Emit an update when the selection changes
   function handleSelect(event: Event) {
@@ -29,7 +24,7 @@
   {disabled}
 >
   <option value="" disabled>Select a version</option>
-  {#each filteredVersions as version}
+  {#each versions as version}
     <option value={version}>{version}</option>
   {/each}
 </select>

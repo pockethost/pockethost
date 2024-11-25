@@ -140,7 +140,7 @@
     {/if}
 
     <div class="flex items-center justify-center gap-4 mb-8">
-      <VersionPicker bind:selectedVersion />
+      <VersionPicker bind:selectedVersion versions={$versions} />
     </div>
 
     <div class="flex items-center justify-center gap-4">

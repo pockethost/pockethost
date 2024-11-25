@@ -4,7 +4,6 @@
   import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
-  import { satisfies } from 'semver'
   import { versions as allVersions } from '$src/util/stores'
 
   $: ({ id, maintenance, version } = $instance)
