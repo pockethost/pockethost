@@ -2,6 +2,7 @@ import { appendFile } from 'fs/promises'
 import { Tail } from 'tail'
 import {
   ensureInstanceDirectoryStructure,
+  logger,
   LoggerService,
   mkInstanceDataPath,
   stringify,
@@ -30,10 +31,12 @@ export function InstanceLogWriter(
   volume: string,
   target: string,
 ) {
-  const logger = LoggerService().create(instanceId).breadcrumb({ target })
-  const { dbg, info, error, warn } = logger
+  const lgr = logger()
+    .create(`InstanceLogWriter`)
+    .breadcrumb({ instanceId, target })
+  const { dbg, info, error, warn } = lgr
 
-  ensureInstanceDirectoryStructure(instanceId, volume, logger)
+  ensureInstanceDirectoryStructure(instanceId, volume, lgr)
 
   const logFile = mkInstanceDataPath(
     volume,

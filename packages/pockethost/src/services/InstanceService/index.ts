@@ -2,7 +2,6 @@ import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'glob'
 import { basename, join } from 'path'
-import { satisfies } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import {
   APP_URL,
@@ -125,9 +124,14 @@ export const instanceService = mkSingleton(
         })
 
         /** Create spawn config */
-        const instanceAppVersion = satisfies(instance.version, `<=0.22.*`)
-          ? `v22`
-          : 'v23'
+        const instanceAppVersion = (() => {
+          const [major, minor] = instance.version.split('.').map(Number)
+          if (!minor) {
+            throw new Error(`Invalid version: ${instance.version}`)
+          }
+          if (minor <= 22) return `v22`
+          return `v23`
+        })()
         const spawnArgs: SpawnConfig = {
           subdomain: instance.subdomain,
           instanceId: instance.id,
