@@ -1,11 +1,10 @@
 <script lang="ts">
   import {
     globalInstancesStore,
-    isUserPaid,
     userSubscriptionType,
+    versions,
   } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
-  import { SubscriptionType } from 'pockethost/common'
   import Creator from './Creator.svelte'
   import Paywall from './Paywall.svelte'
   import { MAX_INSTANCE_COUNTS } from '$src/env'
@@ -15,7 +14,9 @@
   $: {
     console.log(MAX_INSTANCE_COUNTS[$userSubscriptionType])
     instanceCount = values($globalInstancesStore).length
-    canCreate = instanceCount < MAX_INSTANCE_COUNTS[$userSubscriptionType]
+    canCreate =
+      instanceCount < MAX_INSTANCE_COUNTS[$userSubscriptionType] &&
+      $versions.length > 0
   }
 </script>
 

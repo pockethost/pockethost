@@ -77,8 +77,14 @@ async function fetchVersions(): Promise<string[]> {
 
 export const init = () => {
   const periodicallyFetchVersions = () => {
-    fetchVersions().then((versionList) => versions.set(versionList))
-    setTimeout(periodicallyFetchVersions, 1000 * 60 * 5)
+    fetchVersions()
+      .then((versionList) => {
+        versions.set(versionList)
+        console.log('Fetched versions', versionList)
+      })
+      .finally(() => {
+        setTimeout(periodicallyFetchVersions, 1000 * 60 * 5)
+      })
   }
   periodicallyFetchVersions()
   const { onAuthChange } = client()

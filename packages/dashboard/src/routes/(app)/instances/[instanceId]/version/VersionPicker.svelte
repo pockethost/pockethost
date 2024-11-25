@@ -7,7 +7,9 @@
   export let selectedVersion: string = ''
   export let disabled: boolean = false
 
-  const filteredVersions = versions.filter((v) => v.endsWith('*'))
+  console.log({ versions })
+
+  $: filteredVersions = versions.filter((v) => v.endsWith('*'))
 
   // Emit an update when the selection changes
   function handleSelect(event: Event) {

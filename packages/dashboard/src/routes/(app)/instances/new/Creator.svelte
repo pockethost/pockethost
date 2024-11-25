@@ -11,8 +11,9 @@
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
   import VersionPicker from '../[instanceId]/version/VersionPicker.svelte'
+  import { versions } from '$util/stores'
 
-  let selectedVersion: string = `latest`
+  let selectedVersion = $versions[0]!
 
   const instanceNameField = writable('')
   const instanceInfo = writable({
