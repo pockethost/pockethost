@@ -82,7 +82,7 @@ const createDevCert = async () => {
 
 export const createSettings = () => ({
   DEBUG: mkBoolean(_DEBUG),
-  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.22.*`),
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.23.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
@@ -125,7 +125,7 @@ export const createSettings = () => ({
   INSTANCE_APP_HOOKS_DIR: mkPath(_INSTANCE_APP_ROOT(`pb_hooks`), {
     create: true,
   }),
-  INSTANCE_APP_MIGRATIONS_DIR: mkPath(_INSTANCE_APP_ROOT(`migrations`), {
+  INSTANCE_APP_MIGRATIONS_DIR: mkPath(_INSTANCE_APP_ROOT(`pb_migrations`), {
     create: true,
   }),
 
@@ -239,9 +239,10 @@ export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
 
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 
-export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
-export const INSTANCE_APP_MIGRATIONS_DIR = () =>
-  settings().INSTANCE_APP_MIGRATIONS_DIR
+export const INSTANCE_APP_HOOK_DIR = (...paths: string[]) =>
+  join(settings().INSTANCE_APP_HOOKS_DIR, ...paths)
+export const INSTANCE_APP_MIGRATIONS_DIR = (...paths: string[]) =>
+  join(settings().INSTANCE_APP_MIGRATIONS_DIR, ...paths)
 
 export const DISCORD_HEALTH_CHANNEL_URL = () =>
   env.get('DISCORD_HEALTH_CHANNEL_URL').asString()

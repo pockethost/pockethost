@@ -2,6 +2,7 @@ import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'glob'
 import { basename, join } from 'path'
+import { satisfies } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import {
   APP_URL,
@@ -124,19 +125,26 @@ export const instanceService = mkSingleton(
         })
 
         /** Create spawn config */
+        const instanceAppVersion = satisfies(instance.version, `<=0.22.*`)
+          ? `v22`
+          : 'v23'
         const spawnArgs: SpawnConfig = {
           subdomain: instance.subdomain,
           instanceId: instance.id,
           volume: instance.volume,
           dev: instance.dev,
           extraBinds: flatten([
-            globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
+            globSync(
+              join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js'),
+            ).map(
               (file) =>
                 `${file}:${mkContainerHomePath(
                   `pb_migrations/${basename(file)}`,
                 )}:ro`,
             ),
-            globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
+            globSync(
+              join(INSTANCE_APP_HOOK_DIR(instanceAppVersion), '*.js'),
+            ).map(
               (file) =>
                 `${file}:${mkContainerHomePath(`pb_hooks/${basename(file)}`)}:ro`,
             ),
