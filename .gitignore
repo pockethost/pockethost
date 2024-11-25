@@ -15,4 +15,3 @@ dist
 .pockethost
 .scripts
 *.tgz
-ecosystem.config.cjs
