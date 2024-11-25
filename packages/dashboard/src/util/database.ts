@@ -16,6 +16,7 @@ export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
 
 export const handleCreateNewInstance = async (
   instanceName: string,
+  version: string,
   setError?: FormErrorHandler,
 ) => {
   const { user, createInstance } = client()
@@ -30,6 +31,7 @@ export const handleCreateNewInstance = async (
     // Create a new instance using the generated name
     const record = await createInstance({
       subdomain: instanceName,
+      version,
     })
 
     await goto(`/instances/${record.instance.id}`)

@@ -22,6 +22,9 @@
     fetchVersions()
       .then((fetchedVersions) => {
         versions = fetchedVersions
+        if (selectedVersion === 'latest') {
+          selectedVersion = versions[0]!
+        }
       })
       .catch((error) => {
         console.error('Failed to load versions', error)
