@@ -3,6 +3,7 @@ import { InstanceFields, Subdomain } from '..'
 
 export type CreateInstancePayload = {
   subdomain: Subdomain
+  version: string
 }
 
 export type CreateInstanceResult = {
@@ -14,7 +15,8 @@ export const CreateInstancePayloadSchema: JSONSchemaType<CreateInstancePayload> 
     type: 'object',
     properties: {
       subdomain: { type: 'string' },
+      version: { type: 'string' },
     },
-    required: ['subdomain'],
+    required: ['subdomain', 'version'],
     additionalProperties: false,
   }
