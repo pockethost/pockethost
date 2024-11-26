@@ -27,6 +27,57 @@ export type ProxyMiddleware = (
   logger: Logger,
 ) => boolean | Promise<boolean>
 
+const stats = (() => {
+  const metrics = {
+    requests: 0,
+    errors: 0,
+    hosts: new Map<string, number>(),
+    ips: new Map<string, number>(),
+    countries: new Map<string, number>(),
+  }
+
+  setInterval(() => {
+    const top10Ips = Array.from(metrics.ips.entries())
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+    const topHosts = Array.from(metrics.hosts.entries())
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+    const top10Countries = Array.from(metrics.countries.entries())
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+    console.log({
+      ...metrics,
+      ips: top10Ips,
+      hosts: topHosts,
+      countries: top10Countries,
+    })
+    metrics.requests = 0
+    metrics.errors = 0
+    metrics.ips.clear()
+    metrics.hosts.clear()
+    metrics.countries.clear()
+  }, 10000)
+
+  return {
+    addRequest: () => {
+      metrics.requests++
+    },
+    addError: () => {
+      metrics.errors++
+    },
+    addHost: (host: string) => {
+      metrics.hosts.set(host, (metrics.hosts.get(host) || 0) + 1)
+    },
+    addIp: (ip: string) => {
+      metrics.ips.set(ip, (metrics.ips.get(ip) || 0) + 1)
+    },
+    addCountry: (country: string) => {
+      metrics.countries.set(country, (metrics.countries.get(country) || 0) + 1)
+    },
+  }
+})()
+
 export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
 }
@@ -56,6 +107,7 @@ export const proxyService = mkSingleton(
     // Default locals
     server.use((req, res, next) => {
       const host = req.headers.host
+      stats.addHost(host || '<unknown>')
       res.locals.requestId = seqid()
       res.locals.host = host
       res.locals.coreInternalUrl = coreInternalUrl
@@ -76,6 +128,13 @@ export const proxyService = mkSingleton(
         url.toString(),
       ].join(' ')
       res.locals.sig = sig
+      stats.addCountry(country)
+      stats.addIp(ip)
+      next()
+    })
+
+    server.use((req, res, next) => {
+      stats.addRequest()
       next()
     })
 
