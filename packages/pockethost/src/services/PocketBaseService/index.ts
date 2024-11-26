@@ -173,9 +173,7 @@ export const createPocketbaseService = async (
       }
       createOptions.WorkingDir = `/home/pockethost`
 
-      logger.info(`Spawning ${instanceId}`)
-
-      dbg({ createOptions })
+      logger.dbg(`Spawning ${instanceId}`, { createOptions })
 
       const emitter = docker
         .run(

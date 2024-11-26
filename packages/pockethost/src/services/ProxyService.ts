@@ -93,7 +93,7 @@ export const proxyService = mkSingleton(
     })
 
     server.use((req, res, next) => {
-      info(`Incoming request ${res.locals.sig}`)
+      dbg(`Incoming request ${res.locals.sig}`)
       next()
     })
 

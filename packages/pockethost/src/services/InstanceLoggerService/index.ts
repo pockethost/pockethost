@@ -55,11 +55,11 @@ export function InstanceLogWriter(
 
   const api = {
     info: (msg: string) => {
-      info(msg)
+      dbg(msg)
       appendLogEntry(msg, 'stdout')
     },
     error: (msg: string) => {
-      error(msg)
+      dbg(msg)
       appendLogEntry(msg, 'stderr')
     },
   }
