@@ -1,5 +1,17 @@
 # pockethost
 
+## 2.1.0
+
+### Minor Changes
+
+- 2d2ce8c: Enh: Added custom instance idle TTL support
+- 26d1070: Added support for instances hosted on alternate volumes
+- eb9d8a4: Feature: cloud volume support for instances
+
+### Patch Changes
+
+- Fix: Mothership notifications where not being sent out
+
 ## 2.0.2
 
 ### Patch Changes
