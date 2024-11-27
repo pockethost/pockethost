@@ -88,7 +88,7 @@ export const instanceService = mkSingleton(
         )
       }) // Make this the very last thing that happens
 
-      info(`Starting`)
+      dbg(`Starting`)
       userInstanceLogger.info(`Instance is starting.`)
 
       let _shutdownReason: Error | undefined
@@ -205,7 +205,7 @@ export const instanceService = mkSingleton(
             `idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`,
           )
           if (openRequestCount === 0 && lastRequestAge > idleTtl) {
-            info(`idle for ${idleTtl}, shutting down`)
+            dbg(`idle for ${idleTtl}, shutting down`)
             userInstanceLogger.info(
               `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
             )

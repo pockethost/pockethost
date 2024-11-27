@@ -33,6 +33,7 @@ __export(lib_exports, {
   HandleMirrorData: () => HandleMirrorData,
   HandleNotifyDiscordAfterCreate: () => HandleNotifyDiscordAfterCreate,
   HandleNotifyMaintenanceMode: () => HandleNotifyMaintenanceMode,
+  HandleProcessNotification: () => HandleProcessNotification,
   HandleProcessSingleNotification: () => HandleProcessSingleNotification,
   HandleSesError: () => HandleSesError,
   HandleSignupCheck: () => HandleSignupCheck,
@@ -727,7 +728,7 @@ var mkNotificationProcessor = (log, dao, test = false) => (notificationRec) => {
         subject,
         html
       };
-      if (test || true) {
+      if (test) {
         msgArgs.to = [{ address: `ben@benallfree.com` }];
         msgArgs.subject = `***TEST ${to} *** ${msgArgs.subject}`;
       }
@@ -787,6 +788,28 @@ var HandleProcessSingleNotification = (c) => {
     c.json(500, `${e}`);
   }
   return c.json(200, { status: "ok" });
+};
+
+// src/lib/handlers/notify/model/HandleProcessNotification.ts
+var HandleProcessNotification = (e) => {
+  const dao = e.dao || $app.dao();
+  const log = mkLog(`notification:sendImmediately`);
+  const audit = mkAudit(log, dao);
+  const processNotification = mkNotificationProcessor(log, dao, false);
+  const notificationRec = e.model;
+  log({ notificationRec });
+  try {
+    dao.expandRecord(notificationRec, ["message_template"]);
+    const messageTemplateRec = notificationRec.expandedOne(`message_template`);
+    if (!messageTemplateRec) {
+      throw new Error(`Missing message template`);
+    }
+    processNotification(notificationRec);
+  } catch (e2) {
+    audit(`ERROR`, `${e2}`, {
+      notification: notificationRec.getId()
+    });
+  }
 };
 
 // src/lib/handlers/notify/model/HandleUserWelcomeMessage.ts
@@ -3126,6 +3149,7 @@ var HandleVersionsRequest = (c) => {
   HandleMirrorData,
   HandleNotifyDiscordAfterCreate,
   HandleNotifyMaintenanceMode,
+  HandleProcessNotification,
   HandleProcessSingleNotification,
   HandleSesError,
   HandleSignupCheck,
