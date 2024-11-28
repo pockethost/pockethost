@@ -14,7 +14,11 @@
     "moduleResolution": "node",
     "noUncheckedIndexedAccess": true,
     "strictNullChecks": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@": ["src/index.ts"]
+    }
   },
   "include": ["**/*.ts"],
   "exclude": ["./src/mothership-app/**/*", "./src/instance-app/**/*"]

@@ -1,5 +1,5 @@
+import { Logger } from '@'
 import { existsSync, mkdirSync } from 'fs'
-import { Logger } from '../common'
 import { mkInstanceDataPath } from '../constants'
 
 export function ensureInstanceDirectoryStructure(

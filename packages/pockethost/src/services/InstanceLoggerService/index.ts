@@ -1,14 +1,14 @@
-import Bottleneck from 'bottleneck'
-import { existsSync } from 'fs'
-import { appendFile, cp, stat, truncate } from 'fs/promises'
-import { Tail } from 'tail'
 import {
   ensureInstanceDirectoryStructure,
   logger,
   LoggerService,
   mkInstanceDataPath,
   stringify,
-} from '../..'
+} from '@'
+import Bottleneck from 'bottleneck'
+import { existsSync } from 'fs'
+import { appendFile, cp, stat, truncate } from 'fs/promises'
+import { Tail } from 'tail'
 
 type UnsubFunc = () => void
 
