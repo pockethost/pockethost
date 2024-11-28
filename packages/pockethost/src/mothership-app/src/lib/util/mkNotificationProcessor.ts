@@ -41,7 +41,7 @@ export const mkNotificationProcessor =
           subject,
           html,
         }
-        if (test || true) {
+        if (test) {
           msgArgs.to = [{ address: `ben@benallfree.com` }]
           msgArgs.subject = `***TEST ${to} *** ${msgArgs.subject}`
         }
