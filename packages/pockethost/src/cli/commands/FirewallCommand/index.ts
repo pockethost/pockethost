@@ -1,5 +1,5 @@
+import { logger } from '@'
 import { Command } from 'commander'
-import { logger } from '../../../common'
 import { ServeCommand } from './ServeCommand'
 
 type Options = {

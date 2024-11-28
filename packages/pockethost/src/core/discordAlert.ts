@@ -1,5 +1,5 @@
+import { stringify } from '@'
 import { DISCORD_ALERT_CHANNEL_URL } from '.'
-import { stringify } from '../common'
 
 const cache: { [_: string]: NodeJS.Timeout } = {}
 

@@ -1,6 +1,6 @@
+import { DATA_ROOT, logger } from '@'
 import { execSync } from 'child_process'
 import { globSync } from 'glob'
-import { DATA_ROOT, logger } from '../../..'
 
 export const compact = async () => {
   const { info, error } = logger()

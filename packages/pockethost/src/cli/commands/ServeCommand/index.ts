@@ -1,6 +1,5 @@
+import { logger, neverendingPromise } from '@'
 import { Command } from 'commander'
-import { neverendingPromise } from '../../..'
-import { logger } from '../../../common'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
 import { mothership } from '../MothershipCommand/ServeCommand/mothership'

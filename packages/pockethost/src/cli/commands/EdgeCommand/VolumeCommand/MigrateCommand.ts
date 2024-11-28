@@ -1,13 +1,14 @@
-import { Command } from 'commander'
-import { existsSync } from 'fs'
-import fse from 'fs-extra'
-import { InstanceFields, PocketBase } from '../../../../common'
 import {
+  InstanceFields,
   mkInstanceDataPath,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
-} from '../../../../core'
+  PocketBase,
+} from '@'
+import { Command } from 'commander'
+import { existsSync } from 'fs'
+import fse from 'fs-extra'
 
 const { moveSync } = fse
 

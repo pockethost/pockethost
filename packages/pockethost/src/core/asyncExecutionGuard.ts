@@ -1,6 +1,6 @@
+import { seqid } from '@'
 import Bottleneck from 'bottleneck'
 import { SetReturnType } from 'type-fest'
-import { seqid } from '../common'
 import { LoggerService } from '../common/Logger'
 
 const limiters: { [lane: string]: Bottleneck } = {}

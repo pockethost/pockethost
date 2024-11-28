@@ -1,9 +1,6 @@
-import { exec, spawn } from 'child_process'
-import { Command } from 'commander'
-import { promisify } from 'util'
-import { logger } from '../../../../common'
 import {
   DEBUG,
+  logger,
   VOLUME_BUCKET_NAME,
   VOLUME_CACHE_DIR,
   VOLUME_DEBUG,
@@ -15,7 +12,10 @@ import {
   VOLUME_VFS_READ_CHUNK_SIZE,
   VOLUME_VFS_READ_CHUNK_STREAMS,
   VOLUME_VFS_WRITE_BACK,
-} from '../../../../core'
+} from '@'
+import { exec, spawn } from 'child_process'
+import { Command } from 'commander'
+import { promisify } from 'util'
 import { asyncExitHook, gracefulExit } from '../../../../core/exit'
 
 const execAsync = promisify(exec)
