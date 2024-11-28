@@ -1,5 +1,12 @@
 # pockethost
 
+## 2.1.1
+
+### Patch Changes
+
+- e84cd92: Fix: remove test mode from mothership email sending
+- 3f5465b: Enh: daemon metrics display
+
 ## 2.1.0
 
 ### Minor Changes
