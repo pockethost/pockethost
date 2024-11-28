@@ -102,10 +102,14 @@ export const proxyService = mkSingleton(
 
     server.use(cors())
 
-    server.get('/_api/health', (req, res, next) => {
+    const apiRouter = express.Router()
+
+    apiRouter.get('/health', (req, res, next) => {
       res.json({ status: 'ok' })
       res.end
     })
+
+    server.use('/_api', apiRouter)
 
     // Default locals
     server.use((req, res, next) => {
