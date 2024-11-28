@@ -1,6 +1,5 @@
+import { InstanceFields, InstanceId, ioc, Settings, UserFields } from '@'
 import { LogEntry } from 'winston'
-import { InstanceFields, InstanceId, ioc, UserFields } from '../common'
-import { Settings } from '../constants'
 
 export type MothershipProvider = {
   getAllInstances(): Promise<InstanceFields[]>

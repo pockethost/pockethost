@@ -1,7 +1,7 @@
+import { logger } from '@'
 import { Handler, Request } from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import vhost from 'vhost'
-import { logger } from '../../../../../common/Logger'
 
 export function createVhostProxyMiddleware(
   host: string,

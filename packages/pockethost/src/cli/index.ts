@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
+import { LogLevelName, gracefulExit, logger } from '@'
 import { program } from 'commander'
 import EventSource from 'eventsource'
-import { LogLevelName, gracefulExit, logger } from '..'
 import { version } from '../../package.json'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'

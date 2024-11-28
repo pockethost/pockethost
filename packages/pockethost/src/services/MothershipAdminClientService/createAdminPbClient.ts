@@ -1,4 +1,3 @@
-import { MixinContext } from '.'
 import {
   GetUserTokenPayload,
   GetUserTokenPayloadSchema,
@@ -9,7 +8,8 @@ import {
   RestMethods,
   createRestHelper,
   stringify,
-} from '../..'
+} from '@'
+import { MixinContext } from '.'
 import { createInstanceMixin } from './InstanceMIxin'
 
 export type PocketbaseClientApi = ReturnType<typeof createAdminPbClient>

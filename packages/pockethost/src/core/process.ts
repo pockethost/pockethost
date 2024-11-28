@@ -1,6 +1,5 @@
+import { discordAlert, gracefulExit } from '@'
 import { DEBUG } from '.'
-import { discordAlert } from './discordAlert'
-import { gracefulExit } from './exit'
 ;['unhandledRejection', 'uncaughtException'].forEach((type) => {
   process.on(type, (e) => {
     console.error(`Unhandled:`, e)

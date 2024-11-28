@@ -1,8 +1,12 @@
+import {
+  asyncExitHook,
+  DEBUG,
+  DISCORD_ALERT_CHANNEL_URL,
+  Logger,
+  mkSingleton,
+} from '@'
 import { inspect } from 'node:util'
 import winston from 'winston'
-import { asyncExitHook } from '..'
-import { Logger, mkSingleton } from '../common'
-import { DEBUG, DISCORD_ALERT_CHANNEL_URL } from '../constants'
 import { DiscordTransport } from './DiscordTransport'
 
 const format = winston.format.combine(
