@@ -8,7 +8,6 @@ import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import {
   InstanceFields,
-  InstanceId,
   SettingsHandlerFactory,
   SettingsService,
   ioc,
@@ -32,9 +31,15 @@ export const _PH_HOME = env
   .default(envPaths(`pockethost`).data)
   .asString()
 
+export const _DATA_ROOT = env
+  .get('DATA_ROOT')
+  .default(join(_PH_HOME, `data`))
+  .asString()
+
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
+export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env
   .get('APEX_DOMAIN')
   .default('pockethost.lvh.me')
@@ -76,7 +81,8 @@ const createDevCert = async () => {
 }
 
 export const createSettings = () => ({
-  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`0.22.*`),
+  DEBUG: mkBoolean(_DEBUG),
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.22.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
@@ -94,14 +100,14 @@ export const createSettings = () => ({
   MOTHERSHIP_ADMIN_PASSWORD: mkString(),
   PH_MOTHERSHIP_APP_ROOT: mkString(_MOTHERSHIP_APP_ROOT()),
   MOTHERSHIP_MIGRATIONS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`pb_migrations`)),
-  MOTHERSHIP_HOOKS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`pb_hooks`, `src`)),
+  MOTHERSHIP_HOOKS_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`pb_hooks`)),
   MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
     required: false,
   }),
   MOTHERSHIP_SEMVER: mkString('0.22.*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
-  DATA_ROOT: mkPath(join(_PH_HOME, 'data'), { create: true }),
+  DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
   TRACE: mkBoolean(false),
@@ -137,6 +143,22 @@ export const createSettings = () => ({
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
 
   PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
+
+  VOLUME_MOUNT_POINT: mkPath(join(_DATA_ROOT, 'cloud-storage-mount'), {
+    create: true,
+  }),
+  VOLUME_CACHE_DIR: mkPath(join(_PH_HOME, 'rclone', 'cloud-storage-cache'), {
+    create: true,
+  }),
+  VOLUME_REMOTE_NAME: mkString(``, { required: true }),
+  VOLUME_BUCKET_NAME: mkString(``, { required: true }),
+  VOLUME_VFS_CACHE_MAX_AGE: mkString(`100w`),
+  VOLUME_VFS_CACHE_MIN_FREE_SPACE: mkString(`10G`),
+  VOLUME_VFS_READ_CHUNK_SIZE: mkString(`1m`),
+  VOLUME_VFS_READ_CHUNK_STREAMS: mkString(`64`),
+  VOLUME_VFS_WRITE_BACK: mkString(`1h`),
+  VOLUME_DIR_CACHE_TIME: mkString(`100d`),
+  VOLUME_DEBUG: mkBoolean(_DEBUG),
 })
 
 export type Settings = ReturnType<typeof RegisterEnvSettingsService>
@@ -164,8 +186,7 @@ export const PH_ALLOWED_POCKETBASE_SEMVER = () =>
 export const PH_HOME = (...paths: string[]) =>
   join(settings().PH_HOME, ...paths)
 
-export const DEBUG = () =>
-  env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
+export const DEBUG = () => _DEBUG
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
 export const APP_URL = (...path: string[]) =>
@@ -203,7 +224,8 @@ export const MOTHERSHIP_PORT = () =>
   env.get('MOTHERSHIP_PORT').default(8090).asPortNumber()
 
 export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
-export const DATA_ROOT = () => settings().DATA_ROOT
+export const DATA_ROOT = (...paths: string[]) =>
+  join(settings().DATA_ROOT, ...paths)
 export const NODE_ENV = () => settings().NODE_ENV
 export const IS_DEV = () => settings().IS_DEV
 export const TRACE = () => settings().TRACE
@@ -247,15 +269,28 @@ export const PH_MOTHERSHIP_MIRROR_PORT = () =>
 export const PH_GOBOT_VERBOSITY = () =>
   env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
 
+export const VOLUME_MOUNT_POINT = () => settings().VOLUME_MOUNT_POINT
+export const VOLUME_CACHE_DIR = () => settings().VOLUME_CACHE_DIR
+export const VOLUME_REMOTE_NAME = () => settings().VOLUME_REMOTE_NAME
+export const VOLUME_BUCKET_NAME = () => settings().VOLUME_BUCKET_NAME
+export const VOLUME_VFS_CACHE_MAX_AGE = () =>
+  settings().VOLUME_VFS_CACHE_MAX_AGE
+export const VOLUME_VFS_CACHE_MIN_FREE_SPACE = () =>
+  settings().VOLUME_VFS_CACHE_MIN_FREE_SPACE
+export const VOLUME_VFS_READ_CHUNK_SIZE = () =>
+  settings().VOLUME_VFS_READ_CHUNK_SIZE
+export const VOLUME_VFS_READ_CHUNK_STREAMS = () =>
+  settings().VOLUME_VFS_READ_CHUNK_STREAMS
+export const VOLUME_VFS_WRITE_BACK = () => settings().VOLUME_VFS_WRITE_BACK
+export const VOLUME_DIR_CACHE_TIME = () => settings().VOLUME_DIR_CACHE_TIME
+export const VOLUME_DEBUG = () => settings().VOLUME_DEBUG
+
 /** Helpers */
 
 export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
-  join(INSTANCE_DATA_ROOT(MOTHERSHIP_NAME()), ...paths)
+  DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
 export const MOTHERSHIP_DATA_DB = () =>
   join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
-export const INSTANCE_DATA_ROOT = (id: InstanceId) => join(DATA_ROOT(), id)
-export const INSTANCE_DATA_DB = (id: InstanceId) =>
-  join(DATA_ROOT(), id, `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) =>
   join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
@@ -267,8 +302,11 @@ export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
   [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)]
     .filter(Boolean)
     .join('/')
-export const mkInstanceDataPath = (instanceId: string, ...path: string[]) =>
-  join(settings().DATA_ROOT, instanceId, ...path)
+export const mkInstanceDataPath = (
+  volume: string,
+  instanceId: string,
+  ...path: string[]
+) => DATA_ROOT(volume, instanceId, ...path)
 
 export const logConstants = () => {
   const vars = {
@@ -317,6 +355,15 @@ export const logConstants = () => {
     MOTHERSHIP_DATA_DB,
     PH_EDGE_MIRROR_PORT: PH_MOTHERSHIP_MIRROR_PORT,
     PH_GOBOT_VERBOSITY,
+    VOLUME_MOUNT_POINT,
+    VOLUME_CACHE_DIR,
+    VOLUME_REMOTE_NAME,
+    VOLUME_BUCKET_NAME,
+    VOLUME_VFS_CACHE_MAX_AGE,
+    VOLUME_VFS_CACHE_MIN_FREE_SPACE,
+    VOLUME_VFS_READ_CHUNK_SIZE,
+    VOLUME_VFS_READ_CHUNK_STREAMS,
+    VOLUME_VFS_WRITE_BACK,
   }
   forEach(vars, (v, k) => {
     console.log(`${k}: ${v()}`)

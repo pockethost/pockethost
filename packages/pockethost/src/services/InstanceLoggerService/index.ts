@@ -1,4 +1,6 @@
-import { appendFile } from 'fs/promises'
+import Bottleneck from 'bottleneck'
+import { existsSync } from 'fs'
+import { appendFile, cp, stat, truncate } from 'fs/promises'
 import { Tail } from 'tail'
 import {
   ensureInstanceDirectoryStructure,
@@ -25,48 +27,106 @@ export type LogEntry = {
   time: string
 }
 
-export function InstanceLogWriter(instanceId: string, target: string) {
+const MultiChannelLimiter = () => {
+  const channels = new Map<string, Bottleneck>()
+  setInterval(() => {
+    for (const [channel, limiter] of channels.entries()) {
+      if (limiter.empty()) {
+        console.log(`Deleting empty limiter for ${channel}`)
+        channels.delete(channel)
+      }
+    }
+  }, 1000)
+
+  return {
+    schedule(channel: string, fn: () => Promise<void>) {
+      if (!channels.has(channel)) {
+        channels.set(channel, new Bottleneck({ maxConcurrent: 1 }))
+      }
+      return channels.get(channel)!.schedule(fn)!
+    },
+  }
+}
+
+const limiter = MultiChannelLimiter()
+
+export function InstanceLogWriter(
+  instanceId: string,
+  volume: string,
+  target: string,
+) {
   const logger = LoggerService().create(instanceId).breadcrumb({ target })
   const { dbg, info, error, warn } = logger
 
-  ensureInstanceDirectoryStructure(instanceId, logger)
+  ensureInstanceDirectoryStructure(instanceId, volume, logger)
 
-  const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+  const logFile = mkInstanceDataPath(
+    volume,
+    instanceId,
+    `logs`,
+    `${target}.log`,
+  )
 
-  const appendLogEntry = (msg: string, stream: 'stdout' | 'stderr') => {
-    appendFile(
-      logFile,
-      stringify({
-        message: msg,
-        stream,
-        time: new Date().toISOString(),
-      }) + '\n',
-    )
-  }
+  const appendLogEntry = async (msg: string, stream: 'stdout' | 'stderr') =>
+    limiter.schedule(logFile, async () => {
+      try {
+        if (existsSync(logFile)) {
+          // Check file size
+          const stats = await stat(logFile)
+          const MAX_SIZE = 1024 // 10MB in bytes
+
+          if (stats.size > MAX_SIZE) {
+            await cp(logFile, `${logFile}.1`, {
+              force: true,
+            })
+            await truncate(logFile, 0)
+          }
+        }
+
+        dbg(msg)
+        await appendFile(
+          logFile,
+          stringify({
+            message: msg,
+            stream,
+            time: new Date().toISOString(),
+          }) + '\n',
+        )
+      } catch (e) {
+        error(`Failed to write log entry: ${e}`)
+      }
+    })
 
   const api = {
     info: (msg: string) => {
-      info(msg)
-      appendLogEntry(msg, 'stdout')
+      return appendLogEntry(msg, 'stdout')
     },
     error: (msg: string) => {
-      error(msg)
-      appendLogEntry(msg, 'stderr')
+      return appendLogEntry(msg, 'stderr')
     },
   }
 
   return api
 }
 
-export function InstanceLogReader(instanceId: string, target: string) {
+export function InstanceLogReader(
+  instanceId: string,
+  volume: string,
+  target: string,
+) {
   const logger = LoggerService().create(instanceId).breadcrumb({ target })
   const { dbg, info, error, warn } = logger
 
-  ensureInstanceDirectoryStructure(instanceId, logger)
+  ensureInstanceDirectoryStructure(instanceId, volume, logger)
 
   const api = {
     tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
-      const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+      const logFile = mkInstanceDataPath(
+        volume,
+        instanceId,
+        `logs`,
+        `${target}.log`,
+      )
 
       let tid: any
       let unsub: any
@@ -92,7 +152,10 @@ export function InstanceLogReader(instanceId: string, target: string) {
 
           unsub = () => tail.close()
         } catch (e) {
-          warn(e)
+          if ((e as any).code === 'ENOENT') {
+          } else {
+            warn(e)
+          }
           tid = setTimeout(check, 1000)
         }
       }

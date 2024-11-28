@@ -71,7 +71,11 @@ export const instanceService = mkSingleton(
         `${subdomain}:${id}:${version}`,
       )
       const { dbg, warn, error, info, trace } = systemInstanceLogger
-      const userInstanceLogger = InstanceLogWriter(instance.id, `exec`)
+      const userInstanceLogger = InstanceLogWriter(
+        instance.id,
+        instance.volume,
+        `exec`,
+      )
 
       shutdownManager.push(() => {
         dbg(`Shutting down`)
@@ -84,7 +88,7 @@ export const instanceService = mkSingleton(
         )
       }) // Make this the very last thing that happens
 
-      info(`Starting`)
+      dbg(`Starting`)
       userInstanceLogger.info(`Instance is starting.`)
 
       let _shutdownReason: Error | undefined
@@ -123,6 +127,7 @@ export const instanceService = mkSingleton(
         const spawnArgs: SpawnConfig = {
           subdomain: instance.subdomain,
           instanceId: instance.id,
+          volume: instance.volume,
           dev: instance.dev,
           extraBinds: flatten([
             globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
@@ -181,13 +186,14 @@ export const instanceService = mkSingleton(
         })
 
         /** Idle check */
+        const idleTtl = instance.idleTtl || DAEMON_PB_IDLE_TTL()
         const idleTid = setInterval(() => {
           const lastRequestAge = now() - lastRequest
           dbg(
             `idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`,
           )
-          if (openRequestCount === 0 && lastRequestAge > DAEMON_PB_IDLE_TTL()) {
-            info(`idle for ${DAEMON_PB_IDLE_TTL()}, shutting down`)
+          if (openRequestCount === 0 && lastRequestAge > idleTtl) {
+            dbg(`idle for ${idleTtl}, shutting down`)
             userInstanceLogger.info(
               `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
             )

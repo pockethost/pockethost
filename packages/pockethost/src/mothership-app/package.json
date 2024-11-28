@@ -1,6 +1,12 @@
 {
   "name": "pockethost-mothership-app",
-  "dependencies": {
-    "pocketpages": "^0.8.0"
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "devDependencies": {
+    "@s-libs/micro-dash": "^18.0.0",
+    "tsup": "^8.3.5",
+    "type-fest": "^4.6.0"
   }
 }
