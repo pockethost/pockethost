@@ -1,127 +1,135 @@
-import * as fs from 'fs'
+import Bottleneck from 'bottleneck'
+import { existsSync } from 'fs'
+import { appendFile, cp, stat, truncate } from 'fs/promises'
 import { Tail } from 'tail'
-import * as winston from 'winston'
 import {
+  ensureInstanceDirectoryStructure,
   LoggerService,
-  asyncExitHook,
-  createCleanupManager,
-  mergeConfig,
   mkInstanceDataPath,
   stringify,
-} from '../../../core'
+} from '../..'
 
 type UnsubFunc = () => void
 
-export type InstanceLoggerApi = {
+export type InstanceLogWriterApi = {
   info: (msg: string) => void
   error: (msg: string) => void
-  tail: (linesBack: number, data: (line: winston.LogEntry) => void) => UnsubFunc
+}
+
+export type InstanceLogReaderApi = {
+  tail: (linesBack: number, data: (line: LogEntry) => void) => UnsubFunc
   shutdown: () => void
 }
 
-export type InstanceLoggerOptions = {
-  ttl: number
+export type LogEntry = {
+  message: string
+  stream: 'stdout' | 'stderr'
+  time: string
 }
 
-const loggers: {
-  [key: string]: InstanceLoggerApi
-} = {}
-
-export function InstanceLogger(
-  instanceId: string,
-  target: string,
-  options: Partial<InstanceLoggerOptions> = {},
-) {
-  const { dbg, info } = LoggerService().create(instanceId).breadcrumb(target)
-  const { ttl } = mergeConfig<InstanceLoggerOptions>({ ttl: 0 }, options)
-
-  dbg({ ttl })
-
-  const loggerKey = `${instanceId}_${target}`
-  if (loggers[loggerKey]) {
-    dbg(`Logger exists, using cache`)
-    return loggers[loggerKey]!
-  }
-
-  const logDirectory = mkInstanceDataPath(instanceId, `logs`)
-  if (!fs.existsSync(logDirectory)) {
-    dbg(`Creating ${logDirectory}`)
-    fs.mkdirSync(logDirectory, { recursive: true })
-  }
-
-  const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
-
-  const cm = createCleanupManager()
-
-  const fileTransport = new winston.transports.File({
-    filename: logFile,
-    maxsize: 100 * 1024 * 1024, // 100MB
-    maxFiles: 10,
-    tailable: true,
-    zippedArchive: true,
-  })
-  const logger = winston.createLogger({
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json(),
-      winston.format.printf((info) => {
-        return stringify({
-          stream: info.level === 'info' ? 'stdout' : 'stderr',
-          time: info.timestamp,
-          message: info.message,
-        })
-      }),
-    ),
-    transports: [fileTransport],
-  })
-
-  cm.add(() => {
-    dbg(`Deleting and closing`)
-    delete loggers[loggerKey]
-    fileTransport.close?.()
-    logger.close()
-  })
-
-  const { error, warn } = LoggerService()
-    .create('InstanceLogger')
-    .breadcrumb(instanceId)
-    .breadcrumb(target)
-
-  const resetTtl = (() => {
-    let tid: ReturnType<typeof setTimeout>
-
-    return () => {
-      if (!ttl) return
-      clearTimeout(tid)
-      tid = setTimeout(() => {
-        dbg(`Logger timeout`)
-        api.shutdown()
-      }, ttl)
+const MultiChannelLimiter = () => {
+  const channels = new Map<string, Bottleneck>()
+  setInterval(() => {
+    for (const [channel, limiter] of channels.entries()) {
+      if (limiter.empty()) {
+        console.log(`Deleting empty limiter for ${channel}`)
+        channels.delete(channel)
+      }
     }
-  })()
+  }, 1000)
+
+  return {
+    schedule(channel: string, fn: () => Promise<void>) {
+      if (!channels.has(channel)) {
+        channels.set(channel, new Bottleneck({ maxConcurrent: 1 }))
+      }
+      return channels.get(channel)!.schedule(fn)!
+    },
+  }
+}
+
+const limiter = MultiChannelLimiter()
+
+export function InstanceLogWriter(
+  instanceId: string,
+  volume: string,
+  target: string,
+) {
+  const logger = LoggerService().create(instanceId).breadcrumb({ target })
+  const { dbg, info, error, warn } = logger
+
+  ensureInstanceDirectoryStructure(instanceId, volume, logger)
+
+  const logFile = mkInstanceDataPath(
+    volume,
+    instanceId,
+    `logs`,
+    `${target}.log`,
+  )
+
+  const appendLogEntry = async (msg: string, stream: 'stdout' | 'stderr') =>
+    limiter.schedule(logFile, async () => {
+      try {
+        if (existsSync(logFile)) {
+          // Check file size
+          const stats = await stat(logFile)
+          const MAX_SIZE = 1024 // 10MB in bytes
+
+          if (stats.size > MAX_SIZE) {
+            await cp(logFile, `${logFile}.1`, {
+              force: true,
+            })
+            await truncate(logFile, 0)
+          }
+        }
+
+        dbg(msg)
+        await appendFile(
+          logFile,
+          stringify({
+            message: msg,
+            stream,
+            time: new Date().toISOString(),
+          }) + '\n',
+        )
+      } catch (e) {
+        error(`Failed to write log entry: ${e}`)
+      }
+    })
 
   const api = {
     info: (msg: string) => {
-      resetTtl()
-      dbg(`info: `, msg)
-      logger.info(msg)
+      return appendLogEntry(msg, 'stdout')
     },
     error: (msg: string) => {
-      resetTtl()
-      dbg(`error: `, msg)
-      logger.error(msg)
+      return appendLogEntry(msg, 'stderr')
     },
-    tail: (
-      linesBack: number,
-      data: (line: winston.LogEntry) => void,
-    ): UnsubFunc => {
-      if (ttl) {
-        throw new Error(`Cannot tail with ttl active`)
-      }
-      const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
+  }
+
+  return api
+}
+
+export function InstanceLogReader(
+  instanceId: string,
+  volume: string,
+  target: string,
+) {
+  const logger = LoggerService().create(instanceId).breadcrumb({ target })
+  const { dbg, info, error, warn } = logger
+
+  ensureInstanceDirectoryStructure(instanceId, volume, logger)
+
+  const api = {
+    tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
+      const logFile = mkInstanceDataPath(
+        volume,
+        instanceId,
+        `logs`,
+        `${target}.log`,
+      )
 
       let tid: any
-      cm.add(() => clearTimeout(tid))
+      let unsub: any
       const check = () => {
         try {
           const tail = new Tail(logFile, { nLines: linesBack })
@@ -132,7 +140,7 @@ export function InstanceLogger(
               data(entry)
             } catch (e) {
               data({
-                level: 'info',
+                stream: 'stdout',
                 message: line,
                 time: new Date().toISOString(),
               })
@@ -142,25 +150,24 @@ export function InstanceLogger(
             error(`Caught a tail error ${e}`)
           })
 
-          cm.add(() => tail.unwatch())
+          unsub = () => tail.close()
         } catch (e) {
-          warn(e)
+          if ((e as any).code === 'ENOENT') {
+          } else {
+            warn(e)
+          }
           tid = setTimeout(check, 1000)
         }
       }
       check()
 
-      const unsub = asyncExitHook(() => cm.shutdown())
-
       return () => {
-        cm.shutdown()
+        clearTimeout(tid)
         unsub()
       }
     },
-    shutdown: () => cm.shutdown(),
   }
 
-  loggers[loggerKey] = api
   return api
 }
 

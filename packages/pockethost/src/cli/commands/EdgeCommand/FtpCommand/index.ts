@@ -9,5 +9,8 @@ export const FtpCommand = () => {
   const cmd = new Command(`ftp`)
     .description(`FTP commands`)
     .addCommand(ServeCommand())
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

@@ -1,28 +1,29 @@
+import { browser } from '$app/environment'
 import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { keys, map } from '@s-libs/micro-dash'
 import {
-  AuthModel,
+  type AuthModel,
   BaseAuthStore,
   ClientResponseError,
+  type CreateInstancePayload,
   CreateInstancePayloadSchema,
-  DeleteInstancePayload,
+  type CreateInstanceResult,
+  type DeleteInstancePayload,
   DeleteInstancePayloadSchema,
-  DeleteInstanceResult,
+  type DeleteInstanceResult,
+  type InstanceFields,
+  type InstanceId,
   PocketBase,
   RestCommands,
   RestMethods,
-  UpdateInstancePayload,
+  type UntrustedInstanceLogFields,
+  type UpdateInstancePayload,
   UpdateInstancePayloadSchema,
-  UpdateInstanceResult,
+  type UpdateInstanceResult,
   assertExists,
   createRestHelper,
-  type CreateInstancePayload,
-  type CreateInstanceResult,
-  type InstanceFields,
-  type InstanceId,
-  type InstanceLogFields,
 } from 'pockethost/common'
 
 export type AuthToken = string
@@ -165,7 +166,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     )
 
   const parseError = (e: Error): string[] => {
-    if (!(e instanceof ClientResponseError)) return [e.message]
+    if (!(e instanceof ClientResponseError)) return [`${e}`]
     if (e.data.message && keys(e.data.data).length === 0)
       return [e.data.message]
     return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter(
@@ -210,13 +211,15 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * token may be out of date, or fields in the user record may have changed
      * in the backend.
      */
-    refreshAuthToken()
-      .catch((error) => {
-        client.authStore.clear()
-      })
-      .finally(() => {
-        fireAuthChange(client.authStore)
-      })
+    if (browser) {
+      refreshAuthToken()
+        .catch((error) => {
+          client.authStore.clear()
+        })
+        .finally(() => {
+          fireAuthChange(client.authStore)
+        })
+    }
 
     /**
      * Listen for auth state changes and subscribe to realtime _user events.
@@ -245,7 +248,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
   const watchInstanceLog = (
     instance: InstanceFields,
-    update: (log: InstanceLogFields) => void,
+    update: (log: UntrustedInstanceLogFields) => void,
     nInitial = 100,
   ): (() => void) => {
     const auth = client.authStore.exportToCookie()
@@ -269,7 +272,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         }),
         onmessage: (event) => {
           const {} = event
-          const log = JSON.parse(event.data) as InstanceLogFields
+          const log = JSON.parse(event.data) as UntrustedInstanceLogFields
 
           update(log)
         },

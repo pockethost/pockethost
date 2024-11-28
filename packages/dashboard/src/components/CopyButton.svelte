@@ -1,6 +1,6 @@
 <script lang="ts">
   import Clipboard from '$components/Clipboard.svelte'
-  import TinyButton from './helpers/TinyButton.svelte'
+  import TinyButton from '$components/helpers/TinyButton.svelte'
 
   let isCopied = false
   export let code: string

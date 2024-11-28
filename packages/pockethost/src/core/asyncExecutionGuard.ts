@@ -1,6 +1,6 @@
-import { uniqueId } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { SetReturnType } from 'type-fest'
+import { seqid } from '../common'
 import { LoggerService } from '../common/Logger'
 
 const limiters: { [lane: string]: Bottleneck } = {}
@@ -10,7 +10,7 @@ export const serialAsyncExecutionGuard = <
   cb: T,
   lane?: SetReturnType<T, string>,
 ): T => {
-  const uuid = uniqueId()
+  const uuid = seqid()
   const _lane = lane || (() => uuid)
   const wrapper = (...args: Parameters<T>) => {
     const { dbg } = LoggerService().create('serialAsyncExecutionGuard')
@@ -32,7 +32,7 @@ export const singletonAsyncExecutionGuard = <
   cb: T,
   key: SetReturnType<T, string>,
 ): T => {
-  const uuid = uniqueId()
+  const uuid = seqid()
   const keyFactory = key || (() => uuid)
   const wrapper = (...args: Parameters<T>) => {
     const { dbg } = LoggerService().create(`singletonAsyncExecutionGuard`)

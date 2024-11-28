@@ -1,3 +1,4 @@
+import fancyImage from '$src/lib/fancyImage'
 import hljs from 'highlight.js'
 
 const highlight = (code, lang) => {
@@ -5,4 +6,4 @@ const highlight = (code, lang) => {
   return hljs.highlight(code, { language: lang }).value
 }
 
-export default { highlight }
+export default { highlight, fancyImage }

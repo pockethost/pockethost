@@ -19,53 +19,29 @@ $app.onBeforeServe().add((e) => {
     return
   }
 
-  const result = new DynamicModel({
-    // describe the shape of the data (used also as initial values)
-    id: '',
-  })
-
-  try {
+  const update = () =>
     dao
       .db()
-      .newQuery('SELECT * from _admins where email = {:email}')
-      .bind({ email })
-      .one(result)
-    log(
-      `Existing admin record matching PocketHost login found - updating with latest credentials`,
-    )
-    try {
-      dao
-        .db()
-        .newQuery(
-          'update _admins set tokenKey={:tokenKey}, passwordHash={:passwordHash} where email={:email}',
-        )
-        .bind({ email, tokenKey, passwordHash })
-        .execute()
-      log(`Success`)
-    } catch (e) {
-      log(`Failed to update admin credentials: ${e}`)
-    }
-  } catch (e) {
-    log(`No admin record matching PocketHost credentials - creating`)
+      .newQuery(
+        `
+        insert into _admins (id, email, tokenKey, passwordHash) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})
+        ON CONFLICT(email) DO UPDATE SET
+          id=excluded.id,
+          tokenKey=excluded.tokenKey,
+          passwordHash=excluded.passwordHash
+        ON CONFLICT(id) DO UPDATE SET
+          email=excluded.email,
+          tokenKey=excluded.tokenKey,
+          passwordHash=excluded.passwordHash
+          `,
+      )
+      .bind({ id, email, tokenKey, passwordHash })
+      .execute()
 
-    try {
-      dao
-        .db()
-        .newQuery(
-          'insert into _admins (id,email, tokenKey, passwordHash) VALUES ({:id}, {:email}, {:tokenKey}, {:passwordHash})',
-        )
-        .bind({
-          id,
-          email,
-          tokenKey,
-          passwordHash,
-          created: new Date().toISOString(),
-          updated: new Date().toISOString(),
-        })
-        .execute()
-      log(`Success`)
-    } catch (e) {
-      log(`Failed to insert admin credentials: ${e}`)
-    }
+  try {
+    update()
+    log(`Success updating admin credentials ${email}`)
+  } catch (e) {
+    log(`Failed to update admin credentials ${email}`)
   }
 })

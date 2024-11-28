@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+  import Fa from 'svelte-fa'
+
   export let documentation: string = ''
 </script>
 
@@ -10,9 +13,10 @@
       href={documentation}
       class="btn btn-sm btn-outline btn-primary"
       target="_blank"
-      >Full documentation <i
-        class="fa-regular fa-arrow-up-right-from-square opacity-50 text-sm"
-      ></i></a
+      >Full documentation <Fa
+        icon={faArrowUpRightFromSquare}
+        class="opacity-50 text-sm"
+      /></a
     >
   </div>
 {/if}

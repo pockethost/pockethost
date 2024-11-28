@@ -32,7 +32,7 @@ export const handleCreateNewInstance = async (
       subdomain: instanceName,
     })
 
-    await goto(`/app/instances/${record.instance.id}`)
+    await goto(`/instances/${record.instance.id}`)
   } catch (error: any) {
     handleFormError(error, setError)
   }
@@ -58,7 +58,7 @@ export const handleInstanceGeneratorWidget = async (
 
     if (!instance) throw new Error(`This should never happen`)
 
-    window.location.href = `/app/instances/${instance.id}`
+    window.location.href = `/instances/${instance.id}`
   } catch (e) {
     if (e instanceof Error) {
       setError(e.message)

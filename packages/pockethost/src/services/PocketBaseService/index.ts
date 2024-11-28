@@ -1,34 +1,30 @@
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
-import { gobot } from 'gobot'
 import MemoryStream from 'memorystream'
 import { gte } from 'semver'
 import { EventEmitter } from 'stream'
 import { AsyncReturnType } from 'type-fest'
 import {
   APEX_DOMAIN,
-  DOCKER_CONTAINER_HOST,
   LoggerService,
-  SYSLOGD_PORT,
   SingletonBaseConfig,
-  SyslogLogger,
   asyncExitHook,
   createCleanupManager,
   mkContainerHomePath,
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
-  tryFetch,
-} from '../../../core'
-import { PortService } from '../PortService'
+} from '../..'
+import { GobotService } from '../GobotService'
+import { InstanceLogWriter } from '../InstanceLoggerService'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
   subdomain: string
   instanceId: string
+  volume: string
   version?: string
-  port?: number
   extraBinds?: string[]
   env?: Env
   stdout?: MemoryStream
@@ -45,9 +41,11 @@ export type PocketbaseProcess = {
   url: string
   kill: () => Promise<void>
   exitCode: Promise<number>
+  stopped: () => boolean
+  started: () => boolean
 }
 
-const INSTANCE_IMAGE_NAME = `pockethost-instance`
+export const DOCKER_INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
 
 export const createPocketbaseService = async (
   config: PocketbaseServiceConfig,
@@ -55,6 +53,7 @@ export const createPocketbaseService = async (
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
+  const { gobot } = GobotService()
   const bot = await gobot(`pocketbase`, { os: 'linux' })
   const maxVersion = (await bot.versions())[0]
   if (!maxVersion) {
@@ -65,16 +64,9 @@ export const createPocketbaseService = async (
     const cm = createCleanupManager()
     const logger = LoggerService().create('spawn')
     const { dbg, warn, error } = logger
-    const port =
-      cfg.port ||
-      (await (async () => {
-        const [defaultPort, freeDefaultPort] = await PortService().alloc()
-        cm.add(freeDefaultPort)
-        return defaultPort
-      })())
+
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
-      port,
       extraBinds: [],
       env: {},
       stderr: new MemoryStream(),
@@ -86,6 +78,7 @@ export const createPocketbaseService = async (
       version,
       subdomain,
       instanceId,
+      volume,
       extraBinds,
       env,
       stderr,
@@ -93,12 +86,8 @@ export const createPocketbaseService = async (
       dev,
     } = _cfg
 
-    logger.breadcrumb(subdomain).breadcrumb(instanceId)
-    const iLogger = SyslogLogger(instanceId, 'exec')
-    cm.add(async () => {
-      dbg(`Shutting down iLogger`)
-      await iLogger.shutdown()
-    })
+    logger.breadcrumb({ subdomain, instanceId })
+    const iLogger = InstanceLogWriter(instanceId, volume, 'exec')
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await bot.maxSatisfyingVersion(_version)
@@ -118,20 +107,25 @@ export const createPocketbaseService = async (
 
     let started = false
     let stopped = false
+    let stopping = false
 
     const container = await new Promise<{
       on: EventEmitter['on']
       kill: () => Promise<void>
-    }>((resolve) => {
+      portBinding: number
+    }>((resolve, reject) => {
       const docker = new Docker()
       iLogger.info(`Starting instance`)
-      const handleData = (data: Buffer) => {
+      stdout.on('data', (data) => {
+        iLogger.info(data.toString())
         dbg(data.toString())
-      }
-      stdout.on('data', handleData)
-      stderr.on('data', handleData)
+      })
+      stderr.on('data', (data) => {
+        iLogger.error(data.toString())
+        dbg(data.toString())
+      })
       const Binds = [
-        `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
+        `${mkInstanceDataPath(volume, instanceId)}:${mkContainerHomePath()}`,
         `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
       ]
 
@@ -140,7 +134,7 @@ export const createPocketbaseService = async (
       }
 
       const createOptions: ContainerCreateOptions = {
-        Image: INSTANCE_IMAGE_NAME,
+        Image: DOCKER_INSTANCE_IMAGE_NAME,
         Env: map(
           {
             ...env,
@@ -153,7 +147,7 @@ export const createPocketbaseService = async (
         HostConfig: {
           AutoRemove: true,
           PortBindings: {
-            '8090/tcp': [{ HostPort: `${port}` }],
+            '8090/tcp': [{ HostPort: `0` }],
           },
           Binds,
           Ulimits: [
@@ -163,19 +157,11 @@ export const createPocketbaseService = async (
               Hard: 4096,
             },
           ],
-          LogConfig: {
-            Type: 'syslog',
-            Config: {
-              'syslog-address': `udp://${DOCKER_CONTAINER_HOST()}:${SYSLOGD_PORT()}`,
-              tag: instanceId,
-            },
-          },
         },
         Tty: false,
         ExposedPorts: {
           [`8090/tcp`]: {},
         },
-        // User: 'pockethost',
       }
 
       createOptions.Cmd = ['node', `index.mjs`]
@@ -187,20 +173,18 @@ export const createPocketbaseService = async (
       }
       createOptions.WorkingDir = `/home/pockethost`
 
-      logger.info(`Spawning ${instanceId}`)
-
-      dbg({ createOptions })
+      logger.dbg(`Spawning ${instanceId}`, { createOptions })
 
       const emitter = docker
         .run(
-          INSTANCE_IMAGE_NAME,
+          DOCKER_INSTANCE_IMAGE_NAME,
           [''], // Supplied by createOptions
           [stdout, stderr],
           createOptions,
           (err, data) => {
             stopped = true
-            stderr.off(`data`, handleData)
-            stdout.off(`data`, handleData)
+            stderr.removeAllListeners(`data`)
+            stdout.removeAllListeners(`data`)
             const StatusCode = (() => {
               if (!data?.StatusCode) return 0
               return parseInt(data.StatusCode, 10)
@@ -215,28 +199,65 @@ export const createPocketbaseService = async (
             137 - SIGKILL (expected)
             */
             if ((StatusCode > 0 && StatusCode !== 137) || err) {
+              const castStatusCode = StatusCode || 999
               iLogger.error(
-                `Unexpected stop with code ${StatusCode} and error ${err}`,
+                `Unexpected stop with code ${castStatusCode} and error ${err}`,
               )
               error(
-                `${instanceId} stopped unexpectedly with code ${StatusCode} and error ${err}`,
+                `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`,
               )
-              emitter.emit(Events.Exit, StatusCode || 999)
+              emitter.emit(Events.Exit, castStatusCode)
+              reject(
+                new Error(
+                  `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`,
+                ),
+              )
             } else {
               emitter.emit(Events.Exit, 0)
             }
           },
         )
-        .on('start', (container: Container) => {
+        .on('start', async (container: Container) => {
           dbg(`Got started container`, container)
           started = true
-          resolve({
-            on: emitter.on.bind(emitter),
-            kill: () => container.stop({ signal: `SIGKILL` }).catch(error),
-          })
+
+          try {
+            // Get container info to retrieve the assigned port
+            const containerInfo = await container.inspect()
+            const ports = containerInfo.NetworkSettings?.Ports?.['8090/tcp']
+
+            if (!ports || !ports[0] || !ports[0].HostPort) {
+              throw new Error('Could not get port binding from container')
+            }
+
+            const portBinding = parseInt(ports[0].HostPort, 10)
+            if (isNaN(portBinding)) {
+              throw new Error(`Invalid port binding: ${ports[0].HostPort}`)
+            }
+
+            resolve({
+              on: emitter.on.bind(emitter),
+              kill: () =>
+                container.stop({ signal: `SIGINT` }).catch((e) => {
+                  error(e)
+                  return container.stop({ signal: `SIGKILL` }).catch(error)
+                }),
+              portBinding,
+            })
+          } catch (e) {
+            error(`Failed to get port binding: ${e}`)
+            reject(e)
+            try {
+              await container.stop()
+            } catch (stopError) {
+              error(
+                `Failed to stop container after port binding error: ${stopError}`,
+              )
+            }
+          }
         })
     }).catch((e) => {
-      error(`Error starting container`, e)
+      error(`Error starting container: ${e}`)
       cm.shutdown()
       throw e
     })
@@ -253,23 +274,25 @@ export const createPocketbaseService = async (
       dbg(`Instance exited with ${code}`)
       cm.shutdown().catch(error)
     })
-    const url = mkInternalUrl(port)
-    logger.breadcrumb(url)
+
+    const url = mkInternalUrl(container.portBinding)
+    logger.breadcrumb({ url })
     dbg(`Making exit hook for ${url}`)
     const unsub = asyncExitHook(async () => {
       await api.kill()
     })
-    await tryFetch(`${url}/api/health`, {
-      preflight: async () => {
-        dbg({ stopped, started, container: !!container })
-        if (stopped) throw new Error(`Container stopped`)
-        return started && !!container
-      },
-    })
+
     const api: PocketbaseProcess = {
       url,
       exitCode,
+      stopped: () => stopped,
+      started: () => started,
       kill: async () => {
+        if (stopping) {
+          warn(`${instanceId} already stopping`)
+          return
+        }
+        stopping = true
         dbg(`Killing`)
         iLogger.info(`Stopping instance`)
         await container.kill()

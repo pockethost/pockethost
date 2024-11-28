@@ -1,57 +1,56 @@
 import { map } from '@s-libs/micro-dash'
+import Database from 'better-sqlite3'
 import Bottleneck from 'bottleneck'
-import { InvalidArgumentError, program } from 'commander'
-import { LoggerService, PocketBase, UserFields } from '../../../common'
+import { Command, InvalidArgumentError } from 'commander'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_DATA_DB,
-  MOTHERSHIP_INTERNAL_URL,
   MOTHERSHIP_URL,
   TEST_EMAIL,
-} from '../../../core'
-import { SqliteService } from './SqliteService'
+} from '../../..'
+import { PocketBase, UserFields, logger } from '../../../common'
 
 const TBL_SENT_MESSAGES = `sent_messages`
 
-export const sendMail = async () => {
-  const { dbg, info } = LoggerService().create(`mail.ts`)
-
-  function myParseInt(value: string) {
-    // parseInt takes a string and a radix
-    const parsedValue = parseInt(value, 10)
-    if (isNaN(parsedValue)) {
-      throw new InvalidArgumentError('Not a number.')
-    }
-    return parsedValue
+function myParseInt(value: string) {
+  // parseInt takes a string and a radix
+  const parsedValue = parseInt(value, 10)
+  if (isNaN(parsedValue)) {
+    throw new InvalidArgumentError('Not a number.')
   }
+  return parsedValue
+}
 
-  function interpolateString(
-    template: string,
-    dict: { [key: string]: string },
-  ): string {
-    return template.replace(/\{\$(\w+)\}/g, (match, key) => {
-      dbg({ match, key })
-      const lowerKey = key.toLowerCase()
-      return dict.hasOwnProperty(lowerKey) ? dict[lowerKey]! : match
-    })
-  }
-
-  program
+export const SendMailCommand = () =>
+  new Command(`send`)
+    .description(`Send a PocketHost bulk mail`)
     .argument(`<messageId>`, `ID of the message to send`)
     .option('--limit <number>', `Max messages to send`, myParseInt, 1)
     .option('--confirm', `Really send messages`, false)
 
     .action(async (messageId, { limit, confirm }) => {
+      logger().context({ cli: 'sendmail' })
+      const { dbg, info } = logger()
+
+      function interpolateString(
+        template: string,
+        dict: { [key: string]: string },
+      ): string {
+        return template.replace(/\{\$(\w+)\}/g, (match, key) => {
+          dbg({ match, key })
+          const lowerKey = key.toLowerCase()
+          return dict.hasOwnProperty(lowerKey) ? dict[lowerKey]! : match
+        })
+      }
+
       dbg({ messageId, confirm, limit })
 
-      const { getDatabase } = SqliteService({})
-
-      const db = await getDatabase(MOTHERSHIP_DATA_DB())
+      const db = new Database(MOTHERSHIP_DATA_DB())
 
       info(MOTHERSHIP_URL())
 
-      const client = new PocketBase(MOTHERSHIP_INTERNAL_URL())
+      const client = new PocketBase(MOTHERSHIP_URL())
       await client.admins.authWithPassword(
         MOTHERSHIP_ADMIN_USERNAME(),
         MOTHERSHIP_ADMIN_PASSWORD(),
@@ -68,9 +67,8 @@ export const sendMail = async () => {
       }
       await Promise.all(
         map(campaign.vars, async (sql, k) => {
-          const res = await db.raw(sql)
-          const [{ value }] = res
-          vars[k.toLocaleLowerCase()] = value
+          const result = db.prepare(sql).get() as { value: string }
+          vars[k.toLocaleLowerCase()] = result.value
         }),
       )
 
@@ -84,7 +82,7 @@ export const sendMail = async () => {
     WHERE sm.id IS NULL;
      `
       dbg(sql)
-      const users = (await db.raw<UserFields[]>(sql)).slice(0, limit)
+      const users = db.prepare(sql).all().slice(0, limit) as UserFields[]
 
       // dbg({ users })
 
@@ -104,7 +102,7 @@ export const sendMail = async () => {
               body: {
                 to: user.email,
                 subject,
-                body: `${body}<hr/>I only send PocketHost annoucements. But I get it. <a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">[[unsub]]</a>`,
+                body: `${body}<hr/>[[<a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
               },
             })
             info(`Sent`)
@@ -119,8 +117,5 @@ export const sendMail = async () => {
         }),
       )
 
-      SqliteService().shutdown()
+      db.close()
     })
-
-  program.parseAsync()
-}

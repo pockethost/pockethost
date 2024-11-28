@@ -1,4 +1,4 @@
-import { BaseFields, RecordId, Subdomain, UserFields, UserId } from '.'
+import type { BaseFields, RecordId, Subdomain, UserFields, UserId } from '.'
 
 export type VersionId = string
 
@@ -19,7 +19,8 @@ export type InstanceSecretCollection = {
   [name: InstanceSecretKey]: InstanceSecretValue
 }
 
-export type InstanceFields = BaseFields & {
+export type InstanceFields<TExtra = {}> = BaseFields & {
+  region: string
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
@@ -32,13 +33,15 @@ export type InstanceFields = BaseFields & {
   dev: boolean
   cname_active: boolean
   notifyMaintenanceMode: boolean
+  volume: string
+  idleTtl: number
+} & TExtra
+
+export type WithUser<TUser = UserFields> = {
+  expand: { uid: TUser }
 }
 
-export type WithUser = {
-  expand: { uid: UserFields }
-}
-
-export type InstanceFields_WithUser = InstanceFields & WithUser
+export type InstanceFields_WithUser = InstanceFields<WithUser>
 
 export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
 

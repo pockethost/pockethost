@@ -4,20 +4,13 @@
     "allowJs": true,
     "checkJs": true,
     "preserveValueImports": false,
-    "importsNotUsedAsValues": "preserve",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "$util/*": ["./src/util/*"],
-      "$src/*": ["./src/*"],
-      "$components/*": ["./src/components/*"]
-    }
+    "strict": true
   }
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   //

@@ -1,30 +1,23 @@
 import { compact, map } from '@s-libs/micro-dash'
-import {
-  Mode,
-  constants,
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-} from 'fs'
+import Bottleneck from 'bottleneck'
+import { spawn } from 'child_process'
+import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
-import { isAbsolute, join, normalize, resolve, sep } from 'path'
-import {
-  FolderNamesMap,
-  INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES,
-  MAINTENANCE_ONLY_FOLDER_NAMES,
-  VirtualFolderNames,
-  virtualFolderGuard,
-} from '.'
+import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
+import { DATA_ROOT } from '../../../../..'
 import {
   InstanceFields,
   Logger,
   PocketBase,
   assert,
-  newId,
+  seqid,
 } from '../../../../../common'
-import { DATA_ROOT } from '../../../../../core'
+import {
+  InstanceLogWriter,
+  InstanceLogWriterApi,
+} from '../../../../../services'
 import * as fsAsync from './fs-async'
+import { MAINTENANCE_ONLY_INSTANCE_ROOTS } from './guards'
 
 export type PathError = {
   cause: {
@@ -42,6 +35,81 @@ export type PathError = {
 
 const UNIX_SEP_REGEX = /\//g
 const WIN_SEP_REGEX = /\\/g
+
+const checkBun = (
+  instance: InstanceFields,
+  virtualPath: string,
+  cwd: string,
+) => {
+  const [subdomain, maybeImportant, ...rest] = virtualPath
+    .split('/')
+    .filter((p) => !!p)
+
+  const isImportant =
+    maybeImportant === 'patches' ||
+    (rest.length === 0 &&
+      [`bun.lockb`, `package.json`].includes(maybeImportant || ''))
+
+  if (isImportant) {
+    const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
+    logger.info(`${maybeImportant} changed, running bun install`)
+    launchBunInstall(instance, virtualPath, cwd).catch(console.error)
+  }
+}
+
+const runBun = (() => {
+  const bunLimiter = new Bottleneck({ maxConcurrent: 1 })
+  return (cwd: string, logger: InstanceLogWriterApi) =>
+    bunLimiter.schedule(
+      () =>
+        new Promise<number | null>((resolve) => {
+          const proc = spawn(
+            '/root/.bun/bin/bun',
+            [
+              'install',
+              `--no-save`,
+              `--production`,
+              `--ignore-scripts`,
+              `--frozen-lockfile`,
+            ],
+            { cwd },
+          )
+          const tid = setTimeout(() => {
+            logger.error(`bun timeout after 10s`)
+            proc.kill()
+          }, 10000)
+          proc.stdout.on('data', (data) => {
+            logger.info(`${data}`)
+          })
+          proc.stderr.on('data', (data) => {
+            logger.error(`${data}`)
+          })
+          proc.on('close', (code) => {
+            logger.info(`bun exited with: ${code}`)
+            clearTimeout(tid)
+            resolve(code)
+          })
+        }),
+    )
+})()
+
+const launchBunInstall = (() => {
+  const runCache: { [key: string]: { runAgain: boolean } } = {}
+  return async (instance: InstanceFields, virtualPath: string, cwd: string) => {
+    if (cwd in runCache) {
+      runCache[cwd]!.runAgain = true
+      return
+    }
+    runCache[cwd] = { runAgain: true }
+    while (runCache[cwd]!.runAgain) {
+      runCache[cwd]!.runAgain = false
+      const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
+      logger.info(`Launching 'bun install' in ${virtualPath}`)
+      await runBun(cwd, logger)
+    }
+    delete runCache[cwd]
+  }
+})()
 
 export class PhFs implements FileSystem {
   private log: Logger
@@ -64,104 +132,79 @@ export class PhFs implements FileSystem {
     return this._root
   }
 
-  async _resolvePath(path = '.') {
+  async _resolvePath(virtualPath = '.') {
     const { dbg } = this.log.create(`_resolvePath`)
 
     // Unix separators normalize nicer on both unix and win platforms
-    const resolvedPath = path.replace(WIN_SEP_REGEX, '/')
+    const resolvedVirtualPath = virtualPath.replace(WIN_SEP_REGEX, '/')
 
     // Join cwd with new path
-    const joinedPath = isAbsolute(resolvedPath)
-      ? normalize(resolvedPath)
-      : join('/', this.cwd, resolvedPath)
+    const finalVirtualPath = isAbsolute(resolvedVirtualPath)
+      ? normalize(resolvedVirtualPath)
+      : join('/', this.cwd, resolvedVirtualPath)
 
     // Create local filesystem path using the platform separator
-    const [empty, subdomain, virtualRootFolderName, ...pathFromRootFolder] =
-      joinedPath.split('/')
+    const [empty, subdomain, ...restOfVirtualPath] = finalVirtualPath.split('/')
     dbg({
-      joinedPath,
+      finalVirtualPath,
       subdomain,
-      virtualRootFolderName,
-      restOfPath: pathFromRootFolder,
+      restOfVirtualPath,
     })
-
-    // Check if the root folder name is valid
-    if (virtualRootFolderName) {
-      virtualFolderGuard(virtualRootFolderName)
-    }
 
     // Begin building the physical path
     const fsPathParts: string[] = [this._root]
 
     // Check if the instance is valid
     const instance = await (async () => {
-      if (subdomain) {
-        const instance = await this.client
-          .collection(`instances`)
-          .getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
-        if (!instance) {
-          throw new Error(`${subdomain} not found.`)
-        }
-        fsPathParts.push(instance.id)
-        if (virtualRootFolderName) {
-          virtualFolderGuard(virtualRootFolderName)
-          const physicalFolderName = FolderNamesMap[virtualRootFolderName]
-          dbg({
-            fsPathParts,
-            virtualRootFolderName,
-            physicalFolderName,
-            instance,
-          })
-          if (
-            MAINTENANCE_ONLY_FOLDER_NAMES.includes(virtualRootFolderName) &&
-            !instance.maintenance
-          ) {
-            throw new Error(
-              `Instance must be in maintenance mode to access ${virtualRootFolderName}`,
-            )
-          }
-          fsPathParts.push(physicalFolderName)
-          // Ensure folder exists
-          const rootFolderFsPath = resolve(
-            join(...fsPathParts)
-              .replace(UNIX_SEP_REGEX, sep)
-              .replace(WIN_SEP_REGEX, sep),
-          )
-          dbg({ rootFolderFsPath })
-          if (!existsSync(rootFolderFsPath)) {
-            mkdirSync(rootFolderFsPath, { recursive: true })
-          }
-        }
-        if (resolvedPath.length > 0) fsPathParts.push(...pathFromRootFolder)
-        return instance
+      dbg(`checking validity`, { subdomain })
+      if (!subdomain) return
+      const instance = await this.client
+        .collection(`instances`)
+        .getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
+      if (!instance) {
+        throw new Error(`${subdomain} not found.`)
       }
+      const instanceRootDir = restOfVirtualPath[0]
+      if (
+        instanceRootDir &&
+        MAINTENANCE_ONLY_INSTANCE_ROOTS.includes(instanceRootDir) &&
+        !instance.maintenance
+      ) {
+        throw new Error(
+          `Instance must be in maintenance mode to access ${instanceRootDir}`,
+        )
+      }
+      if (instance.volume) {
+        fsPathParts.push(instance.volume)
+      }
+      fsPathParts.push(instance.id)
+      dbg({
+        fsPathParts,
+        instance,
+      })
+      return instance
     })()
 
     // Finalize the fs path
     const fsPath = resolve(
-      join(...fsPathParts)
+      join(...fsPathParts, ...restOfVirtualPath)
         .replace(UNIX_SEP_REGEX, sep)
         .replace(WIN_SEP_REGEX, sep),
     )
 
     // Create FTP client path using unix separator
-    const clientPath = joinedPath.replace(WIN_SEP_REGEX, '/')
+    const clientPath = finalVirtualPath.replace(WIN_SEP_REGEX, '/')
 
     dbg({
       clientPath,
       fsPath,
-      subdomain,
-      virtualRootFolderName,
-      restOfPath: pathFromRootFolder,
+      restOfVirtualPath,
       instance,
     })
 
     return {
       clientPath,
       fsPath,
-      subdomain,
-      rootFolderName: virtualRootFolderName as VirtualFolderNames | undefined,
-      pathFromRootFolder,
       instance,
     }
   }
@@ -182,21 +225,22 @@ export class PhFs implements FileSystem {
         this.cwd = clientPath
         return this.currentDirectory()
       })
+      .catch((e) => {
+        throw new Error(`no such file or directory: ${path}`)
+      })
   }
 
   async list(path = '.') {
     const { dbg, error } = this.log
       .create(`list`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
+      .breadcrumb({ cwd: this.cwd, path })
 
-    const { fsPath, subdomain, rootFolderName, instance } =
-      await this._resolvePath(path)
+    const { fsPath, instance } = await this._resolvePath(path)
 
     /*
     If a subdomain is not specified, we are in the user's root. List all subdomains.
     */
-    if (subdomain === '') {
+    if (!instance) {
       const instances = await this.client.collection(`instances`).getFullList()
       return instances.map((i) => {
         return {
@@ -210,30 +254,8 @@ export class PhFs implements FileSystem {
     }
 
     /*
-    If we have a subdomain, then it should have resolved to an instance owned by that user
-    */
-    if (!instance) {
-      throw new Error(
-        `Something as gone wrong. An instance without a subdomain is not possible.`,
-      )
-    }
-
-    /*
-    If there is no root folder name, then we are in the instance root. In this case, list
-    our allowed folder names. 
-    */
-    if (!rootFolderName) {
-      return INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES.map((name) => ({
-        isDirectory: () => true,
-        mode: 0o755,
-        size: 0,
-        mtime: Date.parse(instance.updated),
-        name: name,
-      }))
-    }
-
-    /*
-    If we do have a root folder name, then we list its contents
+    If we do have a root folder name, it will include teh instance ID at this point
+    List it's contents
     */
     return fsAsync
       .readdir(fsPath)
@@ -258,20 +280,17 @@ export class PhFs implements FileSystem {
   }
 
   async get(fileName: string): Promise<FileStat> {
-    const { fsPath, subdomain, instance, rootFolderName, pathFromRootFolder } =
-      await this._resolvePath(fileName)
+    const { fsPath, instance, clientPath } = await this._resolvePath(fileName)
 
     const { dbg, error } = this.log
       .create(`get`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(fileName)
-      .breadcrumb(fsPath)
+      .breadcrumb({ cwd: this.cwd, fileName, fsPath })
     dbg(`get`)
 
     /*
-    If the subdomain is not specified, we are in the root
+    If the instance subdomain is not specified, we are in the root
     */
-    if (!subdomain) {
+    if (!instance) {
       return {
         isDirectory: () => true,
         mode: 0o755,
@@ -281,36 +300,17 @@ export class PhFs implements FileSystem {
       }
     }
 
-    /*
-    We are in a subdomain, we must have an instance
-    */
-    if (!instance) {
-      throw new Error(`Expected instance here`)
-    }
-
+    const isInstanceRoot = clientPath.split('/').filter((p) => !!p).length === 0
     /*
     If we don't have a root folder, we're at the instance subdomain level
     */
-    if (!rootFolderName) {
+    if (!isInstanceRoot) {
       return {
         isDirectory: () => true,
         mode: 0o755,
         size: 0,
         mtime: Date.parse(instance.updated),
-        name: subdomain,
-      }
-    }
-
-    /*
-    If we don't have a path beneath the root folder, we're at a root folder level
-    */
-    if (!pathFromRootFolder) {
-      return {
-        isDirectory: () => true,
-        mode: 0o755,
-        size: 0,
-        mtime: Date.parse(instance.updated),
-        name: rootFolderName,
+        name: instance.subdomain,
       }
     }
 
@@ -330,22 +330,13 @@ export class PhFs implements FileSystem {
   ) {
     const { dbg, error } = this.log
       .create(`write`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(fileName)
+      .breadcrumb({ cwd: this.cwd, fileName })
     dbg(`write`)
 
-    const { fsPath, clientPath, rootFolderName, pathFromRootFolder, instance } =
-      await this._resolvePath(fileName)
+    const { fsPath, clientPath, instance } = await this._resolvePath(fileName)
     assert(instance, `Instance expected here`)
 
     const { append, start } = options || {}
-
-    /*
-    If we are not in a root folder, disallow writing
-    */
-    if (pathFromRootFolder.length === 0) {
-      throw new Error(`write not allowed at this level`)
-    }
 
     const stream = createWriteStream(fsPath, {
       flags: !append ? 'w+' : 'a+',
@@ -358,8 +349,10 @@ export class PhFs implements FileSystem {
       fsAsync.unlink(fsPath)
     })
     stream.once('close', () => {
-      dbg(`write(${fileName}) closing`)
+      const virtualPath = join(this.cwd, fileName)
+      dbg(`write(${virtualPath}) closing`)
       stream.end()
+      checkBun(instance, virtualPath, dirname(fsPath))
     })
     return {
       stream,
@@ -373,21 +366,12 @@ export class PhFs implements FileSystem {
   ): Promise<any> {
     const { dbg, error } = this.log
       .create(`read`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(fileName)
+      .breadcrumb({ cwd: this.cwd, fileName })
     dbg(`read`)
 
-    const { fsPath, clientPath, pathFromRootFolder } =
-      await this._resolvePath(fileName)
+    const { fsPath, clientPath } = await this._resolvePath(fileName)
 
     const { start } = options || {}
-
-    /*
-    If we are not in a root folder, disallow reading
-    */
-    if (pathFromRootFolder.length === 0) {
-      throw new Error(`read not allowed at this level`)
-    }
 
     return fsAsync
       .stat(fsPath)
@@ -406,20 +390,11 @@ export class PhFs implements FileSystem {
   async delete(path: string) {
     const { dbg, error } = this.log
       .create(`delete`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
+      .breadcrumb({ cwd: this.cwd, path })
     dbg(`delete`)
 
-    const { fsPath, clientPath, pathFromRootFolder, rootFolderName, instance } =
-      await this._resolvePath(path)
+    const { fsPath, instance } = await this._resolvePath(path)
     assert(instance, `Instance expected here`)
-
-    /*
-    Disallow deleting if not inside root folder
-    */
-    if (pathFromRootFolder.length === 0) {
-      throw new Error(`delete not allowed at this level`)
-    }
 
     return fsAsync.stat(fsPath).then((stat) => {
       if (stat.isDirectory()) {
@@ -432,19 +407,10 @@ export class PhFs implements FileSystem {
   async mkdir(path: string) {
     const { dbg, error } = this.log
       .create(`mkdir`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
+      .breadcrumb({ cwd: this.cwd, path })
     dbg(`mkdir`)
 
-    const { fsPath, clientPath, pathFromRootFolder } =
-      await this._resolvePath(path)
-
-    /*
-    Disallow making directories if not inside root folder
-    */
-    if (pathFromRootFolder.length === 0) {
-      throw new Error(`mkdir not allowed at this level`)
-    }
+    const { fsPath } = await this._resolvePath(path)
 
     return fsAsync.mkdir(fsPath, { recursive: true }).then(() => fsPath)
   }
@@ -452,34 +418,14 @@ export class PhFs implements FileSystem {
   async rename(from: string, to: string) {
     const { dbg, error } = this.log
       .create(`rename`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(from)
-      .breadcrumb(to)
+      .breadcrumb({ cwd: this.cwd, from, to })
     dbg(`rename`)
 
-    const {
-      fsPath: fromPath,
-      pathFromRootFolder: fromPathFromRootFolder,
-      rootFolderName: fromRootFolderName,
-      instance,
-    } = await this._resolvePath(from)
+    const { fsPath: fromPath, instance } = await this._resolvePath(from)
 
-    const {
-      fsPath: toPath,
-      pathFromRootFolder: toPathFromRootFolder,
-      rootFolderName: toRootFolderName,
-    } = await this._resolvePath(to)
+    const { fsPath: toPath } = await this._resolvePath(to)
 
     assert(instance, `Instance expected here`)
-    /*
-    Disallow making directories if not inside root folder
-    */
-    if (fromPathFromRootFolder.length === 0) {
-      throw new Error(`rename not allowed at this level`)
-    }
-    if (toPathFromRootFolder.length === 0) {
-      throw new Error(`rename not allowed at this level`)
-    }
 
     return fsAsync.rename(fromPath, toPath)
   }
@@ -487,25 +433,16 @@ export class PhFs implements FileSystem {
   async chmod(path: string, mode: Mode) {
     const { dbg, error } = this.log
       .create(`chmod`)
-      .breadcrumb(`cwd:${this.cwd}`)
-      .breadcrumb(path)
-      .breadcrumb(mode.toString())
+      .breadcrumb({ cwd: this.cwd, path, mode })
     dbg(`chmod`)
 
-    const { fsPath, clientPath, pathFromRootFolder } =
-      await this._resolvePath(path)
+    const { fsPath } = await this._resolvePath(path)
 
-    /*
-    Disallow making directories if not inside root folder
-    */
-    if (pathFromRootFolder.length === 0) {
-      throw new Error(`chmod not allowed at this level`)
-    }
     return // noop
     return fsAsync.chmod(fsPath, mode)
   }
 
   getUniqueName() {
-    return newId(30)
+    return seqid()
   }
 }

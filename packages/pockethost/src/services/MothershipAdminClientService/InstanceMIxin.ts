@@ -6,7 +6,7 @@ import {
   InstanceId,
   InstanceStatus,
   WithUser,
-} from '../../../core'
+} from '../..'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
 

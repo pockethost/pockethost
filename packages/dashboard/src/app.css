@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.prose :where(pre):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  @apply mb-1 mt-1;
+}
+.prose :where(code):not(:where([class~='not-prose'] *)) {
+  @apply bg-transparent;
+}
+
+.prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  @apply mt-2 mb-2;
+}
+
+.docs-content img {
+  @apply border-accent rounded-lg border;
+}
+
+.prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  @apply mt-0 mb-0;
+  line-height: 1.5em;
+}

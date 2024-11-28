@@ -29,7 +29,7 @@ You can run the complete PocketHost stack locally. A simple `pnpm dev` will fire
 - `https://pockethost.lvh.me` - Marketing/blog
 - `https://app.pockethost.lvh.me` - Dashboard (app)
 - `https://mothership.pockethost.lvh.me` - Mothership backend
-- `https://*.sfo-1.pockethost.lvh.me` - Instance worker
+- `https://*.pockethost.lvh.me` - Instance worker
 
 **Prerequisites**
 

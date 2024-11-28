@@ -7,8 +7,8 @@ import {
   PocketBase,
   SingletonBaseConfig,
   stringify,
-} from '../../core'
-import { InstanceLogger } from './InstanceLoggerService'
+} from '..'
+import { InstanceLogReader } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
 
 export type RealtimeLogConfig = SingletonBaseConfig & {}
@@ -32,7 +32,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     const json = await text(req)
     dbg(`JSON payload is`, json)
     const payload = JSON.parse(json)
-    dbg(`Parsed payload is`, parsed)
+    dbg(`Parsed payload is`, payload)
     const { instanceId, auth, n: nInitialRecords } = payload
 
     if (!instanceId) {
@@ -60,14 +60,20 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     dbg(`Got a log request for instance ID ${instanceId}`)
     const instance = await client
       .collection('instances')
-      .getOne<InstanceFields>(instanceId)
+      .getFirstListItem<InstanceFields>(
+        `id = '${instanceId}' || subdomain='${instanceId}'`,
+      )
     if (!instance) {
       throw new Error(`instanceId ${instanceId} not found for user ${user.id}`)
     }
     dbg(`Instance is `, instance)
 
     /** Get a database connection */
-    const instanceLogger = InstanceLogger(instanceId, `exec`)
+    const instanceLogger = InstanceLogReader(
+      instance.id,
+      instance.volume,
+      `exec`,
+    )
 
     /** Start the stream */
     res.writeHead(200, {
@@ -83,7 +89,6 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
 
     res.on('close', () => {
       unsub()
-      instanceLogger.shutdown()
     })
   })
 

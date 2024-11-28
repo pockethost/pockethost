@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import { DaemonCommand } from './DaemonCommand'
 import { FtpCommand } from './FtpCommand'
-import { SyslogCommand } from './SyslogCommand'
+import { VolumeCommand } from './VolumeCommand'
 
 type Options = {
   debug: boolean
@@ -13,6 +13,9 @@ export const EdgeCommand = () => {
   cmd
     .addCommand(DaemonCommand())
     .addCommand(FtpCommand())
-    .addCommand(SyslogCommand())
+    .addCommand(VolumeCommand())
+    .action(() => {
+      cmd.help()
+    })
   return cmd
 }

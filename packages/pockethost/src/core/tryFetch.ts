@@ -2,10 +2,12 @@ import fetch, { Response } from 'node-fetch'
 import { LoggerService } from '../common'
 
 export const TRYFETCH_RETRY_MS = 50
+export const TRYFETCH_TIMEOUT_MS = 500
 
-export type Config = {
+export type TryFetchConfig = {
   preflight: () => Promise<boolean>
   retryMs: number
+  timeoutMs: number
 }
 
 /**
@@ -21,13 +23,17 @@ export type Config = {
  *
  *   Note: tryFetch exits ONLY on success or a rejected preflight.
  */
-export const tryFetch = async (url: string, config?: Partial<Config>) => {
-  const { preflight, retryMs }: Config = {
+export const tryFetch = async (
+  url: string,
+  config?: Partial<TryFetchConfig>,
+) => {
+  const { preflight, retryMs, timeoutMs }: TryFetchConfig = {
     preflight: async () => true,
     retryMs: TRYFETCH_RETRY_MS,
+    timeoutMs: TRYFETCH_TIMEOUT_MS,
     ...config,
   }
-  const logger = LoggerService().create(`tryFetch`).breadcrumb(url)
+  const logger = LoggerService().create(`tryFetch`).breadcrumb({ url })
   const { dbg } = logger
   return new Promise<Response>((resolve, reject) => {
     const again = () => setTimeout(_real_tryFetch, retryMs)
@@ -50,7 +56,7 @@ export const tryFetch = async (url: string, config?: Partial<Config>) => {
       }
       try {
         dbg(`Fetch: START`)
-        const res = await fetch(url, { signal: AbortSignal.timeout(500) })
+        const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
         dbg(`Fetch: SUCCESS`)
         resolve(res)
       } catch (e) {
