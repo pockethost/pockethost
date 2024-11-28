@@ -1,10 +1,10 @@
-import { GobotOptions } from 'gobot'
 import {
   APP_URL,
   DISCORD_ALERT_CHANNEL_URL,
   DISCORD_HEALTH_CHANNEL_URL,
   DISCORD_STREAM_CHANNEL_URL,
   DISCORD_TEST_CHANNEL_URL,
+  GobotService,
   IS_DEV,
   LS_WEBHOOK_SECRET,
   LoggerService,
@@ -16,8 +16,8 @@ import {
   TEST_EMAIL,
   _MOTHERSHIP_APP_ROOT,
   mkContainerHomePath,
-} from '../../../..'
-import { GobotService } from '../../../../services/GobotService'
+} from '@'
+import { GobotOptions } from 'gobot'
 
 export type MothershipConfig = {}
 

@@ -1,4 +1,3 @@
-import { MixinContext } from '.'
 import {
   INSTANCE_COLLECTION,
   InstanceFields,
@@ -6,7 +5,8 @@ import {
   InstanceId,
   InstanceStatus,
   WithUser,
-} from '../..'
+} from '@'
+import { MixinContext } from '.'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
 

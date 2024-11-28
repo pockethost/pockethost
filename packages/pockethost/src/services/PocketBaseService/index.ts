@@ -1,12 +1,7 @@
-import { map } from '@s-libs/micro-dash'
-import Docker, { Container, ContainerCreateOptions } from 'dockerode'
-import { existsSync } from 'fs'
-import MemoryStream from 'memorystream'
-import { gte } from 'semver'
-import { EventEmitter } from 'stream'
-import { AsyncReturnType } from 'type-fest'
 import {
   APEX_DOMAIN,
+  GobotService,
+  InstanceLogWriter,
   LoggerService,
   SingletonBaseConfig,
   asyncExitHook,
@@ -15,9 +10,14 @@ import {
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
-} from '../..'
-import { GobotService } from '../GobotService'
-import { InstanceLogWriter } from '../InstanceLoggerService'
+} from '@'
+import { map } from '@s-libs/micro-dash'
+import Docker, { Container, ContainerCreateOptions } from 'dockerode'
+import { existsSync } from 'fs'
+import MemoryStream from 'memorystream'
+import { gte } from 'semver'
+import { EventEmitter } from 'stream'
+import { AsyncReturnType } from 'type-fest'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {

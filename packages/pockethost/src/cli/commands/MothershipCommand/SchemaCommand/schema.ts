@@ -1,12 +1,12 @@
-import { GobotOptions } from 'gobot'
 import {
+  GobotService,
   IS_DEV,
   LoggerService,
   MOTHERSHIP_DATA_ROOT,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_SEMVER,
-} from '../../../..'
-import { GobotService } from '../../../../services/GobotService'
+} from '@'
+import { GobotOptions } from 'gobot'
 
 export async function schema() {
   const logger = LoggerService().create(`MothershipSchema`)

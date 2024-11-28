@@ -1,12 +1,12 @@
-import { writeFileSync } from 'fs'
-import { prerelease, satisfies } from 'semver'
 import {
+  GobotService,
   LoggerService,
   MOTHERSHIP_HOOKS_DIR,
   PH_ALLOWED_POCKETBASE_SEMVER,
   stringify,
-} from '../../../..'
-import { GobotService } from '../../../../services/GobotService'
+} from '@'
+import { writeFileSync } from 'fs'
+import { prerelease, satisfies } from 'semver'
 
 function compareSemVer(a: string, b: string): number {
   // Consider wildcards as higher than any version number, hence represented by a large number for comparison

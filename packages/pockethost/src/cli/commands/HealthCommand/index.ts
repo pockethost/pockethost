@@ -1,5 +1,5 @@
+import { logger } from '@'
 import { Command } from 'commander'
-import { logger } from '../../..'
 
 type Options = {
   debug: boolean
