@@ -1,3 +1,4 @@
+export * from './GobotService'
 export * from './InstanceLoggerService'
 export * from './InstanceService'
 export * from './MothershipAdminClientService'

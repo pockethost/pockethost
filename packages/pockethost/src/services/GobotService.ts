@@ -1,5 +1,5 @@
+import { mkSingleton } from '@'
 import { GobotOptions, gobot } from 'gobot'
-import { mkSingleton } from '../common'
 import { PH_GOBOT_ROOT } from '../constants'
 
 export const GobotService = mkSingleton(() => {

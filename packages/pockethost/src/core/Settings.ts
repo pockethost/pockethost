@@ -1,5 +1,5 @@
+import { mkSingleton, parseBoolean } from '@'
 import { existsSync, mkdirSync } from 'fs'
-import { mkSingleton, parseBoolean } from '../common'
 
 export type SettingsCaster<TValue, TConfig = {}> = {
   stringToType: (value: string, config?: Partial<TConfig>) => TValue

@@ -1,8 +1,10 @@
-import { WinstonLoggerService } from '..'
+import {
+  GobotService,
+  ioc,
+  RegisterEnvSettingsService,
+  WinstonLoggerService,
+} from '@'
 import { version } from '../../package.json'
-import { ioc } from '../common'
-import { RegisterEnvSettingsService } from '../constants'
-import { GobotService } from '../services/GobotService'
 
 export const initIoc = async () => {
   const logger = await WinstonLoggerService({})

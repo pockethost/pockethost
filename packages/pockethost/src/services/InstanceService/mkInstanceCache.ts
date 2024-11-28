@@ -1,4 +1,3 @@
-import { forEach } from '@s-libs/micro-dash'
 import {
   EDGE_APEX_DOMAIN,
   INSTANCE_COLLECTION,
@@ -8,7 +7,8 @@ import {
   PocketBase,
   UserFields,
   UserId,
-} from '../..'
+} from '@'
+import { forEach } from '@s-libs/micro-dash'
 
 export const mkInstanceCache = (client: PocketBase) => {
   const { dbg } = LoggerService().create(`InstanceCache`)
