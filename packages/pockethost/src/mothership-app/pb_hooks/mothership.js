@@ -77,13 +77,14 @@ var HandleInstanceCreate = (c) => {
   log(`***TOP OF POST`);
   let data = new DynamicModel({
     subdomain: "",
+    version: versions[0],
     region: "sfo-2"
   });
   log(`***before bind`);
   c.bind(data);
   log(`***after bind`);
   data = JSON.parse(JSON.stringify(data));
-  const { subdomain, region } = data;
+  const { subdomain, version, region } = data;
   log(`***vars`, JSON.stringify({ subdomain, region }));
   if (!subdomain) {
     throw new BadRequestError(
@@ -96,7 +97,7 @@ var HandleInstanceCreate = (c) => {
   record.set("region", region || `sfo-1`);
   record.set("subdomain", subdomain);
   record.set("status", "idle");
-  record.set("version", versions[0]);
+  record.set("version", version);
   record.set("dev", true);
   record.set("syncAdmin", true);
   record.set("notifyMaintenanceMode", true);

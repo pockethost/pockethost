@@ -19,6 +19,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
   const password = parsed.password?.trim()
   const desiredInstanceName = parsed.instanceName?.trim()
   const region = parsed.region?.trim()
+  const version = parsed.version?.trim() || versions[0]
 
   if (!email) {
     throw error(`email`, 'required', 'Email is required')
@@ -64,7 +65,6 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       user.set('username', username)
       user.set('email', email)
       user.set('subscription', 'free')
-      user.set('notifyMaintenanceMode', true)
       user.setPassword(password)
       txDao.saveRecord(user)
     } catch (e) {
@@ -74,13 +74,12 @@ export const HandleSignupConfirm = (c: echo.Context) => {
     try {
       const instance = new Record(instanceCollection)
       instance.set('subdomain', desiredInstanceName)
-      instance.set('region', region || `sfo-1`)
+      instance.set('region', region || `sfo-2`)
       instance.set('uid', user.get('id'))
       instance.set('status', 'idle')
-      instance.set('notifyMaintenanceMode', true)
       instance.set('syncAdmin', true)
       instance.set('dev', true)
-      instance.set('version', versions[0])
+      instance.set('version', version)
       txDao.saveRecord(instance)
     } catch (e) {
       if (`${e}`.match(/ UNIQUE /)) {
