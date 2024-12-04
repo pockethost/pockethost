@@ -27,10 +27,6 @@ onModelBeforeCreate((e) => {
   return require(`${__hooks}/mothership`).HandleInstanceVersionValidation(e)
 }, 'instances')
 
-onModelAfterUpdate((e) => {
-  // return require(`${__hooks}/mothership`).HandleNotifyMaintenanceMode(e)
-}, 'instances')
-
 onModelAfterCreate((e) => {
   // return require(`${__hooks}/mothership`).HandleNotifyDiscordAfterCreate(e)
 }, 'instances')

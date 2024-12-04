@@ -32,7 +32,6 @@ __export(lib_exports, {
   HandleMigrateRegions: () => HandleMigrateRegions,
   HandleMirrorData: () => HandleMirrorData,
   HandleNotifyDiscordAfterCreate: () => HandleNotifyDiscordAfterCreate,
-  HandleNotifyMaintenanceMode: () => HandleNotifyMaintenanceMode,
   HandleProcessNotification: () => HandleProcessNotification,
   HandleProcessSingleNotification: () => HandleProcessSingleNotification,
   HandleSesError: () => HandleSesError,
@@ -100,7 +99,6 @@ var HandleInstanceCreate = (c) => {
   record.set("version", version);
   record.set("dev", true);
   record.set("syncAdmin", true);
-  record.set("notifyMaintenanceMode", true);
   const form = new RecordUpsertForm($app, record);
   form.submit();
   return c.json(200, { instance: record });
@@ -214,8 +212,7 @@ var HandleInstanceUpdate = (c) => {
       secrets: null,
       syncAdmin: null,
       dev: null,
-      cname: null,
-      notifyMaintenanceMode: null
+      cname: null
     }
   });
   c.bind(data);
@@ -223,16 +220,7 @@ var HandleInstanceUpdate = (c) => {
   data = JSON.parse(JSON.stringify(data));
   const id = c.pathParam("id");
   const {
-    fields: {
-      subdomain,
-      maintenance,
-      version,
-      secrets,
-      syncAdmin,
-      dev,
-      cname,
-      notifyMaintenanceMode
-    }
+    fields: { subdomain, maintenance, version, secrets, syncAdmin, dev, cname }
   } = data;
   log(
     `vars`,
@@ -244,8 +232,7 @@ var HandleInstanceUpdate = (c) => {
       secrets,
       syncAdmin,
       dev,
-      cname,
-      notifyMaintenanceMode
+      cname
     })
   );
   const record = dao.findRecordById("instances", id);
@@ -264,8 +251,7 @@ var HandleInstanceUpdate = (c) => {
     secrets,
     syncAdmin,
     dev,
-    cname,
-    notifyMaintenanceMode
+    cname
   });
   const form = new RecordUpsertForm($app, record);
   form.loadData(sanitized);
@@ -426,37 +412,6 @@ var mkNotifier = (log, dao) => (channel, template, user_id, context = {}) => {
   );
   log(`built notification record`, emailNotification);
   dao.saveRecord(emailNotification);
-};
-
-// src/lib/handlers/instance/model/HandleNotifyMaintenanceMode.ts
-var HandleNotifyMaintenanceMode = (e) => {
-  const dao = e.dao || $app.dao();
-  const newModel = e.model;
-  const oldModel = newModel.originalCopy();
-  const log = mkLog(`maintenance-mode`);
-  const audit = mkAudit(log, dao);
-  const notify = mkNotifier(log, dao);
-  try {
-    const isMaintenance = newModel.get("maintenance");
-    if (!isMaintenance) return;
-    if (isMaintenance === oldModel.get(`maintenance`)) return;
-    log(`switched`);
-    const uid = newModel.get(`uid`);
-    const user = dao.findRecordById("users", uid);
-    const shouldNotify = user.getBool(`notifyMaintenanceMode`) && newModel.getBool(`notifyMaintenanceMode`);
-    log({ shouldNotify });
-    if (!shouldNotify) return;
-    const instanceId = newModel.getId();
-    const subdomain = newModel.getString(`subdomain`);
-    const address = user.getString(`email`);
-    log({ instanceId, subdomain, address });
-    notify(`email`, `maintenance-mode`, uid, {
-      subdomain,
-      instanceId
-    });
-  } catch (e2) {
-    audit(`ERROR`, `Failed to enqueue template with ${e2}`);
-  }
 };
 
 // src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
@@ -3147,7 +3102,6 @@ var HandleVersionsRequest = (c) => {
   HandleMigrateRegions,
   HandleMirrorData,
   HandleNotifyDiscordAfterCreate,
-  HandleNotifyMaintenanceMode,
   HandleProcessNotification,
   HandleProcessSingleNotification,
   HandleSesError,
