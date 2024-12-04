@@ -61,6 +61,7 @@
           class="btn btn-secondary"
           href={INSTANCE_ADMIN_URL(instance)}
           target="_blank"
+          on:click={(e) => e.stopPropagation()}
         >
           <img
             src="/images/pocketbase-logo.svg"
