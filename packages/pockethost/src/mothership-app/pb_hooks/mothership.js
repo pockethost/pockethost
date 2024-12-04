@@ -269,7 +269,7 @@ var HandleInstanceUpdate = (c) => {
     id: "",
     fields: {
       subdomain: null,
-      maintenance: null,
+      power: null,
       version: null,
       secrets: null,
       syncAdmin: null,
@@ -282,14 +282,14 @@ var HandleInstanceUpdate = (c) => {
   data = JSON.parse(JSON.stringify(data));
   const id = c.pathParam("id");
   const {
-    fields: { subdomain, maintenance, version, secrets, syncAdmin, dev, cname }
+    fields: { subdomain, power, version, secrets, syncAdmin, dev, cname }
   } = data;
   log(
     `vars`,
     JSON.stringify({
       id,
       subdomain,
-      maintenance,
+      power,
       version,
       secrets,
       syncAdmin,
@@ -309,7 +309,7 @@ var HandleInstanceUpdate = (c) => {
   const sanitized = removeEmptyKeys({
     subdomain,
     version,
-    maintenance,
+    power,
     secrets,
     syncAdmin,
     dev,

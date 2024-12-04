@@ -11,7 +11,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     id: '',
     fields: {
       subdomain: null,
-      maintenance: null,
+      power: null,
       version: null,
       secrets: null,
       syncAdmin: null,
@@ -22,7 +22,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     id: string
     fields: {
       subdomain: string | null
-      maintenance: boolean | null
+      power: boolean | null
       version: string | null
       secrets: StringKvLookup | null
       syncAdmin: boolean | null
@@ -39,7 +39,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
 
   const id = c.pathParam('id')
   const {
-    fields: { subdomain, maintenance, version, secrets, syncAdmin, dev, cname },
+    fields: { subdomain, power, version, secrets, syncAdmin, dev, cname },
   } = data
 
   log(
@@ -47,7 +47,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     JSON.stringify({
       id,
       subdomain,
-      maintenance,
+      power,
       version,
       secrets,
       syncAdmin,
@@ -70,7 +70,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
   const sanitized = removeEmptyKeys({
     subdomain,
     version,
-    maintenance,
+    power,
     secrets,
     syncAdmin,
     dev,

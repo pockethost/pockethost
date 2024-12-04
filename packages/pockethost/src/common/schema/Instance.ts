@@ -26,7 +26,7 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   status: InstanceStatus
   version: VersionId
   secrets: InstanceSecretCollection | null
-  maintenance: boolean
+  power: boolean
   suspension: string
   syncAdmin: boolean
   cname: string
