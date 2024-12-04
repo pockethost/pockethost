@@ -29,6 +29,11 @@ module.exports = {
       script: 'pnpm prod:cli pocketbase update',
     },
     {
+      name: `mothership-update-versions`,
+      restart_delay: 60 * 60 * 1000, // 1 hour
+      script: 'pnpm prod:cli mothership update-versions',
+    },
+    {
       name: `health-check`,
       restart_delay: 60 * 1000, // 1 minute
       script: 'pnpm prod:cli health check',
