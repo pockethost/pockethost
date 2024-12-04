@@ -4,8 +4,27 @@
   import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
+  import { versions as allVersions } from '$src/util/stores'
 
   $: ({ id, maintenance, version } = $instance)
+
+  let is22OrLower = false
+  let is23OrHigher = false
+  let is23Available = false
+  $: {
+    const [major, minor] = version.split('.').map(Number)
+    is22OrLower = minor! <= 22
+    is23OrHigher = minor! >= 23
+  }
+
+  let versions: string[] = []
+  $: {
+    versions = $allVersions.filter((v) => {
+      const [major, minor] = v.split('.').map(Number)
+      return (is22OrLower && minor! <= 22) || (is23OrHigher && minor! >= 23)
+    })
+    is23Available = versions.includes('0.23.*')
+  }
 
   // Create a copy of the version
   let selectedVersion = version
@@ -62,36 +81,64 @@
 
 <CardHeader documentation={`/docs/upgrading`}>Version Change</CardHeader>
 
-{#if !maintenance}
-  <AlertBar
-    message="Your instance must be powered off to change the version."
-    type="error"
-  />
-{/if}
+<div class="max-w-xl">
+  {#if !maintenance}
+    <AlertBar
+      message="Your instance must be powered off to change the version."
+      type="error"
+    />
+  {/if}
 
-<div class="mb-8">
-  We recommend you <strong>do a full backup</strong>
-  before making a change. We support the latest patch of
-  <a href="https://github.com/pocketbase/pocketbase/releases" class="link"
-    >every minor release</a
-  > of PocketBase.
-</div>
+  <div class="mb-8">
+    We recommend you <strong>do a full backup</strong>
+    before making a change. We support the latest patch of
+    <a href="https://github.com/pocketbase/pocketbase/releases" class="link"
+      >every minor release</a
+    > of PocketBase.
+  </div>
 
-<AlertBar message={successMessage} type="success" flash />
-<AlertBar message={errorMessage} type="error" />
+  {#if is22OrLower && is23Available}
+    <div class="mb-8 bg-info p-4 rounded text-info-content">
+      <p class="font-bold text-xl">Attention v0.23.* users:</p>
+      <p>Switching to v0.23.* requires a manual upgrade process.</p>
+      <table class="table">
+        <thead class="text-info-content">
+          <tr>
+            <td>Current Version</td>
+            <td>Desired Version</td>
+            <td>How to upgrade</td>
+          </tr>
+        </thead>
+        <tr>
+          <td>&lt;=v0.22.*</td>
+          <td>v0.23.*</td>
+          <td
+            >Create a new instance at v0.23.* and follow the <a
+              href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
+              class="link">manual upgrade process</a
+            ></td
+          >
+        </tr>
+      </table>
+    </div>
+  {/if}
 
-<form
-  class="flex change-version-form-container-query gap-4"
-  on:submit={handleSave}
->
-  <VersionPicker bind:selectedVersion />
+  <AlertBar message={successMessage} type="success" flash />
+  <AlertBar message={errorMessage} type="error" />
 
-  <button
-    type="submit"
-    class="btn btn-error"
-    disabled={!maintenance || isButtonDisabled}>Change Version</button
+  <form
+    class="flex change-version-form-container-query gap-4"
+    on:submit={handleSave}
   >
-</form>
+    <VersionPicker bind:selectedVersion bind:versions />
+
+    <button
+      type="submit"
+      class="btn btn-error"
+      disabled={!maintenance || isButtonDisabled}>Change Version</button
+    >
+  </form>
+</div>
 
 <style>
   .change-version-form-container-query {
