@@ -77,7 +77,7 @@ var HandleInstanceCreate = (c) => {
   log(`***TOP OF POST`);
   let data = new DynamicModel({
     subdomain: "",
-    region: "sfo-1"
+    region: "sfo-2"
   });
   log(`***before bind`);
   c.bind(data);
