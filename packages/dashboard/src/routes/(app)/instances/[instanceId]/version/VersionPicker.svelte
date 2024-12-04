@@ -1,32 +1,10 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase-client'
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
 
   // Props definition with default value if needed
+  export let versions: string[]
   export let selectedVersion: string = ''
   export let disabled: boolean = false
-
-  let versions: string[] = [] // This will hold our version strings
-
-  // Function to fetch versions - replace with your actual fetch logic
-  async function fetchVersions(): Promise<string[]> {
-    const { versions } = await client().client.send<{ versions: string[] }>(
-      `/api/versions`,
-      {},
-    )
-
-    return versions.filter((v) => v.endsWith('*'))
-  }
-
-  onMount(() => {
-    fetchVersions()
-      .then((fetchedVersions) => {
-        versions = fetchedVersions
-      })
-      .catch((error) => {
-        console.error('Failed to load versions', error)
-      })
-  })
 
   // Emit an update when the selection changes
   function handleSelect(event: Event) {

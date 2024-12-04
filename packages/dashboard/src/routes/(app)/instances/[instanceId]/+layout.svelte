@@ -51,19 +51,31 @@
 </svelte:head>
 
 {#if isReady}
-  <div class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-2">
+  <div
+    class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-2"
+  >
     <div>
-      <h2
-        class="text-4xl md:text-left text-base-content font-bold mb-3 break-words"
-      >
-        {$instance.subdomain}
-        
-      </h2>
+      <div class="flex items-center gap-2">
+        <h2
+          class="text-4xl md:text-left text-base-content font-bold mb-3 break-words"
+        >
+          {$instance.subdomain}
+        </h2>
+      </div>
       <span class="text-gray-400">
-        Version {$instance.version} - <span class="capitalize">{$instance.status}</span>
+        Version {$instance.version} -
+        <span class="capitalize">{$instance.status}</span>
       </span>
+      {#if $instance.dev}
+        <a
+          href={`/instances/${$instance.id}/dev`}
+          class="text-warning animate-pulse border-warning border-2 p-1 rounded"
+        >
+          Dev Mode Active (SLOW)
+        </a>
+      {/if}
     </div>
-    
+
     <div>
       <Toggle
         checked={!$instance.maintenance}
@@ -71,7 +83,7 @@
       />
     </div>
   </div>
-  
+
   {#if $instance.maintenance}
     <div class="px-4 mb-8">
       <AlertBar
@@ -89,9 +101,9 @@
           <a href={`/instances/${id}`} class={activeClass(id)}>Overview</a>
         </li>
         <li>
-          <a
-            href={`/instances/${id}/secrets`}
-            class={activeClass(`secrets`)}>Secrets</a>
+          <a href={`/instances/${id}/secrets`} class={activeClass(`secrets`)}
+            >Secrets</a
+          >
         </li>
         <li>
           <a href={`/instances/${id}/logs`} class={activeClass(`logs`)}>Logs</a>
@@ -116,21 +128,43 @@
             <Fa icon={faExternalLinkAlt} class="ml-2 text-xs" />
           </a>
         </li>
-      </ul>          
+      </ul>
       <div class="pl-6">
         <Fa icon={faTriangleExclamation} class="text-error inline" />
         <span class=" font-bold text-error">Danger Zone</span>
         <Fa icon={faTriangleExclamation} class="text-error inline" />
       </div>
       <ul class="menu text-base-content">
-        <li><a href={`/instances/${id}/version`} class={activeClass(`version`)}>Change Version</a></li>
-        <li><a href={`/instances/${id}/domain`} class={activeClass(`domain`)}>Custom Domain</a></li>
-        <li><a href={`/instances/${id}/admin-sync`} class={activeClass(`admin-sync`)}>Admin Sync</a></li>
-        <li><a href={`/instances/${id}/dev`} class={activeClass(`dev`)}>Dev Mode</a></li>
-        <li><a href={`/instances/${id}/rename`} class={activeClass(`rename`)}>Rename</a></li>
         <li>
-          <a href={`/instances/${id}/delete`} class={`text-error ${activeClass(`delete`)}`}
-            >Delete</a
+          <a href={`/instances/${id}/version`} class={activeClass(`version`)}
+            >Change Version</a
+          >
+        </li>
+        <li>
+          <a href={`/instances/${id}/domain`} class={activeClass(`domain`)}
+            >Custom Domain</a
+          >
+        </li>
+        <li>
+          <a
+            href={`/instances/${id}/admin-sync`}
+            class={activeClass(`admin-sync`)}>Admin Sync</a
+          >
+        </li>
+        <li>
+          <a href={`/instances/${id}/dev`} class={activeClass(`dev`)}
+            >Dev Mode</a
+          >
+        </li>
+        <li>
+          <a href={`/instances/${id}/rename`} class={activeClass(`rename`)}
+            >Rename</a
+          >
+        </li>
+        <li>
+          <a
+            href={`/instances/${id}/delete`}
+            class={`text-error ${activeClass(`delete`)}`}>Delete</a
           >
         </li>
       </ul>
