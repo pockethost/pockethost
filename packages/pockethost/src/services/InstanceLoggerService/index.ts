@@ -36,7 +36,7 @@ const MultiChannelLimiter = () => {
         channels.delete(channel)
       }
     }
-  }, 1000)
+  }, 1000 * 60)
 
   return {
     schedule(channel: string, fn: () => Promise<void>) {
