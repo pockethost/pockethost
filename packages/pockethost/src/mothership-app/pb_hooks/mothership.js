@@ -85,7 +85,7 @@ var HandleInstanceCreate = (c) => {
   log(`***after bind`);
   data = JSON.parse(JSON.stringify(data));
   const { subdomain, version, region } = data;
-  log(`***vars`, JSON.stringify({ subdomain, version, region }));
+  log(`***vars`, JSON.stringify({ subdomain, region }));
   if (!subdomain) {
     throw new BadRequestError(
       `Subdomain is required when creating an instance.`
