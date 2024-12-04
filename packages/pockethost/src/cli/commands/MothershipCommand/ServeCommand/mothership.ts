@@ -37,6 +37,8 @@ export async function mothership(cfg: MothershipConfig) {
     DISCORD_ALERT_CHANNEL_URL: DISCORD_ALERT_CHANNEL_URL(),
     TEST_EMAIL: TEST_EMAIL(),
     APP_URL: APP_URL(),
+    PATH: process.env.PATH,
+    HOME: process.env.HOME,
   }
   dbg(env)
 

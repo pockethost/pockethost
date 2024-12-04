@@ -66,6 +66,56 @@ var interpolateString = (template, dict) => {
 var versions = require(`${__hooks}/versions.cjs`);
 
 // src/lib/handlers/instance/api/HandleInstanceCreate.ts
+var isValidTigrisBucketMeta = (meta) => {
+  return Object.values(meta).every((value) => value !== "");
+};
+var exec = (command) => {
+  const log = mkLog("exec");
+  const cmd = $os.exec(command[0], ...command.slice(1));
+  const output = (() => {
+    try {
+      return toString(cmd.output());
+    } catch (err) {
+      return `${err}: ${toString(err.value.stderr)}`;
+    }
+  })();
+  log(`output is`, { output });
+  return output;
+};
+var createBucket = (instanceId, type) => {
+  const log = mkLog("fly-storage");
+  const bucketName = `pockethost-${instanceId}-${type}`;
+  const command = [
+    "fly",
+    "storage",
+    "create",
+    "-opockethost",
+    `-n${bucketName}`
+  ];
+  log(`Creating bucket ${bucketName}: ${command.join(" ")}`);
+  const output = exec(command);
+  const secrets = {
+    AWS_ACCESS_KEY_ID: "",
+    AWS_ENDPOINT_URL_S3: "",
+    AWS_REGION: "",
+    AWS_SECRET_ACCESS_KEY: "",
+    BUCKET_NAME: ""
+  };
+  const lines = output.split("\n");
+  for (const line of lines) {
+    log({ line });
+    const match = line.match(/(.+?):\s+(.+)$/);
+    log({ match });
+    if (match) {
+      const [junk, key, value] = match;
+      if (key && key in secrets) {
+        secrets[key] = value.trim();
+      }
+    }
+  }
+  log(`secrets`, secrets);
+  return secrets;
+};
 var HandleInstanceCreate = (c) => {
   const dao = $app.dao();
   const log = mkLog(`POST:instance`);
@@ -90,17 +140,28 @@ var HandleInstanceCreate = (c) => {
       `Subdomain is required when creating an instance.`
     );
   }
-  const collection = dao.findCollectionByNameOrId("instances");
-  const record = new Record(collection);
-  record.set("uid", authRecord.getId());
-  record.set("region", region || `sfo-1`);
-  record.set("subdomain", subdomain);
-  record.set("status", "idle");
-  record.set("version", versions[0]);
-  record.set("syncAdmin", true);
-  record.set("notifyMaintenanceMode", true);
-  const form = new RecordUpsertForm($app, record);
-  form.submit();
+  let record;
+  $app.dao().runInTransaction((txDao) => {
+    const collection = txDao.findCollectionByNameOrId("instances");
+    record = new Record(collection, {
+      uid: authRecord.getId(),
+      region: region || `sfo-1`,
+      subdomain,
+      status: "idle",
+      version: versions[0],
+      syncAdmin: true
+    });
+    txDao.save(record);
+    const storageSecrets = createBucket(record.getId(), "storage");
+    if (!isValidTigrisBucketMeta(storageSecrets)) {
+      throw new BadRequestError(`Failed to create storage bucket`);
+    }
+    const backupSecrets = createBucket(record.getId(), "backup");
+    if (!isValidTigrisBucketMeta(backupSecrets)) {
+      throw new BadRequestError(`Failed to create backup bucket`);
+    }
+    throw new BadRequestError(`Hello`);
+  });
   return c.json(200, { instance: record });
 };
 
