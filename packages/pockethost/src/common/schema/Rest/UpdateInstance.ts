@@ -6,7 +6,7 @@ export type UpdateInstancePayload = {
   fields: Partial<
     Pick<
       InstanceFields,
-      | 'maintenance'
+      | 'power'
       | 'secrets'
       | 'subdomain'
       | 'syncAdmin'
@@ -34,7 +34,7 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
         properties: {
           syncAdmin: { type: 'boolean', nullable: true },
           subdomain: { type: 'string', nullable: true },
-          maintenance: { type: 'boolean', nullable: true },
+          power: { type: 'boolean', nullable: true },
           version: {
             type: 'string',
             nullable: true,
