@@ -4,13 +4,12 @@
   import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
-  import { versions as allVersions } from '$src/util/stores'
+  import { versions as allVersions, is23Available } from '$src/util/stores'
 
   $: ({ id, maintenance, version } = $instance)
 
   let is22OrLower = false
   let is23OrHigher = false
-  let is23Available = false
   $: {
     const [major, minor] = version.split('.').map(Number)
     is22OrLower = minor! <= 22
@@ -23,7 +22,6 @@
       const [major, minor] = v.split('.').map(Number)
       return (is22OrLower && minor! <= 22) || (is23OrHigher && minor! >= 23)
     })
-    is23Available = $allVersions.includes('0.23.*')
   }
 
   // Create a copy of the version
@@ -97,7 +95,7 @@
     > of PocketBase.
   </div>
 
-  {#if is23Available}
+  {#if $is23Available}
     <div class="mb-8 bg-info p-4 rounded text-info-content">
       <p class="font-bold text-xl">Attention v0.23.* users:</p>
       <p>
