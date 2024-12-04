@@ -121,13 +121,7 @@ export const createSettings = () => ({
 
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
-  PH_INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
-  INSTANCE_APP_HOOKS_DIR: mkPath(_INSTANCE_APP_ROOT(`pb_hooks`), {
-    create: true,
-  }),
-  INSTANCE_APP_MIGRATIONS_DIR: mkPath(_INSTANCE_APP_ROOT(`migrations`), {
-    create: true,
-  }),
+  INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
 
   DISCORD_HEALTH_CHANNEL_URL: mkString(''),
   DISCORD_ALERT_CHANNEL_URL: mkString(''),
@@ -239,9 +233,14 @@ export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
 
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 
-export const INSTANCE_APP_HOOK_DIR = () => settings().INSTANCE_APP_HOOKS_DIR
-export const INSTANCE_APP_MIGRATIONS_DIR = () =>
-  settings().INSTANCE_APP_MIGRATIONS_DIR
+export const INSTANCE_APP_ROOT = (version: string, ...paths: string[]) =>
+  join(settings().INSTANCE_APP_ROOT, version, ...paths)
+export const INSTANCE_APP_HOOK_DIR = (version: string, ...paths: string[]) =>
+  INSTANCE_APP_ROOT(version, `pb_hooks`, ...paths)
+export const INSTANCE_APP_MIGRATIONS_DIR = (
+  version: string,
+  ...paths: string[]
+) => INSTANCE_APP_ROOT(version, `pb_migrations`, ...paths)
 
 export const DISCORD_HEALTH_CHANNEL_URL = () =>
   env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
@@ -340,8 +339,7 @@ export const logConstants = () => {
     PH_FTP_PASV_PORT_MIN,
     PH_FTP_PASV_PORT_MAX,
     EDGE_APEX_DOMAIN,
-    INSTANCE_APP_HOOK_DIR,
-    INSTANCE_APP_MIGRATIONS_DIR,
+    INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(`<version>`),
     DISCORD_HEALTH_CHANNEL_URL,
     DISCORD_ALERT_CHANNEL_URL,
     DISCORD_TEST_CHANNEL_URL,

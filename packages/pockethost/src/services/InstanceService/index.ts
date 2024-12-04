@@ -122,19 +122,31 @@ export const instanceService = mkSingleton(
         })
 
         /** Create spawn config */
+        const instanceAppVersion = (() => {
+          const [major, minor] = instance.version.split('.').map(Number)
+          if (!minor) {
+            throw new Error(`Invalid version: ${instance.version}`)
+          }
+          if (minor <= 22) return `v22`
+          return `v23`
+        })()
         const spawnArgs: SpawnConfig = {
           subdomain: instance.subdomain,
           instanceId: instance.id,
           volume: instance.volume,
           dev: instance.dev,
           extraBinds: flatten([
-            globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
+            globSync(
+              join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js'),
+            ).map(
               (file) =>
                 `${file}:${mkContainerHomePath(
                   `pb_migrations/${basename(file)}`,
                 )}:ro`,
             ),
-            globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
+            globSync(
+              join(INSTANCE_APP_HOOK_DIR(instanceAppVersion), '*.js'),
+            ).map(
               (file) =>
                 `${file}:${mkContainerHomePath(`pb_hooks/${basename(file)}`)}:ro`,
             ),
