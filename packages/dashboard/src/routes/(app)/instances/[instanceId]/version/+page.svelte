@@ -80,7 +80,7 @@
 <CardHeader documentation={`/docs/upgrading`}>Version Change</CardHeader>
 
 <div class="max-w-xl">
-  {#if !power}
+  {#if power}
     <AlertBar
       message="Your instance must be powered off to change the version."
       type="error"
@@ -147,7 +147,7 @@
     <button
       type="submit"
       class="btn btn-error"
-      disabled={!power || isButtonDisabled}>Change Version</button
+      disabled={power || isButtonDisabled}>Change Version</button
     >
   </form>
 </div>

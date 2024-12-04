@@ -30,7 +30,7 @@
   const { updateInstance } = client()
 
   const handlePowerChange = (id: InstanceId) => (isChecked: boolean) => {
-    const power = !isChecked
+    const power = isChecked
 
     // Update the database with the new value
     updateInstance({ id, fields: { power } })
@@ -78,13 +78,13 @@
 
     <div>
       <Toggle
-        checked={!$instance.power}
+        checked={$instance.power}
         onChange={handlePowerChange($instance.id)}
       />
     </div>
   </div>
 
-  {#if $instance.power}
+  {#if !$instance.power}
     <div class="px-4 mb-8">
       <AlertBar
         message="This instance is turned off and will not respond to requests"

@@ -65,7 +65,7 @@
 
 <CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
 
-{#if !power}
+{#if power}
   <AlertBar
     message="Instance must be powered off before deleting."
     type="error"

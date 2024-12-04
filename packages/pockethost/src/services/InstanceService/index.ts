@@ -346,7 +346,7 @@ export const instanceService = mkSingleton(
         power check
         */
       dbg(`Checking for power`)
-      if (instance.power) {
+      if (!instance.power) {
         throw new Error(
           `This instance is powered off. See ${DOC_URL(
             `power`,

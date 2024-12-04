@@ -12,7 +12,7 @@
 
   const handlePowerChange = (id: InstanceId) => (e: Event) => {
     const target = e.target as HTMLInputElement
-    const power = !target.checked
+    const power = target.checked
 
     // Update the database with the new value
     updateInstance({ id, fields: { power } })
@@ -25,7 +25,7 @@
 
 {#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
   <button
-    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.power ? 'bg-base-200' : 'bg-neutral'}`}
+    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.power ? 'bg-neutral' : 'bg-base-200'}`}
     on:click={(_) => goto(`/instances/${instance.id}`)}
   >
     <div class="card-body w-full">
@@ -35,9 +35,9 @@
           <input
             type="checkbox"
             class="toggle {instance.power
-              ? 'bg-red-500 hover:bg-red-500'
-              : 'toggle-success'}"
-            checked={!instance.power}
+              ? 'toggle-success'
+              : 'bg-red-500 hover:bg-red-500'}"
+            checked={instance.power}
             on:click={(e) => e.stopPropagation()}
             on:change={handlePowerChange(instance.id)}
           />
@@ -46,7 +46,7 @@
       <p class="text-left">
         <span class="text-gray-400"
           >Version {instance.version}
-          <span class={!instance.power ? 'hidden' : ''}>- Powered Off</span
+          <span class={instance.power ? 'hidden' : ''}>- Powered Off</span
           ></span
         >
       </p>
