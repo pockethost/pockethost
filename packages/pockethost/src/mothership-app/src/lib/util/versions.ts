@@ -1,1 +1,1 @@
-export const versions = require(`${__hooks}/versions.cjs`)
+export const versions = require(`${__hooks}/versions.cjs`) as string[]
