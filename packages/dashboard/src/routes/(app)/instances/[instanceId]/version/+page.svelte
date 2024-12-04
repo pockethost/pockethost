@@ -9,17 +9,21 @@
   $: ({ id, maintenance, version } = $instance)
 
   let is22OrLower = false
+  let is23OrHigher = false
+  let is23Available = false
   $: {
     const [major, minor] = version.split('.').map(Number)
     is22OrLower = minor! <= 22
+    is23OrHigher = minor! >= 23
   }
 
   let versions: string[] = []
   $: {
     versions = $allVersions.filter((v) => {
       const [major, minor] = v.split('.').map(Number)
-      return (is22OrLower && minor! <= 22) || (!is22OrLower && minor! >= 23)
+      return (is22OrLower && minor! <= 22) || (is23OrHigher && minor! >= 23)
     })
+    is23Available = versions.includes('0.23.*')
   }
 
   // Create a copy of the version
@@ -93,43 +97,31 @@
     > of PocketBase.
   </div>
 
-  <div class="mb-8 bg-info p-4 rounded text-info-content">
-    <p class="font-bold text-xl">Attention v0.23.* users:</p>
-    <p>
-      v0.23.* represents a new major version of PocketBase and creates an
-      upgrade boundary. Automatically between v0.23.* and v0.22.* or lower is
-      not supported.
-    </p>
-    <table class="table">
-      <thead class="text-info-content">
+  {#if is22OrLower && is23Available}
+    <div class="mb-8 bg-info p-4 rounded text-info-content">
+      <p class="font-bold text-xl">Attention v0.23.* users:</p>
+      <p>Switching to v0.23.* requires a manual upgrade process.</p>
+      <table class="table">
+        <thead class="text-info-content">
+          <tr>
+            <td>Current Version</td>
+            <td>Desired Version</td>
+            <td>How to upgrade</td>
+          </tr>
+        </thead>
         <tr>
-          <td>Current Version</td>
-          <td>Desired Version</td>
-          <td>How to upgrade</td>
+          <td>&lt;=v0.22.*</td>
+          <td>v0.23.*</td>
+          <td
+            >Create a new instance at v0.23.* and follow the <a
+              href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
+              class="link">manual upgrade process</a
+            ></td
+          >
         </tr>
-      </thead>
-      <tr>
-        <td>v0.22.* or lower</td>
-        <td>v0.23.* or higher</td>
-        <td
-          >Create a new instance at v0.23.* and follow the <a
-            href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-            class="link">manual upgrade process</a
-          ></td
-        >
-      </tr>
-      <tr>
-        <td>v0.23.* or higher</td>
-        <td>v0.22.* or lower</td>
-        <td
-          >Create a new instance at v0.22.* and attempt to reverse the <a
-            href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-            class="link">manual upgrade process</a
-          ></td
-        >
-      </tr>
-    </table>
-  </div>
+      </table>
+    </div>
+  {/if}
 
   <AlertBar message={successMessage} type="success" flash />
   <AlertBar message={errorMessage} type="error" />
