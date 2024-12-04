@@ -23,7 +23,7 @@
       const [major, minor] = v.split('.').map(Number)
       return (is22OrLower && minor! <= 22) || (is23OrHigher && minor! >= 23)
     })
-    is23Available = versions.includes('0.23.*')
+    is23Available = $allVersions.includes('0.23.*')
   }
 
   // Create a copy of the version
@@ -97,10 +97,13 @@
     > of PocketBase.
   </div>
 
-  {#if is22OrLower && is23Available}
+  {#if is23Available}
     <div class="mb-8 bg-info p-4 rounded text-info-content">
       <p class="font-bold text-xl">Attention v0.23.* users:</p>
-      <p>Switching to v0.23.* requires a manual upgrade process.</p>
+      <p>
+        v0.22.* to v0.23.* is a major migration boundary and requires a manual
+        migration process.
+      </p>
       <table class="table">
         <thead class="text-info-content">
           <tr>
@@ -113,10 +116,21 @@
           <td>&lt;=v0.22.*</td>
           <td>v0.23.*</td>
           <td
-            >Create a new instance at v0.23.* and follow the <a
+            >Create a new v0.23.* instance and follow the <a
               href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
               class="link">manual upgrade process</a
-            ></td
+            >.</td
+          >
+        </tr>
+        <tr>
+          <td>0.23.*</td>
+          <td>&lt;=v0.22.*</td>
+          <td
+            >Create a new &lt;=v0.22.* instance and migrate your data manually.
+            Refer to the <a
+              href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
+              class="link">v0.23.* manual upgrade process</a
+            > and attempt to reverse it.</td
           >
         </tr>
       </table>
