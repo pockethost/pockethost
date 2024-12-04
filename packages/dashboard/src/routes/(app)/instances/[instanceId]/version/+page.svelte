@@ -6,7 +6,7 @@
   import AlertBar from '$components/AlertBar.svelte'
   import { versions as allVersions, is23Available } from '$src/util/stores'
 
-  $: ({ id, maintenance, version } = $instance)
+  $: ({ id, power, version } = $instance)
 
   let is22OrLower = false
   let is23OrHigher = false
@@ -80,7 +80,7 @@
 <CardHeader documentation={`/docs/upgrading`}>Version Change</CardHeader>
 
 <div class="max-w-xl">
-  {#if !maintenance}
+  {#if !power}
     <AlertBar
       message="Your instance must be powered off to change the version."
       type="error"
@@ -147,7 +147,7 @@
     <button
       type="submit"
       class="btn btn-error"
-      disabled={!maintenance || isButtonDisabled}>Change Version</button
+      disabled={!power || isButtonDisabled}>Change Version</button
     >
   </form>
 </div>

@@ -15,7 +15,7 @@ import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { DATA_ROOT } from '../../../../..'
 import * as fsAsync from './fs-async'
-import { MAINTENANCE_ONLY_INSTANCE_ROOTS } from './guards'
+import { POWERED_OFF_ONLY } from './guards'
 
 export type PathError = {
   cause: {
@@ -165,12 +165,10 @@ export class PhFs implements FileSystem {
       const instanceRootDir = restOfVirtualPath[0]
       if (
         instanceRootDir &&
-        MAINTENANCE_ONLY_INSTANCE_ROOTS.includes(instanceRootDir) &&
-        !instance.maintenance
+        POWERED_OFF_ONLY.includes(instanceRootDir) &&
+        !instance.power
       ) {
-        throw new Error(
-          `Instance must be in maintenance mode to access ${instanceRootDir}`,
-        )
+        throw new Error(`Instance must be powered off first`)
       }
       if (instance.volume) {
         fsPathParts.push(instance.volume)

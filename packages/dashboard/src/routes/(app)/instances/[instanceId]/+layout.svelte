@@ -29,11 +29,11 @@
 
   const { updateInstance } = client()
 
-  const handleMaintenanceChange = (id: InstanceId) => (isChecked: boolean) => {
-    const maintenance = !isChecked
+  const handlePowerChange = (id: InstanceId) => (isChecked: boolean) => {
+    const power = !isChecked
 
     // Update the database with the new value
-    updateInstance({ id, fields: { maintenance } })
+    updateInstance({ id, fields: { power } })
       .then(() => 'saved')
       .catch((error) => {
         error.data.message || error.message
@@ -78,13 +78,13 @@
 
     <div>
       <Toggle
-        checked={!$instance.maintenance}
-        onChange={handleMaintenanceChange($instance.id)}
+        checked={!$instance.power}
+        onChange={handlePowerChange($instance.id)}
       />
     </div>
   </div>
 
-  {#if $instance.maintenance}
+  {#if $instance.power}
     <div class="px-4 mb-8">
       <AlertBar
         message="This instance is turned off and will not respond to requests"

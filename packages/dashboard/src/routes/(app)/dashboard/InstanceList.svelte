@@ -10,12 +10,12 @@
 
   const { updateInstance } = client()
 
-  const handleMaintenanceChange = (id: InstanceId) => (e: Event) => {
+  const handlePowerChange = (id: InstanceId) => (e: Event) => {
     const target = e.target as HTMLInputElement
-    const maintenance = !target.checked
+    const power = !target.checked
 
     // Update the database with the new value
-    updateInstance({ id, fields: { maintenance } })
+    updateInstance({ id, fields: { power } })
       .then(() => 'saved')
       .catch((error) => {
         error.data.message || error.message
@@ -25,7 +25,7 @@
 
 {#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
   <button
-    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.maintenance ? 'bg-base-200' : 'bg-neutral'}`}
+    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.power ? 'bg-base-200' : 'bg-neutral'}`}
     on:click={(_) => goto(`/instances/${instance.id}`)}
   >
     <div class="card-body w-full">
@@ -34,20 +34,19 @@
           <span>{instance.subdomain}</span>
           <input
             type="checkbox"
-            class="toggle {instance.maintenance
+            class="toggle {instance.power
               ? 'bg-red-500 hover:bg-red-500'
               : 'toggle-success'}"
-            checked={!instance.maintenance}
+            checked={!instance.power}
             on:click={(e) => e.stopPropagation()}
-            on:change={handleMaintenanceChange(instance.id)}
+            on:change={handlePowerChange(instance.id)}
           />
         </div>
       </div>
       <p class="text-left">
         <span class="text-gray-400"
           >Version {instance.version}
-          <span class={!instance.maintenance ? 'hidden' : ''}
-            >- Powered Off</span
+          <span class={!instance.power ? 'hidden' : ''}>- Powered Off</span
           ></span
         >
       </p>
