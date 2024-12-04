@@ -73,7 +73,7 @@ async function fetchVersions(): Promise<string[]> {
     {},
   )
 
-  return versions.filter((v) => v.endsWith('*'))
+  return versions
 }
 
 export const init = () => {
