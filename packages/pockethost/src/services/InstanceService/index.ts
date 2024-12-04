@@ -343,10 +343,10 @@ export const instanceService = mkSingleton(
       }
 
       /*
-        Maintenance check
+        power check
         */
-      dbg(`Checking for maintenance mode`)
-      if (instance.maintenance) {
+      dbg(`Checking for power`)
+      if (!instance.power) {
         throw new Error(
           `This instance is powered off. See ${DOC_URL(
             `power`,
