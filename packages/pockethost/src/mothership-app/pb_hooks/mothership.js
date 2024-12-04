@@ -127,13 +127,14 @@ var HandleInstanceCreate = (c) => {
   log(`***TOP OF POST`);
   let data = new DynamicModel({
     subdomain: "",
+    version: versions[0],
     region: "sfo-2"
   });
   log(`***before bind`);
   c.bind(data);
   log(`***after bind`);
   data = JSON.parse(JSON.stringify(data));
-  const { subdomain, region } = data;
+  const { subdomain, version, region } = data;
   log(`***vars`, JSON.stringify({ subdomain, region }));
   if (!subdomain) {
     throw new BadRequestError(
@@ -145,10 +146,10 @@ var HandleInstanceCreate = (c) => {
     const collection = txDao.findCollectionByNameOrId("instances");
     record = new Record(collection, {
       uid: authRecord.getId(),
-      region: region || `sfo-1`,
+      region: region || `sfo-2`,
       subdomain,
       status: "idle",
-      version: versions[0],
+      version,
       dev: true,
       syncAdmin: true
     });
@@ -3000,6 +3001,7 @@ var HandleSignupConfirm = (c) => {
   const password = parsed.password?.trim();
   const desiredInstanceName = parsed.instanceName?.trim();
   const region = parsed.region?.trim();
+  const version = parsed.version?.trim() || versions[0];
   if (!email) {
     throw error(`email`, "required", "Email is required");
   }
@@ -3036,7 +3038,6 @@ var HandleSignupConfirm = (c) => {
       user.set("username", username);
       user.set("email", email);
       user.set("subscription", "free");
-      user.set("notifyMaintenanceMode", true);
       user.setPassword(password);
       txDao.saveRecord(user);
     } catch (e) {
@@ -3045,13 +3046,12 @@ var HandleSignupConfirm = (c) => {
     try {
       const instance = new Record(instanceCollection);
       instance.set("subdomain", desiredInstanceName);
-      instance.set("region", region || `sfo-1`);
+      instance.set("region", region || `sfo-2`);
       instance.set("uid", user.get("id"));
       instance.set("status", "idle");
-      instance.set("notifyMaintenanceMode", true);
       instance.set("syncAdmin", true);
       instance.set("dev", true);
-      instance.set("version", versions[0]);
+      instance.set("version", version);
       txDao.saveRecord(instance);
     } catch (e) {
       if (`${e}`.match(/ UNIQUE /)) {

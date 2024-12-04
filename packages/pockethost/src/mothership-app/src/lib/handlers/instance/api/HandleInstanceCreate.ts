@@ -88,8 +88,9 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   log(`***TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
+    version: versions[0],
     region: 'sfo-2',
-  }) as { subdomain?: string; region?: string }
+  }) as { subdomain?: string; version?: string; region?: string }
 
   log(`***before bind`)
 
@@ -100,7 +101,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const { subdomain, region } = data
+  const { subdomain, version, region } = data
 
   log(`***vars`, JSON.stringify({ subdomain, region }))
 
@@ -115,10 +116,10 @@ export const HandleInstanceCreate = (c: echo.Context) => {
     const collection = txDao.findCollectionByNameOrId('instances')
     record = new Record(collection, {
       uid: authRecord.getId(),
-      region: region || `sfo-1`,
+      region: region || `sfo-2`,
       subdomain,
       status: 'idle',
-      version: versions[0],
+      version: version,
       dev: true,
       syncAdmin: true,
     })
