@@ -62,6 +62,9 @@ var interpolateString = (template, dict) => {
   });
 };
 
+// src/lib/util/versions.ts
+var versions = require(`${__hooks}/versions.cjs`);
+
 // src/lib/handlers/instance/api/HandleInstanceCreate.ts
 var HandleInstanceCreate = (c) => {
   const dao = $app.dao();
@@ -74,7 +77,7 @@ var HandleInstanceCreate = (c) => {
   log(`***TOP OF POST`);
   let data = new DynamicModel({
     subdomain: "",
-    version: "0.23.*",
+    version: versions[0],
     region: "sfo-2"
   });
   log(`***before bind`);
@@ -275,9 +278,6 @@ var HandleInstancesResetIdle = (e) => {
   const dao = $app.dao();
   dao.db().newQuery(`update instances set status='idle'`).execute();
 };
-
-// src/lib/util/versions.ts
-var versions = require(`${__hooks}/versions.cjs`);
 
 // src/lib/handlers/instance/bootstrap/HandleMigrateInstanceVersions.ts
 var HandleMigrateInstanceVersions = (e) => {
