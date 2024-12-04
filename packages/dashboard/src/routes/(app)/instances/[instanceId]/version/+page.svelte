@@ -95,7 +95,7 @@
     > of PocketBase.
   </div>
 
-  {#if $is23Available}
+  {#if $is23Available || is23OrHigher}
     <div class="mb-8 bg-info p-4 rounded text-info-content">
       <p class="font-bold text-xl">Attention v0.23.* users:</p>
       <p>
