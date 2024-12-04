@@ -30,7 +30,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
 
   const { subdomain, version, region } = data
 
-  log(`***vars`, JSON.stringify({ subdomain, version, region }))
+  log(`***vars`, JSON.stringify({ subdomain, region }))
 
   if (!subdomain) {
     throw new BadRequestError(

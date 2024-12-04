@@ -10,10 +10,6 @@
   import Fa from 'svelte-fa'
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
-  import VersionPicker from '../[instanceId]/version/VersionPicker.svelte'
-  import { versions } from '$util/stores'
-
-  let selectedVersion = $versions[0]!
 
   const instanceNameField = writable('')
   const instanceInfo = writable({
@@ -86,13 +82,9 @@
     isSubmitting = true
     formError = ''
 
-    await handleCreateNewInstance(
-      $instanceNameField,
-      selectedVersion,
-      (error) => {
-        formError = error
-      },
-    ).finally(async () => {
+    await handleCreateNewInstance($instanceNameField, (error) => {
+      formError = error
+    }).finally(async () => {
       isSubmitting = false
     })
   }
@@ -138,10 +130,6 @@
         <span>{formError}</span>
       </div>
     {/if}
-
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <VersionPicker bind:selectedVersion versions={$versions} />
-    </div>
 
     <div class="flex items-center justify-center gap-4">
       <a href="/" class="btn">Cancel</a>
