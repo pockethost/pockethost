@@ -127,7 +127,7 @@ var HandleInstanceCreate = (c) => {
   log(`***TOP OF POST`);
   let data = new DynamicModel({
     subdomain: "",
-    region: "sfo-1"
+    region: "sfo-2"
   });
   log(`***before bind`);
   c.bind(data);
@@ -149,6 +149,7 @@ var HandleInstanceCreate = (c) => {
       subdomain,
       status: "idle",
       version: versions[0],
+      dev: true,
       syncAdmin: true
     });
     txDao.save(record);
@@ -345,7 +346,7 @@ var HandleMigrateInstanceVersions = (e) => {
   const records = dao.findRecordsByFilter(`instances`, "1=1").filter((r) => !!r);
   const unrecognized = [];
   records.forEach((record) => {
-    const v = record.get("version").trim();
+    const v = record.getString("version").trim();
     if (versions.includes(v)) return;
     const newVersion = (() => {
       if (v.startsWith(`~`)) {
@@ -357,6 +358,7 @@ var HandleMigrateInstanceVersions = (e) => {
           return versions[0];
         }
       }
+      return v;
     })();
     if (versions.includes(newVersion)) {
       record.set(`version`, newVersion);
@@ -3048,6 +3050,7 @@ var HandleSignupConfirm = (c) => {
       instance.set("status", "idle");
       instance.set("notifyMaintenanceMode", true);
       instance.set("syncAdmin", true);
+      instance.set("dev", true);
       instance.set("version", versions[0]);
       txDao.saveRecord(instance);
     } catch (e) {

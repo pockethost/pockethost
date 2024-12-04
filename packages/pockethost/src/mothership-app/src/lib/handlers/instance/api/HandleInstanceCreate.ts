@@ -88,7 +88,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   log(`***TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
-    region: 'sfo-1',
+    region: 'sfo-2',
   }) as { subdomain?: string; region?: string }
 
   log(`***before bind`)
@@ -119,6 +119,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
       subdomain,
       status: 'idle',
       version: versions[0],
+      dev: true,
       syncAdmin: true,
     })
 
