@@ -97,6 +97,7 @@ var HandleInstanceCreate = (c) => {
   record.set("subdomain", subdomain);
   record.set("status", "idle");
   record.set("version", versions[0]);
+  record.set("dev", true);
   record.set("syncAdmin", true);
   record.set("notifyMaintenanceMode", true);
   const form = new RecordUpsertForm($app, record);
@@ -2988,6 +2989,7 @@ var HandleSignupConfirm = (c) => {
       instance.set("status", "idle");
       instance.set("notifyMaintenanceMode", true);
       instance.set("syncAdmin", true);
+      instance.set("dev", true);
       instance.set("version", versions[0]);
       txDao.saveRecord(instance);
     } catch (e) {

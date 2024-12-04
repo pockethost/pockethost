@@ -79,6 +79,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       instance.set('status', 'idle')
       instance.set('notifyMaintenanceMode', true)
       instance.set('syncAdmin', true)
+      instance.set('dev', true)
       instance.set('version', versions[0])
       txDao.saveRecord(instance)
     } catch (e) {
