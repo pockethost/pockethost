@@ -23,17 +23,7 @@ $app.onBeforeServe().add((e) => {
     dao
       .db()
       .newQuery(
-        `
-        insert into _admins (id, email, tokenKey, passwordHash) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})
-        ON CONFLICT(email) DO UPDATE SET
-          id=excluded.id,
-          tokenKey=excluded.tokenKey,
-          passwordHash=excluded.passwordHash
-        ON CONFLICT(id) DO UPDATE SET
-          email=excluded.email,
-          tokenKey=excluded.tokenKey,
-          passwordHash=excluded.passwordHash
-          `,
+        `insert or replace into _admins (id, email, tokenKey, passwordHash) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})`,
       )
       .bind({ id, email, tokenKey, passwordHash })
       .execute()
