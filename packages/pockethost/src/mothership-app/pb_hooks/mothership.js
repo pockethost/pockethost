@@ -284,7 +284,7 @@ var HandleMigrateInstanceVersions = (e) => {
   const records = dao.findRecordsByFilter(`instances`, "1=1").filter((r) => !!r);
   const unrecognized = [];
   records.forEach((record) => {
-    const v = record.get("version").trim();
+    const v = record.getString("version").trim();
     if (versions.includes(v)) return;
     const newVersion = (() => {
       if (v.startsWith(`~`)) {
@@ -296,6 +296,7 @@ var HandleMigrateInstanceVersions = (e) => {
           return versions[0];
         }
       }
+      return v;
     })();
     if (versions.includes(newVersion)) {
       record.set(`version`, newVersion);

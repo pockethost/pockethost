@@ -9,7 +9,7 @@ export const HandleMigrateInstanceVersions = (e: core.BootstrapEvent) => {
   const records = dao.findRecordsByFilter(`instances`, '1=1').filter((r) => !!r)
   const unrecognized: string[] = []
   records.forEach((record) => {
-    const v = record.get('version').trim()
+    const v = record.getString('version').trim()
     if (versions.includes(v)) return
     const newVersion = (() => {
       if (v.startsWith(`~`)) {
@@ -18,9 +18,10 @@ export const HandleMigrateInstanceVersions = (e: core.BootstrapEvent) => {
         return newVersion
       } else {
         if (v === `^0` || v === `0` || v === '1') {
-          return versions[0]
+          return versions[0]!
         }
       }
+      return v
     })()
     if (versions.includes(newVersion)) {
       record.set(`version`, newVersion)
