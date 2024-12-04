@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { SchemaCommand } from './SchemaCommand'
 import { ServeCommand } from './ServeCommand'
+import { UpdateVersionsCommand } from './UpdateVersionsCommand'
 
 type Options = {
   debug: boolean
@@ -11,6 +12,7 @@ export const MothershipCommand = () => {
     .description(`Mothership commands`)
     .addCommand(ServeCommand())
     .addCommand(SchemaCommand())
+    .addCommand(UpdateVersionsCommand())
     .action(() => {
       cmd.help()
     })
