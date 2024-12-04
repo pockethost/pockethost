@@ -21,7 +21,6 @@ You can start by creating `*.pb.js` file(s) inside the `pb_hooks` directory. The
 ## Important Notes
 
 - Altering the `pb_hooks` directory will cause your PocketHost instance to be restarted so changes are picked up automatically.
-- If code in `pb_hooks` causes your `pocketbase` instance to exit unexpectedly, your instance will be placed in [Maintenance Mode](/docs/usage/maintenance/) until you can correct the problem and manually move your instance out of Maintenance Mode.
 
 ## Code Samples
 

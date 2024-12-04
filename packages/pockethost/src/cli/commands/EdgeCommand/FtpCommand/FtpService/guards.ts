@@ -15,9 +15,7 @@ export enum PhysicalFolderNames {
   Migrations = 'pb_migrations',
   Hooks = 'pb_hooks',
 }
-export const MAINTENANCE_ONLY_INSTANCE_ROOTS: string[] = [
-  VirtualFolderNames.Data,
-]
+export const POWERED_OFF_ONLY: string[] = [VirtualFolderNames.Data]
 
 export const FolderNamesMap: {
   [_ in VirtualFolderNames]: PhysicalFolderNames
