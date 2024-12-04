@@ -8,7 +8,7 @@
   import ErrorMessage from '../settings/ErrorMessage.svelte'
   import AlertBar from '$src/components/AlertBar.svelte'
 
-  $: ({ id, maintenance, version } = $instance)
+  $: ({ id, power, version } = $instance)
 
   // Create a copy of the version
   let selectedVersion = version
@@ -65,7 +65,7 @@
 
 <CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
 
-{#if !maintenance}
+{#if power}
   <AlertBar
     message="Instance must be powered off before deleting."
     type="error"
@@ -93,7 +93,7 @@
   <button
     type="submit"
     class="btn btn-error"
-    disabled={!maintenance || isButtonDisabled}>Delete Instance</button
+    disabled={!power || isButtonDisabled}>Delete Instance</button
   >
 </form>
 
