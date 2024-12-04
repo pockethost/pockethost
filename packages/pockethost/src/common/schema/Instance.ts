@@ -32,7 +32,6 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   cname: string
   dev: boolean
   cname_active: boolean
-  notifyMaintenanceMode: boolean
   volume: string
   idleTtl: number
 } & TExtra

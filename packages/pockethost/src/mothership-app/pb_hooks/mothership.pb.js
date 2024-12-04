@@ -26,8 +26,6 @@ routerAdd(
 onModelBeforeCreate((e) => {
   return require(`${__hooks}/mothership`).HandleInstanceVersionValidation(e);
 }, "instances");
-onModelAfterUpdate((e) => {
-}, "instances");
 onModelAfterCreate((e) => {
 }, "instances");
 onAfterBootstrap((e) => {

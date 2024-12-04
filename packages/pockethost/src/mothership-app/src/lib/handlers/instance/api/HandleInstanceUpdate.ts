@@ -17,7 +17,6 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin: null,
       dev: null,
       cname: null,
-      notifyMaintenanceMode: null,
     },
   }) as {
     id: string
@@ -29,7 +28,6 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin: boolean | null
       dev: boolean | null
       cname: string | null
-      notifyMaintenanceMode: boolean | null
     }
   }
 
@@ -41,16 +39,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
 
   const id = c.pathParam('id')
   const {
-    fields: {
-      subdomain,
-      maintenance,
-      version,
-      secrets,
-      syncAdmin,
-      dev,
-      cname,
-      notifyMaintenanceMode,
-    },
+    fields: { subdomain, maintenance, version, secrets, syncAdmin, dev, cname },
   } = data
 
   log(
@@ -64,7 +53,6 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin,
       dev,
       cname,
-      notifyMaintenanceMode,
     }),
   )
 
@@ -87,7 +75,6 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     syncAdmin,
     dev,
     cname,
-    notifyMaintenanceMode,
   })
 
   const form = new RecordUpsertForm($app, record)
