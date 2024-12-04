@@ -7,12 +7,12 @@ module.exports = {
     {
       name: `edge-daemon`,
       script: 'pnpm prod:cli edge daemon serve',
-      // cron_restart: '0 0 * * *',
+      cron_restart: '0 0 * * *',
     },
     {
       name: `edge-ftp`,
       script: 'pnpm prod:cli edge ftp serve',
-      // cron_restart: '0 0 * * *',
+      cron_restart: '0 0 * * *',
     },
     {
       name: `edge-volume`,
