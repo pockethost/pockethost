@@ -82,7 +82,7 @@ const createDevCert = async () => {
 
 export const createSettings = () => ({
   DEBUG: mkBoolean(_DEBUG),
-  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.22.*`),
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.23.*`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),

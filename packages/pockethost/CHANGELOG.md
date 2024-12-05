@@ -1,5 +1,16 @@
 # pockethost
 
+## 2.2.0
+
+### Minor Changes
+
+- v23 support
+
+### Patch Changes
+
+- a5eaa42: Default to dev mode on new instances
+- ed47618: Add mothership update-versions command
+
 ## 2.1.1
 
 ### Patch Changes
