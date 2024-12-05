@@ -43,6 +43,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   record.set('uid', authRecord.getId())
   record.set('region', region || `sfo-1`)
   record.set('subdomain', subdomain)
+  record.set('power', true)
   record.set('status', 'idle')
   record.set('version', version)
   record.set('dev', true)

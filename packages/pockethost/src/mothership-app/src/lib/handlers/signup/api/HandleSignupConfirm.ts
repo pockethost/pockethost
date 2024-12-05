@@ -77,6 +77,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       instance.set('region', region || `sfo-2`)
       instance.set('uid', user.get('id'))
       instance.set('status', 'idle')
+      instance.set('power', true)
       instance.set('syncAdmin', true)
       instance.set('dev', true)
       instance.set('version', version)

@@ -95,6 +95,7 @@ var HandleInstanceCreate = (c) => {
   record.set("uid", authRecord.getId());
   record.set("region", region || `sfo-1`);
   record.set("subdomain", subdomain);
+  record.set("power", true);
   record.set("status", "idle");
   record.set("version", version);
   record.set("dev", true);
@@ -2943,6 +2944,7 @@ var HandleSignupConfirm = (c) => {
       instance.set("region", region || `sfo-2`);
       instance.set("uid", user.get("id"));
       instance.set("status", "idle");
+      instance.set("power", true);
       instance.set("syncAdmin", true);
       instance.set("dev", true);
       instance.set("version", version);
