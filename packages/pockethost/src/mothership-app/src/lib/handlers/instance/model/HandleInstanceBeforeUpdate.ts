@@ -6,16 +6,17 @@ export const HandleInstanceBeforeUpdate = (e: core.ModelEvent) => {
 
   const log = mkLog(`instances-validate-before-update`)
 
+  const id = e.model.getId()
+
   const version = e.model.get('version')
   if (!versions.includes(version)) {
-    throw new BadRequestError(
-      `Invalid version '${version}'. Version must be one of: ${versions.join(
-        ', ',
-      )}`,
-    )
+    const msg = `[ERROR] Invalid version '${version}' for [${id}]. Version must be one of: ${versions.join(
+      ', ',
+    )}`
+    log(`${msg}`)
+    throw new BadRequestError(msg)
   }
 
-  const id = e.model.getId()
   const cname = e.model.get('cname')
   if (cname.length > 0) {
     const result = new DynamicModel({
@@ -38,7 +39,9 @@ export const HandleInstanceBeforeUpdate = (e: core.ModelEvent) => {
     })()
 
     if (inUse) {
-      throw new BadRequestError(`Custom domain already in use.`)
+      const msg = `[ERROR] [${id}] Custom domain ${cname} already in use.`
+      log(`${msg}`)
+      throw new BadRequestError(msg)
     }
   }
 }

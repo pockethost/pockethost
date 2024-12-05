@@ -102,7 +102,7 @@ export const instanceService = mkSingleton(
               dbg(`Updated instance fields`, fields)
             })
             .catch((e) => {
-              error(`Error updating instance fields`, { fields, e })
+              error(`Error updating instance fields for ${id}`, { fields, e })
             })
         },
       )
@@ -190,7 +190,7 @@ export const instanceService = mkSingleton(
         /** Health check */
         await tryFetch(`${internalUrl}/api/health`, {
           preflight: async () => {
-            if (stopped()) throw new Error(`Container stopped`)
+            if (stopped()) throw new Error(`Container stopped ${id}`)
             return started()
           },
         })
