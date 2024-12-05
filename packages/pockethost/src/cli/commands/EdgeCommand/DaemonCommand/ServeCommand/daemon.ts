@@ -25,6 +25,7 @@ export async function daemon() {
   // Stop all running containers
   info(`Stopping all running Docker containers`)
   const containers = await docker.listContainers({ all: true })
+  info(`Found ${containers.length} containers`)
   await Promise.all(
     containers.map(async (container) => {
       if (
@@ -32,6 +33,7 @@ export async function daemon() {
         container.Image === DOCKER_INSTANCE_IMAGE_NAME
       ) {
         try {
+          info(`Stopping ${container.Id}`)
           await docker.getContainer(container.Id).stop()
           info(`Stopped ${container.Id}`)
         } catch (e) {

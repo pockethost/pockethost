@@ -362,12 +362,16 @@ export const instanceService = mkSingleton(
         throw new Error(`Log in at ${APP_URL()} to verify your account.`)
       }
 
+      const start = now()
       const api = await (instanceApis[instance.id] =
         instanceApis[instance.id] || createInstanceApi(instance)).catch((e) => {
         throw new Error(
           `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`,
         )
       })
+      const end = now()
+      const duration = end - start
+      console.log(`Container ${instance.id} launch took ${duration}ms`)
 
       const endRequest = api.startRequest()
       res.on('close', endRequest)
