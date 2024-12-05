@@ -93,7 +93,7 @@
   <button
     type="submit"
     class="btn btn-error"
-    disabled={!power || isButtonDisabled}>Delete Instance</button
+    disabled={power || isButtonDisabled}>Delete Instance</button
   >
 </form>
 
