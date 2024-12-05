@@ -2,19 +2,14 @@
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
   import { onMount } from 'svelte'
-  import { dev } from '$app/environment'
+  import { browser, dev } from '$app/environment'
   import { is23Available } from '$util/stores'
 
   const BANNER_KEY = 'promo-banner-v0.23-dismissed'
-  const isActive = $is23Available
-  let isVisible = isActive
+  $: isActive = $is23Available
+  $: isVisible = isActive && browser && !localStorage.getItem(BANNER_KEY)
 
-  onMount(() => {
-    if (dev) {
-      localStorage.removeItem(BANNER_KEY)
-    }
-    isVisible = isActive && !localStorage.getItem(BANNER_KEY)
-  })
+  $: console.log('is23Available', $is23Available)
 
   function dismissBanner() {
     localStorage.setItem(BANNER_KEY, 'true')
