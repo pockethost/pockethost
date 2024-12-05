@@ -9,8 +9,6 @@
   $: isActive = $is23Available
   $: isVisible = isActive && browser && !localStorage.getItem(BANNER_KEY)
 
-  $: console.log('is23Available', $is23Available)
-
   function dismissBanner() {
     localStorage.setItem(BANNER_KEY, 'true')
     isVisible = false
