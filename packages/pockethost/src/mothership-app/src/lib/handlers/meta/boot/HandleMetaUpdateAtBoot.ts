@@ -23,4 +23,5 @@ export const HandleMetaUpdateAtBoot = (c: core.BootstrapEvent) => {
   }
   log(`Saving form`)
   form.submit()
+  log(`Saved form`)
 }
