@@ -338,6 +338,9 @@ export const instanceService = mkSingleton(
         Suspension check
         */
       dbg(`Checking for suspension`)
+      if (owner.suspension) {
+        throw new Error(owner.suspension)
+      }
       if (instance.suspension) {
         throw new Error(instance.suspension)
       }
@@ -371,7 +374,9 @@ export const instanceService = mkSingleton(
       })
       const end = now()
       const duration = end - start
-      console.log(`Container ${instance.id} launch took ${duration}ms`)
+      if (duration > 200) {
+        console.log(`Container ${instance.id} launch took ${duration}ms`)
+      }
 
       const endRequest = api.startRequest()
       res.on('close', endRequest)
