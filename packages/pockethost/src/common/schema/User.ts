@@ -22,6 +22,7 @@ export type UserFields<TExtra = {}> = BaseFields & {
   isLegacy: boolean
   subscription: SubscriptionType
   isStatsRole: boolean
+  suspension: string
 } & TExtra
 
 export type WithCredentials = {
