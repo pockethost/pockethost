@@ -5,7 +5,7 @@
   import { browser, dev } from '$app/environment'
   import { is23Available } from '$util/stores'
 
-  const BANNER_KEY = 'promo-banner-v0.23-dismissed'
+  const BANNER_KEY = 'pocker-announcement'
   $: isActive = $is23Available
   $: isVisible = isActive && browser && !localStorage.getItem(BANNER_KEY)
 
@@ -18,17 +18,10 @@
 {#if isVisible}
   <div class="alert alert-info bg-yellow-300 rounded-none mb-10 relative">
     <div class="text-info-content flex-1">
-      v0.23 is now available.
-      <UserLoggedIn>
-        <a href="/instances/new" class="btn btn-sm btn-neutral m-2"
-          >Try it now!</a
-        >
-      </UserLoggedIn>
-      <UserLoggedOut>
-        <a href="/get-started" class="btn btn-sm btn-neutral m-2"
-          >Get started now!</a
-        >
-      </UserLoggedOut>
+      PocketHost is live in 40+ countries.
+      <a href="/blog/announcing-pocker" class="btn btn-sm btn-neutral m-2"
+        >Learn more</a
+      >
     </div>
     <button
       class="btn btn-ghost btn-circle btn-xs absolute top-0 right-0"
