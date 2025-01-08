@@ -41,6 +41,9 @@
     </li>
   </UserHasRole>
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
+    <a href="/blog" rel="noreferrer">Blog</a>
+  </li>
+  <li class={isCollapsed ? '' : 'hidden lg:flex'}>
     <a href="/pricing" rel="noreferrer">Pricing</a>
   </li>
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
