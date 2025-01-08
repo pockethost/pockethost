@@ -151,37 +151,10 @@
     <div class="card-actions">
       {#if priceAnnually[0] > 0}
         <a
-          href={comingSoon ? undefined : checkoutMonthURL}
+          href={comingSoon ? undefined : checkoutYearURL}
           class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 hover:bg-white/20 focus-visible:outline-white `}
           on:click={handlePricingClick}
           aria-disabled={qtyRemaining <= 0}
-        >
-          {#if priceMonthly[2]}
-            <span
-              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through`}
-            >
-              ${priceMonthly[0]}
-            </span>
-            <span class={`text-xl font-bold tracking-tight`}>
-              ${priceMonthly[2]}
-            </span>
-          {:else}
-            <span class="text-xl font-bold tracking-tight">
-              ${priceMonthly[0]}
-            </span>
-          {/if}
-          <span
-            class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}`}
-          >
-            / {priceMonthly[1]}
-          </span>
-        </a>
-      {/if}
-      {#if priceMonthly[0] > 0}
-        <a
-          href={comingSoon ? undefined : checkoutYearURL}
-          class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white `}
-          on:click={handlePricingClick}
         >
           {#if priceAnnually[2]}
             <span
@@ -189,7 +162,7 @@
             >
               ${priceAnnually[0]}
             </span>
-            <span class="text-xl font-bold tracking-tight">
+            <span class={`text-xl font-bold tracking-tight`}>
               ${priceAnnually[2]}
             </span>
           {:else}
@@ -198,11 +171,38 @@
             </span>
           {/if}
           <span
+            class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}`}
+          >
+            / {priceAnnually[1]}
+          </span>
+        </a>
+      {/if}
+      {#if priceMonthly[0] > 0}
+        <a
+          href={comingSoon ? undefined : checkoutMonthURL}
+          class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white `}
+          on:click={handlePricingClick}
+        >
+          {#if priceMonthly[2]}
+            <span
+              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through`}
+            >
+              ${priceMonthly[0]}
+            </span>
+            <span class="text-xl font-bold tracking-tight">
+              ${priceMonthly[2]}
+            </span>
+          {:else}
+            <span class="text-xl font-bold tracking-tight">
+              ${priceMonthly[0]}
+            </span>
+          {/if}
+          <span
             class="text-sm font-semibold leading-6 ${qtyRemaining <= 0
               ? 'text-gray-600'
               : 'text-gray-300'}"
           >
-            / {priceAnnually[1]}</span
+            / {priceMonthly[1]}</span
           >
         </a>
       {/if}
