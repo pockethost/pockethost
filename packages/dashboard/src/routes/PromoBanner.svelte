@@ -19,7 +19,7 @@
   <div class="alert alert-info bg-yellow-300 rounded-none mb-10 relative">
     <div class="text-info-content flex-1">
       PocketHost is live in 40+ countries.
-      <a href="/blog/announcing-pocker" class="btn btn-sm btn-neutral m-2"
+      <a href="/blog/live-in-40-countries" class="btn btn-sm btn-neutral m-2"
         >Learn more</a
       >
     </div>
