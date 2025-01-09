@@ -96,7 +96,8 @@ export const init = () => {
   onAuthChange((authStoreProps) => {
     const isLoggedIn = authStoreProps.isValid
     isUserLoggedIn.set(isLoggedIn)
-    userStore.set(isLoggedIn ? (authStoreProps.model as UserFields) : undefined)
+    const user = authStoreProps.model as UserFields
+    userStore.set(isLoggedIn ? user : undefined)
     isAuthStateInitialized.set(true)
   })
 
