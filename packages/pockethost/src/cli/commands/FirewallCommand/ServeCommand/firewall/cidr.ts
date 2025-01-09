@@ -13,11 +13,12 @@ export const createIpWhitelistMiddleware = (blockedCIDRs: string[]) => {
     const ip = req.ip // or req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     if (
       blockedCIDRs.length === 0 ||
-      (ip && blockedCIDRObjects.some((cidr) => cidr.contains(ip)))
+      (ip && blockedCIDRObjects.some((cidr) => cidr.contains(ip))) ||
+      req.header('x-pockethost-secret') === process.env.PH_SECRET
     ) {
       next()
     } else {
-      res.status(403).send('Nope')
+      res.status(403).send(`Nope: ${ip}`)
     }
   }
 }
