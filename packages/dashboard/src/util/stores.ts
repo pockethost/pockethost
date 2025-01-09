@@ -99,10 +99,11 @@ export const init = () => {
     const user = authStoreProps.model as UserFields
     userStore.set(isLoggedIn ? user : undefined)
     isAuthStateInitialized.set(true)
+    tryUserSubscribe(user?.id)
   })
 
   userStore.subscribe((user) => {
-    console.log({ user })
+    console.log(`userStore.subscribe`, { user })
     isUserPaid.set(
       [
         SubscriptionType.Founder,
@@ -158,3 +159,31 @@ export const init = () => {
     tryInstanceSubscribe()
   })
 }
+
+const tryUserSubscribe = (() => {
+  let unsub: UnsubscribeFunc | undefined
+  let tid: NodeJS.Timeout | undefined
+
+  const _trySubscribe = (id?: string) => {
+    clearTimeout(tid)
+    unsub?.()
+    unsub = undefined
+    if (!id) return
+    console.log('Subscribing to user', id)
+    client()
+      .client.collection('users')
+      .subscribe<UserFields>(id, (data) => {
+        console.log('User subscribed update', data)
+        userStore.set(data.record)
+      })
+      .then((u) => {
+        unsub = u
+      })
+      .catch(() => {
+        console.error('Failed to subscribe to user')
+        tid = setTimeout(_trySubscribe, 1000)
+      })
+  }
+
+  return _trySubscribe
+})()
