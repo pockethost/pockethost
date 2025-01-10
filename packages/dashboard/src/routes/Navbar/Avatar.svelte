@@ -13,7 +13,7 @@
     const msgBuffer = new TextEncoder().encode(normalizedEmail)
 
     // Hash the email using MD5
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
+    const hashBuffer = await crypto.subtle?.digest('SHA-256', msgBuffer)
 
     // Convert the hash to a hex stringc
     const hashArray = Array.from(new Uint8Array(hashBuffer))
