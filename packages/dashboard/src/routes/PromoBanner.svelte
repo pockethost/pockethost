@@ -1,16 +1,13 @@
 <script lang="ts">
-  import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
-  import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
-  import { onMount } from 'svelte'
-  import { browser, dev } from '$app/environment'
-  import { is23Available } from '$util/stores'
+  import { browser } from '$app/environment'
+  import { toc } from '$src/routes/(static)/blog/toc'
 
-  const BANNER_KEY = 'pocker-announcement'
-  $: isActive = $is23Available
-  $: isVisible = isActive && browser && !localStorage.getItem(BANNER_KEY)
+  const latestPost = toc[0]!
+  const BANNER_KEY = 'promo-banner'
+  $: isVisible = browser && localStorage.getItem(BANNER_KEY) !== latestPost.path
 
   function dismissBanner() {
-    localStorage.setItem(BANNER_KEY, 'true')
+    localStorage.setItem(BANNER_KEY, toc[0]?.path ?? '')
     isVisible = false
   }
 </script>
@@ -18,9 +15,8 @@
 {#if isVisible}
   <div class="alert alert-info bg-yellow-300 rounded-none mb-10 relative">
     <div class="text-info-content flex-1">
-      PocketHost is live in 40+ countries.
-      <a href="/blog/live-in-40-countries" class="btn btn-sm btn-neutral m-2"
-        >Learn more</a
+      {latestPost.title}
+      <a href={latestPost.path} class="btn btn-sm btn-neutral m-2">Learn more</a
       >
     </div>
     <button

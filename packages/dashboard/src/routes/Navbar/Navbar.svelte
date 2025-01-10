@@ -6,6 +6,7 @@
     faDiscord,
     faGithub,
     faProductHunt,
+    faYoutube,
   } from '@fortawesome/free-brands-svg-icons'
 </script>
 
@@ -58,6 +59,14 @@
       class="m-2"
     >
       <Fa icon={faDiscord} />
+    </a>
+    <a
+      href="https://www.youtube.com/@pocketba5ed"
+      rel="noreferrer"
+      target="_blank"
+      class="m-2"
+    >
+      <Fa icon={faYoutube} />
     </a>
   </div>
   <div class="flex-none">
