@@ -122,6 +122,8 @@ export const init = () => {
   isUserLoggedIn.subscribe(async (isLoggedIn) => {
     let unsub: UnsubscribeFunc | undefined
     if (!isLoggedIn) {
+      userStore.set(undefined)
+
       globalInstancesStore.set({})
       globalInstancesStoreReady.set(false)
       unsub?.()
