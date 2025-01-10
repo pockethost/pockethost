@@ -164,20 +164,23 @@ const tryUserSubscribe = (() => {
   let unsub: UnsubscribeFunc | undefined
   let tid: NodeJS.Timeout | undefined
 
-  const _trySubscribe = (id?: string) => {
+  const _trySubscribe = async (id?: string) => {
     clearTimeout(tid)
-    unsub?.()
-    unsub = undefined
+    await unsub?.()
     if (!id) return
     console.log('Subscribing to user', id)
     client()
       .client.collection('users')
       .subscribe<UserFields>(id, (data) => {
         console.log('User subscribed update', data)
-        userStore.set(data.record)
+        client().client.collection('users').authRefresh().catch(console.error)
       })
       .then((u) => {
-        unsub = u
+        unsub = async () => {
+          console.log('Unsubscribing from user', id)
+          await u()
+          unsub = undefined
+        }
       })
       .catch(() => {
         console.error('Failed to subscribe to user')
