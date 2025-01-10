@@ -533,26 +533,31 @@ var HandleLemonSqueezySale = (c) => {
       [FOUNDER_ANNUAL_PV_ID]: () => {
         userRec.set(`subscription`, `founder`);
         userRec.set(`subscription_interval`, `year`);
+        userRec.set(`subscription_quantity`, 2147483647);
       },
       // Pro annual
       [PRO_ANNUAL_PV_ID]: () => {
         userRec.set(`subscription`, `premium`);
         userRec.set(`subscription_interval`, `year`);
+        userRec.set(`subscription_quantity`, 250);
       },
       // Pro monthly
       [PRO_MONTHLY_PV_ID]: () => {
         userRec.set(`subscription`, `premium`);
         userRec.set(`subscription_interval`, `month`);
+        userRec.set(`subscription_quantity`, 250);
       },
       // Flounder lifetime
       [FLOUNDER_LIFETIME_PV_ID]: () => {
         userRec.set(`subscription`, `flounder`);
         userRec.set(`subscription_interval`, `life`);
+        userRec.set(`subscription_quantity`, 250);
       },
       // Flounder annual
       [FLOUNDER_ANNUAL_PV_ID]: () => {
         userRec.set(`subscription`, `flounder`);
         userRec.set(`subscription_interval`, `year`);
+        userRec.set(`subscription_quantity`, 250);
       },
       // Paywall instance
       [PAYWALL_INSTANCE_MONTHLY_PV_ID]: () => {
@@ -600,6 +605,7 @@ var HandleLemonSqueezySale = (c) => {
     };
     const signup_canceller = () => {
       userRec.set(`subscription`, `free`);
+      userRec.set(`subscription_quantity`, 25);
       userRec.set(`subscription_interval`, ``);
       dao.saveRecord(userRec);
       log(`saved user`);
