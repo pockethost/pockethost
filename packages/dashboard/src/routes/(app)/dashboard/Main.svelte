@@ -1,12 +1,16 @@
 <script lang="ts">
-  import { MAX_INSTANCE_COUNTS } from '$src/env'
-  import { globalInstancesStore, userSubscriptionType } from '$util/stores'
+  import {
+    globalInstancesStore,
+    userSubscriptionType,
+    userStore,
+  } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
   import { SubscriptionType } from 'pockethost/common'
   import { faPlus } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 
+  $: maxInstances = $userStore?.subscription_quantity || 0
   $: instanceCount = values($globalInstancesStore).length
 </script>
 
@@ -29,17 +33,17 @@
   <progress
     class="progress progress-primary w-48 md:w-80"
     value={instanceCount}
-    max={MAX_INSTANCE_COUNTS[$userSubscriptionType]}
+    max={maxInstances}
   ></progress>
   <div>
     {#if $userSubscriptionType === SubscriptionType.Founder}
       {instanceCount}/<a
         href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
         class="link"
-        target="_blank">{MAX_INSTANCE_COUNTS[$userSubscriptionType]}</a
+        target="_blank">{maxInstances}</a
       >
     {:else}
-      {instanceCount}/{MAX_INSTANCE_COUNTS[$userSubscriptionType]}
+      {instanceCount}/{maxInstances}
     {/if}
     {#if $userSubscriptionType === SubscriptionType.Free}
       <a href="/pricing" class="link text-xs text-success">Upgrade</a>

@@ -3,19 +3,18 @@
     globalInstancesStore,
     userSubscriptionType,
     versions,
+    userStore,
   } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import Creator from './Creator.svelte'
   import Paywall from './Paywall.svelte'
-  import { MAX_INSTANCE_COUNTS } from '$src/env'
 
+  $: maxInstances = $userStore?.subscription_quantity || 0
   let instanceCount = 0
   let canCreate = false
   $: {
     instanceCount = values($globalInstancesStore).length
-    canCreate =
-      instanceCount < MAX_INSTANCE_COUNTS[$userSubscriptionType] &&
-      $versions.length > 0
+    canCreate = instanceCount < maxInstances && $versions.length > 0
   }
 </script>
 

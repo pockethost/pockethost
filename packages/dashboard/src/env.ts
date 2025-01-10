@@ -1,8 +1,4 @@
-import {
-  type InstanceFields,
-  parseBoolean,
-  SubscriptionType,
-} from 'pockethost/common'
+import { type InstanceFields, parseBoolean } from 'pockethost/common'
 
 /**
  * These environment variables default to pointing to the production build so
@@ -32,15 +28,6 @@ export const PUBLIC_DEBUG = parseBoolean(import.meta.env.PUBLIC_DEBUG || 'true')
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
 }
-
-export const MAX_INSTANCE_COUNTS = {
-  [SubscriptionType.Free]: 25,
-  [SubscriptionType.Legacy]: 25,
-  [SubscriptionType.Founder]: 2147483647, // https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718
-  [SubscriptionType.Premium]: 250,
-  [SubscriptionType.Flounder]: 250, // Added to get the error away
-}
-export const FREE_MAX_INSTANCE_COUNT = 25
 
 export const APP_URL = (...paths: string[]) => {
   return `${PUBLIC_APP_URL}/${mkPath(...paths)}`
