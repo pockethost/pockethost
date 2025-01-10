@@ -4,6 +4,7 @@
   import PricingTable from './PricingTable.svelte'
   import { userStore } from '$util/stores'
   import FlounderCard from '$src/routes/(app)/account/FlounderCard.svelte'
+  import Testimonials from '$src/components/Testimonials.svelte'
 </script>
 
 <!-- Flex them up -->
@@ -46,4 +47,5 @@
   </div>
 
   <PricingTable />
+  <Testimonials />
 </div>
