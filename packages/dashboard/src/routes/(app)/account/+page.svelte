@@ -16,6 +16,12 @@
       >{PLAN_NAMES[$userSubscriptionType]}</span
     >
   </div>
+  <div class="m-4">
+    Allowed instances: {$userStore?.subscription_quantity} (<a
+      href="/support"
+      class="link text-primary">request more</a
+    >)
+  </div>
   <div>
     <a class="m-4 btn btn-neutral" href="https://gravatar.com/profile">
       <Avatar class="w-5 h-5" />
