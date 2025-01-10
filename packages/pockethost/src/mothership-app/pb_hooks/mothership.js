@@ -678,105 +678,12 @@ var HandleMetaUpdateAtBoot = (c) => {
 
 // src/lib/handlers/mirror/api/HandleMirrorData.ts
 var HandleMirrorData = (c) => {
-  const dao = $app.dao();
-  const log = mkLog(`POST:mirror:instance`);
-  log(`***TOP OF POST`);
-  let data = new DynamicModel({
-    identifier: "",
-    externalMachineId: "",
-    region: ""
-  });
-  log(`***before bind`);
-  c.bind(data);
-  log(`***after bind`);
-  data = JSON.parse(JSON.stringify(data));
-  const { identifier, externalMachineId, region } = data;
-  log(`***vars`, JSON.stringify({ identifier, externalMachineId, region }));
-  if (!identifier) {
-    throw new BadRequestError(`Identifier is required`);
-  }
-  if (!externalMachineId) {
-    throw new BadRequestError(`External Machine ID is required`);
-  }
-  if (!region) {
-    throw new BadRequestError(`Region is required`);
-  }
-  const safeDo = (fn) => {
-    try {
-      return fn();
-    } catch (e) {
-      log(`***error`, e);
-      return void 0;
-    }
-  };
-  const subdomain = identifier.split(".")[0];
-  let instance;
-  dao.runInTransaction((tx) => {
-    const foundInstance = (() => {
-      log(`***looking for instance by id`, subdomain);
-      const byId = safeDo(() => tx.findRecordById("instances", subdomain));
-      if (byId) return byId;
-      log(`***looking for instance by subdomain`, subdomain);
-      const bySubdomain = safeDo(
-        () => tx.findRecordsByExpr(
-          "instances",
-          $dbx.exp("subdomain = {:subdomain}", { subdomain })
-        )[0]
-      );
-      if (bySubdomain) return bySubdomain;
-      log(`***looking for instance by cname`, identifier);
-      const byCname = safeDo(
-        () => tx.findRecordsByExpr(
-          "instances",
-          $dbx.exp("cname = {:cname}", { cname: identifier })
-        )[0]
-      );
-      if (byCname) return byCname;
-      return void 0;
-    })();
-    log(`***found instance`, foundInstance);
-    if (!foundInstance) return;
-    log(`***running machine check`);
-    if (!foundInstance.getString("machine")) {
-      log(
-        `***no machine is assigned, looking up requesting machine by external id`,
-        externalMachineId
-      );
-      const existingMachine = safeDo(
-        () => tx.findRecordsByExpr(
-          "machines",
-          $dbx.exp("externalId = {:externalMachineId}", {
-            externalMachineId
-          })
-        )[0]
-      );
-      if (existingMachine) {
-        log(`***found machine`, existingMachine);
-        foundInstance.set("machine", existingMachine.getId());
-        tx.saveRecord(foundInstance);
-        log(`***saved instance with assigned machine`, foundInstance);
-      } else {
-        log(`***no machine found, creating new machine`);
-        const collection = tx.findCollectionByNameOrId("machines");
-        const newMachine = new Record(collection, {
-          externalId: externalMachineId,
-          region
-        });
-        tx.saveRecord(newMachine);
-        log(`***saved new machine id: ${newMachine.getId()}`, newMachine);
-        foundInstance.set("machine", newMachine.getId());
-        tx.saveRecord(foundInstance);
-        log(`***saved instance with assigned machine`, foundInstance);
-      }
-    }
-    log(`***got here`);
-    instance = foundInstance;
-  });
-  log(`***instance`, instance);
-  if (!instance) {
-    throw new NotFoundError(`Instance not found`);
-  }
-  return c.json(200, instance);
+  const users = $app.dao().findRecordsByExpr("verified_users", $dbx.exp("1=1"));
+  const instances = $app.dao().findRecordsByExpr(
+    "instances",
+    $dbx.exp("instances.uid in (select id from verified_users)")
+  );
+  return c.json(200, { users, instances });
 };
 
 // src/lib/util/mkNotificationProcessor.ts
