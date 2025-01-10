@@ -1,7 +1,7 @@
 <script lang="ts">
   import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
   import { stats, userStore } from '$util/stores'
-  import PricingCard from '$src/routes/(static)/pricing/PricingCard.svelte'
+  import PricingCard from '$components/PricingCard.svelte'
 
   export let priceMonthly: [number, string?, number?] = [
     359,

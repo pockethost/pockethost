@@ -3,7 +3,6 @@
   import { userStore } from '$util/stores'
   import Fa from 'svelte-fa'
   import { onMount, onDestroy } from 'svelte'
-  import { writable } from 'svelte/store'
   export let name = ''
   export let description = ''
   export let priceMonthly: [number, string?, number?] = [0, '']
@@ -22,8 +21,6 @@
   export let requireAuthenticatedUser = false
 
   const comingSoon = startDate && startDate > new Date()
-
-  $: qtySold = qtyMax - qtyRemaining
 
   let countdown = ''
   let countdownInterval: ReturnType<typeof setInterval>
