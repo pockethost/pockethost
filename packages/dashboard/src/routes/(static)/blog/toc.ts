@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Hard paywall is live',
+    path: '/blog/hard-paywall-is-live',
+  },
+  {
     title: 'YouTube Dev Channel is Live',
     path: '/blog/announcing-dev-channel',
   },

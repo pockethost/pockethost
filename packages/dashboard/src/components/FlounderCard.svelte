@@ -7,10 +7,6 @@
     359,
     'once, use forever',
   ]
-  export let priceAnnually: [number, string?, number?] = [
-    159,
-    'year (save 55%)',
-  ]
   export let startDate: Date | null = null
   export let endDate: Date | null = null
 
@@ -26,12 +22,10 @@
   qtyMax={1000}
   description="Epic elite! The Flounder's Edition is almost as good as the Founder's edition, and you'll help PocketHost go global."
   {priceMonthly}
-  {priceAnnually}
   requireAuthenticatedUser
-  checkoutMonthURL="https://store.pockethost.io/buy/9ff8775b-6b9e-4aa8-a0ab-dc5e58e25408?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
-  checkoutYearURL="https://store.pockethost.io/buy/82d79f7c-64f6-4c2b-9f58-dcc8951f1cdd?checkout[custom][user_id]={$userStore?.id}&checkout[email]={$userStore?.email}"
+  checkoutMonthURL="https://store.pockethost.io/buy/d4b2d062-429c-49b4-9cdc-853aaeb17e20?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}"
   features={[
-    `Everything in the ${PLAN_NAMES[SubscriptionType.Premium]} tier`,
+    `Unlimited instances`,
     `Commemorative Flounder's badge`,
     `PocketHost t-shirt`,
     `#onlyflounders private discord channel`,

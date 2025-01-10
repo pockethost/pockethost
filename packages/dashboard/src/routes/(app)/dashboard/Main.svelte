@@ -28,27 +28,38 @@
   >
 </div>
 
-<div class="flex flex-row space-x-4 items-center justify-center">
-  <div>Instances</div>
-  <progress
-    class="progress progress-primary w-48 md:w-80"
-    value={instanceCount}
-    max={maxInstances}
-  ></progress>
-  <div>
-    {#if $userSubscriptionType === SubscriptionType.Founder}
-      {instanceCount}/<a
-        href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
-        class="link"
-        target="_blank">{maxInstances}</a
-      >
-    {:else}
-      {instanceCount}/{maxInstances}
+<div class="flex flex-col space-x-4 items-center justify-center">
+  {#if maxInstances > 0}
+    {#if instanceCount > maxInstances}
+      <p class="text-center text-error">
+        You have exceeded your instance limit.
+      </p>
     {/if}
-    {#if $userSubscriptionType === SubscriptionType.Free}
-      <a href="/pricing" class="link text-xs text-success">Upgrade</a>
-    {/if}
-  </div>
+    <div class="flex flex-row space-x-4 items-center justify-center">
+      <div>Instances</div>
+      <progress
+        class="progress {instanceCount > maxInstances
+          ? 'progress-error'
+          : 'progress-primary'} w-48 md:w-80"
+        value={instanceCount}
+        max={maxInstances}
+      ></progress>
+      <div>
+        {#if $userSubscriptionType === SubscriptionType.Founder}
+          {instanceCount}/<a
+            href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
+            class="link"
+            target="_blank">{maxInstances}</a
+          >
+        {:else}
+          {instanceCount}/{maxInstances}
+        {/if}
+        {#if instanceCount >= maxInstances}
+          <a href="/support" class="link text-xs text-success">Upgrade</a>
+        {/if}
+      </div>
+    </div>
+  {/if}
 </div>
 
 <div class="flex flex-wrap gap-2 items-center justify-center">
