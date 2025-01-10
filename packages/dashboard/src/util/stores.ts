@@ -104,13 +104,12 @@ export const init = () => {
 
   userStore.subscribe((user) => {
     console.log(`userStore.subscribe`, { user })
-    isUserPaid.set(
-      [
-        SubscriptionType.Founder,
-        SubscriptionType.Premium,
-        SubscriptionType.Flounder,
-      ].includes(user?.subscription || SubscriptionType.Free),
-    )
+    const isPaid = [
+      SubscriptionType.Founder,
+      SubscriptionType.Premium,
+      SubscriptionType.Flounder,
+    ].includes(user?.subscription || SubscriptionType.Free)
+    isUserPaid.set(isPaid)
     isUserLegacy.set(!!user?.isLegacy)
     userSubscriptionType.set(user?.subscription || SubscriptionType.Free)
     isUserVerified.set(!!user?.verified)
@@ -123,7 +122,6 @@ export const init = () => {
     let unsub: UnsubscribeFunc | undefined
     if (!isLoggedIn) {
       userStore.set(undefined)
-
       globalInstancesStore.set({})
       globalInstancesStoreReady.set(false)
       unsub?.()
