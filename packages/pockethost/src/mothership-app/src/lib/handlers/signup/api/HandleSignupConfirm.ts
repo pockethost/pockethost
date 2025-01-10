@@ -65,6 +65,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       user.set('username', username)
       user.set('email', email)
       user.set('subscription', 'free')
+      user.set('subscription_quantity', 25)
       user.setPassword(password)
       txDao.saveRecord(user)
     } catch (e) {

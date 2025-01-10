@@ -466,29 +466,40 @@ var HandleLemonSqueezySale = (c) => {
       log(`product ID ok`, context.product_id);
     }
     context.product_name = context.data?.data?.attributes?.first_order_item?.product_name || context.data?.data?.attributes?.product_name || "";
+    log(`product name ok`, context.product_name);
     context.variant_id = context.data?.data?.attributes?.first_order_item?.variant_id || context.data?.data?.attributes?.variant_id || 0;
     if (!context.variant_id) {
       throw new Error(`No variant ID`);
     } else {
       log(`variant ID ok`, context.variant_id);
     }
+    context.variant_name = context.data?.data?.attributes?.first_order_item?.variant_name || context.data?.data?.attributes?.variant_name || "";
+    log(`variant name ok`, context.variant_name);
+    context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0;
+    log(`quantity ok`, context.quantity);
     const FLOUNDER_ANNUAL_PV_ID = `367781-200790`;
     const FLOUNDER_LIFETIME_PV_ID = `306534-441845`;
     const PRO_MONTHLY_PV_ID = `159790-200788`;
     const PRO_ANNUAL_PV_ID = `159791-200789`;
     const FOUNDER_ANNUAL_PV_ID = `159792-200790`;
+    const PAYWALL_INSTANCE_MONTHLY_PV_ID = `424532-651625`;
+    const PAYWALL_PRO_MONTHLY_PV_ID = `424532-651629`;
+    const PAYWALL_PRO_ANNUAL_PV_ID = `424532-651634`;
+    const PAYWALL_FLOUNDER_PV_ID = `424532-651627`;
     const pv_id = `${context.product_id}-${context.variant_id}`;
     if (![
       FLOUNDER_ANNUAL_PV_ID,
       FLOUNDER_LIFETIME_PV_ID,
       PRO_MONTHLY_PV_ID,
       PRO_ANNUAL_PV_ID,
-      FOUNDER_ANNUAL_PV_ID
+      FOUNDER_ANNUAL_PV_ID,
+      PAYWALL_INSTANCE_MONTHLY_PV_ID,
+      PAYWALL_PRO_MONTHLY_PV_ID,
+      PAYWALL_PRO_ANNUAL_PV_ID,
+      PAYWALL_FLOUNDER_PV_ID
     ].includes(pv_id)) {
       throw new Error(`Product and variant not found: ${pv_id}`);
     }
-    context.subscription_id = context.data?.data?.attributes?.first_subscription_item?.subscription_id || 0;
-    log(`subscription ID`, context.subscription_id);
     const userRec = (() => {
       try {
         return dao.findFirstRecordByData("users", "id", context.user_id);
@@ -542,6 +553,30 @@ var HandleLemonSqueezySale = (c) => {
       [FLOUNDER_ANNUAL_PV_ID]: () => {
         userRec.set(`subscription`, `flounder`);
         userRec.set(`subscription_interval`, `year`);
+      },
+      // Paywall instance
+      [PAYWALL_INSTANCE_MONTHLY_PV_ID]: () => {
+        userRec.set(`subscription`, `premium`);
+        userRec.set(`subscription_interval`, `month`);
+        userRec.set(`subscription_quantity`, context.quantity);
+      },
+      // Paywall pro monthly
+      [PAYWALL_PRO_MONTHLY_PV_ID]: () => {
+        userRec.set(`subscription`, `premium`);
+        userRec.set(`subscription_interval`, `month`);
+        userRec.set(`subscription_quantity`, 250);
+      },
+      // Paywall pro annual
+      [PAYWALL_PRO_ANNUAL_PV_ID]: () => {
+        userRec.set(`subscription`, `premium`);
+        userRec.set(`subscription_interval`, `year`);
+        userRec.set(`subscription_quantity`, 250);
+      },
+      // Paywall flounder
+      [PAYWALL_FLOUNDER_PV_ID]: () => {
+        userRec.set(`subscription`, `flounder`);
+        userRec.set(`subscription_interval`, `life`);
+        userRec.set(`subscription_quantity`, 250);
       }
     };
     const product_handler = product_handler_map[pv_id];
@@ -3023,6 +3058,7 @@ var HandleSignupConfirm = (c) => {
       user.set("username", username);
       user.set("email", email);
       user.set("subscription", "free");
+      user.set("subscription_quantity", 25);
       user.setPassword(password);
       txDao.saveRecord(user);
     } catch (e) {
