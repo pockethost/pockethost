@@ -61,8 +61,8 @@ onAfterBootstrap((e) => {
 
 // src/lib/handlers/mirror/hooks.ts
 routerAdd(
-  "POST",
-  "/api/mirror/instance",
+  "GET",
+  "/api/mirror",
   (c) => {
     return require(`${__hooks}/mothership`).HandleMirrorData(c);
   },

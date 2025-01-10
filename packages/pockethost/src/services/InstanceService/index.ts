@@ -346,6 +346,16 @@ export const instanceService = mkSingleton(
       }
 
       /*
+        Active instance check
+        */
+      dbg(`Checking for active instances`)
+      if (owner.subscription_quantity === 0) {
+        throw new Error(
+          `Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>`,
+        )
+      }
+
+      /*
         power check
         */
       dbg(`Checking for power`)
