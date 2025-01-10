@@ -16,11 +16,19 @@ export const PLAN_NAMES = {
   [SubscriptionType.Flounder]: `Flounder`,
 }
 
+export enum SubscriptionInterval {
+  Month = 'month',
+  Year = 'year',
+  Life = 'life',
+}
+
 export type UserFields<TExtra = {}> = BaseFields & {
   email: string
   verified: boolean
   isLegacy: boolean
   subscription: SubscriptionType
+  subscription_interval: SubscriptionInterval
+  subscription_quantity: number
   isStatsRole: boolean
   suspension: string
 } & TExtra
