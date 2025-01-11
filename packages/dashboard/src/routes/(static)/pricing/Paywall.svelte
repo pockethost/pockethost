@@ -1,0 +1,30 @@
+<script lang="ts">
+  import Card from './Card.svelte'
+  import Testimonials from '$src/components/Testimonials.svelte'
+  import CtaButton from './CTAButton.svelte'
+  import { features } from './features'
+  import Deals from './Deals.svelte'
+  import Features from './Features.svelte'
+</script>
+
+<div class="prose ml-auto mr-auto">
+  <p class="text-3xl text-center">PocketHost Access</p>
+  <p class="text-2xl text-center">
+    <span class="text-primary">$5/instance</span> or
+    <span class="text-primary">$25/unlimited</span>
+  </p>
+  <p class="text-xl text-accent text-center">7 Day Free Trial</p>
+  <div class="flex justify-center mt-10 mb-10">
+    <CtaButton />
+  </div>
+</div>
+
+<div class="flex flex-col gap-10 items-center">
+  <Features />
+</div>
+
+<Deals />
+
+<Testimonials />
+
+<CtaButton fixed />

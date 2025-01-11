@@ -7,12 +7,12 @@
       name: 'Riddge Mussington',
       title: '',
       quote:
-        "I use pockethost for a couple projects and I think you would be hard pressed to find a better hosted provider for pocketbase projects. It is very easy to use and setup and secure by default because it uses pocketbase under the hood, it's also very fast at shipping pocketbase updates and maintaining uptime and fixing issues, it's truly a god chosen database especially with the very generous free tier that I wish will never change, I'm currently building my next side hustle with it so I can't wait for it to grow larger",
+        "I use pockethost for a couple projects and I think you would be hard pressed to find a better hosted provider for pocketbase projects. It is very easy to use and setup and secure by default because it uses pocketbase under the hood, it's also very fast at shipping pocketbase updates and maintaining uptime and fixing issues, it's truly a god chosen database, I'm currently building my next side hustle with it so I can't wait for it to grow larger",
     },
     {
       name: 'H.Mohamed',
       title: '',
-      quote: 'Great BaaS option for simpler apps with a generous free plan.',
+      quote: 'Great BaaS option.',
     },
     {
       name: 'Damian Kennedy',
@@ -48,27 +48,32 @@
   ]
 </script>
 
-<div class="flex flex-wrap justify-center gap-4">
-  {#each testimonials as testimonial}
-    <div class="card bg-neutral shadow-xl w-96">
-      <div class="card-body">
-        <div class="flex mb-2">
-          <Fa icon={faStar} class="text-warning" />
-          <Fa icon={faStar} class="text-warning" />
-          <Fa icon={faStar} class="text-warning" />
-          <Fa icon={faStar} class="text-warning" />
-          <Fa icon={faStar} class="text-warning" />
-        </div>
-        <p class="mb-4">{testimonial.quote}</p>
-        <div class="card-actions">
-          <div>
-            <p class="font-bold">{testimonial.name}</p>
-            {#if testimonial.title}
-              <p class="text-sm opacity-75">{testimonial.title}</p>
-            {/if}
+<div class="flex-1 p-5 flex flex-col">
+  <div class="text-3xl text-center pb-5">Testimonials</div>
+  <div class="flex flex-wrap gap-6 justify-center">
+    <div class="flex flex-wrap justify-center gap-4">
+      {#each testimonials as testimonial}
+        <div class="card bg-neutral shadow-xl w-96">
+          <div class="card-body">
+            <div class="flex mb-2">
+              <Fa icon={faStar} class="text-warning" />
+              <Fa icon={faStar} class="text-warning" />
+              <Fa icon={faStar} class="text-warning" />
+              <Fa icon={faStar} class="text-warning" />
+              <Fa icon={faStar} class="text-warning" />
+            </div>
+            <p class="mb-4">{testimonial.quote}</p>
+            <div class="card-actions">
+              <div>
+                <p class="font-bold">{testimonial.name}</p>
+                {#if testimonial.title}
+                  <p class="text-sm opacity-75">{testimonial.title}</p>
+                {/if}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      {/each}
     </div>
-  {/each}
+  </div>
 </div>

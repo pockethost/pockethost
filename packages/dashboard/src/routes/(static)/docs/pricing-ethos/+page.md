@@ -24,10 +24,10 @@ You can get started easily on PocketHost by purchasing an instance.
 
 **Unlimited Doesn't Mean Infinite**
 
-While we offer ample limits for projects, storage, bandwidth, and CPU, all usage is subject to our [Fair Use Policy](/terms):
+While we offer ample limits for projects, storage, bandwidth, and CPU, all usage is subject to Fair Use:
 
 - **Fair Use Basis**: Use resources similarly to the average active app on our platform.
 - **Resource Management**: Your app scales up or down based on its needs.
 - **Good Citizenship**: Be mindful of resource consumption to ensure a positive experience for all users.
 
-For more details, please refer to our Fair Use Policy in the [Terms of Service](/terms).
+For more details, please refer to our complete [Fair Use Policy](/terms).
