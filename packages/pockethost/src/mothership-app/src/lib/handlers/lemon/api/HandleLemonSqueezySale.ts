@@ -276,7 +276,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
 
     const signup_canceller = () => {
       userRec.set(`subscription`, `free`)
-      userRec.set(`subscription_quantity`, 25)
+      userRec.set(`subscription_quantity`, 0)
       userRec.set(`subscription_interval`, ``)
       dao.saveRecord(userRec)
       log(`saved user`)

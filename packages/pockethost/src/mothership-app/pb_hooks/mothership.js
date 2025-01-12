@@ -605,7 +605,7 @@ var HandleLemonSqueezySale = (c) => {
     };
     const signup_canceller = () => {
       userRec.set(`subscription`, `free`);
-      userRec.set(`subscription_quantity`, 25);
+      userRec.set(`subscription_quantity`, 0);
       userRec.set(`subscription_interval`, ``);
       dao.saveRecord(userRec);
       log(`saved user`);
@@ -2971,7 +2971,7 @@ var HandleSignupConfirm = (c) => {
       user.set("username", username);
       user.set("email", email);
       user.set("subscription", "free");
-      user.set("subscription_quantity", 25);
+      user.set("subscription_quantity", 0);
       user.setPassword(password);
       txDao.saveRecord(user);
     } catch (e) {
