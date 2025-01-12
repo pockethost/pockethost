@@ -19,6 +19,19 @@
   </div>
 </div>
 
+<div class="flex justify-center mb-10">
+  <iframe
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/Xe0FrGzlcVM?si=XTJJ7pmp9cwjBOMY"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+  ></iframe>
+</div>
+
 <div class="flex flex-col gap-10 items-center">
   <Features />
 </div>
