@@ -110,27 +110,29 @@
             <td>How to upgrade</td>
           </tr>
         </thead>
-        <tr>
-          <td>&lt;=v0.22.*</td>
-          <td>v0.23.*</td>
-          <td
-            >Create a new v0.23.* instance and follow the <a
-              href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-              class="link">manual upgrade process</a
-            >.</td
-          >
-        </tr>
-        <tr>
-          <td>0.23.*</td>
-          <td>&lt;=v0.22.*</td>
-          <td
-            >Create a new &lt;=v0.22.* instance and migrate your data manually.
-            Refer to the <a
-              href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-              class="link">v0.23.* manual upgrade process</a
-            > and attempt to reverse it.</td
-          >
-        </tr>
+        <tbody>
+          <tr>
+            <td>&lt;=v0.22.*</td>
+            <td>v0.23.*</td>
+            <td
+              >Create a new v0.23.* instance and follow the <a
+                href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
+                class="link">manual upgrade process</a
+              >.</td
+            >
+          </tr>
+          <tr>
+            <td>0.23.*</td>
+            <td>&lt;=v0.22.*</td>
+            <td
+              >Create a new &lt;=v0.22.* instance and migrate your data
+              manually. Refer to the <a
+                href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
+                class="link">v0.23.* manual upgrade process</a
+              > and attempt to reverse it.</td
+            >
+          </tr>
+        </tbody>
       </table>
     </div>
   {/if}
