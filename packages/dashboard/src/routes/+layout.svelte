@@ -42,6 +42,7 @@
 <GdprBanner
   cookieName="pockethost_gpdr"
   description="PocketHost uses cookies to ensure you get the best experience."
+  showEditIcon={false}
 />
 <div>
   <!-- Google tag (gtag.js) -->

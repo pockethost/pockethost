@@ -80,7 +80,7 @@
 </script>
 
 <!-- It's a card, so use card -->
-<div class="card bg-base-100 w-96 shadow-xl">
+<div class="card w-96 shadow-xl bg-neutral text-neutral-content">
   <div class="card-body items-center text-center">
     <div class="card-title">
       <h2 id="tier-startup" class="text-2xl font-semibold leading-8 text-white">

@@ -16,18 +16,17 @@
   },
   "type": "module",
   "devDependencies": {
-    "@changesets/cli": "^2.27.9",
-    "prettier": "^3.0.3",
-    "prettier-plugin-jsdoc": "^1.3.0",
+    "@changesets/cli": "^2.27.11",
+    "prettier": "^3.4.2",
+    "prettier-plugin-jsdoc": "^1.3.2",
     "prettier-plugin-organize-imports": "^4.1.0",
-    "prettier-plugin-svelte": "^3.2.8",
+    "prettier-plugin-svelte": "^3.3.2",
     "tslib": "^2.8.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.3"
   },
   "pnpm": {
     "patchedDependencies": {
-      "eventsource@2.0.2": "patches/eventsource@2.0.2.patch",
       "@sveltejs/enhanced-img": "patches/@sveltejs__enhanced-img.patch",
       "tail": "patches/tail.patch",
       "@types/tail": "patches/@types__tail.patch"
