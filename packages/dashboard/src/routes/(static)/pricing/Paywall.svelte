@@ -2,7 +2,6 @@
   import Testimonials from '$src/components/Testimonials.svelte'
   import Features from './Features.svelte'
   import SignupBox from './SignupBox.svelte'
-  import { userStore } from '$util/stores'
 </script>
 
 <div class="prose ml-auto mr-auto">
