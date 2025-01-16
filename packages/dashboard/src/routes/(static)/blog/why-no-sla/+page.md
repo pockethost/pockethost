@@ -18,7 +18,7 @@ The alternative to PocketHost is to self-host. Self-hosting doesn't come with an
 
 ### I do like uptime stats and transparency
 
-Just because PocketHost doesn't have an SLA doesn't mean we don't care about uptime. We do care about uptime, and we do care about transparency. We have a [public uptime dashboard](https://status.pockethost.dev) that shows uptime as best we can, but it's not perfect. I also think it's a little unfair to count certain types of downtime against PocketHost's reputation. If an underlying service goes down, what can we do?
+Just because PocketHost doesn't have an SLA doesn't mean we don't care about uptime. We do care about uptime, and we do care about transparency. We have a [public uptime dashboard](https://status.pockethost.io) that shows uptime as best we can, but it's not perfect. I also think it's a little unfair to count certain types of downtime against PocketHost's reputation. If an underlying service goes down, what can we do?
 
 An overall uptime metric is a good thing, but I think understanding PocketHost's stability as a platform is also important. So I have mixed feelings about uptime stats that aren't explained or qualified. Lies, damn lies, and statistics.
 
