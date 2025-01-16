@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { userStore } from '$util/stores'
+  import { userStore, isUserLoggedIn } from '$util/stores'
   import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 
@@ -41,7 +41,9 @@
   </div>
   <div class="h-16 flex justify-center items-end">
     <a
-      href={`https://store.pockethost.io/buy/d4b2d062-429c-49b4-9cdc-853aaeb17e20?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`}
+      href={$isUserLoggedIn
+        ? `https://store.pockethost.io/buy/d4b2d062-429c-49b4-9cdc-853aaeb17e20?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`
+        : `javascript:alert('You must be logged in to subscribe')`}
       class="btn {selected
         ? 'btn-warning'
         : 'btn-neutral bg-neutral-700 text-white'} rounded-full"
