@@ -48,32 +48,30 @@
   ]
 </script>
 
-<div class="flex-1 p-5 flex flex-col">
+<div class="flex-1 sm:p-5 flex flex-col">
   <div class="text-3xl text-center pb-5">Testimonials</div>
-  <div class="flex flex-wrap gap-6 justify-center">
-    <div class="flex flex-wrap justify-center gap-4">
-      {#each testimonials as testimonial}
-        <div class="card bg-neutral shadow-xl w-96">
-          <div class="card-body">
-            <div class="flex mb-2">
-              <Fa icon={faStar} class="text-warning" />
-              <Fa icon={faStar} class="text-warning" />
-              <Fa icon={faStar} class="text-warning" />
-              <Fa icon={faStar} class="text-warning" />
-              <Fa icon={faStar} class="text-warning" />
-            </div>
-            <p class="mb-4">{testimonial.quote}</p>
-            <div class="card-actions">
-              <div>
-                <p class="font-bold">{testimonial.name}</p>
-                {#if testimonial.title}
-                  <p class="text-sm opacity-75">{testimonial.title}</p>
-                {/if}
-              </div>
+  <div class="flex flex-wrap justify-center gap-4">
+    {#each testimonials as testimonial}
+      <div class="card bg-neutral shadow-xl sm:max-w-96 w-full">
+        <div class="card-body">
+          <div class="flex mb-2">
+            <Fa icon={faStar} class="text-warning" />
+            <Fa icon={faStar} class="text-warning" />
+            <Fa icon={faStar} class="text-warning" />
+            <Fa icon={faStar} class="text-warning" />
+            <Fa icon={faStar} class="text-warning" />
+          </div>
+          <p class="mb-4">{testimonial.quote}</p>
+          <div class="card-actions">
+            <div>
+              <p class="font-bold">{testimonial.name}</p>
+              {#if testimonial.title}
+                <p class="text-sm opacity-75">{testimonial.title}</p>
+              {/if}
             </div>
           </div>
         </div>
-      {/each}
-    </div>
+      </div>
+    {/each}
   </div>
 </div>

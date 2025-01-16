@@ -1,3 +1,7 @@
+<script>
+  import { DISCORD_URL } from '$src/env'
+</script>
+
 <div class="container mx-auto py-8 px-4">
   <h1 class="font-bold text-4xl mb-6">Support</h1>
 
@@ -12,9 +16,8 @@
 
   <h2 class="font-bold text-2xl mb-4 mt-10">Discord</h2>
   <p>
-    We also have a <a class="link" href="https://discord.gg/nVTxCMEcGT"
-      >Discord server</a
-    > with over 1,000 community members ready to help.
+    We also have a <a class="link" href={DISCORD_URL}>Discord server</a> with over
+    1,500 community members ready to help.
   </p>
 
   <h2 class="font-bold text-2xl mb-4 mt-10">Email Support</h2>

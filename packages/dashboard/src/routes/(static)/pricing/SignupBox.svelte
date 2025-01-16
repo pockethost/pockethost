@@ -13,7 +13,7 @@
 </script>
 
 <div
-  class="bg-neutral text-neutral-content rounded-xl p-7 pl-5 pr-5 prose w-72 {selected
+  class="bg-neutral text-neutral-content rounded-xl p-7 pl-5 pr-5 prose w-72 mb-10 {selected
     ? 'border-2 border-warning'
     : ''} transition-all duration-300"
 >

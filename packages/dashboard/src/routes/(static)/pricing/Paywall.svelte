@@ -1,7 +1,10 @@
 <script lang="ts">
   import Testimonials from '$src/components/Testimonials.svelte'
+  import Fa from 'svelte-fa'
   import Features from './Features.svelte'
   import SignupBox from './SignupBox.svelte'
+  import { faPlay } from '@fortawesome/free-solid-svg-icons'
+  import thumb from './011.jpg?enhanced'
 </script>
 
 <div class="prose ml-auto mr-auto">
@@ -14,9 +17,7 @@
   </div>
 </div>
 
-<div
-  class="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-1 mb-10 mx-auto"
->
+<div class="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-1 mx-auto">
   <SignupBox
     price="$5 / month"
     title="Starter"
@@ -54,21 +55,25 @@
 </div>
 
 <div
-  class="flex justify-center mb-10 bg-neutral rounded-2xl p-10 w-min mx-auto"
+  class="relative flex flex-col items-center mb-10 p-2 bg-neutral rounded-2xl w-fit mx-auto max-w-96"
 >
-  <iframe
-    width="560"
-    height="315"
-    src="https://www.youtube.com/embed/Xe0FrGzlcVM?si=XTJJ7pmp9cwjBOMY"
-    title="YouTube video player"
-    frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    referrerpolicy="strict-origin-when-cross-origin"
-    allowfullscreen
-  ></iframe>
+  <a
+    href="https://www.youtube.com/watch?v=Xe0FrGzlcVM"
+    target="_blank"
+    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-neutral rounded-2xl p-5"
+  >
+    <Fa icon={faPlay} class="text-white text-4xl" />
+  </a>
+  <a
+    href="https://www.youtube.com/watch?v=Xe0FrGzlcVM"
+    target="_blank"
+    aria-label="PocketHost Demo"
+  >
+    <enhanced:img src={thumb} alt="PocketHost Demo" class="rounded" />
+  </a>
 </div>
 
-<div class="flex flex-col gap-10 items-center">
+<div class="flex flex-col gap-10 items-center mb-10">
   <div class="text-3xl text-center pb-5">Features</div>
 
   <Features />

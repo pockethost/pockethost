@@ -74,4 +74,4 @@ export const FTP_URL = (email: string) => {
   return `"${email}"@ftp.${PUBLIC_APEX_DOMAIN}:21`
 }
 
-export const DISCORD_URL = `https://discord.gg/HsSjcuPRWX`
+export const DISCORD_URL = `https://discord.gg/nVTxCMEcGT`
