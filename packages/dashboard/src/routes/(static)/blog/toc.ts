@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Building a Realtime Game: Kingdom',
+    path: '/blog/kingdom',
+  },
+  {
     title: 'Hard paywall is live',
     path: '/blog/hard-paywall-is-live',
   },
