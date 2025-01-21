@@ -144,7 +144,9 @@
         </div>
 
         <div style="font-size: 15px; padding: 5px">
-          {#if $instanceInfo.fetching}
+          {#if $instanceNameField === ''}
+            <span class="text-error">Please enter an instance name</span>
+          {:else if $instanceInfo.fetching}
             Verifying...
           {:else if $instanceInfo.available}
             <span class="text-success">
