@@ -30,6 +30,6 @@
   </div>
 
   <div>
-    <a class="m-4 btn btn-neutral" href="/support"> Manage Membership </a>
+    <a class="m-4 btn btn-neutral" href="https://store.pockethost.io/billing" target="_blank"> Manage Membership </a>
   </div>
 </div>
