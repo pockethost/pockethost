@@ -17,7 +17,7 @@ Founded by [Ben Allfree](https://github.com/benallfree) in 2021, PocketHost was 
 
 ## **Cost-Effective Solutions**
 
-- **Flexible Pricing**: Choose from our Free Tier, Pro Tier, or limited-time Lifetime Offers to suit your budget.
+- **Flexible Pricing**: Choose from our Starter Pro Tier, Unlimited Pro Tier, or limited-time Lifetime Offers to suit your budget.
 - **Fair Use Policy**: Enjoy generous project limits, storage, bandwidth, and CPU based on fair use.
 - **No Hidden Fees**: Transparent pricing with no unexpected charges.
 
