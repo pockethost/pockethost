@@ -57,15 +57,18 @@
       <a href="/about" rel="noreferrer">About</a>
     </li>
   </UserLoggedOut>
-
   <UserLoggedIn>
     {#if !isCollapsed}
       <li>
         <div class="dropdown dropdown-end p-0 m-0">
-          <Avatar />
-
+          <!-- tabindex required for normal behavior on safari -->
+          <div tabindex="0" role="button">
+            <Avatar />
+          </div>
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <ul
-            class="menu dropdown-content bg-base-300 rounded-box z-[1] mt-36 md:mt-24 w-52 p-2 shadow"
+            tabindex="0"
+            class="dropdown-content menu bg-base-300 rounded-box z-[1] mt-36 md:mt-24 w-52 p-2 shadow"
           >
             <li><a href="/account">Settings</a></li>
             <li>
