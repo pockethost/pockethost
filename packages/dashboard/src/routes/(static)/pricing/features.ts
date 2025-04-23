@@ -4,7 +4,7 @@ import regions from './regions.png?enhanced'
 export const features = [
   {
     title: 'Risk-free Trial',
-    description: `Test-drive PocketHost for 7 days. Credit card required.`,
+    description: `Test-drive PocketHost for up to 7 days. Credit card required.`,
   },
 
   {

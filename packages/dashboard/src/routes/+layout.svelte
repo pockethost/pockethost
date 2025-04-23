@@ -11,6 +11,8 @@
   import PromoBanner from './PromoBanner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
 
+  const currentYear = new Date().getFullYear();
+
   onMount(() => {
     init()
   })
@@ -36,7 +38,7 @@
     <a href="/terms">Terms</a>
     <a href="https://status.pockethost.io/">System Status</a>
   </div>
-  <div>(c) 2024, PocketHost</div>
+  <div>(c) {currentYear}, PocketHost</div>
   <div>Proudly hacking open source in Reno, NV</div>
 </div>
 <GdprBanner

@@ -31,7 +31,7 @@
     <div class="card-body w-full">
       <div class="card-title">
         <div class="flex justify-between items-center w-full">
-          <span>{instance.subdomain}</span>
+          <span>{instance.subdomain.length > 15 ? instance.subdomain.slice(0, 15) + '...' : instance.subdomain}</span>
           <input
             type="checkbox"
             class="toggle {instance.power
