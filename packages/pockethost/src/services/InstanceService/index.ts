@@ -178,8 +178,16 @@ export const instanceService = mkSingleton(
         const childProcess = await pbService.spawn(spawnArgs)
 
         const { exitCode, stopped, started, url: internalUrl } = childProcess
+        exitCode.then((code) => {
+          dbg(`Instance exited with code ${code}`)
+          api?.shutdown()
+        })
 
         shutdownManager.push(() => {
+          if (stopped()) {
+            dbg(`Instance already stopped`)
+            return
+          }
           dbg(`killing ${id}`)
           childProcess.kill().catch((err) => {
             error(`Error killing ${id}`, { err })
@@ -207,7 +215,7 @@ export const instanceService = mkSingleton(
             userInstanceLogger.info(
               `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
             )
-            shutdownManager.forEach((fn) => fn())
+            api.shutdown()
             return false
           } else {
             dbg(`${openRequestCount} requests remain open`)
