@@ -7,10 +7,17 @@ import {
   assert,
   seqid,
 } from '@'
-import { compact, map } from '@s-libs/micro-dash'
+import { compact, forEach, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { spawn } from 'child_process'
-import { Mode, constants, createReadStream, createWriteStream } from 'fs'
+import {
+  Mode,
+  constants,
+  createReadStream,
+  createWriteStream,
+  readFileSync,
+  writeFileSync,
+} from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { DATA_ROOT } from '../../../../..'
@@ -46,12 +53,38 @@ const checkBun = (
   const isImportant =
     maybeImportant === 'patches' ||
     (rest.length === 0 &&
-      [`bun.lockb`, `package.json`].includes(maybeImportant || ''))
+      [`bun.lock`, `bun.lockb`, `package.json`].includes(maybeImportant || ''))
 
   if (isImportant) {
     const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
     logger.info(`${maybeImportant} changed, running bun install`)
-    launchBunInstall(instance, virtualPath, cwd).catch(console.error)
+    launchBunInstall(instance, virtualPath, cwd).catch(logger.error)
+  }
+}
+
+const prepPackageJson = (cwd: string, logger: InstanceLogWriterApi) => {
+  const packageJsonPath = join(cwd, 'package.json')
+  try {
+    const packageJson = readFileSync(packageJsonPath, 'utf8')
+    const pkg = JSON.parse(packageJson)
+
+    let stripped = false
+    if (pkg.dependencies) {
+      forEach(pkg.dependencies, (version, name) => {
+        if (version.startsWith('workspace:')) {
+          pkg.dependencies[name] = version.replace('workspace:', '')
+          stripped = true
+        }
+      })
+    }
+    const stringified = JSON.stringify(pkg, null, 2)
+    writeFileSync(packageJsonPath, stringified)
+    if (stripped) {
+      logger.info(`Stripped workspace dependencies from  package.json`)
+      logger.info(JSON.stringify(pkg, null, 2))
+    }
+  } catch (e) {
+    logger.error(`Error parsing package.json: ${e}`)
   }
 }
 
@@ -103,6 +136,7 @@ const launchBunInstall = (() => {
       runCache[cwd]!.runAgain = false
       const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
       logger.info(`Launching 'bun install' in ${virtualPath}`)
+      await prepPackageJson(cwd, logger)
       await runBun(cwd, logger)
     }
     delete runCache[cwd]
@@ -347,8 +381,9 @@ export class PhFs implements FileSystem {
     stream.once('close', () => {
       const virtualPath = join(this.cwd, fileName)
       dbg(`write(${virtualPath}) closing`)
-      stream.end()
-      checkBun(instance, virtualPath, dirname(fsPath))
+      stream.end(() => {
+        checkBun(instance, virtualPath, dirname(fsPath))
+      })
     })
     return {
       stream,
