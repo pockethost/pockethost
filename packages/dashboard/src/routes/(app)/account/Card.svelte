@@ -49,7 +49,7 @@
           <p class="mt-10 text-neutral-content">
             To change to a different plan, contact <a
               class="link"
-              href={`"${DISCORD_URL}"`}>@noaxis on Discord</a
+              href={`"${DISCORD_URL}"`}><code>.noaxis</code> on Discord</a
             >
           </p>
         {:else if prices.length > 0}
