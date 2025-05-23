@@ -7,6 +7,7 @@ import {
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
   InstanceFields,
+  InstanceFields_WithUser,
   InstanceId,
   InstanceLogWriter,
   InstanceStatus,
@@ -255,73 +256,96 @@ export const instanceService = mkSingleton(
 
     const getInstanceRecord = (() => {
       const cache = mkInstanceCache(client.client)
+      const pendingRequests = new Map<
+        string,
+        Promise<InstanceFields_WithUser | undefined>
+      >()
 
       return async (host: string) => {
         if (cache.hasItem(host)) {
           dbg(`cache hit ${host}`)
           return cache.getItem(host)
         }
+
+        // Check if there's already a pending request for this host
+        if (pendingRequests.has(host)) {
+          dbg(`pending request found for ${host}`)
+          return pendingRequests.get(host)!
+        }
+
         dbg(`cache miss ${host}`)
 
-        {
-          dbg(`Trying to get instance by host: ${host}`)
-          const instance = await client
-            .getInstanceByCname(host)
+        // Create and store the pending request
+        const pendingRequest = (async () => {
+          try {
+            {
+              dbg(`Trying to get instance by host: ${host}`)
+              const instance = await client
+                .getInstanceByCname(host)
 
-            .catch((e: ClientResponseError) => {
-              if (e.status !== 404) {
-                throw new Error(
-                  `Unexpected response ${stringify(e)} from mothership`,
-                )
+                .catch((e: ClientResponseError) => {
+                  if (e.status !== 404) {
+                    throw new Error(
+                      `Unexpected response ${stringify(e)} from mothership`,
+                    )
+                  }
+                })
+              if (instance) {
+                if (!instance.cname_active) {
+                  throw new Error(`CNAME blocked.`)
+                }
+                dbg(`${host} is a cname`)
+                cache.setItem(instance)
+                return instance
               }
-            })
-          if (instance) {
-            if (!instance.cname_active) {
-              throw new Error(`CNAME blocked.`)
             }
-            dbg(`${host} is a cname`)
-            cache.setItem(instance)
-            return instance
-          }
-        }
 
-        const idOrSubdomain = host.replace(`.${EDGE_APEX_DOMAIN()}`, '')
-        {
-          dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
-          const instance = await client
-            .getInstanceById(idOrSubdomain)
-            .catch((e: ClientResponseError) => {
-              if (e.status !== 404) {
-                throw new Error(
-                  `Unexpected response ${stringify(e)} from mothership`,
-                )
+            const idOrSubdomain = host.replace(`.${EDGE_APEX_DOMAIN()}`, '')
+            {
+              dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
+              const instance = await client
+                .getInstanceById(idOrSubdomain)
+                .catch((e: ClientResponseError) => {
+                  if (e.status !== 404) {
+                    throw new Error(
+                      `Unexpected response ${stringify(e)} from mothership`,
+                    )
+                  }
+                })
+              if (instance) {
+                dbg(`${idOrSubdomain} is an instance ID`)
+                cache.setItem(instance)
+                return instance
               }
-            })
-          if (instance) {
-            dbg(`${idOrSubdomain} is an instance ID`)
-            cache.setItem(instance)
-            return instance
-          }
-        }
-        {
-          dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-          const instance = await client
-            .getInstanceBySubdomain(idOrSubdomain)
-            .catch((e: ClientResponseError) => {
-              if (e.status !== 404) {
-                throw new Error(
-                  `Unexpected response ${stringify(e)} from mothership`,
-                )
+            }
+            {
+              dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
+              const instance = await client
+                .getInstanceBySubdomain(idOrSubdomain)
+                .catch((e: ClientResponseError) => {
+                  if (e.status !== 404) {
+                    throw new Error(
+                      `Unexpected response ${stringify(e)} from mothership`,
+                    )
+                  }
+                })
+              if (instance) {
+                dbg(`${idOrSubdomain} is a subdomain`)
+                cache.setItem(instance)
+                return instance
               }
-            })
-          if (instance) {
-            dbg(`${idOrSubdomain} is a subdomain`)
-            cache.setItem(instance)
-            return instance
+            }
+            dbg(`${host} is none of: cname, id, subdomain`)
+            cache.blankItem(host)
+            return undefined
+          } finally {
+            // Clean up the pending request regardless of success/failure
+            pendingRequests.delete(host)
           }
-        }
-        dbg(`${host} is none of: cname, id, subdomain`)
-        cache.blankItem(host)
+        })()
+
+        pendingRequests.set(host, pendingRequest)
+        return pendingRequest
       }
     })()
 
