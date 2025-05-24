@@ -181,51 +181,6 @@ export const instanceService = mkSingleton(
         const childProcess = await pbService.spawn(spawnArgs)
 
         const { exitCode, stopped, started, url: internalUrl } = childProcess
-        exitCode.then((code) => {
-          dbg(`Instance exited with code ${code}`)
-          api?.shutdown()
-        })
-
-        shutdownManager.push(async () => {
-          if (stopped()) {
-            dbg(`Instance already stopped`)
-            return
-          }
-          dbg(`killing ${id}`)
-          await childProcess.kill().catch((err) => {
-            error(`Error killing ${id}`, { err })
-          })
-          dbg(`killed ${id}`)
-        })
-
-        /** Health check */
-        await tryFetch(`${internalUrl}/api/health`, {
-          preflight: async () => {
-            if (stopped()) throw new Error(`Container stopped ${id}`)
-            return started()
-          },
-        })
-
-        /** Idle check */
-        const idleTtl = instance.idleTtl || DAEMON_PB_IDLE_TTL()
-        const idleTid = setInterval(() => {
-          const lastRequestAge = now() - lastRequest
-          dbg(
-            `idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`,
-          )
-          if (openRequestCount === 0 && lastRequestAge > idleTtl) {
-            dbg(`idle for ${idleTtl}, shutting down`)
-            userInstanceLogger.info(
-              `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
-            )
-            api.shutdown()
-            return false
-          } else {
-            dbg(`${openRequestCount} requests remain open`)
-          }
-          return true
-        }, 1000)
-        shutdownManager.push(() => clearInterval(idleTid))
 
         const api: InstanceApi = {
           internalUrl,
@@ -266,6 +221,41 @@ export const instanceService = mkSingleton(
             pendingShutdowns.set(id, shutdownPromise)
           },
         }
+
+        // Move the exitCode callback here, after api is declared
+        exitCode.then((code) => {
+          dbg(`Instance exited with code ${code}`)
+          api.shutdown()
+        })
+
+        /** Health check */
+        await tryFetch(`${internalUrl}/api/health`, {
+          preflight: async () => {
+            if (stopped()) throw new Error(`Container stopped ${id}`)
+            return started()
+          },
+        })
+
+        /** Idle check */
+        const idleTtl = instance.idleTtl || DAEMON_PB_IDLE_TTL()
+        const idleTid = setInterval(() => {
+          const lastRequestAge = now() - lastRequest
+          dbg(
+            `idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`,
+          )
+          if (openRequestCount === 0 && lastRequestAge > idleTtl) {
+            dbg(`idle for ${idleTtl}, shutting down`)
+            userInstanceLogger.info(
+              `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
+            )
+            api.shutdown()
+            return false
+          } else {
+            dbg(`${openRequestCount} requests remain open`)
+          }
+          return true
+        }, 1000)
+        shutdownManager.push(() => clearInterval(idleTid))
 
         dbg(`${internalUrl} is running`)
         updateInstanceStatus(instance.id, InstanceStatus.Running)
