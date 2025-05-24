@@ -59,6 +59,7 @@ export const instanceService = mkSingleton(
     const pbService = await PocketbaseService()
 
     const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
+    const pendingShutdowns = new Map<InstanceId, Promise<void>>()
 
     const createInstanceApi = async (
       instance: InstanceFields,
@@ -79,7 +80,7 @@ export const instanceService = mkSingleton(
       shutdownManager.push(() => {
         dbg(`Shutting down`)
         userInstanceLogger.info(`Instance is shutting down.`)
-        delete instanceApis[id]
+        // Don't immediately delete - wait for full shutdown completion
         dbg(
           `Shutting down: There are now ${
             values(instanceApis).length
@@ -119,7 +120,7 @@ export const instanceService = mkSingleton(
         updateInstanceStatus(instance.id, InstanceStatus.Starting)
         shutdownManager.push(async () => {
           dbg(`Shutting down: set instance status: idle`)
-          updateInstanceStatus(id, InstanceStatus.Idle)
+          await updateInstanceStatus(id, InstanceStatus.Idle)
         })
 
         /** Create spawn config */
@@ -184,13 +185,13 @@ export const instanceService = mkSingleton(
           api?.shutdown()
         })
 
-        shutdownManager.push(() => {
+        shutdownManager.push(async () => {
           if (stopped()) {
             dbg(`Instance already stopped`)
             return
           }
           dbg(`killing ${id}`)
-          childProcess.kill().catch((err) => {
+          await childProcess.kill().catch((err) => {
             error(`Error killing ${id}`, { err })
           })
           dbg(`killed ${id}`)
@@ -237,8 +238,31 @@ export const instanceService = mkSingleton(
             }
           },
           shutdown: () => {
-            dbg(`Shutting down`)
-            shutdownManager.forEach((fn) => fn())
+            // Prevent multiple shutdown calls for the same instance
+            if (pendingShutdowns.has(id)) {
+              dbg(`Shutdown already in progress for ${id}`)
+              return
+            }
+
+            dbg(`Starting shutdown for ${id}`)
+
+            const shutdownPromise = (async () => {
+              try {
+                // Execute all shutdown functions and await any async ones
+                for (const fn of shutdownManager) {
+                  await fn()
+                }
+
+                dbg(`Container ${id} fully shut down`)
+              } finally {
+                // Now it's safe to remove from cache
+                delete instanceApis[id]
+                pendingShutdowns.delete(id)
+                dbg(`Removed ${id} from instance cache`)
+              }
+            })()
+
+            pendingShutdowns.set(id, shutdownPromise)
           },
         }
 
@@ -408,6 +432,17 @@ export const instanceService = mkSingleton(
       }
 
       const start = now()
+
+      // Wait for any pending shutdown of this instance to complete
+      if (pendingShutdowns.has(instance.id)) {
+        dbg(`Waiting for pending shutdown of instance ${instance.id}`)
+        await pendingShutdowns.get(instance.id)
+        dbg(
+          `Pending shutdown completed for instance ${instance.id}, proceeding with new instance creation`,
+        )
+      }
+
+      // Now safe to create/reuse instance (will create new one if shutdown completed)
       const api = await (instanceApis[instance.id] =
         instanceApis[instance.id] || createInstanceApi(instance)).catch((e) => {
         throw new Error(
@@ -437,10 +472,21 @@ export const instanceService = mkSingleton(
 
     asyncExitHook(async () => {
       dbg(`Shutting down instance manager`)
-      const p = Promise.all(
+
+      // First trigger shutdown for all running instances
+      const shutdownPromises = await Promise.all(
         map(instanceApis, async (api) => (await api).shutdown()),
       )
-      await p
+
+      // Then wait for any pending shutdowns to complete
+      if (pendingShutdowns.size > 0) {
+        dbg(
+          `Waiting for ${pendingShutdowns.size} pending shutdowns to complete`,
+        )
+        await Promise.all(pendingShutdowns.values())
+      }
+
+      dbg(`All instances shut down cleanly`)
     })
 
     return {}
