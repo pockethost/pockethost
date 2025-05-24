@@ -40,7 +40,7 @@
       <div class="text-error">
         Notice: You are in Custom Domain mode but it is not active and will not
         work. Go find <a href={DISCORD_URL} target="_blank" class="link"
-          >@noaxis on Discord</a
+          ><code>.noaxis</code> on Discord</a
         > to get set up.
       </div>
     {/if}
