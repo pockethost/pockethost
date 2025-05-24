@@ -64,6 +64,7 @@ export const instanceService = mkSingleton(
     const createInstanceApi = async (
       instance: InstanceFields,
     ): Promise<InstanceApi> => {
+      const start = now()
       const shutdownManager: (() => void)[] = []
 
       const { id, subdomain, version } = instance
@@ -269,6 +270,12 @@ export const instanceService = mkSingleton(
         dbg(`${internalUrl} is running`)
         updateInstanceStatus(instance.id, InstanceStatus.Running)
 
+        const end = now()
+        const duration = end - start
+        if (duration > 200) {
+          warn(`Container ${instance.id} launch took ${duration}ms`)
+        }
+
         return api
       } catch (e) {
         error(`Error spawning: ${e}`)
@@ -431,8 +438,6 @@ export const instanceService = mkSingleton(
         throw new Error(`Log in at ${APP_URL()} to verify your account.`)
       }
 
-      const start = now()
-
       // Wait for any pending shutdown of this instance to complete
       if (pendingShutdowns.has(instance.id)) {
         dbg(`Waiting for pending shutdown of instance ${instance.id}`)
@@ -449,11 +454,6 @@ export const instanceService = mkSingleton(
           `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`,
         )
       })
-      const end = now()
-      const duration = end - start
-      if (duration > 200) {
-        console.log(`Container ${instance.id} launch took ${duration}ms`)
-      }
 
       const endRequest = api.startRequest()
       res.on('close', endRequest)
