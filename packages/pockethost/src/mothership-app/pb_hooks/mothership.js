@@ -22,6 +22,7 @@ __export(lib_exports, {
   HandleInstanceBeforeUpdate: () => HandleInstanceBeforeUpdate,
   HandleInstanceCreate: () => HandleInstanceCreate,
   HandleInstanceDelete: () => HandleInstanceDelete,
+  HandleInstanceResolve: () => HandleInstanceResolve,
   HandleInstanceUpdate: () => HandleInstanceUpdate,
   HandleInstanceVersionValidation: () => HandleInstanceVersionValidation,
   HandleInstancesResetIdle: () => HandleInstancesResetIdle,
@@ -144,6 +145,54 @@ var HandleInstanceDelete = (c) => {
   log(`res`, res);
   dao.deleteRecord(record);
   return c.json(200, { status: "ok" });
+};
+
+// src/lib/handlers/instance/api/HandleInstanceResolve.ts
+var HandleInstanceResolve = (c) => {
+  const dao = $app.dao();
+  const log = mkLog(`GET:instance/resolve`);
+  log(`***TOP OF GET`);
+  const host = c.queryParam("host");
+  if (!host) {
+    throw new BadRequestError(`Host is required when resolving an instance.`);
+  }
+  {
+    try {
+      const record = $app.dao().findFirstRecordByData("instances", "cname", host);
+      if (record) {
+        return c.json(200, { instance: record });
+      }
+    } catch (e) {
+      log(`${host} is not a cname`);
+    }
+  }
+  const [subdomain, ...junk] = host.split(".");
+  if (!subdomain) {
+    throw new BadRequestError(
+      `Subdomain is required when resolving an instance.`
+    );
+  }
+  {
+    try {
+      const record = $app.dao().findRecordById("instances", subdomain);
+      if (record) {
+        return c.json(200, { instance: record });
+      }
+    } catch (e) {
+      log(`${subdomain} is not an instance ID`);
+    }
+  }
+  {
+    try {
+      const record = $app.dao().findFirstRecordByData("instances", `subdomain`, subdomain);
+      if (record) {
+        return c.json(200, { instance: record });
+      }
+    } catch (e) {
+      log(`${subdomain} is not a subdomain`);
+    }
+  }
+  throw new BadRequestError(`Instance not found.`);
 };
 
 // ../../../../node_modules/.pnpm/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
@@ -3133,6 +3182,7 @@ var HandleVersionsRequest = (c) => {
   HandleInstanceBeforeUpdate,
   HandleInstanceCreate,
   HandleInstanceDelete,
+  HandleInstanceResolve,
   HandleInstanceUpdate,
   HandleInstanceVersionValidation,
   HandleInstancesResetIdle,

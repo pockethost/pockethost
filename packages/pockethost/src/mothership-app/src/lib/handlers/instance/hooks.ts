@@ -22,6 +22,14 @@ routerAdd(
   },
   $apis.requireRecordAuth(),
 )
+routerAdd(
+  'GET',
+  '/api/instance/resolve',
+  (c) => {
+    return require(`${__hooks}/mothership`).HandleInstanceResolve(c)
+  },
+  $apis.requireAdminAuth(),
+)
 /** Validate instance version */
 onModelBeforeCreate((e) => {
   return require(`${__hooks}/mothership`).HandleInstanceVersionValidation(e)
