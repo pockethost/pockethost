@@ -33,7 +33,7 @@ const MultiChannelLimiter = () => {
   setInterval(() => {
     for (const [channel, limiter] of channels.entries()) {
       if (limiter.empty()) {
-        console.log(`Deleting empty limiter for ${channel}`)
+        // console.log(`Deleting empty limiter for ${channel}`)
         channels.delete(channel)
       }
     }
