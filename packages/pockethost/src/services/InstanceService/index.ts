@@ -92,6 +92,9 @@ export const instanceService = mkSingleton(
       let _shutdownReason: Error | undefined
       let internalUrl: string | undefined
 
+      // Declare api variable early to avoid temporal dead zone
+      let api: InstanceApi
+
       const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
       const updateInstance = clientLimiter.wrap(
         (id: InstanceId, fields: Partial<InstanceFields>) => {
@@ -111,6 +114,12 @@ export const instanceService = mkSingleton(
 
       let openRequestCount = 0
       let lastRequest = now()
+
+      // Create shutdown function that can be referenced early
+      const shutdown = () => {
+        dbg(`Shutting down`)
+        shutdownManager.forEach((fn) => fn())
+      }
 
       try {
         /** Mark the instance as starting */
@@ -180,7 +189,7 @@ export const instanceService = mkSingleton(
         const { exitCode, stopped, started, url: internalUrl } = childProcess
         exitCode.then((code) => {
           dbg(`Instance exited with code ${code}`)
-          api?.shutdown()
+          shutdown()
         })
 
         shutdownManager.push(() => {
@@ -215,7 +224,7 @@ export const instanceService = mkSingleton(
             userInstanceLogger.info(
               `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`,
             )
-            api.shutdown()
+            shutdown()
             return false
           } else {
             dbg(`${openRequestCount} requests remain open`)
@@ -224,7 +233,8 @@ export const instanceService = mkSingleton(
         }, 1000)
         shutdownManager.push(() => clearInterval(idleTid))
 
-        const api: InstanceApi = {
+        // Now assign the api object
+        api = {
           internalUrl,
           startRequest: () => {
             lastRequest = now()
@@ -235,10 +245,7 @@ export const instanceService = mkSingleton(
               trace(`ended request (${openRequestCount} still open)`)
             }
           },
-          shutdown: () => {
-            dbg(`Shutting down`)
-            shutdownManager.forEach((fn) => fn())
-          },
+          shutdown,
         }
 
         dbg(`${internalUrl} is running`)
