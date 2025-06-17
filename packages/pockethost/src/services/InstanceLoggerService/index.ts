@@ -30,20 +30,49 @@ export type LogEntry = {
 
 const MultiChannelLimiter = () => {
   const channels = new Map<string, Bottleneck>()
-  setInterval(() => {
-    for (const [channel, limiter] of channels.entries()) {
-      if (limiter.empty()) {
-        // console.log(`Deleting empty limiter for ${channel}`)
-        channels.delete(channel)
-      }
+  const timeouts = new Map<string, NodeJS.Timeout>()
+  const IDLE_TIMEOUT = 1000 * 60 // 1 minute idle timeout per channel
+
+  const cleanupChannel = (channel: string) => {
+    const limiter = channels.get(channel)
+    if (limiter && limiter.empty()) {
+      // console.log(`Deleting idle limiter for ${channel}`)
+      channels.delete(channel)
+      timeouts.delete(channel)
     }
-  }, 1000 * 60)
+  }
+
+  const scheduleCleanup = (channel: string) => {
+    // Clear existing timeout if any
+    const existingTimeout = timeouts.get(channel)
+    if (existingTimeout) {
+      clearTimeout(existingTimeout)
+    }
+
+    // Schedule new cleanup
+    const timeout = setTimeout(() => cleanupChannel(channel), IDLE_TIMEOUT)
+    timeouts.set(channel, timeout)
+  }
 
   return {
     schedule(channel: string, fn: () => Promise<void>) {
       if (!channels.has(channel)) {
-        channels.set(channel, new Bottleneck({ maxConcurrent: 1 }))
+        const limiter = new Bottleneck({ maxConcurrent: 1 })
+        channels.set(channel, limiter)
+
+        // Set up cleanup when limiter becomes empty
+        limiter.on('idle', () => {
+          scheduleCleanup(channel)
+        })
       }
+
+      // Clear any pending cleanup since channel is active
+      const existingTimeout = timeouts.get(channel)
+      if (existingTimeout) {
+        clearTimeout(existingTimeout)
+        timeouts.delete(channel)
+      }
+
       return channels.get(channel)!.schedule(fn)!
     },
   }
