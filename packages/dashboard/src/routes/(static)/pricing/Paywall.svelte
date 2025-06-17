@@ -21,7 +21,7 @@
   <SignupBox
     price="$5 / month per instance"
     title="Starter"
-    cta="Pay $5 per instance, up to a maximum of 5 instances. Each extra instance costing a further $5"
+    cta="Pay $5 per instance, up to a maximum of 5 instances. Each extra instance costs an additional $5"
     features={[
       'Access to all features',
       '7 day risk-free trial',
