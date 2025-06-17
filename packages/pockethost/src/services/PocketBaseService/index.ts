@@ -63,7 +63,7 @@ export const createPocketbaseService = async (
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
     const logger = LoggerService().create('spawn')
-    const { dbg, warn, error } = logger
+    const { dbg, info, warn, error } = logger
 
     const _cfg: Required<SpawnConfig> = {
       version: maxVersion,
@@ -108,6 +108,12 @@ export const createPocketbaseService = async (
     let started = false
     let stopped = false
     let stopping = false
+
+    // Add timing for container startup
+    const containerStartTime = Date.now()
+    info(
+      `[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`,
+    )
 
     const container = await new Promise<{
       on: EventEmitter['on']
@@ -218,6 +224,16 @@ export const createPocketbaseService = async (
           },
         )
         .on('start', async (container: Container) => {
+          const containerReadyTime = Date.now()
+          const startupDuration = containerReadyTime - containerStartTime
+
+          info(
+            `[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`,
+          )
+          info(
+            `[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`,
+          )
+
           dbg(`Got started container`, container)
           started = true
 

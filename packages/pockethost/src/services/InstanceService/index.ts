@@ -393,6 +393,10 @@ export const instanceService = mkSingleton(
       const start = now()
       const api = await (instanceApis[instance.id] =
         instanceApis[instance.id] || createInstanceApi(instance)).catch((e) => {
+        const end = now()
+        const duration = end - start
+        warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+
         throw new Error(
           `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`,
         )
@@ -400,7 +404,7 @@ export const instanceService = mkSingleton(
       const end = now()
       const duration = end - start
       if (duration > 200) {
-        console.log(`Container ${instance.id} launch took ${duration}ms`)
+        warn(`Container ${instance.id} launch took ${duration}ms`)
       }
 
       const endRequest = api.startRequest()
