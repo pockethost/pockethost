@@ -19,15 +19,17 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-1 mx-auto">
   <SignupBox
-    price="$5 / month"
+    price="$5 / month per instance"
     title="Starter"
-    cta="Pay just $5 per instance for up to 5 instances, get access to all features."
+    cta="Pay $5 per instance, up to a maximum of 5 instances. Each extra instance costing a further $5"
     features={[
+      'Access to all features',
       '7 day risk-free trial',
       '35+ regions',
       'Unlimited bandwidth, storage, and CPU',
       'FTP Access',
       'Priority support',
+      'Flexible - only pay for as many as you need',
     ]}
   />
   <SignupBox
