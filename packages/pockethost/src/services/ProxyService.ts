@@ -109,7 +109,7 @@ export const proxyService = mkSingleton(
       res.end
     })
 
-    server.use('/_api', apiRouter)
+    server.use('/_api/daemon', apiRouter)
 
     // Default locals
     server.use((req, res, next) => {
