@@ -6,6 +6,7 @@
   export let selected: boolean = false
   export let buttonText: string = 'Subscribe Now'
   export let price: string
+  export let priceDetail: string=''
   export let bestDeal: boolean = false
   export let title: string
   export let cta: string
@@ -26,7 +27,7 @@
       {cta}
     </div>
   </div>
-  <div class="h-40">
+  <div class="h-52">
     {#each features as feature}
       <div class="flex flex-row gap-2">
         <Fa
@@ -36,8 +37,9 @@
       </div>
     {/each}
   </div>
-  <div class="h-10 flex justify-center items-center">
-    <div class="text-3xl text-white text-center">{price}</div>
+  <div class="h-12 flex justify-start items-center flex-col">
+    <div class="text-3xl text-white text-center ">{price}</div>
+    <div class="text-xs text-gray-400 text-center">{priceDetail}</div>
   </div>
   <div class="h-16 flex justify-center items-end">
     <a

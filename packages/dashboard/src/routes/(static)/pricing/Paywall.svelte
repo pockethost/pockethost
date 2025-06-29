@@ -19,7 +19,8 @@
 
 <div class="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-1 mx-auto">
   <SignupBox
-    price="$5 / month per instance"
+    price="$5 / month"
+    priceDetail="per instance"
     title="Starter"
     cta="Pay $5 per instance, up to a maximum of 5 instances. Each extra instance costs an additional $5"
     features={[
