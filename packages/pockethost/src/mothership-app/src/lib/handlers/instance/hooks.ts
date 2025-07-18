@@ -52,6 +52,11 @@ onAfterBootstrap((e) => {
   return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e)
 })
 
+/** Migrate existing cnames to domains table */
+onAfterBootstrap((e) => {
+  return require(`${__hooks}/mothership`).HandleMigrateCnamesToDomains(e)
+})
+
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
   return require(`${__hooks}/mothership`).HandleInstanceBeforeUpdate(e)
