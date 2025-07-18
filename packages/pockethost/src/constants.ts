@@ -196,9 +196,9 @@ export const MOTHERSHIP_URL = (...path: string[]) =>
   [
     env
       .get('MOTHERSHIP_URL')
-      .default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}:${APEX_DOMAIN()}`)
+      .default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`)
       .asString(),
-    path.join('/'),
+    ...path.map((p) => p.trim().replace(/^\/+|\/+$/g, '')),
   ]
     .filter(Boolean)
     .join('/')
