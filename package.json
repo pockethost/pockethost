@@ -32,7 +32,8 @@
       "@types/tail": "patches/@types__tail.patch"
     },
     "onlyBuiltDependencies": [
-      "sharp"
+      "sharp",
+      "svelte-preprocess"
     ]
   }
 }
