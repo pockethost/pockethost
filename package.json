@@ -30,6 +30,9 @@
       "@sveltejs/enhanced-img": "patches/@sveltejs__enhanced-img.patch",
       "tail": "patches/tail.patch",
       "@types/tail": "patches/@types__tail.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "sharp"
+    ]
   }
 }
