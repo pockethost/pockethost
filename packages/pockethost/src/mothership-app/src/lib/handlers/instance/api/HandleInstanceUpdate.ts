@@ -1,6 +1,62 @@
 import { mkLog, StringKvLookup } from '$util/Logger'
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
 
+// Helper function to make Cloudflare API calls
+const callCloudflareAPI = (endpoint: string, method: string, body?: any, log?: any) => {
+  const apiToken = $os.getenv('MOTHERSHIP_CLOUDFLARE_API_TOKEN')
+  const zoneId = $os.getenv('MOTHERSHIP_CLOUDFLARE_ZONE_ID')
+
+  if (!apiToken || !zoneId) {
+    if (log) log('Cloudflare API credentials not configured - skipping Cloudflare operations')
+    return null
+  }
+
+  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/${endpoint}`
+
+  try {
+    const config: any = {
+      url: url,
+      method: method,
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30,
+    }
+
+    if (body) {
+      config.body = JSON.stringify(body)
+    }
+
+    if (log) log(`Making Cloudflare API call: ${method} ${url}`, config)
+
+    const response = $http.send(config)
+
+    if (log) log(`Cloudflare API response:`, response)
+
+    return response
+  } catch (error) {
+    if (log) log(`Cloudflare API error:`, error)
+    return null
+  }
+}
+
+// Helper to create custom hostname in Cloudflare
+const createCloudflareCustomHostname = (hostname: string, log: any) => {
+  return callCloudflareAPI(
+    'custom_hostnames',
+    'POST',
+    {
+      hostname: hostname,
+      ssl: {
+        method: 'http',
+        type: 'dv',
+      },
+    },
+    log
+  )
+}
+
 export const HandleInstanceUpdate = (c: echo.Context) => {
   const dao = $app.dao()
   const log = mkLog(`PUT:instance`)
@@ -65,6 +121,21 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
   }
   if (record.get('uid') !== authRecord.id) {
     throw new BadRequestError(`Not authorized`)
+  }
+
+  // Check if CNAME changed and handle Cloudflare
+  const oldCname = record.getString('cname').trim()
+  const newCname = cname ? cname.trim() : ''
+  const cnameChanged = oldCname !== newCname
+
+  if (cnameChanged && newCname) {
+    log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`)
+
+    // Blindly add to Cloudflare
+    const createResponse = createCloudflareCustomHostname(newCname, log)
+    if (createResponse) {
+      log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`)
+    }
   }
 
   const sanitized = removeEmptyKeys({
