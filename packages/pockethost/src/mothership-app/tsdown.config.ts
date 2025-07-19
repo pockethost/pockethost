@@ -15,5 +15,4 @@ export default defineConfig({
   platform: 'node',
   minify: false,
   sourcemap: false,
-  bundle: true,
 })
