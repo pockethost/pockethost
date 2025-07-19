@@ -32,8 +32,11 @@
       "@types/tail": "patches/@types__tail.patch"
     },
     "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
       "sharp",
-      "svelte-preprocess"
+      "svelte-preprocess",
+      "workerd"
     ]
   }
 }
