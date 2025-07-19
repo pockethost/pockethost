@@ -26,20 +26,20 @@ const HandleInstanceCreate = (c) => {
 	const dao = $app.dao();
 	const log = mkLog(`POST:instance`);
 	const authRecord = c.get("authRecord");
-	log(`***authRecord`, JSON.stringify(authRecord));
+	log(`authRecord`, JSON.stringify(authRecord));
 	if (!authRecord) throw new Error(`Expected authRecord here`);
-	log(`***TOP OF POST`);
+	log(`TOP OF POST`);
 	let data = new DynamicModel({
 		subdomain: "",
 		version: versions[0],
 		region: "sfo-2"
 	});
-	log(`***before bind`);
+	log(`before bind`);
 	c.bind(data);
-	log(`***after bind`);
+	log(`after bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const { subdomain, version, region } = data;
-	log(`***vars`, JSON.stringify({
+	log(`vars`, JSON.stringify({
 		subdomain,
 		region
 	}));
@@ -280,36 +280,65 @@ const HandleMigrateCnamesToDomains = (e) => {
 			return;
 		}
 		log(`Found ${instancesWithCnames.length} instances with cnames`);
-		const unmigrated = instancesWithCnames.filter((instance) => {
-			if (!instance) return false;
-			try {
-				const existingDomain = dao.findFirstRecordByFilter("domains", `instance = "${instance.getId()}"`);
-				return !existingDomain;
-			} catch (e$1) {
-				return true;
-			}
-		});
-		if (unmigrated.length === 0) {
-			log(`All cnames already migrated`);
-			return;
-		}
-		log(`Found ${unmigrated.length} cnames to migrate`);
-		let migrated = 0;
-		unmigrated.forEach((instance) => {
+		log(`Phase 1: Migrating cnames to domains collection`);
+		let cnameMigrated = 0;
+		instancesWithCnames.forEach((instance) => {
 			if (!instance) return;
 			try {
-				const domainsCollection$1 = dao.findCollectionByNameOrId("domains");
-				const domainRecord = new Record(domainsCollection$1);
-				domainRecord.set("instance", instance.getId());
-				domainRecord.set("domain", instance.getString("cname"));
-				domainRecord.set("active", instance.getBool("cname_active"));
-				dao.saveRecord(domainRecord);
-				migrated++;
+				const cname = instance.getString("cname");
+				if (!cname) return;
+				const instanceId = instance.getId();
+				let domainExists = false;
+				try {
+					dao.findFirstRecordByFilter("domains", `instance = "${instanceId}" && domain = "${cname}"`);
+					domainExists = true;
+				} catch (e$1) {}
+				if (!domainExists) {
+					const domainsCollection$1 = dao.findCollectionByNameOrId("domains");
+					const domainRecord = new Record(domainsCollection$1);
+					domainRecord.set("instance", instanceId);
+					domainRecord.set("domain", cname);
+					domainRecord.set("active", instance.getBool("cname_active"));
+					dao.saveRecord(domainRecord);
+					log(`Created domain record for ${cname}`);
+					cnameMigrated++;
+				}
 			} catch (error$1) {
 				log(`Failed to migrate cname for instance ${instance.getId()}:`, error$1);
 			}
 		});
-		log(`Successfully migrated ${migrated} cnames to domains table`);
+		log(`Phase 1 complete: migrated ${cnameMigrated} cnames to domains collection`);
+		log(`Phase 2: Syncing domains collection with instances.domains arrays`);
+		const allDomainRecords = dao.findRecordsByFilter("domains", "1=1");
+		log(`Found ${allDomainRecords.length} domain records`);
+		let instancesUpdated = 0;
+		const domainsByInstance = /* @__PURE__ */ new Map();
+		allDomainRecords.forEach((domainRecord) => {
+			if (!domainRecord) return;
+			const instanceId = domainRecord.getString("instance");
+			if (!domainsByInstance.has(instanceId)) domainsByInstance.set(instanceId, []);
+			domainsByInstance.get(instanceId).push(domainRecord.getId());
+		});
+		log(`Updating instances.domains arrays`);
+		domainsByInstance.forEach((domainIds, instanceId) => {
+			try {
+				const instance = dao.findRecordById("instances", instanceId);
+				if (!instance) return;
+				const currentDomains = instance.get("domains") || [];
+				log(`Current domains:`, currentDomains);
+				const missingIds = domainIds.filter((id) => !currentDomains.includes(id));
+				if (missingIds.length > 0) {
+					const updatedDomains = [...currentDomains, ...missingIds];
+					instance.set("domains", updatedDomains);
+					dao.saveRecord(instance);
+					log(`Updated instance ${instanceId}: added ${missingIds.length} domain IDs to domains array`);
+					instancesUpdated++;
+				}
+			} catch (error$1) {
+				log(`Failed to update domains array for instance ${instanceId}:`, error$1);
+			}
+		});
+		log(`Phase 2 complete: updated domains arrays for ${instancesUpdated} instances`);
 	} catch (error$1) {
 		log(`Error migrating cnames: ${error$1}`);
 	}
@@ -350,8 +379,10 @@ const HandleMigrateInstanceVersions = (e) => {
 /** Migrate version numbers */
 const HandleMigrateRegions = (e) => {
 	const dao = $app.dao();
-	console.log(`***Migrating regions`);
+	const log = mkLog(`HandleMigrateRegions`);
+	log(`Migrating regions`);
 	dao.db().newQuery(`update instances set region='sfo-1' where region=''`).execute();
+	log(`Migrated regions`);
 };
 
 //#endregion
@@ -654,7 +685,7 @@ const HandleMailSend = (c) => {
 const HandleMetaUpdateAtBoot = (c) => {
 	const log = mkLog("HandleMetaUpdateAtBoot");
 	log(`At top of HandleMetaUpdateAtBoot`);
-	log(`***app URL`, process.env.APP_URL);
+	log(`app URL`, process.env.APP_URL);
 	const form = new SettingsUpsertForm($app);
 	form.meta = {
 		...$app.settings().meta,
