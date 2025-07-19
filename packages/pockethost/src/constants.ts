@@ -100,6 +100,10 @@ export const createSettings = () => ({
   DISCORD_TEST_CHANNEL_URL: mkString(''),
   DISCORD_STREAM_CHANNEL_URL: mkString(''),
 
+  MOTHERSHIP_CLOUDFLARE_API_TOKEN: mkString('', { required: true }),
+  MOTHERSHIP_CLOUDFLARE_ZONE_ID: mkString('', { required: true }),
+  MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID: mkString('', { required: true }),
+
   TEST_EMAIL: mkString(),
 
   LS_WEBHOOK_SECRET: mkString(''),
@@ -205,6 +209,10 @@ export const DISCORD_ALERT_CHANNEL_URL = () => env.get('DISCORD_ALERT_CHANNEL_UR
 export const DISCORD_TEST_CHANNEL_URL = () => env.get('DISCORD_TEST_CHANNEL_URL').asString()
 export const DISCORD_STREAM_CHANNEL_URL = () => env.get('DISCORD_STREAM_CHANNEL_URL').asString()
 
+export const MOTHERSHIP_CLOUDFLARE_API_TOKEN = () => settings().MOTHERSHIP_CLOUDFLARE_API_TOKEN
+export const MOTHERSHIP_CLOUDFLARE_ZONE_ID = () => settings().MOTHERSHIP_CLOUDFLARE_ZONE_ID
+export const MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID = () => settings().MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID
+
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
@@ -238,7 +246,7 @@ export const MOTHERSHIP_DATA_DB = () => join(MOTHERSHIP_DATA_ROOT(), `pb_data`, 
 export const mkContainerHomePath = (...path: string[]) => join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
 export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
-  (instance.cname_active && instance.cname) || `${instance.id}.${APEX_DOMAIN()}`
+  instance.cname && instance.cname.trim() !== '' ? instance.cname : `${instance.id}.${APEX_DOMAIN()}`
 export const mkInstanceHostname = (instance: InstanceFields) =>
   [instance.subdomain, APEX_DOMAIN()].filter(Boolean).join('.')
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
@@ -266,6 +274,9 @@ export const logConstants = () => {
     MOTHERSHIP_HOOKS_DIR,
     MOTHERSHIP_APP_DIR,
     MOTHERSHIP_SEMVER,
+    MOTHERSHIP_CLOUDFLARE_API_TOKEN,
+    MOTHERSHIP_CLOUDFLARE_ZONE_ID,
+    MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
     INITIAL_PORT_POOL_SIZE,
     DATA_ROOT,
     NODE_ENV,
