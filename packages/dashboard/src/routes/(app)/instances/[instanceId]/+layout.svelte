@@ -48,23 +48,23 @@
 {#if isReady}
   <div class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-2">
     <div>
-      <div class="flex items-center gap-2">
-        <h2 class="text-4xl md:text-left text-base-content font-bold mb-3 break-words">
+      <div class="flex items-center gap-3">
+        <h2 class="text-4xl md:text-left text-base-content font-bold break-words">
           {$instance.subdomain}
         </h2>
+        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">
+          v{$instance.version}
+        </span>
+        {#if $instance.dev}
+          <a
+            href={`/instances/${$instance.id}/dev`}
+            class="text-warning animate-pulse text-2xl"
+            title="Dev Mode Active (SLOW)"
+          >
+            🚧
+          </a>
+        {/if}
       </div>
-      <span class="text-gray-400">
-        Version {$instance.version} -
-        <span class="capitalize">{$instance.status}</span>
-      </span>
-      {#if $instance.dev}
-        <a
-          href={`/instances/${$instance.id}/dev`}
-          class="text-warning animate-pulse border-warning border-2 p-1 rounded"
-        >
-          Dev Mode Active (SLOW)
-        </a>
-      {/if}
     </div>
 
     <div>
