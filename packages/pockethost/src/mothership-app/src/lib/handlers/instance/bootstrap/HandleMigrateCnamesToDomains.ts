@@ -16,10 +16,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
 
     // Check if there are any instances with cnames that haven't been migrated
     log(`Checking for instances with cnames`)
-    const instancesWithCnames = dao.findRecordsByFilter(
-      'instances',
-      "cname != NULL && cname != ''",
-    )
+    const instancesWithCnames = dao.findRecordsByFilter('instances', "cname != NULL && cname != ''")
 
     if (instancesWithCnames.length === 0) {
       log(`No cnames to migrate`)
@@ -32,10 +29,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
     const unmigrated = instancesWithCnames.filter((instance) => {
       if (!instance) return false
       try {
-        const existingDomain = dao.findFirstRecordByFilter(
-          'domains',
-          `instance = "${instance.getId()}"`,
-        )
+        const existingDomain = dao.findFirstRecordByFilter('domains', `instance = "${instance.getId()}"`)
         return !existingDomain
       } catch (e) {
         // Not found means not migrated

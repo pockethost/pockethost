@@ -1,10 +1,5 @@
 <script lang="ts">
-  import {
-    globalInstancesStore,
-    userSubscriptionType,
-    versions,
-    userStore,
-  } from '$util/stores'
+  import { globalInstancesStore, userSubscriptionType, versions, userStore } from '$util/stores'
   import { values } from '@s-libs/micro-dash'
   import Creator from './Creator.svelte'
   import Paywall from './Paywall.svelte'
@@ -24,9 +19,7 @@
 
 <div class="flex items-center justify-center">
   <div class="max-w-md">
-    <h2 class="text-4xl text-base-content font-bold capitalize mb-6">
-      Create A New Instance
-    </h2>
+    <h2 class="text-4xl text-base-content font-bold capitalize mb-6">Create A New Instance</h2>
 
     {#if canCreate}
       <Creator />

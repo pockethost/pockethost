@@ -22,9 +22,7 @@
 
     // Check for the token and block the request if it doesn't exist
     if (!token) {
-      formErrors = [
-        'No token was found. Please check your email again for the link.',
-      ]
+      formErrors = ['No token was found. Please check your email again for the link.']
       return
     }
 
@@ -39,9 +37,7 @@
       if (error instanceof Error) {
         formErrors = client().parseError(error)
       } else {
-        formErrors = [
-          'Something went wrong with confirming your password change.',
-        ]
+        formErrors = ['Something went wrong with confirming your password change.']
       }
     }
 
@@ -76,11 +72,7 @@
         {/each}
 
         <div class="mt-4 card-actions justify-end">
-          <button
-            type="submit"
-            class="btn btn-primary w-100"
-            disabled={isFormButtonDisabled}
-          >
+          <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
             Save <i class="bi bi-arrow-right-short" />
           </button>
         </div>

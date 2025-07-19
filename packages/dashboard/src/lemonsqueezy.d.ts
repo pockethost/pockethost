@@ -6,19 +6,16 @@ interface Window {
     /**
      * Initialises Lemon.js on your page.
      *
-     * @param options - An object with a single property, eventHandler, which
-     *   is a function that will be called when Lemon.js emits an event.
+     * @param options - An object with a single property, eventHandler, which is a function that will be called when
+     *   Lemon.js emits an event.
      */
-    Setup: (options: {
-      eventHandler: (event: { event: string }) => void
-    }) => void
+    Setup: (options: { eventHandler: (event: { event: string }) => void }) => void
     /** Refreshes `lemonsqueezy-button` listeners on the page. */
     Refresh: () => void
 
     Url: {
       /**
-       * Opens a given Lemon Squeezy URL, typically these are Checkout or
-       * Payment Details Update overlays.
+       * Opens a given Lemon Squeezy URL, typically these are Checkout or Payment Details Update overlays.
        *
        * @param url - The URL to open.
        */

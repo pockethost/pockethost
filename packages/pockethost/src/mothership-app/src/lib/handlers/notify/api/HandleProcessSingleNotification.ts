@@ -7,18 +7,10 @@ export const HandleProcessSingleNotification = (c: echo.Context) => {
 
   const dao = $app.dao()
 
-  const processNotification = mkNotificationProcessor(
-    log,
-    dao,
-    !!c.queryParam(`test`),
-  )
+  const processNotification = mkNotificationProcessor(log, dao, !!c.queryParam(`test`))
 
   try {
-    const notification = dao.findFirstRecordByData(
-      `notifications`,
-      `delivered`,
-      ``,
-    )
+    const notification = dao.findFirstRecordByData(`notifications`, `delivered`, ``)
     if (!notification) {
       return c.json(200, `No notifications to send`)
     }

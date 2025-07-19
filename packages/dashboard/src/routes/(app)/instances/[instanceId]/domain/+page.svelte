@@ -4,8 +4,7 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { INSTANCE_BARE_HOST } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  import { isUserPaid, userSubscriptionType } from '$util/stores'
-  import { SubscriptionType } from 'pockethost/common'
+  import { isUserPaid } from '$util/stores'
   import { dns } from 'svelte-highlight/languages'
   import { instance } from '../store'
 
@@ -26,13 +25,10 @@
   let errorMessage = ''
   let successMessage = ''
 
-  const regex =
-    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}$/
+  const regex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}$/
 
   $: {
-    isButtonDisabled =
-      (!!formCname.trim() && !regex.test(formCname)) ||
-      (!formCname.trim() && !cname.trim())
+    isButtonDisabled = (!!formCname.trim() && !regex.test(formCname)) || (!formCname.trim() && !cname.trim())
   }
   const onRename = (e: Event) => {
     e.preventDefault()
@@ -73,20 +69,13 @@
 </script>
 
 <div class="max-w-2xl">
-  <CardHeader documentation={`/docs/custom-domains`}>
-    Custom Domain (CNAME)
-  </CardHeader>
+  <CardHeader documentation={`/docs/custom-domains`}>Custom Domain (CNAME)</CardHeader>
 
-  <div class="mb-8">
-    Use a custom domain (CNAME) with your PocketHost instance.
-  </div>
+  <div class="mb-8">Use a custom domain (CNAME) with your PocketHost instance.</div>
   {#if cname && regex.test(formCname.trim())}
     <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
     <div class="mb-4">
-      <CodeSample
-        code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`}
-        language={dns}
-      />
+      <CodeSample code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`} language={dns} />
     </div>
   {/if}
 
@@ -100,18 +89,11 @@
         type="warning"
       />
     {:else}
-      <AlertBar
-        message={`Your custom domain name is active.`}
-        type="success"
-        flash
-      />
+      <AlertBar message={`Your custom domain name is active.`} type="success" flash />
     {/if}
   {/if}
 
-  <form
-    class="flex rename-instance-form-container-query gap-4"
-    on:submit={onRename}
-  >
+  <form class="flex rename-instance-form-container-query gap-4" on:submit={onRename}>
     <input
       title="Only valid domain name patterns are allowed"
       type="text"
@@ -119,9 +101,7 @@
       class="input input-bordered w-full"
     />
 
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
-      >Update Custom Domain</button
-    >
+    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}>Update Custom Domain</button>
   </form>
 </div>
 

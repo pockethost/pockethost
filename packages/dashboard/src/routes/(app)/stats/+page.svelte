@@ -7,11 +7,7 @@
 
   onMount(async () => {
     try {
-      stats.set(
-        (
-          (await client().client.collection('stats').getFullList()) || []
-        ).pop() || {},
-      )
+      stats.set(((await client().client.collection('stats').getFullList()) || []).pop() || {})
     } catch (e) {
       console.error(e)
     }

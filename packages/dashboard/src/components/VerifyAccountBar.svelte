@@ -42,11 +42,7 @@
             <Fa icon={faCheck} /> Sent!
           </div>
         {:else}
-          <button
-            type="button"
-            class="btn btn-outline-secondary btn-sm"
-            on:click={handleClick}>Resend Email</button
-          >
+          <button type="button" class="btn btn-outline-secondary btn-sm" on:click={handleClick}>Resend Email</button>
         {/if}
 
         {#if formError}

@@ -5,5 +5,5 @@ routerAdd(
     return require(`${__hooks}/mothership`).HandleMirrorData(c)
   },
   $apis.gzip(),
-  $apis.requireAdminAuth(),
+  $apis.requireAdminAuth()
 )

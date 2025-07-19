@@ -43,11 +43,7 @@ export const createTimerManager = (config?: Partial<TimeManagerConfig>) => {
     dbg(`done`, cleanups)
   }
 
-  const repeat = (
-    cb: RepeatableTimerCallback,
-    ms: UnixTimestampMs,
-    initial = true,
-  ) => {
+  const repeat = (cb: RepeatableTimerCallback, ms: UnixTimestampMs, initial = true) => {
     let _unsub: TimerCanceler | undefined = undefined
     const _again = async () => {
       const shouldRepeat = await cb()

@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    isAuthStateInitialized,
-    isUserLoggedIn,
-    userStore,
-  } from '$util/stores'
+  import { isAuthStateInitialized, isUserLoggedIn, userStore } from '$util/stores'
 
   export let role = ''
   let hasRole = false

@@ -28,9 +28,7 @@ export const HandleMailSend = (c: echo.Context) => {
       name: $app.settings().meta.senderName,
     },
     to: [{ address: to }],
-    bcc: [process.env.TEST_EMAIL]
-      .filter((e): e is string => !!e)
-      .map((e) => ({ address: e })),
+    bcc: [process.env.TEST_EMAIL].filter((e): e is string => !!e).map((e) => ({ address: e })),
     subject: subject,
     html: body,
   })

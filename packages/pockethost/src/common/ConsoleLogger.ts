@@ -10,9 +10,7 @@ const CONSOLE_METHODS = {
   [LogLevelName.Abort]: console.error,
 }
 
-export function ConsoleLogger(
-  initialConfig: Partial<LoggerConfig> = {},
-): Logger {
+export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger {
   let config: LoggerConfig = {
     level: LogLevelName.Info,
     pfx: [],

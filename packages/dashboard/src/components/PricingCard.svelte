@@ -38,9 +38,7 @@
     }
 
     const days = Math.floor(difference / (1000 * 60 * 60 * 24))
-    const hours = Math.floor(
-      (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-    )
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
     const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((difference % (1000 * 60)) / 1000)
 
@@ -167,9 +165,7 @@
               ${priceAnnually[0]}
             </span>
           {/if}
-          <span
-            class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}`}
-          >
+          <span class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}`}>
             / {priceAnnually[1]}
           </span>
         </a>
@@ -194,11 +190,7 @@
               ${priceMonthly[0]}
             </span>
           {/if}
-          <span
-            class="text-sm font-semibold leading-6 ${qtyRemaining <= 0
-              ? 'text-gray-600'
-              : 'text-gray-300'}"
-          >
+          <span class="text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}">
             / {priceMonthly[1]}</span
           >
         </a>

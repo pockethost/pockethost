@@ -11,27 +11,22 @@ export type SettingsHandler<TValue> = {
   set: (value: TValue) => void
 }
 
-export type SettingsHandlerFactory<TValue> = (
-  key: string,
-) => SettingsHandler<TValue>
+export type SettingsHandlerFactory<TValue> = (key: string) => SettingsHandler<TValue>
 
 export type SettingsMaker<TValue, TConfig = {}> = (
   _default?: TValue,
-  config?: Partial<TConfig>,
+  config?: Partial<TConfig>
 ) => SettingsHandlerFactory<TValue>
 
 const mkMaker =
-  <TValue, TConfig = {}>(
-    caster: SettingsCaster<TValue, TConfig>,
-  ): SettingsMaker<TValue, TConfig> =>
+  <TValue, TConfig = {}>(caster: SettingsCaster<TValue, TConfig>): SettingsMaker<TValue, TConfig> =>
   (_default, config) =>
   (name: string) => {
     return {
       get(): TValue {
         const v = process.env[name]
         if (typeof v === `undefined`) {
-          if (typeof _default === `undefined`)
-            throw new Error(`${name} must be defined`)
+          if (typeof _default === `undefined`) throw new Error(`${name} must be defined`)
           this.set(_default)
           return this.get()
         }

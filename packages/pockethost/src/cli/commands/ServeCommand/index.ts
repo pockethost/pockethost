@@ -9,16 +9,14 @@ type Options = {
 }
 
 export const ServeCommand = () => {
-  const cmd = new Command(`serve`)
-    .description(`Run the entire PocketHost stack`)
-    .action(async (options: Options) => {
-      logger().context({ cli: 'serve' })
-      const { dbg, error, info, warn } = logger()
-      info(`Starting`)
+  const cmd = new Command(`serve`).description(`Run the entire PocketHost stack`).action(async (options: Options) => {
+    logger().context({ cli: 'serve' })
+    const { dbg, error, info, warn } = logger()
+    info(`Starting`)
 
-      await Promise.all([mothership(options), daemon(), firewall()])
+    await Promise.all([mothership(options), daemon(), firewall()])
 
-      await neverendingPromise()
-    })
+    await neverendingPromise()
+  })
   return cmd
 }

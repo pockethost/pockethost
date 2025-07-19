@@ -17,7 +17,7 @@ try {
     `logger`,
     ConsoleLogger({
       level: PUBLIC_DEBUG ? LogLevelName.Debug : LogLevelName.Info,
-    }),
+    })
   )
 } catch (e) {
   console.warn(e)
@@ -68,10 +68,7 @@ const continuouslyCheckMothershipReachability = () => {
 }
 
 async function fetchVersions(): Promise<string[]> {
-  const { versions } = await client().client.send<{ versions: string[] }>(
-    `/api/versions`,
-    {},
-  )
+  const { versions } = await client().client.send<{ versions: string[] }>(`/api/versions`, {})
 
   return versions
 }
@@ -104,11 +101,9 @@ export const init = () => {
 
   userStore.subscribe((user) => {
     console.log(`userStore.subscribe`, { user })
-    const isPaid = [
-      SubscriptionType.Founder,
-      SubscriptionType.Premium,
-      SubscriptionType.Flounder,
-    ].includes(user?.subscription || SubscriptionType.Free)
+    const isPaid = [SubscriptionType.Founder, SubscriptionType.Premium, SubscriptionType.Flounder].includes(
+      user?.subscription || SubscriptionType.Free
+    )
     isUserPaid.set(isPaid)
     isUserLegacy.set(!!user?.isLegacy)
     userSubscriptionType.set(user?.subscription || SubscriptionType.Free)

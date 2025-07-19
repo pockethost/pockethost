@@ -21,17 +21,14 @@
     `// pb_hooks/env-test.pb.js\n\n` +
     ($items.length > 0
       ? $items
-          .map(
-            ({ name, value }) =>
-              `const ${name} = process.env.${name}\nconsole.log("${name}: ", ${name})`,
-          )
+          .map(({ name, value }) => `const ${name} = process.env.${name}\nconsole.log("${name}: ", ${name})`)
           .join('\n')
       : `const YOUR_KEY = process.env.YOUR_KEY`)
 </script>
 
 <div class="mb-4">
-  These secrets are forwarded to your <code>pocketbase</code> as environment
-  variables, which are also accessible from any <code>pb_hooks</code> you have created.
+  These secrets are forwarded to your <code>pocketbase</code> as environment variables, which are also accessible from
+  any <code>pb_hooks</code> you have created.
 </div>
 
 <!-- If the user has any secrets, render them in a code block -->

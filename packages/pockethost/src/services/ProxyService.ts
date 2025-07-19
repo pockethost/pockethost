@@ -3,15 +3,7 @@ import express, { Request, Response } from 'express'
 import 'express-async-errors'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
-import {
-  DAEMON_PORT,
-  Logger,
-  LoggerService,
-  SingletonBaseConfig,
-  asyncExitHook,
-  mkSingleton,
-  seqid,
-} from '..'
+import { DAEMON_PORT, Logger, LoggerService, SingletonBaseConfig, asyncExitHook, mkSingleton, seqid } from '..'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
@@ -24,16 +16,14 @@ export type ProxyMiddleware = (
     proxy: Server
     host: string
   },
-  logger: Logger,
+  logger: Logger
 ) => boolean | Promise<boolean>
 
 export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
 }
 export const proxyService = mkSingleton(
-  async (
-    config: ProxyServiceConfig,
-  ): Promise<{ use: ReturnType<typeof express>['use'] }> => {
+  async (config: ProxyServiceConfig): Promise<{ use: ReturnType<typeof express>['use'] }> => {
     const _proxyLogger = LoggerService().create('ProxyService')
     const { dbg, error, info, trace, warn } = _proxyLogger
 
@@ -85,10 +75,7 @@ export const proxyService = mkSingleton(
           metrics.ips.set(ip, (metrics.ips.get(ip) || 0) + 1)
         },
         addCountry: (country: string) => {
-          metrics.countries.set(
-            country,
-            (metrics.countries.get(country) || 0) + 1,
-          )
+          metrics.countries.set(country, (metrics.countries.get(country) || 0) + 1)
         },
       }
     })()
@@ -127,13 +114,9 @@ export const proxyService = mkSingleton(
       const country = (req.headers['cf-ipcountry'] as string) || '<ct>'
       const ip = (req.headers['x-forwarded-for'] as string) || '<ip>'
       const method = req.method || '<m>'
-      const sig = [
-        res.locals.requestId,
-        method.padStart(10),
-        country.padStart(5),
-        ip.padEnd(45),
-        url.toString(),
-      ].join(' ')
+      const sig = [res.locals.requestId, method.padStart(10), country.padStart(5), ip.padEnd(45), url.toString()].join(
+        ' '
+      )
       res.locals.sig = sig
       stats.addCountry(country)
       stats.addIp(ip)
@@ -174,5 +157,5 @@ export const proxyService = mkSingleton(
     const use = server.use.bind(server)
 
     return { use }
-  },
+  }
 )

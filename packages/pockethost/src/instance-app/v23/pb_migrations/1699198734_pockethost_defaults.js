@@ -30,5 +30,5 @@ migrate(
   },
   (db) => {
     // add down queries...
-  },
+  }
 )

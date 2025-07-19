@@ -22,29 +22,20 @@
     <h1 class="text-6xl font-bold mb-8">Amazingly Simple PocketBase Hosting</h1>
 
     <p class="text-2xl mb-12">
-      Spend <b class="text-green-600 dark:text-green-400">less time</b> on
-      configuring your backend, and more time building
-      <b class="text-green-600 dark:text-green-400">new features</b> for your web
-      app.
+      Spend <b class="text-green-600 dark:text-green-400">less time</b> on configuring your backend, and more time
+      building
+      <b class="text-green-600 dark:text-green-400">new features</b> for your web app.
     </p>
 
     <AuthStateGuard>
       <div slot="loading">
-        <PrimaryButton
-          text="Get Started"
-          url="/get-started"
-          icon={faArrowRight}
-        />
+        <PrimaryButton text="Get Started" url="/get-started" icon={faArrowRight} />
       </div>
       <UserLoggedIn>
         <PrimaryButton text="Dashboard" url="/dashboard" icon={faArrowRight} />
       </UserLoggedIn>
       <UserLoggedOut>
-        <PrimaryButton
-          text="Get Started"
-          url="/get-started"
-          icon={faArrowRight}
-        />
+        <PrimaryButton text="Get Started" url="/get-started" icon={faArrowRight} />
       </UserLoggedOut>
     </AuthStateGuard>
   </div>
@@ -84,9 +75,7 @@
   </div>
 
   <div class="w-full">
-    <div
-      class="bg-zinc-900 p-[75px] border-zinc-700 border-t-2 rounded-[75px] flex flex-wrap justify-center"
-    >
+    <div class="bg-zinc-900 p-[75px] border-zinc-700 border-t-2 rounded-[75px] flex flex-wrap justify-center">
       <SubFeatureBlock
         icon={faServer}
         title="Database"

@@ -39,10 +39,7 @@
           ...info,
           fetching: true,
         }))
-        const res = await client().client.send(
-          `/api/signup?name=${encodeURIComponent(name)}`,
-          {},
-        )
+        const res = await client().client.send(`/api/signup?name=${encodeURIComponent(name)}`, {})
         instanceInfo.update((info) => ({
           ...info,
           fetching: false,
@@ -72,10 +69,7 @@
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled =
-    email.length === 0 ||
-    password.length === 0 ||
-    $instanceInfo.name.length === 0 ||
-    !$instanceInfo.available
+    email.length === 0 || password.length === 0 || $instanceInfo.name.length === 0 || !$instanceInfo.available
 
   // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
@@ -93,14 +87,9 @@
     isFormButtonDisabled = true
     isProcessing = true
 
-    await handleInstanceGeneratorWidget(
-      email,
-      password,
-      $instanceInfo.name,
-      (error) => {
-        formError = error
-      },
-    )
+    await handleInstanceGeneratorWidget(email, password, $instanceInfo.name, (error) => {
+      formError = error
+    })
 
     isFormButtonDisabled = false
 
@@ -135,10 +124,7 @@
             class="input input-bordered w-full"
           />
 
-          <button
-            type="button"
-            class="btn btn-square"
-            on:click={handleInstanceNameRegeneration}
+          <button type="button" class="btn btn-square" on:click={handleInstanceNameRegeneration}
             ><Fa icon={faRotate} />
           </button>
         </div>
@@ -149,13 +135,9 @@
           {:else if $instanceInfo.fetching}
             Verifying...
           {:else if $instanceInfo.available}
-            <span class="text-success">
-              https://{$instanceInfo.name}.pockethost.io ✔︎</span
-            >
+            <span class="text-success"> https://{$instanceInfo.name}.pockethost.io ✔︎</span>
           {:else}
-            <span class="text-error">
-              https://{$instanceInfo.name}.pockethost.io ❌</span
-            >
+            <span class="text-error"> https://{$instanceInfo.name}.pockethost.io ❌</span>
           {/if}
         </div>
       </div>
@@ -194,22 +176,14 @@
       <AlertBar message={formError} type="error" />
 
       <div class="card-actions justify-end">
-        <button
-          type="submit"
-          class="btn btn-primary"
-          disabled={isFormButtonDisabled}
-        >
+        <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
           Create <Fa icon={faArrowRight} />
         </button>
       </div>
     </form>
 
     <div class="p-4 bg-zinc-800 text-center">
-      Already have an account? <button
-        type="button"
-        class="link font-bold"
-        on:click={handleLoginClick}>Login</button
-      >
+      Already have an account? <button type="button" class="link font-bold" on:click={handleLoginClick}>Login</button>
     </div>
   </div>
 {/if}

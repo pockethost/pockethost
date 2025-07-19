@@ -17,12 +17,7 @@
   const dispatch = createEventDispatcher()
 </script>
 
-<select
-  class="select select-bordered w-full"
-  bind:value={selectedVersion}
-  on:change={handleSelect}
-  {disabled}
->
+<select class="select select-bordered w-full" bind:value={selectedVersion} on:change={handleSelect} {disabled}>
   <option value="" disabled>Select a version</option>
   {#each versions as version}
     <option value={version}>{version}</option>

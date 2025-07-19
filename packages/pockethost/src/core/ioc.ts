@@ -4,16 +4,14 @@ import { LogEntry } from 'winston'
 export type MothershipProvider = {
   getAllInstances(): Promise<InstanceFields[]>
   getInstanceById(id: InstanceId): Promise<[InstanceFields, UserFields] | []>
-  getInstanceBySubdomain(
-    subdomain: InstanceFields['subdomain'],
-  ): Promise<[InstanceFields, UserFields] | []>
+  getInstanceBySubdomain(subdomain: InstanceFields['subdomain']): Promise<[InstanceFields, UserFields] | []>
   updateInstance(id: InstanceId, fields: Partial<InstanceFields>): Promise<void>
 }
 type UnsubFunc = () => void
 
 export type InstanceLogProvider = (
   instanceId: InstanceId,
-  target: string,
+  target: string
 ) => {
   info(msg: string): void
   error(msg: string): void

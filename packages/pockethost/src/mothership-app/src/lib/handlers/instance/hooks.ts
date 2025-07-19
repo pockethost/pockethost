@@ -4,7 +4,7 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceUpdate(c)
   },
-  $apis.requireRecordAuth(),
+  $apis.requireRecordAuth()
 )
 routerAdd(
   'POST',
@@ -12,7 +12,7 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceCreate(c)
   },
-  $apis.requireRecordAuth(),
+  $apis.requireRecordAuth()
 )
 routerAdd(
   'DELETE',
@@ -20,7 +20,7 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceDelete(c)
   },
-  $apis.requireRecordAuth(),
+  $apis.requireRecordAuth()
 )
 routerAdd(
   'GET',
@@ -28,7 +28,7 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceResolve(c)
   },
-  $apis.requireAdminAuth(),
+  $apis.requireAdminAuth()
 )
 /** Validate instance version */
 onModelBeforeCreate((e) => {

@@ -31,9 +31,7 @@ export type SpawnConfig = {
   stderr?: MemoryStream
   dev?: boolean
 }
-export type PocketbaseServiceApi = AsyncReturnType<
-  typeof createPocketbaseService
->
+export type PocketbaseServiceApi = AsyncReturnType<typeof createPocketbaseService>
 
 export type PocketbaseServiceConfig = SingletonBaseConfig & {}
 
@@ -47,9 +45,7 @@ export type PocketbaseProcess = {
 
 export const DOCKER_INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
 
-export const createPocketbaseService = async (
-  config: PocketbaseServiceConfig,
-) => {
+export const createPocketbaseService = async (config: PocketbaseServiceConfig) => {
   const _serviceLogger = LoggerService().create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
@@ -74,17 +70,7 @@ export const createPocketbaseService = async (
       dev: false,
       ...cfg,
     }
-    const {
-      version,
-      subdomain,
-      instanceId,
-      volume,
-      extraBinds,
-      env,
-      stderr,
-      stdout,
-      dev,
-    } = _cfg
+    const { version, subdomain, instanceId, volume, extraBinds, env, stderr, stdout, dev } = _cfg
 
     logger.breadcrumb({ subdomain, instanceId })
     const iLogger = InstanceLogWriter(instanceId, volume, 'exec')
@@ -96,9 +82,7 @@ export const createPocketbaseService = async (
     }
     const binPath = await bot.getBinaryFilePath(realVersion)
     if (!existsSync(binPath)) {
-      throw new Error(
-        `PocketBase binary (${binPath}) not found. Contact pockethost.io.`,
-      )
+      throw new Error(`PocketBase binary (${binPath}) not found. Contact pockethost.io.`)
     }
 
     enum Events {
@@ -111,9 +95,7 @@ export const createPocketbaseService = async (
 
     // Add timing for container startup
     const containerStartTime = Date.now()
-    info(
-      `[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`,
-    )
+    info(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
 
     const container = await new Promise<{
       on: EventEmitter['on']
@@ -147,7 +129,7 @@ export const createPocketbaseService = async (
             DEV: dev && gte(realVersion, `0.20.1`),
             PH_APEX_DOMAIN: APEX_DOMAIN(),
           },
-          (v, k) => `${k}=${v}`,
+          (v, k) => `${k}=${v}`
         ),
         name: `${subdomain}-${+new Date()}`,
         HostConfig: {
@@ -206,33 +188,21 @@ export const createPocketbaseService = async (
             */
             if ((StatusCode > 0 && StatusCode !== 137) || err) {
               const castStatusCode = StatusCode || 999
-              iLogger.error(
-                `Unexpected stop with code ${castStatusCode} and error ${err}`,
-              )
-              error(
-                `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`,
-              )
+              iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
+              error(`${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`)
               emitter.emit(Events.Exit, castStatusCode)
-              reject(
-                new Error(
-                  `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`,
-                ),
-              )
+              reject(new Error(`${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`))
             } else {
               emitter.emit(Events.Exit, 0)
             }
-          },
+          }
         )
         .on('start', async (container: Container) => {
           const containerReadyTime = Date.now()
           const startupDuration = containerReadyTime - containerStartTime
 
-          info(
-            `[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`,
-          )
-          info(
-            `[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`,
-          )
+          info(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
+          info(`[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`)
 
           dbg(`Got started container`, container)
           started = true
@@ -266,9 +236,7 @@ export const createPocketbaseService = async (
             try {
               await container.stop()
             } catch (stopError) {
-              error(
-                `Failed to stop container after port binding error: ${stopError}`,
-              )
+              error(`Failed to stop container after port binding error: ${stopError}`)
             }
           }
         })

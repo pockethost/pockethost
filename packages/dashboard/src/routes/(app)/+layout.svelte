@@ -12,10 +12,7 @@
       <div class="flex flex-col space-x-4 items-center justify-center">
         <div class="prose">
           <p class="text-2xl text-center text-warning">
-            Instances will not run until you <a
-              href="/access"
-              class="link text-primary">upgrade</a
-            >.
+            Instances will not run until you <a href="/access" class="link text-primary">upgrade</a>.
           </p>
         </div>
       </div>

@@ -15,7 +15,7 @@ export const createRestHelper = (config: RestHelperConfig) => {
   const mkRest = <TPayload extends JsonObject, TResult extends JsonObject>(
     cmd: RestCommands,
     method: RestMethods,
-    schema: JSONSchemaType<TPayload>,
+    schema: JSONSchemaType<TPayload>
   ) => {
     const validator = new Ajv().compile(schema)
     return async (payload: TPayload): Promise<TResult> => {
@@ -28,9 +28,7 @@ export const createRestHelper = (config: RestHelperConfig) => {
       }
       const _payload = { ...payload }
 
-      const url = `/api/${cmd}${
-        method === RestMethods.Post ? '' : '/:id'
-      }`.replace(/:([a-zA-Z]+)/g, (_, key) => {
+      const url = `/api/${cmd}${method === RestMethods.Post ? '' : '/:id'}`.replace(/:([a-zA-Z]+)/g, (_, key) => {
         if (!(key in _payload)) {
           throw new Error(`Payload must include '${key}`)
         }

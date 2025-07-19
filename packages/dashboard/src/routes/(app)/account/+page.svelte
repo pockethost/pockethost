@@ -12,14 +12,10 @@
     Your email: <span class="text-success font-bold">{$userStore?.email}</span>
   </div>
   <div class="m-4">
-    Your plan: <span class="text-success font-bold"
-      >{PLAN_NAMES[$userSubscriptionType]}</span
-    >
+    Your plan: <span class="text-success font-bold">{PLAN_NAMES[$userSubscriptionType]}</span>
   </div>
   <div class="m-4">
-    Allowed instances: {$userStore?.subscription_quantity} (<a
-      href="/support"
-      class="link text-primary">request more</a
+    Allowed instances: {$userStore?.subscription_quantity} (<a href="/support" class="link text-primary">request more</a
     >)
   </div>
   <div>

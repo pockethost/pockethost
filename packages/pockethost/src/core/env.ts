@@ -8,11 +8,9 @@ export const env = (name: string, _default = '') => {
   return v
 }
 
-export const envi = (name: string, _default: number) =>
-  parseInt(env(name, _default.toString()))
+export const envi = (name: string, _default: number) => parseInt(env(name, _default.toString()))
 
-export const envb = (name: string, _default: boolean) =>
-  parseBoolean(env(name, _default.toString()))
+export const envb = (name: string, _default: boolean) => parseBoolean(env(name, _default.toString()))
 
 export const envfile = (name: string, _default = '') => {
   const v = env(name, _default)

@@ -21,55 +21,27 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-export const PH_PROJECT_ROOT = (...paths: string[]) =>
-  join(__dirname, '..', '..', '..', ...paths)
+export const PH_PROJECT_ROOT = (...paths: string[]) => join(__dirname, '..', '..', '..', ...paths)
 
 dotenv.config({ path: [`.env`, PH_PROJECT_ROOT('.env')] })
 
-export const _PH_HOME = env
-  .get('PH_HOME')
-  .default(envPaths(`pockethost`).data)
-  .asString()
+export const _PH_HOME = env.get('PH_HOME').default(envPaths(`pockethost`).data).asString()
 
-export const _DATA_ROOT = env
-  .get('DATA_ROOT')
-  .default(join(_PH_HOME, `data`))
-  .asString()
+export const _DATA_ROOT = env.get('DATA_ROOT').default(join(_PH_HOME, `data`)).asString()
 
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
 export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
-export const _APEX_DOMAIN = env
-  .get('APEX_DOMAIN')
-  .default('pockethost.lvh.me')
-  .asString()
-export const _HTTP_PROTOCOL = env
-  .get('HTTP_PROTOCOL')
-  .default('https:')
-  .asString()
-export const _MOTHERSHIP_NAME = env
-  .get('MOTHERSHIP_NAME')
-  .default('pockethost-central')
-  .asString()
+export const _APEX_DOMAIN = env.get('APEX_DOMAIN').default('pockethost.lvh.me').asString()
+export const _HTTP_PROTOCOL = env.get('HTTP_PROTOCOL').default('https:').asString()
+export const _MOTHERSHIP_NAME = env.get('MOTHERSHIP_NAME').default('pockethost-central').asString()
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
-  join(
-    env
-      .get('PH_MOTHERSHIP_APP_ROOT')
-      .default(join(__dirname, 'mothership-app'))
-      .asString(),
-    ...paths,
-  )
+  join(env.get('PH_MOTHERSHIP_APP_ROOT').default(join(__dirname, 'mothership-app')).asString(), ...paths)
 
 export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
-  join(
-    env
-      .get('PH_INSTANCE_APP_ROOT')
-      .default(join(__dirname, 'instance-app'))
-      .asString(),
-    ...paths,
-  )
+  join(env.get('PH_INSTANCE_APP_ROOT').default(join(__dirname, 'instance-app')).asString(), ...paths)
 
 const TLS_PFX = `tls`
 
@@ -174,17 +146,14 @@ export const RegisterEnvSettingsService = () => {
 
 /** Accessors */
 
-export const PH_ALLOWED_POCKETBASE_SEMVER = () =>
-  settings().PH_ALLOWED_POCKETBASE_SEMVER
+export const PH_ALLOWED_POCKETBASE_SEMVER = () => settings().PH_ALLOWED_POCKETBASE_SEMVER
 
-export const PH_HOME = (...paths: string[]) =>
-  join(settings().PH_HOME, ...paths)
+export const PH_HOME = (...paths: string[]) => join(settings().PH_HOME, ...paths)
 
 export const DEBUG = () => _DEBUG
 
 export const HTTP_PROTOCOL = () => settings().HTTP_PROTOCOL
-export const APP_URL = (...path: string[]) =>
-  [settings().APP_URL, path.join(`/`)].filter(Boolean).join('/')
+export const APP_URL = (...path: string[]) => [settings().APP_URL, path.join(`/`)].filter(Boolean).join('/')
 
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
@@ -194,32 +163,23 @@ export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
   [
-    env
-      .get('MOTHERSHIP_URL')
-      .default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`)
-      .asString(),
+    env.get('MOTHERSHIP_URL').default(`${HTTP_PROTOCOL()}://${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`).asString(),
     ...path.map((p) => p.trim().replace(/^\/+|\/+$/g, '')),
   ]
     .filter(Boolean)
     .join('/')
 
 export const MOTHERSHIP_NAME = () => settings().MOTHERSHIP_NAME
-export const MOTHERSHIP_ADMIN_USERNAME = () =>
-  settings().MOTHERSHIP_ADMIN_USERNAME
-export const MOTHERSHIP_ADMIN_PASSWORD = () =>
-  settings().MOTHERSHIP_ADMIN_PASSWORD
-export const MOTHERSHIP_MIGRATIONS_DIR = (...paths: string[]) =>
-  join(settings().MOTHERSHIP_MIGRATIONS_DIR, ...paths)
-export const MOTHERSHIP_HOOKS_DIR = (...paths: string[]) =>
-  join(settings().MOTHERSHIP_HOOKS_DIR, ...paths)
+export const MOTHERSHIP_ADMIN_USERNAME = () => settings().MOTHERSHIP_ADMIN_USERNAME
+export const MOTHERSHIP_ADMIN_PASSWORD = () => settings().MOTHERSHIP_ADMIN_PASSWORD
+export const MOTHERSHIP_MIGRATIONS_DIR = (...paths: string[]) => join(settings().MOTHERSHIP_MIGRATIONS_DIR, ...paths)
+export const MOTHERSHIP_HOOKS_DIR = (...paths: string[]) => join(settings().MOTHERSHIP_HOOKS_DIR, ...paths)
 export const MOTHERSHIP_APP_DIR = () => settings().MOTHERSHIP_APP_DIR
 export const MOTHERSHIP_SEMVER = () => settings().MOTHERSHIP_SEMVER
-export const MOTHERSHIP_PORT = () =>
-  env.get('MOTHERSHIP_PORT').default(8090).asPortNumber()
+export const MOTHERSHIP_PORT = () => env.get('MOTHERSHIP_PORT').default(8090).asPortNumber()
 
 export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
-export const DATA_ROOT = (...paths: string[]) =>
-  join(settings().DATA_ROOT, ...paths)
+export const DATA_ROOT = (...paths: string[]) => join(settings().DATA_ROOT, ...paths)
 export const NODE_ENV = () => settings().NODE_ENV
 export const IS_DEV = () => settings().IS_DEV
 export const TRACE = () => settings().TRACE
@@ -237,19 +197,13 @@ export const INSTANCE_APP_ROOT = (version: string, ...paths: string[]) =>
   join(settings().INSTANCE_APP_ROOT, version, ...paths)
 export const INSTANCE_APP_HOOK_DIR = (version: string, ...paths: string[]) =>
   INSTANCE_APP_ROOT(version, `pb_hooks`, ...paths)
-export const INSTANCE_APP_MIGRATIONS_DIR = (
-  version: string,
-  ...paths: string[]
-) => INSTANCE_APP_ROOT(version, `pb_migrations`, ...paths)
+export const INSTANCE_APP_MIGRATIONS_DIR = (version: string, ...paths: string[]) =>
+  INSTANCE_APP_ROOT(version, `pb_migrations`, ...paths)
 
-export const DISCORD_HEALTH_CHANNEL_URL = () =>
-  env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
-export const DISCORD_ALERT_CHANNEL_URL = () =>
-  env.get('DISCORD_ALERT_CHANNEL_URL').asString()
-export const DISCORD_TEST_CHANNEL_URL = () =>
-  env.get('DISCORD_TEST_CHANNEL_URL').asString()
-export const DISCORD_STREAM_CHANNEL_URL = () =>
-  env.get('DISCORD_STREAM_CHANNEL_URL').asString()
+export const DISCORD_HEALTH_CHANNEL_URL = () => env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
+export const DISCORD_ALERT_CHANNEL_URL = () => env.get('DISCORD_ALERT_CHANNEL_URL').asString()
+export const DISCORD_TEST_CHANNEL_URL = () => env.get('DISCORD_TEST_CHANNEL_URL').asString()
+export const DISCORD_STREAM_CHANNEL_URL = () => env.get('DISCORD_STREAM_CHANNEL_URL').asString()
 
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
@@ -259,53 +213,38 @@ export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
 
 export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
 
-export const PH_GOBOT_ROOT = (...paths: string[]) =>
-  join(settings().PH_GOBOT_ROOT, ...paths)
+export const PH_GOBOT_ROOT = (...paths: string[]) => join(settings().PH_GOBOT_ROOT, ...paths)
 
-export const PH_MOTHERSHIP_MIRROR_PORT = () =>
-  env.get('PH_EDGE_MIRROR_PORT').default(3001).asPortNumber()
+export const PH_MOTHERSHIP_MIRROR_PORT = () => env.get('PH_EDGE_MIRROR_PORT').default(3001).asPortNumber()
 
-export const PH_GOBOT_VERBOSITY = () =>
-  env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
+export const PH_GOBOT_VERBOSITY = () => env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
 
 export const VOLUME_MOUNT_POINT = () => settings().VOLUME_MOUNT_POINT
 export const VOLUME_CACHE_DIR = () => settings().VOLUME_CACHE_DIR
 export const VOLUME_REMOTE_NAME = () => settings().VOLUME_REMOTE_NAME
 export const VOLUME_BUCKET_NAME = () => settings().VOLUME_BUCKET_NAME
-export const VOLUME_VFS_CACHE_MAX_AGE = () =>
-  settings().VOLUME_VFS_CACHE_MAX_AGE
-export const VOLUME_VFS_CACHE_MIN_FREE_SPACE = () =>
-  settings().VOLUME_VFS_CACHE_MIN_FREE_SPACE
-export const VOLUME_VFS_READ_CHUNK_SIZE = () =>
-  settings().VOLUME_VFS_READ_CHUNK_SIZE
-export const VOLUME_VFS_READ_CHUNK_STREAMS = () =>
-  settings().VOLUME_VFS_READ_CHUNK_STREAMS
+export const VOLUME_VFS_CACHE_MAX_AGE = () => settings().VOLUME_VFS_CACHE_MAX_AGE
+export const VOLUME_VFS_CACHE_MIN_FREE_SPACE = () => settings().VOLUME_VFS_CACHE_MIN_FREE_SPACE
+export const VOLUME_VFS_READ_CHUNK_SIZE = () => settings().VOLUME_VFS_READ_CHUNK_SIZE
+export const VOLUME_VFS_READ_CHUNK_STREAMS = () => settings().VOLUME_VFS_READ_CHUNK_STREAMS
 export const VOLUME_VFS_WRITE_BACK = () => settings().VOLUME_VFS_WRITE_BACK
 export const VOLUME_DIR_CACHE_TIME = () => settings().VOLUME_DIR_CACHE_TIME
 export const VOLUME_DEBUG = () => settings().VOLUME_DEBUG
 
 /** Helpers */
 
-export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) =>
-  DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
-export const MOTHERSHIP_DATA_DB = () =>
-  join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
-export const mkContainerHomePath = (...path: string[]) =>
-  join(`/home/pockethost`, ...path.filter((v) => !!v))
+export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) => DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
+export const MOTHERSHIP_DATA_DB = () => join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
+export const mkContainerHomePath = (...path: string[]) => join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
 export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
   (instance.cname_active && instance.cname) || `${instance.id}.${APEX_DOMAIN()}`
 export const mkInstanceHostname = (instance: InstanceFields) =>
   [instance.subdomain, APEX_DOMAIN()].filter(Boolean).join('.')
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
-  [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)]
-    .filter(Boolean)
-    .join('/')
-export const mkInstanceDataPath = (
-  volume: string,
-  instanceId: string,
-  ...path: string[]
-) => DATA_ROOT(volume, instanceId, ...path)
+  [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)].filter(Boolean).join('/')
+export const mkInstanceDataPath = (volume: string, instanceId: string, ...path: string[]) =>
+  DATA_ROOT(volume, instanceId, ...path)
 
 export const logConstants = () => {
   const vars = {

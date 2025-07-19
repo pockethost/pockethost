@@ -31,7 +31,7 @@
 
     // Prompt the user to confirm the version change
     const confirmVersionChange = confirm(
-      `LAST CHANCE - Are you sure you want to delete this instance? Your database, all local files, logs, and subdomain will be lost.`,
+      `LAST CHANCE - Are you sure you want to delete this instance? Your database, all local files, logs, and subdomain will be lost.`
     )
 
     // If they select yes, then update the version in pocketbase
@@ -66,10 +66,7 @@
 <CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
 
 {#if power}
-  <AlertBar
-    message="Instance must be powered off before deleting."
-    type="error"
-  />
+  <AlertBar message="Instance must be powered off before deleting." type="error" />
 {/if}
 
 <div class="mb-8">
@@ -86,15 +83,8 @@
 
 <ErrorMessage message={errorMessage} />
 
-<form
-  class="flex change-version-form-container-query gap-4"
-  on:submit={handleSave}
->
-  <button
-    type="submit"
-    class="btn btn-error"
-    disabled={power || isButtonDisabled}>Delete Instance</button
-  >
+<form class="flex change-version-form-container-query gap-4" on:submit={handleSave}>
+  <button type="submit" class="btn btn-error" disabled={power || isButtonDisabled}>Delete Instance</button>
 </form>
 
 <style>

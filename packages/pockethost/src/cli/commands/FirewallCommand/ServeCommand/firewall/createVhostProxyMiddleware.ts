@@ -3,11 +3,7 @@ import { Handler, Request } from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import vhost from 'vhost'
 
-export function createVhostProxyMiddleware(
-  host: string,
-  target: string,
-  ws = false,
-): Handler {
+export function createVhostProxyMiddleware(host: string, target: string, ws = false): Handler {
   const { dbg } = logger()
   dbg(`Creating ${host}->${target}`)
   const handler = createProxyMiddleware({ target, ws, changeOrigin: ws })

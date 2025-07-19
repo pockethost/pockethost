@@ -1,13 +1,6 @@
 import { text } from 'node:stream/consumers'
 import { JsonifiableObject } from 'type-fest/source/jsonifiable'
-import {
-  InstanceFields,
-  LoggerService,
-  mkSingleton,
-  PocketBase,
-  SingletonBaseConfig,
-  stringify,
-} from '..'
+import { InstanceFields, LoggerService, mkSingleton, PocketBase, SingletonBaseConfig, stringify } from '..'
 import { InstanceLogReader } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
 
@@ -60,20 +53,14 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     dbg(`Got a log request for instance ID ${instanceId}`)
     const instance = await client
       .collection('instances')
-      .getFirstListItem<InstanceFields>(
-        `id = '${instanceId}' || subdomain='${instanceId}'`,
-      )
+      .getFirstListItem<InstanceFields>(`id = '${instanceId}' || subdomain='${instanceId}'`)
     if (!instance) {
       throw new Error(`instanceId ${instanceId} not found for user ${user.id}`)
     }
     dbg(`Instance is `, instance)
 
     /** Get a database connection */
-    const instanceLogger = InstanceLogReader(
-      instance.id,
-      instance.volume,
-      `exec`,
-    )
+    const instanceLogger = InstanceLogReader(instance.id, instance.volume, `exec`)
 
     /** Start the stream */
     res.writeHead(200, {

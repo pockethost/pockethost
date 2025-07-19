@@ -7,8 +7,7 @@
     <div class="text-center">
       <h2 class="text-xl font-bold mb-2">Connection Lost</h2>
       <p>
-        The PocketHost mothership is temporarily unreachable. Your instances are
-        safe and still reachable. Go to the <a
+        The PocketHost mothership is temporarily unreachable. Your instances are safe and still reachable. Go to the <a
           href="https://status.pockethost.io"
           class="link font-semibold underline">status page</a
         > for more information.

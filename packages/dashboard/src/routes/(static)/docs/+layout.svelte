@@ -39,10 +39,7 @@
     <ul class="menu">
       <li class="menu-title">Programming Guide</li>
       <DocLink path="programming" title="Frontends and JS Hooks" />
-      <DocLink
-        path="server-side-pocketbase-antipattern"
-        title="Server-Side PocketBase is an Anti-Pattern"
-      />
+      <DocLink path="server-side-pocketbase-antipattern" title="Server-Side PocketBase is an Anti-Pattern" />
     </ul>
     <ul class="menu">
       <li class="menu-title">Appendix</li>

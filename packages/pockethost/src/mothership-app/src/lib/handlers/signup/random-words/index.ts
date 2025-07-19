@@ -1,11 +1,11 @@
 import { wordList } from './wordList'
 
 const shortestWordSize = wordList.reduce((shortestWord, currentWord) =>
-  currentWord.length < shortestWord.length ? currentWord : shortestWord,
+  currentWord.length < shortestWord.length ? currentWord : shortestWord
 ).length
 
 const longestWordSize = wordList.reduce((longestWord, currentWord) =>
-  currentWord.length > longestWord.length ? currentWord : longestWord,
+  currentWord.length > longestWord.length ? currentWord : longestWord
 ).length
 
 export function generate(options: any) {
@@ -14,13 +14,9 @@ export function generate(options: any) {
   const { minLength, maxLength, ...rest } = options || {}
 
   function word() {
-    let min =
-      typeof minLength !== 'number'
-        ? shortestWordSize
-        : limitWordSize(minLength)
+    let min = typeof minLength !== 'number' ? shortestWordSize : limitWordSize(minLength)
 
-    const max =
-      typeof maxLength !== 'number' ? longestWordSize : limitWordSize(maxLength)
+    const max = typeof maxLength !== 'number' ? longestWordSize : limitWordSize(maxLength)
 
     if (min > max) min = max
 
@@ -119,7 +115,5 @@ export function count(options: any) {
     maxLength = longestWordSize
   }
 
-  return wordList.filter(
-    (word) => word.length >= minLength && word.length <= maxLength,
-  ).length
+  return wordList.filter((word) => word.length >= minLength && word.length <= maxLength).length
 }

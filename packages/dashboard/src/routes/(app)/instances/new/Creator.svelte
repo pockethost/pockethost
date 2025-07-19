@@ -3,10 +3,7 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase-client'
   import { handleCreateNewInstance } from '$util/database'
-  import {
-    faArrowsRotate,
-    faCircleExclamation,
-  } from '@fortawesome/free-solid-svg-icons'
+  import { faArrowsRotate, faCircleExclamation } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
@@ -38,10 +35,7 @@
           fetching: true,
         }))
 
-        await client().client.send(
-          `/api/signup?name=${encodeURIComponent(name)}`,
-          {},
-        )
+        await client().client.send(`/api/signup?name=${encodeURIComponent(name)}`, {})
 
         instanceInfo.update((info) => ({
           ...info,
@@ -68,8 +62,7 @@
 
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled =
-    $instanceInfo.name.length === 0 || !$instanceInfo.available
+  $: isFormButtonDisabled = $instanceInfo.name.length === 0 || !$instanceInfo.available
 
   // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
@@ -95,18 +88,13 @@
     <CardHeader>Choose a name for your PocketBase instance.</CardHeader>
 
     <div class="flex rename-instance-form-container-query gap-4">
-      <input
-        type="text"
-        bind:value={$instanceNameField}
-        class="input input-bordered w-full"
-      />
+      <input type="text" bind:value={$instanceNameField} class="input input-bordered w-full" />
 
       <button
         type="button"
         class="btn btn-outline btn-secondary"
         aria-label="Regenerate Instance Name"
-        on:click={handleInstanceNameRegeneration}
-        ><Fa icon={faArrowsRotate} /></button
+        on:click={handleInstanceNameRegeneration}><Fa icon={faArrowsRotate} /></button
       >
     </div>
 
@@ -114,13 +102,9 @@
       {#if $instanceInfo.fetching}
         Verifying...
       {:else if $instanceInfo.available}
-        <span class="text-success">
-          https://{$instanceInfo.name}.pockethost.io ✔︎</span
-        >
+        <span class="text-success"> https://{$instanceInfo.name}.pockethost.io ✔︎</span>
       {:else}
-        <span class="text-error">
-          https://{$instanceInfo.name}.pockethost.io ❌</span
-        >
+        <span class="text-error"> https://{$instanceInfo.name}.pockethost.io ❌</span>
       {/if}
     </div>
 
@@ -134,11 +118,7 @@
     <div class="flex items-center justify-center gap-4">
       <a href="/" class="btn">Cancel</a>
 
-      <button
-        type="submit"
-        class="btn btn-primary"
-        disabled={isFormButtonDisabled}
-      >
+      <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
         {#if isSubmitting}
           <span class="loading loading-spinner loading-md"></span>
         {:else}

@@ -4,10 +4,7 @@
   import PricingCard from '$components/PricingCard.svelte'
 
   const TOTAL_QTY = 150
-  export let priceMonthly: [number, string?, number?] = [
-    359,
-    'once, use forever',
-  ]
+  export let priceMonthly: [number, string?, number?] = [359, 'once, use forever']
   export let startDate: Date | null = null
   export let endDate: Date | null = null
 

@@ -1,11 +1,14 @@
 {
-  "semi": false,
-  "useTabs": false,
   "singleQuote": true,
-  "trailingComma": "all",
+  "trailingComma": "es5",
+  "semi": false,
+  "printWidth": 120,
+  "tabWidth": 2,
+  "useTabs": false,
   "plugins": [
-    "./node_modules/prettier-plugin-organize-imports/index.js",
-    "./node_modules/prettier-plugin-svelte/plugin.js",
-    "./node_modules/prettier-plugin-jsdoc/dist/index.js"
-  ]
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-svelte",
+    "prettier-plugin-jsdoc"
+  ],
+  "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }]
 }

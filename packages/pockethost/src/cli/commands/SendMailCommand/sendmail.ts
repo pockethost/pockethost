@@ -33,10 +33,7 @@ export const SendMailCommand = () =>
       logger().context({ cli: 'sendmail' })
       const { dbg, info } = logger()
 
-      function interpolateString(
-        template: string,
-        dict: { [key: string]: string },
-      ): string {
+      function interpolateString(template: string, dict: { [key: string]: string }): string {
         return template.replace(/\{\$(\w+)\}/g, (match, key) => {
           dbg({ match, key })
           const lowerKey = key.toLowerCase()
@@ -51,14 +48,9 @@ export const SendMailCommand = () =>
       info(MOTHERSHIP_URL())
 
       const client = new PocketBase(MOTHERSHIP_URL())
-      await client.admins.authWithPassword(
-        MOTHERSHIP_ADMIN_USERNAME(),
-        MOTHERSHIP_ADMIN_PASSWORD(),
-      )
+      await client.admins.authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
-      const message = await client
-        .collection(`campaign_messages`)
-        .getOne(messageId, { expand: 'campaign' })
+      const message = await client.collection(`campaign_messages`).getOne(messageId, { expand: 'campaign' })
       const { campaign } = message.expand || {}
       dbg({ messageId, limit, message, campaign })
 
@@ -69,7 +61,7 @@ export const SendMailCommand = () =>
         map(campaign.vars, async (sql, k) => {
           const result = db.prepare(sql).get() as { value: string }
           vars[k.toLocaleLowerCase()] = result.value
-        }),
+        })
       )
 
       dbg({ vars })
@@ -114,7 +106,7 @@ export const SendMailCommand = () =>
               })
             }
           })
-        }),
+        })
       )
 
       db.close()

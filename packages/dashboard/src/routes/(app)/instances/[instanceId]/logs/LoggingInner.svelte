@@ -1,21 +1,13 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
   import { mkCleanup } from '$util/componentCleanup'
-  import {
-    StreamNames,
-    type Unsubscribe,
-    type InstanceLogFields,
-  } from 'pockethost/common'
+  import { StreamNames, type Unsubscribe, type InstanceLogFields } from 'pockethost/common'
   import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'
   import CardHeader from '$src/components/cards/CardHeader.svelte'
   import Fa from 'svelte-fa'
-  import {
-    faArrowDown,
-    faClose,
-    faUpRightAndDownLeftFromCenter,
-  } from '@fortawesome/free-solid-svg-icons'
+  import { faArrowDown, faClose, faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons'
 
   $: ({ id } = $instance)
 
@@ -40,9 +32,7 @@
 
   // This will open the full screen modal
   const handleFullScreenModal = () => {
-    const modal = document.getElementById(
-      'loggingFullscreenModal',
-    ) as HTMLDialogElement
+    const modal = document.getElementById('loggingFullscreenModal') as HTMLDialogElement
     modal?.showModal()
   }
 
@@ -103,34 +93,23 @@
 <CardHeader>Logs</CardHeader>
 
 <div class="mb-4">
-  Instance logs appear here in realtime, including <code>console.log</code> from
-  JavaScript hooks.
+  Instance logs appear here in realtime, including <code>console.log</code> from JavaScript hooks.
 </div>
 
 <dialog id="loggingFullscreenModal" class="modal backdrop-blur">
   <div class="modal-box max-w-[90vw] h-[90vh]">
-    <button
-      class="btn btn-sm absolute top-[6px] right-[6px]"
-      on:click={() => (autoScroll = !autoScroll)}
+    <button class="btn btn-sm absolute top-[6px] right-[6px]" on:click={() => (autoScroll = !autoScroll)}
       >AutoScroll
       <Fa icon={autoScroll ? faArrowDown : faClose} />
     </button>
     <h3 class="font-bold text-lg">Instance Logging</h3>
 
-    <div
-      class="py-4 h-[80vh] overflow-y-scroll flex flex-col"
-      bind:this={logElementPopup}
-    >
+    <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col" bind:this={logElementPopup}>
       {#each $logs as log}
-        <div
-          class="px-4 text-[16px] font-mono flex align-center"
-          data-prefix=">"
-        >
+        <div class="px-4 text-[16px] font-mono flex align-center" data-prefix=">">
           <div>
             <span class="mr-1 text-accent">{log.time}</span>
-            <span class="mr-1 text-base-content {logColor(log.stream)}"
-              >{@html logText(log)}</span
-            >
+            <span class="mr-1 text-base-content {logColor(log.stream)}">{@html logText(log)}</span>
           </div>
         </div>
       {/each}
@@ -158,9 +137,7 @@
         <div>
           <span class="mr-1 text-accent">{log.time}</span>
 
-          <span class="mr-1 text-base-content {logColor(log.stream)}"
-            >{@html logText(log)}</span
-          >
+          <span class="mr-1 text-base-content {logColor(log.stream)}">{@html logText(log)}</span>
         </div>
       </div>
     {/each}

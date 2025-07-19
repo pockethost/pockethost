@@ -30,15 +30,11 @@ export const FolderNamesMap: {
 export const INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES = keys(FolderNamesMap)
 export const INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES = values(FolderNamesMap)
 
-export function isInstanceRootVirtualFolder(
-  name: string,
-): name is VirtualFolderNames {
+export function isInstanceRootVirtualFolder(name: string): name is VirtualFolderNames {
   return INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES.includes(name as VirtualFolderNames)
 }
 
-export function virtualFolderGuard(
-  name: string,
-): asserts name is VirtualFolderNames {
+export function virtualFolderGuard(name: string): asserts name is VirtualFolderNames {
   if (!isInstanceRootVirtualFolder(name)) {
     // throw new Error(`Accessing ${name} is not allowed.`)
   }

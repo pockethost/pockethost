@@ -4,11 +4,9 @@ import { SetReturnType } from 'type-fest'
 import { LoggerService } from '../common/Logger'
 
 const limiters: { [lane: string]: Bottleneck } = {}
-export const serialAsyncExecutionGuard = <
-  T extends (...args: any[]) => Promise<any>,
->(
+export const serialAsyncExecutionGuard = <T extends (...args: any[]) => Promise<any>>(
   cb: T,
-  lane?: SetReturnType<T, string>,
+  lane?: SetReturnType<T, string>
 ): T => {
   const uuid = seqid()
   const _lane = lane || (() => uuid)
@@ -26,11 +24,9 @@ export const serialAsyncExecutionGuard = <
 }
 
 const singletons: { [_: string]: Promise<any> } = {}
-export const singletonAsyncExecutionGuard = <
-  T extends (...args: any[]) => Promise<any>,
->(
+export const singletonAsyncExecutionGuard = <T extends (...args: any[]) => Promise<any>>(
   cb: T,
-  key: SetReturnType<T, string>,
+  key: SetReturnType<T, string>
 ): T => {
   const uuid = seqid()
   const keyFactory = key || (() => uuid)

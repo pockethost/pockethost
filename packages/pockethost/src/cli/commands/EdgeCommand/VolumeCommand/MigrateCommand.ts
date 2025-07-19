@@ -16,21 +16,14 @@ export const MigrateCommand = () => {
   return new Command(`migrate`)
     .description(`Migrate instance(s)`)
     .option(`-i, --instance <instanceId>`, `The instance to migrate`)
-    .option(
-      `-m, --mount-point <mountPoint>`,
-      `The mount point`,
-      `cloud-storage`,
-    )
+    .option(`-m, --mount-point <mountPoint>`, `The mount point`, `cloud-storage`)
     .action(async (options) => {
       console.log({ options })
       const { instance: instanceId, mountPoint } = options
 
       const pb = new PocketBase(MOTHERSHIP_URL())
 
-      await pb.admins.authWithPassword(
-        MOTHERSHIP_ADMIN_USERNAME(),
-        MOTHERSHIP_ADMIN_PASSWORD(),
-      )
+      await pb.admins.authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
       const filter = [`status='idle'`, `volume=''`]
       if (instanceId) {
@@ -49,9 +42,7 @@ export const MigrateCommand = () => {
 }
 
 async function migrate(mountPoint: string, pb: PocketBase, filter: string) {
-  const instance = await pb
-    .collection<InstanceFields>('instances')
-    .getFirstListItem(filter)
+  const instance = await pb.collection<InstanceFields>('instances').getFirstListItem(filter)
 
   const oldSuspension = instance.suspension
   try {
@@ -68,7 +59,7 @@ async function migrate(mountPoint: string, pb: PocketBase, filter: string) {
       moveSync(instanceDataSrc, instanceDataDst)
     } else {
       console.warn(
-        `Skipping ${instanceDataSrc} to ${instanceDataDst} because source does not exist or destination already exists`,
+        `Skipping ${instanceDataSrc} to ${instanceDataDst} because source does not exist or destination already exists`
       )
     }
 
@@ -81,9 +72,7 @@ async function migrate(mountPoint: string, pb: PocketBase, filter: string) {
   } catch (e) {
     console.error(`${e}`, JSON.stringify(e, null, 2))
   } finally {
-    console.log(
-      `Restoring previous suspension value of instance ${instance.id}`,
-    )
+    console.log(`Restoring previous suspension value of instance ${instance.id}`)
     await pb.collection<InstanceFields>('instances').update(instance.id, {
       suspension: oldSuspension === 'migrating' ? '' : oldSuspension,
     })

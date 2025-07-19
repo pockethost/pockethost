@@ -7,17 +7,14 @@
 
   <h2 class="font-bold text-2xl mb-4 mt-10">Community Support</h2>
   <p>
-    Community support is handled through <a
-      class="link"
-      href="https://github.com/pockethost/pockethost/discussions"
+    Community support is handled through <a class="link" href="https://github.com/pockethost/pockethost/discussions"
       >Github Discussions</a
     >.
   </p>
 
   <h2 class="font-bold text-2xl mb-4 mt-10">Discord</h2>
   <p>
-    We also have a <a class="link" href={DISCORD_URL}>Discord server</a> with over
-    1,500 community members ready to help.
+    We also have a <a class="link" href={DISCORD_URL}>Discord server</a> with over 1,500 community members ready to help.
   </p>
 
   <h2 class="font-bold text-2xl mb-4 mt-10">Email Support</h2>

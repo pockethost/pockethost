@@ -33,9 +33,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   log(`***vars`, JSON.stringify({ subdomain, region }))
 
   if (!subdomain) {
-    throw new BadRequestError(
-      `Subdomain is required when creating an instance.`,
-    )
+    throw new BadRequestError(`Subdomain is required when creating an instance.`)
   }
 
   const collection = dao.findCollectionByNameOrId('instances')

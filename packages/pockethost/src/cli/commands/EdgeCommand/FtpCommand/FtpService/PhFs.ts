@@ -1,23 +1,8 @@
-import {
-  InstanceFields,
-  InstanceLogWriter,
-  InstanceLogWriterApi,
-  Logger,
-  PocketBase,
-  assert,
-  seqid,
-} from '@'
+import { InstanceFields, InstanceLogWriter, InstanceLogWriterApi, Logger, PocketBase, assert, seqid } from '@'
 import { compact, forEach, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { spawn } from 'child_process'
-import {
-  Mode,
-  constants,
-  createReadStream,
-  createWriteStream,
-  readFileSync,
-  writeFileSync,
-} from 'fs'
+import { Mode, constants, createReadStream, createWriteStream, readFileSync, writeFileSync } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { DATA_ROOT } from '../../../../..'
@@ -41,19 +26,12 @@ export type PathError = {
 const UNIX_SEP_REGEX = /\//g
 const WIN_SEP_REGEX = /\\/g
 
-const checkBun = (
-  instance: InstanceFields,
-  virtualPath: string,
-  cwd: string,
-) => {
-  const [subdomain, maybeImportant, ...rest] = virtualPath
-    .split('/')
-    .filter((p) => !!p)
+const checkBun = (instance: InstanceFields, virtualPath: string, cwd: string) => {
+  const [subdomain, maybeImportant, ...rest] = virtualPath.split('/').filter((p) => !!p)
 
   const isImportant =
     maybeImportant === 'patches' ||
-    (rest.length === 0 &&
-      [`bun.lock`, `bun.lockb`, `package.json`].includes(maybeImportant || ''))
+    (rest.length === 0 && [`bun.lock`, `bun.lockb`, `package.json`].includes(maybeImportant || ''))
 
   if (isImportant) {
     const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
@@ -96,14 +74,8 @@ const runBun = (() => {
         new Promise<number | null>((resolve) => {
           const proc = spawn(
             '/root/.bun/bin/bun',
-            [
-              'install',
-              `--no-save`,
-              `--production`,
-              `--ignore-scripts`,
-              `--frozen-lockfile`,
-            ],
-            { cwd },
+            ['install', `--no-save`, `--production`, `--ignore-scripts`, `--frozen-lockfile`],
+            { cwd }
           )
           const tid = setTimeout(() => {
             logger.error(`bun timeout after 10s`)
@@ -120,7 +92,7 @@ const runBun = (() => {
             clearTimeout(tid)
             resolve(code)
           })
-        }),
+        })
     )
 })()
 
@@ -197,11 +169,7 @@ export class PhFs implements FileSystem {
         throw new Error(`${subdomain} not found.`)
       }
       const instanceRootDir = restOfVirtualPath[0]
-      if (
-        instanceRootDir &&
-        POWERED_OFF_ONLY.includes(instanceRootDir) &&
-        instance.power
-      ) {
+      if (instanceRootDir && POWERED_OFF_ONLY.includes(instanceRootDir) && instance.power) {
         throw new Error(`Instance must be powered off first`)
       }
       if (instance.volume) {
@@ -219,7 +187,7 @@ export class PhFs implements FileSystem {
     const fsPath = resolve(
       join(...fsPathParts, ...restOfVirtualPath)
         .replace(UNIX_SEP_REGEX, sep)
-        .replace(WIN_SEP_REGEX, sep),
+        .replace(WIN_SEP_REGEX, sep)
     )
 
     // Create FTP client path using unix separator
@@ -261,9 +229,7 @@ export class PhFs implements FileSystem {
   }
 
   async list(path = '.') {
-    const { dbg, error } = this.log
-      .create(`list`)
-      .breadcrumb({ cwd: this.cwd, path })
+    const { dbg, error } = this.log.create(`list`).breadcrumb({ cwd: this.cwd, path })
 
     const { fsPath, instance } = await this._resolvePath(path)
 
@@ -303,7 +269,7 @@ export class PhFs implements FileSystem {
                 })
               })
               .catch(() => null)
-          }),
+          })
         )
       })
       .then(compact)
@@ -312,9 +278,7 @@ export class PhFs implements FileSystem {
   async get(fileName: string): Promise<FileStat> {
     const { fsPath, instance, clientPath } = await this._resolvePath(fileName)
 
-    const { dbg, error } = this.log
-      .create(`get`)
-      .breadcrumb({ cwd: this.cwd, fileName, fsPath })
+    const { dbg, error } = this.log.create(`get`).breadcrumb({ cwd: this.cwd, fileName, fsPath })
     dbg(`get`)
 
     /*
@@ -354,13 +318,8 @@ export class PhFs implements FileSystem {
     })
   }
 
-  async write(
-    fileName: string,
-    options?: { append?: boolean | undefined; start?: any } | undefined,
-  ) {
-    const { dbg, error } = this.log
-      .create(`write`)
-      .breadcrumb({ cwd: this.cwd, fileName })
+  async write(fileName: string, options?: { append?: boolean | undefined; start?: any } | undefined) {
+    const { dbg, error } = this.log.create(`write`).breadcrumb({ cwd: this.cwd, fileName })
     dbg(`write`)
 
     const { fsPath, clientPath, instance } = await this._resolvePath(fileName)
@@ -391,13 +350,8 @@ export class PhFs implements FileSystem {
     }
   }
 
-  async read(
-    fileName: string,
-    options: { start?: any } | undefined,
-  ): Promise<any> {
-    const { dbg, error } = this.log
-      .create(`read`)
-      .breadcrumb({ cwd: this.cwd, fileName })
+  async read(fileName: string, options: { start?: any } | undefined): Promise<any> {
+    const { dbg, error } = this.log.create(`read`).breadcrumb({ cwd: this.cwd, fileName })
     dbg(`read`)
 
     const { fsPath, clientPath } = await this._resolvePath(fileName)
@@ -419,9 +373,7 @@ export class PhFs implements FileSystem {
   }
 
   async delete(path: string) {
-    const { dbg, error } = this.log
-      .create(`delete`)
-      .breadcrumb({ cwd: this.cwd, path })
+    const { dbg, error } = this.log.create(`delete`).breadcrumb({ cwd: this.cwd, path })
     dbg(`delete`)
 
     const { fsPath, instance } = await this._resolvePath(path)
@@ -436,9 +388,7 @@ export class PhFs implements FileSystem {
   }
 
   async mkdir(path: string) {
-    const { dbg, error } = this.log
-      .create(`mkdir`)
-      .breadcrumb({ cwd: this.cwd, path })
+    const { dbg, error } = this.log.create(`mkdir`).breadcrumb({ cwd: this.cwd, path })
     dbg(`mkdir`)
 
     const { fsPath } = await this._resolvePath(path)
@@ -447,9 +397,7 @@ export class PhFs implements FileSystem {
   }
 
   async rename(from: string, to: string) {
-    const { dbg, error } = this.log
-      .create(`rename`)
-      .breadcrumb({ cwd: this.cwd, from, to })
+    const { dbg, error } = this.log.create(`rename`).breadcrumb({ cwd: this.cwd, from, to })
     dbg(`rename`)
 
     const { fsPath: fromPath, instance } = await this._resolvePath(from)
@@ -462,9 +410,7 @@ export class PhFs implements FileSystem {
   }
 
   async chmod(path: string, mode: Mode) {
-    const { dbg, error } = this.log
-      .create(`chmod`)
-      .breadcrumb({ cwd: this.cwd, path, mode })
+    const { dbg, error } = this.log.create(`chmod`).breadcrumb({ cwd: this.cwd, path, mode })
     dbg(`chmod`)
 
     const { fsPath } = await this._resolvePath(path)

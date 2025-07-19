@@ -43,13 +43,10 @@
 
       <div class="mt-10">
         {#if active}
-          <div class="text-success text-center text-2xl">
-            This is your current plan.
-          </div>
+          <div class="text-success text-center text-2xl">This is your current plan.</div>
           <p class="mt-10 text-neutral-content">
-            To change to a different plan, contact <a
-              class="link"
-              href={`"${DISCORD_URL}"`}><code>.noaxis</code> on Discord</a
+            To change to a different plan, contact <a class="link" href={`"${DISCORD_URL}"`}
+              ><code>.noaxis</code> on Discord</a
             >
           </p>
         {:else if prices.length > 0}
@@ -58,16 +55,12 @@
               {#if (startLimit > 0 && limit === 0) || !upgradable}
                 <button class="btn btn-primary" disabled>{price.title}</button>
               {:else}
-                <a class="btn btn-primary" href={price.link} target="_blank"
-                  >{price.title}</a
-                >
+                <a class="btn btn-primary" href={price.link} target="_blank">{price.title}</a>
               {/if}
             {/each}
           </div>
           {#if !upgradable}
-            To change to this plan, <a href="/support" class="link"
-              >contact support</a
-            >
+            To change to this plan, <a href="/support" class="link">contact support</a>
           {/if}
         {/if}
       </div>

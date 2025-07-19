@@ -28,10 +28,7 @@ export async function daemon() {
   info(`Found ${containers.length} containers`)
   await Promise.all(
     containers.map(async (container) => {
-      if (
-        container.State === 'running' &&
-        container.Image === DOCKER_INSTANCE_IMAGE_NAME
-      ) {
+      if (container.State === 'running' && container.Image === DOCKER_INSTANCE_IMAGE_NAME) {
         try {
           info(`Stopping ${container.Id}`)
           await docker.getContainer(container.Id).stop()
@@ -40,7 +37,7 @@ export async function daemon() {
           warn(`Failed to stop ${container.Id}, but that's probably OK`, e)
         }
       }
-    }),
+    })
   )
 
   await PocketbaseService({})
