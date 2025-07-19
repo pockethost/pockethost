@@ -7,7 +7,6 @@ export const BeforeUpdate_version = (e: core.ModelEvent) => {
   const log = mkLog(`BeforeUpdate_version`)
 
   const version = e.model.get('version')
-  log(`Validating version ${version}`)
   if (!versions.includes(version)) {
     const msg = `Invalid version ${version}. Version must be one of: ${versions.join(', ')}`
     log(`[ERROR] ${msg}`)

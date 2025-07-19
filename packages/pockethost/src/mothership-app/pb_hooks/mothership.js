@@ -488,8 +488,8 @@ const BeforeUpdate_cname = (e) => {
 			log(`${msg}`);
 			throw new BadRequestError(msg);
 		}
+		log(`CNAME validation passed for: "${newCname}"`);
 	}
-	log(`CNAME validation passed for: "${newCname}"`);
 };
 
 //#endregion
@@ -498,7 +498,6 @@ const BeforeUpdate_version = (e) => {
 	const dao = e.dao || $app.dao();
 	const log = mkLog(`BeforeUpdate_version`);
 	const version = e.model.get("version");
-	log(`Validating version ${version}`);
 	if (!versions.includes(version)) {
 		const msg = `Invalid version ${version}. Version must be one of: ${versions.join(", ")}`;
 		log(`[ERROR] ${msg}`);
