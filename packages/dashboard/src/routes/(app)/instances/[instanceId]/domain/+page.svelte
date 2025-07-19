@@ -7,10 +7,68 @@
   import { isUserPaid } from '$util/stores'
   import { dns } from 'svelte-highlight/languages'
   import { instance } from '../store'
+  import { onDestroy } from 'svelte'
+  import { browser } from '$app/environment'
 
   const { updateInstance } = client()
 
-  $: ({ cname, id, cname_active } = $instance)
+  $: ({ cname, id } = $instance)
+
+  // Health polling state
+  let healthCheckInterval: ReturnType<typeof setTimeout>
+  let domainHealthy: boolean | null = null // null = unchecked, true = healthy, false = unhealthy
+
+  // Clean up health check interval on component destroy
+  onDestroy(() => {
+    clearInterval(healthCheckInterval)
+  })
+
+  // Function to check domain health
+  const checkDomainHealth = async (domain: string): Promise<boolean> => {
+    try {
+      const url = `https://${domain}/api/firewall/health`
+      console.log(`Checking health of ${url}`)
+      const response = await fetch(url, {
+        method: 'GET',
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      })
+
+      if (response.status === 200) {
+        const data = await response.json()
+        return data.code === 200
+      }
+
+      return false
+    } catch (error) {
+      console.log(`Health check error for ${domain}:`, error)
+      return false
+    }
+  }
+
+  $: cnameToCheck = regex.test(cname.trim()) && !errorMessage ? cname.trim() : null
+  $: {
+    if (cnameToCheck) {
+      pollHealth()
+    }
+  }
+  // Simple polling function that runs every 5s
+  const pollHealth = async () => {
+    clearTimeout(healthCheckInterval)
+
+    // If no valid cname, reset state and return
+    if (cnameToCheck) {
+      domainHealthy = await checkDomainHealth(cnameToCheck)
+    } else {
+      domainHealthy = null
+    }
+
+    healthCheckInterval = setTimeout(pollHealth, 5000)
+  }
+
+  // Start the simple polling interval on component mount
+  if (browser) {
+    pollHealth()
+  }
 
   // Create a copy of the subdomain
   let formCname = cname
@@ -23,7 +81,6 @@
 
   // Controls visibility of an error message
   let errorMessage = ''
-  let successMessage = ''
 
   const regex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}$/
 
@@ -55,13 +112,13 @@
       fields: {
         cname: formCname,
       },
-    })
-      .then(() => {
-        successMessage = 'Saved'
-      })
-      .catch((error) => {
+    }).catch((error) => {
+      if (error.response?.data?.cname?.code === 'validation_not_unique') {
+        errorMessage = `This domain is already in use. Please use a different domain.`
+      } else {
         errorMessage = error.data.message
-      })
+      }
+    })
 
     // Set the button back to normal
     isButtonDisabled = false
@@ -79,29 +136,43 @@
     </div>
   {/if}
 
-  <AlertBar message={successMessage} type="success" flash />
   <AlertBar message={errorMessage} type="error" />
 
-  {#if cname}
-    {#if !cname_active}
+  {#if cnameToCheck}
+    {#if domainHealthy}
+      <AlertBar message={`Your custom domain name is active.`} type="success" />
+    {:else if domainHealthy === false}
       <AlertBar
-        message={`Your custom domain name is pending. Go to <a href="/support" class="link text-warning-content">Support</a> to complete the setup.`}
+        message={`We are having trouble checking the health of your custom domain name. Check your CNAME settings and try again.`}
         type="warning"
       />
-    {:else}
-      <AlertBar message={`Your custom domain name is active.`} type="success" flash />
+    {:else if domainHealthy === null}
+      <AlertBar message={`Checking health of your custom domain name...`} type="info" />
     {/if}
   {/if}
 
   <form class="flex rename-instance-form-container-query gap-4" on:submit={onRename}>
-    <input
-      title="Only valid domain name patterns are allowed"
-      type="text"
-      bind:value={formCname}
-      class="input input-bordered w-full"
-    />
+    <div class="relative flex-1">
+      <input
+        title="Only valid domain name patterns are allowed"
+        type="text"
+        bind:value={formCname}
+        class="input input-bordered w-full pr-10"
+      />
+      {#if cnameToCheck}
+        <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+          {#if domainHealthy === true}
+            <span class="text-green-500 text-lg">✓</span>
+          {:else if domainHealthy === false}
+            <span class="text-red-500 text-lg">✗</span>
+          {:else if domainHealthy === null}
+            <span class="loading loading-spinner loading-sm"></span>
+          {/if}
+        </div>
+      {/if}
+    </div>
 
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}>Update Custom Domain</button>
+    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}> Update Custom Domain </button>
   </form>
 </div>
 

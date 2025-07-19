@@ -1,36 +1,75 @@
 # Custom Domains
 
-PocketHost instances can use a custom domain (CNAME) instead of the default `*.pockethost.io` (Pro feature only).
+PocketHost instances can use custom domains instead of the default `*.pockethost.io` subdomain. There are no limits on the number of domains you can add to an instance.
 
-## Overview
+## How It Works
 
-![](2024-10-06-15-07-14.png)
+Setting up a custom domain is straightforward:
 
-We recommend using Cloudflare, as they support [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/), which allows you to use a root domain like `mydomain.com` instead of a subdomain like `foo.mydomain.com`.
+1. **Set up your CNAME record** with your DNS provider to point to your PocketHost instance
+2. **Add the domain** in your instance's Settings tab in the PocketHost Dashboard
+3. **Verification happens automatically** using Cloudflare's HTTP verification system
 
-After configuring your CNAME, navigate to the Settings tab of your instance in the PocketHost Dashboard to add your custom domain (Pro feature only).
+Verification typically takes seconds to minutes, assuming your CNAME record has propagated. PocketHost will automatically check your domain status, or you can manually refresh by clicking the refresh button next to any domain.
 
-To complete the setup and verify the domain, you will need to contact [PocketHost Support](/support). This is also required any time you change the domain.
+## Setup Process
 
-## Transferring Name Server Control Without Moving the Domain
+### Step 1: Configure Your CNAME
 
-A common misconception is that you need to transfer your domain from its current registrar to manage DNS settings with Cloudflare. However, this is not the case. You can retain your domain at your current registrar and simply transfer name server control to Cloudflare. Here's how:
+Create a CNAME record with your DNS provider:
 
-1. Sign up for a Cloudflare account and add your domain.
-2. Cloudflare will provide you with two name servers (NS records).
-3. Update your domain's name server records at your current registrar to point to the Cloudflare name servers.
-4. Once updated, you can manage your DNS settings, including adding a CNAME for your PocketHost instance, via Cloudflare while keeping your domain at your original registrar.
+- **Name/Host**: Your desired subdomain (e.g., `api` for `api.yourdomain.com`) or `@` for root domain
+- **Value/Target**: Your PocketHost instance URL (e.g., `your-instance-name.pockethost.io`)
 
-This process allows you to take advantage of Cloudflare's DNS management and features, such as CNAME flattening, without transferring your domain away from your registrar.
+### Step 2: Add Domain in Dashboard
 
-## CNAME Flattening
+1. Navigate to your instance in the PocketHost Dashboard
+2. Go to the **Settings** tab
+3. Add your custom domain in the custom domains section
+4. PocketHost will automatically begin verification
 
-CNAME flattening is a feature provided by Cloudflare that allows you to point a root domain (e.g., `mydomain.com`) to another domain, such as your PocketHost instance, which typically requires a CNAME record. Normally, CNAME records are only supported on subdomains (e.g., `foo.mydomain.com`), but Cloudflare’s CNAME flattening lets you use a root domain for the same purpose.
+### Step 3: Verification
 
-By enabling CNAME flattening, you can set up your custom domain to resolve directly to your PocketHost instance, even if it's on the root level, ensuring a seamless experience for users accessing your site.
+PocketHost uses Cloudflare's HTTP verification system to confirm domain ownership. Once your CNAME record has propagated (usually within minutes), verification will complete automatically.
+
+You can check the status anytime in your dashboard or click the refresh button to manually trigger a verification check.
 
 ## Static Files and Custom Domains
 
-When you set up a custom domain with PocketHost, all static files in the `pb_public` directory of your instance will also be served through your custom domain. These static files are accessible over HTTPS, providing a secure and reliable solution for serving static sites and assets. This is an ideal setup for static site generation (SSG) projects or simple static websites.
+All static files in your instance's `pb_public` directory will be served through your custom domain over HTTPS, making it perfect for static sites and assets.
 
-With this configuration, you can host static files like HTML, CSS, and JavaScript directly on your PocketHost instance and deliver them through your custom domain, complete with SSL encryption, without the need for an external hosting provider.
+---
+
+## Background Information
+
+### Understanding CNAMEs
+
+A CNAME (Canonical Name) record is a type of DNS record that maps one domain name to another. When you create a CNAME record pointing your domain to your PocketHost instance, visitors to your custom domain will be directed to your PocketHost instance.
+
+For example, if you create a CNAME record:
+
+- **Name**: `api.yourdomain.com`
+- **Value**: `your-instance.pockethost.io`
+
+When someone visits `api.yourdomain.com`, they'll actually be connecting to your PocketHost instance.
+
+### DNS Management Without Domain Transfer
+
+You don't need to transfer your domain to a new registrar to manage DNS settings. You can:
+
+1. Keep your domain at your current registrar
+2. Change your name servers to point to a DNS provider like Cloudflare
+3. Manage DNS records (including CNAMEs) through your DNS provider's interface
+
+### CNAME Flattening
+
+Traditional DNS doesn't allow CNAME records on root domains (e.g., `yourdomain.com`). However, Cloudflare provides CNAME flattening, which allows root domains to work like CNAMEs. This means you can point your root domain directly to your PocketHost instance.
+
+### Cloudflare Benefits
+
+We recommend Cloudflare because:
+
+- **CNAME flattening** allows root domain usage
+- **HTTP verification** provides fast, automatic domain verification
+- **Global CDN** improves performance worldwide
+- **Free SSL certificates** are automatically provisioned

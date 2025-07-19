@@ -31,6 +31,7 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   syncAdmin: boolean
   cname: string
   dev: boolean
+  /** @deprecated Will be removed - frontend now handles health checking directly */
   cname_active: boolean
   volume: string
   idleTtl: number
