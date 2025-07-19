@@ -59,7 +59,7 @@
   }
 </script>
 
-<div class="max-w-lg">
+<div class="max-w-2xl">
   <CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
 
   <p class="mb-8">
