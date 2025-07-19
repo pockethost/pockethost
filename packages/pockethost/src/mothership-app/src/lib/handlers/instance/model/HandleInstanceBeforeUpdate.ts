@@ -25,7 +25,7 @@ export const HandleInstanceBeforeUpdate = (e: core.ModelEvent) => {
       try {
         dao.db().newQuery(`select id from instances where cname='${cname}' and id <> '${id}'`).one(result)
       } catch (e) {
-        // log(`*** cname OK ${cname}`)
+        // log(` cname OK ${cname}`)
         return false
       }
       return true
