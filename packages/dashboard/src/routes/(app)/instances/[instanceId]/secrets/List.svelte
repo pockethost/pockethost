@@ -22,7 +22,7 @@
             c[name] = value
             return c
           },
-          {} as NonNullable<UpdateInstancePayload['fields']['secrets']>,
+          {} as NonNullable<UpdateInstancePayload['fields']['secrets']>
         ),
       },
     })
@@ -42,17 +42,13 @@
     {#each $items as item}
       <tr transition:fade>
         <th>{item.name}</th>
-        <td
-          >{item.value.slice(0, 2) +
-            item.value.slice(2).replaceAll(/./g, '*')}</td
-        >
+        <td>{item.value.slice(0, 2) + item.value.slice(2).replaceAll(/./g, '*')}</td>
         <td class="text-right">
           <button
             aria-label="Delete"
             on:click={handleDelete(item.name)}
             type="button"
-            class="btn btn-sm btn-square btn-outline btn-warning"
-            ><Fa icon={faTrash} /></button
+            class="btn btn-sm btn-square btn-outline btn-warning"><Fa icon={faTrash} /></button
           >
         </td>
       </tr>

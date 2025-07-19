@@ -1,14 +1,3 @@
-import PocketBase, {
-  BaseAuthStore,
-  ClientResponseError,
-  type AuthModel,
-  type UnsubscribeFunc,
-} from 'pocketbase'
+import PocketBase, { BaseAuthStore, ClientResponseError, type AuthModel, type UnsubscribeFunc } from 'pocketbase'
 
-export {
-  AuthModel,
-  BaseAuthStore,
-  ClientResponseError,
-  PocketBase,
-  UnsubscribeFunc,
-}
+export { AuthModel, BaseAuthStore, ClientResponseError, PocketBase, UnsubscribeFunc }

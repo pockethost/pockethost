@@ -32,8 +32,7 @@
     {
       name: 'Giovanni Cruz',
       title: 'Software developer',
-      quote:
-        'Been inlove with this from the first moment I used it. Excellent offering.',
+      quote: 'Been inlove with this from the first moment I used it. Excellent offering.',
     },
     {
       name: 'Anele Mbanga',

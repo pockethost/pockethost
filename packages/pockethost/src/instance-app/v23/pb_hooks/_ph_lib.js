@@ -11,7 +11,7 @@ const mkLog =
       ...s.map((p) => {
         if (typeof p === 'object') return JSON.stringify(p, null, 2)
         return p
-      }),
+      })
     )
 
 module.exports = {

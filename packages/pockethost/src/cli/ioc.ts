@@ -1,9 +1,4 @@
-import {
-  GobotService,
-  ioc,
-  RegisterEnvSettingsService,
-  WinstonLoggerService,
-} from '@'
+import { GobotService, ioc, RegisterEnvSettingsService, WinstonLoggerService } from '@'
 import { version } from '../../package.json'
 
 export const initIoc = async () => {

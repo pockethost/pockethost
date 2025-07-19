@@ -23,7 +23,7 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
     {
       mothershipUrl: MOTHERSHIP_URL(),
     },
-    config,
+    config
   )
   const tls = {
     key: readFileSync(SSL_KEY()),
@@ -42,34 +42,27 @@ export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
     pasv_min: PH_FTP_PASV_PORT_MIN(),
   })
 
-  ftpServer.on(
-    'login',
-    async ({ connection, username, password }, resolve, reject) => {
-      dbg(`Got a connection with credentials ${username}:${password}`)
-      dbg(`Finding ${mothershipUrl}`)
-      const client = new PocketBase(mothershipUrl)
-      try {
-        if (username === `__auth__`) {
-          client.authStore.loadFromCookie(password)
-          if (!client.authStore.isValid) {
-            throw new Error(`Invalid cookie`)
-          }
-        } else {
-          await client.collection('users').authWithPassword(username, password)
+  ftpServer.on('login', async ({ connection, username, password }, resolve, reject) => {
+    dbg(`Got a connection with credentials ${username}:${password}`)
+    dbg(`Finding ${mothershipUrl}`)
+    const client = new PocketBase(mothershipUrl)
+    try {
+      if (username === `__auth__`) {
+        client.authStore.loadFromCookie(password)
+        if (!client.authStore.isValid) {
+          throw new Error(`Invalid cookie`)
         }
-        dbg(`Logged in`)
-        const fs = new PhFs(
-          connection,
-          client,
-          _ftpServiceLogger.child(username).context({ ftpSession: Date.now() }),
-        )
-        resolve({ fs })
-      } catch (e) {
-        reject(new Error(`Invalid username or password`))
-        return
+      } else {
+        await client.collection('users').authWithPassword(username, password)
       }
-    },
-  )
+      dbg(`Logged in`)
+      const fs = new PhFs(connection, client, _ftpServiceLogger.child(username).context({ ftpSession: Date.now() }))
+      resolve({ fs })
+    } catch (e) {
+      reject(new Error(`Invalid username or password`))
+      return
+    }
+  })
 
   ftpServer.listen().then(() => {
     dbg('Ftp server started...')

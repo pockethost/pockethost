@@ -6,9 +6,7 @@
 
 <!-- Setting the `container-type` allows us to use Container Queries -->
 <div
-  class="card card-body bg-base-200 {block
-    ? 'block'
-    : ''} {height} {marginBottom}"
+  class="card card-body bg-base-200 {block ? 'block' : ''} {height} {marginBottom}"
   style="container-type: inline-size"
 >
   <slot />

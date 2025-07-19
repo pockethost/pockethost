@@ -67,11 +67,7 @@
           <AlertBar message={formError} type="error" />
 
           <div class="mt-4 card-actions justify-end">
-            <button
-              type="submit"
-              class="btn btn-primary w-100"
-              disabled={isFormButtonDisabled}
-            >
+            <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
               Reset Password <i class="bi bi-arrow-right-short" />
             </button>
           </div>

@@ -33,8 +33,7 @@ export const features = [
   },
   {
     title: 'Secure',
-    description:
-      'Infrastructure secured with RSA-2048 encryption and industry-standard security protocols.',
+    description: 'Infrastructure secured with RSA-2048 encryption and industry-standard security protocols.',
   },
 
   {
@@ -47,13 +46,11 @@ export const features = [
   },
   {
     title: 'Custom Domains',
-    description:
-      'Seamless custom domain integration for your PocketHost instances.',
+    description: 'Seamless custom domain integration for your PocketHost instances.',
   },
   {
     title: 'Lifetime Option',
-    description:
-      'Limited-time opportunity for lifetime Pro tier access (up to 250 instances) with a single payment.',
+    description: 'Limited-time opportunity for lifetime Pro tier access (up to 250 instances) with a single payment.',
   },
   {
     title: 'Early Access',
@@ -61,13 +58,11 @@ export const features = [
   },
   {
     title: 'Reliable',
-    description:
-      'Industry-leading 99.95% uptime guarantee ensures consistent application availability.',
+    description: 'Industry-leading 99.95% uptime guarantee ensures consistent application availability.',
   },
   {
     title: 'Managed',
-    description:
-      'Comprehensive infrastructure management including scaling, backups, and maintenance operations.',
+    description: 'Comprehensive infrastructure management including scaling, backups, and maintenance operations.',
   },
   {
     title: 'Affordable',

@@ -23,8 +23,8 @@
 <CardHeader documentation={`/docs/dev-mode`}>Dev Mode</CardHeader>
 
 <p class="mb-8">
-  Starting with PocketBase v0.20.1, your instance will show debugging output in
-  the instance logs. Performance is degraded while Dev Mode is active.
+  Starting with PocketBase v0.20.1, your instance will show debugging output in the instance logs. Performance is
+  degraded while Dev Mode is active.
 </p>
 
 <ErrorMessage message={errorMessage} />

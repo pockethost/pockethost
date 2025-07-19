@@ -10,17 +10,13 @@ export const HandleSignupCheck = (c: echo.Context) => {
         throw error(
           `instanceName`,
           `invalid`,
-          `Instance name must begin with a letter, be between 3-40 characters, and can only contain a-z, 0-9, and hyphen (-).`,
+          `Instance name must begin with a letter, be between 3-40 characters, and can only contain a-z, 0-9, and hyphen (-).`
         )
       }
       if (isAvailable(name)) {
         return name
       }
-      throw error(
-        `instanceName`,
-        `exists`,
-        `Instance name ${name} is not available.`,
-      )
+      throw error(`instanceName`, `exists`, `Instance name ${name} is not available.`)
     } else {
       let i = 0
       while (true) {

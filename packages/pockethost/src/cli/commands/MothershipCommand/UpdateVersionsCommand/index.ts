@@ -1,21 +1,13 @@
-import {
-  GobotService,
-  LoggerService,
-  MOTHERSHIP_HOOKS_DIR,
-  PH_ALLOWED_POCKETBASE_SEMVER,
-  stringify,
-} from '@'
+import { GobotService, LoggerService, MOTHERSHIP_HOOKS_DIR, PH_ALLOWED_POCKETBASE_SEMVER, stringify } from '@'
 import { uniq } from '@s-libs/micro-dash'
 import { Command } from 'commander'
 import { writeFileSync } from 'fs'
 import { compare, parse, prerelease, satisfies } from 'semver'
 
 export const UpdateVersionsCommand = () => {
-  const cmd = new Command(`update-versions`)
-    .description(`Update pocketbase versions`)
-    .action(async () => {
-      await freshenPocketbaseVersions()
-    })
+  const cmd = new Command(`update-versions`).description(`Update pocketbase versions`).action(async () => {
+    await freshenPocketbaseVersions()
+  })
   return cmd
 }
 
@@ -30,14 +22,10 @@ export async function freshenPocketbaseVersions() {
     (await bot.versions())
       .map((v) => parse(v))
       .filter((v) => !!v)
-      .filter(
-        (v) =>
-          satisfies(v, PH_ALLOWED_POCKETBASE_SEMVER()) &&
-          prerelease(v) === null,
-      )
+      .filter((v) => satisfies(v, PH_ALLOWED_POCKETBASE_SEMVER()) && prerelease(v) === null)
       .sort(compare)
       .reverse()
-      .map((v) => `${v.major}.${v.minor}.*`),
+      .map((v) => `${v.major}.${v.minor}.*`)
   )
   const cjs = `module.exports = ${stringify(versions, null, 2)}`
 

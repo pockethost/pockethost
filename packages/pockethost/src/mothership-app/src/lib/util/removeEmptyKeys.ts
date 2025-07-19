@@ -1,8 +1,6 @@
 import { reduce } from '@s-libs/micro-dash'
 
-export const removeEmptyKeys = <T extends Record<string, unknown>>(
-  obj: T,
-): T => {
+export const removeEmptyKeys = <T extends Record<string, unknown>>(obj: T): T => {
   const sanitized = reduce(
     obj,
     (acc, value, key) => {
@@ -11,7 +9,7 @@ export const removeEmptyKeys = <T extends Record<string, unknown>>(
       }
       return acc
     },
-    {} as T,
+    {} as T
   )
   return sanitized
 }

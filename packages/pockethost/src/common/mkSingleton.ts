@@ -2,10 +2,9 @@ export type SingletonApi = Object
 
 export type SingletonBaseConfig = {}
 
-export function mkSingleton<
-  TConfig extends SingletonBaseConfig,
-  TInstance extends SingletonApi,
->(factory: (config: TConfig) => TInstance): (config?: TConfig) => TInstance {
+export function mkSingleton<TConfig extends SingletonBaseConfig, TInstance extends SingletonApi>(
+  factory: (config: TConfig) => TInstance
+): (config?: TConfig) => TInstance {
   let instance: TInstance | undefined
 
   return (config?: TConfig): TInstance => {

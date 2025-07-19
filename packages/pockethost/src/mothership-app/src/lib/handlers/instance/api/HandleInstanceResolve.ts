@@ -15,9 +15,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
   const instance = (() => {
     try {
       log(`Checking for cname ${host}`)
-      const record = $app
-        .dao()
-        .findFirstRecordByData('instances', 'cname', host)
+      const record = $app.dao().findFirstRecordByData('instances', 'cname', host)
       return record
     } catch (e) {
       log(`${host} is not a cname`)
@@ -26,9 +24,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
     const [subdomain, ...junk] = host.split('.')
 
     if (!subdomain) {
-      throw new BadRequestError(
-        `Subdomain or instance ID is required when resolving an instance without a cname.`,
-      )
+      throw new BadRequestError(`Subdomain or instance ID is required when resolving an instance without a cname.`)
     }
 
     try {
@@ -41,9 +37,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
 
     try {
       log(`Checking for subdomain ${subdomain}`)
-      const record = $app
-        .dao()
-        .findFirstRecordByData('instances', `subdomain`, subdomain)
+      const record = $app.dao().findFirstRecordByData('instances', `subdomain`, subdomain)
       return record
     } catch (e) {
       log(`${subdomain} is not a subdomain`)
@@ -57,8 +51,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
     throw new BadRequestError(instance.get('suspension'))
   }
 
-  const APP_URL = (...path: string[]) =>
-    [$os.getenv('APP_URL'), ...path].join('/')
+  const APP_URL = (...path: string[]) => [$os.getenv('APP_URL'), ...path].join('/')
   const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
 
   /*
@@ -66,11 +59,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
   */
   log(`Checking for power`)
   if (!instance.getBool('power')) {
-    throw new BadRequestError(
-      `This instance is powered off. See ${DOC_URL(
-        `power`,
-      )} for more information.`,
-    )
+    throw new BadRequestError(`This instance is powered off. See ${DOC_URL(`power`)} for more information.`)
   }
 
   const user = (() => {
@@ -99,9 +88,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
   */
   log(`Checking for active instances`)
   if (user.getInt('subscription_quantity') === 0) {
-    throw new BadRequestError(
-      `Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>.`,
-    )
+    throw new BadRequestError(`Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>.`)
   }
 
   /*

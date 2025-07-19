@@ -10,7 +10,7 @@ export const mkLog =
       ...s.map((p) => {
         if (typeof p === 'object') return JSON.stringify(p, null, 2)
         return p
-      }),
+      })
     )
 
 export const dbg = (...args: any[]) => console.log(args)

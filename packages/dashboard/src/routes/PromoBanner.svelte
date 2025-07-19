@@ -16,8 +16,7 @@
   <div class="alert alert-info bg-yellow-300 rounded-none mb-10 relative">
     <div class="text-info-content flex-1">
       {latestPost.title}
-      <a href={latestPost.path} class="btn btn-sm btn-neutral m-2">Learn more</a
-      >
+      <a href={latestPost.path} class="btn btn-sm btn-neutral m-2">Learn more</a>
     </div>
     <button
       class="btn btn-ghost btn-circle btn-xs absolute top-0 right-0"

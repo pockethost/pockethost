@@ -22,7 +22,7 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     `vars`,
     JSON.stringify({
       id,
-    }),
+    })
   )
 
   const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record

@@ -14,10 +14,7 @@ export const handleFormError = (e: Error, setError?: FormErrorHandler) => {
   }
 }
 
-export const handleCreateNewInstance = async (
-  instanceName: string,
-  setError?: FormErrorHandler,
-) => {
+export const handleCreateNewInstance = async (instanceName: string, setError?: FormErrorHandler) => {
   const { user, createInstance } = client()
   // Get the newly created user id
   const { id } = user() || {}
@@ -42,7 +39,7 @@ export const handleInstanceGeneratorWidget = async (
   email: string,
   password: string,
   instanceName: string,
-  setError = (value: string) => {},
+  setError = (value: string) => {}
 ) => {
   const { authViaEmail } = client()
 

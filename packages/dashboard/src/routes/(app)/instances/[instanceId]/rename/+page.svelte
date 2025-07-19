@@ -36,9 +36,7 @@
     const instanceNameValidation = formSubdomain.trim().replace(/[0-9]/g, '')
 
     // Prompt the user to confirm the version change
-    const confirmVersionChange = confirm(
-      `Are you sure you want to rename your instance to ${instanceNameValidation}?`,
-    )
+    const confirmVersionChange = confirm(`Are you sure you want to rename your instance to ${instanceNameValidation}?`)
 
     // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
@@ -62,24 +60,17 @@
 </script>
 
 <div class="max-w-lg">
-  <CardHeader documentation={`/docs/rename-instance`}
-    >Rename Instance</CardHeader
-  >
+  <CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
 
   <p class="mb-8">
-    Renaming your instance will cause it to become <strong class="text-error"
-      >inaccessible</strong
-    > by the old instance name. You also may not be able to change it back if someone
-    else choose it.
+    Renaming your instance will cause it to become <strong class="text-error">inaccessible</strong> by the old instance name.
+    You also may not be able to change it back if someone else choose it.
   </p>
 
   <AlertBar message={successMessage} type="success" flash />
   <AlertBar message={errorMessage} type="error" />
 
-  <form
-    class="flex rename-instance-form-container-query gap-4"
-    on:submit={onRename}
-  >
+  <form class="flex rename-instance-form-container-query gap-4" on:submit={onRename}>
     <input
       title="Only letters and dashes are allowed"
       required
@@ -88,9 +79,7 @@
       class="input input-bordered w-full"
     />
 
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}
-      >Rename Instance</button
-    >
+    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}>Rename Instance</button>
   </form>
 
   <style>

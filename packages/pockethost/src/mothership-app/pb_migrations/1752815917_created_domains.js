@@ -72,5 +72,5 @@ migrate(
     const collection = dao.findCollectionByNameOrId('jw1wz9nmkvnhcm6')
 
     return dao.deleteCollection(collection)
-  },
+  }
 )

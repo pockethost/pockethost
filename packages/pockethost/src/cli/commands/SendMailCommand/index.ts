@@ -6,9 +6,7 @@ type Options = {
 }
 
 export const MailCommand = () => {
-  const cmd = new Command(`mail`)
-    .description(`PocketHost bulk mail`)
-    .addCommand(SendMailCommand())
+  const cmd = new Command(`mail`).description(`PocketHost bulk mail`).addCommand(SendMailCommand())
 
   return cmd
 }

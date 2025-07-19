@@ -3,11 +3,7 @@
   import UserHasRole from '$components/guards/UserHasRole.svelte'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
-  import {
-    faDiscord,
-    faGithub,
-    faProductHunt,
-  } from '@fortawesome/free-brands-svg-icons'
+  import { faDiscord, faGithub, faProductHunt } from '@fortawesome/free-brands-svg-icons'
   import Avatar from './Avatar.svelte'
   import Fa from 'svelte-fa'
 
@@ -66,10 +62,7 @@
             <Avatar />
           </div>
           <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-          <ul
-            tabindex="0"
-            class="dropdown-content menu bg-base-300 rounded-box z-[1] mt-36 md:mt-24 w-52 p-2 shadow"
-          >
+          <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[1] mt-36 md:mt-24 w-52 p-2 shadow">
             <li><a href="/account">Settings</a></li>
             <li>
               <button on:click={handleLogoutAndRedirect}>Logout</button>

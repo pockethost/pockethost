@@ -53,7 +53,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin,
       dev,
       cname,
-    }),
+    })
   )
 
   const record = dao.findRecordById('instances', id)

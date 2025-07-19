@@ -9,12 +9,11 @@ export type CreateInstanceResult = {
   instance: InstanceFields
 }
 
-export const CreateInstancePayloadSchema: JSONSchemaType<CreateInstancePayload> =
-  {
-    type: 'object',
-    properties: {
-      subdomain: { type: 'string' },
-    },
-    required: ['subdomain'],
-    additionalProperties: false,
-  }
+export const CreateInstancePayloadSchema: JSONSchemaType<CreateInstancePayload> = {
+  type: 'object',
+  properties: {
+    subdomain: { type: 'string' },
+  },
+  required: ['subdomain'],
+  additionalProperties: false,
+}

@@ -25,7 +25,7 @@ onBootstrap((e) => {
       .newQuery(
         `
         insert or replace into _superusers (id, email, tokenKey, password) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})
-          `,
+          `
       )
       .bind({ id, email, tokenKey, passwordHash })
       .execute()

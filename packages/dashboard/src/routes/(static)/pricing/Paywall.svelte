@@ -57,9 +57,7 @@
   />
 </div>
 
-<div
-  class="relative flex flex-col items-center mb-10 p-2 bg-neutral rounded-2xl w-fit mx-auto max-w-96"
->
+<div class="relative flex flex-col items-center mb-10 p-2 bg-neutral rounded-2xl w-fit mx-auto max-w-96">
   <a
     href="https://www.youtube.com/watch?v=Xe0FrGzlcVM"
     target="_blank"
@@ -67,11 +65,7 @@
   >
     <Fa icon={faPlay} class="text-white text-4xl" />
   </a>
-  <a
-    href="https://www.youtube.com/watch?v=Xe0FrGzlcVM"
-    target="_blank"
-    aria-label="PocketHost Demo"
-  >
+  <a href="https://www.youtube.com/watch?v=Xe0FrGzlcVM" target="_blank" aria-label="PocketHost Demo">
     <enhanced:img src={thumb} alt="PocketHost Demo" class="rounded" />
   </a>
 </div>

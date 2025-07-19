@@ -23,7 +23,7 @@
   }
 </script>
 
-{#each values($globalInstancesStore).sort( (a, b) => a.subdomain.localeCompare(b.subdomain), ) as instance, index}
+{#each values($globalInstancesStore).sort((a, b) => a.subdomain.localeCompare(b.subdomain)) as instance, index}
   <button
     class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.power ? 'bg-neutral' : 'bg-base-200'}`}
     on:click={(_) => goto(`/instances/${instance.id}`)}
@@ -34,9 +34,7 @@
           <span>{instance.subdomain.length > 15 ? instance.subdomain.slice(0, 15) + '...' : instance.subdomain}</span>
           <input
             type="checkbox"
-            class="toggle {instance.power
-              ? 'toggle-success'
-              : 'bg-red-500 hover:bg-red-500'}"
+            class="toggle {instance.power ? 'toggle-success' : 'bg-red-500 hover:bg-red-500'}"
             checked={instance.power}
             on:click={(e) => e.stopPropagation()}
             on:change={handlePowerChange(instance.id)}
@@ -46,8 +44,7 @@
       <p class="text-left">
         <span class="text-gray-400"
           >Version {instance.version}
-          <span class={instance.power ? 'hidden' : ''}>- Powered Off</span
-          ></span
+          <span class={instance.power ? 'hidden' : ''}>- Powered Off</span></span
         >
       </p>
 
@@ -63,11 +60,7 @@
           target="_blank"
           on:click={(e) => e.stopPropagation()}
         >
-          <img
-            src="/images/pocketbase-logo.svg"
-            alt="PocketBase Logo"
-            class="w-6"
-          />
+          <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-6" />
           <span>Admin</span>
         </a>
       </div>

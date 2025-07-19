@@ -16,10 +16,7 @@
 </script>
 
 <CardHeader documentation={`/docs/ftp`}>FTP Access</CardHeader>
-<div class="mb-8">
-  Securely access your instance files via FTPS. Use your PocketHost account
-  login and password.
-</div>
+<div class="mb-8">Securely access your instance files via FTPS. Use your PocketHost account login and password.</div>
 
 <div class="mb-12">
   <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
@@ -36,10 +33,7 @@
   <tbody>
     <tr>
       <th>pb_data</th>
-      <td
-        >The PocketBase data directory, including upload storage and database
-        backups</td
-      >
+      <td>The PocketBase data directory, including upload storage and database backups</td>
     </tr>
     <tr>
       <th>pb_public</th>

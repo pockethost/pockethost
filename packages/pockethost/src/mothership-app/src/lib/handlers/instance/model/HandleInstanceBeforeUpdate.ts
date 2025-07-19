@@ -10,9 +10,7 @@ export const HandleInstanceBeforeUpdate = (e: core.ModelEvent) => {
 
   const version = e.model.get('version')
   if (!versions.includes(version)) {
-    const msg = `[ERROR] Invalid version '${version}' for [${id}]. Version must be one of: ${versions.join(
-      ', ',
-    )}`
+    const msg = `[ERROR] Invalid version '${version}' for [${id}]. Version must be one of: ${versions.join(', ')}`
     log(`${msg}`)
     throw new BadRequestError(msg)
   }
@@ -25,14 +23,9 @@ export const HandleInstanceBeforeUpdate = (e: core.ModelEvent) => {
 
     const inUse = (() => {
       try {
-        dao
-          .db()
-          .newQuery(
-            `select id from instances where cname='${cname}' and id <> '${id}'`,
-          )
-          .one(result)
+        dao.db().newQuery(`select id from instances where cname='${cname}' and id <> '${id}'`).one(result)
       } catch (e) {
-        // log(`*** cname OK ${cname}`)
+        // log(` cname OK ${cname}`)
         return false
       }
       return true

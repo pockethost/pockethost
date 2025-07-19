@@ -3,10 +3,7 @@ import { DISCORD_ALERT_CHANNEL_URL } from '.'
 
 const cache: { [_: string]: NodeJS.Timeout } = {}
 
-export const discordAlert = (
-  message: { toString: () => string },
-  _url?: string,
-) => {
+export const discordAlert = (message: { toString: () => string }, _url?: string) => {
   const url = _url || DISCORD_ALERT_CHANNEL_URL()
   if (!url) return
   const m = `${message}${message instanceof Error ? `\n${message.stack}` : ''}`

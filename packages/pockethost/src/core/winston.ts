@@ -1,10 +1,4 @@
-import {
-  asyncExitHook,
-  DEBUG,
-  DISCORD_ALERT_CHANNEL_URL,
-  Logger,
-  mkSingleton,
-} from '@'
+import { asyncExitHook, DEBUG, DISCORD_ALERT_CHANNEL_URL, Logger, mkSingleton } from '@'
 import { inspect } from 'node:util'
 import winston from 'winston'
 import { DiscordTransport } from './DiscordTransport'
@@ -19,22 +13,20 @@ const format = winston.format.combine(
         final.push(...m.split(/\n/))
       } else if (typeof m === 'object') {
         // Filter out Symbol properties and inspect the object
-        const filtered = Object.fromEntries(
-          Object.entries(m).filter(([key]) => typeof key === 'string'),
-        )
+        const filtered = Object.fromEntries(Object.entries(m).filter(([key]) => typeof key === 'string'))
         final.push(
           inspect(filtered, {
             depth: null,
             compact: true,
             breakLength: Infinity,
-          }),
+          })
         )
       } else {
         final.push(m)
       }
     })
     return `${level}: ${final.join(' ')}`
-  }),
+  })
 )
 
 export const WinstonLoggerService = mkSingleton<{}, Logger>(() => {

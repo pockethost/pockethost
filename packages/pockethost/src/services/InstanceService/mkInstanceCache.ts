@@ -35,7 +35,7 @@ export const mkInstanceCache = (client: PocketBase) => {
         dbg({ action, record })
       }
     },
-    { expand: 'uid' },
+    { expand: 'uid' }
   )
 
   function blankItem(host: string) {

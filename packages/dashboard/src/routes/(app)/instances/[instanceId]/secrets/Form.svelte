@@ -2,10 +2,7 @@
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client/index.js'
   import { reduce } from '@s-libs/micro-dash'
-  import {
-    SECRET_KEY_REGEX,
-    type UpdateInstancePayload,
-  } from 'pockethost/common'
+  import { SECRET_KEY_REGEX, type UpdateInstancePayload } from 'pockethost/common'
   import { instance } from '../store.js'
   import { items } from './stores.js'
   import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
@@ -58,7 +55,7 @@
               c[name] = value
               return c
             },
-            {} as NonNullable<UpdateInstancePayload['fields']['secrets']>,
+            {} as NonNullable<UpdateInstancePayload['fields']['secrets']>
           ),
         },
       })
@@ -87,16 +84,12 @@
 
 <div class="mb-8">
   {#if successfulSave}
-    <AlertBar
-      message="Your new secret has been saved."
-      type="success"
-    />
+    <AlertBar message="Your new secret has been saved." type="success" />
   {/if}
 
   <AlertBar message={errorMessage} type="error" />
 
   <form on:submit={handleSubmit} class="mb-4">
-
     <div class="flex flex-row gap-4 mb-4">
       <label class="flex-1 form-control">
         <input
@@ -104,7 +97,7 @@
           type="text"
           bind:value={secretKey}
           placeholder="Key"
-          class={`input input-bordered ${!isKeyValid && secretKey.length > 0 ? "input-error text-error" : ""}`}
+          class={`input input-bordered ${!isKeyValid && secretKey.length > 0 ? 'input-error text-error' : ''}`}
         />
         {#if !isKeyValid && secretKey.length > 0}
           <div class="label">
@@ -113,7 +106,6 @@
             </span>
           </div>
         {/if}
-
       </label>
 
       <div class="flex-1 form-control">
@@ -133,13 +125,11 @@
       </div>
     </div>
 
-
     <!-- {#if !isKeyValid && secretKey.length > 0}
       <AlertBar
         message="All key names must be upper case, alphanumeric, and may include underscore (_)."
         type="error"
       />
     {/if} -->
-
   </form>
 </div>

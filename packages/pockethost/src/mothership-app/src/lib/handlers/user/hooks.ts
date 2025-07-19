@@ -4,5 +4,5 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleUserTokenRequest(c)
   },
-  $apis.requireAdminAuth(),
+  $apis.requireAdminAuth()
 )

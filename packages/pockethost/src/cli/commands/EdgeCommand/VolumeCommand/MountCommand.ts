@@ -51,11 +51,7 @@ const cleanup = async (mountPoint: string) => {
   }
 }
 
-const mount = async (
-  remoteName: string,
-  bucketName: string,
-  optionsIn: Partial<MountOptions> = {},
-) => {
+const mount = async (remoteName: string, bucketName: string, optionsIn: Partial<MountOptions> = {}) => {
   const options: MountOptions = {
     mountPoint: VOLUME_MOUNT_POINT(),
     cacheDir: VOLUME_CACHE_DIR(),

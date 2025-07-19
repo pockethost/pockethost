@@ -19,19 +19,14 @@
       <span class="badge badge-primary ml-2">new</span>
     {/if}
     {#if item.info}
-      <button
-        class="badge badge-secondary badge-sm ml-2"
-        on:click={handleInfoClick}
-      >
+      <button class="badge badge-secondary badge-sm ml-2" on:click={handleInfoClick}>
         <Fa icon={faInfo} />
       </button>
     {/if}
   </div>
 
   {#if $showInfo}
-    <div
-      class={`text-neutral-content font-normal ${enlarge ? 'text-md' : 'text-sm'}`}
-    >
+    <div class={`text-neutral-content font-normal ${enlarge ? 'text-md' : 'text-sm'}`}>
       {item.info}
     </div>
   {/if}

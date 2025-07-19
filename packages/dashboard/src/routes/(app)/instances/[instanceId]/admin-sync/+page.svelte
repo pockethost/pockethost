@@ -25,7 +25,8 @@
 <CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
 
 <p class="mb-8">
-  Admin Sync ensures that your instance always has an admin account that matches the login credentials of your pockethost.io account.
+  Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
+  pockethost.io account.
 </p>
 
 <ErrorMessage message={errorMessage} />

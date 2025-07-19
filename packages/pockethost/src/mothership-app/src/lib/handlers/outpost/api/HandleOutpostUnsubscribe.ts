@@ -24,7 +24,7 @@ export const HandleOutpostUnsubscribe = (c: echo.Context) => {
         },
         to: [{ address: `ben@benallfree.com` }],
         subject: `UNSUBSCRIBE ${email}`,
-      }),
+      })
     )
     return c.html(200, `<p>${email} has been unsubscribed.`)
   } catch (e) {

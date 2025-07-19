@@ -1,10 +1,4 @@
-import {
-  ensureInstanceDirectoryStructure,
-  logger,
-  LoggerService,
-  mkInstanceDataPath,
-  stringify,
-} from '@'
+import { ensureInstanceDirectoryStructure, logger, LoggerService, mkInstanceDataPath, stringify } from '@'
 import Bottleneck from 'bottleneck'
 import { existsSync } from 'fs'
 import { appendFile, cp, stat, truncate } from 'fs/promises'
@@ -80,24 +74,13 @@ const MultiChannelLimiter = () => {
 
 const limiter = MultiChannelLimiter()
 
-export function InstanceLogWriter(
-  instanceId: string,
-  volume: string,
-  target: string,
-) {
-  const lgr = logger()
-    .create(`InstanceLogWriter`)
-    .breadcrumb({ instanceId, target })
+export function InstanceLogWriter(instanceId: string, volume: string, target: string) {
+  const lgr = logger().create(`InstanceLogWriter`).breadcrumb({ instanceId, target })
   const { dbg, info, error, warn } = lgr
 
   ensureInstanceDirectoryStructure(instanceId, volume, lgr)
 
-  const logFile = mkInstanceDataPath(
-    volume,
-    instanceId,
-    `logs`,
-    `${target}.log`,
-  )
+  const logFile = mkInstanceDataPath(volume, instanceId, `logs`, `${target}.log`)
 
   const appendLogEntry = async (msg: string, stream: 'stdout' | 'stderr') =>
     limiter.schedule(logFile, async () => {
@@ -122,7 +105,7 @@ export function InstanceLogWriter(
             message: msg,
             stream,
             time: new Date().toISOString(),
-          }) + '\n',
+          }) + '\n'
         )
       } catch (e) {
         error(`Failed to write log entry: ${e}`)
@@ -141,11 +124,7 @@ export function InstanceLogWriter(
   return api
 }
 
-export function InstanceLogReader(
-  instanceId: string,
-  volume: string,
-  target: string,
-) {
+export function InstanceLogReader(instanceId: string, volume: string, target: string) {
   const logger = LoggerService().create(instanceId).breadcrumb({ target })
   const { dbg, info, error, warn } = logger
 
@@ -153,12 +132,7 @@ export function InstanceLogReader(
 
   const api = {
     tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
-      const logFile = mkInstanceDataPath(
-        volume,
-        instanceId,
-        `logs`,
-        `${target}.log`,
-      )
+      const logFile = mkInstanceDataPath(volume, instanceId, `logs`, `${target}.log`)
 
       let tid: any
       let unsub: any

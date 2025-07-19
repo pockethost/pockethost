@@ -3,13 +3,7 @@ import { execSync } from 'child_process'
 import fetch from 'node-fetch'
 import { default as osu } from 'node-os-utils'
 import { freemem } from 'os'
-import {
-  DAEMON_PORT,
-  DISCORD_HEALTH_CHANNEL_URL,
-  LoggerService,
-  MOTHERSHIP_PORT,
-  stringify,
-} from '../../..'
+import { DAEMON_PORT, DISCORD_HEALTH_CHANNEL_URL, LoggerService, MOTHERSHIP_PORT, stringify } from '../../..'
 
 export const checkHealth = async () => {
   const { cpu, drive } = osu
@@ -52,8 +46,7 @@ export const checkHealth = async () => {
     Image: 'pockethost-instance',
     Labels: '',
     LocalVolumes: '0',
-    Mounts:
-      '/home/pocketho…,/home/pocketho…,/home/pocketho…,/home/pocketho…,/home/pocketho…',
+    Mounts: '/home/pocketho…,/home/pocketho…,/home/pocketho…,/home/pocketho…,/home/pocketho…',
     Names: 'kekbase-1705984569777',
     Networks: 'bridge',
     Ports: '0.0.0.0:44447-\u003e8090/tcp, :::44447-\u003e8090/tcp',
@@ -150,9 +143,9 @@ export const checkHealth = async () => {
             .catch((e) => {
               console.error({ e })
               throw e
-            }),
-        ),
-      ),
+            })
+        )
+      )
     )
 
   const openFiles = _exec(`cat /proc/sys/fs/file-nr`)[0]?.trim() || `Unknown`
@@ -164,9 +157,7 @@ export const checkHealth = async () => {
     `CPU Usage: ${await cpu.usage()}%`,
     `Free RAM: ${getFreeMemoryInGB()}GB`,
     `Free Storage /: ${(await drive.info(`/`)).freeGb}GB`,
-    `Free Storage /mnt/sfo_data: ${
-      (await drive.info(`/mnt/sfo_data`)).freeGb
-    }GB`,
+    `Free Storage /mnt/sfo_data: ${(await drive.info(`/mnt/sfo_data`)).freeGb}GB`,
     `Open files: ${openFiles}`,
     `Containers: ${containers.length}`,
   ]
@@ -210,7 +201,7 @@ export const checkHealth = async () => {
         dbg(`${url}: ${e}`)
         check.isHealthy = false
       }
-    }),
+    })
   )
   dbg({ checks })
   await send([
@@ -229,13 +220,9 @@ export const checkHealth = async () => {
         if (isInstance) {
           return `${
             isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-          } \`${name.padStart(30)} ${(mem || '').padStart(10)} ${(
-            ago || ''
-          ).padStart(20)}\``
+          } \`${name.padStart(30)} ${(mem || '').padStart(10)} ${(ago || '').padStart(20)}\``
         } else {
-          return `${
-            isHealthy ? ':white_check_mark:' : ':face_vomiting: '
-          }  ${name}`
+          return `${isHealthy ? ':white_check_mark:' : ':face_vomiting: '}  ${name}`
         }
       }),
   ])

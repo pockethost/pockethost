@@ -47,10 +47,7 @@ function createItems(initialItems: SecretsArray) {
       const { name, value } = sanitize(item)
 
       return update((n) => {
-        return formatInput([
-          ...n.filter((i) => i.name !== name),
-          { name, value },
-        ])
+        return formatInput([...n.filter((i) => i.name !== name), { name, value }])
       })
     },
 

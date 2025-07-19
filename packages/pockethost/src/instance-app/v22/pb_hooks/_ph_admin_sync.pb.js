@@ -23,7 +23,7 @@ $app.onBeforeServe().add((e) => {
     dao
       .db()
       .newQuery(
-        `insert or replace into _admins (id, email, tokenKey, passwordHash) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})`,
+        `insert or replace into _admins (id, email, tokenKey, passwordHash) values ({:id}, {:email}, {:tokenKey}, {:passwordHash})`
       )
       .bind({ id, email, tokenKey, passwordHash })
       .execute()

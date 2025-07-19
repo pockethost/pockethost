@@ -1,26 +1,21 @@
 import { type InstanceFields, parseBoolean } from 'pockethost/common'
 
 /**
- * These environment variables default to pointing to the production build so
- * frontend development is easy. If they are specified in .env, those values
- * will prevail.
+ * These environment variables default to pointing to the production build so frontend development is easy. If they are
+ * specified in .env, those values will prevail.
  */
 
 // The apex domain of this whole operation.
-export const PUBLIC_APEX_DOMAIN =
-  import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
+export const PUBLIC_APEX_DOMAIN = import.meta.env.PUBLIC_APEX_DOMAIN || `pockethost.io`
 
-export const PUBLIC_APP_URL =
-  import.meta.env.PUBLIC_APP_URL || `https://${PUBLIC_APEX_DOMAIN}`
+export const PUBLIC_APP_URL = import.meta.env.PUBLIC_APP_URL || `https://${PUBLIC_APEX_DOMAIN}`
 
 // The protocol to use, almost always will be https
-export const PUBLIC_HTTP_PROTOCOL =
-  import.meta.env.PUBLIC_HTTP_PROTOCOL || `https:`
+export const PUBLIC_HTTP_PROTOCOL = import.meta.env.PUBLIC_HTTP_PROTOCOL || `https:`
 
 // The complete URL to the mothership
 export const PUBLIC_MOTHERSHIP_URL =
-  import.meta.env.PUBLIC_MOTHERSHIP_URL ||
-  `https://pockethost-central.${PUBLIC_APEX_DOMAIN}`
+  import.meta.env.PUBLIC_MOTHERSHIP_URL || `https://pockethost-central.${PUBLIC_APEX_DOMAIN}`
 
 // Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = parseBoolean(import.meta.env.PUBLIC_DEBUG || 'true')
@@ -49,13 +44,10 @@ export const INSTANCE_HOST = (instance: InstanceFields) => {
  *   INSTANCE_URL('my-cool-instance', 'dashboard') // https://my-cool-instance.pockethost.io/dashboard
  *
  * @param {string} instance This is the unique instance name
- * @param {string[]} paths This is an optional list of additional paths to
- *   append to the instance URL.
+ * @param {string[]} paths This is an optional list of additional paths to append to the instance URL.
  */
 export const INSTANCE_URL = (instance: InstanceFields, ...paths: string[]) => {
-  return `${PUBLIC_HTTP_PROTOCOL}//${INSTANCE_HOST(instance)}/${mkPath(
-    ...paths,
-  )}`
+  return `${PUBLIC_HTTP_PROTOCOL}//${INSTANCE_HOST(instance)}/${mkPath(...paths)}`
 }
 
 /**

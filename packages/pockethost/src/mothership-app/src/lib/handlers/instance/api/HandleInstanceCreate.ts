@@ -6,36 +6,34 @@ export const HandleInstanceCreate = (c: echo.Context) => {
 
   const log = mkLog(`POST:instance`)
   const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record
-  log(`***authRecord`, JSON.stringify(authRecord))
+  log(`authRecord`, JSON.stringify(authRecord))
 
   if (!authRecord) {
     throw new Error(`Expected authRecord here`)
   }
 
-  log(`***TOP OF POST`)
+  log(`TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
     version: versions[0],
     region: 'sfo-2',
   }) as { subdomain?: string; version?: string; region?: string }
 
-  log(`***before bind`)
+  log(`before bind`)
 
   c.bind(data)
 
-  log(`***after bind`)
+  log(`after bind`)
 
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
   const { subdomain, version, region } = data
 
-  log(`***vars`, JSON.stringify({ subdomain, region }))
+  log(`vars`, JSON.stringify({ subdomain, region }))
 
   if (!subdomain) {
-    throw new BadRequestError(
-      `Subdomain is required when creating an instance.`,
-    )
+    throw new BadRequestError(`Subdomain is required when creating an instance.`)
   }
 
   const collection = dao.findCollectionByNameOrId('instances')

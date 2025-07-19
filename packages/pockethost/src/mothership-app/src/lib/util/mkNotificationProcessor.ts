@@ -18,14 +18,8 @@ export const mkNotificationProcessor =
     }
     const vars = JSON.parse(notificationRec.getString(`message_template_vars`))
     const to = userRec.email()
-    const subject = interpolateString(
-      messageTemplateRec.getString(`subject`),
-      vars,
-    )
-    const html = interpolateString(
-      messageTemplateRec.getString(`body_html`),
-      vars,
-    )
+    const subject = interpolateString(messageTemplateRec.getString(`subject`), vars)
+    const html = interpolateString(messageTemplateRec.getString(`body_html`), vars)
 
     log({ channel, messageTemplateRec, userRec, vars, to, subject, html })
     switch (channel) {
@@ -53,9 +47,7 @@ export const mkNotificationProcessor =
         break
 
       case `lemonbot`:
-        const url = test
-          ? process.env.DISCORD_TEST_CHANNEL_URL
-          : process.env.DISCORD_STREAM_CHANNEL_URL
+        const url = test ? process.env.DISCORD_TEST_CHANNEL_URL : process.env.DISCORD_STREAM_CHANNEL_URL
         if (url) {
           const params: HttpSendConfig = {
             url,

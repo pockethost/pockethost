@@ -2,25 +2,16 @@ import { values } from '@s-libs/micro-dash'
 
 export type Unsubscribe = () => void
 
-export type EventSubscriber<TPayload> = (
-  cb: EventHandler<TPayload>,
-) => Unsubscribe
-export type EventEmitter<TPayload> = (
-  payload: TPayload,
-  stopOnHandled?: boolean,
-) => Promise<boolean>
-export type EventHandler<TPayload> = (
-  payload: TPayload,
-  isHandled: boolean,
-) => boolean | void | Promise<boolean | void>
+export type EventSubscriber<TPayload> = (cb: EventHandler<TPayload>) => Unsubscribe
+export type EventEmitter<TPayload> = (payload: TPayload, stopOnHandled?: boolean) => Promise<boolean>
+export type EventHandler<TPayload> = (payload: TPayload, isHandled: boolean) => boolean | void | Promise<boolean | void>
 
 /**
- * @param defaultHandler Optional handler to call if no handler calls
- *   `handled()`
+ * @param defaultHandler Optional handler to call if no handler calls `handled()`
  * @returns Void
  */
 export const createEvent = <TPayload>(
-  defaultHandler?: EventHandler<TPayload>,
+  defaultHandler?: EventHandler<TPayload>
 ): [EventSubscriber<TPayload>, EventEmitter<TPayload>] => {
   let i = 0
   const callbacks: any = {}

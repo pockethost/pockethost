@@ -81,11 +81,7 @@
   <AlertBar message={formError} type="error" />
 
   <div class="card-actions justify-end">
-    <button
-      type="submit"
-      class="btn btn-primary"
-      disabled={isFormButtonDisabled}
-    >
+    <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
       {#if isButtonLoading}
         <span class="loading loading-spinner"></span>
       {:else}
@@ -97,16 +93,12 @@
 
 <div class="p-4 bg-zinc-800 text-center">
   <div class="mb-4">
-    Need to Register? <button
-      type="button"
-      class="link font-bold"
-      on:click={handleRegisterClick}>Create A New Account</button
+    Need to Register? <button type="button" class="link font-bold" on:click={handleRegisterClick}
+      >Create A New Account</button
     >
   </div>
 
   <div>
-    Forgot Your Password? <a href="login/password-reset" class="link font-bold"
-      >Reset Password</a
-    >
+    Forgot Your Password? <a href="login/password-reset" class="link font-bold">Reset Password</a>
   </div>
 </div>

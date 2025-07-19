@@ -10,12 +10,11 @@ export type DeleteInstanceResult = {
   message?: string
 }
 
-export const DeleteInstancePayloadSchema: JSONSchemaType<DeleteInstancePayload> =
-  {
-    type: 'object',
-    properties: {
-      id: { type: 'string' },
-    },
-    required: ['id'],
-    additionalProperties: false,
-  }
+export const DeleteInstancePayloadSchema: JSONSchemaType<DeleteInstancePayload> = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+  },
+  required: ['id'],
+  additionalProperties: false,
+}

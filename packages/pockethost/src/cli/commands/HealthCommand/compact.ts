@@ -8,10 +8,8 @@ export const compact = async () => {
   const files = [
     ...new Set(
       [`data`, `logs`].flatMap((db) =>
-        globSync(`${DATA_ROOT()}/*/pb_data/${db}.db{-shm,-wal}`).map((f) =>
-          f.replace(/-(?:shm|wal)$/, ''),
-        ),
-      ),
+        globSync(`${DATA_ROOT()}/*/pb_data/${db}.db{-shm,-wal}`).map((f) => f.replace(/-(?:shm|wal)$/, ''))
+      )
     ),
   ]
 

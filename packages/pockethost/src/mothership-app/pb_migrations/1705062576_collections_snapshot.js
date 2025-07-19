@@ -31,13 +31,7 @@ migrate(
             presentable: false,
             unique: false,
             options: {
-              mimeTypes: [
-                'image/jpg',
-                'image/jpeg',
-                'image/png',
-                'image/svg+xml',
-                'image/gif',
-              ],
+              mimeTypes: ['image/jpg', 'image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'],
               thumbs: null,
               maxSelect: 1,
               maxSize: 5242880,
@@ -542,8 +536,7 @@ migrate(
             options: {
               min: null,
               max: null,
-              pattern:
-                '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,24}$',
+              pattern: '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,24}$',
             },
           },
           {
@@ -670,9 +663,7 @@ migrate(
             },
           },
         ],
-        indexes: [
-          'CREATE UNIQUE INDEX `idx_7e53x5A` ON `message_templates` (`slug`)',
-        ],
+        indexes: ['CREATE UNIQUE INDEX `idx_7e53x5A` ON `message_templates` (`slug`)'],
         listRule: null,
         viewRule: null,
         createRule: null,
@@ -1904,5 +1895,5 @@ migrate(
   },
   (db) => {
     return null
-  },
+  }
 )

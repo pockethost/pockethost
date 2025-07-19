@@ -52,8 +52,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const logOut = () => authStore.clear()
 
   /**
-   * This will register a new user into Pocketbase, and email them a
-   * verification link
+   * This will register a new user into Pocketbase, and email them a verification link
    *
    * @param email {string} The email of the user
    * @param password {string} The password of the user
@@ -85,8 +84,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * This will reset an unauthenticated user's password by sending a
-   * verification link to their email, and includes an optional error handler
+   * This will reset an unauthenticated user's password by sending a verification link to their email, and includes an
+   * optional error handler
    *
    * @param email {string} The email of the user
    */
@@ -95,24 +94,17 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * This will let an unauthenticated user save a new password after verifying
-   * their email
+   * This will let an unauthenticated user save a new password after verifying their email
    *
    * @param token {string} The token from the verification email
    * @param password {string} The new password of the user
    */
-  const requestPasswordResetConfirm = async (
-    token: string,
-    password: string,
-  ) => {
-    return await client
-      .collection('users')
-      .confirmPasswordReset(token, password, password)
+  const requestPasswordResetConfirm = async (token: string, password: string) => {
+    return await client.collection('users').confirmPasswordReset(token, password, password)
   }
 
   /**
-   * This will log a user into Pocketbase, and includes an optional error
-   * handler
+   * This will log a user into Pocketbase, and includes an optional error handler
    *
    * @param {string} email The email of the user
    * @param {string} password The password of the user
@@ -129,32 +121,26 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const createInstance = mkRest<CreateInstancePayload, CreateInstanceResult>(
     RestCommands.Instance,
     RestMethods.Post,
-    CreateInstancePayloadSchema,
+    CreateInstancePayloadSchema
   )
 
   const updateInstance = mkRest<UpdateInstancePayload, UpdateInstanceResult>(
     RestCommands.Instance,
     RestMethods.Put,
-    UpdateInstancePayloadSchema,
+    UpdateInstancePayloadSchema
   )
 
   const deleteInstance = mkRest<DeleteInstancePayload, DeleteInstanceResult>(
     RestCommands.Instance,
     RestMethods.Delete,
-    DeleteInstancePayloadSchema,
+    DeleteInstancePayloadSchema
   )
 
-  const getInstanceById = (
-    id: InstanceId,
-  ): Promise<InstanceFields | undefined> =>
+  const getInstanceById = (id: InstanceId): Promise<InstanceFields | undefined> =>
     client.collection('instances').getOne<InstanceFields>(id)
 
-  const getInstanceBySubdomain = (
-    subdomain: InstanceFields['subdomain'],
-  ): Promise<InstanceFields | undefined> =>
-    client
-      .collection('instances')
-      .getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
+  const getInstanceBySubdomain = (subdomain: InstanceFields['subdomain']): Promise<InstanceFields | undefined> =>
+    client.collection('instances').getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
 
   const getAllInstancesById = async () =>
     (await client.collection('instances').getFullList()).reduce(
@@ -162,16 +148,13 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         c[v.id] = v as unknown as InstanceFields
         return c
       },
-      {} as { [_: InstanceId]: InstanceFields },
+      {} as { [_: InstanceId]: InstanceFields }
     )
 
   const parseError = (e: Error): string[] => {
     if (!(e instanceof ClientResponseError)) return [`${e}`]
-    if (e.data.message && keys(e.data.data).length === 0)
-      return [e.data.message]
-    return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter(
-      (v) => !!v,
-    )
+    if (e.data.message && keys(e.data.data).length === 0) return [e.data.message]
+    return map(e.data.data, (v, k) => (v ? v.message : undefined)).filter((v) => !!v)
   }
 
   const resendVerificationEmail = async () => {
@@ -184,8 +167,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     const { isAdmin, model, token, isValid } = client.authStore
 
     if (isAdmin) throw new Error(`Admin models not supported`)
-    if (model && !model.email)
-      throw new Error(`Expected model to be a user here`)
+    if (model && !model.email) throw new Error(`Expected model to be a user here`)
     return {
       token,
       model,
@@ -194,8 +176,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   /**
-   * Use synthetic event for authStore changers, so we can broadcast just the
-   * props we want and not the actual authStore object.
+   * Use synthetic event for authStore changers, so we can broadcast just the props we want and not the actual authStore
+   * object.
    */
   const [onAuthChange, fireAuthChange] = createGenericSyncEvent<BaseAuthStore>()
 
@@ -207,9 +189,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     })
 
     /**
-     * Refresh the auth token immediately upon creating the client. The auth
-     * token may be out of date, or fields in the user record may have changed
-     * in the backend.
+     * Refresh the auth token immediately upon creating the client. The auth token may be out of date, or fields in the
+     * user record may have changed in the backend.
      */
     if (browser) {
       refreshAuthToken()
@@ -222,12 +203,11 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     }
 
     /**
-     * Listen for auth state changes and subscribe to realtime _user events.
-     * This way, when the verified flag is flipped, it will appear that the
-     * authstore model is updated.
+     * Listen for auth state changes and subscribe to realtime _user events. This way, when the verified flag is
+     * flipped, it will appear that the authstore model is updated.
      *
-     * Polling is a stopgap til v.0.8. Once 0.8 comes along, we can do a
-     * realtime watch on the user record and update auth accordingly.
+     * Polling is a stopgap til v.0.8. Once 0.8 comes along, we can do a realtime watch on the user record and update
+     * auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
       const { model, isAdmin } = authStore
@@ -249,7 +229,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const watchInstanceLog = (
     instance: InstanceFields,
     update: (log: UntrustedInstanceLogFields) => void,
-    nInitial = 100,
+    nInitial = 100
   ): (() => void) => {
     const auth = client.authStore.exportToCookie()
 

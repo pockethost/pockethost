@@ -65,10 +65,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
     context.xsignature_header = c.request().header.get('X-Signature')
     log(`Signature`, context.xsignature_header)
 
-    if (
-      context.xsignature_header == undefined ||
-      !$security.equal(context.body_hash, context.xsignature_header)
-    ) {
+    if (context.xsignature_header == undefined || !$security.equal(context.body_hash, context.xsignature_header)) {
       throw new BadRequestError(`Invalid signature`)
     }
     log(`Signature verified`)
@@ -98,9 +95,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
     }
 
     context.product_id =
-      context.data?.data?.attributes?.first_order_item?.product_id ||
-      context.data?.data?.attributes?.product_id ||
-      0
+      context.data?.data?.attributes?.first_order_item?.product_id || context.data?.data?.attributes?.product_id || 0
 
     if (!context.product_id) {
       throw new Error(`No product ID`)
@@ -115,9 +110,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
     log(`product name ok`, context.product_name)
 
     context.variant_id =
-      context.data?.data?.attributes?.first_order_item?.variant_id ||
-      context.data?.data?.attributes?.variant_id ||
-      0
+      context.data?.data?.attributes?.first_order_item?.variant_id || context.data?.data?.attributes?.variant_id || 0
     if (!context.variant_id) {
       throw new Error(`No variant ID`)
     } else {
@@ -130,8 +123,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
       ''
     log(`variant name ok`, context.variant_name)
 
-    context.quantity =
-      context.data?.data?.attributes?.first_order_item?.quantity || 0
+    context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0
     log(`quantity ok`, context.quantity)
 
     const FLOUNDER_ANNUAL_PV_ID = `367781-200790`
@@ -186,8 +178,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
       },
     } as const
 
-    const event_handler =
-      event_name_map[context.event_name as keyof typeof event_name_map]
+    const event_handler = event_name_map[context.event_name as keyof typeof event_name_map]
     if (!event_handler) {
       throw new Error(`Unsupported event: ${context.event_name}`)
     } else {
@@ -251,8 +242,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
       },
     } as const
 
-    const product_handler =
-      product_handler_map[pv_id as keyof typeof product_handler_map]
+    const product_handler = product_handler_map[pv_id as keyof typeof product_handler_map]
     if (!product_handler) {
       throw new Error(`No product handler for ${pv_id}`)
     } else {

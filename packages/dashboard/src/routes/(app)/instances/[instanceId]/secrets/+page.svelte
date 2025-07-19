@@ -2,7 +2,7 @@
   import { assertExists } from 'pockethost/common'
   import { instance } from '../store'
   import SecretsInner from './SecretsInner.svelte'
-  import CardHeader from '$src/components/cards/CardHeader.svelte';
+  import CardHeader from '$src/components/cards/CardHeader.svelte'
 
   $: ({ status, version, id } = $instance)
 

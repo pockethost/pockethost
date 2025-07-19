@@ -26,32 +26,24 @@ type SnsNotificationComplaintPayload = {
   }
 }
 
-type SnsNotificationPayload =
-  | SnsNotificationBouncePayload
-  | SnsNotificationComplaintPayload
+type SnsNotificationPayload = SnsNotificationBouncePayload | SnsNotificationComplaintPayload
 
 type SnsEvent = SnsSubscriptionConfirmationEvent | SnsNotificationEvent
 
-function isSnsSubscriptionConfirmationEvent(
-  event: SnsEvent,
-): event is SnsSubscriptionConfirmationEvent {
+function isSnsSubscriptionConfirmationEvent(event: SnsEvent): event is SnsSubscriptionConfirmationEvent {
   return event.Type === 'SubscriptionConfirmation'
 }
 
-function isSnsNotificationEvent(
-  event: SnsEvent,
-): event is SnsNotificationEvent {
+function isSnsNotificationEvent(event: SnsEvent): event is SnsNotificationEvent {
   return event.Type === 'Notification'
 }
 
-function isSnsNotificationBouncePayload(
-  payload: SnsNotificationPayload,
-): payload is SnsNotificationBouncePayload {
+function isSnsNotificationBouncePayload(payload: SnsNotificationPayload): payload is SnsNotificationBouncePayload {
   return payload.notificationType === 'Bounce'
 }
 
 function isSnsNotificationComplaintPayload(
-  payload: SnsNotificationPayload,
+  payload: SnsNotificationPayload
 ): payload is SnsNotificationComplaintPayload {
   return payload.notificationType === 'Complaint'
 }
@@ -119,9 +111,7 @@ export const HandleSesError = (c: echo.Context) => {
         const { emailAddress } = recipient
         log(`Processing ${emailAddress}`)
         try {
-          const user = $app
-            .dao()
-            .findFirstRecordByData('users', 'email', emailAddress)
+          const user = $app.dao().findFirstRecordByData('users', 'email', emailAddress)
           log(`user is`, user)
           user.set(`unsubscribe`, true)
           dao.saveRecord(user)

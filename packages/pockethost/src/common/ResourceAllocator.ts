@@ -5,10 +5,7 @@ export type Allocator<T> = {
   alloc: () => [T, Deallocator]
 }
 
-export function ResourceAllocator<T>(
-  initialPoolSize: number,
-  initializer: () => T,
-): Allocator<T> {
+export function ResourceAllocator<T>(initialPoolSize: number, initializer: () => T): Allocator<T> {
   // Available queue to hold resolved items of type T
   const available: T[] = []
 

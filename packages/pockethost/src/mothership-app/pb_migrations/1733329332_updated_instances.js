@@ -3,5 +3,5 @@ migrate(
   (db) => {
     db.newQuery(`UPDATE instances SET region = 'sfo-2'`).execute()
   },
-  (db) => {},
+  (db) => {}
 )

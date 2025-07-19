@@ -5,11 +5,7 @@ import IPCIDR from 'ip-cidr'
 export const createIpWhitelistMiddleware = (blockedCIDRs: string[]) => {
   const blockedCIDRObjects = blockedCIDRs.map((cidr) => new IPCIDR(cidr))
 
-  return (
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction,
-  ) => {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const ip = req.ip // or req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     if (
       blockedCIDRs.length === 0 ||

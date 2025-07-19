@@ -9,10 +9,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       const parsed = JSON.parse(rawBody)
       return parsed
     } catch (e) {
-      throw new BadRequestError(
-        `Error parsing payload. You call this JSON? ${rawBody}`,
-        e,
-      )
+      throw new BadRequestError(`Error parsing payload. You call this JSON? ${rawBody}`, e)
     }
   })()
   const email = parsed.email?.trim().toLowerCase()
@@ -43,11 +40,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
   })()
 
   if (userExists) {
-    throw error(
-      `email`,
-      `exists`,
-      `That user account already exists. Try a password reset.`,
-    )
+    throw error(`email`, `exists`, `That user account already exists. Try a password reset.`)
   }
 
   dao.runInTransaction((txDao) => {
@@ -58,10 +51,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
     try {
       const username = $app
         .dao()
-        .suggestUniqueAuthRecordUsername(
-          'users',
-          'user' + $security.randomStringWithAlphabet(5, '123456789'),
-        )
+        .suggestUniqueAuthRecordUsername('users', 'user' + $security.randomStringWithAlphabet(5, '123456789'))
       user.set('username', username)
       user.set('email', email)
       user.set('subscription', 'free')
@@ -85,11 +75,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       txDao.saveRecord(instance)
     } catch (e) {
       if (`${e}`.match(/ UNIQUE /)) {
-        throw error(
-          `instanceName`,
-          `exists`,
-          `Instance name was taken, sorry about that. Try another.`,
-        )
+        throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`)
       }
       throw error(`instanceName`, `fail`, `Could not create instance: ${e}`)
     }
