@@ -13,6 +13,10 @@
   @apply mt-2 mb-2;
 }
 
+.prose :where(blockquote):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  quotes: none;
+}
+
 .docs-content img {
   @apply border-accent rounded-lg border;
 }

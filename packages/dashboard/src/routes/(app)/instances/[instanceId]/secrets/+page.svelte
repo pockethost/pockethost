@@ -14,6 +14,7 @@
   <title>{subdomain} secrets - PocketHost</title>
 </svelte:head>
 
-<!-- Consistency is key -->
-<CardHeader>Secrets</CardHeader>
-<SecretsInner />
+<div class="max-w-2xl">
+  <CardHeader>Secrets</CardHeader>
+  <SecretsInner />
+</div>

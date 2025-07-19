@@ -88,7 +88,7 @@
     <a href="https://github.com/pocketbase/pocketbase/releases" class="link">every minor release</a> of PocketBase.
   </div>
 
-  {#if $is23Available || is23OrHigher}
+  {#if !is23OrHigher}
     <div class="mb-8 bg-info p-4 rounded text-info-content">
       <p class="font-bold text-xl">Attention v0.23.* users:</p>
       <p>v0.22.* to v0.23.* is a major migration boundary and requires a manual migration process.</p>

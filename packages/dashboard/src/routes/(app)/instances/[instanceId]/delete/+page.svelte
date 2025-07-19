@@ -63,29 +63,31 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
+<div class="max-w-2xl">
+  <CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
 
-{#if power}
-  <AlertBar message="Instance must be powered off before deleting." type="error" />
-{/if}
+  {#if power}
+    <AlertBar message="Instance must be powered off before deleting." type="error" />
+  {/if}
 
-<div class="mb-8">
-  Deleting your instance will immediately and permanently delete your instance:
-  <ul class="ml-10 text-error">
-    <li>Your subdomain</li>
-    <li><pre>pb_data/*</pre></li>
-    <li><pre>pb_public/*</pre></li>
-    <li><pre>pb_migrations/*</pre></li>
-    <li><pre>pb_static/*</pre></li>
-  </ul>
-  If you are storing files on S3, you must delete them separately.
+  <div class="mb-8">
+    Deleting your instance will immediately and permanently delete your instance:
+    <ul class="ml-10 text-error">
+      <li>Your subdomain</li>
+      <li><pre>pb_data/*</pre></li>
+      <li><pre>pb_public/*</pre></li>
+      <li><pre>pb_migrations/*</pre></li>
+      <li><pre>pb_static/*</pre></li>
+    </ul>
+    If you are storing files on S3, you must delete them separately.
+  </div>
+
+  <ErrorMessage message={errorMessage} />
+
+  <form class="flex change-version-form-container-query gap-4" on:submit={handleSave}>
+    <button type="submit" class="btn btn-error" disabled={power || isButtonDisabled}>Delete Instance</button>
+  </form>
 </div>
-
-<ErrorMessage message={errorMessage} />
-
-<form class="flex change-version-form-container-query gap-4" on:submit={handleSave}>
-  <button type="submit" class="btn btn-error" disabled={power || isButtonDisabled}>Delete Instance</button>
-</form>
 
 <style>
   .change-version-form-container-query {

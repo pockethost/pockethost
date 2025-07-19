@@ -22,13 +22,15 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
+<div class="max-w-2xl">
+  <CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
 
-<p class="mb-8">
-  Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
-  pockethost.io account.
-</p>
+  <p class="mb-8">
+    Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
+    pockethost.io account.
+  </p>
 
-<ErrorMessage message={errorMessage} />
+  <ErrorMessage message={errorMessage} />
 
-<Toggle checked={!!syncAdmin} onChange={handleChange} />
+  <Toggle checked={!!syncAdmin} onChange={handleChange} />
+</div>
