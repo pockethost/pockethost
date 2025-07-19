@@ -5,7 +5,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
 
   const log = mkLog(`GET:instance/resolve`)
 
-  log(`***TOP OF GET`)
+  log(`TOP OF GET`)
   const host = c.queryParam('host')
 
   if (!host) {

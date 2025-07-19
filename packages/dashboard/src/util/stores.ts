@@ -92,15 +92,16 @@ export const init = () => {
 
   onAuthChange((authStoreProps) => {
     const isLoggedIn = authStoreProps.isValid
-    isUserLoggedIn.set(isLoggedIn)
+    console.log(`onAuthChange update`, { isLoggedIn, authStoreProps })
     const user = authStoreProps.model as UserFields
     userStore.set(isLoggedIn ? user : undefined)
     isAuthStateInitialized.set(true)
+    isUserLoggedIn.set(isLoggedIn)
     tryUserSubscribe(user?.id)
   })
 
   userStore.subscribe((user) => {
-    console.log(`userStore.subscribe`, { user })
+    console.log(`userStore.subscribe update`, { user })
     const isPaid = [SubscriptionType.Founder, SubscriptionType.Premium, SubscriptionType.Flounder].includes(
       user?.subscription || SubscriptionType.Free
     )
@@ -113,22 +114,25 @@ export const init = () => {
   // This holds an array of all the user's instances and their data
 
   /** Listen for instances */
+  let unsubInstanceWatch: UnsubscribeFunc | undefined
   isUserLoggedIn.subscribe(async (isLoggedIn) => {
-    let unsub: UnsubscribeFunc | undefined
+    console.log(`isUserLoggedIn.subscribe update`, { isLoggedIn })
     if (!isLoggedIn) {
       userStore.set(undefined)
       globalInstancesStore.set({})
       globalInstancesStoreReady.set(false)
-      unsub?.()
+      unsubInstanceWatch?.()
         .then(() => {
-          unsub = undefined
+          unsubInstanceWatch = undefined
         })
         .catch(console.error)
       return
     }
     const { getAllInstancesById } = client()
 
+    console.log('Getting all instances by ID')
     const instances = await getAllInstancesById()
+    console.log('Instances', instances)
 
     globalInstancesStore.set(instances)
     globalInstancesStoreReady.set(true)
@@ -137,13 +141,14 @@ export const init = () => {
       client()
         .client.collection('instances')
         .subscribe<InstanceFields>('*', (data) => {
+          console.log('Instance subscribe update', data)
           globalInstancesStore.update((instances) => {
             instances[data.record.id] = data.record
             return instances
           })
         })
         .then((u) => {
-          unsub = u
+          unsubInstanceWatch = u
         })
         .catch(() => {
           console.error('Failed to subscribe to instances')
@@ -171,6 +176,7 @@ const tryUserSubscribe = (() => {
         client().client.collection('users').authRefresh().catch(console.error)
       })
       .then((u) => {
+        console.log('Subscribed to user', id)
         unsub = async () => {
           console.log('Unsubscribing from user', id)
           await u()

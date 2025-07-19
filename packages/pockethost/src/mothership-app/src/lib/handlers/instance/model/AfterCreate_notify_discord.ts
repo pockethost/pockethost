@@ -1,7 +1,7 @@
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 
-export const HandleNotifyDiscordAfterCreate = (e: core.ModelEvent) => {
+export const AfterCreate_notify_discord = (e: core.ModelEvent) => {
   const dao = e.dao || $app.dao()
 
   const log = mkLog(`instances:create:discord:notify`)

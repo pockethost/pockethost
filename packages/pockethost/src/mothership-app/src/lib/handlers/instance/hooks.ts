@@ -31,13 +31,19 @@ routerAdd(
   $apis.requireAdminAuth()
 )
 /** Validate instance version */
-onModelBeforeCreate((e) => {
-  return require(`${__hooks}/mothership`).HandleInstanceVersionValidation(e)
+onModelBeforeUpdate((e) => {
+  return require(`${__hooks}/mothership`).BeforeUpdate_version(e)
 }, 'instances')
 
-onModelAfterCreate((e) => {
-  // return require(`${__hooks}/mothership`).HandleNotifyDiscordAfterCreate(e)
+/** Validate cname */
+onModelBeforeUpdate((e) => {
+  return require(`${__hooks}/mothership`).BeforeUpdate_cname(e)
 }, 'instances')
+
+/** Notify discord on instance create */
+// onModelAfterCreate((e) => {
+//   return require(`${__hooks}/mothership`).AfterCreate_notify_discord(e)
+// }, 'instances')
 
 onAfterBootstrap((e) => {
   // return require(`${__hooks}/mothership`).HandleMigrateInstanceVersions(e)
@@ -51,13 +57,3 @@ onAfterBootstrap((e) => {
 onAfterBootstrap((e) => {
   return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e)
 })
-
-/** Migrate existing cnames to domains table */
-onAfterBootstrap((e) => {
-  return require(`${__hooks}/mothership`).HandleMigrateCnamesToDomains(e)
-})
-
-/** Validate instance version */
-onModelBeforeUpdate((e) => {
-  return require(`${__hooks}/mothership`).HandleInstanceBeforeUpdate(e)
-}, 'instances')

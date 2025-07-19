@@ -91,7 +91,7 @@ const HandleInstanceDelete = (c) => {
 const HandleInstanceResolve = (c) => {
 	const dao = $app.dao();
 	const log = mkLog(`GET:instance/resolve`);
-	log(`***TOP OF GET`);
+	log(`TOP OF GET`);
 	const host = c.queryParam("host");
 	if (!host) throw new BadRequestError(`Host is required when resolving an instance.`);
 	const instance = (() => {
@@ -203,6 +203,43 @@ const removeEmptyKeys = (obj) => {
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceUpdate.ts
+const callCloudflareAPI = (endpoint, method, body, log) => {
+	const apiToken = $os.getenv("MOTHERSHIP_CLOUDFLARE_API_TOKEN");
+	const zoneId = $os.getenv("MOTHERSHIP_CLOUDFLARE_ZONE_ID");
+	if (!apiToken || !zoneId) {
+		if (log) log("Cloudflare API credentials not configured - skipping Cloudflare operations");
+		return null;
+	}
+	const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/${endpoint}`;
+	try {
+		const config = {
+			url,
+			method,
+			headers: {
+				Authorization: `Bearer ${apiToken}`,
+				"Content-Type": "application/json"
+			},
+			timeout: 30
+		};
+		if (body) config.body = JSON.stringify(body);
+		if (log) log(`Making Cloudflare API call: ${method} ${url}`, config);
+		const response = $http.send(config);
+		if (log) log(`Cloudflare API response:`, response);
+		return response;
+	} catch (error$1) {
+		if (log) log(`Cloudflare API error:`, error$1);
+		return null;
+	}
+};
+const createCloudflareCustomHostname = (hostname, log) => {
+	return callCloudflareAPI("custom_hostnames", "POST", {
+		hostname,
+		ssl: {
+			method: "http",
+			type: "dv"
+		}
+	}, log);
+};
 const HandleInstanceUpdate = (c) => {
 	const dao = $app.dao();
 	const log = mkLog(`PUT:instance`);
@@ -239,6 +276,14 @@ const HandleInstanceUpdate = (c) => {
 	log(`authRecord`, JSON.stringify(authRecord));
 	if (!authRecord) throw new Error(`Expected authRecord here`);
 	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
+	const oldCname = record.getString("cname").trim();
+	const newCname = cname ? cname.trim() : "";
+	const cnameChanged = oldCname !== newCname;
+	if (cnameChanged && newCname) {
+		log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`);
+		const createResponse = createCloudflareCustomHostname(newCname, log);
+		if (createResponse) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
+	}
 	const sanitized = removeEmptyKeys({
 		subdomain,
 		version,
@@ -386,45 +431,6 @@ const HandleMigrateRegions = (e) => {
 };
 
 //#endregion
-//#region src/lib/handlers/instance/model/HandleInstanceBeforeUpdate.ts
-const HandleInstanceBeforeUpdate = (e) => {
-	const dao = e.dao || $app.dao();
-	const log = mkLog(`instances-validate-before-update`);
-	const id = e.model.getId();
-	const version = e.model.get("version");
-	if (!versions.includes(version)) {
-		const msg = `[ERROR] Invalid version '${version}' for [${id}]. Version must be one of: ${versions.join(", ")}`;
-		log(`${msg}`);
-		throw new BadRequestError(msg);
-	}
-	const cname = e.model.get("cname");
-	if (cname.length > 0) {
-		const result = new DynamicModel({ id: "" });
-		const inUse = (() => {
-			try {
-				dao.db().newQuery(`select id from instances where cname='${cname}' and id <> '${id}'`).one(result);
-			} catch (e$1) {
-				return false;
-			}
-			return true;
-		})();
-		if (inUse) {
-			const msg = `[ERROR] [${id}] Custom domain ${cname} already in use.`;
-			log(`${msg}`);
-			throw new BadRequestError(msg);
-		}
-	}
-};
-
-//#endregion
-//#region src/lib/handlers/instance/model/HandleInstanceVersionValidation.ts
-const HandleInstanceVersionValidation = (e) => {
-	const dao = e.dao || $app.dao();
-	const version = e.model.get("version");
-	if (!versions.includes(version)) throw new BadRequestError(`Invalid version ${version}. Version must be one of: ${versions.join(", ")}`);
-};
-
-//#endregion
 //#region src/lib/util/mkAudit.ts
 const mkAudit = (log, dao) => {
 	return (event, note, context) => {
@@ -439,8 +445,8 @@ const mkAudit = (log, dao) => {
 };
 
 //#endregion
-//#region src/lib/handlers/instance/model/HandleNotifyDiscordAfterCreate.ts
-const HandleNotifyDiscordAfterCreate = (e) => {
+//#region src/lib/handlers/instance/model/AfterCreate_notify_discord.ts
+const AfterCreate_notify_discord = (e) => {
 	const dao = e.dao || $app.dao();
 	const log = mkLog(`instances:create:discord:notify`);
 	const audit = mkAudit(log, dao);
@@ -457,6 +463,46 @@ const HandleNotifyDiscordAfterCreate = (e) => {
 		});
 	} catch (e$1) {
 		audit(`ERROR`, `Instance creation discord notify failed with ${e$1}`);
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/instance/model/BeforeUpdate_cname.ts
+const BeforeUpdate_cname = (e) => {
+	const dao = e.dao || $app.dao();
+	const log = mkLog(`BeforeUpdate_cname`);
+	const id = e.model.getId();
+	const newCname = e.model.get("cname").trim();
+	if (newCname.length > 0) {
+		const result = new DynamicModel({ id: "" });
+		const inUse = (() => {
+			try {
+				dao.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result);
+			} catch (e$1) {
+				return false;
+			}
+			return true;
+		})();
+		if (inUse) {
+			const msg = `[ERROR] [${id}] Custom domain ${newCname} already in use.`;
+			log(`${msg}`);
+			throw new BadRequestError(msg);
+		}
+	}
+	log(`CNAME validation passed for: "${newCname}"`);
+};
+
+//#endregion
+//#region src/lib/handlers/instance/model/BeforeUpdate_version.ts
+const BeforeUpdate_version = (e) => {
+	const dao = e.dao || $app.dao();
+	const log = mkLog(`BeforeUpdate_version`);
+	const version = e.model.get("version");
+	log(`Validating version ${version}`);
+	if (!versions.includes(version)) {
+		const msg = `Invalid version ${version}. Version must be one of: ${versions.join(", ")}`;
+		log(`[ERROR] ${msg}`);
+		throw new BadRequestError(msg);
 	}
 };
 
@@ -3088,12 +3134,13 @@ const HandleVersionsRequest = (c) => {
 };
 
 //#endregion
-exports.HandleInstanceBeforeUpdate = HandleInstanceBeforeUpdate;
+exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
+exports.BeforeUpdate_cname = BeforeUpdate_cname;
+exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;
 exports.HandleInstanceResolve = HandleInstanceResolve;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;
-exports.HandleInstanceVersionValidation = HandleInstanceVersionValidation;
 exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleMailSend = HandleMailSend;
@@ -3102,7 +3149,6 @@ exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
 exports.HandleMigrateRegions = HandleMigrateRegions;
 exports.HandleMirrorData = HandleMirrorData;
-exports.HandleNotifyDiscordAfterCreate = HandleNotifyDiscordAfterCreate;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;

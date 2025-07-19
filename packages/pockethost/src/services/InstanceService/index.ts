@@ -254,9 +254,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
             }
           })
         if (instance) {
-          if (!instance.cname_active) {
-            throw new Error(`CNAME blocked.`)
-          }
           dbg(`${host} is a cname`)
           cache.setItem(instance)
           return instance

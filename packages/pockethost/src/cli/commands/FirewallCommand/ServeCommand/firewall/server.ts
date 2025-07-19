@@ -42,9 +42,9 @@ export const firewall = async () => {
   app.use(cors())
   app.use(enforce.HTTPS())
 
-  app.get(`/_api/firewall/health`, (req, res, next) => {
+  app.get(`/api/firewall/health`, (req, res, next) => {
     dbg(`Health check`)
-    res.json({ status: 'firewall ok' })
+    res.json({ status: 'firewall ok', code: 200 })
     res.end()
   })
 

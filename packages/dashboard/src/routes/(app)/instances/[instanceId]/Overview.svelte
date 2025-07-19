@@ -1,8 +1,8 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import CardHeader from '$src/components/cards/CardHeader.svelte'
-  import { DISCORD_URL, INSTANCE_URL } from '$src/env'
-  import { isCnameActive } from 'pockethost/common'
+  import { INSTANCE_URL } from '$src/env'
+
   import { instance } from './store'
 
   let installSnippet = `npm i pocketbase`
