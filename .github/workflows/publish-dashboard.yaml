@@ -44,16 +44,13 @@ jobs:
         uses: rlespinasse/git-commit-data-action@v1.5.0
 
       - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1.5.0
+        uses: cloudflare/wrangler-action@v3
         id: deployment
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: pockethost
-          directory: ./packages/dashboard/build
-          branch: ${{ github.head_ref || github.ref_name }}
-          wranglerVersion: '3'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy ./packages/dashboard/build --project-name=pockethost --branch=${{ github.head_ref || github.ref_name }}
 
       - name: Discord feature branch notification
         if: github.ref_name != env.MAIN_BRANCH
