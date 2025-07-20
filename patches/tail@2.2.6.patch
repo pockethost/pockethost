@@ -1,8 +1,8 @@
 diff --git a/lib/tail.js b/lib/tail.js
-index 3ca5af25aad3ed4c099883f6fc3ea5b976838929..81d290906f96b0398443c7005118a26a2f1e16bf 100644
+index 3ca5af25aad3ed4c099883f6fc3ea5b976838929..91f678b683d3b1e1c14e663ca155ce51cfbea222 100644
 --- a/lib/tail.js
 +++ b/lib/tail.js
-@@ -342,6 +342,11 @@ class Tail extends events.EventEmitter {
+@@ -342,6 +342,12 @@ class Tail extends events.EventEmitter {
          }
      }
  
@@ -11,6 +11,7 @@ index 3ca5af25aad3ed4c099883f6fc3ea5b976838929..81d290906f96b0398443c7005118a26a
 +        this.internalDispatcher.removeAllListeners()
 +        this.removeAllListeners()
 +    }
++
  }
  
  exports.Tail = Tail

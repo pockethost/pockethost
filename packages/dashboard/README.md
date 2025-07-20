@@ -6,7 +6,7 @@ Description about PocketHost goes here!
 
 ## Developing Locally
 
-To run this project, navigate to the `/packages/dashboard` folder and run `pnpm dev`.
+To run this project, navigate to the `/packages/dashboard` folder and run `bun dev`.
 
 It will start up the server here: [http://127.0.0.1:5173/](http://127.0.0.1:5173/) and now you're ready to code!
 

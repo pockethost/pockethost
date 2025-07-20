@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 
 import { LogLevelName, gracefulExit, logger } from '@'
 import { program } from 'commander'

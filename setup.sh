@@ -63,5 +63,5 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 git clone git@github.com:pockethost/pockethost.git
 cd pockethost
 nvm install
-npm i -g pnpm pm2
-pnpm i
+npm i -g bun pm2
+bun i

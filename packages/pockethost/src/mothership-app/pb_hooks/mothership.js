@@ -162,7 +162,7 @@ const HandleInstanceResolve = (c) => {
 };
 
 //#endregion
-//#region ../../../../node_modules/.pnpm/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
+//#region ../../../../node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
 function keysOfNonArray(object) {
 	return object ? Object.getOwnPropertyNames(object) : [];
 }
@@ -357,7 +357,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 		const allDomainRecords = dao.findRecordsByFilter("domains", "1=1");
 		log(`Found ${allDomainRecords.length} domain records`);
 		let instancesUpdated = 0;
-		const domainsByInstance = /* @__PURE__ */ new Map();
+		const domainsByInstance = new Map();
 		allDomainRecords.forEach((domainRecord) => {
 			if (!domainRecord) return;
 			const instanceId = domainRecord.getString("instance");
@@ -2940,7 +2940,7 @@ const HandleSignupCheck = (c) => {
 			let i = 0;
 			while (true) {
 				i++;
-				if (i > 100) return +/* @__PURE__ */ new Date();
+				if (i > 100) return +new Date();
 				const slug = generate(2).join(`-`);
 				if (isAvailable(slug)) return slug;
 			}

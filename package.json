@@ -8,9 +8,9 @@
   "scripts": {
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
-    "dev:cli": "cd packages/pockethost && pnpm dev",
-    "dev:dashboard": "cd packages/dashboard && pnpm dev",
-    "prod:cli": "cd packages/pockethost && pnpm start",
+    "dev:cli": "cd packages/pockethost && bun run dev",
+    "dev:dashboard": "cd packages/dashboard && bun run dev",
+    "prod:cli": "cd packages/pockethost && bun run start",
     "nofile": "cat /proc/sys/fs/file-nr",
     "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts"
   },
@@ -25,18 +25,18 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },
-  "pnpm": {
-    "patchedDependencies": {
-      "@sveltejs/enhanced-img": "patches/@sveltejs__enhanced-img.patch",
-      "tail": "patches/tail.patch",
-      "@types/tail": "patches/@types__tail.patch"
-    },
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild",
-      "sharp",
-      "svelte-preprocess",
-      "workerd"
-    ]
-  }
+  "patchedDependencies": {
+    "@sveltejs/enhanced-img@0.4.4": "patches/@sveltejs%2Fenhanced-img@0.4.4.patch",
+    "@types/tail@2.2.3": "patches/@types%2Ftail@2.2.3.patch",
+    "tail@2.2.6": "patches/tail@2.2.6.patch"
+  },
+  "workspaces": [
+    "packages/*",
+    "packages/pockethost/src/mothership-app"
+  ],
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "protobufjs",
+    "svelte-preprocess"
+  ]
 }
