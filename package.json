@@ -23,7 +23,8 @@
     "prettier-plugin-svelte": "^3.4.0",
     "tslib": "^2.8.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "wrangler": "^4.25.0"
   },
   "patchedDependencies": {
     "@sveltejs/enhanced-img@0.4.4": "patches/@sveltejs%2Fenhanced-img@0.4.4.patch",
@@ -36,7 +37,15 @@
   ],
   "trustedDependencies": [
     "@parcel/watcher",
+    "better-sqlite3",
+    "cpu-features",
+    "dtrace-provider",
+    "esbuild",
+    "lzma-native",
     "protobufjs",
-    "svelte-preprocess"
+    "sharp",
+    "ssh2",
+    "svelte-preprocess",
+    "workerd"
   ]
 }
