@@ -33,8 +33,14 @@
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
+      "better-sqlite3",
+      "cpu-features",
+      "dtrace-provider",
       "esbuild",
+      "lzma-native",
+      "protobufjs",
       "sharp",
+      "ssh2",
       "svelte-preprocess",
       "workerd"
     ]
