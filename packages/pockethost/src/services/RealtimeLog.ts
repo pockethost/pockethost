@@ -60,7 +60,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     dbg(`Instance is `, instance)
 
     /** Get a database connection */
-    const instanceLogger = InstanceLogReader(instance.id, instance.volume, `exec`)
+    const instanceLogger = InstanceLogReader(instance.id, instance.volume, `exec`, logger)
 
     /** Start the stream */
     res.writeHead(200, {

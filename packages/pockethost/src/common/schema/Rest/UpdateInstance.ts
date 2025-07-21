@@ -3,7 +3,9 @@ import { InstanceFields, InstanceId } from '..'
 
 export type UpdateInstancePayload = {
   id: InstanceId
-  fields: Partial<Pick<InstanceFields, 'power' | 'secrets' | 'subdomain' | 'syncAdmin' | 'version' | 'dev' | 'cname'>>
+  fields: Partial<
+    Pick<InstanceFields, 'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'version' | 'dev' | 'cname'>
+  >
 }
 
 export const SECRET_KEY_REGEX = /^[A-Z][A-Z0-9_]*$/
@@ -36,6 +38,18 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
             },
           },
           required: [],
+        },
+        webhooks: {
+          type: 'array',
+          nullable: true,
+          items: {
+            type: 'object',
+            properties: {
+              endpoint: { type: 'string' },
+              value: { type: 'string' },
+            },
+            required: ['endpoint', 'value'],
+          },
         },
         dev: { type: 'boolean', nullable: true },
         cname: { type: 'string', nullable: true },

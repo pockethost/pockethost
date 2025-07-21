@@ -1,4 +1,4 @@
-import { LoggerService } from '@'
+import { Logger, LoggerService } from '@'
 import fetch, { Response } from 'node-fetch'
 
 export const TRYFETCH_RETRY_MS = 50
@@ -8,6 +8,7 @@ export type TryFetchConfig = {
   preflight: () => Promise<boolean>
   retryMs: number
   timeoutMs: number
+  logger: Logger
 }
 
 /**
@@ -23,14 +24,14 @@ export type TryFetchConfig = {
  *   Note: tryFetch exits ONLY on success or a rejected preflight.
  */
 export const tryFetch = async (url: string, config?: Partial<TryFetchConfig>) => {
-  const { preflight, retryMs, timeoutMs }: TryFetchConfig = {
+  const { preflight, retryMs, timeoutMs, logger }: TryFetchConfig = {
     preflight: async () => true,
     retryMs: TRYFETCH_RETRY_MS,
     timeoutMs: TRYFETCH_TIMEOUT_MS,
+    logger: config?.logger ?? LoggerService(),
     ...config,
   }
-  const logger = LoggerService().create(`tryFetch`).breadcrumb({ url })
-  const { dbg } = logger
+  const { dbg } = logger.create(`tryFetch`).breadcrumb(url)
   return new Promise<Response>((resolve, reject) => {
     const again = () => setTimeout(_real_tryFetch, retryMs)
     const _real_tryFetch = async () => {

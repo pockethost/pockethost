@@ -48,7 +48,7 @@ export type InstanceServiceConfig = SingletonBaseConfig & {
 
 export type InstanceServiceApi = AsyncReturnType<typeof instanceService>
 export const instanceService = mkSingleton(async (config: InstanceServiceConfig) => {
-  const instanceServiceLogger = LoggerService().create('InstanceService')
+  const instanceServiceLogger = (config.logger ?? LoggerService()).create('InstanceService')
   const { dbg, raw, error, warn } = instanceServiceLogger
   const { client } = await MothershipAdminClientService()
 
@@ -62,7 +62,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const { id, subdomain, version } = instance
     const systemInstanceLogger = instanceServiceLogger.create(`${subdomain}:${id}:${version}`)
     const { dbg, warn, error, info, trace } = systemInstanceLogger
-    const userInstanceLogger = InstanceLogWriter(instance.id, instance.volume, `exec`)
+    const userInstanceLogger = InstanceLogWriter(instance.id, instance.volume, `exec`, systemInstanceLogger)
 
     shutdownManager.push(() => {
       dbg(`Shutting down`)
@@ -140,6 +140,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
           PH_INSTANCE_URL: mkInstanceUrl(instance),
         },
         version,
+        logger: systemInstanceLogger,
       }
 
       /** Add admin sync info if enabled */
@@ -183,6 +184,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
           if (stopped()) throw new Error(`Container stopped ${id}`)
           return started()
         },
+        logger: systemInstanceLogger,
       })
 
       /** Idle check */
@@ -234,7 +236,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const mirror = await MothershipMirrorService()
 
   ;(await proxyService()).use(async (req, res, next) => {
-    const logger = LoggerService().create(`InstanceRequest`)
+    const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
 
     const { dbg } = logger
 

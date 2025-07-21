@@ -7,6 +7,7 @@ import {
   PocketBase,
   SSL_CERT,
   SSL_KEY,
+  SingletonBaseConfig,
   asyncExitHook,
   logger,
   mergeConfig,
@@ -16,9 +17,9 @@ import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
 import { PhFs } from './PhFs'
 
-export type FtpConfig = { mothershipUrl: string }
+export type FtpConfig = SingletonBaseConfig & { mothershipUrl: string }
 
-export const ftpService = mkSingleton((config: Partial<FtpConfig> = {}) => {
+export const ftpService = mkSingleton((config: FtpConfig) => {
   const { mothershipUrl } = mergeConfig(
     {
       mothershipUrl: MOTHERSHIP_URL(),

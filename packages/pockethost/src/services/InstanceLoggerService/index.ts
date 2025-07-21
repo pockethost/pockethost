@@ -1,4 +1,4 @@
-import { ensureInstanceDirectoryStructure, logger, LoggerService, mkInstanceDataPath, stringify } from '@'
+import { ensureInstanceDirectoryStructure, Logger, mkInstanceDataPath, stringify } from '@'
 import Bottleneck from 'bottleneck'
 import { existsSync } from 'fs'
 import { appendFile, cp, stat, truncate } from 'fs/promises'
@@ -74,8 +74,8 @@ const MultiChannelLimiter = () => {
 
 const limiter = MultiChannelLimiter()
 
-export function InstanceLogWriter(instanceId: string, volume: string, target: string) {
-  const lgr = logger().create(`InstanceLogWriter`).breadcrumb({ instanceId, target })
+export function InstanceLogWriter(instanceId: string, volume: string, target: string, logger: Logger) {
+  const lgr = logger.create(`InstanceLogWriter`).breadcrumb(`${instanceId}-${target}`)
   const { dbg, info, error, warn } = lgr
 
   ensureInstanceDirectoryStructure(instanceId, volume, lgr)
@@ -124,9 +124,8 @@ export function InstanceLogWriter(instanceId: string, volume: string, target: st
   return api
 }
 
-export function InstanceLogReader(instanceId: string, volume: string, target: string) {
-  const logger = LoggerService().create(instanceId).breadcrumb({ target })
-  const { dbg, info, error, warn } = logger
+export function InstanceLogReader(instanceId: string, volume: string, target: string, logger: Logger) {
+  const { dbg, info, error, warn } = logger.create(`InstanceLogReader`).breadcrumb(`${instanceId}-${target}`)
 
   ensureInstanceDirectoryStructure(instanceId, volume, logger)
 

@@ -14,45 +14,56 @@ export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger
   let config: LoggerConfig = {
     level: LogLevelName.Info,
     pfx: [],
+    breadcrumbs: [],
+    context: {},
     ...initialConfig,
   }
 
-  function log(level: LogLevelName, ...args: any[]) {
+  function log(level: LogLevelName, args: any[]) {
     if (isLevelGte(level, config.level)) {
       const prefix = config.pfx.length > 0 ? `[${config.pfx.join(':')}] ` : ''
       CONSOLE_METHODS[level](`${prefix}${level.toUpperCase()}:`, ...args)
     }
   }
 
+  const breadcrumbs: string[] = []
+  const context: Record<string, string | number | undefined> = {}
+  const withBreadcrumbs = (args: any[]) => {
+    return [breadcrumbs.map((b) => `[${b}]`).join(' '), ...args]
+  }
+
   const logger: Logger = {
     raw(...args: any[]) {
-      log(LogLevelName.Raw, ...args)
+      log(LogLevelName.Raw, withBreadcrumbs(args))
     },
     trace(...args: any[]) {
-      log(LogLevelName.Trace, ...args)
+      log(LogLevelName.Trace, withBreadcrumbs(args))
     },
     debug(...args: any[]) {
-      log(LogLevelName.Debug, ...args)
+      log(LogLevelName.Debug, withBreadcrumbs(args))
     },
     dbg(...args: any[]) {
       logger.debug(...args)
     },
     info(...args: any[]) {
-      log(LogLevelName.Info, ...args)
+      log(LogLevelName.Info, withBreadcrumbs(args))
     },
     warn(...args: any[]) {
-      log(LogLevelName.Warn, ...args)
+      log(LogLevelName.Warn, withBreadcrumbs(args))
     },
     error(...args: any[]) {
-      log(LogLevelName.Error, ...args)
+      log(LogLevelName.Error, withBreadcrumbs(args))
     },
     criticalError(...args: any[]) {
-      logger.error('CRITICAL:', ...args)
+      logger.error('CRITICAL:', withBreadcrumbs(args))
     },
     create(name: string, configOverride?: Partial<LoggerConfig>): Logger {
       const newConfig = {
         ...config,
+        breadcrumbs: [...breadcrumbs, name],
+        context: { ...context },
         pfx: [...config.pfx, name],
+        logger: logger,
         ...configOverride,
       }
       return ConsoleLogger(newConfig)
@@ -60,16 +71,22 @@ export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger
     child(name: string): Logger {
       return logger.create(name)
     },
-    breadcrumb(s: object): Logger {
-      console.log('Breadcrumb:', s)
+    breadcrumb(s: string): Logger {
+      breadcrumbs.push(s)
       return logger
     },
     context(name: string | object, value?: string | number): Logger {
-      console.log('Context:', name, value)
+      if (typeof name === `object`) {
+        Object.entries(name).forEach(([k, v]) => {
+          context[k] = v
+        })
+      } else {
+        context[name] = value
+      }
       return logger
     },
     abort(...args: any[]): never {
-      log(LogLevelName.Abort, ...args)
+      log(LogLevelName.Abort, withBreadcrumbs(args))
       process.exit(1)
     },
     shutdown() {
