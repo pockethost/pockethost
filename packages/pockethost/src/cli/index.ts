@@ -1,5 +1,3 @@
-#!/usr/bin/env tsx
-
 import { LogLevelName, gracefulExit, logger } from '@'
 import { program } from 'commander'
 import { EventSource } from 'eventsource'
