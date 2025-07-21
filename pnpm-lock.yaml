@@ -43,6 +43,9 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.7.3
+      wrangler:
+        specifier: ^4.25.0
+        version: 4.25.0
 
   packages/dashboard:
     devDependencies:
@@ -68,8 +71,8 @@ importers:
         specifier: ^3.0.8
         version: 3.0.8(@sveltejs/kit@2.22.2(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))
       '@sveltejs/enhanced-img':
-        specifier: 0.4.4
-        version: 0.4.4(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))
+        specifier: 0.3.8
+        version: 0.3.8(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))
       '@sveltejs/kit':
         specifier: ^2.22.2
         version: 2.22.2(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))
@@ -114,7 +117,7 @@ importers:
         version: 0.12.6(svelte@5.34.9)
       mdsvex-enhanced-images:
         specifier: ^0.2.3
-        version: 0.2.3(@sveltejs/enhanced-img@0.4.4(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(mdsvex@0.12.6(svelte@5.34.9))
+        version: 0.2.3(@sveltejs/enhanced-img@0.3.8(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(mdsvex@0.12.6(svelte@5.34.9))
       pockethost:
         specifier: workspace:^
         version: link:../pockethost
@@ -1609,10 +1612,10 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^2.0.0
 
-  '@sveltejs/enhanced-img@0.4.4':
-    resolution: {integrity: sha512-BlBTGfbLUgHa+zSVrsGLOd+noCKWfipoOjoxE26bAAX97v7zh5eiCAp1KEdpkluL05Tl3+nR14gQdPsATyZqoA==}
+  '@sveltejs/enhanced-img@0.3.8':
+    resolution: {integrity: sha512-n66u46ZeqHltiTm0BEjWptYmCrCY0EltEEvakmC7d5o5ZejDbOvOWm914mebbRKaP2Bezv65TNCod/wqvw/0KA==}
     peerDependencies:
-      svelte: ^5.0.0
+      svelte: ^4.0.0 || ^5.0.0-next.0
       vite: '>= 5.0.0'
 
   '@sveltejs/kit@2.22.2':
@@ -5409,15 +5412,13 @@ snapshots:
     dependencies:
       '@sveltejs/kit': 2.22.2(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))
 
-  '@sveltejs/enhanced-img@0.4.4(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))':
+  '@sveltejs/enhanced-img@0.3.8(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       magic-string: 0.30.17
-      sharp: 0.33.5
       svelte: 5.34.9
       svelte-parse-markup: 0.1.5(svelte@5.34.9)
       vite: 6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)
       vite-imagetools: 7.1.0(rollup@4.44.1)
-      zimmerframe: 1.1.2
     transitivePeerDependencies:
       - rollup
 
@@ -7023,9 +7024,9 @@ snapshots:
     dependencies:
       '@types/mdast': 4.0.4
 
-  mdsvex-enhanced-images@0.2.3(@sveltejs/enhanced-img@0.4.4(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(mdsvex@0.12.6(svelte@5.34.9)):
+  mdsvex-enhanced-images@0.2.3(@sveltejs/enhanced-img@0.3.8(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(mdsvex@0.12.6(svelte@5.34.9)):
     dependencies:
-      '@sveltejs/enhanced-img': 0.4.4(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))
+      '@sveltejs/enhanced-img': 0.3.8(patch_hash=f5fb50de54283d9deea84c164421034580ca618ab7796774cb053287a0283416)(rollup@4.44.1)(svelte@5.34.9)(vite@6.3.5(@types/node@22.10.5)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0))
       mdsvex: 0.12.6(svelte@5.34.9)
       unist-util-visit: 5.0.0
 
