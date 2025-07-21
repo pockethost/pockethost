@@ -1,6 +1,10 @@
+import { Logger } from './Logger'
+
 export type SingletonApi = Object
 
-export type SingletonBaseConfig = {}
+export type SingletonBaseConfig = {
+  logger: Logger
+}
 
 export function mkSingleton<TConfig extends SingletonBaseConfig, TInstance extends SingletonApi>(
   factory: (config: TConfig) => TInstance

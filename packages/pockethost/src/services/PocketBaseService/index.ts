@@ -2,6 +2,7 @@ import {
   APEX_DOMAIN,
   GobotService,
   InstanceLogWriter,
+  Logger,
   LoggerService,
   SingletonBaseConfig,
   asyncExitHook,
@@ -30,6 +31,7 @@ export type SpawnConfig = {
   stdout?: MemoryStream
   stderr?: MemoryStream
   dev?: boolean
+  logger: Logger
 }
 export type PocketbaseServiceApi = AsyncReturnType<typeof createPocketbaseService>
 
@@ -46,7 +48,7 @@ export type PocketbaseProcess = {
 export const DOCKER_INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
 
 export const createPocketbaseService = async (config: PocketbaseServiceConfig) => {
-  const _serviceLogger = LoggerService().create('PocketbaseService')
+  const _serviceLogger = (config.logger ?? LoggerService()).create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
   const { gobot } = GobotService()
@@ -58,7 +60,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
-    const logger = LoggerService().create('spawn')
+    const logger = (cfg.logger ?? config.logger ?? LoggerService()).create('spawn')
     const { dbg, info, warn, error } = logger
 
     const _cfg: Required<SpawnConfig> = {
@@ -72,8 +74,8 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     }
     const { version, subdomain, instanceId, volume, extraBinds, env, stderr, stdout, dev } = _cfg
 
-    logger.breadcrumb({ subdomain, instanceId })
-    const iLogger = InstanceLogWriter(instanceId, volume, 'exec')
+    logger.breadcrumb(`${subdomain}-${instanceId}`)
+    const iLogger = InstanceLogWriter(instanceId, volume, 'exec', logger)
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = await bot.maxSatisfyingVersion(_version)
@@ -260,7 +262,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     })
 
     const url = mkInternalUrl(container.portBinding)
-    logger.breadcrumb({ url })
+    logger.breadcrumb(url)
     dbg(`Making exit hook for ${url}`)
     const unsub = asyncExitHook(async () => {
       await api.kill()

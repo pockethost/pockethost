@@ -1,5 +1,6 @@
 import {
   DOCKER_INSTANCE_IMAGE_NAME,
+  LoggerService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
@@ -7,7 +8,6 @@ import {
   PocketbaseService,
   discordAlert,
   instanceService,
-  logger,
   neverendingPromise,
   proxyService,
   realtimeLog,
@@ -18,7 +18,8 @@ import { ErrorRequestHandler } from 'express'
 import { MothershipMirrorService } from 'src/services/MothershipMirrorService'
 
 export async function daemon() {
-  const { info, warn } = logger()
+  const logger = LoggerService().create(`cli:daemon`)
+  const { info, warn } = logger
   info(`Starting`)
 
   const docker = new Dockerode()
@@ -41,9 +42,9 @@ export async function daemon() {
     })
   )
 
-  await PocketbaseService({})
+  await PocketbaseService({ logger })
 
-  await tryFetch(MOTHERSHIP_URL(`/api/health`), {})
+  await tryFetch(MOTHERSHIP_URL(`/api/health`), { logger })
 
   info(`Serving`)
 
@@ -52,17 +53,20 @@ export async function daemon() {
     url: MOTHERSHIP_URL(),
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
+    logger,
   })
 
-  await MothershipMirrorService({ client: (await MothershipAdminClientService()).client.client })
+  await MothershipMirrorService({ client: (await MothershipAdminClientService()).client.client, logger })
 
   await proxyService({
     coreInternalUrl: MOTHERSHIP_URL(),
+    logger,
   })
-  await realtimeLog({})
+  await realtimeLog({ logger })
   await instanceService({
     instanceApiCheckIntervalMs: 50,
     instanceApiTimeoutMs: 5000,
+    logger,
   })
 
   const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
@@ -71,5 +75,5 @@ export async function daemon() {
   }
   ;(await proxyService()).use(errorHandler)
 
-  await neverendingPromise()
+  await neverendingPromise(logger)
 }

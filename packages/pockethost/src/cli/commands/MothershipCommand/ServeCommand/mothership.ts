@@ -1,13 +1,16 @@
 import {
+  _MOTHERSHIP_APP_ROOT,
   APP_URL,
   DISCORD_ALERT_CHANNEL_URL,
   DISCORD_HEALTH_CHANNEL_URL,
   DISCORD_STREAM_CHANNEL_URL,
   DISCORD_TEST_CHANNEL_URL,
+  exitHook,
   GobotService,
   IS_DEV,
-  LS_WEBHOOK_SECRET,
   LoggerService,
+  LS_WEBHOOK_SECRET,
+  mkContainerHomePath,
   MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
   MOTHERSHIP_CLOUDFLARE_API_TOKEN,
   MOTHERSHIP_CLOUDFLARE_ZONE_ID,
@@ -16,16 +19,16 @@ import {
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_PORT,
   MOTHERSHIP_SEMVER,
+  MOTHERSHIP_URL,
   TEST_EMAIL,
-  _MOTHERSHIP_APP_ROOT,
-  mkContainerHomePath,
+  tryFetch,
 } from '@'
 import { GobotOptions } from 'gobot'
 
 export type MothershipConfig = {}
 
 export async function mothership(cfg: MothershipConfig) {
-  const logger = LoggerService().create(`Mothership`)
+  const logger = LoggerService().create(`cli:mothership`)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
@@ -44,13 +47,13 @@ export async function mothership(cfg: MothershipConfig) {
     MOTHERSHIP_CLOUDFLARE_ZONE_ID: MOTHERSHIP_CLOUDFLARE_ZONE_ID(),
     MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID: MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID(),
   }
-  dbg(env)
+  dbg({ env })
 
   const options: Partial<GobotOptions> = {
     version: MOTHERSHIP_SEMVER(),
     env,
   }
-  dbg(`options`, options)
+  dbg({ options })
   const { gobot } = GobotService()
   const bot = await gobot(`pocketbase`, options)
 
@@ -71,6 +74,30 @@ export async function mothership(cfg: MothershipConfig) {
     args.push(`--dev`)
   }
   dbg({ args })
-  const code = await bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() })
-  dbg({ code })
+
+  bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() }, (proc) => {
+    proc.stdout.on('data', (data) => {
+      info(data.toString())
+    })
+    proc.stderr.on('data', (data) => {
+      error(data.toString())
+    })
+    proc.on('close', (code, signal) => {
+      error(`Pocketbase exited with code ${code} and signal ${signal}`)
+    })
+    proc.on('error', (err) => {
+      error(`Pocketbase error: ${err}`)
+    })
+    proc.on('exit', (code, signal) => {
+      error(`Pocketbase exited with code ${code} and signal ${signal}`)
+    })
+    proc.on('message', (msg) => {
+      console.log(`***message`, msg)
+    })
+    exitHook(() => {
+      proc.kill()
+    })
+  })
+  const ready = tryFetch(MOTHERSHIP_URL(`/api/health`), { logger })
+  return ready
 }

@@ -1,5 +1,6 @@
 import {
   InstanceFields,
+  LoggerService,
   mkInstanceDataPath,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
@@ -18,7 +19,10 @@ export const MigrateCommand = () => {
     .option(`-i, --instance <instanceId>`, `The instance to migrate`)
     .option(`-m, --mount-point <mountPoint>`, `The mount point`, `cloud-storage`)
     .action(async (options) => {
-      console.log({ options })
+      const logger = LoggerService().create(`cli:edge:volume:migrate`)
+      const { dbg } = logger
+      dbg({ options })
+
       const { instance: instanceId, mountPoint } = options
 
       const pb = new PocketBase(MOTHERSHIP_URL())

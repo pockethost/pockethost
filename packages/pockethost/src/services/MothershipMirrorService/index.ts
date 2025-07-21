@@ -16,7 +16,7 @@ export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
 }
 
 export const MothershipMirrorService = mkSingleton(async (config: MothershipMirrorServiceConfig) => {
-  const { dbg, error } = LoggerService().create(`MothershipMirrorService`)
+  const { dbg, error } = (config.logger ?? LoggerService()).create(`MothershipMirrorService`)
 
   const client = config.client
 
@@ -117,6 +117,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
           upsertInstance(instance)
         })
       })
+      .catch(error)
     const usersPromise = client
       .collection(`users`)
       .getFullList<UserFields>()
@@ -126,6 +127,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
           upsertUser(user)
         })
       })
+      .catch(error)
     await Promise.all([instancesPromise, usersPromise])
   }
   await init().catch(error)

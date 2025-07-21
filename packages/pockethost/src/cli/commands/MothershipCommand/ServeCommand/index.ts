@@ -1,4 +1,4 @@
-import { logger } from '@'
+import { LoggerService, neverendingPromise } from '@'
 import { Command } from 'commander'
 import { mothership } from './mothership'
 
@@ -11,9 +11,11 @@ export const ServeCommand = () => {
     .description(`Run the PocketHost mothership`)
     .option(`--isolate`, `Use Docker for process isolation.`, false)
     .action(async (options: Options) => {
-      logger().context({ cli: 'mothership:serve' })
-      console.log({ options })
+      const logger = LoggerService().create(`cli:mothership:serve`)
+      const { dbg } = logger
+      dbg({ options })
       await mothership(options)
+      await neverendingPromise(logger)
     })
   return cmd
 }
