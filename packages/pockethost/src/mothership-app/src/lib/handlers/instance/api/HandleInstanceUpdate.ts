@@ -1,3 +1,4 @@
+import { type InstanceWebhookCollection } from '$common'
 import { mkLog, StringKvLookup } from '$util/Logger'
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
 
@@ -70,6 +71,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       power: null,
       version: null,
       secrets: null,
+      webhooks: null,
       syncAdmin: null,
       dev: null,
       cname: null,
@@ -81,6 +83,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       power: boolean | null
       version: string | null
       secrets: StringKvLookup | null
+      webhooks: InstanceWebhookCollection | null
       syncAdmin: boolean | null
       dev: boolean | null
       cname: string | null
@@ -95,7 +98,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
 
   const id = c.pathParam('id')
   const {
-    fields: { subdomain, power, version, secrets, syncAdmin, dev, cname },
+    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname },
   } = data
 
   log(
@@ -106,6 +109,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       power,
       version,
       secrets,
+      webhooks,
       syncAdmin,
       dev,
       cname,
@@ -143,6 +147,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     version,
     power,
     secrets,
+    webhooks,
     syncAdmin,
     dev,
     cname,

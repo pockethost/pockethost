@@ -89,6 +89,9 @@
           <a href={`/instances/${id}/secrets`} class={activeClass(`secrets`)}>Secrets</a>
         </li>
         <li>
+          <a href={`/instances/${id}/webhooks`} class={activeClass(`webhooks`)}>Webhooks</a>
+        </li>
+        <li>
           <a href={`/instances/${id}/logs`} class={activeClass(`logs`)}>Logs</a>
         </li>
         <li>
