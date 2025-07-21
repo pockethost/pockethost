@@ -15,6 +15,7 @@ import {
 } from '@'
 import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
+import { MothershipMirrorService } from 'src/services/MothershipMirrorService'
 
 export async function daemon() {
   const { info, warn } = logger()
@@ -52,6 +53,8 @@ export async function daemon() {
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
   })
+
+  await MothershipMirrorService({ client: (await MothershipAdminClientService()).client.client })
 
   await proxyService({
     coreInternalUrl: MOTHERSHIP_URL(),

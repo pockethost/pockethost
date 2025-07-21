@@ -1,9 +1,7 @@
 import {
   APP_URL,
-  ClientResponseError,
   DAEMON_PB_IDLE_TTL,
   DOC_URL,
-  EDGE_APEX_DOMAIN,
   INSTANCE_APP_HOOK_DIR,
   INSTANCE_APP_MIGRATIONS_DIR,
   InstanceFields,
@@ -29,7 +27,7 @@ import Bottleneck from 'bottleneck'
 import { globSync } from 'glob'
 import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
-import { mkInstanceCache } from './mkInstanceCache'
+import { MothershipMirrorService } from '../MothershipMirrorService'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -233,64 +231,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     }
   }
 
-  const getInstanceRecord = (() => {
-    const cache = mkInstanceCache(client.client)
-
-    return async (host: string) => {
-      if (cache.hasItem(host)) {
-        dbg(`cache hit ${host}`)
-        return cache.getItem(host)
-      }
-      dbg(`cache miss ${host}`)
-
-      {
-        dbg(`Trying to get instance by host: ${host}`)
-        const instance = await client
-          .getInstanceByCname(host)
-
-          .catch((e: ClientResponseError) => {
-            if (e.status !== 404) {
-              throw new Error(`Unexpected response ${stringify(e)} from mothership`)
-            }
-          })
-        if (instance) {
-          dbg(`${host} is a cname`)
-          cache.setItem(instance)
-          return instance
-        }
-      }
-
-      const idOrSubdomain = host.replace(`.${EDGE_APEX_DOMAIN()}`, '')
-      {
-        dbg(`Trying to get instance by ID: ${idOrSubdomain}`)
-        const instance = await client.getInstanceById(idOrSubdomain).catch((e: ClientResponseError) => {
-          if (e.status !== 404) {
-            throw new Error(`Unexpected response ${stringify(e)} from mothership`)
-          }
-        })
-        if (instance) {
-          dbg(`${idOrSubdomain} is an instance ID`)
-          cache.setItem(instance)
-          return instance
-        }
-      }
-      {
-        dbg(`Trying to get instance by subdomain: ${idOrSubdomain}`)
-        const instance = await client.getInstanceBySubdomain(idOrSubdomain).catch((e: ClientResponseError) => {
-          if (e.status !== 404) {
-            throw new Error(`Unexpected response ${stringify(e)} from mothership`)
-          }
-        })
-        if (instance) {
-          dbg(`${idOrSubdomain} is a subdomain`)
-          cache.setItem(instance)
-          return instance
-        }
-      }
-      dbg(`${host} is none of: cname, id, subdomain`)
-      cache.blankItem(host)
-    }
-  })()
+  const mirror = await MothershipMirrorService()
 
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = LoggerService().create(`InstanceRequest`)
@@ -299,12 +240,12 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
     const { host, proxy } = res.locals
 
-    const instance = await getInstanceRecord(host)
+    const instance = await mirror.getInstanceByHost(host)
     if (!instance) {
       res.status(404).end(`${host} not found`)
       return
     }
-    const owner = instance.expand.uid
+    const owner = await mirror.getUser(instance.uid)
     if (!owner) {
       throw new Error(`Instance owner is invalid`)
     }
