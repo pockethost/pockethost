@@ -16,7 +16,7 @@
   },
   "type": "module",
   "bin": {
-    "pockethost": "src/cli/index.ts"
+    "pockethost": "tsx src/cli/index.ts"
   },
   "scripts": {
     "check:types": "tsc --noEmit ",
