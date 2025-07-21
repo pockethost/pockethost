@@ -36,32 +36,51 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     instancesByCname: {},
   }
 
-  client.collection(`instances`).subscribe<InstanceFields>(`*`, (e) => {
-    const deleteInstance = (id: InstanceId) => {
-      const oldInstance = mirror.instancesById[id]
-      if (oldInstance) {
-        const canonicalId = `${oldInstance.id}.${EDGE_APEX_DOMAIN()}`
-        const canonicalSubdomain = `${oldInstance.subdomain}.${EDGE_APEX_DOMAIN()}`
-        delete mirror.instancesById[canonicalId]
-        delete mirror.instancesBySubdomain[canonicalSubdomain]
-        delete mirror.instancesByCname[oldInstance.cname]
-        delete mirror.instancesByCanonicalId[canonicalId]
-        delete mirror.instancesByCanonicalSubdomain[canonicalSubdomain]
-      }
+  const upsertInstance = (record: InstanceFields) => {
+    dbg(`upsertInstance`, { record })
+    deleteInstance(record.id)
+    const canonicalId = `${record.id}.${EDGE_APEX_DOMAIN()}`
+    const canonicalSubdomain = `${record.subdomain}.${EDGE_APEX_DOMAIN()}`
+    mirror.instancesById[record.id] = record
+    mirror.instancesBySubdomain[record.subdomain] = record
+    mirror.instancesByCanonicalId[canonicalId] = record
+    mirror.instancesByCanonicalSubdomain[canonicalSubdomain] = record
+    if (record.cname) {
+      mirror.instancesByCname[record.cname] = record
     }
+  }
+
+  const deleteInstance = (id: InstanceId) => {
+    const oldInstance = mirror.instancesById[id]
+    if (oldInstance) {
+      const canonicalId = `${oldInstance.id}.${EDGE_APEX_DOMAIN()}`
+      const canonicalSubdomain = `${oldInstance.subdomain}.${EDGE_APEX_DOMAIN()}`
+      delete mirror.instancesById[canonicalId]
+      delete mirror.instancesBySubdomain[canonicalSubdomain]
+      delete mirror.instancesByCname[oldInstance.cname]
+      delete mirror.instancesByCanonicalId[canonicalId]
+      delete mirror.instancesByCanonicalSubdomain[canonicalSubdomain]
+    }
+  }
+
+  const upsertUser = (record: UserFields) => {
+    dbg(`upsertUser`, { record })
+    deleteUser(record.id)
+    mirror.users[record.id] = record
+  }
+
+  const deleteUser = (id: UserId) => {
+    const oldUser = mirror.users[id]
+    if (oldUser) {
+      delete mirror.users[oldUser.id]
+    }
+  }
+
+  client.collection(`instances`).subscribe<InstanceFields>(`*`, (e) => {
     const { action, record } = e
     if (action === `create` || action === `update`) {
       dbg(`instance`, { action, record })
-      deleteInstance(record.id)
-      const canonicalId = `${record.id}.${EDGE_APEX_DOMAIN()}`
-      const canonicalSubdomain = `${record.subdomain}.${EDGE_APEX_DOMAIN()}`
-      mirror.instancesById[record.id] = record
-      mirror.instancesBySubdomain[record.subdomain] = record
-      mirror.instancesByCanonicalId[canonicalId] = record
-      mirror.instancesByCanonicalSubdomain[canonicalSubdomain] = record
-      if (record.cname) {
-        mirror.instancesByCname[record.cname] = record
-      }
+      upsertInstance(record)
     }
     if (action === `delete`) {
       dbg(`instance`, { action, record })
@@ -79,8 +98,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     const { action, record } = e
     if (action === `create` || action === `update`) {
       dbg(`user`, { action, record })
-      deleteUser(record.id)
-      mirror.users[record.id] = record
+      upsertUser(record)
     }
     if (action === `delete`) {
       dbg(`user`, { action, record })
@@ -96,9 +114,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
       .then((instances) => {
         dbg(`instances: ${instances.length}`)
         forEach(instances, (instance) => {
-          if (!mirror.instancesById[instance.id]) {
-            mirror.instancesById[instance.id] = instance
-          }
+          upsertInstance(instance)
         })
       })
     const usersPromise = client
@@ -107,9 +123,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
       .then((users) => {
         dbg(`users: ${users.length}`)
         forEach(users, (user) => {
-          if (!mirror.users[user.id]) {
-            mirror.users[user.id] = user
-          }
+          upsertUser(user)
         })
       })
     await Promise.all([instancesPromise, usersPromise])
@@ -118,10 +132,6 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
 
   const api = {
     async getInstance(id: InstanceId) {
-      if (!mirror.instancesById[id]) {
-        const record = await client.collection(`instances`).getOne<InstanceFields>(id)
-        mirror.instancesById[id] = record
-      }
       return mirror.instancesById[id]
     },
     async getInstanceByHost(host: string) {
@@ -131,12 +141,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
         mirror.instancesByCanonicalId[host]
       )
     },
-
     async getUser(id: UserId) {
-      if (!mirror.users[id]) {
-        const record = await client.collection(`users`).getOne<UserFields>(id)
-        mirror.users[id] = record
-      }
       return mirror.users[id]
     },
   }
