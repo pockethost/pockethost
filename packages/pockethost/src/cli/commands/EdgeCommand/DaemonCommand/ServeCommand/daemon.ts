@@ -1,6 +1,6 @@
 import {
   DOCKER_INSTANCE_IMAGE_NAME,
-  LoggerService,
+  Logger,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
@@ -8,18 +8,21 @@ import {
   PocketbaseService,
   discordAlert,
   instanceService,
-  neverendingPromise,
   proxyService,
   realtimeLog,
   tryFetch,
 } from '@'
 import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
+import { CronService } from 'src/services/CronService'
 import { MothershipMirrorService } from 'src/services/MothershipMirrorService'
 
-export async function daemon() {
-  const logger = LoggerService().create(`cli:daemon`)
-  const { info, warn } = logger
+export type DaemonOptions = {
+  logger: Logger
+}
+
+export async function daemon({ logger }: DaemonOptions) {
+  const { info, warn } = logger.create(`daemon`)
   info(`Starting`)
 
   const docker = new Dockerode()
@@ -58,6 +61,8 @@ export async function daemon() {
 
   await MothershipMirrorService({ client: (await MothershipAdminClientService()).client.client, logger })
 
+  await CronService({ logger })
+
   await proxyService({
     coreInternalUrl: MOTHERSHIP_URL(),
     logger,
@@ -74,6 +79,4 @@ export async function daemon() {
     res.status(500).send(err.toString())
   }
   ;(await proxyService()).use(errorHandler)
-
-  await neverendingPromise(logger)
 }

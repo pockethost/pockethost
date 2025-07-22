@@ -1,10 +1,10 @@
-import { logger } from '@'
+import { Logger } from '@'
 import { Handler, Request } from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import vhost from 'vhost'
 
-export function createVhostProxyMiddleware(host: string, target: string, ws = false): Handler {
-  const { dbg } = logger()
+export function createVhostProxyMiddleware(host: string, target: string, ws = false, logger: Logger): Handler {
+  const { dbg } = logger
   dbg(`Creating ${host}->${target}`)
   const handler = createProxyMiddleware({ target, ws, changeOrigin: ws })
   return vhost(host, (_req, res, next) => {

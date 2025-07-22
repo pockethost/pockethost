@@ -8,7 +8,7 @@ import {
   exitHook,
   GobotService,
   IS_DEV,
-  LoggerService,
+  Logger,
   LS_WEBHOOK_SECRET,
   mkContainerHomePath,
   MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
@@ -25,11 +25,12 @@ import {
 } from '@'
 import { GobotOptions } from 'gobot'
 
-export type MothershipConfig = {}
+export type MothershipConfig = {
+  logger: Logger
+}
 
-export async function mothership(cfg: MothershipConfig) {
-  const logger = LoggerService().create(`cli:mothership`)
-  const { dbg, error, info, warn } = logger
+export async function mothership({ logger }: MothershipConfig) {
+  const { dbg, error, info, warn } = logger.create(`mothership`)
   info(`Starting`)
 
   /** Launch central database */
@@ -77,10 +78,12 @@ export async function mothership(cfg: MothershipConfig) {
 
   bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() }, (proc) => {
     proc.stdout.on('data', (data) => {
-      info(data.toString())
+      const lines = data.toString().split(`\n`) as string[]
+      lines.forEach((line) => info(line))
     })
     proc.stderr.on('data', (data) => {
-      error(data.toString())
+      const lines = data.toString().split(`\n`) as string[]
+      lines.forEach((line) => error(line))
     })
     proc.on('close', (code, signal) => {
       error(`Pocketbase exited with code ${code} and signal ${signal}`)
