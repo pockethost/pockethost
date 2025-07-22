@@ -10,6 +10,18 @@ const CONSOLE_METHODS = {
   [LogLevelName.Abort]: console.error,
 }
 
+function formatArg(arg: any): any {
+  if (typeof arg === 'object' && arg !== null) {
+    try {
+      return JSON.stringify(arg, null, 2)
+    } catch (e) {
+      // Handle circular references or other JSON.stringify errors
+      return String(arg)
+    }
+  }
+  return arg
+}
+
 export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger {
   const config: LoggerConfig = {
     level: LogLevelName.Info,
@@ -22,7 +34,8 @@ export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger
 
   function log(level: LogLevelName, args: any[]) {
     if (isLevelGte(level, config.level)) {
-      CONSOLE_METHODS[level](`[${level.toUpperCase()}]`, ...withBreadcrumbs(args))
+      const formattedArgs = args.map(formatArg)
+      CONSOLE_METHODS[level](`[${level.toUpperCase()}]`, ...withBreadcrumbs(formattedArgs))
     }
   }
 
