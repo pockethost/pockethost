@@ -3,7 +3,6 @@ import { ConsoleLogger } from './ConsoleLogger'
 
 export type LoggerConfig = {
   level: LogLevelName
-  pfx: string[]
   breadcrumbs: string[]
   context: Record<string, LoggerContextValue>
 }
