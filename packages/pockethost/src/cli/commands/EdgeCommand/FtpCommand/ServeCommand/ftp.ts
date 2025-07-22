@@ -1,5 +1,5 @@
 import { LoggerService } from '@'
-import { MOTHERSHIP_URL, neverendingPromise, tryFetch } from '../../../../..'
+import { MOTHERSHIP_URL, tryFetch } from '../../../../..'
 import { ftpService } from '../FtpService'
 
 export async function ftp() {
@@ -13,6 +13,4 @@ export async function ftp() {
     mothershipUrl: MOTHERSHIP_URL(),
     logger,
   })
-
-  await neverendingPromise(logger)
 }
