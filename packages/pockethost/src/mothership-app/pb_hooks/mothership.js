@@ -251,6 +251,7 @@ const HandleInstanceUpdate = (c) => {
 			power: null,
 			version: null,
 			secrets: null,
+			webhooks: null,
 			syncAdmin: null,
 			dev: null,
 			cname: null
@@ -260,13 +261,14 @@ const HandleInstanceUpdate = (c) => {
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const id = c.pathParam("id");
-	const { fields: { subdomain, power, version, secrets, syncAdmin, dev, cname } } = data;
+	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname } } = data;
 	log(`vars`, JSON.stringify({
 		id,
 		subdomain,
 		power,
 		version,
 		secrets,
+		webhooks,
 		syncAdmin,
 		dev,
 		cname
@@ -289,6 +291,7 @@ const HandleInstanceUpdate = (c) => {
 		version,
 		power,
 		secrets,
+		webhooks,
 		syncAdmin,
 		dev,
 		cname

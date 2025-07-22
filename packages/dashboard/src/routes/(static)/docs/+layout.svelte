@@ -32,6 +32,7 @@
       <DocLink path="logs" title="Logging" />
       <DocLink path="dev-mode" title="Dev Mode" />
       <DocLink path="secrets" title="Secrets" />
+      <DocLink path="webhooks" title="Webhooks" />
       <DocLink path="ftp" title="FTP Access" />
       <DocLink path="admin-sync" title="Admin Sync" />
       <DocLink path="js" title="Extending via JS" />
