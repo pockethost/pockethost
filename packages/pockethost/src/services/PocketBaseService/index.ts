@@ -74,7 +74,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     }
     const { version, subdomain, instanceId, volume, extraBinds, env, stderr, stdout, dev } = _cfg
 
-    logger.breadcrumb(`${subdomain}-${instanceId}`)
+    logger.breadcrumb(subdomain).breadcrumb(instanceId)
     const iLogger = InstanceLogWriter(instanceId, volume, 'exec', logger)
 
     const _version = version || maxVersion // If _version is blank, we use the max version available

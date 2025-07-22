@@ -60,7 +60,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const shutdownManager: (() => void)[] = []
 
     const { id, subdomain, version } = instance
-    const systemInstanceLogger = instanceServiceLogger.create(`${subdomain}:${id}:${version}`)
+    const systemInstanceLogger = instanceServiceLogger.create(subdomain).breadcrumb(id).breadcrumb(version)
     const { dbg, warn, error, info, trace } = systemInstanceLogger
     const userInstanceLogger = InstanceLogWriter(instance.id, instance.volume, `exec`, systemInstanceLogger)
 
@@ -238,7 +238,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
 
-    const { dbg } = logger
+    const { dbg, warn, error } = logger
 
     const { host, proxy } = res.locals
 
@@ -247,10 +247,12 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       res.status(404).end(`${host} not found`)
       return
     }
+    logger.breadcrumb(`i:${instance.id}`)
     const owner = await mirror.getUser(instance.uid)
     if (!owner) {
       throw new Error(`Instance owner is invalid`)
     }
+    logger.breadcrumb(`u:${owner.id}`)
 
     /*
         Suspension check

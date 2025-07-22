@@ -75,7 +75,7 @@ const MultiChannelLimiter = () => {
 const limiter = MultiChannelLimiter()
 
 export function InstanceLogWriter(instanceId: string, volume: string, target: string, logger: Logger) {
-  const lgr = logger.create(`InstanceLogWriter`).breadcrumb(`${instanceId}-${target}`)
+  const lgr = logger.create(`InstanceLogWriter`).breadcrumb(instanceId).breadcrumb(target)
   const { dbg, info, error, warn } = lgr
 
   ensureInstanceDirectoryStructure(instanceId, volume, lgr)
@@ -125,7 +125,7 @@ export function InstanceLogWriter(instanceId: string, volume: string, target: st
 }
 
 export function InstanceLogReader(instanceId: string, volume: string, target: string, logger: Logger) {
-  const { dbg, info, error, warn } = logger.create(`InstanceLogReader`).breadcrumb(`${instanceId}-${target}`)
+  const { dbg, info, error, warn } = logger.create(`InstanceLogReader`).breadcrumb(instanceId).breadcrumb(target)
 
   ensureInstanceDirectoryStructure(instanceId, volume, logger)
 
