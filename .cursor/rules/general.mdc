@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # Project Context
 
 - This project is about PocketBase, the PocketBase JS client, and the PocketBase JSVM.
@@ -13,3 +17,9 @@
 - If there are no code snippets, wrap the beginning and end of your answer in backticks and markdown as the language.
 - If there are code snippets, indent the code snippets with two spaces and the correct language for proper rendering. Indentations level 0 and 4 is not allowed.
 - If a markdown code block is indented with any value other than 2 spaces, automatically fix it
+
+# Generating code
+
+- Never run build commands
+- Never run type checking commands
+- Never start servers

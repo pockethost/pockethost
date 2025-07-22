@@ -50,7 +50,7 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
       if (!webhook.value) return
       dbg(`Creating new job for webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
       const job = new CronJob(
-        `*/5 * * * * *`, //webhook.value, // cronTime
+        webhook.value, // cronTime
         () => {
           dbg(`Firing webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
           limiter.schedule(async () => {

@@ -1,4 +1,3 @@
-import { inspect } from 'util'
 import { LogLevelName, Logger, LoggerConfig, isLevelGte } from './Logger'
 
 const CONSOLE_METHODS = {
@@ -9,6 +8,18 @@ const CONSOLE_METHODS = {
   [LogLevelName.Warn]: console.warn,
   [LogLevelName.Error]: console.error,
   [LogLevelName.Abort]: console.error,
+}
+
+function formatArg(arg: any): any {
+  if (typeof arg === 'object' && arg !== null) {
+    try {
+      return JSON.stringify(arg, null, 2)
+    } catch (e) {
+      // Handle circular references or other JSON.stringify errors
+      return String(arg)
+    }
+  }
+  return arg
 }
 
 export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger {
@@ -23,9 +34,7 @@ export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger
   function log(level: LogLevelName, args: any[]) {
     if (isLevelGte(level, config.level)) {
       const prefix = config.pfx.length > 0 ? `[${config.pfx.join(':')}] ` : ''
-      const formattedArgs = args.map((arg) =>
-        typeof arg === 'object' && arg !== null ? inspect(arg, { depth: null, colors: true }) : arg
-      )
+      const formattedArgs = args.map(formatArg)
       CONSOLE_METHODS[level](`${prefix}${level.toUpperCase()}:`, ...formattedArgs)
     }
   }
