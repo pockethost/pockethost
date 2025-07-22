@@ -11,32 +11,42 @@ import {
 import { forEach } from '@s-libs/micro-dash'
 
 export const mkInstanceCache = (client: PocketBase) => {
-  const { dbg } = LoggerService().create(`InstanceCache`)
+  const { dbg, error } = LoggerService().create(`InstanceCache`)
 
   const cache: { [_: InstanceId]: InstanceFields_WithUser | undefined } = {}
   const byUid: {
     [_: UserId]: { [_: InstanceId]: InstanceFields_WithUser }
   } = {}
 
-  client.collection(`users`).subscribe<UserFields>(`*`, (e) => {
-    const { action, record } = e
-    if ([`create`, `update`].includes(action)) {
-      dbg({ action, record })
-      updateUser(record)
-    }
-  })
-
-  client.collection(INSTANCE_COLLECTION).subscribe<InstanceFields_WithUser>(
-    `*`,
-    (e) => {
+  client
+    .collection(`users`)
+    .subscribe<UserFields>(`*`, (e) => {
       const { action, record } = e
       if ([`create`, `update`].includes(action)) {
-        setItem(record)
         dbg({ action, record })
+        updateUser(record)
       }
-    },
-    { expand: 'uid' }
-  )
+    })
+    .catch((e) => {
+      error(e)
+    })
+
+  client
+    .collection(INSTANCE_COLLECTION)
+    .subscribe<InstanceFields_WithUser>(
+      `*`,
+      (e) => {
+        const { action, record } = e
+        if ([`create`, `update`].includes(action)) {
+          setItem(record)
+          dbg({ action, record })
+        }
+      },
+      { expand: 'uid' }
+    )
+    .catch((e) => {
+      error(e)
+    })
 
   function blankItem(host: string) {
     cache[host] = undefined

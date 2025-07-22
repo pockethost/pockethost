@@ -1,4 +1,4 @@
-import { InstanceFields, InstanceLogWriter, InstanceLogWriterApi, Logger, PocketBase, assert, seqid } from '@'
+import { InstanceFields, InstanceLogWriterApi, Logger, PocketBase, assert, seqid } from '@'
 import { compact, forEach, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { spawn } from 'child_process'
@@ -26,7 +26,7 @@ export type PathError = {
 const UNIX_SEP_REGEX = /\//g
 const WIN_SEP_REGEX = /\\/g
 
-const checkBun = (instance: InstanceFields, virtualPath: string, cwd: string) => {
+const checkBun = (instance: InstanceFields, virtualPath: string, cwd: string, logger: Logger) => {
   const [subdomain, maybeImportant, ...rest] = virtualPath.split('/').filter((p) => !!p)
 
   const isImportant =
@@ -34,9 +34,8 @@ const checkBun = (instance: InstanceFields, virtualPath: string, cwd: string) =>
     (rest.length === 0 && [`bun.lock`, `bun.lockb`, `package.json`].includes(maybeImportant || ''))
 
   if (isImportant) {
-    const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
     logger.info(`${maybeImportant} changed, running bun install`)
-    launchBunInstall(instance, virtualPath, cwd).catch(logger.error)
+    launchBunInstall(instance, virtualPath, cwd, logger).catch(logger.error)
   }
 }
 
@@ -98,7 +97,7 @@ const runBun = (() => {
 
 const launchBunInstall = (() => {
   const runCache: { [key: string]: { runAgain: boolean } } = {}
-  return async (instance: InstanceFields, virtualPath: string, cwd: string) => {
+  return async (instance: InstanceFields, virtualPath: string, cwd: string, logger: Logger) => {
     if (cwd in runCache) {
       runCache[cwd]!.runAgain = true
       return
@@ -106,7 +105,6 @@ const launchBunInstall = (() => {
     runCache[cwd] = { runAgain: true }
     while (runCache[cwd]!.runAgain) {
       runCache[cwd]!.runAgain = false
-      const logger = InstanceLogWriter(instance.id, instance.volume, `exec`)
       logger.info(`Launching 'bun install' in ${virtualPath}`)
       await prepPackageJson(cwd, logger)
       await runBun(cwd, logger)
@@ -229,7 +227,7 @@ export class PhFs implements FileSystem {
   }
 
   async list(path = '.') {
-    const { dbg, error } = this.log.create(`list`).breadcrumb({ cwd: this.cwd, path })
+    const { dbg, error } = this.log.create(`list`).breadcrumb(this.cwd).breadcrumb(path)
 
     const { fsPath, instance } = await this._resolvePath(path)
 
@@ -278,7 +276,7 @@ export class PhFs implements FileSystem {
   async get(fileName: string): Promise<FileStat> {
     const { fsPath, instance, clientPath } = await this._resolvePath(fileName)
 
-    const { dbg, error } = this.log.create(`get`).breadcrumb({ cwd: this.cwd, fileName, fsPath })
+    const { dbg, error } = this.log.create(`get`).breadcrumb(this.cwd).breadcrumb(fileName).breadcrumb(fsPath)
     dbg(`get`)
 
     /*
@@ -319,7 +317,8 @@ export class PhFs implements FileSystem {
   }
 
   async write(fileName: string, options?: { append?: boolean | undefined; start?: any } | undefined) {
-    const { dbg, error } = this.log.create(`write`).breadcrumb({ cwd: this.cwd, fileName })
+    const logger = this.log.create(`write`).breadcrumb(this.cwd).breadcrumb(fileName)
+    const { dbg, error } = this.log.create(`write`).breadcrumb(this.cwd).breadcrumb(fileName)
     dbg(`write`)
 
     const { fsPath, clientPath, instance } = await this._resolvePath(fileName)
@@ -341,7 +340,7 @@ export class PhFs implements FileSystem {
       const virtualPath = join(this.cwd, fileName)
       dbg(`write(${virtualPath}) closing`)
       stream.end(() => {
-        checkBun(instance, virtualPath, dirname(fsPath))
+        checkBun(instance, virtualPath, dirname(fsPath), logger)
       })
     })
     return {
@@ -351,7 +350,7 @@ export class PhFs implements FileSystem {
   }
 
   async read(fileName: string, options: { start?: any } | undefined): Promise<any> {
-    const { dbg, error } = this.log.create(`read`).breadcrumb({ cwd: this.cwd, fileName })
+    const { dbg, error } = this.log.create(`read`).breadcrumb(this.cwd).breadcrumb(fileName)
     dbg(`read`)
 
     const { fsPath, clientPath } = await this._resolvePath(fileName)
@@ -373,7 +372,7 @@ export class PhFs implements FileSystem {
   }
 
   async delete(path: string) {
-    const { dbg, error } = this.log.create(`delete`).breadcrumb({ cwd: this.cwd, path })
+    const { dbg, error } = this.log.create(`delete`).breadcrumb(this.cwd).breadcrumb(path)
     dbg(`delete`)
 
     const { fsPath, instance } = await this._resolvePath(path)
@@ -388,7 +387,7 @@ export class PhFs implements FileSystem {
   }
 
   async mkdir(path: string) {
-    const { dbg, error } = this.log.create(`mkdir`).breadcrumb({ cwd: this.cwd, path })
+    const { dbg, error } = this.log.create(`mkdir`).breadcrumb(this.cwd).breadcrumb(path)
     dbg(`mkdir`)
 
     const { fsPath } = await this._resolvePath(path)
@@ -397,7 +396,7 @@ export class PhFs implements FileSystem {
   }
 
   async rename(from: string, to: string) {
-    const { dbg, error } = this.log.create(`rename`).breadcrumb({ cwd: this.cwd, from, to })
+    const { dbg, error } = this.log.create(`rename`).breadcrumb(this.cwd).breadcrumb(from).breadcrumb(to)
     dbg(`rename`)
 
     const { fsPath: fromPath, instance } = await this._resolvePath(from)
@@ -410,7 +409,7 @@ export class PhFs implements FileSystem {
   }
 
   async chmod(path: string, mode: Mode) {
-    const { dbg, error } = this.log.create(`chmod`).breadcrumb({ cwd: this.cwd, path, mode })
+    const { dbg, error } = this.log.create(`chmod`).breadcrumb(this.cwd).breadcrumb(path).breadcrumb(`${mode}`)
     dbg(`chmod`)
 
     const { fsPath } = await this._resolvePath(path)

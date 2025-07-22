@@ -4,6 +4,8 @@ import { ConsoleLogger } from './ConsoleLogger'
 export type LoggerConfig = {
   level: LogLevelName
   pfx: string[]
+  breadcrumbs: string[]
+  context: Record<string, LoggerContextValue>
 }
 
 export const isLevelLte = (a: LogLevelName, b: LogLevelName) => {
@@ -48,6 +50,8 @@ export const LogLevels = {
   [LogLevelName.Abort]: 6,
 } as const
 
+export type LoggerContextValue = string | number | undefined
+
 export type Logger = {
   raw: (...args: any[]) => void
   dbg: (...args: any[]) => void
@@ -59,8 +63,8 @@ export type Logger = {
   child: (name: string) => Logger
   trace: (...args: any[]) => void
   debug: (...args: any[]) => void
-  breadcrumb: (s: object) => Logger
-  context: (name: string | object, value?: string | number) => Logger
+  breadcrumb: (s: string) => Logger
+  context: (name: string | object, value?: LoggerContextValue) => Logger
   abort: (...args: any[]) => never
   shutdown: () => void
   setLevel: (level: LogLevelName) => void

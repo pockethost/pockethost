@@ -19,6 +19,14 @@ export type InstanceSecretCollection = {
   [name: InstanceSecretKey]: InstanceSecretValue
 }
 
+export type InstanceWebhookEndpoint = string
+export type InstanceWebhookValue = string
+export type InstanceWebhookCollection = InstanceWebhookItem[]
+export type InstanceWebhookItem = {
+  endpoint: InstanceWebhookEndpoint
+  value: InstanceWebhookValue
+}
+
 export type InstanceFields<TExtra = {}> = BaseFields & {
   region: string
   subdomain: Subdomain
@@ -26,6 +34,7 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   status: InstanceStatus
   version: VersionId
   secrets: InstanceSecretCollection | null
+  webhooks: InstanceWebhookCollection | null
   power: boolean
   suspension: string
   syncAdmin: boolean

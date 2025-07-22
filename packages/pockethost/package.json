@@ -20,7 +20,7 @@
   },
   "scripts": {
     "check:types": "tsc --noEmit ",
-    "dev": "NODE_ENV=development tsx --watch ./src/cli/index.ts",
+    "dev": "NODE_ENV=development tsx ./src/cli/index.ts",
     "start": "tsx ./src/cli/index.ts"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "bottleneck": "^2.19.5",
     "commander": "^13.0.0",
     "cors": "^2.8.5",
+    "cron": "^4.3.2",
     "devcert": "^1.2.2",
     "dockerode": "^4.0.3",
     "dotenv": "^16.4.7",
@@ -56,9 +57,7 @@
     "tail": "^2.2.6",
     "tsx": "^4.20.3",
     "type-fest": "^4.32.0",
-    "vhost": "^3.0.2",
-    "winston": "^3.17.0",
-    "winston-transport": "^4.9.0"
+    "vhost": "^3.0.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

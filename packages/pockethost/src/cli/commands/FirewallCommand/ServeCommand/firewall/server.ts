@@ -3,7 +3,7 @@ import {
   DAEMON_PORT,
   IPCIDR_LIST,
   IS_DEV,
-  logger,
+  LoggerService,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   neverendingPromise,
@@ -23,7 +23,8 @@ import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 
 export const firewall = async () => {
-  const { dbg, error } = logger()
+  const logger = LoggerService().create(`cli:firewall:serve`)
+  const { dbg, error } = logger
 
   const PROD_ROUTES = {
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
@@ -98,5 +99,5 @@ export const firewall = async () => {
     dbg('HTTPS server running on port 443')
   })
 
-  await neverendingPromise()
+  await neverendingPromise(logger)
 }

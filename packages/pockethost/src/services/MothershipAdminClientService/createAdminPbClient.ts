@@ -2,7 +2,7 @@ import {
   GetUserTokenPayload,
   GetUserTokenPayloadSchema,
   GetUserTokenResult,
-  LoggerService,
+  Logger,
   PocketBase,
   RestCommands,
   RestMethods,
@@ -14,8 +14,8 @@ import { createInstanceMixin } from './InstanceMIxin'
 
 export type PocketbaseClientApi = ReturnType<typeof createAdminPbClient>
 
-export const createAdminPbClient = (url: string) => {
-  const _clientLogger = LoggerService().create('PbClient')
+export const createAdminPbClient = (url: string, logger: Logger) => {
+  const _clientLogger = logger.create('PbClient')
   const { info } = _clientLogger
 
   info(`Initializing client: ${url}`)
