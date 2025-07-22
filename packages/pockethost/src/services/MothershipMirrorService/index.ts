@@ -1,4 +1,5 @@
 import {
+  createEvent,
   EDGE_APEX_DOMAIN,
   InstanceFields,
   InstanceId,
@@ -17,6 +18,11 @@ export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
 
 export const MothershipMirrorService = mkSingleton(async (config: MothershipMirrorServiceConfig) => {
   const { dbg, error } = (config.logger ?? LoggerService()).create(`MothershipMirrorService`)
+
+  const [onInstanceUpserted, fireInstanceUpserted] = createEvent<InstanceFields>()
+  const [onInstanceDeleted, fireInstanceDeleted] = createEvent<InstanceId>()
+  const [onUserUpserted, fireUserUpserted] = createEvent<UserFields>()
+  const [onUserDeleted, fireUserDeleted] = createEvent<UserId>()
 
   const client = config.client
 
@@ -37,7 +43,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   }
 
   const upsertInstance = (record: InstanceFields) => {
-    dbg(`upsertInstance`, { record })
+    dbg(`upsertInstance ${record.id}`)
     deleteInstance(record.id)
     const canonicalId = `${record.id}.${EDGE_APEX_DOMAIN()}`
     const canonicalSubdomain = `${record.subdomain}.${EDGE_APEX_DOMAIN()}`
@@ -64,7 +70,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   }
 
   const upsertUser = (record: UserFields) => {
-    dbg(`upsertUser`, { record })
+    dbg(`upsertUser ${record.id}`)
     deleteUser(record.id)
     mirror.users[record.id] = record
   }
@@ -76,35 +82,39 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     }
   }
 
-  client.collection(`instances`).subscribe<InstanceFields>(`*`, (e) => {
-    const { action, record } = e
-    if (action === `create` || action === `update`) {
-      dbg(`instance`, { action, record })
-      upsertInstance(record)
-    }
-    if (action === `delete`) {
-      dbg(`instance`, { action, record })
-      deleteInstance(record.id)
-    }
-  })
-
-  client.collection(`users`).subscribe<UserFields>(`*`, (e) => {
-    const deleteUser = (id: UserId) => {
-      const oldUser = mirror.users[id]
-      if (oldUser) {
-        delete mirror.users[oldUser.id]
+  client
+    .collection(`instances`)
+    .subscribe<InstanceFields>(`*`, (e) => {
+      const { action, record } = e
+      if (action === `create` || action === `update`) {
+        dbg(`instance`, { action, record })
+        upsertInstance(record)
+        fireInstanceUpserted(record)
       }
-    }
-    const { action, record } = e
-    if (action === `create` || action === `update`) {
-      dbg(`user`, { action, record })
-      upsertUser(record)
-    }
-    if (action === `delete`) {
-      dbg(`user`, { action, record })
-      deleteUser(record.id)
-    }
-  })
+      if (action === `delete`) {
+        dbg(`instance`, { action, record })
+        deleteInstance(record.id)
+        fireInstanceDeleted(record.id)
+      }
+    })
+    .catch(error)
+
+  client
+    .collection(`users`)
+    .subscribe<UserFields>(`*`, (e) => {
+      const { action, record } = e
+      if (action === `create` || action === `update`) {
+        dbg(`user`, { action, record })
+        upsertUser(record)
+        fireUserUpserted(record)
+      }
+      if (action === `delete`) {
+        dbg(`user`, { action, record })
+        deleteUser(record.id)
+        fireUserDeleted(record.id)
+      }
+    })
+    .catch(error)
 
   const init = async () => {
     dbg(`init`)
@@ -146,6 +156,12 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     async getUser(id: UserId) {
       return mirror.users[id]
     },
+    onInstanceUpserted,
+    onInstanceDeleted,
+    onUserDeleted,
+    onUserUpserted,
+    getInstances: () => Object.values(mirror.instancesById),
+    getUsers: () => Object.values(mirror.users),
   }
   return api
 })
