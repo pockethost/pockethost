@@ -25,6 +25,13 @@ export type InstanceWebhookCollection = InstanceWebhookItem[]
 export type InstanceWebhookItem = {
   endpoint: InstanceWebhookEndpoint
   value: InstanceWebhookValue
+  lastFired?: {
+    timestamp: number
+    response: {
+      status: number
+      body: string
+    }
+  }
 }
 
 export type InstanceFields<TExtra = {}> = BaseFields & {

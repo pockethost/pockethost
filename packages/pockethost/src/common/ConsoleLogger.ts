@@ -1,3 +1,4 @@
+import { inspect } from 'util'
 import { LogLevelName, Logger, LoggerConfig, isLevelGte } from './Logger'
 
 const CONSOLE_METHODS = {
@@ -22,7 +23,10 @@ export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger
   function log(level: LogLevelName, args: any[]) {
     if (isLevelGte(level, config.level)) {
       const prefix = config.pfx.length > 0 ? `[${config.pfx.join(':')}] ` : ''
-      CONSOLE_METHODS[level](`${prefix}${level.toUpperCase()}:`, ...args)
+      const formattedArgs = args.map((arg) =>
+        typeof arg === 'object' && arg !== null ? inspect(arg, { depth: null, colors: true }) : arg
+      )
+      CONSOLE_METHODS[level](`${prefix}${level.toUpperCase()}:`, ...formattedArgs)
     }
   }
 
