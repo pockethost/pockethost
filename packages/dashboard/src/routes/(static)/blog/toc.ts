@@ -1,5 +1,21 @@
 export const toc = [
   {
+    title: 'PocketHost 2.3.0',
+    path: '/blog/pockethost-2-3-0-release',
+  },
+  {
+    title: 'Webhooks Support is Here',
+    path: '/blog/webhooks-launch',
+  },
+  {
+    title: 'Enhanced Data Synchronization with MothershipMirrorService',
+    path: '/blog/mothership-mirror-service',
+  },
+  {
+    title: 'Automated Custom Domains with Cloudflare',
+    path: '/blog/custom-domains-automation',
+  },
+  {
     title: 'Building a Realtime Game: Kingdom',
     path: '/blog/kingdom',
   },
