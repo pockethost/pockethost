@@ -22,7 +22,7 @@
 </script>
 
 <ul
-  class={`menu ${isCollapsed ? 'dropdown-content bg-base-200 rounded-box z-[1] mt-3 w-52 p-2 shadow-xl' : 'menu-horizontal items-center'}`}
+  class={`menu ${isCollapsed ? 'dropdown-content bg-[#111111] rounded-box z-[100] mt-3 w-52 p-2 relative  shadow-xl' : 'menu-horizontal items-center'}`}
   role="menu"
   tabindex="0"
 >
@@ -37,14 +37,14 @@
     </li>
   </UserHasRole>
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
-    <a href="/blog" rel="noreferrer">Blog</a>
-  </li>
-  <li class={isCollapsed ? '' : 'hidden lg:flex'}>
     <a href="/pricing" rel="noreferrer">Pricing</a>
   </li>
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
-    <a href="/support" rel="noreferrer">Support</a>
+    <a href="/blog" rel="noreferrer">Blog</a>
   </li>
+  <!-- <li class={isCollapsed ? '' : 'hidden lg:flex'}>
+    <a href="/support" rel="noreferrer">Support</a>
+  </li> -->
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
     <a href="/docs" rel="noreferrer">Docs</a>
   </li>

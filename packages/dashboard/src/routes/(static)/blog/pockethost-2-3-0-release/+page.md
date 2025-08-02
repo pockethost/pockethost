@@ -1,5 +1,3 @@
-## PocketHost 2.3.0
-
 _[@cap'n](https://discord.gg/nVTxCMEcGT) Jul 22, 2025_
 
 ### Minor Changes

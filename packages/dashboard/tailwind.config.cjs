@@ -13,6 +13,11 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: '#3532b9',
+        secondary: '#92a3ff',
+        light:'#3a37ca'
+      },
       animation: {
         text: 'text 5s ease infinite',
       },

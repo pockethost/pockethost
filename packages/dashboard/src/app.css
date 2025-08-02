@@ -1,6 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+ font-family: 'Figtree', sans-serif;
+}
 
 .prose :where(pre):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
   @apply mb-1 mt-1;
@@ -24,4 +29,51 @@
 .prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
   @apply mt-0 mb-0;
   line-height: 1.5em;
+}
+    
+
+
+    .content {
+      position: relative;
+      z-index: 1;
+      color: white;
+      font-size: 3rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+
+     .wiggle:hover {
+  -webkit-animation-name: wiggle;
+  -ms-animation-name: wiggle;
+  -ms-animation-duration: 400ms;
+  -webkit-animation-duration: 400ms;
+  -webkit-animation-iteration-count: 1;
+  -ms-animation-iteration-count: 1;
+  -webkit-animation-timing-function: ease-in-out;
+  -ms-animation-timing-function: ease-in-out;
+}
+
+@-webkit-keyframes wiggle {
+  0% {-webkit-transform: rotate(2deg);}
+  25% {-webkit-transform: rotate(-2deg);}
+  50% {-webkit-transform: rotate(4deg);}
+  75% {-webkit-transform: rotate(-3deg);}
+  100% {-webkit-transform: rotate(0deg);}
+}
+
+@-ms-keyframes wiggle {
+   0% {-ms-transform: rotate(2deg);}
+  25% {-ms-transform: rotate(-2deg);}
+  50% {-ms-transform: rotate(4deg);}
+  75% {-ms-transform: rotate(-3deg);}
+  100% {-ms-transform: rotate(0deg);}
+}
+
+@keyframes wiggle {
+ 0% {transform: rotate(2deg);}
+  25% {transform: rotate(-2deg);}
+  50% {transform: rotate(4deg);}
+  75% {transform: rotate(-3deg);}
+  100% {transform: rotate(0deg);}
 }
