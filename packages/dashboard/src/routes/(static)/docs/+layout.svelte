@@ -2,11 +2,13 @@
   // Define the width of the sidebar
   const sidebarWidth = '300px'
   import { page } from '$app/stores'
+  import BlurBg from '$components/BlurBg.svelte'
   import DocLink from './DocLink.svelte'
 </script>
 
-<div class="container-fluid mt-4 flex gap-6 flex-col-reverse md:flex-row">
-  <div class="w-full md:w-fit bg-base-200 rounded-r-lg py-4">
+<BlurBg className="opacity-20 blur-2xl" />
+<div class="container-fluid mt-4 flex gap-6 relative z-10 flex-col-reverse md:flex-row px-4 md:px-20">
+  <div class="w-full md:w-fit py-4">
     <ul class="menu text-base">
       <li class="menu-title">Overview</li>
       <DocLink path="introduction" title="Introduction" />
@@ -58,6 +60,9 @@
 </div>
 
 <style lang="scss">
+  .menu {
+    @apply space-y-1;
+  }
   .menu,
   .menu-title {
     @apply text-base;

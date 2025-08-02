@@ -1,5 +1,3 @@
-## PocketHost is live in 40+ countries
-
 _[@cap'n](https://discord.gg/nVTxCMEcGT) Dec 25, 2024_
 
 I've been hard at work getting PocketHost live in 40+ countries. This is the beginning of the 2025 global takeover by PocketHost.

@@ -1,5 +1,3 @@
-## Pocker
-
 _[@cap'n](https://discord.gg/nVTxCMEcGT) Dec 20, 2024_
 
 Well, I've decided to go rogue and solve the problem of global PocketBase hosting. The Flounder series has raised enough money for us to do this, so I'm moving forward.
