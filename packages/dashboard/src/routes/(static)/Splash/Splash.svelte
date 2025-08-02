@@ -47,63 +47,9 @@
 
   </div>
 
-  <section class="bg-black/60 border border-white/20  text-white py-20 px-6 md:px-12 lg:px-24 rounded-lg z-10 relative">
-  <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+
+ <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     
-    <div>
-      <h2 class="text-4xl md:text-5xl font-bold mb-6">
-        Launch a PocketBase Instance in <span class="text-indigo-500">30 Seconds</span>
-      </h2>
-
-
-      <div class="space-y-6">
-        <!-- Step 1 -->
-        <div class="flex items-start gap-4">
-          <div class="text-3xl">🚀</div>
-          <div>
-            <h3 class="text-xl font-semibold">1. Sign Up & Log In</h3>
-            <p class="text-gray-400">Create an account and access your dashboard instantly.</p>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="flex items-start gap-4">
-          <div class="text-3xl">🛠️</div>
-          <div>
-            <h3 class="text-xl font-semibold">2. Click "New Instance"</h3>
-            <p class="text-gray-400">One click is all it takes to spin up a new backend.</p>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="flex items-start gap-4">
-          <div class="text-3xl">⚡</div>
-          <div>
-            <h3 class="text-xl font-semibold">3. Start Building</h3>
-            <p class="text-gray-400">Build collections, auth, and APIs—right away.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10">
-        <a href="/login" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition">
-          Try it Now
-        </a>
-      </div>
-    </div>
-
-    <!-- Right: Image or Animation -->
-    <div class="flex justify-center items-center">
-      <!-- Replace with actual image, gif, or lottie animation -->
-      <img src="/your-image.gif" alt="Demo" class="max-w-full rounded-xl shadow-lg border border-gray-700" />
-    </div>
-
-  </div>
-</section>
-
- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    
-    <!-- Actions -->
     <div class="bg-[#161b22] rounded-xl p-6 shadow border border-[#30363d]">
       <h2 class="text-lg font-semibold mb-1">Actions</h2>
       <p class="text-sm text-[#8b949e]">Set up CI/CD and script your entire workflow.</p>
@@ -115,14 +61,12 @@ on:
       - master</pre>
     </div>
 
-    <!-- Packages -->
     <div class="bg-[#161b22] rounded-xl p-6 shadow border border-[#30363d]">
       <h2 class="text-lg font-semibold mb-1">Packages</h2>
       <p class="text-sm text-[#8b949e]">Publish and consume packages. And containers, too.</p>
       <pre class="bg-[#0d1117] text-[#58a6ff] text-sm mt-4 p-3 rounded-md overflow-x-auto">~/my_project npm install</pre>
     </div>
 
-    <!-- Code Review -->
     <div class="bg-[#161b22] rounded-xl p-6 shadow border border-[#30363d]">
       <h2 class="text-lg font-semibold mb-1">Code Review</h2>
       <p class="text-sm text-[#8b949e]">Testing built into every pull request.</p>
@@ -142,7 +86,6 @@ on:
       <button class="mt-4 bg-[#238636] text-white font-semibold px-4 py-2 rounded-md">➕ Merge pull request</button>
     </div>
 
-    <!-- Advanced Security -->
     <div class="bg-[#161b22] rounded-xl p-6 shadow border border-[#30363d] relative col-span-1 md:col-span-2 lg:col-span-1">
       <div class="absolute top-6 right-6 text-lg">🛡️</div>
       <h2 class="text-lg font-semibold mb-1">Advanced Security</h2>
@@ -161,7 +104,6 @@ on:
     </div>
 
  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-900 text-white">
-  <!-- Create Instance Section -->
   <div class="bg-gray-800 p-4 rounded-lg shadow-lg col-span-full">
     <h3 class="text-lg font-semibold mb-2">Create a New Instance</h3>
     <p class="text-sm text-gray-300">
@@ -169,7 +111,6 @@ on:
     </p>
   </div>
 
-  <!-- Custom Domains Section -->
   <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
     <h3 class="text-lg font-semibold mb-2">Custom Domains</h3>
     <p class="text-sm text-gray-300">
@@ -177,7 +118,6 @@ on:
     </p>
   </div>
 
-  <!-- FTP Access Section -->
   <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
     <h3 class="text-lg font-semibold mb-2">FTP Access</h3>
     <p class="text-sm text-gray-300">
@@ -185,7 +125,6 @@ on:
     </p>
   </div>
 
-  <!-- Cloud Functions Section -->
   <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
     <h3 class="text-lg font-semibold mb-2">Cloud Functions</h3>
     <p class="text-sm text-gray-300">
@@ -193,17 +132,16 @@ on:
     </p>
   </div>
 
-  <!-- Webhooks Section -->
   <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
     <h3 class="text-lg font-semibold mb-2">Webhooks</h3>
     <p class="text-sm text-gray-300">
       Set up webhooks to integrate your instance with other services and automate workflows.
     </p>
   </div>
-</div>
+</div> -->
 
   <div
-    class="container mx-auto md:bg-gradient-to-r z-10 md:from-zinc-900 md:to-zinc-800 bg-zinc-800 border-zinc-700 border-2 rounded-[75px] flex flex-wrap mb-12 shadow-xl overflow-hidden"
+    class="container mt-8 mx-auto md:bg-gradient-to-r z-10 md:from-zinc-900 md:to-zinc-800 bg-zinc-800 border-zinc-700 border-2 rounded-[75px] flex flex-wrap mb-12 shadow-xl overflow-hidden"
   >
     <div class="bg-zinc-900 md:w-1/2">
       <MainFeatureBlock
