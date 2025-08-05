@@ -42,7 +42,7 @@
     {#each $items as item}
       <tr transition:fade>
         <th>{item.name}</th>
-        <td
+        <td class="max-w-0 truncate"
           >{item.value.slice(0, 2) +
             item.value.slice(2).replaceAll(/./g, '*')}</td
         >
