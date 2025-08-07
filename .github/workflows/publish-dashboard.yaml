@@ -7,6 +7,13 @@ on:
       - packages/dashboard/**
       - package.json
       - pnpm-lock.yaml
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/publish-dashboard.yaml
+      - packages/dashboard/**
+      - package.json
+      - pnpm-lock.yaml
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
@@ -18,6 +25,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
+      pull-requests: write
     name: Publish to Cloudflare Pages
     steps:
       - name: Checkout
@@ -51,6 +59,33 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           command: pages deploy ./packages/dashboard/build --project-name=pockethost --branch=${{ github.head_ref || github.ref_name }}
+
+      - name: Find related pull request
+        id: find_pr
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const { owner, repo } = context.repo
+            const branch = (context.payload.pull_request && context.payload.pull_request.head && context.payload.pull_request.head.ref)
+              || process.env.GITHUB_HEAD_REF
+              || process.env.GITHUB_REF_NAME
+            const prs = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:${branch}` })
+            if (prs.data.length > 0) {
+              return String(prs.data[0].number)
+            }
+            return ''
+
+      - name: Comment preview URL on PR
+        if: steps.find_pr.outputs.result != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.find_pr.outputs.result }}
+          header: pockethost-dashboard-preview
+          message: |
+            ✅ Preview available: ${{ steps.deployment.outputs.deployment-url }}
+            Triggered by @${{ github.actor }} on `${{ github.ref_name }}`.
 
       - name: Discord feature branch notification
         if: github.ref_name != env.MAIN_BRANCH
