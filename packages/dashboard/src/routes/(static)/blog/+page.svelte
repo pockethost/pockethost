@@ -55,8 +55,8 @@ import { toc } from './toc'
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each toc as item, index}
       <div class="group">
-        <a href={item.path} class="block h-full transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-          <div class="card border-white/10 shadow-lg h-full border  hover:border-white/50">
+        <a href={item.path} class="block h-full  transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div class="card border-white/10 bg-[#111111]/30 shadow-lg h-full border  hover:border-white/50">
             <div class="card-body p-6">
               <!-- Featured badge for latest posts -->
               {#if index < 3}
