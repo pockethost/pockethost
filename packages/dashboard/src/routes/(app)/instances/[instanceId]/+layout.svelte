@@ -38,7 +38,7 @@
   }
 
   $: isActive = (path: string) => $page.url.pathname.endsWith(path)
-  $: activeClass = (path: string) => (isActive(path) ? 'text-primary' : '')
+  $: activeClass = (path: string) => (isActive(path) ? 'text-secondary' : '')
 </script>
 
 <svelte:head>
@@ -46,15 +46,15 @@
 </svelte:head>
 
 {#if isReady}
-  <div class="flex flex-row items-center justify-between mb-6 gap-4 pl-4 sm:pl-6 lg:pl-8 pr-2">
+  <div class="flex flex-row items-center justify-between py-6 mb-6 border-b border-white/10">
     <div>
       <div class="flex items-center gap-3">
         <h2 class="text-4xl md:text-left text-base-content font-bold break-words">
           {$instance.subdomain}
         </h2>
-        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">
+        <a href={`/instances/${$instance.id}/version`} class="bg-gray-500/20 text-gray-300 border border-gray-500/50 text-xs px-2 py-1 rounded-full">
           v{$instance.version}
-        </span>
+        </a>
         {#if $instance.dev}
           <a
             href={`/instances/${$instance.id}/dev`}
@@ -73,15 +73,14 @@
   </div>
 
   {#if !$instance.power}
-    <div class="px-4 mb-8">
+    <div class="mb-8">
       <AlertBar message="This instance is turned off and will not respond to requests" type="warning" />
     </div>
   {/if}
 
-  <!-- Consistency is key -->
-  <div class="flex gap-4 mr-4">
+  <div class="flex gap-4">
     <div class="flex flex-col w-56">
-      <ul class="menu text-base-content mb-6">
+      <ul class="menu text-base-content mb-6 pl-0">
         <li>
           <a href={`/instances/${id}`} class={activeClass(id)}>Overview</a>
         </li>
@@ -105,12 +104,12 @@
           </a>
         </li>
       </ul>
-      <div class="pl-6">
+      <div class="">
         <Fa icon={faTriangleExclamation} class="text-error inline" />
         <span class=" font-bold text-error">Danger Zone</span>
         <Fa icon={faTriangleExclamation} class="text-error inline" />
       </div>
-      <ul class="menu text-base-content">
+      <ul class="menu text-base-content pl-0">
         <li>
           <a href={`/instances/${id}/version`} class={activeClass(`version`)}>Change Version</a>
         </li>

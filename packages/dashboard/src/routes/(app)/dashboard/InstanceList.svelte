@@ -23,46 +23,49 @@
   }
 </script>
 
-{#each values($globalInstancesStore).sort((a, b) => a.subdomain.localeCompare(b.subdomain)) as instance, index}
+{#each values($globalInstancesStore).sort((a, b) => a.subdomain.localeCompare(b.subdomain)) as instance}
   <button
-    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.power ? 'bg-neutral' : 'bg-base-200'}`}
-    on:click={(_) => goto(`/instances/${instance.id}`)}
+    class={`card flex-1 transition border border-white/10 ${instance.power ? 'hover:border-green-400/60' : 'hover:border-red-400/60'} hover:bg-black/50 rounded-xl shadow-md overflow-hidden 
+      ${instance.power ? 'bg-black/40' : 'bg-black/40'}`}
+    on:click={() => goto(`/instances/${instance.id}`)}
   >
-    <div class="card-body w-full">
-      <div class="card-title">
-        <div class="flex justify-between items-center w-full">
-          <span>{instance.subdomain.length > 15 ? instance.subdomain.slice(0, 15) + '...' : instance.subdomain}</span>
-          <input
-            type="checkbox"
-            class="toggle {instance.power ? 'toggle-success' : 'bg-red-500 hover:bg-red-500'}"
-            checked={instance.power}
+    <div class="card-body w-full flex flex-row items-center justify-between gap-6">
+      <div class="flex flex-col items-start gap-2">
+        <span class="text-xl font-semibold truncate max-w-[200px]">
+          {instance.subdomain} 
+        </span>
+
+        <div class="flex flex-wrap gap-1">
+          <a
+            href={INSTANCE_ADMIN_URL(instance)}
+            target="_blank"
             on:click={(e) => e.stopPropagation()}
-            on:change={handlePowerChange(instance.id)}
-          />
+            class="pr-2 py-0.5 rounded-full text-xs font-medium flex gap-2"
+            title="Open Admin"
+          >
+            <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-4 h-4" /> Admin
+          </a>
+          <p
+            class={`px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border-gray-500/30`}
+          >
+            <span>v{instance.version}</span>
+          </p>
+         
         </div>
+
+
       </div>
-      <p class="text-left">
-        <span class="text-gray-400"
-          >Version {instance.version}
-          <span class={instance.power ? 'hidden' : ''}>- Powered Off</span></span
-        >
-      </p>
 
-      <div class="card-actions flex justify-between mt-5">
-        <a href={`/instances/${instance.id}`} class="btn btn-primary">
-          <Fa icon={faCircleInfo} />
-          <span>Details</span>
-        </a>
-
-        <a
-          class="btn btn-secondary"
-          href={INSTANCE_ADMIN_URL(instance)}
-          target="_blank"
+      <div class="flex flex-col items-center gap-3">
+        <input
+          type="checkbox"
+          class={`toggle ${instance.power ? 'toggle-success' : 'bg-red-500 hover:bg-red-500'}`}
+          checked={instance.power}
           on:click={(e) => e.stopPropagation()}
-        >
-          <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-6" />
-          <span>Admin</span>
-        </a>
+          on:change={handlePowerChange(instance.id)}
+        />
+
+        
       </div>
     </div>
   </button>

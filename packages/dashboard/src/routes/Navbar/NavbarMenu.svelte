@@ -22,7 +22,7 @@
 </script>
 
 <ul
-  class={`menu ${isCollapsed ? 'dropdown-content bg-[#111111] rounded-box z-[100] mt-3 w-52 p-2 relative  shadow-xl' : 'menu-horizontal items-center'}`}
+  class={`!px-0 menu ${isCollapsed ? 'dropdown-content bg-[#111111] rounded-box z-[100] mt-3 w-52  m-0 relative  shadow-xl' : 'menu-horizontal items-center'}`}
   role="menu"
   tabindex="0"
 >
@@ -56,9 +56,9 @@
   <UserLoggedIn>
     {#if !isCollapsed}
       <li>
-        <div class="dropdown dropdown-end p-0 m-0">
+        <div class="dropdown dropdown-end p-0 ml-2">
           <!-- tabindex required for normal behavior on safari -->
-          <div tabindex="0" role="button">
+          <div tabindex="0" role="button" class="h-full flex items-center" >
             <Avatar />
           </div>
           <!-- svelte-ignore a11y_no_noninteractive_tabindex -->

@@ -2,7 +2,7 @@
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
   import Fa from 'svelte-fa'
-  import { faArrowRight } from '@fortawesome/free-solid-svg-icons'
+  import { faArrowRight, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
   const { authViaEmail } = client()
 
@@ -12,6 +12,7 @@
   let email: string = ''
   let password: string = ''
   let formError: string = ''
+  let showPassword:boolean = false;
 
   // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
@@ -31,7 +32,7 @@
     isFormButtonDisabled = true
     isButtonLoading = true
     formError = ''
-
+    showPassword = false;
     try {
       await authViaEmail(email, password)
       window.location.href = '/dashboard'
@@ -63,23 +64,46 @@
     />
   </div>
 
-  <div class="mb-3">
-    <label class="label" for="password">
-      <span class="label-text">Password</span>
-    </label>
+  <div class="mb-3 relative">
+  <label class="label" for="password">
+    <span class="label-text">Password</span>
+  </label>
+
+  <div class="relative">
     <input
-      type="password"
-      class="input input-bordered w-full"
+      type={showPassword ? "text" : "password"}
+      class="input input-bordered w-full pr-10"
       id="password"
       placeholder="Password"
       autocomplete="current-password"
       bind:value={password}
       required
     />
-    <div class="w-full text-end mt-1">
-      <a href="login/password-reset" class="link text-sm underline-offset-2 text-secondary">Forgot Password?</a>
-    </div>
+    {#if password.length > 0}
+    <button
+      type="button"
+      class="absolute inset-y-0 right-4 flex items-center text-gray-500"
+      on:click={() => (showPassword = !showPassword)}
+      tabindex="-1"
+    >
+      {#if showPassword}
+        <!-- Eye slash icon -->
+        <Fa icon={faEyeSlash} />
+        {:else}
+        <!-- Eye open icon -->
+        <Fa icon={faEye} />
+
+      {/if}
+    </button>
+    {/if}
   </div>
+
+  <div class="w-full text-end mt-1">
+    <a href="login/password-reset" class="link text-sm underline-offset-2 text-secondary">
+      Forgot Password?
+    </a>
+  </div>
+</div>
 
   <AlertBar message={formError} type="error" />
 

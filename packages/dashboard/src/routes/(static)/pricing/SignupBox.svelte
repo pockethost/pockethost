@@ -15,7 +15,7 @@
 
 
 <div
-  class="bg-black/60 flex flex-col cursor-pointer text-white rounded-2xl p-8 w-full max-w-sm shadow-lg transform transition-transform duration-300 hover:-translate-y-2 border {selected ? 'border-yellow-400' : 'border-neutral-800'}"
+  class="bg-black/60 flex flex-col cursor-pointer text-white rounded-2xl p-8 w-full max-w-sm shadow-md transform transition-transform duration-300 hover:-translate-y-2 border {selected ? 'border-yellow-400' : 'border-neutral-800'}"
 >
 {#if bestDeal}
       <div class="absolute top-0 left-1/2 -translate-y-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold uppercase tracking-wider bg-yellow-400 text-black rounded-full">

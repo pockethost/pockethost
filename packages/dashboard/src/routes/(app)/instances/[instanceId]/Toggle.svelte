@@ -21,7 +21,7 @@
     >
     <input
       type="checkbox"
-      class="toggle bg-{checked ? onClass : offClass} hover:bg-{checked ? onClass : offClass}"
+      class="toggle border-white/20 bg-{checked ? onClass : offClass} hover:bg-{checked ? onClass : offClass}"
       {checked}
       on:change={handleChange}
     />
