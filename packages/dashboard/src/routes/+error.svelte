@@ -1,13 +1,16 @@
 <script>
   import { page } from '$app/stores'
   import { browser } from '$app/environment'
+  import BlurBg from '$components/BlurBg.svelte'
 </script>
 
 <svelte:head>
   <title>{$page.status} - PocketHost</title>
 </svelte:head>
 
-<main class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+<BlurBg/>
+
+<main class="relative grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 z-10" >
   <div class="text-center">
     <p class="text-xl font-semibold text-indigo-300">{$page.status}</p>
     <h1 class="mt-4 text-4xl font-bold tracking-tight text-gray-100 sm:text-5xl">{$page.error?.message}</h1>
@@ -19,7 +22,7 @@
       />
     </div>
     <div class="mt-10 flex items-center justify-center gap-x-6">
-      <a href="/" class="btn btn-primary">Go back home</a>
+      <a href="/" class="btn  bg-primary hover:bg-light text-white border border-white/10 hover:border-white/15">Go back home</a>
     </div>
   </div>
 </main>
