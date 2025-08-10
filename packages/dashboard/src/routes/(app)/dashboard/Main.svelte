@@ -24,7 +24,7 @@
         <Fa icon={faPlus} /> New Instance
       </a>
       <div
-        class="hidden group-hover:block absolute top-full right-0 bg-[#111111]/80 border border-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg w-64 z-10 {instanceCount >= maxInstances && "border-red-400"}"
+        class="hidden group-hover:block absolute top-full right-0 bg-[#111111]/80 border border-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg w-64 z-20 {instanceCount >= maxInstances && "border-red-400"}"
       >
         {#if maxInstances > 0}
           {#if instanceCount > maxInstances}

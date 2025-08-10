@@ -48,7 +48,7 @@
     .sort(sortFn(sortBy))
 </script>
 
-<div class="flex flex-wrap items-center gap-3 mb-2 bg-gradient-to-r bg-[#111111]/0 backdrop-blur-md rounded-xl relative z-10">
+<div class="flex flex-wrap items-center gap-3 mb-2 bg-gradient-to-r bg-[#111111]/0 rounded-xl relative z-10">
   
   <div class="flex items-center gap-2 min-w-64 rounded-lg px-3 py-2 border border-white/10 focus-within:border-primary transition">
     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
