@@ -39,13 +39,18 @@
   }
 
   $: filteredInstances = values($globalInstancesStore)
-    .filter((instance) =>
-      instance.subdomain.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter((instance) =>
-      filterPower === 'all' ? true : filterPower === 'on' ? instance.power : !instance.power
-    )
-    .sort(sortFn(sortBy))
+  .filter((instance) => {
+    const target = (instance.cname || instance.subdomain).toLowerCase();
+    return target.includes(searchQuery.toLowerCase());
+  })
+  .filter((instance) =>
+    filterPower === 'all'
+      ? true
+      : filterPower === 'on'
+      ? instance.power
+      : !instance.power
+  )
+  .sort(sortFn(sortBy));
 </script>
 
 <div class="flex flex-wrap items-center gap-3 mb-2 bg-gradient-to-r bg-[#111111]/0 rounded-xl relative z-10">
@@ -56,7 +61,7 @@
     </svg>
     <input
       type="text"
-      placeholder="Search by subdomain..."
+      placeholder="Search "
       bind:value={searchQuery}
       class="bg-transparent text-white placeholder-slate-400 focus:outline-none w-full"
     />
@@ -98,7 +103,7 @@
     <div class="card-body w-full flex flex-row items-center justify-between gap-6">
       <div class="flex flex-col items-start gap-2">
         <span class="text-xl font-semibold truncate max-w-[200px]">
-          {instance.subdomain} 
+          {instance.cname  ? instance.cname : instance.subdomain} 
         </span>
 
         <div class="flex flex-wrap gap-1">
