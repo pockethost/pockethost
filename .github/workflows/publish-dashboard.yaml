@@ -62,7 +62,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy ./packages/dashboard/build --project-name=pockethost --branch=${{ github.event.pull_request.head.ref || github.ref_name }}
+          command: pages deploy ./packages/dashboard/build --project-name=pockethost --branch=${{ github.event_name == 'pull_request_target' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request_target'
