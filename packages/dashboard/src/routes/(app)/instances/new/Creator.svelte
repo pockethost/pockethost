@@ -116,7 +116,7 @@
     {/if}
 
     <div class="flex items-center justify-center gap-4">
-      <a href="/" class="btn flex-1">Cancel</a>
+      <a href="/dashboard" class="btn flex-1">Cancel</a>
 
       <button type="submit" class="btn bg-primary hover:bg-light flex-1" disabled={isFormButtonDisabled}>
         {#if isSubmitting}
