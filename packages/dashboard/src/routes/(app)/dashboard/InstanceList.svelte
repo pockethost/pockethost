@@ -32,7 +32,7 @@
       case 'subdomain':
         return (a: InstanceFields, b: InstanceFields) => a.subdomain.localeCompare(b.subdomain)
       case 'power':
-        return (a: InstanceFields, b: InstanceFields) => (b.power === a.power ? 0 : b.power ? 1 : -1) * -1
+        return (a: InstanceFields, b: InstanceFields) => a.power === b.power ? 0 : a.power ? -1 : 1
       default:
         return (a: InstanceFields, b: InstanceFields) => b.created.localeCompare(a.created)
     }
