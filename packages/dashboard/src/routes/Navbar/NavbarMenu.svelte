@@ -55,14 +55,14 @@
   </UserLoggedOut>
   <UserLoggedIn>
     {#if !isCollapsed}
-      <li>
-        <div class="dropdown dropdown-end p-0 ml-2">
+      <li class="z-[100]">
+        <div class="dropdown dropdown-end p-0 ml-2 relative">
           <!-- tabindex required for normal behavior on safari -->
           <div tabindex="0" role="button" class="h-full flex items-center" >
             <Avatar />
           </div>
           <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-          <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[1] mt-36 md:mt-24 w-52 p-2 shadow">
+          <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[100] top-full mt-2 w-52 p-2 shadow">
             <li><a href="/account">Settings</a></li>
             <li>
               <button on:click={handleLogoutAndRedirect}>Logout</button>
