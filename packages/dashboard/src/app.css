@@ -31,6 +31,10 @@
   line-height: 1.5em;
 }
 
+.mockup-code {
+  @apply bg-[#111111] border border-white/10;
+}
+
     
 
 

@@ -87,29 +87,29 @@
     onDestroy(unsub)
     onDestroy(() => unwatch?.())
   })
-</script>
+</script> 
 
-<!-- Consistency is key -->
-<CardHeader>Logs</CardHeader>
+<div>
+  <CardHeader>Logs</CardHeader>
 
 <div class="mb-4">
   Instance logs appear here in realtime, including <code>console.log</code> from JavaScript hooks.
 </div>
 
 <dialog id="loggingFullscreenModal" class="modal backdrop-blur">
-  <div class="modal-box max-w-[90vw] h-[90vh]">
-    <button class="btn btn-sm absolute top-[6px] right-[6px]" on:click={() => (autoScroll = !autoScroll)}
+  <div class="modal-box mockup-code max-w-[90vw] h-[90vh]">
+    <button class="btn btn-sm absolute top-4 right-4" on:click={() => (autoScroll = !autoScroll)}
       >AutoScroll
       <Fa icon={autoScroll ? faArrowDown : faClose} />
     </button>
-    <h3 class="font-bold text-lg">Instance Logging</h3>
+    <h3 class="font-bold text-lg pb-4">Instance Logging</h3>
 
-    <div class="py-4 h-[80vh] overflow-y-scroll flex flex-col" bind:this={logElementPopup}>
+    <div class="h-[70vh] overflow-y-scroll flex flex-col" bind:this={logElementPopup}>
       {#each $logs as log}
         <div class="px-4 text-[16px] font-mono flex align-center" data-prefix=">">
           <div>
-            <span class="mr-1 text-accent">{log.time}</span>
-            <span class="mr-1 text-base-content {logColor(log.stream)}">{@html logText(log)}</span>
+            <span class="mr-1 text-light">{log.time}</span>
+            <span class="mr-1 text-base-content {logColor(log.stream)}">{@html logText(log)}</span> 
           </div>
         </div>
       {/each}
@@ -122,7 +122,7 @@
 </dialog>
 
 <div class="mockup-code">
-  <div class="flex flex-row absolute top-[6px] right-[6px] gap-1">
+  <div class="flex flex-row absolute top-4 right-4 gap-1">
     <button class="btn btn-sm" on:click={() => (autoScroll = !autoScroll)}
       >AutoScroll
       <Fa icon={autoScroll ? faArrowDown : faClose} />
@@ -135,11 +135,12 @@
     {#each $logs as log}
       <div class="px-4 text-[16px] font-mono flex align-center" data-prefix=">">
         <div>
-          <span class="mr-1 text-accent">{log.time}</span>
+          <span class="mr-1 text-light">{log.time}</span>
 
           <span class="mr-1 text-base-content {logColor(log.stream)}">{@html logText(log)}</span>
         </div>
       </div>
     {/each}
   </div>
+</div>
 </div>
