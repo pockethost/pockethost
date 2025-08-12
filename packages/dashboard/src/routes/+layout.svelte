@@ -40,7 +40,9 @@
   <footer class="text-neutral-content px-4 md:px-20 py-10 text-sm bg-[#111111]">
     <div class=" flex justify-between items-center">
       <div class="flex-1">
-        <img src="/pockethost-cloud-logo.png" alt="Pockethost Logo" class="h-28 md:h-36" />
+        <a href="/" rel="noreferrer">
+          <img src="/pockethost-cloud-logo.png" alt="Pockethost Logo" class="h-28 md:h-36" />
+        </a>
         <div class="flex items-center gap-4 md:gap-6">
           <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank">
             <Fa icon={faGithub} />
