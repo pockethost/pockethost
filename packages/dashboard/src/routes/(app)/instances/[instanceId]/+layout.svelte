@@ -78,7 +78,7 @@
     </div>
   {/if}
 
-  <div class="flex gap-4">
+  <div class="flex gap-4 relative">
     <div class="flex flex-col w-56">
       <ul class="menu text-base-content mb-6 pl-0">
         <li>
@@ -131,9 +131,9 @@
       </ul>
     </div>
 
-    <div class="w-full">
+    <div class="w-[80%]">
       {#key $page.url.pathname}
-        <article class="flex flex-col gap-4">
+        <article class="flex flex-col gap-4 w-full">
           <slot />
         </article>
       {/key}
