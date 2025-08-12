@@ -76,4 +76,8 @@
   .menu-title {
     @apply text-base;
   }
+
+  .menu-title {
+    @apply px-0;
+  }
 </style>
