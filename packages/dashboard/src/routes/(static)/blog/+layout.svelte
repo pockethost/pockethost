@@ -11,13 +11,18 @@ import { toc } from './toc'
   $: name = toc.find((entry) => entry.path === blogPath)?.title ?? 'PocketHost Blog';
 </script>
 
+<svelte:head>
+  <title>{name} - PocketHost</title>
+  <meta name="description" content="Stay updated with the latest PocketHost features, tutorials, and community news." />
+</svelte:head>
+
 <div class="min-h-screen">
   {#if !isIndexPage}
     <div class="sticky top-0 z-10 px-4 md:px-20">
       <div class="w-full mx-auto h-32 py-4">
         <div class="flex items-center gap-4 mb-4">
           <a href="/blog" class="btn btn-ghost btn-sm gap-2 hover:bg-primary/10 transition-colors">
-            <Fa icon={faArrowLeft} size="sm" />
+            <Fa icon={faArrowLeft} size="sm" /> 
             Back to Blog
           </a>
         </div>
