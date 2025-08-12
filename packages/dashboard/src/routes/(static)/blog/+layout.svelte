@@ -13,36 +13,14 @@ import { toc } from './toc'
 
 <div class="min-h-screen">
   {#if !isIndexPage}
-    <!-- Blog post header with navigation -->
-     
     <div class="sticky top-0 z-10 px-4 md:px-20">
       <div class="w-full mx-auto h-32 py-4">
-          <!-- <img src="/pockethost-cloud-logo.png" class="w-full blur-2xl h-full object-fill absolute top-0 left-0 -z-10" alt=""> -->
         <div class="flex items-center gap-4 mb-4">
           <a href="/blog" class="btn btn-ghost btn-sm gap-2 hover:bg-primary/10 transition-colors">
             <Fa icon={faArrowLeft} size="sm" />
             Back to Blog
           </a>
-
-         
         </div>
-
-        <!-- Blog branding -->
-        <!-- <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center"
-          >
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 class="text-xl font-bold text-primary">PocketHost Blog</h2>
-            <p class="text-sm text-base-content/60">Latest updates and insights</p>
-          </div>
-        </div> -->
       </div>
     </div>
 
