@@ -9,7 +9,7 @@
 </script>
 
 <BlurBg/>
-<div class="max-w-7xl mx-auto px-4 pt-8 text-center relative">
+<div class="max-w-7xl mx-auto px-4 pt-12 text-center relative">
   <h2 class="text-4xl font-bold text-white">Affordable Hosting</h2>
   <p class="text-xl text-gray-300 mt-2">Premium Performance</p>
 
