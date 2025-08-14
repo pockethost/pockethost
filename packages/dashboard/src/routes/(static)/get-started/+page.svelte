@@ -9,8 +9,8 @@
 </svelte:head>
 
 <div>
-  <div class="py-12 ">
-    <div class="w-full flex items-center justify-center px-10 md:px-16">
+  <div class="py-6 md:py-12">
+    <div class="w-full flex items-center justify-center px-4 md:px-16">
       <!-- <Logo /> -->
       <InstanceGeneratorWidget />
     </div>

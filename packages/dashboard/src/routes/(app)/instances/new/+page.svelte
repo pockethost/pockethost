@@ -18,7 +18,7 @@
 </svelte:head>
 
 <div class="flex items-center justify-center pt-14">
-  <div class="max-w-md ">
+  <div class="max-w-md px-4 w-full">
     <!-- <h2 class="text-4xl text-base-content font-bold capitalize mb-6">Create A New Instance</h2> -->
 
     {#if canCreate}

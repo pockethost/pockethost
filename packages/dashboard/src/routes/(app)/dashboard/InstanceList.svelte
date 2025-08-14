@@ -55,7 +55,7 @@
 
 <div class="flex flex-wrap items-center gap-3 mb-2 bg-gradient-to-r bg-[#111111]/0 rounded-xl relative z-10">
   
-  <div class="flex items-center gap-2 min-w-64 rounded-lg px-3 py-2 border border-white/10 focus-within:border-primary transition">
+  <div class="flex items-center gap-2 w-full md:w-72 rounded-lg px-3 py-2 border border-white/10 focus-within:border-primary transition">
     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M5 11a6 6 0 1112 0 6 6 0 01-12 0z" />
     </svg>
@@ -67,7 +67,7 @@
     />
   </div>
 
-  <div class="flex flex-1 justify-end gap-2">
+  <div class="flex flex-1 justify-start md:justify-end  gap-2">
     <div class="dropdown dropdown-end ">
     <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
       Filter: {filterPower === 'all' ? 'All' : filterPower === 'on' ? 'Power On' : 'Power Off'}
@@ -92,7 +92,7 @@
   </div>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pt-3 gap-4 items-center justify-center relative z-0">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pt-1 md:pt-3 gap-2 md:gap-4 items-center justify-center relative z-0">
 
 {#each filteredInstances as instance}
   <button

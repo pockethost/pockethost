@@ -16,7 +16,7 @@
 
 <div class="form-control w-fit">
   <label class="label cursor-pointer">
-    <span class="label-text text-lg mr-2">
+    <span class="label-text text-sm md:text-lg mr-2">
       <span class="font-bold text-{checked ? onClass : offClass}">{checked ? onText : offText}</span></span
     >
     <input
