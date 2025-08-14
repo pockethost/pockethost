@@ -13,7 +13,7 @@
 </script>
 
 {#if isVisible}
-<div class="px-8 md:px-20">
+<div class="px-4 md:px-20">
 
   <div class="alert py-2 flex justify-center rounded-md px-8 items-center alert-info bg-yellow-300/20 border-white/10 text-white  relative">
     <div class=" flex-1 text-sm flex text-white items-center justify-start gap-4" >
