@@ -40,6 +40,14 @@
       })
   }
 
+  function handleCloseSidebar(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (window.innerWidth < 768 && target.closest('a')) {
+      sidebarOpen = false;
+    }
+
+  }
+
   $: isActive = (path: string) => $page.url.pathname.endsWith(path)
   $: activeClass = (path: string) => (isActive(path) ? 'text-secondary' : '')
 
@@ -125,7 +133,7 @@
 
   <div
     class="flex flex-col w-56 md:relative fixed md:top-auto top-0 left-0 h-full bg-[#111111] md:bg-transparent px-4 z-50 transform transition-transform duration-300 md:translate-x-0"
-    class:-translate-x-full={!sidebarOpen && window.innerWidth < 768}
+    class:-translate-x-full={!sidebarOpen && window.innerWidth < 768} on:click={handleCloseSidebar} role="presentation"
   >
     <ul class="menu text-base-content mb-6 pl-0">
       <li class="md:hidden flex items-start">
