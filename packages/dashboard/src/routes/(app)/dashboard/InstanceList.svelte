@@ -1,31 +1,14 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import { INSTANCE_ADMIN_URL } from '$src/env'
-  import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
-  import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
   import { values } from '@s-libs/micro-dash'
-  import { type InstanceId } from 'pockethost/common'
-  import Fa from 'svelte-fa'
   import { type InstanceFields } from 'pockethost/common'
+  import InstanceCard from './InstanceCard.svelte'
 
   type SortOptions = 'subdomain' | 'created' | 'power'
 
   let sortBy: SortOptions = 'power'
   let searchQuery = ''
   let filterPower: 'all' | 'on' | 'off' = 'all'
-
-  const { updateInstance } = client()
-
-  const handlePowerChange = (id: InstanceId) => (e: Event) => {
-    const target = e.target as HTMLInputElement
-    const power = target.checked
-    updateInstance({ id, fields: { power } })
-      .then(() => 'saved')
-      .catch((error) => {
-        error.data.message || error.message
-      })
-  }
 
   const sortFn = (type: SortOptions) => {
     switch (type) {
@@ -39,18 +22,14 @@
   }
 
   $: filteredInstances = values($globalInstancesStore)
-  .filter((instance) => {
-    const target = (instance.cname || instance.subdomain).toLowerCase();
-    return target.includes(searchQuery.toLowerCase());
+  .filter(instance => {
+    const target = (instance.cname || instance.subdomain).toLowerCase()
+    const matchesQuery = target.includes(searchQuery.toLowerCase())
+    const matchesPower =
+      filterPower === 'all' ? true : filterPower === 'on' ? instance.power : !instance.power
+    return matchesQuery && matchesPower
   })
-  .filter((instance) =>
-    filterPower === 'all'
-      ? true
-      : filterPower === 'on'
-      ? instance.power
-      : !instance.power
-  )
-  .sort(sortFn(sortBy));
+  .sort(sortFn(sortBy))
 </script>
 
 <div class="flex flex-wrap items-center gap-3 mb-2 bg-gradient-to-r bg-[#111111]/0 rounded-xl relative z-10">
@@ -68,7 +47,7 @@
   </div>
 
   <div class="flex flex-1 justify-start md:justify-end  gap-2">
-    <div class="dropdown dropdown-end ">
+    <div class="dropdown dropdown-start md:dropdown-end ">
     <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
       Filter: {filterPower === 'all' ? 'All' : filterPower === 'on' ? 'Power On' : 'Power Off'}
     </div>
@@ -79,7 +58,7 @@
     </ul>
   </div>
 
-  <div class="dropdown dropdown-end">
+  <div class="dropdown dropdown-start md:dropdown-end">
     <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
       Sort: {sortBy}
     </div>
@@ -94,48 +73,9 @@
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pt-1 md:pt-3 gap-2 md:gap-4 items-center justify-center relative z-0">
 
-{#each filteredInstances as instance}
-  <button
-    class={`card flex-1 transition border border-white/10 ${instance.power ? 'hover:border-green-400/60' : 'hover:border-red-400/60'} hover:bg-black/50 rounded-xl shadow-md overflow-hidden 
-      ${instance.power ? 'bg-black/40' : 'bg-black/40'}`}
-    on:click={() => goto(`/instances/${instance.id}`)}
-  >
-    <div class="card-body w-full flex flex-row items-center justify-between gap-6">
-      <div class="flex flex-col items-start gap-2">
-        <span class="text-xl font-semibold truncate max-w-[200px]">
-          {instance.cname  ? instance.cname : instance.subdomain} 
-        </span>
-
-        <div class="flex flex-wrap gap-1">
-          <a
-            href={INSTANCE_ADMIN_URL(instance)}
-            target="_blank"
-            on:click={(e) => e.stopPropagation()}
-            class="pr-2 py-0.5 rounded-full text-xs font-medium flex gap-2"
-            title="Open Admin"
-          >
-            <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-4 h-4" /> Admin
-          </a>
-          <p
-            class={`px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border-gray-500/30`}
-          >
-            <span>v{instance.version}</span>
-          </p>
-        </div>
-      </div>
-
-      <div class="flex flex-col items-center gap-3">
-        <input
-          type="checkbox"
-          class={`toggle ${instance.power ? 'toggle-success' : 'bg-red-500 hover:bg-red-500'}`}
-          checked={instance.power}
-          on:click={(e) => e.stopPropagation()}
-          on:change={handlePowerChange(instance.id)}
-        />
-      </div>
-    </div>
-  </button>
-{/each}
+{#each filteredInstances as instance (instance.id)}
+    <InstanceCard {instance} />
+  {/each}
 </div>
 
 
