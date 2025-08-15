@@ -88,11 +88,11 @@
     </div>
   </div>
 
-  {#if !$instance.power}
+  <!-- {#if !$instance.power}
     <div class="mb-8">
       <AlertBar message="This instance is turned off and will not respond to requests" type="warning" />
     </div>
-  {/if}
+  {/if} -->
 
   <div class="flex gap-4 flex-col md:flex-row relative">
 
