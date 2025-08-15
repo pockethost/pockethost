@@ -11,6 +11,10 @@
   let sidebarOpen = false
   let windowWidth = 0
 
+  $: if (typeof document !== 'undefined' && windowWidth < 768) {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+  }
+
   onMount(() => {
     windowWidth = window.innerWidth
     const resizeListener = () => (windowWidth = window.innerWidth)
@@ -21,15 +25,6 @@
   function closeSidebar() {
     if (windowWidth < 768) sidebarOpen = false
   }
-
-  $: {
-    if (sidebarOpen && windowWidth < 768) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-  }
-
 
 </script>
 
