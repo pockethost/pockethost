@@ -5,8 +5,7 @@
   import { SubscriptionType } from 'pockethost/common'
   import { faPlus } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
-
-  // $: maxInstances = 25
+  
   $: maxInstances = $userStore?.subscription_quantity || 0
   $: instanceCount = values($globalInstancesStore).length
 </script>
@@ -15,7 +14,7 @@
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
-<div class="flex flex-row items-center justify-between my-6 gap-4">
+<div class="flex flex-row items-center justify-between mt-6 mb-4 md:mb-6 gap-4">
   <h2 class="text-2xl md:text-4xl text-base-content font-bold capitalize">Dashboard</h2>
 
   <div class="group">
