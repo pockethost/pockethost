@@ -12,7 +12,7 @@
   let sortBy: SortOptions = 'power'
   let searchQuery = ''
   let filterPower: 'all' | 'on' | 'off' = 'all'
-  let sortDirection: SortDirection = 'desc'
+  let sortDirection: SortDirection = 'asc'
 
   const sortFn = (type: SortOptions, direction: SortDirection) => {
     const multiplier = direction === 'asc' ? 1 : -1
