@@ -54,7 +54,7 @@
   if (type === 'error') {
     alertTypeClass = 'alert-error'
     alertTypeIcon = faCircleXmark
-  }
+  } 
 </script>
 
 {#if message && !isHidden}

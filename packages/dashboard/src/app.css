@@ -37,6 +37,18 @@
 
     
 
+.alert-error {
+  @apply bg-red-500/60 border-white/10 text-white
+}
+.alert-success {
+  @apply bg-green-500/60 border-white/10 text-white
+}
+.alert-info {
+  @apply bg-blue-500/60 border-white/10 text-white
+}
+.alert-warning {
+  @apply bg-yellow-500/30 border-white/10 text-white
+}
 
     .content {
       position: relative;

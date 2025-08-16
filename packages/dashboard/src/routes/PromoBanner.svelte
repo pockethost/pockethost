@@ -15,7 +15,7 @@
 {#if isVisible}
 <div class="px-4 md:px-20">
 
-  <div class="alert py-2 flex justify-center rounded-md px-8 items-center alert-info bg-yellow-300/20 border-white/10 text-white  relative">
+  <div class="alert py-2 flex justify-center rounded-md px-8 items-center alert-warning  relative">
     <div class=" flex-1 text-sm flex text-white items-center justify-start gap-4" >
       {latestPost.title}
       <a href={latestPost.path} class="btn  btn-xs bg-transparent border-white   hover:bg-transparent">Learn more</a>
