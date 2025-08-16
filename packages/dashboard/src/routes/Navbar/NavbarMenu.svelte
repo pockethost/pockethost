@@ -26,7 +26,7 @@
   role="menu"
   tabindex="0"
 >
-<li class={isCollapsed ? '' : 'hidden lg:flex'}>
+  <li class={isCollapsed ? '' : 'flex md:hidden'}>
     <a href="/" rel="noreferrer">Home</a>
   </li>
   <UserLoggedIn>
