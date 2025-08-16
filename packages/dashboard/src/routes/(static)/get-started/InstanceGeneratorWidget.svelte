@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BlurBg from '$components/BlurBg.svelte'
   import LoginForm from './LoginForm.svelte'
   import RegisterForm from './RegisterForm.svelte'
   import { onMount } from 'svelte'
@@ -20,7 +21,9 @@
   })
 </script>
 
-<div class="card w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
+<BlurBg />
+
+<div class="card w-[100%]  lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
   {#if isSignUpView}
     <div in:slide={{ delay: 400 }} out:slide>
       <RegisterForm bind:isSignUpView />

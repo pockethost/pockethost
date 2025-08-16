@@ -83,11 +83,12 @@
   }
 </script>
 
+
 <Card>
-  <form on:submit={handleSubmit}>
+  <form  on:submit={handleSubmit}>
     <CardHeader>Choose a name for your PocketBase instance.</CardHeader>
 
-    <div class="flex rename-instance-form-container-query gap-4">
+    <div class="flex rename-instance-form-container-query">
       <input type="text" bind:value={$instanceNameField} class="input input-bordered w-full" />
 
       <button
@@ -98,7 +99,7 @@
       >
     </div>
 
-    <div style="font-size: 15px;" class="p-2 mb-8">
+    <div style="font-size: 15px;" class="p-2 mb-4">
       {#if $instanceInfo.fetching}
         Verifying...
       {:else if $instanceInfo.available}
@@ -116,9 +117,9 @@
     {/if}
 
     <div class="flex items-center justify-center gap-4">
-      <a href="/" class="btn">Cancel</a>
+      <a href="/dashboard" class="btn flex-1">Cancel</a>
 
-      <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
+      <button type="submit" class="btn bg-primary hover:bg-light flex-1" disabled={isFormButtonDisabled}>
         {#if isSubmitting}
           <span class="loading loading-spinner loading-md"></span>
         {:else}

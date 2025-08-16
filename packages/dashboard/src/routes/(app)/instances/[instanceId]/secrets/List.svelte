@@ -29,7 +29,7 @@
   }
 </script>
 
-<table class="table mb-8">
+<table class="table mb-8 w-full">
   <thead>
     <tr>
       <th class="w-2/5 border-b-2 border-neutral">Key</th>

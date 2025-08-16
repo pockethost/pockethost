@@ -2,16 +2,15 @@ import { DISCORD_URL } from '$src/env'
 import regions from './regions.png?enhanced'
 
 export const features = [
+   {
+    title: 'Global Infrastructure',
+    description:
+      'PocketHost spans 40+ edge locations, connecting users via distributed edge servers with an enterprise-grade VPN for optimal data routing and 10-30ms latency for top application performance.',
+    img: regions,
+  },
   {
     title: 'Risk-free Trial',
     description: `Test-drive PocketHost for up to 7 days. Credit card required.`,
-  },
-
-  {
-    title: 'Global Infrastructure',
-    description:
-      'PocketHost operates across 40+ regional edge locations. Users connect through our distributed network of edge servers, while our enterprise-grade internal VPN ensures optimal routing to your data. Experience consistent 10-30ms edge latency for superior application performance.',
-    img: regions,
   },
   {
     title: 'Developer-Friendly Pricing',

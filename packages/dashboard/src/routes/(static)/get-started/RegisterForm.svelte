@@ -105,17 +105,17 @@
   </div>
 {:else}
   <div in:slide={{ delay: 400 }} out:slide>
-    <form class="card-body" on:submit={handleSubmit}>
-      <h2 class="font-bold text-white mb-3 text-center text-2xl">
-        You are 30 seconds away from your first <br />PocketBase Instance
+    <form class="p-10 px-5 md:px-10 pb-5 flex flex-col" on:submit={handleSubmit}>
+      <h2 class="font-bold text-white mb-6 text-center text-2xl">
+        Create your first Instance, fast.
       </h2>
 
-      <div class="mb-3">
+      <div>
         <label class="label" for="instance">
           <span class="label-text">Instance Name</span>
         </label>
 
-        <div class="input-group">
+        <div class="input-group flex">
           <input
             type="text"
             placeholder="instance-name"
@@ -136,13 +136,14 @@
             Verifying...
           {:else if $instanceInfo.available}
             <span class="text-success"> https://{$instanceInfo.name}.pockethost.io ✔︎</span>
-          {:else}
+          {:else if !$instanceInfo.available}
             <span class="text-error"> https://{$instanceInfo.name}.pockethost.io ❌</span>
           {/if}
         </div>
       </div>
+      <div class="divider my-2 text-white"></div>
 
-      <div class="mb-3">
+      <div>
         <label class="label" for="id">
           <span class="label-text">Email</span>
         </label>
@@ -158,7 +159,7 @@
         />
       </div>
 
-      <div class="mb-12">
+      <div class="mb-6">
         <label class="label" for="password">
           <span class="label-text">Password</span>
         </label>
@@ -175,15 +176,15 @@
 
       <AlertBar message={formError} type="error" />
 
-      <div class="card-actions justify-end">
-        <button type="submit" class="btn btn-primary" disabled={isFormButtonDisabled}>
+      <div class="w-full">
+        <button type="submit" class="btn w-full bg-primary hover:bg-light" disabled={isFormButtonDisabled}>
           Create <Fa icon={faArrowRight} />
         </button>
       </div>
     </form>
 
-    <div class="p-4 bg-zinc-800 text-center">
-      Already have an account? <button type="button" class="link font-bold" on:click={handleLoginClick}>Login</button>
+    <div class="p-4 text-sm border-t border-white/10 text-center">
+      Already have an account? <button type="button" class="link text-primary ml-1 dark:text-secondary" on:click={handleLoginClick}>Log in</button>
     </div>
   </div>
 {/if}

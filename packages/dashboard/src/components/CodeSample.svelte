@@ -14,11 +14,11 @@
   {@html a11yDark}
 </svelte:head>
 
-<div class="copy-container">
+<div class="copy-container mb-4">
   <Highlight {language} {code} />
 
   <div class="copy-button">
-    <CopyButton {code} copy={handleCopy} />
+    <CopyButton {code} copy={handleCopy}  />
   </div>
 </div>
 

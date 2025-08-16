@@ -90,8 +90,8 @@
   <AlertBar message={errorMessage} type="error" />
 
   <form on:submit={handleSubmit} class="mb-4">
-    <div class="flex flex-row gap-4 mb-4">
-      <label class="flex-1 form-control">
+    <div class="flex flex-row gap-1 mb-4">
+      <label class="flex-1 form-control w-2/5">
         <input
           id="secret-key"
           type="text"
@@ -108,7 +108,7 @@
         {/if}
       </label>
 
-      <div class="flex-1 form-control">
+      <div class="flex-1 form-control w-2/5">
         <input
           id="secret-value"
           type="text"
@@ -118,8 +118,8 @@
         />
       </div>
 
-      <div class="flex-none text-right">
-        <button type="submit" class="btn btn-primary" disabled={!isFormValid}>
+      <div class="flex-none text-right w-1/5 md:w-auto">
+        <button type="submit" class="btn btn-primary px-2.5 md:px-3" disabled={!isFormValid}>
           Add <Fa icon={faFloppyDisk} />
         </button>
       </div>

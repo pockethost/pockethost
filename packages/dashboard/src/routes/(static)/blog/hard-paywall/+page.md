@@ -1,5 +1,3 @@
-## Moving to a hard paywall
-
 _[@cap'n](https://discord.gg/nVTxCMEcGT) Jan 6, 2025_
 
 Along with the [Pocker](/blog/announcing-pocker) rollout, I've also decided to move to a hard paywall. This means that every new user will have to pay for their PocketHost account before they can use it. There will be a 7 day free trial, but after that, you'll have to pay, and you will know that going in.
