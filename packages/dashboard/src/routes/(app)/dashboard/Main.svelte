@@ -5,7 +5,7 @@
   import { SubscriptionType } from 'pockethost/common'
   import { faPlus } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
-  
+
   $: maxInstances = $userStore?.subscription_quantity || 0
   $: instanceCount = values($globalInstancesStore).length
 </script>
@@ -19,11 +19,17 @@
 
   <div class="group">
     <div class="h-full relative">
-      <a href="{instanceCount >= maxInstances ? "#" : "/instances/new"}" class="my-3 btn relative {instanceCount >= maxInstances ? "bg-slate-800 hover:bg-slate-800 pointer-events-none border hover:border-white/40" :  "bg-primary hover:bg-light "}">
+      <a
+        href={instanceCount >= maxInstances ? '#' : '/instances/new'}
+        class="my-3 btn relative {instanceCount >= maxInstances
+          ? 'bg-slate-800 hover:bg-slate-800 pointer-events-none border hover:border-white/40'
+          : 'bg-primary hover:bg-light '}"
+      >
         <Fa icon={faPlus} /> New Instance
       </a>
       <div
-        class="hidden group-hover:block absolute top-full right-0 bg-[#111111]/80 border border-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg w-64 z-20 {instanceCount >= maxInstances && "border-red-400"}"
+        class="hidden group-hover:block absolute top-full right-0 bg-[#111111]/80 border border-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg w-64 z-20 {instanceCount >=
+          maxInstances && 'border-red-400'}"
       >
         {#if maxInstances > 0}
           {#if instanceCount > maxInstances}
@@ -31,10 +37,10 @@
           {/if}
           <div class="flex flex-col items-center justify-center">
             {#if instanceCount <= maxInstances}
-            <div class="text-sm opacity-6.0">Instances</div>
-          {/if}
+              <div class="text-sm opacity-6.0">Instances</div>
+            {/if}
 
-             <div class="text-2xl font-bold">
+            <div class="text-2xl font-bold">
               {#if $userSubscriptionType === SubscriptionType.Founder}
                 {instanceCount}/<a
                   href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
@@ -46,22 +52,31 @@
               {/if}
             </div>
             <progress
-              class="progress mt-2 
-                {instanceCount >= maxInstances ? 'progress-error' : 
-                  instanceCount >= maxInstances * 0.75 ? 'progress-warning' : 
-                  'progress-primary'} w-full"
+              class="progress mt-2
+                {instanceCount >= maxInstances
+                ? 'progress-error'
+                : instanceCount >= maxInstances * 0.75
+                  ? 'progress-warning'
+                  : 'progress-primary'} w-full"
               value={instanceCount}
               max={maxInstances}
             ></progress>
-           
           </div>
           {#if instanceCount >= maxInstances}
-            <a href="/support" class="link btn btn-sm mt-2 w-full text-xs bg-primary no-underline hover:bg-light">Increase your limit</a>
+            <a href="/support" class="link btn btn-sm mt-2 w-full text-xs bg-primary no-underline hover:bg-light"
+              >Increase your limit</a
+            >
           {/if}
+        {:else}
+          <div class="text-sm opacity-6.0">You need to upgrade before creating more Instances</div>
+
+          <a href="/access" class="link btn btn-sm mt-2 w-full text-xs bg-primary no-underline hover:bg-light"
+            >Upgrade!</a
+          >
         {/if}
       </div>
     </div>
   </div>
 </div>
 
-  <InstanceList />
+<InstanceList />

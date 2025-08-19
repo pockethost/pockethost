@@ -85,7 +85,7 @@
 </div>
 
 <div
-  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pt-1 md:pt-3 gap-2 md:gap-4 items-center justify-center relative z-0"
+  class="min-h-[50vh] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pt-1 md:pt-3 gap-2 md:gap-4 items-start justify-center relative z-0"
 >
   {#each filteredInstances as instance (instance.id)}
     <InstanceCard {instance} />

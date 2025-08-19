@@ -30,7 +30,7 @@
   <Navbar />
   <PromoBanner />
 
-  <div class="px-4 sm:px-6 lg:px-8">
+  <div class="px-4 md:px-20">
     <VerifyAccountBar />
   </div>
   <div class="w-full">

@@ -114,7 +114,7 @@
     </div>
   </div>
 
-  <section class="px-6 lg:px-8">
+  <section class="lg:px-8">
         <div class="max-w-6xl mx-auto">
           <div class="bg-[#111111]/50 border border-white/20 rounded-2xl p-12 backdrop-blur-xl fade-in">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -139,8 +139,8 @@
         </div>
       </section>
 
-  <section class="py-24 px-6 lg:px-8">
-    <div class="text-center mb-20">
+  <section class="py-24 lg:px-8">
+    <div class="text-center mb-10 md:mb-20">
       <h2 class="text-4xl md:text-5xl font-light mb-6 tracking-tight">
         Everything you need to <span class="font-medium">build</span>
       </h2>
