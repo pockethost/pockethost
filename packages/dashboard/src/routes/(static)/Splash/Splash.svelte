@@ -123,7 +123,7 @@
                 <div class="text-white/60 text-sm font-light">Setup Time</div>
               </div>
               <div>
-                <div class="text-3xl md:text-4xl font-light mb-2">99.9%</div>
+                <div class="text-3xl md:text-4xl font-light mb-2">99.964%</div>
                 <div class="text-white/60 text-sm font-light">Uptime</div>
               </div>
               <div>
