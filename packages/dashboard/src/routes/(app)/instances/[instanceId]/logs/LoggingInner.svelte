@@ -135,9 +135,9 @@
     {#each $logs as log}
       <div class="px-4 text-[16px] font-mono flex align-center" data-prefix=">">
         <div>
-          <span class="mr-1 text-light">{log.time}</span>
+          <span class="mr-1 text-light font-mono">{log.time}</span>
 
-          <span class="mr-1 text-base-content {logColor(log.stream)}">{@html logText(log)}</span>
+          <span class="mr-1 text-base-content font-mono {logColor(log.stream)}">{@html logText(log)}</span>
         </div>
       </div>
     {/each}
