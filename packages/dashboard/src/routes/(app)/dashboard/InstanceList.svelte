@@ -79,7 +79,7 @@
     </div>
 
     <button tabindex="0" on:click={toggleSortDirection} class="btn btn-sm text-white border border-white/10 hover:border-primary">
-      <Fa icon={sortDirection === 'desc' ? faArrowDownAZ : faArrowDownZA} />
+      <Fa icon={sortDirection === 'desc' ? faArrowDownZA : faArrowDownAZ} />
     </button>
   </div>
 </div>
