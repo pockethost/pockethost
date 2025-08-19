@@ -94,3 +94,39 @@
   75% {transform: rotate(-3deg);}
   100% {transform: rotate(0deg);}
 }
+
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 1s forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.animation-delay-250 {
+  animation-delay: 250ms;
+}
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+.animation-delay-1s {
+  animation-delay: 1s;
+}

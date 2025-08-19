@@ -17,7 +17,7 @@
 
   <a
     href={url}
-    class={`relative  inline-flex gap-4 items-center bg-primary justify-center px-8 py-3 text-md font-medium hover:bg-light text-white transition-all duration-200  font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 ${className}`}
+    class={`relative ${className} inline-flex gap-4 items-center bg-primary justify-center px-8 py-3 text-md font-medium hover:bg-light text-white transition-all duration-200  font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900`}
     {target}
     role="button"
   >
