@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import BlurBg from '$components/BlurBg.svelte'
   import AuthStateGuard from '$components/guards/AuthStateGuard.svelte'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
@@ -66,21 +66,37 @@
     },
   ]
 
+  const parseStars = (value:string) => {
+    if (typeof value === "string") {
+      value = value.toLowerCase().replace(",", ""); // remove commas
+      if (value.endsWith("k")) {
+        return Math.round(parseFloat(value) * 1000);
+      }
+      if (value.endsWith("m")) {
+        return Math.round(parseFloat(value) * 1_000_000);
+      }
+      return parseInt(value, 10);
+    }
+    return value;
+  }
+
 
   const stars = tweened(0, { duration: 1500, easing: cubicOut });
   const formatter = new Intl.NumberFormat(); // formats numbers with commas
 
   onMount(async () => {
-    try {
-      const res = await fetch('https://api.github.com/repos/pockethost/pockethost');
-      if (!res.ok) throw new Error('Failed to fetch data');
-      const data = await res.json();
+  try {
+    const res = await fetch('https://img.shields.io/github/stars/pockethost/pockethost.json');
+    if (!res.ok) throw new Error('Failed to fetch data');
+    const data = await res.json();
 
-      stars.set(data.stargazers_count);
-    } catch (error) {
-      console.error(error);
-    }
-  });
+    const starCount = parseStars(data.value);
+    stars.set(starCount);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 
   
 </script>
