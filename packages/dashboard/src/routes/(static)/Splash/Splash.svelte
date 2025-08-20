@@ -108,7 +108,7 @@
           <PrimaryButton text="Dashboard" url="/dashboard" icon={faArrowRight} className="opacity-0 fade-up animation-delay-500" />
         </UserLoggedIn>
         <UserLoggedOut>
-          <PrimaryButton text="Get Started" url="/get-started" icon={faArrowRight} className="opacity-0 wiggle fade-up animation-delay-500" />
+          <PrimaryButton text="Get Started" url="/get-started" icon={faArrowRight} className="wiggle" />
         </UserLoggedOut>
       </AuthStateGuard>
     </div>
