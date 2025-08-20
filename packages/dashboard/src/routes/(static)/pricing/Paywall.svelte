@@ -5,40 +5,41 @@
   import SignupBox from './SignupBox.svelte'
   import { faPlay } from '@fortawesome/free-solid-svg-icons'
   import thumb from './011.jpg?enhanced'
+  import BlurBg from '$components/BlurBg.svelte'
 </script>
 
-<div class="prose ml-auto mr-auto">
-  <p class="text-3xl text-center text-white">Affordable Hosting</p>
-  <p class="text-xl text-center">Premium Performance</p>
-  <div class="flex flex-row justify-center mt-10 mb-10 gap-3">
-    <div class="btn btn-neutral btn-xs rounded-xl">Open Source</div>
-    <div class="btn btn-neutral btn-xs rounded-xl">No Limits</div>
-    <div class="btn btn-neutral btn-xs rounded-xl">Priority Support</div>
-  </div>
+<BlurBg/>
+<div class="max-w-7xl mx-auto px-4 pt-12 text-center relative">
+  <h2 class="text-4xl font-bold text-white">Affordable Hosting</h2>
+  <p class="text-xl text-gray-300 mt-2">Premium Performance</p>
+
+  <!-- <div class="flex flex-wrap justify-center gap-3 mt-6">
+    <div class="px-4 py-2 bg-primary/40 text-white text-sm rounded-full">Open Source</div>
+    <div class="px-4 py-2 bg-primary/40 text-white text-sm rounded-full">Priority Support</div>
+  </div> -->
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 justify-items-center gap-1 mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 pt-10 ">
   <SignupBox
     price="$5 / month"
     priceDetail="per instance"
     title="Starter"
-    cta="Pay $5 per instance, up to a maximum of 5 instances. Each extra instance costs an additional $5"
+    cta="Pay $5 per instance, up to a maximum of 5 instances."
     features={[
       'Access to all features',
       '7 day risk-free trial',
       '35+ regions',
       'Unlimited bandwidth, storage, and CPU',
       'FTP Access',
-      'Priority support',
       'Flexible - only pay for as many as you need',
     ]}
   />
   <SignupBox
     selected
-    price="$25 / month"
     bestDeal
+    price="$25 / month"
     title="Unlimited"
-    cta="Pay just $25 monthly to get access to all features with unlimited instances! "
+    cta="Pay just $25 monthly to get access to all features with unlimited instances!"
     features={['Everything in the Starter plan', 'Unlimited instances']}
   />
   <SignupBox
@@ -57,22 +58,22 @@
   />
 </div>
 
-<div class="relative flex flex-col items-center mb-10 p-2 bg-neutral rounded-2xl w-fit mx-auto max-w-96">
-  <a
-    href="https://www.youtube.com/watch?v=Xe0FrGzlcVM"
-    target="_blank"
-    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-neutral rounded-2xl p-5"
-  >
-    <Fa icon={faPlay} class="text-white text-4xl" />
-  </a>
-  <a href="https://www.youtube.com/watch?v=Xe0FrGzlcVM" target="_blank" aria-label="PocketHost Demo">
-    <enhanced:img src={thumb} alt="PocketHost Demo" class="rounded" />
-  </a>
+
+<div class="relative my-20 w-full max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-lg aspect-video">
+  <iframe
+    src="https://www.youtube.com/embed/Xe0FrGzlcVM"
+    title="PocketHost Demo"
+    class="w-full h-full"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+  ></iframe>
 </div>
 
-<div class="flex flex-col gap-10 items-center mb-10">
-  <div class="text-3xl text-center pb-5">Features</div>
 
+<div class="flex flex-col items-center gap-10 mb-20 px-4">
+  <h2 class="text-4xl font-semibold text-center text-gray-900 dark:text-white">
+    Powerful Features
+  </h2>
   <Features />
 </div>
 

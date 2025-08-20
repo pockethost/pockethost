@@ -54,11 +54,11 @@
   if (type === 'error') {
     alertTypeClass = 'alert-error'
     alertTypeIcon = faCircleXmark
-  }
+  } 
 </script>
 
 {#if message && !isHidden}
-  <div class="alert mb-4 {alertTypeClass} {additionalClasses} justify-center" transition:slide role="alert">
+  <div class="alert flex md:justify-start text-left mb-4 {alertTypeClass}  {additionalClasses} justify-center" transition:slide role="alert">
     <Fa icon={alertTypeIcon} />
     <span>{@html message}</span>
   </div>

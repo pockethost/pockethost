@@ -2,6 +2,7 @@
   import { page } from '$app/stores'
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
+  import BlurBg from '$components/BlurBg.svelte'
 
   const { requestPasswordResetConfirm } = client()
 
@@ -48,18 +49,19 @@
 <svelte:head>
   <title>Reset Your Password - PocketHost</title>
 </svelte:head>
+<BlurBg />
 
-<div class="min-h-screen flex items-center justify-center">
-  <div class="card w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
+<div class="w-full flex items-center justify-center px-4 md:px-16 h-[70vh]">
+  <div class="card w-[100%]  lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
     <div class="card-body">
       <h2 class="card-title mb-4">New Password</h2>
 
       <form on:submit={handleSubmit}>
-        <div class="form-control w-full max-w-xs">
+        <div class="form-control w-full">
           <label class="label" for="password">New Password</label>
           <input
             type="password"
-            class="input input-bordered w-full max-w-xs"
+            class="input input-bordered w-full"
             id="password"
             bind:value={password}
             required
@@ -72,7 +74,7 @@
         {/each}
 
         <div class="mt-4 card-actions justify-end">
-          <button type="submit" class="btn btn-primary w-100" disabled={isFormButtonDisabled}>
+          <button type="submit" class="btn bg-primary hover:bg-light w-full" disabled={isFormButtonDisabled}>
             Save <i class="bi bi-arrow-right-short" />
           </button>
         </div>

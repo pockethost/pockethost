@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { toc } from './toc'
+  import BlurBg from '$components/BlurBg.svelte'
+import { toc } from './toc'
   import { faCalendarAlt, faArrowRight } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 
@@ -38,10 +39,11 @@
   <meta name="description" content="Stay updated with the latest PocketHost features, tutorials, and community news." />
 </svelte:head>
 
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="mb-12 text-center">
+<BlurBg className="opacity-40"/>
+<div class="mx-auto px-4 md:px-20 z-10 relative">
+  <div class="py-16 text-center">
     <h1
-      class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+      class="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-primary dark:to-secondary bg-clip-text text-transparent"
     >
       Latest from PocketHost
     </h1>
@@ -53,8 +55,8 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each toc as item, index}
       <div class="group">
-        <a href={item.path} class="block h-full transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-          <div class="card bg-base-100 shadow-lg h-full border border-base-300 hover:border-primary/30">
+        <a href={item.path} class="block h-full  transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <div class="card border-white/10 bg-[#111111]/30 shadow-lg h-full border  hover:border-white/50">
             <div class="card-body p-6">
               <!-- Featured badge for latest posts -->
               {#if index < 3}
@@ -62,7 +64,7 @@
               {/if}
 
               <h2
-                class="card-title text-xl font-bold mb-3 group-hover:text-primary transition-colors duration-300 line-clamp-2"
+                class="card-title text-xl font-bold mb-3 transition-colors duration-300 line-clamp-2"
               >
                 {item.title}
               </h2>
@@ -81,7 +83,7 @@
                   </div>
                 {/if}
 
-                <div class="flex items-center gap-2 text-primary group-hover:gap-3 transition-all duration-300">
+                <div class="flex items-center gap-2 text-primary dark:text-secondary group-hover:gap-3 transition-all duration-300">
                   <span class="text-sm font-medium">Read more</span>
                   <Fa
                     icon={faArrowRight}
@@ -98,7 +100,7 @@
   </div>
 
   <!-- Newsletter/Subscribe section -->
-  <div class="mt-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8 text-center">
+  <div class="mt-16 bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
     <h3 class="text-2xl font-bold mb-3">Stay in the Loop</h3>
     <p class="text-base-content/70 mb-6 max-w-lg mx-auto">
       Join our Discord community to get the latest updates and connect with other PocketHost users.
@@ -107,7 +109,7 @@
       href="https://discord.gg/nVTxCMEcGT"
       target="_blank"
       rel="noopener noreferrer"
-      class="btn btn-primary btn-lg gap-2 hover:scale-105 transition-transform duration-300"
+      class="btn btn-primary text-white bg-[#5865F2] border-none hover:bg-[#3b4aed] btn-lg gap-2 hover:scale-105 transition-transform duration-300"
     >
       Join Discord Community
       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

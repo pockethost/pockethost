@@ -1,69 +1,93 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import { INSTANCE_ADMIN_URL } from '$src/env'
-  import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
-  import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
   import { values } from '@s-libs/micro-dash'
-  import { type InstanceId } from 'pockethost/common'
+  import { type InstanceFields } from 'pockethost/common'
+  import InstanceCard from './InstanceCard.svelte'
+  import { faArrowDownAZ, faArrowDownZA } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 
-  const { updateInstance } = client()
+  type SortOptions = 'subdomain' | 'created' | 'power'
+  type SortDirection = 'asc' | 'desc'
 
-  const handlePowerChange = (id: InstanceId) => (e: Event) => {
-    const target = e.target as HTMLInputElement
-    const power = target.checked
+  let sortBy: SortOptions = 'power'
+  let searchQuery = ''
+  let filterPower: 'all' | 'on' | 'off' = 'all'
+  let sortDirection: SortDirection = 'asc'
 
-    // Update the database with the new value
-    updateInstance({ id, fields: { power } })
-      .then(() => 'saved')
-      .catch((error) => {
-        error.data.message || error.message
-      })
+  const sortFn = (type: SortOptions, direction: SortDirection) => {
+    const multiplier = direction === 'asc' ? 1 : -1
+    switch (type) {
+      case 'subdomain':
+        return (a: InstanceFields, b: InstanceFields) => a.subdomain.localeCompare(b.subdomain) * multiplier
+      case 'power':
+        return (a: InstanceFields, b: InstanceFields) => (a.power === b.power ? 0 : a.power ? -1 : 1) * multiplier
+      default:
+        return (a: InstanceFields, b: InstanceFields) => b.created.localeCompare(a.created) * multiplier
+    }
   }
+
+  const toggleSortDirection = () => {
+    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'
+  }
+
+  $: filteredInstances = values($globalInstancesStore)
+    .filter((instance) => {
+      const target = (instance.cname || instance.subdomain).toLowerCase()
+      const matchesQuery = target.includes(searchQuery.toLowerCase())
+      const matchesPower = filterPower === 'all' ? true : filterPower === 'on' ? instance.power : !instance.power
+      return matchesQuery && matchesPower
+    })
+    .sort(sortFn(sortBy, sortDirection))
 </script>
 
-{#each values($globalInstancesStore).sort((a, b) => a.subdomain.localeCompare(b.subdomain)) as instance, index}
-  <button
-    class={`card min-w-80 lg:max-w-80 flex-1 m-4 transition hover:bg-base-300 ${instance.power ? 'bg-neutral' : 'bg-base-200'}`}
-    on:click={(_) => goto(`/instances/${instance.id}`)}
+<div class="flex flex-wrap items-center gap-3 mb-2 bg-gradient-to-r bg-[#111111]/0 rounded-xl relative z-10">
+  <div
+    class="flex items-center gap-2 w-full md:w-72 rounded-lg px-3 py-2 border border-white/10 focus-within:border-primary transition"
   >
-    <div class="card-body w-full">
-      <div class="card-title">
-        <div class="flex justify-between items-center w-full">
-          <span>{instance.subdomain.length > 15 ? instance.subdomain.slice(0, 15) + '...' : instance.subdomain}</span>
-          <input
-            type="checkbox"
-            class="toggle {instance.power ? 'toggle-success' : 'bg-red-500 hover:bg-red-500'}"
-            checked={instance.power}
-            on:click={(e) => e.stopPropagation()}
-            on:change={handlePowerChange(instance.id)}
-          />
-        </div>
-      </div>
-      <p class="text-left">
-        <span class="text-gray-400"
-          >Version {instance.version}
-          <span class={instance.power ? 'hidden' : ''}>- Powered Off</span></span
-        >
-      </p>
+    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M5 11a6 6 0 1112 0 6 6 0 01-12 0z" />
+    </svg>
+    <input
+      type="text"
+      placeholder="Search "
+      bind:value={searchQuery}
+      class="bg-transparent text-white placeholder-slate-400 focus:outline-none w-full"
+    />
+  </div>
 
-      <div class="card-actions flex justify-between mt-5">
-        <a href={`/instances/${instance.id}`} class="btn btn-primary">
-          <Fa icon={faCircleInfo} />
-          <span>Details</span>
-        </a>
-
-        <a
-          class="btn btn-secondary"
-          href={INSTANCE_ADMIN_URL(instance)}
-          target="_blank"
-          on:click={(e) => e.stopPropagation()}
-        >
-          <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-6" />
-          <span>Admin</span>
-        </a>
+  <div class="flex flex-1 justify-start md:justify-end gap-2">
+    <div class="dropdown dropdown-start md:dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
+        Filter: {filterPower === 'all' ? 'All' : filterPower === 'on' ? 'Power On' : 'Power Off'}
       </div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box mt-2 w-40 p-2 shadow">
+        <li><button on:click={() => (filterPower = 'all')}>All</button></li>
+        <li><button on:click={() => (filterPower = 'on')}>Power On</button></li>
+        <li><button on:click={() => (filterPower = 'off')}>Power Off</button></li>
+      </ul>
     </div>
-  </button>
-{/each}
+
+    <div class="dropdown dropdown-start md:dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
+        Sort: {sortBy}
+      </div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[100] mt-2 w-40 p-2 shadow">
+        <li><button on:click={() => (sortBy = 'power')}>Power</button></li>
+        <li><button on:click={() => (sortBy = 'subdomain')}>Subdomain</button></li>
+        <li><button on:click={() => (sortBy = 'created')}>Created</button></li>
+      </ul>
+    </div>
+
+    <button tabindex="0" on:click={toggleSortDirection} class="btn btn-sm text-white border border-white/10 hover:border-primary">
+      <Fa icon={sortDirection === 'desc' ? faArrowDownZA : faArrowDownAZ} />
+    </button>
+  </div>
+</div>
+
+<div
+  class="min-h-[50vh] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pt-1 md:pt-3 gap-2 md:gap-4 items-start justify-start relative z-0"
+>
+  {#each filteredInstances as instance (instance.id)}
+    <InstanceCard {instance} />
+  {/each}
+</div>

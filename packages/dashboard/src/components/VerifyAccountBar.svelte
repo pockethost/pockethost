@@ -31,18 +31,21 @@
 
 <UserLoggedIn>
   {#if !$isUserVerified}
-    <div class="alert alert-info mb-8">
-      <Fa icon={faEnvelopeSquare} />
+    <div class="alert alert-info p-4 rounded-md flex flex-col md:flex-row justify-between">
+      <div class="flex gap-4 items-center text-start">
 
-      <div>Please verify your account by clicking the link in your email</div>
+        <Fa icon={faEnvelopeSquare} class="text-2xl" />
+        
+        <div>Please verify your account by clicking the link in your email</div>
+      </div>
 
-      <div class="text-right">
+      <div class="text-right w-full md:w-auto">
         {#if isButtonProcessing}
-          <div class="btn btn-success">
-            <Fa icon={faCheck} /> Sent!
+          <div class="btn btn-success btn-sm">
+            <Fa icon={faCheck} class="text-xl"/> Sent!
           </div>
         {:else}
-          <button type="button" class="btn btn-outline-secondary btn-sm" on:click={handleClick}>Resend Email</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-full" on:click={handleClick}>Resend Email</button>
         {/if}
 
         {#if formError}

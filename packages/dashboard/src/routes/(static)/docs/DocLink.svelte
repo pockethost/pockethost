@@ -13,6 +13,6 @@
 
 <style lang="scss">
   li.active {
-    @apply bg-neutral rounded-md;
+    @apply bg-secondary/20 rounded-md;
   }
 </style>

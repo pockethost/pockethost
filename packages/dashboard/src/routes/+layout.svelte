@@ -11,6 +11,11 @@
   import PromoBanner from './PromoBanner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
 
+  import Fa from 'svelte-fa'
+  import { faDiscord, faGithub, faProductHunt, faYoutube } from '@fortawesome/free-brands-svg-icons'
+
+  import { get } from 'svelte/store'
+
   const currentYear = new Date().getFullYear()
 
   onMount(() => {
@@ -20,24 +25,75 @@
 
 <Meta />
 
-<div>
+<div class="bg-[#111111]">
   <MothershipStatus />
   <Navbar />
   <PromoBanner />
 
-  <div class="px-4 sm:px-6 lg:px-8">
+  <div class="px-4 md:px-20">
     <VerifyAccountBar />
   </div>
-  <slot />
-</div>
-<div class="p-10 text-xs text-neutral-content flex flex-col text-center items-center">
-  <div class="flex flex-row space-x-5">
-    <a href="/privacy">Privacy</a>
-    <a href="/terms">Terms</a>
-    <a href="https://status.pockethost.io/">System Status</a>
+  <div class="w-full">
+    <slot />
   </div>
-  <div>(c) {currentYear}, PocketHost</div>
-  <div>Proudly hacking open source in Reno, NV</div>
+
+  <footer class="text-neutral-content px-4 md:px-20 py-10 text-sm bg-[#111111]">
+    <div class=" flex justify-between items-center">
+      <div class="">
+        <a href="/" rel="noreferrer">
+          <img src="/pockethost-cloud-logo.png" alt="Pockethost Logo" class="h-28 md:h-36 w-auto" />
+        </a>
+        <div class="flex items-center gap-4 md:gap-6">
+          <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank">
+            <Fa icon={faGithub} />
+          </a>
+          <a href="https://www.producthunt.com/products/pockethost" rel="noreferrer" target="_blank">
+            <Fa icon={faProductHunt} />
+          </a>
+          <a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank">
+            <Fa icon={faDiscord} />
+          </a>
+          <a href="https://www.youtube.com/@pocketba5ed" rel="noreferrer" target="_blank">
+            <Fa icon={faYoutube} />
+          </a>
+        </div>
+      </div>
+      <div class="flex-1 flex justify-around md:justify-start md:space-x-32 md:ml-32">
+        <div>
+          <h3 class="font-semibold mb-3">Explore</h3>
+          <ul class="space-y-1">
+            <li><a href="/docs" class="hover:underline">Docs</a></li>
+            <li><a href="/blog" class="hover:underline">Blog</a></li>
+            <li><a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank" class="hover:underline">GitHub</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-semibold mb-3">Contact</h3>
+          <ul class="space-y-1">
+            <li><a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank" class="hover:underline">Discord</a></li>
+            <li><a href="/support" class="hover:underline">Support</a></li>
+            <li><a href="https://status.pockethost.io/" class="hover:underline">Status</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="mt-10 border-t border-neutral-700 pt-4 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-6"
+    >
+      <div class="flex space-x-4">
+        <a href="/privacy" class="hover:underline">Privacy</a>
+        <a href="/terms" class="hover:underline">Terms</a>
+        <a href="https://status.pockethost.io/" rel="noreferrer" target="_blank" class="hover:underline">System Status</a>
+      </div>
+
+      <div class="flex flex-col text-xs gap-1 text-center md:text-right">
+        <div>&copy; <span id="year">{currentYear}</span> - PocketHost</div>
+        <div>Proudly hacking open source in Reno, NV ❤️</div>
+      </div>
+    </div>
+  </footer>
 </div>
 <GdprBanner
   cookieName="pockethost_gpdr"
