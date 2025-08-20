@@ -100,7 +100,7 @@ import { toc } from './toc'
   </div>
 
   <!-- Newsletter/Subscribe section -->
-  <div class="mt-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8 text-center">
+  <div class="mt-16 bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
     <h3 class="text-2xl font-bold mb-3">Stay in the Loop</h3>
     <p class="text-base-content/70 mb-6 max-w-lg mx-auto">
       Join our Discord community to get the latest updates and connect with other PocketHost users.
@@ -109,7 +109,7 @@ import { toc } from './toc'
       href="https://discord.gg/nVTxCMEcGT"
       target="_blank"
       rel="noopener noreferrer"
-      class="btn btn-primary btn-lg gap-2 hover:scale-105 transition-transform duration-300"
+      class="btn btn-primary text-white bg-[#5865F2] border-none hover:bg-[#3b4aed] btn-lg gap-2 hover:scale-105 transition-transform duration-300"
     >
       Join Discord Community
       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
