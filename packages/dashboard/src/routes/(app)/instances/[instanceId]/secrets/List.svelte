@@ -29,11 +29,11 @@
   }
 </script>
 
-<table class="table mb-8 w-full">
+<table class="table mb-8 w-full table-auto">
   <thead>
     <tr>
-      <th class="w-2/5 border-b-2 border-neutral">Key</th>
-      <th class="w-2/5 border-b-2 border-neutral">Value</th>
+      <th class="w-2/5 border-b-2 border-neutral text-left">Key</th>
+      <th class="w-2/5 border-b-2 border-neutral text-left">Value</th>
       <th class="w-1/5 border-b-2 border-neutral text-right">Actions</th>
     </tr>
   </thead>
@@ -41,17 +41,22 @@
   <tbody>
     {#each $items as item}
       <tr transition:fade>
-        <th>{item.name}</th>
-        <td>{item.value.slice(0, 2) + item.value.slice(2).replaceAll(/./g, '*')}</td>
+        <th class="truncate max-w-[150px]">{item.name}</th>
+        <td class="truncate max-w-[150px]">
+          {item.value.slice(0, 2) + item.value.slice(2).replaceAll(/./g, '*')}
+        </td>
         <td class="text-right">
           <button
             aria-label="Delete"
             on:click={handleDelete(item.name)}
             type="button"
-            class="btn btn-sm btn-square btn-outline btn-warning"><Fa icon={faTrash} /></button
+            class="btn btn-sm btn-square btn-outline btn-warning"
           >
+            <Fa icon={faTrash} />
+          </button>
         </td>
       </tr>
     {/each}
   </tbody>
 </table>
+
