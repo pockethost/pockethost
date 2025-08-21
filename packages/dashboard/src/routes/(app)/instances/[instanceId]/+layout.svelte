@@ -96,33 +96,38 @@
 
   <div class="flex gap-4 flex-col md:flex-row relative">
 
-  <div class="flex md:hidden items-center sticky top-0 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md justify-between py-3 mb-0 border-b border-white/10 z-50">
-    <div class="flex items-center gap-3">
-      <!-- Burger -->
-      <button on:click={() => sidebarOpen = !sidebarOpen}>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-      <!-- Name -->
-      <h2 class="text-lg font-bold text-base-content truncate">
-        {$instance.subdomain}  {#if $instance.dev}
-          <a
-            href={`/instances/${$instance.id}/dev`}
-            class="text-warning animate-pulse text-xl ml-1"
-            title="Dev Mode Active (SLOW)"
-          >
-            🚧
-          </a>
-        {/if}
-      </h2>
+  <div class="flex md:hidden items-center sticky top-0 gap-2 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md justify-between py-3 mb-0 border-b border-white/10 z-50">
+  <div class="flex items-center gap-3 min-w-0">
+    <!-- Burger -->
+    <button on:click={() => sidebarOpen = !sidebarOpen} class="flex-shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
 
-      
-    </div>
+    <!-- Name -->
+    <h2 class="text-lg font-bold text-base-content truncate min-w-0">
+      {$instance.subdomain}
+      {#if $instance.dev}
+        <a
+          href={`/instances/${$instance.id}/dev`}
+          class="text-warning animate-pulse text-xl ml-1 flex-shrink-0"
+          title="Dev Mode Active (SLOW)"
+        >
+          🚧
+        </a>
+      {/if}
+    </h2>
+  </div>
+
+  <!-- Power Toggle -->
+  <div class="flex-shrink-0">
     <Toggle checked={$instance.power} onChange={handlePowerChange($instance.id)} />
   </div>
+</div>
+
 
   {#if sidebarOpen && window.innerWidth < 768}
   <div
