@@ -27,8 +27,8 @@
     on:click={openInstance}
   >
     <div class="card-body w-full flex flex-row items-center justify-between gap-6">
-      <div class="flex flex-col items-start gap-2">
-        <span class="text-xl font-semibold truncate max-w-[200px]">
+      <div class="flex flex-col items-start gap-2 flex-1 min-w-0 relative">
+        <span class="text-xl text-start font-semibold truncate w-full">
           {instance.cname  ? instance.cname : instance.subdomain} 
         </span>
 
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-center gap-3">
+      <div class="flex flex-col items-center gap-3 flex-shrink-0">
         <input
           type="checkbox"
           class={`toggle ${instance.power ? 'toggle-success' : 'bg-red-500 hover:bg-red-500'}`}
