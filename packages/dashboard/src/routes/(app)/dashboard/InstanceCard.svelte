@@ -37,7 +37,7 @@
             href={INSTANCE_ADMIN_URL(instance)}
             target="_blank"
             on:click={openAdmin}
-            class="pr-2 py-0.5 rounded-full text-xs font-medium flex gap-2"
+            class="pr-2 py-0.5 rounded-full text-xs hover:underline font-medium flex gap-2"
             title="Open Admin"
           >
             <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-4 h-4" /> Admin
