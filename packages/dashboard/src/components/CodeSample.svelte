@@ -1,12 +1,11 @@
 <script lang="ts">
   import CopyButton from '$components/CopyButton.svelte'
   import { Highlight } from 'svelte-highlight'
-  import { typescript, type LanguageType } from 'svelte-highlight/languages'
-  import a11yDark from 'svelte-highlight/styles/a11y-dark'
+  import { typescript, dns, plaintext, bash, type LanguageType } from 'svelte-highlight/languages'
+  import a11yDark from 'svelte-highlight/styles/seti-ui'
 
   export let code: string
-  export let language: LanguageType<'typescript' | 'bash' | 'dns'> = typescript
-
+  export let language: LanguageType<'typescript' | 'bash' | 'dns' | 'plaintext'> = typescript
   const handleCopy = () => {}
 </script>
 

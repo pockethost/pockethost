@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+@import "prismjs/themes/prism-twilight.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 * {
  font-family: 'Figtree', sans-serif;
@@ -33,6 +35,11 @@
 
 .mockup-code {
   @apply bg-[#111111] border border-white/10;
+}
+
+pre {
+  border: none !important;
+  box-shadow: none !important;
 }
 
     
