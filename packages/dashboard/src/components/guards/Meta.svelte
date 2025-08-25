@@ -2,7 +2,7 @@
   import { APP_URL } from '$src/env'
 
   const baseUrl = APP_URL()
-  const imageUrl = `${baseUrl}poster.png`
+  const imageUrl = `${baseUrl}newPoster.png`
   const tagline = `Get a PocketBase backend for your next app in under 10 seconds.`
 </script>
 
