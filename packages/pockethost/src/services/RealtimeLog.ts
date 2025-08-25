@@ -43,7 +43,7 @@ export const realtimeLog = mkSingleton(async (config: RealtimeLogConfig) => {
     if (!client.authStore.isValid) {
       throw new Error(`Cookie is invalid her`)
     }
-    const user = client.authStore.model
+    const user = client.authStore.record
     if (!user) {
       throw new Error(`Valid user expected here`)
     }

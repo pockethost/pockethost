@@ -27,7 +27,7 @@ export const MigrateCommand = () => {
 
       const pb = new PocketBase(MOTHERSHIP_URL())
 
-      await pb.admins.authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
+      await pb.collection("_superusers").authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
       const filter = [`status='idle'`, `volume=''`]
       if (instanceId) {

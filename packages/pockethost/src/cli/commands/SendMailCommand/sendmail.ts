@@ -48,7 +48,7 @@ export const SendMailCommand = () =>
       info(MOTHERSHIP_URL())
 
       const client = new PocketBase(MOTHERSHIP_URL())
-      await client.admins.authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
+      await client.collection("_superusers").authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
       const message = await client.collection(`campaign_messages`).getOne(messageId, { expand: 'campaign' })
       const { campaign } = message.expand || {}
