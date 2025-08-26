@@ -2,11 +2,14 @@ import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
 
-export const HandleUserWelcomeMessage = (e: core.ModelEvent) => {
-  const dao = e.dao || $app.dao()
-  const newModel = /** @type {models.Record} */ e.model
-  const oldModel = newModel.originalCopy()
+export const HandleUserWelcomeMessage = (e: core.RecordEvent) => {
+  const dao = $app
+  const newModel = e.record
+  
+  if(!newModel) return e.next()
 
+  const oldModel = newModel?.original()
+  
   const log = mkLog(`user-welcome-msg`)
   const notify = mkNotifier(log, dao)
   const audit = mkAudit(log, dao)
@@ -22,11 +25,12 @@ export const HandleUserWelcomeMessage = (e: core.ModelEvent) => {
     if (isVerified === oldModel.getBool(`verified`)) return
 
     log(`user just became verified`)
-    const uid = newModel.getId()
+    const uid = newModel.id
 
     notify(`email`, `welcome`, uid)
     newModel.set(`welcome`, new DateTime())
   } catch (e) {
-    audit(`ERROR`, `${e}`, { user: newModel.getId() })
+    audit(`ERROR`, `${e}`, { user: newModel.id })
   }
+  e.next()
 }

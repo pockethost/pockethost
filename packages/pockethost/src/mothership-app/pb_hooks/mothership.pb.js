@@ -1,30 +1,30 @@
 
 //#region src/lib/handlers/instance/hooks.ts
-routerAdd("PUT", "/api/instance/:id", (c) => {
+routerAdd("PUT", "/api/instance/{id}", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceUpdate(c);
-}, $apis.requireRecordAuth());
+}, $apis.requireAuth());
 routerAdd("POST", "/api/instance", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceCreate(c);
-}, $apis.requireRecordAuth());
-routerAdd("DELETE", "/api/instance/:id", (c) => {
+}, $apis.requireAuth());
+routerAdd("DELETE", "/api/instance/{id}", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceDelete(c);
-}, $apis.requireRecordAuth());
+}, $apis.requireAuth());
 routerAdd("GET", "/api/instance/resolve", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceResolve(c);
-}, $apis.requireAdminAuth());
+}, $apis.requireSuperuserAuth());
 /** Validate instance version */
-onModelBeforeUpdate((e) => {
+onRecordUpdate((e) => {
 	return require(`${__hooks}/mothership`).BeforeUpdate_version(e);
 }, "instances");
 /** Validate cname */
-onModelBeforeUpdate((e) => {
+onRecordUpdate((e) => {
 	return require(`${__hooks}/mothership`).BeforeUpdate_cname(e);
 }, "instances");
 /** Notify discord on instance create */
-onAfterBootstrap((e) => {});
-onAfterBootstrap((e) => {});
+onBootstrap((e) => {});
+onBootstrap((e) => {});
 /** Reset instance status to idle on start */
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
 	return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e);
 });
 
@@ -38,11 +38,12 @@ routerAdd("POST", "/api/ls", (c) => {
 //#region src/lib/handlers/mail/hooks.ts
 routerAdd("POST", "/api/mail", (c) => {
 	return require(`${__hooks}/mothership`).HandleMailSend(c);
-}, $apis.requireAdminAuth());
+}, $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/meta/hooks.ts
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
+	e.next();
 	return require(`${__hooks}/mothership`).HandleMetaUpdateAtBoot(e);
 });
 
@@ -50,17 +51,17 @@ onAfterBootstrap((e) => {
 //#region src/lib/handlers/mirror/hooks.ts
 routerAdd("GET", "/api/mirror", (c) => {
 	return require(`${__hooks}/mothership`).HandleMirrorData(c);
-}, $apis.gzip(), $apis.requireAdminAuth());
+}, $apis.gzip(), $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/notify/hooks.ts
 routerAdd(`GET`, `api/process_single_notification`, (c) => {
 	return require(`${__hooks}/mothership`).HandleProcessSingleNotification(c);
 });
-onModelAfterCreate((e) => {
+onRecordAfterCreateSuccess((e) => {
 	return require(`${__hooks}/mothership`).HandleProcessNotification(e);
 }, `notifications`);
-onModelBeforeUpdate((e) => {
+onRecordUpdate((e) => {
 	return require(`${__hooks}/mothership`).HandleUserWelcomeMessage(e);
 }, "users");
 
@@ -93,9 +94,9 @@ routerAdd("GET", "/api/stats", (c) => {
 
 //#endregion
 //#region src/lib/handlers/user/hooks.ts
-routerAdd("GET", "/api/userToken/:id", (c) => {
+routerAdd("GET", "/api/userToken/{id}", (c) => {
 	return require(`${__hooks}/mothership`).HandleUserTokenRequest(c);
-}, $apis.requireAdminAuth());
+}, $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/versions/hooks.ts

@@ -23,9 +23,9 @@ const versions = require(`${__hooks}/versions.cjs`);
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceCreate.ts
 const HandleInstanceCreate = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`POST:instance`);
-	const authRecord = c.get("authRecord");
+	const authRecord = c.auth;
 	log(`authRecord`, JSON.stringify(authRecord));
 	if (!authRecord) throw new Error(`Expected authRecord here`);
 	log(`TOP OF POST`);
@@ -35,7 +35,7 @@ const HandleInstanceCreate = (c) => {
 		region: "sfo-2"
 	});
 	log(`before bind`);
-	c.bind(data);
+	c.bindBody(data);
 	log(`after bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const { subdomain, version, region } = data;
@@ -46,7 +46,7 @@ const HandleInstanceCreate = (c) => {
 	if (!subdomain) throw new BadRequestError(`Subdomain is required when creating an instance.`);
 	const collection = dao.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
-	record.set("uid", authRecord.getId());
+	record.set("uid", authRecord.id);
 	record.set("region", region || `sfo-1`);
 	record.set("subdomain", subdomain);
 	record.set("power", true);
@@ -54,24 +54,24 @@ const HandleInstanceCreate = (c) => {
 	record.set("version", version);
 	record.set("dev", true);
 	record.set("syncAdmin", true);
-	const form = new RecordUpsertForm($app, record);
-	form.submit();
+	dao.save(record);
 	return c.json(200, { instance: record });
 };
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceDelete.ts
 const HandleInstanceDelete = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`DELETE:instance`);
 	log(`TOP OF DELETE`);
 	let data = new DynamicModel({ id: "" });
-	c.bind(data);
+	c.bindBody(data);
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
-	const id = c.pathParam("id");
+	const id = c.request?.pathValue("id");
+	if (!id) throw new BadRequestError(`Instance ID is required.`);
 	log(`vars`, JSON.stringify({ id }));
-	const authRecord = c.get("authRecord");
+	const authRecord = c.auth;
 	log(`authRecord`, JSON.stringify(authRecord));
 	if (!authRecord) throw new BadRequestError(`Expected authRecord here`);
 	const record = dao.findRecordById("instances", id);
@@ -82,22 +82,22 @@ const HandleInstanceDelete = (c) => {
 	log(`path ${path}`);
 	const res = $os.removeAll(path);
 	log(`res`, res);
-	dao.deleteRecord(record);
+	dao.delete(record);
 	return c.json(200, { status: "ok" });
 };
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceResolve.ts
 const HandleInstanceResolve = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`GET:instance/resolve`);
 	log(`TOP OF GET`);
-	const host = c.queryParam("host");
+	const host = c.request?.url?.query().get("host");
 	if (!host) throw new BadRequestError(`Host is required when resolving an instance.`);
 	const instance = (() => {
 		try {
 			log(`Checking for cname ${host}`);
-			const record = $app.dao().findFirstRecordByData("instances", "cname", host);
+			const record = dao.findFirstRecordByData("instances", "cname", host);
 			return record;
 		} catch (e) {
 			log(`${host} is not a cname`);
@@ -106,14 +106,14 @@ const HandleInstanceResolve = (c) => {
 		if (!subdomain) throw new BadRequestError(`Subdomain or instance ID is required when resolving an instance without a cname.`);
 		try {
 			log(`Checking for instance ID ${subdomain}`);
-			const record = $app.dao().findRecordById("instances", subdomain);
+			const record = dao.findRecordById("instances", subdomain);
 			return record;
 		} catch (e) {
 			log(`${subdomain} is not an instance ID`);
 		}
 		try {
 			log(`Checking for subdomain ${subdomain}`);
-			const record = $app.dao().findFirstRecordByData("instances", `subdomain`, subdomain);
+			const record = dao.findFirstRecordByData("instances", `subdomain`, subdomain);
 			return record;
 		} catch (e) {
 			log(`${subdomain} is not a subdomain`);
@@ -131,7 +131,7 @@ const HandleInstanceResolve = (c) => {
 		if (!userId) throw new BadRequestError(`Instance has no user.`);
 		try {
 			log(`Checking for user ${userId}`);
-			const record = $app.dao().findRecordById("users", userId);
+			const record = dao.findRecordById("users", userId);
 			return record;
 		} catch (e) {
 			log(`User ${userId} not found`);
@@ -241,7 +241,7 @@ const createCloudflareCustomHostname = (hostname, log) => {
 	}, log);
 };
 const HandleInstanceUpdate = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`PUT:instance`);
 	log(`TOP OF PUT`);
 	let data = new DynamicModel({
@@ -257,10 +257,11 @@ const HandleInstanceUpdate = (c) => {
 			cname: null
 		}
 	});
-	c.bind(data);
+	c.bindBody(data);
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
-	const id = c.pathParam("id");
+	const id = c.request?.pathValue("id");
+	if (!id) throw new BadRequestError(`Instance ID is required.`);
 	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname } } = data;
 	log(`vars`, JSON.stringify({
 		id,
@@ -274,7 +275,7 @@ const HandleInstanceUpdate = (c) => {
 		cname
 	}));
 	const record = dao.findRecordById("instances", id);
-	const authRecord = c.get("authRecord");
+	const authRecord = c.auth;
 	log(`authRecord`, JSON.stringify(authRecord));
 	if (!authRecord) throw new Error(`Expected authRecord here`);
 	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
@@ -296,23 +297,25 @@ const HandleInstanceUpdate = (c) => {
 		dev,
 		cname
 	});
-	const form = new RecordUpsertForm($app, record);
-	form.loadData(sanitized);
-	form.submit();
+	Object.keys(sanitized).forEach((key) => {
+		record.set(key, sanitized[key]);
+	});
+	dao.save(record);
 	return c.json(200, { status: "ok" });
 };
 
 //#endregion
 //#region src/lib/handlers/instance/bootstrap/HandleInstancesResetIdle.ts
 const HandleInstancesResetIdle = (e) => {
-	const dao = $app.dao();
+	e.next();
+	const dao = $app;
 	dao.db().newQuery(`update instances set status='idle'`).execute();
 };
 
 //#endregion
 //#region src/lib/handlers/instance/bootstrap/HandleMigrateCnamesToDomains.ts
 const HandleMigrateCnamesToDomains = (e) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`bootstrap:migrate-cnames`);
 	log(`Starting cname to domains migration`);
 	try {
@@ -322,7 +325,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 			return;
 		}
 		log(`Checking for instances with cnames`);
-		const instancesWithCnames = dao.findRecordsByFilter("instances", "cname != NULL && cname != ''");
+		const instancesWithCnames = dao.findRecordsByFilter("instances", "cname != NULL && cname != ''", "", 0, 0);
 		if (instancesWithCnames.length === 0) {
 			log(`No cnames to migrate`);
 			return;
@@ -335,7 +338,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 			try {
 				const cname = instance.getString("cname");
 				if (!cname) return;
-				const instanceId = instance.getId();
+				const instanceId = instance.id;
 				let domainExists = false;
 				try {
 					dao.findFirstRecordByFilter("domains", `instance = "${instanceId}" && domain = "${cname}"`);
@@ -347,17 +350,17 @@ const HandleMigrateCnamesToDomains = (e) => {
 					domainRecord.set("instance", instanceId);
 					domainRecord.set("domain", cname);
 					domainRecord.set("active", instance.getBool("cname_active"));
-					dao.saveRecord(domainRecord);
+					dao.save(domainRecord);
 					log(`Created domain record for ${cname}`);
 					cnameMigrated++;
 				}
 			} catch (error$1) {
-				log(`Failed to migrate cname for instance ${instance.getId()}:`, error$1);
+				log(`Failed to migrate cname for instance ${instance.id}:`, error$1);
 			}
 		});
 		log(`Phase 1 complete: migrated ${cnameMigrated} cnames to domains collection`);
 		log(`Phase 2: Syncing domains collection with instances.domains arrays`);
-		const allDomainRecords = dao.findRecordsByFilter("domains", "1=1");
+		const allDomainRecords = dao.findRecordsByFilter("domains", "1=1", "", 0, 0);
 		log(`Found ${allDomainRecords.length} domain records`);
 		let instancesUpdated = 0;
 		const domainsByInstance = /* @__PURE__ */ new Map();
@@ -365,7 +368,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 			if (!domainRecord) return;
 			const instanceId = domainRecord.getString("instance");
 			if (!domainsByInstance.has(instanceId)) domainsByInstance.set(instanceId, []);
-			domainsByInstance.get(instanceId).push(domainRecord.getId());
+			domainsByInstance.get(instanceId).push(domainRecord.id);
 		});
 		log(`Updating instances.domains arrays`);
 		domainsByInstance.forEach((domainIds, instanceId) => {
@@ -378,7 +381,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 				if (missingIds.length > 0) {
 					const updatedDomains = [...currentDomains, ...missingIds];
 					instance.set("domains", updatedDomains);
-					dao.saveRecord(instance);
+					dao.save(instance);
 					log(`Updated instance ${instanceId}: added ${missingIds.length} domain IDs to domains array`);
 					instancesUpdated++;
 				}
@@ -395,9 +398,9 @@ const HandleMigrateCnamesToDomains = (e) => {
 //#endregion
 //#region src/lib/handlers/instance/bootstrap/HandleMigrateInstanceVersions.ts
 const HandleMigrateInstanceVersions = (e) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`bootstrap`);
-	const records = dao.findRecordsByFilter(`instances`, "1=1").filter((r) => !!r);
+	const records = dao.findRecordsByFilter(`instances`, "1=1", "", 0, 0).filter((r) => !!r);
 	const unrecognized = [];
 	records.forEach((record) => {
 		const v = record.getString("version").trim();
@@ -416,7 +419,7 @@ const HandleMigrateInstanceVersions = (e) => {
 		})();
 		if (versions.includes(newVersion)) {
 			record.set(`version`, newVersion);
-			dao.saveRecord(record);
+			dao.save(record);
 		} else unrecognized.push(v);
 	});
 	log({ unrecognized });
@@ -426,7 +429,7 @@ const HandleMigrateInstanceVersions = (e) => {
 //#region src/lib/handlers/instance/bootstrap/HandleMigrateRegions.ts
 /** Migrate version numbers */
 const HandleMigrateRegions = (e) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`HandleMigrateRegions`);
 	log(`Migrating regions`);
 	dao.db().newQuery(`update instances set region='sfo-1' where region=''`).execute();
@@ -439,7 +442,7 @@ const mkAudit = (log, dao) => {
 	return (event, note, context) => {
 		log(`top of audit`);
 		log(`AUDIT:${event}: ${note}`, JSON.stringify({ context }, null, 2));
-		dao.saveRecord(new Record(dao.findCollectionByNameOrId("audit"), {
+		dao.save(new Record(dao.findCollectionByNameOrId("audit"), {
 			event,
 			note,
 			context
@@ -450,12 +453,12 @@ const mkAudit = (log, dao) => {
 //#endregion
 //#region src/lib/handlers/instance/model/AfterCreate_notify_discord.ts
 const AfterCreate_notify_discord = (e) => {
-	const dao = e.dao || $app.dao();
+	const dao = $app;
 	const log = mkLog(`instances:create:discord:notify`);
 	const audit = mkAudit(log, dao);
 	const webhookUrl = process.env.DISCORD_STREAM_CHANNEL_URL;
 	if (!webhookUrl) return;
-	const version = e.model.get("version");
+	const version = e.record?.get("version");
 	try {
 		const res = $http.send({
 			url: webhookUrl,
@@ -467,15 +470,16 @@ const AfterCreate_notify_discord = (e) => {
 	} catch (e$1) {
 		audit(`ERROR`, `Instance creation discord notify failed with ${e$1}`);
 	}
+	e.next();
 };
 
 //#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_cname.ts
 const BeforeUpdate_cname = (e) => {
-	const dao = e.dao || $app.dao();
+	const dao = $app;
 	const log = mkLog(`BeforeUpdate_cname`);
-	const id = e.model.getId();
-	const newCname = e.model.get("cname").trim();
+	const id = e.record?.get("id");
+	const newCname = e.record?.get("cname").trim();
 	if (newCname.length > 0) {
 		const result = new DynamicModel({ id: "" });
 		const inUse = (() => {
@@ -493,19 +497,20 @@ const BeforeUpdate_cname = (e) => {
 		}
 		log(`CNAME validation passed for: "${newCname}"`);
 	}
+	e.next();
 };
 
 //#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_version.ts
 const BeforeUpdate_version = (e) => {
-	const dao = e.dao || $app.dao();
 	const log = mkLog(`BeforeUpdate_version`);
-	const version = e.model.get("version");
+	const version = e.record?.get("version");
 	if (!versions.includes(version)) {
 		const msg = `Invalid version ${version}. Version must be one of: ${versions.join(", ")}`;
 		log(`[ERROR] ${msg}`);
 		throw new BadRequestError(msg);
 	}
+	e.next();
 };
 
 //#endregion
@@ -522,17 +527,17 @@ const mkNotifier = (log, dao) => (channel, template, user_id, context = {}) => {
 	const emailNotification = new Record(dao.findCollectionByNameOrId("notifications"), {
 		user: user_id,
 		channel,
-		message_template: emailTemplate.getId(),
+		message_template: emailTemplate.id,
 		message_template_vars: context
 	});
 	log(`built notification record`, emailNotification);
-	dao.saveRecord(emailNotification);
+	dao.save(emailNotification);
 };
 
 //#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
 const HandleLemonSqueezySale = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`ls`);
 	const audit = mkAudit(log, dao);
 	const context = {};
@@ -541,10 +546,10 @@ const HandleLemonSqueezySale = (c) => {
 		context.secret = process.env.LS_WEBHOOK_SECRET;
 		if (!context.secret) throw new Error(`No secret`);
 		log(`Secret`, context.secret);
-		context.raw = readerToString(c.request().body);
+		context.raw = toString(c.request?.body);
 		context.body_hash = $security.hs256(context.raw, context.secret);
 		log(`Body hash`, context.body_hash);
-		context.xsignature_header = c.request().header.get("X-Signature");
+		context.xsignature_header = c.request?.header.get("X-Signature");
 		log(`Signature`, context.xsignature_header);
 		if (context.xsignature_header == void 0 || !$security.equal(context.body_hash, context.xsignature_header)) throw new BadRequestError(`Invalid signature`);
 		log(`Signature verified`);
@@ -669,7 +674,7 @@ const HandleLemonSqueezySale = (c) => {
 		else log(`product handler ok`, pv_id);
 		const signup_finalizer = () => {
 			product_handler();
-			dao.saveRecord(userRec);
+			dao.save(userRec);
 			log(`saved user`);
 			const notify = mkNotifier(log, dao);
 			const { user_id } = context;
@@ -682,7 +687,7 @@ const HandleLemonSqueezySale = (c) => {
 			userRec.set(`subscription`, `free`);
 			userRec.set(`subscription_quantity`, 0);
 			userRec.set(`subscription_interval`, ``);
-			dao.saveRecord(userRec);
+			dao.save(userRec);
 			log(`saved user`);
 			audit(`LS`, `Signup cancelled.`, context);
 		};
@@ -707,7 +712,7 @@ const HandleMailSend = (c) => {
 		body: ""
 	});
 	log(`before bind`);
-	c.bind(data);
+	c.bindBody(data);
 	log(`after bind`);
 	data = JSON.parse(JSON.stringify(data));
 	log(`bind parsed`, JSON.stringify(data));
@@ -734,33 +739,18 @@ const HandleMetaUpdateAtBoot = (c) => {
 	const log = mkLog("HandleMetaUpdateAtBoot");
 	log(`At top of HandleMetaUpdateAtBoot`);
 	log(`app URL`, process.env.APP_URL);
-	const form = new SettingsUpsertForm($app);
-	form.meta = {
-		...$app.settings().meta,
-		appUrl: process.env.APP_URL || $app.settings().meta.appUrl,
-		verificationTemplate: {
-			...$app.settings().meta.verificationTemplate,
-			actionUrl: `{APP_URL}/login/confirm-account/{TOKEN}`
-		},
-		resetPasswordTemplate: {
-			...$app.settings().meta.resetPasswordTemplate,
-			actionUrl: `{APP_URL}/login/password-reset/confirm/{TOKEN}`
-		},
-		confirmEmailChangeTemplate: {
-			...$app.settings().meta.confirmEmailChangeTemplate,
-			actionUrl: `{APP_URL}/login/confirm-email-change/{TOKEN}`
-		}
-	};
-	log(`Saving form`);
-	form.submit();
-	log(`Saved form`);
+	const settings = $app.settings();
+	if (process.env.APP_URL) settings.meta.appURL = process.env.APP_URL;
+	log(`Savingsettings`);
+	$app.save(settings);
+	log(`Savedsettings`);
 };
 
 //#endregion
 //#region src/lib/handlers/mirror/api/HandleMirrorData.ts
 const HandleMirrorData = (c) => {
-	const users = $app.dao().findRecordsByExpr("verified_users", $dbx.exp("1=1"));
-	const instances = $app.dao().findRecordsByExpr("instances", $dbx.exp("instances.uid in (select id from verified_users)"));
+	const users = $app.findRecordsByExpr("verified_users", $dbx.exp("1=1"));
+	const instances = $app.findRecordsByExpr("instances", $dbx.exp("instances.uid in (select id from verified_users)"));
 	return c.json(200, {
 		users,
 		instances
@@ -831,7 +821,7 @@ const mkNotificationProcessor = (log, dao, test = false) => (notificationRec) =>
 	}
 	if (!test) {
 		notificationRec.set(`delivered`, new DateTime());
-		dao.saveRecord(notificationRec);
+		dao.save(notificationRec);
 	}
 };
 
@@ -840,8 +830,8 @@ const mkNotificationProcessor = (log, dao, test = false) => (notificationRec) =>
 const HandleProcessSingleNotification = (c) => {
 	const log = mkLog(`process_single_notification`);
 	log(`start`);
-	const dao = $app.dao();
-	const processNotification = mkNotificationProcessor(log, dao, !!c.queryParam(`test`));
+	const dao = $app;
+	const processNotification = mkNotificationProcessor(log, dao, !!c.request?.url?.query().get(`test`));
 	try {
 		const notification = dao.findFirstRecordByData(`notifications`, `delivered`, ``);
 		if (!notification) return c.json(200, `No notifications to send`);
@@ -855,28 +845,31 @@ const HandleProcessSingleNotification = (c) => {
 //#endregion
 //#region src/lib/handlers/notify/model/HandleProcessNotification.ts
 const HandleProcessNotification = (e) => {
-	const dao = e.dao || $app.dao();
+	const dao = $app;
 	const log = mkLog(`notification:sendImmediately`);
 	const audit = mkAudit(log, dao);
 	const processNotification = mkNotificationProcessor(log, dao, false);
-	const notificationRec = e.model;
+	const notificationRec = e.record;
 	log({ notificationRec });
 	try {
+		if (!notificationRec) throw new Error(`Missing notification record`);
 		dao.expandRecord(notificationRec, ["message_template"]);
-		const messageTemplateRec = notificationRec.expandedOne(`message_template`);
+		const messageTemplateRec = notificationRec?.expandedOne(`message_template`);
 		if (!messageTemplateRec) throw new Error(`Missing message template`);
 		processNotification(notificationRec);
 	} catch (e$1) {
-		audit(`ERROR`, `${e$1}`, { notification: notificationRec.getId() });
+		audit(`ERROR`, `${e$1}`, { notification: notificationRec?.id });
 	}
+	e.next();
 };
 
 //#endregion
 //#region src/lib/handlers/notify/model/HandleUserWelcomeMessage.ts
 const HandleUserWelcomeMessage = (e) => {
-	const dao = e.dao || $app.dao();
-	const newModel = e.model;
-	const oldModel = newModel.originalCopy();
+	const dao = $app;
+	const newModel = e.record;
+	if (!newModel) return e.next();
+	const oldModel = newModel?.original();
 	const log = mkLog(`user-welcome-msg`);
 	const notify = mkNotifier(log, dao);
 	const audit = mkAudit(log, dao);
@@ -889,12 +882,13 @@ const HandleUserWelcomeMessage = (e) => {
 		if (!isVerified) return;
 		if (isVerified === oldModel.getBool(`verified`)) return;
 		log(`user just became verified`);
-		const uid = newModel.getId();
+		const uid = newModel.id;
 		notify(`email`, `welcome`, uid);
 		newModel.set(`welcome`, new DateTime());
 	} catch (e$1) {
-		audit(`ERROR`, `${e$1}`, { user: newModel.getId() });
+		audit(`ERROR`, `${e$1}`, { user: newModel.id });
 	}
+	e.next();
 };
 
 //#endregion
@@ -908,7 +902,7 @@ const error = (fieldName, slug, description, extra) => new ApiError(500, descrip
 //#region src/lib/handlers/signup/isAvailable.ts
 const isAvailable = (slug) => {
 	try {
-		const record = $app.dao().findFirstRecordByData("instances", "subdomain", slug);
+		const record = $app.findFirstRecordByData("instances", "subdomain", slug);
 		return false;
 	} catch {
 		return true;
@@ -2934,7 +2928,7 @@ function generate(options) {
 //#region src/lib/handlers/signup/api/HandleSignupCheck.ts
 const HandleSignupCheck = (c) => {
 	const instanceName = (() => {
-		const name = c.queryParam("name").trim();
+		const name = c.request?.url?.query().get("name").trim();
 		if (name) {
 			if (name.match(/^[a-z][a-z0-9-]{2,39}$/) === null) throw error(`instanceName`, `invalid`, `Instance name must begin with a letter, be between 3-40 characters, and can only contain a-z, 0-9, and hyphen (-).`);
 			if (isAvailable(name)) return name;
@@ -2955,9 +2949,9 @@ const HandleSignupCheck = (c) => {
 //#endregion
 //#region src/lib/handlers/signup/api/HandleSignupConfirm.ts
 const HandleSignupConfirm = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const parsed = (() => {
-		const rawBody = readerToString(c.request().body);
+		const rawBody = toString(c.request?.body);
 		try {
 			const parsed$1 = JSON.parse(rawBody);
 			return parsed$1;
@@ -2982,18 +2976,29 @@ const HandleSignupConfirm = (c) => {
 		}
 	})();
 	if (userExists) throw error(`email`, `exists`, `That user account already exists. Try a password reset.`);
+	function suggestUniqueAuthRecordUsername(collectionModelOrIdentifier, baseUsername) {
+		let username = baseUsername;
+		for (let i = 0; i < 10; i++) {
+			try {
+				let total = $app.countRecords(collectionModelOrIdentifier, $dbx.exp("LOWER([[username]])={:username}", { "username": username.toLowerCase() }));
+				if (total == 0) break;
+			} catch {}
+			username = baseUsername + $security.randomStringWithAlphabet(3 + i, "123456789");
+		}
+		return username;
+	}
 	dao.runInTransaction((txDao) => {
 		const usersCollection = dao.findCollectionByNameOrId("users");
-		const instanceCollection = $app.dao().findCollectionByNameOrId("instances");
+		const instanceCollection = dao.findCollectionByNameOrId("instances");
 		const user = new Record(usersCollection);
 		try {
-			const username = $app.dao().suggestUniqueAuthRecordUsername("users", "user" + $security.randomStringWithAlphabet(5, "123456789"));
+			const username = suggestUniqueAuthRecordUsername("users", "user");
 			user.set("username", username);
 			user.set("email", email);
 			user.set("subscription", "free");
 			user.set("subscription_quantity", 0);
 			user.setPassword(password);
-			txDao.saveRecord(user);
+			txDao.save(user);
 		} catch (e) {
 			throw error(`email`, `fail`, `Could not create user: ${e}`);
 		}
@@ -3007,7 +3012,7 @@ const HandleSignupConfirm = (c) => {
 			instance.set("syncAdmin", true);
 			instance.set("dev", true);
 			instance.set("version", version);
-			txDao.saveRecord(instance);
+			txDao.save(instance);
 		} catch (e) {
 			if (`${e}`.match(/ UNIQUE /)) throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`);
 			throw error(`instanceName`, `fail`, `Could not create instance: ${e}`);
@@ -3032,7 +3037,7 @@ function isSnsNotificationComplaintPayload(payload) {
 	return payload.notificationType === "Complaint";
 }
 const HandleSesError = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`sns`);
 	const audit = mkAudit(log, dao);
 	const processBounce = (emailAddress) => {
@@ -3041,21 +3046,24 @@ const HandleSesError = (c) => {
 		try {
 			const user = dao.findFirstRecordByData("users", "email", emailAddress);
 			log(`user is`, user);
-			extra.user = user.getId();
+			extra.user = user.id;
 			user.setVerified(false);
-			dao.saveRecord(user);
+			dao.save(user);
 			audit("PBOUNCE", `User ${emailAddress} has been disabled`, extra);
 		} catch (e) {
 			audit("PBOUNCE_ERR", `${e}`, extra);
 		}
 	};
-	const raw = readerToString(c.request().body);
+	const raw = toString(c.request?.body);
 	const data = JSON.parse(raw);
 	log(JSON.stringify(data, null, 2));
 	if (isSnsSubscriptionConfirmationEvent(data)) {
 		const url = data.SubscribeURL;
 		log(url);
-		$http.send({ url });
+		$http.send({
+			url,
+			headers: { "content-type": "application/json" }
+		});
 		return c.json(200, { status: "ok" });
 	}
 	if (isSnsNotificationEvent(data)) {
@@ -3084,13 +3092,13 @@ const HandleSesError = (c) => {
 				const { emailAddress } = recipient;
 				log(`Processing ${emailAddress}`);
 				try {
-					const user = $app.dao().findFirstRecordByData("users", "email", emailAddress);
+					const user = $app.findFirstRecordByData("users", "email", emailAddress);
 					log(`user is`, user);
 					user.set(`unsubscribe`, true);
-					dao.saveRecord(user);
+					dao.save(user);
 					audit("COMPLAINT", `User ${emailAddress} has been unsubscribed`, {
 						emailAddress,
-						user: user.getId()
+						user: user.id
 					});
 				} catch (e) {
 					audit("COMPLAINT_ERR", `${emailAddress} is not in the system.`, { emailAddress });
@@ -3106,16 +3114,16 @@ const HandleSesError = (c) => {
 //#region src/lib/handlers/stats/api/HandleStatsRequest.ts
 const HandleStatsRequest = (c) => {
 	const result = new DynamicModel({ total_flounder_subscribers: 0 });
-	$app.dao().db().select("total_flounder_subscribers").from("stats").one(result);
+	$app.db().select("total_flounder_subscribers").from("stats").one(result);
 	return c.json(200, result);
 };
 
 //#endregion
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (c) => {
-	const dao = $app.dao();
+	const dao = $app;
 	const log = mkLog(`user-token`);
-	const id = c.pathParam("id");
+	const id = c.request?.pathValue("id");
 	if (!id) throw new BadRequestError(`User ID is required.`);
 	const rec = dao.findRecordById("users", id);
 	const tokenKey = rec.getString("tokenKey");

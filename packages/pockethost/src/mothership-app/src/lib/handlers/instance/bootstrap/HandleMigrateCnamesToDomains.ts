@@ -1,7 +1,7 @@
 import { mkLog } from '$util/Logger'
 
 export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
-  const dao = $app.dao()
+  const dao = $app
   const log = mkLog(`bootstrap:migrate-cnames`)
 
   log(`Starting cname to domains migration`)
@@ -16,7 +16,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
 
     // Check if there are any instances with cnames that haven't been migrated
     log(`Checking for instances with cnames`)
-    const instancesWithCnames = dao.findRecordsByFilter('instances', "cname != NULL && cname != ''")
+    const instancesWithCnames = dao.findRecordsByFilter('instances', "cname != NULL && cname != ''", "", 0,0)
 
     if (instancesWithCnames.length === 0) {
       log(`No cnames to migrate`)
@@ -35,7 +35,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
         const cname = instance.getString('cname')
         if (!cname) return
 
-        const instanceId = instance.getId()
+        const instanceId = instance.id
 
         // Check if domain record already exists
         let domainExists = false
@@ -54,12 +54,12 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
           domainRecord.set('domain', cname)
           domainRecord.set('active', instance.getBool('cname_active'))
 
-          dao.saveRecord(domainRecord)
+          dao.save(domainRecord)
           log(`Created domain record for ${cname}`)
           cnameMigrated++
         }
       } catch (error) {
-        log(`Failed to migrate cname for instance ${instance.getId()}:`, error)
+        log(`Failed to migrate cname for instance ${instance.id}:`, error)
       }
     })
 
@@ -67,7 +67,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
 
     // Phase 2: Sync all domain records with instances.domains arrays
     log(`Phase 2: Syncing domains collection with instances.domains arrays`)
-    const allDomainRecords = dao.findRecordsByFilter('domains', '1=1')
+    const allDomainRecords = dao.findRecordsByFilter('domains', '1=1',"", 0,0)
     log(`Found ${allDomainRecords.length} domain records`)
     let instancesUpdated = 0
 
@@ -80,7 +80,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
       if (!domainsByInstance.has(instanceId)) {
         domainsByInstance.set(instanceId, [])
       }
-      domainsByInstance.get(instanceId).push(domainRecord.getId())
+      domainsByInstance.get(instanceId).push(domainRecord.id)
     })
 
     // Update each instance's domains array
@@ -97,7 +97,7 @@ export const HandleMigrateCnamesToDomains = (e: core.BootstrapEvent) => {
         if (missingIds.length > 0) {
           const updatedDomains = [...currentDomains, ...missingIds]
           instance.set('domains', updatedDomains)
-          dao.saveRecord(instance)
+          dao.save(instance)
           log(`Updated instance ${instanceId}: added ${missingIds.length} domain IDs to domains array`)
           instancesUpdated++
         }

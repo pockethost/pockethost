@@ -1,4 +1,5 @@
 export const HandleInstancesResetIdle = (e: core.BootstrapEvent) => {
-  const dao = $app.dao()
+  e.next()
+  const dao = $app
   dao.db().newQuery(`update instances set status='idle'`).execute()
 }

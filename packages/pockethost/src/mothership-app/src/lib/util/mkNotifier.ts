@@ -1,7 +1,7 @@
 import { Logger } from './Logger'
 
 export const mkNotifier =
-  (log: Logger, dao: daos.Dao) =>
+  (log: Logger, dao: CoreApp) =>
   <TContext extends Record<string, any>>(
     channel: 'email' | 'lemonbot',
     template: string,
@@ -15,9 +15,9 @@ export const mkNotifier =
     const emailNotification = new Record(dao.findCollectionByNameOrId('notifications'), {
       user: user_id,
       channel,
-      message_template: emailTemplate.getId(),
+      message_template: emailTemplate.id,
       message_template_vars: context,
     })
     log(`built notification record`, emailNotification)
-    dao.saveRecord(emailNotification)
+    dao.save(emailNotification)
   }

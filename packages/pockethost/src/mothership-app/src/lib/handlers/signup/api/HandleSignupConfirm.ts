@@ -1,10 +1,10 @@
 import { versions } from '$util/versions'
 import { error } from '../error'
 
-export const HandleSignupConfirm = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleSignupConfirm = (c: core.RequestEvent) => {
+  const dao = $app
   const parsed = (() => {
-    const rawBody = readerToString(c.request().body)
+    const rawBody = toString(c.request?.body)
     try {
       const parsed = JSON.parse(rawBody)
       return parsed
@@ -43,21 +43,42 @@ export const HandleSignupConfirm = (c: echo.Context) => {
     throw error(`email`, `exists`, `That user account already exists. Try a password reset.`)
   }
 
+  function suggestUniqueAuthRecordUsername(
+		collectionModelOrIdentifier:string,
+		baseUsername:string,
+	) {
+		let username = baseUsername
+		for (let i = 0; i < 10; i++) { // max 10 attempts
+			try {
+				let total = $app.countRecords(
+					collectionModelOrIdentifier,
+					$dbx.exp("LOWER([[username]])={:username}", { "username": username.toLowerCase() }),
+				)
+				if (total == 0) {
+					break // already unique
+				}
+			} catch { }
+
+			username = baseUsername + $security.randomStringWithAlphabet(3 + i, "123456789")
+		}
+
+		return username
+	}
+
   dao.runInTransaction((txDao) => {
     const usersCollection = dao.findCollectionByNameOrId('users')
-    const instanceCollection = $app.dao().findCollectionByNameOrId('instances')
+    const instanceCollection = dao.findCollectionByNameOrId('instances')
 
     const user = new Record(usersCollection)
     try {
-      const username = $app
-        .dao()
-        .suggestUniqueAuthRecordUsername('users', 'user' + $security.randomStringWithAlphabet(5, '123456789'))
+      const username = suggestUniqueAuthRecordUsername('users', 'user')
+
       user.set('username', username)
       user.set('email', email)
       user.set('subscription', 'free')
       user.set('subscription_quantity', 0)
       user.setPassword(password)
-      txDao.saveRecord(user)
+      txDao.save(user)
     } catch (e) {
       throw error(`email`, `fail`, `Could not create user: ${e}`)
     }
@@ -72,7 +93,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       instance.set('syncAdmin', true)
       instance.set('dev', true)
       instance.set('version', version)
-      txDao.saveRecord(instance)
+      txDao.save(instance)
     } catch (e) {
       if (`${e}`.match(/ UNIQUE /)) {
         throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`)

@@ -1,12 +1,12 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleInstanceResolve = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleInstanceResolve = (c: core.RequestEvent) => {
+  const dao = $app
 
   const log = mkLog(`GET:instance/resolve`)
 
   log(`TOP OF GET`)
-  const host = c.queryParam('host')
+  const host = c.request?.url?.query().get('host')
 
   if (!host) {
     throw new BadRequestError(`Host is required when resolving an instance.`)
@@ -15,7 +15,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
   const instance = (() => {
     try {
       log(`Checking for cname ${host}`)
-      const record = $app.dao().findFirstRecordByData('instances', 'cname', host)
+      const record = dao.findFirstRecordByData('instances', 'cname', host)
       return record
     } catch (e) {
       log(`${host} is not a cname`)
@@ -29,7 +29,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
 
     try {
       log(`Checking for instance ID ${subdomain}`)
-      const record = $app.dao().findRecordById('instances', subdomain)
+      const record = dao.findRecordById('instances', subdomain)
       return record
     } catch (e) {
       log(`${subdomain} is not an instance ID`)
@@ -37,7 +37,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
 
     try {
       log(`Checking for subdomain ${subdomain}`)
-      const record = $app.dao().findFirstRecordByData('instances', `subdomain`, subdomain)
+      const record = dao.findFirstRecordByData('instances', `subdomain`, subdomain)
       return record
     } catch (e) {
       log(`${subdomain} is not a subdomain`)
@@ -70,7 +70,7 @@ export const HandleInstanceResolve = (c: echo.Context) => {
 
     try {
       log(`Checking for user ${userId}`)
-      const record = $app.dao().findRecordById('users', userId)
+      const record = dao.findRecordById('users', userId)
       return record
     } catch (e) {
       log(`User ${userId} not found`)

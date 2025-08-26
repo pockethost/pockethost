@@ -1,7 +1,7 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleInstanceDelete = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleInstanceDelete = (c: core.RequestEvent) => {
+  const dao = $app
 
   const log = mkLog(`DELETE:instance`)
 
@@ -10,13 +10,17 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     id: '',
   })
 
-  c.bind(data)
+  c.bindBody(data)
   log(`After bind`)
 
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const id = c.pathParam('id')
+  const id = c.request?.pathValue('id')
+
+  if(!id) {
+    throw new BadRequestError(`Instance ID is required.`)
+  }
 
   log(
     `vars`,
@@ -25,7 +29,7 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     })
   )
 
-  const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record
+  const authRecord = c.auth // empty if not authenticated as regular auth record
   log(`authRecord`, JSON.stringify(authRecord))
 
   if (!authRecord) {
@@ -49,7 +53,7 @@ export const HandleInstanceDelete = (c: echo.Context) => {
   const res = $os.removeAll(path)
   log(`res`, res)
 
-  dao.deleteRecord(record)
+  dao.delete(record)
 
   return c.json(200, { status: 'ok' })
 }
