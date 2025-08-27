@@ -12,6 +12,6 @@ Once deleted, the following will be permanently erased:
 - All files in `pb_migrations/*`
 - All files in `pb_static/*`
 
-![](2024-10-06-14-43-21.png)
+![](first-power-off.png)
 
-![](2024-10-06-14-43-44.png)
+![](delete-instance.png)

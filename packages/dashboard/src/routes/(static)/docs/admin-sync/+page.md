@@ -4,7 +4,7 @@ Admin Sync ensures that your instance always has an admin account that matches t
 
 ## Enabling Admin Sync
 
-![](2024-10-06-14-34-37.png)
+![](admin-sync.png)
 
 When Admin Sync is enabled, your pockethost.io account credentials are automatically copied as an admin login to your instance before it launches.
 
@@ -14,6 +14,6 @@ By default, Admin Sync is enabled, ensuring that when an instance is created, it
 
 ## Disabling Admin Sync
 
-![](2024-10-06-14-34-55.png)
+![](admin-sync-off.png)
 
 When Admin Sync is disabled, your pockethost.io credentials will no longer be copied to your instance in future launches.

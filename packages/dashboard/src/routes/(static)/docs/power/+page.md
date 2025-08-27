@@ -2,7 +2,7 @@
 
 ## Power On
 
-![](2024-10-06-14-32-38.png)
+![](power-on.png)
 
 To power on the instance, follow these steps:
 
@@ -14,7 +14,7 @@ Once powered on, your PocketBase instance will be able to receive requests and r
 
 ## Power Off
 
-![](2024-10-06-14-32-05.png)
+![](power-off.png)
 
 To power off the instance, follow these steps:
 

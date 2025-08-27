@@ -1,6 +1,6 @@
 # Dev Mode
 
-![](2024-10-06-14-36-37.png)
+![](dev-mode.png)
 
 Begining with PocketBase 0.20.1, you may supply a `--dev` flag to make PocketBase output debugging information to the console.
 

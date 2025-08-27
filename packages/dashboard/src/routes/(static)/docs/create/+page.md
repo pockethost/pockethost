@@ -1,6 +1,6 @@
 # Creating an Instance
 
-![](2024-10-06-14-33-11.png)
+![](create-instance.png)
 
 Each PocketHost instance runs on its own unique subdomain. To create a new instance, simply go to [Create New Instance](/instances/new).
 

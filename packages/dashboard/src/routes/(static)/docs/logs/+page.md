@@ -2,7 +2,7 @@
 
 You can view live logs while your PocketHost instance is running. `console.log` output from `pb_hooks` scripts will also appear in these logs.
 
-![](2024-10-06-14-38-49.png)
+![](logs.png)
 
 For enhanced logging, use [Dev mode](/docs/dev-mode).
 
