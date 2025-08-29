@@ -5,6 +5,9 @@
   import InstanceCard from './InstanceCard.svelte'
   import { faArrowDownAZ, faArrowDownZA } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
+  import { page } from '$app/state'
+  import { onMount } from 'svelte'
+  import { goto } from '$app/navigation'
 
   type SortOptions = 'subdomain' | 'created' | 'power'
   type SortDirection = 'asc' | 'desc'
@@ -13,6 +16,31 @@
   let searchQuery = ''
   let filterPower: 'all' | 'on' | 'off' = 'all'
   let sortDirection: SortDirection = 'asc'
+
+  const updateStateFromUrl = () => {
+    const params = page.url.searchParams
+    sortDirection = (params.get('sort') as SortDirection) || 'asc'
+    sortBy = (params.get('by') as SortOptions) || 'power'
+    filterPower = (params.get('f') as 'all' | 'on' | 'off') || 'all'
+    searchQuery = params.get('q') || ''
+  }
+  onMount(() => {
+    updateStateFromUrl()
+  })
+
+  const updateUrl = () => {
+    const params = new URLSearchParams()
+    if (sortDirection) params.set('sort', sortDirection)
+    if (sortBy) params.set('by', sortBy)
+    if (filterPower) params.set('f', filterPower)
+    if (searchQuery) params.set('q', searchQuery)
+    goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true })
+  }
+
+  // Reactively update URL when state changes
+  $: if (sortBy || sortDirection || searchQuery || filterPower) {
+    updateUrl()
+  }
 
   const sortFn = (type: SortOptions, direction: SortDirection) => {
     const multiplier = direction === 'asc' ? 1 : -1
@@ -78,7 +106,11 @@
       </ul>
     </div>
 
-    <button tabindex="0" on:click={toggleSortDirection} class="btn btn-sm text-white border border-white/10 hover:border-primary">
+    <button
+      tabindex="0"
+      on:click={toggleSortDirection}
+      class="btn btn-sm text-white border border-white/10 hover:border-primary"
+    >
       <Fa icon={sortDirection === 'desc' ? faArrowDownZA : faArrowDownAZ} />
     </button>
   </div>
