@@ -20,7 +20,40 @@ PocketBase includes a **testing feature** to verify that your outgoing email set
 
 This testing process helps ensure that your outgoing email configuration is working as expected before going live.
 
-## Recommended Services
+## Email Testing with Mailtrap
+
+For testing and development purposes, **Mailtrap** provides an excellent sandbox environment that captures outgoing emails without delivering them to real recipients. This is perfect for testing email functionality during development without the risk of sending test emails to actual users.
+
+![Mailtrap Dashboard](mailtrap.png)
+
+### Why Use Mailtrap for Testing?
+
+- **Safe Testing Environment**: All emails are captured in a sandbox, preventing accidental delivery to real users
+- **Easy Setup**: Simple SMTP configuration with clear documentation
+- **Email Inspection**: View HTML/text versions, headers, and spam score analysis
+- **Team Collaboration**: Share inboxes with team members for collaborative testing
+
+### Mailtrap Pricing
+
+Mailtrap offers a generous free tier and scalable paid plans:
+
+| Plan | Price | Emails/Month | Contacts | Best For |
+|------|-------|--------------|----------|----------|
+| **Free** | $0/forever | 3,500 | 100 | Professionals and companies trying out services |
+| **Basic 10K** | $15/month | 10,000 | 5,000 | Startups and small businesses |
+| **Business 100K** ⭐ | $85/month | 100,000 | 100,000 | Companies needing higher sending volume |
+| **Enterprise 1.5M** | $750/month | 1,500,000 | Unlimited | Large-scale organizations |
+
+The free tier is particularly attractive for development and testing, offering 3,500 emails per month at no cost.
+
+### Setting Up Mailtrap
+
+1. Create a free account at [mailtrap.io](https://mailtrap.io)
+2. Navigate to your inbox and copy the SMTP credentials
+3. Configure PocketBase with the provided SMTP settings
+4. Test your email functionality safely in the sandbox environment
+
+## Recommended Production Services
 
 ### Amazon SES
 
