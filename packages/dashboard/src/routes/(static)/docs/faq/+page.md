@@ -20,15 +20,13 @@ PocketHost was created to serve the PocketBase community, combining the sovereig
 
 Development priorities are driven by personal and community needs, and contributions from everyone are encouraged.
 
-PocketHost has a 10-year endowment to offer free hosting for hobby and low- to mid-volume projects. We are also experimenting with a paid tier for power users. Future revenue streams may include professional services, enterprise setups, customization, and priority support.
-
 Rest assured, you can always export your instance data and self-host if needed.
 
 ## Data, Privacy, and Security
 
 ### How stable is it?
 
-pockethost.io and PocketHost are highly stable, with over 99.9% uptime. Any outages are documented in [the system health megathread](https://discord.com/channels/1128192380500193370/1179852349011939439).
+pockethost.io and PocketHost are highly stable, with over 99.964% uptime (see [Status Page](https://status.pockethost.io/)). Any outages are documented in our [Discord Community](https://discord.com/channels/1128192380500193370/1128192380500193373).
 
 ### How often does my data get backed up?
 
@@ -52,30 +50,41 @@ You can use the SFTP feature to download and transfer all your data.
 
 ### How much does the service cost?
 
-PocketHost offers a free tier that is free forever, along with experimental paid tiers for power users.
-
-### What is the pockethost.io free tier and its restrictions?
-
-The free tier includes:
-
-- Fair Use of CPU, bandwidth, and storage
-- Up to 25 projects
-- Connect your instance at `your-instance.pockethost.io`
-
-In practice, 99.9% of projects stay within our fair use guidelines. If your project exceeds the limits, we will work with you to transition to a more suitable plan.
+PocketHost offers flexible pricing tailored to how many PocketBase instances you need.  
+See the full details on the [Pricing Page](https://pockethost.io/pricing).
 
 ### What paid plans are available?
 
-We offer a paid plan that includes:
+- **Starter Plan** – **$5 per instance per month** (up to 5 instances). Includes:
+  - Full feature access
+  - 7-day risk-free trial (credit card required)
+  - 35+ global regions
+  - Unlimited bandwidth, storage, and CPU
+  - FTP access
+  - Pay only for what you use
 
-- Expanded Fair Use CPU, bandwidth, and storage
-- 250 projects
-- Priority support
-- Access to additional premium features as they are introduced
+- **Unlimited Plan** – **$25 per month**, flat rate for **unlimited instances**. Includes everything in the Starter Plan.
 
-### Can I run multiple projects on PocketHost?
+- **Flounder – Lifetime Deal** – One-time **$359**, lifetime access to Unlimited plan perks, plus:
+  - PocketHost T-shirt
+  - Access to the exclusive `#onlyflounders` private Discord
+  - A joke “Girlfriend” perk
+  - (Limited-time availability)
 
-Yes! You can provision as many PocketBase instances as you need. The free tier allows up to 25 projects, while the paid plan allows for 250 projects.
+### Usage Restrictions
+PocketHost enforces restrictions to ensure a fair and reliable experience for all users:
+
+**Fair Use**  
+Your app should consume roughly the same bandwidth, storage, and CPU as the average active app on our platform. Low-traffic apps coexist efficiently with high-traffic apps through dynamic resource management.
+
+**Prohibited Activities**  
+- Illegal content or content disallowed by our partners (e.g., payment/hosting providers)  
+- Spamming  
+- Crypto mining  
+- Any use other than hosting PocketBase for web or mobile applications  
+- Misuse of resources or activities that severely affect system performance or other users’ experience
+
+See the full details on [Terms of Service](https://pockethost.io/terms).
 
 ## PocketBase
 
