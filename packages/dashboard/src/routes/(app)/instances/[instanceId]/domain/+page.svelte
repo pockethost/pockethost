@@ -126,7 +126,7 @@
 </script>
 
 <div class="max-w-2xl">
-  <CardHeader documentation={`/docs/custom-domains`}>Custom Domain (CNAME)</CardHeader>
+  <CardHeader documentation={`/docs/custom-domain`}>Custom Domain (CNAME)</CardHeader>
 
   <div class="mb-8">Use a custom domain (CNAME) with your PocketHost instance.</div>
   {#if cname && regex.test(formCname.trim())}

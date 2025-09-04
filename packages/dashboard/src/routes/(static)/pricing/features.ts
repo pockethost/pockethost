@@ -44,7 +44,7 @@ export const features = [
     description: `Access to private support channels on <a href="${DISCORD_URL}" class="link">Discord</a>.`,
   },
   {
-    title: 'Custom Domains',
+    title: 'Custom Domain',
     description: 'Seamless custom domain integration for your PocketHost instances.',
   },
   {

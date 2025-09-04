@@ -74,7 +74,7 @@
         <DocLink path="versions" title="Changing Versions" />
         <DocLink path="s3" title="Using S3 Storage" />
         <DocLink path="custom-binaries" title="Custom Binaries" />
-        <DocLink path="custom-domains" title="Custom Domains" />
+        <DocLink path="custom-domain" title="Custom Domain" />
         <DocLink path="backup-restore" title="Backup/Restore" />
 
         <li class="menu-title">Daily Use Guide</li>
