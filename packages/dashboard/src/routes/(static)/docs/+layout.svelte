@@ -25,7 +25,8 @@
     if (windowWidth < 768) sidebarOpen = false
   }
 
-const { title, description, ogImage } = data.meta;
+  $: ({ title, description, ogImage } = data.meta || {});
+  
 
 </script>
 <svelte:head>
