@@ -1,3 +1,7 @@
+---
+title: Changing PocketBase Versions
+description: Learn how to upgrade and downgrade your Pocketbase version in Pockethost
+---
 # Changing PocketBase Versions
 
 PocketHost supports the latest minor release of each PocketBase version (e.g., `0.16.*`), and you can update your instance to stay on the latest release. When changing PocketBase versions, whether upgrading or downgrading, it’s important to take precautions to ensure the stability of your instance and the integrity of your data.

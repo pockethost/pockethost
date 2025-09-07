@@ -1,3 +1,7 @@
+---
+title: Creating an Instance
+description: Learn how to create a new PocketBase instance
+---
 # Creating an Instance
 
 ![](create-instance.png)

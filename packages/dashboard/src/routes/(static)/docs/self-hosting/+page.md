@@ -1,3 +1,7 @@
+---
+title: Self Hosting
+description: Learn how to self-host PocketHost
+---
 # Self Hosting
 
 PocketHost is designed to run full stack on your local development machine.

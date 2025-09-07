@@ -1,3 +1,7 @@
+---
+title:  Setting Up AWS SES
+description: Speedrun guide to setting up AWS SES for sending emails from your PocketBase instance using Google Suite as your email provider
+---
 # Speedrun: Setting Up Email with Google Suite and AWS SES
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->

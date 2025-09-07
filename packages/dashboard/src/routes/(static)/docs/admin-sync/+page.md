@@ -1,3 +1,7 @@
+---
+title: Admin Sync
+description: Learn how Admin Sync works to keep your PocketBase admin account in sync with your pockethost.io credentials
+---
 # Admin Sync
 
 Admin Sync ensures that your instance always has an admin account that matches the login credentials of your pockethost.io account.

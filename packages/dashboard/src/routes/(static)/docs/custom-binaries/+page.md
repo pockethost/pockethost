@@ -1,3 +1,7 @@
+---
+title: Custom Binaries
+description: Custom Binaries are not supported due to security concerns
+---
 # Custom Binaries
 
 Custom PocketBase binaries are currently not supported due to security concerns.

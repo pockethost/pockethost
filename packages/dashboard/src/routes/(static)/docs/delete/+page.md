@@ -1,3 +1,7 @@
+---
+title: Deleting an Instance
+description: Learn how to delete a PocketBase instance
+---
 # Deleting an Instance
 
 Deleting an instance will immediately power it down and permanently remove all associated data.

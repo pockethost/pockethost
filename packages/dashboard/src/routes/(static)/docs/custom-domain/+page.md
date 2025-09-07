@@ -1,3 +1,7 @@
+---
+title: Custom Domain
+description: Learn how to set up a custom domain for your PocketHost instance
+---
 # Custom Domain
 
 PocketHost instances can use a custom domain instead of the default `*.pockethost.io` subdomain.

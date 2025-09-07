@@ -1,3 +1,7 @@
+---
+title: Account Creation
+description: How to create your PocketHost account to deploy and manage your PocketBase instances
+---
 # Account Creation
 
 Create your PocketHost account to deploy and manage your PocketBase instances.

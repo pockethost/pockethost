@@ -1,3 +1,8 @@
+---
+title: Accessing an Instance
+description: Learn how to access your PocketBase instance managed by PocketHost
+ogImage: /docs/accessing.png
+---
 # Accessing an Instance
 
 Your PocketBase instance managed by PocketHost can be accessed in several ways:

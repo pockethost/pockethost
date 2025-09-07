@@ -1,3 +1,7 @@
+---
+title: Logging
+description: Learn how to view live logs from your PocketHost instance and access console output from pb_hooks scripts
+---
 # Logging
 
 You can view live logs while your PocketHost instance is running. `console.log` output from `pb_hooks` scripts will also appear in these logs.

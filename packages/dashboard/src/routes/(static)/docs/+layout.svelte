@@ -1,12 +1,11 @@
 <script>
   // Define the width of the sidebar
   const sidebarWidth = '300px'
-  import { page } from '$app/stores'
   import BlurBg from '$components/BlurBg.svelte'
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import DocLink from './DocLink.svelte'
-
   import { onMount } from 'svelte'
+  export let data;
 
   let sidebarOpen = false
   let windowWidth = 0
@@ -26,7 +25,35 @@
     if (windowWidth < 768) sidebarOpen = false
   }
 
+const { title, description, ogImage } = data.meta;
+
 </script>
+<svelte:head>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:url" content={data.url} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    {#if description}
+    <meta property="og:description" content={description} />
+    {/if}
+
+    {#if ogImage}
+        <meta property="og:image" content={ogImage} />
+    {/if}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={data.url} />
+    <meta name="twitter:title" content={title} />
+    {#if description}
+    <meta name="twitter:description" content={description} />
+    {/if}
+
+    {#if ogImage}
+        <meta name="twitter:image" content={ogImage} />
+    {/if}
+</svelte:head>
 
 <BlurBg className="opacity-20 blur-2xl" />
 

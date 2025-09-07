@@ -1,3 +1,7 @@
+---
+title: Rename an Instance
+description: Learn how to rename your PocketHost instance subdomain
+---
 # Rename an Instance
 
 PocketHost instances can always be accessed via their permanent link, such as `https://mfsicdp6ia1zpiu.pockethost.io`, but you can also access them through a convenient subdomain like `https://harvest.pockethost.io`.

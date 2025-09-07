@@ -1,3 +1,7 @@
+---
+title: Power
+description: Learn how to power on and off your PocketBase instance using the PocketHost management console
+---
 # Power
 
 ## Power On

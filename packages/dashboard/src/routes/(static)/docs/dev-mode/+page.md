@@ -1,3 +1,7 @@
+---
+title: Dev Mode
+description: Learn how to enable Dev Mode for your PocketBase instance
+---
 # Dev Mode
 
 ![](dev-mode.png)

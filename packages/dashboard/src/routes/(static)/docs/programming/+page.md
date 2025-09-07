@@ -1,3 +1,7 @@
+---
+title: Extending PocketBase with JSVM
+description: Learn how to extend PocketBase with JSVM, plugins, and server-side rendering using PocketPages
+---
 # Programming and Extending PocketBase with JSVM
 
 PocketBase is not just a simple backend solution—it offers powerful capabilities for extending its functionality through JavaScript, specifically using the **Goja engine** and its **JSVM** (JavaScript Virtual Machine). This allows developers to add custom logic, plugins, and server-side rendering to their applications, making PocketBase a highly versatile platform.

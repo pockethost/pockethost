@@ -1,3 +1,8 @@
+---
+title: Webhooks
+description: Learn how to use Pockethost webhooks to schedule reliable API calls without external cron jobs. Automate tasks like backups, data cleanup, notifications, and integrations—even when your instance is hibernated
+---
+
 # Webhooks
 
 Webhooks allow you to schedule API calls to your PocketBase instance at specific times, replacing the need for external cron job schedulers. This feature enables automated tasks like data cleanup, backups, notifications, and integrations with external services.

@@ -1,3 +1,8 @@
+---
+title: S3 Storage
+description: Learn how to integrate S3-compatible storage with PocketBase to handle backups, restores, and file uploads while conserving local resources
+---
+
 # S3 Storage and PocketBase
 
 Using S3-compatible storage for PocketBase can help optimize your instance's resource management and portability. Here’s what you need to know about integrating S3 storage with PocketBase.
