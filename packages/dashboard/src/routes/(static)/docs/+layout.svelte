@@ -25,7 +25,7 @@
     if (windowWidth < 768) sidebarOpen = false
   }
 
-  $: ({ title, description, ogImage } = data.meta || {});
+  $: ({ title, description } = data.meta || {});
   
 
 </script>
@@ -40,8 +40,8 @@
     <meta property="og:description" content={description} />
     {/if}
 
-    {#if ogImage}
-        <meta property="og:image" content={ogImage} />
+    {#if title}
+        <meta property="og:image" content={"https://cdn.cheto.app/og/joioes1x8zagn0v?name=" + encodeURIComponent(title)} />
     {/if}
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -51,8 +51,8 @@
     <meta name="twitter:description" content={description} />
     {/if}
 
-    {#if ogImage}
-        <meta name="twitter:image" content={ogImage} />
+    {#if title}
+        <meta name="twitter:image" content={"https://cdn.cheto.app/og/joioes1x8zagn0v?name=" + encodeURIComponent(title)} />
     {/if}
 </svelte:head>
 
