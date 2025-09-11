@@ -1,4 +1,8 @@
-# FTP Access
+---
+title: FTP Access
+description: Learn how to access your PocketBase files via FTP
+---
+# FTP Access 
 
 PocketHost provides Secure FTP (FTPS) access to all your PocketBase files.
 
@@ -6,7 +10,7 @@ PocketHost provides Secure FTP (FTPS) access to all your PocketBase files.
 
 Use the FTP address provided via `ftp.pockethost.io`. You log in with your pockethost.io username and password.
 
-![](2024-10-06-14-55-02.png)
+![](ftp.png)
 
 ![](2024-10-06-14-54-04.png)
 

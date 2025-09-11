@@ -22,10 +22,13 @@
 </script>
 
 <ul
-  class={`menu ${isCollapsed ? 'dropdown-content bg-base-200 rounded-box z-[1] mt-3 w-52 p-2 shadow-xl' : 'menu-horizontal items-center'}`}
+  class={`!px-0 menu ${isCollapsed ? 'dropdown-content bg-[#111111] rounded-box z-[100] mt-3 w-52  m-0 relative  shadow-xl' : 'menu-horizontal items-center'}`}
   role="menu"
   tabindex="0"
 >
+  <li class={isCollapsed ? '' : 'hidden'}>
+    <a href="/" rel="noreferrer">Home</a>
+  </li>
   <UserLoggedIn>
     <li class={isCollapsed ? '' : 'hidden lg:flex'}>
       <a href="/dashboard" rel="noreferrer">Dashboard</a>
@@ -37,14 +40,14 @@
     </li>
   </UserHasRole>
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
-    <a href="/blog" rel="noreferrer">Blog</a>
-  </li>
-  <li class={isCollapsed ? '' : 'hidden lg:flex'}>
     <a href="/pricing" rel="noreferrer">Pricing</a>
   </li>
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
-    <a href="/support" rel="noreferrer">Support</a>
+    <a href="/blog" rel="noreferrer">Blog</a>
   </li>
+  <!-- <li class={isCollapsed ? '' : 'hidden lg:flex'}>
+    <a href="/support" rel="noreferrer">Support</a>
+  </li> -->
   <li class={isCollapsed ? '' : 'hidden lg:flex'}>
     <a href="/docs" rel="noreferrer">Docs</a>
   </li>
@@ -55,14 +58,14 @@
   </UserLoggedOut>
   <UserLoggedIn>
     {#if !isCollapsed}
-      <li>
-        <div class="dropdown dropdown-end p-0 m-0">
+      <li class="z-[100]">
+        <div class="dropdown dropdown-end p-0 ml-2 relative">
           <!-- tabindex required for normal behavior on safari -->
-          <div tabindex="0" role="button">
+          <div tabindex="0" role="button" class="h-full flex items-center" >
             <Avatar />
           </div>
           <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-          <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[1] mt-36 md:mt-24 w-52 p-2 shadow">
+          <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[100] top-full mt-2 w-52 p-2 shadow">
             <li><a href="/account">Settings</a></li>
             <li>
               <button on:click={handleLogoutAndRedirect}>Logout</button>

@@ -1,3 +1,7 @@
+---
+title: Introduction
+description: An introduction to PocketHost, a cloud hosting platform for PocketBase that simplifies backend setup and management
+---
 # 👋 Welcome to PocketHost
 
 ## Overview

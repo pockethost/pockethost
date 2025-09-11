@@ -2,7 +2,7 @@
   import { DISCORD_URL } from '$src/env'
 </script>
 
-<div class="container mx-auto py-8 px-4">
+<div class="container mx-auto py-8 px-4 md:px-20">
   <h1 class="font-bold text-4xl mb-6">Support</h1>
 
   <h2 class="font-bold text-2xl mb-4 mt-10">Community Support</h2>

@@ -1,3 +1,7 @@
+---
+title: Getting Started
+description: A step-by-step guide to getting started with PocketHost
+---
 # Getting Started with PocketHost
 
 Welcome to PocketHost! This guide will help you set up your first PocketBase instance and get you familiar with the basics of our platform. Let's dive in!

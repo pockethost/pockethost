@@ -1,3 +1,7 @@
+---
+title: Extending PocketBase via JavaScript
+description: Learn how to extend PocketBase via JavaScript using the PocketBase JSVM environment, including its differences from typical JavaScript environments
+---
 # Extending PocketBase via JavaScript
 
 PocketBase can be [extended via JavaScript](https://pocketbase.io/docs/js-overview/) using server-side scripts that allow you to customize and enhance the functionality of your application. These scripts are executed within the PocketBase server using a JavaScript Virtual Machine (JSVM) powered by [Goja](https://github.com/dop251/goja), a JavaScript interpreter written in Go.

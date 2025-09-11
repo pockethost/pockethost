@@ -75,9 +75,9 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/upgrading`}>Version Change</CardHeader>
+<div class="max-w-2xl"> 
+<CardHeader documentation={`/docs/versions`}>Version Change</CardHeader>
 
-<div class="max-w-xl">
   {#if power}
     <AlertBar message="Your instance must be powered off to change the version." type="error" />
   {/if}

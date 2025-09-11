@@ -1,3 +1,7 @@
+---
+title: Deleting an Instance
+description: Learn how to delete a PocketBase instance
+---
 # Deleting an Instance
 
 Deleting an instance will immediately power it down and permanently remove all associated data.
@@ -12,6 +16,6 @@ Once deleted, the following will be permanently erased:
 - All files in `pb_migrations/*`
 - All files in `pb_static/*`
 
-![](2024-10-06-14-43-21.png)
+![](first-power-off.png)
 
-![](2024-10-06-14-43-44.png)
+![](delete-instance.png)

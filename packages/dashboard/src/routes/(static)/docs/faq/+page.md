@@ -1,3 +1,7 @@
+---
+title: FAQ
+description: Frequently Asked Questions about PocketHost
+---
 # FAQ
 
 ## About

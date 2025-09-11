@@ -1,12 +1,8 @@
 ---
 title: Instance Details
-category: usage
-subcategory: instances
 description: Learn how to manage your PocketHost instance with our comprehensive
   guide, covering on-demand execution, usage metering, versioning, secrets, and
-  admin access. Master the nuances of using PocketHost and get your PocketBase
-  projects up and running in no time. Essential reading for web & node.js
-  developers.
+  admin access.
 ---
 
 PocketHost provides a simple dashboard where you can manage your instance.

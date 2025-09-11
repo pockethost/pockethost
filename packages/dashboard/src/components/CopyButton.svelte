@@ -13,5 +13,5 @@
 </script>
 
 <Clipboard text={code} let:copy on:copy={handleCopy}>
-  <TinyButton click={copy} style={isCopied ? 'success' : 'primary'}>{isCopied ? 'Copied!' : 'Copy'}</TinyButton>
+  <TinyButton className="bg-primary border-transparent hover:bg-light text-white" click={copy} style={isCopied ? 'success' : 'primary'}>{isCopied ? 'Copied!' : 'Copy'}</TinyButton>
 </Clipboard>

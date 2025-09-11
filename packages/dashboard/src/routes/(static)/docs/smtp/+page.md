@@ -1,3 +1,7 @@
+---
+title: Outgoing Email in PocketBase
+description: Learn how to configure outgoing email in PocketBase using Amazon SES or Google Suite for reliable delivery
+---
 # Outgoing Email in PocketBase
 
 Reliable outgoing email is crucial for many applications, and PocketBase provides flexible options for sending emails. However, ensuring consistent and reliable email delivery can be complex due to factors like spam filters, sender reputation, and email authentication. This guide will help you navigate these challenges and recommend two trusted solutions: **Amazon SES** and **Google Suite**.

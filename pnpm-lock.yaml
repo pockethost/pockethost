@@ -94,6 +94,9 @@ importers:
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6
+      '@types/prismjs':
+        specifier: ^1.26.5
+        version: 1.26.5
       autoprefixer:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.6)
@@ -124,6 +127,9 @@ importers:
       pockethost:
         specifier: workspace:^
         version: link:../pockethost
+      prismjs:
+        specifier: ^1.30.0
+        version: 1.30.0
       sass:
         specifier: ^1.89.2
         version: 1.89.2
@@ -1771,6 +1777,9 @@ packages:
 
   '@types/node@8.10.66':
     resolution: {integrity: sha512-tktOkFUA4kXx2hhhrB8bIFb5TbwzS4uOhKEmwiD+NoiL0qtP2OQ9mFldbgD4dV1djrlBYP6eBuQZiWjuHUpqFw==}
+
+  '@types/prismjs@1.26.5':
+    resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
 
   '@types/qs@6.9.17':
     resolution: {integrity: sha512-rX4/bPcfmvxHDv0XjfJELTTr+iB+tn032nPILqHm5wbthUUUuVtNGGqzhya9XUxjTP8Fpr0qYgSZZKxGY++svQ==}
@@ -5556,6 +5565,8 @@ snapshots:
       undici-types: 6.20.0
 
   '@types/node@8.10.66': {}
+
+  '@types/prismjs@1.26.5': {}
 
   '@types/qs@6.9.17': {}
 

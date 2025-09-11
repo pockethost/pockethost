@@ -1,57 +1,43 @@
 <script lang="ts">
   import { page } from '$app/stores'
+import { toc } from './toc'
+
   import { faHome, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
   import Fa from 'svelte-fa'
 
   // Check if we're on the blog index page
   $: isIndexPage = $page.url.pathname === '/blog'
+  $: blogPath = $page.url.pathname.includes('/blog/') ? $page.url.pathname : ''
+  $: name = toc.find((entry) => entry.path === blogPath)?.title ?? 'PocketHost Blog';
 </script>
 
-<div class="min-h-screen bg-base-50">
+<svelte:head>
+  <title>{name} - PocketHost</title>
+  <meta name="description" content="Stay updated with the latest PocketHost features, tutorials, and community news." />
+</svelte:head>
+
+<div class="min-h-screen">
   {#if !isIndexPage}
-    <!-- Blog post header with navigation -->
-    <div class="bg-base-100 border-b border-base-300 sticky top-0 z-10">
-      <div class="max-w-4xl mx-auto px-4 py-4">
+    <div class="sticky top-0 z-10 px-4 md:px-20">
+      <div class="w-full mx-auto h-32 py-4">
         <div class="flex items-center gap-4 mb-4">
           <a href="/blog" class="btn btn-ghost btn-sm gap-2 hover:bg-primary/10 transition-colors">
-            <Fa icon={faArrowLeft} size="sm" />
+            <Fa icon={faArrowLeft} size="sm" /> 
             Back to Blog
           </a>
-
-          <div class="flex items-center gap-2 text-sm text-base-content/60">
-            <a href="/" class="hover:text-primary transition-colors">
-              <Fa icon={faHome} size="sm" />
-            </a>
-            <span>/</span>
-            <a href="/blog" class="hover:text-primary transition-colors">Blog</a>
-            <span>/</span>
-            <span class="text-base-content/80">Current Post</span>
-          </div>
-        </div>
-
-        <!-- Blog branding -->
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center"
-          >
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 class="text-xl font-bold text-primary">PocketHost Blog</h2>
-            <p class="text-sm text-base-content/60">Latest updates and insights</p>
-          </div>
         </div>
       </div>
     </div>
 
+    <div class="w-full mx-auto px-4 h-24 md:h-32 flex items-center justify-center relative mb-8">
+      <img src="/pockethost-cloud-logo.png" class="w-full blur-xl h-full scale-y-[2.5] object-fill absolute top-0 left-0 z-0" alt="">
+      <h2 class="text-3xl md:text-5xl max-w-3xl text-center font-bold z-10">{name}</h2>
+    </div>
+
     <!-- Blog post content with proper typography -->
-    <div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto px-4 py-8 z-10 relative">
       <article
-        class="prose prose-lg max-w-none prose-headings:text-base-content prose-p:text-base-content/80 prose-a:text-primary hover:prose-a:text-primary-focus prose-strong:text-base-content prose-code:text-primary prose-pre:bg-base-200 prose-blockquote:border-l-primary"
+        class="prose prose-lg max-w-none prose-headings:text-base-content prose-p:text-base-content/80 prose-a:text-primary dark:prose-a:text-secondary hover:prose-a:text-primary-focus prose-strong:text-base-content prose-code:text-primary dark:prose-code:text-secondary prose-pre:bg-base-200 prose-blockquote:border-l-primary"
       >
         <slot />
       </article>
@@ -59,19 +45,14 @@
       <!-- Post footer -->
       <div class="mt-16 pt-8 border-t border-base-300">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div class="flex items-center gap-4">
-            <a href="/blog" class="btn btn-primary btn-outline gap-2">
-              <Fa icon={faArrowLeft} size="sm" />
-              More Posts
-            </a>
-          </div>
+          
 
           <div class="text-sm text-base-content/60">
             <p>
               Have questions? <a
                 href="https://discord.gg/nVTxCMEcGT"
                 target="_blank"
-                class="text-primary hover:underline">Join our Discord</a
+                class="text-primary dark:text-secondary hover:underline">Join our Discord</a
               >
             </p>
           </div>

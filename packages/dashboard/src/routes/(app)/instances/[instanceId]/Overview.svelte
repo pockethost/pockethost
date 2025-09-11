@@ -1,6 +1,8 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import CardHeader from '$src/components/cards/CardHeader.svelte'
+  import { plaintext } from 'svelte-highlight/languages'
+
   import { INSTANCE_URL } from '$src/env'
 
   import { instance } from './store'
@@ -25,7 +27,7 @@
   <!-- These should be p but the inside already has p -->
   <div>
     <p class="mb-2">Your PocketBase URL is</p>
-    <CodeSample code={url} />
+    <CodeSample code={url} language={plaintext} />
   </div>
 
   <div>

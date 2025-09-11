@@ -1,3 +1,7 @@
+---
+title: Backup and Restore
+description: Learn how to back up and restore your PocketBase instance
+---
 # Backing Up and Restoring
 
 PocketBase offers built-in backup and restore features, making it easy to secure your data and recover from potential issues. However, there are important considerations and alternative methods to ensure your backups are safe and reliable.

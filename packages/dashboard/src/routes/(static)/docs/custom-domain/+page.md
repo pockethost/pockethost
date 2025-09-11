@@ -1,6 +1,10 @@
-# Custom Domains
+---
+title: Custom Domain
+description: Learn how to set up a custom domain for your PocketHost instance
+---
+# Custom Domain
 
-PocketHost instances can use custom domains instead of the default `*.pockethost.io` subdomain. There are no limits on the number of domains you can add to an instance.
+PocketHost instances can use a custom domain instead of the default `*.pockethost.io` subdomain.
 
 ## How It Works
 
@@ -25,7 +29,7 @@ Create a CNAME record with your DNS provider:
 
 1. Navigate to your instance in the PocketHost Dashboard
 2. Go to the **Settings** tab
-3. Add your custom domain in the custom domains section
+3. Add your custom domain in the custom domain section
 4. PocketHost will automatically begin verification
 
 ### Step 3: Verification
@@ -34,7 +38,7 @@ PocketHost uses Cloudflare's HTTP verification system to confirm domain ownershi
 
 You can check the status anytime in your dashboard or click the refresh button to manually trigger a verification check.
 
-## Static Files and Custom Domains
+## Static Files and Custom Domain
 
 All static files in your instance's `pb_public` directory will be served through your custom domain over HTTPS, making it perfect for static sites and assets.
 
