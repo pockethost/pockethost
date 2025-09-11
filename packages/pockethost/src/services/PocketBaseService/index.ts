@@ -53,6 +53,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
   const { gobot } = GobotService()
   const bot = await gobot(`pocketbase`, { os: 'linux' })
+  console.log(await bot.versions())
   const maxVersion = (await bot.versions())[0]
   if (!maxVersion) {
     throw new Error(`No max version found for PocketBase`)
@@ -135,6 +136,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
         ),
         name: `${subdomain}-${+new Date()}`,
         HostConfig: {
+          Init: true,
           AutoRemove: true,
           PortBindings: {
             '8090/tcp': [{ HostPort: `0` }],
@@ -234,12 +236,12 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             })
           } catch (e) {
             error(`Failed to get port binding: ${e}`)
-            reject(e)
             try {
               await container.stop()
             } catch (stopError) {
               error(`Failed to stop container after port binding error: ${stopError}`)
             }
+            reject(e)
           }
         })
     }).catch((e) => {
