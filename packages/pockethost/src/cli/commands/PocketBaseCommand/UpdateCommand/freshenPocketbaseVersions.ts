@@ -7,6 +7,8 @@ export async function freshenPocketbaseVersions() {
 
   info(`Updating pocketbase`)
   const bot = await gobot(`pocketbase`)
+
   await bot.update()
+  info(`Downloading pocketbase`)
   await bot.download()
 }
