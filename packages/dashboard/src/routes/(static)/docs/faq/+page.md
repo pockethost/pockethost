@@ -26,7 +26,7 @@ Rest assured, you can always export your instance data and self-host if needed.
 
 ### How stable is it?
 
-pockethost.io and PocketHost are highly stable, with over 99.964% uptime (see [Status Page](https://status.pockethost.io/)). Any outages are documented in our [Discord Community](https://discord.com/channels/1128192380500193370/1128192380500193373).
+pockethost.io and PocketHost are highly stable, with over 99.964% uptime (see [Status Page](https://status.pockethost.io/)). Any outages are documented in our [Discord Community](https://discord.gg/nVTxCMEcGT).
 
 ### How often does my data get backed up?
 
@@ -53,24 +53,6 @@ You can use the SFTP feature to download and transfer all your data.
 PocketHost offers flexible pricing tailored to how many PocketBase instances you need.  
 See the full details on the [Pricing Page](https://pockethost.io/pricing).
 
-### What paid plans are available?
-
-- **Starter Plan** – **$5 per instance per month** (up to 5 instances). Includes:
-  - Full feature access
-  - 7-day risk-free trial (credit card required)
-  - 35+ global regions
-  - Unlimited bandwidth, storage, and CPU
-  - FTP access
-  - Pay only for what you use
-
-- **Unlimited Plan** – **$25 per month**, flat rate for **unlimited instances**. Includes everything in the Starter Plan.
-
-- **Flounder – Lifetime Deal** – One-time **$359**, lifetime access to Unlimited plan perks, plus:
-  - PocketHost T-shirt
-  - Access to the exclusive `#onlyflounders` private Discord
-  - A joke “Girlfriend” perk
-  - (Limited-time availability)
-
 ### Usage Restrictions
 PocketHost enforces restrictions to ensure a fair and reliable experience for all users:
 
@@ -90,7 +72,7 @@ See the full details on [Terms of Service](https://pockethost.io/terms).
 
 ### How does outgoing email work?
 
-Currently, you need to configure your own outgoing email service (SES recommended). We are tracking future plans for built-in SMTP support [#24](https://github.com/benallfree/pockethost/issues/24) and discussing options [#154](https://github.com/benallfree/pockethost/discussions/154).
+Currently, you need to configure your own outgoing email service ([SES recommended](https://pockethost.io/docs/ses)). We are tracking future plans for built-in SMTP support and discussing options [#154](https://github.com/benallfree/pockethost/discussions/154).
 
 ### How does S3 storage work?
 
