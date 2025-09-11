@@ -2,7 +2,7 @@
 
 # Terms of Service
 
-**Effective Date: October 5, 2024**
+**Last Modified Date: September 12, 2025**
 
 Welcome to PocketHost! These Terms of Service ("Terms") govern your access to and use of PocketHost's services, so please read them carefully.
 
