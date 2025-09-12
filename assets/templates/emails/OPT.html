@@ -1,0 +1,55 @@
+---
+bodyClass: bg-[#111111]
+preheader: OTP
+---
+
+<x-main>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" background="https://s6.imgcdn.dev/YiDOO2.png"
+        style="background-size:cover; background-color:#111111;background-position:center;"
+        class="bg-[#111111] font-sans relative py-10">
+        <tr>
+            <td align="center" valign="top">
+                <!-- <img src="https://pockethost.io/pockethost-cloud-logo.png" class="absolute top-0 left-0 z-0 object-fill w-full h-full pointer-events-none opacity-80 blur-3xl" alt=""> -->
+
+                <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                    class="max-w-[552px] px-10 py-6 mx-auto bg-[#111111]/60 border-solid border border-white/20 rounded-lg shadow z-10 relative">
+                    <tr>
+                        <td>
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td class="flex flex-row items-center justify-start font-bold text-center ">
+                                        <img src="https://pockethost.io/pockethost-cloud-logo.png" alt="Logo"
+                                            class="max-w-[60px]">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 text-start figtree"
+                                        style="font-family: 'Figtree', Arial, sans-serif;">
+                                        <h1 class="mb-2 text-2xl font-bold text-white">🔒 Your One-Time Password</h1>
+                                        <p class="mt-4 text-gray-400">Enter this code to complete your login. It expires in 3 minutes.</p>
+                                        <table cellpadding="0" cellspacing="0" border="0" class="w-full mt-4">
+                                            <tr>
+                                                <td
+                                                    class="px-4 py-3 text-center border border-gray-600 rounded-md bg-gray-800/50">
+                                                    <span
+                                                        class="font-mono text-3xl tracking-wider text-white">{OTP}</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-xs text-gray-500 text-start figtree"
+                                        style="font-family:'Figtree', Arial, sans-serif;">
+                                        <p>&copy; 2025 Pockethost. All rights reserved.</p>
+                                        <p>If you didn't ask for the one-time password, please ignore this email.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</x-main>
