@@ -1,3 +1,7 @@
+---
+title: Limits
+description: Learn about the limits enforced by PocketHost, including rate limiting, hibernation, usage limits, and prohibited content
+---
 # Limits
 
 PocketHost enforces several limits to ensure a fair and reliable experience for all users. Below are the key limitations and guidelines for usage.

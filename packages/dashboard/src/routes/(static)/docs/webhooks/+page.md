@@ -1,3 +1,8 @@
+---
+title: Webhooks
+description: Learn how to use Pockethost webhooks to schedule reliable API calls without external cron jobs. Automate tasks like backups, data cleanup, notifications, and integrations—even when your instance is hibernated
+---
+
 # Webhooks
 
 Webhooks allow you to schedule API calls to your PocketBase instance at specific times, replacing the need for external cron job schedulers. This feature enables automated tasks like data cleanup, backups, notifications, and integrations with external services.
@@ -6,7 +11,7 @@ Webhooks allow you to schedule API calls to your PocketBase instance at specific
 
 ## Overview
 
-Webhooks are configured through the PocketHost dashboard and automatically execute HTTP requests to your specified endpoints at scheduled intervals. Each webhook consists of:
+Webhooks are configured through the PocketHost dashboard and automatically send HTTP GET requests to your specified endpoints at scheduled intervals. Each webhook consists of:
 
 - **API Endpoint**: The URL path within your instance to call
 - **Schedule**: A cron expression defining when the webhook executes
@@ -154,18 +159,18 @@ Create API endpoints in your PocketBase instance to handle webhook requests usin
 
 ```javascript
 // pb_hooks/onRequest.pb.js
-routerAdd('POST', '/api/webhooks/backup', (e) => {
+routerAdd('GET', '/api/webhooks/backup', (e) => {
   // Your backup logic here
   console.log('Backup webhook triggered')
 
   // Example: Create a backup record
-  const backup = new Record($app.dao().findCollectionByNameOrId('backups'), {
+  const backup = new Record($app.findCollectionByNameOrId('backups'), {
     timestamp: new Date().toISOString(),
     status: 'completed',
     size: '1.2GB',
   })
 
-  $app.dao().saveRecord(backup)
+  $app.save(backup)
 
   return e.json(200, { status: 'success' })
 })
@@ -180,7 +185,7 @@ Webhooks should return appropriate HTTP status codes:
 - `500` - Internal server error
 
 ```javascript
-routerAdd('POST', '/api/webhooks/cleanup', (e) => {
+routerAdd('GET', '/api/webhooks/cleanup', (e) => {
   try {
     // Your cleanup logic
     return e.json(200, { status: 'success' })
@@ -196,7 +201,7 @@ routerAdd('POST', '/api/webhooks/cleanup', (e) => {
 For secure webhooks, include authentication in your endpoints:
 
 ```javascript
-routerAdd('POST', '/api/webhooks/secure', (e) => {
+routerAdd('GET', '/api/webhooks/secure', (e) => {
   const token = e.request.url.query().get('token')
 
   if (token !== process.env.WEBHOOK_SECRET) {
@@ -215,11 +220,11 @@ routerAdd('POST', '/api/webhooks/secure', (e) => {
 Make your webhooks idempotent so they can be safely retried:
 
 ```javascript
-routerAdd('POST', '/api/webhooks/process', (e) => {
+routerAdd('GET', '/api/webhooks/process', (e) => {
   const jobId = e.request.url.query().get('jobId')
 
   // Check if already processed
-  const existing = $app.dao().findFirstRecordByData('jobs', 'jobId', jobId)
+  const existing = $app.findFirstRecordByData('jobs', 'jobId', jobId)
   if (existing && existing.get('status') === 'completed') {
     return e.json(200, { status: 'already_processed' })
   }
@@ -234,7 +239,7 @@ routerAdd('POST', '/api/webhooks/process', (e) => {
 Always log webhook executions for debugging:
 
 ```javascript
-routerAdd('POST', '/api/webhooks/backup', (e) => {
+routerAdd('GET', '/api/webhooks/backup', (e) => {
   console.log(`Backup webhook triggered at ${new Date().toISOString()}`)
 
   // Your backup logic

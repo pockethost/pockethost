@@ -146,7 +146,7 @@
     class="flex flex-col w-56 md:relative fixed md:top-auto top-0 left-0 h-full bg-[#111111] md:bg-transparent px-4 md:px-0 z-50 transform transition-transform duration-300 md:translate-x-0"
     class:-translate-x-full={!sidebarOpen && window.innerWidth < 768} on:click={handleCloseSidebar} role="presentation"
   >
-    <ul class="menu text-base-content mb-6 pl-0">
+    <ul class="menu text-base-content mb-6 p-0">
       <li class="md:hidden flex items-start">
         
           <Logo/>
@@ -176,13 +176,13 @@
       </li>
     </ul>
 
-    <div class="">
+    <div class="mb-2">
       <Fa icon={faTriangleExclamation} class="text-error inline" />
       <span class="font-bold text-error">Danger Zone</span>
       <Fa icon={faTriangleExclamation} class="text-error inline" />
     </div>
 
-    <ul class="menu text-base-content pl-0">
+    <ul class="menu text-base-content p-0">
       <li>
         <a href={`/instances/${id}/version`} class={activeClass(`version`)}>Change Version</a>
       </li>

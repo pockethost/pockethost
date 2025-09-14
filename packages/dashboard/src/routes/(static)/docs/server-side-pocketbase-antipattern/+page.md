@@ -1,6 +1,5 @@
 ---
 title: Server-Side PocketBase is an Anti-Pattern
-category: programming
 description: Using PocketBase from SvelteKit or Next.js server files is generally an antipattern.
 ---
 

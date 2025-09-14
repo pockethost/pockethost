@@ -1,3 +1,7 @@
+---
+title: Usage Limits
+description: PocketHost provides generous free resources under a Fair Use policy, ensuring balanced storage, bandwidth, and CPU for all apps
+---
 PocketHost offers generous free projects, storage, bandwidth, and CPU on a Fair Use basis.
 
 ## What is 'Fair'?

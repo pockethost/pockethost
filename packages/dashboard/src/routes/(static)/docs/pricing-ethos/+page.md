@@ -1,3 +1,7 @@
+---
+title: Pricing Ethos
+description: Understand PocketHost's simple and transparent pricing model, including instance plans, lifetime offers, and our Fair Use policy
+---
 # Pricing Ethos
 
 At PocketHost, we believe in keeping things simple and transparent. Our pricing is designed to support indie hackers, makers, and small businesses. We offer flexible plans to suit your needs, based on the number of instances you want to run. We also offer limited Lifetime Offers during our bootstrapping phase.

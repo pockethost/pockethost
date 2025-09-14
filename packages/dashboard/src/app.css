@@ -25,7 +25,7 @@
 }
 
 .docs-content img {
-  @apply border-accent rounded-lg border;
+  @apply rounded-lg border border-white/10;
 }
 
 .prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
@@ -136,4 +136,8 @@ pre {
 }
 .animation-delay-1s {
   animation-delay: 1s;
+}
+
+.input {
+  background-color: #111111b4;
 }

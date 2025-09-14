@@ -1,3 +1,7 @@
+---
+title: Changing PocketBase Versions
+description: Learn how to upgrade and downgrade your Pocketbase version in Pockethost
+---
 # Changing PocketBase Versions
 
 PocketHost supports the latest minor release of each PocketBase version (e.g., `0.16.*`), and you can update your instance to stay on the latest release. When changing PocketBase versions, whether upgrading or downgrading, it’s important to take precautions to ensure the stability of your instance and the integrity of your data.
@@ -10,7 +14,7 @@ Upgrading your instance to the latest version of PocketBase is straightforward b
    ![](2024-10-06-15-31-47.png)
 2. **Create a second instance**: We recommend creating a second PocketHost instance and restoring your backup to it. This allows you to test the upgrade without affecting your live instance.
 3. Perform the upgrade on the second instance, ensuring all functionality is intact and working as expected.  
-   ![](2024-10-06-15-36-44.png)
+   ![](version-change.png)
 4. Once you are confident that everything works correctly, upgrade your main instance.
 5. [Power off your instance](/docs/power) to make it live again after the upgrade.
 
@@ -21,7 +25,7 @@ For most cases, automatic upgrades are possible by simply switching to the lates
 1. [Back up your instance](/docs/backup-restore).  
    ![](2024-10-06-15-31-47.png)
 2. Change to the latest supported version in the PocketHost dashboard (e.g., `0.16.*`).  
-   ![](2024-10-06-15-36-44.png)
+   ![](version-change.png)
 3. [Power off your instance](/docs/power) and restart it to apply the changes.
 
 ## Manual Upgrade Steps (Rare Cases)

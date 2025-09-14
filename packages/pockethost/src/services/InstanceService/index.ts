@@ -67,9 +67,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     shutdownManager.push(() => {
       dbg(`Shutting down`)
       userInstanceLogger.info(`Instance is shutting down.`)
-      delete instanceApis[id]
-      dbg(`Shutting down: There are now ${values(instanceApis).length} still in API cache`)
-    }) // Make this the very last thing that happens
+    }) // Keep deletion separate and tied to actual process exit
 
     dbg(`Starting`)
     userInstanceLogger.info(`Instance is starting.`)
@@ -98,9 +96,18 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     let lastRequest = now()
 
     // Create shutdown function that can be referenced early
+    let shutdownInProgress = false
     const shutdown = () => {
+      if (shutdownInProgress) {
+        dbg(`Shutdown already in progress`)
+        return
+      }
+      shutdownInProgress = true
       dbg(`Shutting down`)
-      shutdownManager.forEach((fn) => fn())
+      for (let i = shutdownManager.length - 1; i >= 0; i--) {
+        const fn = shutdownManager[i]
+        if (typeof fn === 'function') fn()
+      }
     }
 
     try {
@@ -163,7 +170,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       const { exitCode, stopped, started, url: internalUrl } = childProcess
       exitCode.then((code) => {
         dbg(`Instance exited with code ${code}`)
+        dbg(`Shutting down: There are now ${values(instanceApis).length} still in API cache`)
         shutdown()
+        delete instanceApis[id]
       })
 
       shutdownManager.push(() => {
@@ -290,17 +299,20 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     }
 
     const start = now()
-    const api = await (instanceApis[instance.id] = instanceApis[instance.id] || createInstanceApi(instance)).catch(
-      (e) => {
+    if (!instanceApis[instance.id]) {
+      instanceApis[instance.id] = createInstanceApi(instance).catch((e) => {
         const end = now()
         const duration = end - start
         warn(`Container ${instance.id} failed to launch in ${duration}ms`)
 
+        delete instanceApis[instance.id]
+
         throw new Error(
           `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`
         )
-      }
-    )
+      })
+    }
+    const api = await instanceApis[instance.id]!
     const end = now()
     const duration = end - start
     if (duration > 200) {
