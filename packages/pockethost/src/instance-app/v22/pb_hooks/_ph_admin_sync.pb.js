@@ -1,5 +1,5 @@
 $app.onBeforeServe().add((e) => {
-  const dao = $app
+  const dao = $app.dao()
   const { mkLog } = /** @type {Lib} */ (require(`${__hooks}/_ph_lib.js`))
 
   const log = mkLog(`admin-sync`)
