@@ -1,10 +1,10 @@
 routerAdd(
   'PUT',
-  '/api/instance/:id',
+  '/api/instance/{id}',
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceUpdate(c)
   },
-  $apis.requireRecordAuth()
+  $apis.requireAuth()
 )
 routerAdd(
   'POST',
@@ -12,15 +12,15 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceCreate(c)
   },
-  $apis.requireRecordAuth()
+  $apis.requireAuth()
 )
 routerAdd(
   'DELETE',
-  '/api/instance/:id',
+  '/api/instance/{id}',
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceDelete(c)
   },
-  $apis.requireRecordAuth()
+  $apis.requireAuth()
 )
 routerAdd(
   'GET',
@@ -28,15 +28,15 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleInstanceResolve(c)
   },
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )
 /** Validate instance version */
-onModelBeforeUpdate((e) => {
+onRecordUpdate((e) => {
   return require(`${__hooks}/mothership`).BeforeUpdate_version(e)
 }, 'instances')
 
 /** Validate cname */
-onModelBeforeUpdate((e) => {
+onRecordUpdate((e) => {
   return require(`${__hooks}/mothership`).BeforeUpdate_cname(e)
 }, 'instances')
 
@@ -45,15 +45,15 @@ onModelBeforeUpdate((e) => {
 //   return require(`${__hooks}/mothership`).AfterCreate_notify_discord(e)
 // }, 'instances')
 
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
   // return require(`${__hooks}/mothership`).HandleMigrateInstanceVersions(e)
 })
 
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
   // return require(`${__hooks}/mothership`).HandleMigrateRegions(e)
 })
 
 /** Reset instance status to idle on start */
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
   return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e)
 })

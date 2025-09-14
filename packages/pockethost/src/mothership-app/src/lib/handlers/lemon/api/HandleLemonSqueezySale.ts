@@ -42,8 +42,8 @@ type LemonSqueezyDebugContext = PartialDeep<{
   variant_name: string
 }>
 
-export const HandleLemonSqueezySale = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleLemonSqueezySale = (c: core.RequestEvent) => {
+  const dao = $app
 
   const log = mkLog(`ls`)
   const audit = mkAudit(log, dao)
@@ -57,12 +57,12 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
     }
     log(`Secret`, context.secret)
 
-    context.raw = readerToString(c.request().body)
+    context.raw = toString(c.request?.body)
 
     context.body_hash = $security.hs256(context.raw, context.secret)
     log(`Body hash`, context.body_hash)
 
-    context.xsignature_header = c.request().header.get('X-Signature')
+    context.xsignature_header = c.request?.header.get('X-Signature')
     log(`Signature`, context.xsignature_header)
 
     if (context.xsignature_header == undefined || !$security.equal(context.body_hash, context.xsignature_header)) {
@@ -251,7 +251,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
 
     const signup_finalizer = () => {
       product_handler()
-      dao.saveRecord(userRec)
+      dao.save(userRec)
       log(`saved user`)
 
       const notify = mkNotifier(log, dao)
@@ -268,7 +268,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
       userRec.set(`subscription`, `free`)
       userRec.set(`subscription_quantity`, 0)
       userRec.set(`subscription_interval`, ``)
-      dao.saveRecord(userRec)
+      dao.save(userRec)
       log(`saved user`)
       audit(`LS`, `Signup cancelled.`, context)
     }

@@ -1,6 +1,6 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleMailSend = (c: echo.Context) => {
+export const HandleMailSend = (c: core.RequestEvent) => {
   const log = mkLog(`mail`)
 
   let data = new DynamicModel({
@@ -11,7 +11,7 @@ export const HandleMailSend = (c: echo.Context) => {
 
   log(`before bind`)
 
-  c.bind(data)
+  c.bindBody(data)
 
   log(`after bind`)
 

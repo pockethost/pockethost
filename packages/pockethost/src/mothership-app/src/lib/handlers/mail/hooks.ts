@@ -4,5 +4,5 @@ routerAdd(
   (c) => {
     return require(`${__hooks}/mothership`).HandleMailSend(c)
   },
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )

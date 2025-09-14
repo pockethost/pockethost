@@ -1,13 +1,13 @@
 import { mkLog } from '$util/Logger'
 import { mkNotificationProcessor } from '$util/mkNotificationProcessor'
 
-export const HandleProcessSingleNotification = (c: echo.Context) => {
+export const HandleProcessSingleNotification = (c: core.RequestEvent) => {
   const log = mkLog(`process_single_notification`)
   log(`start`)
 
-  const dao = $app.dao()
+  const dao = $app
 
-  const processNotification = mkNotificationProcessor(log, dao, !!c.queryParam(`test`))
+  const processNotification = mkNotificationProcessor(log, dao, !!c.request?.url?.query().get(`test`))
 
   try {
     const notification = dao.findFirstRecordByData(`notifications`, `delivered`, ``)

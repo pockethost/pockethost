@@ -1,10 +1,10 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleUserTokenRequest = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleUserTokenRequest = (c: core.RequestEvent) => {
+  const dao = $app
   const log = mkLog(`user-token`)
 
-  const id = c.pathParam('id')
+  const id = c.request?.pathValue('id')
 
   // log({ id })
 

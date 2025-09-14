@@ -1,8 +1,8 @@
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 
-export const AfterCreate_notify_discord = (e: core.ModelEvent) => {
-  const dao = e.dao || $app.dao()
+export const AfterCreate_notify_discord = (e: core.RecordEvent) => {
+  const dao = $app
 
   const log = mkLog(`instances:create:discord:notify`)
   const audit = mkAudit(log, dao)
@@ -11,7 +11,7 @@ export const AfterCreate_notify_discord = (e: core.ModelEvent) => {
   if (!webhookUrl) {
     return
   }
-  const version = e.model.get('version')
+  const version = e.record?.get('version')
 
   try {
     const res = $http.send({
@@ -26,4 +26,6 @@ export const AfterCreate_notify_discord = (e: core.ModelEvent) => {
   } catch (e) {
     audit(`ERROR`, `Instance creation discord notify failed with ${e}`)
   }
+
+  e.next()
 }

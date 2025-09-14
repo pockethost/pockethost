@@ -1,17 +1,21 @@
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 
-export const HandleOutpostUnsubscribe = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleOutpostUnsubscribe = (c: core.RequestEvent) => {
+  const dao = $app
   const log = mkLog(`unsubscribe`)
   const audit = mkAudit(log, dao)
 
-  const id = c.queryParam('e')
+  const id = c.request?.url?.query().get('e')
+
+  if (!id) {
+    return c.html(400, `<p>Invalid unsubscribe link.</p>`)
+  }
 
   try {
     const record = dao.findRecordById('users', id)
     record.set(`unsubscribe`, true)
-    dao.saveRecord(record)
+    dao.save(record)
 
     const email = record.getString('email')
     audit('UNSUBSCRIBE', '', { email, user: id })

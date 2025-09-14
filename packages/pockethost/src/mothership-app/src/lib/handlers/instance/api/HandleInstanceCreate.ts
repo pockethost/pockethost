@@ -1,11 +1,11 @@
 import { mkLog } from '$util/Logger'
 import { versions } from '$util/versions'
 
-export const HandleInstanceCreate = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleInstanceCreate = (c: core.RequestEvent) => {
+  const dao = $app
 
   const log = mkLog(`POST:instance`)
-  const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record
+  const authRecord = c.auth
   log(`authRecord`, JSON.stringify(authRecord))
 
   if (!authRecord) {
@@ -21,7 +21,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
 
   log(`before bind`)
 
-  c.bind(data)
+  c.bindBody(data)
 
   log(`after bind`)
 
@@ -38,7 +38,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
 
   const collection = dao.findCollectionByNameOrId('instances')
   const record = new Record(collection)
-  record.set('uid', authRecord.getId())
+  record.set('uid', authRecord.id)
   record.set('region', region || `sfo-1`)
   record.set('subdomain', subdomain)
   record.set('power', true)
@@ -47,8 +47,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   record.set('dev', true)
   record.set('syncAdmin', true)
 
-  const form = new RecordUpsertForm($app, record)
-  form.submit()
+  dao.save(record)
 
   return c.json(200, { instance: record })
 }

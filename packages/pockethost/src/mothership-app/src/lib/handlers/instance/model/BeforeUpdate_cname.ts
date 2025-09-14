@@ -1,10 +1,10 @@
 import { mkLog } from '$util/Logger'
 
-export const BeforeUpdate_cname = (e: core.ModelEvent) => {
-  const dao = e.dao || $app.dao()
+export const BeforeUpdate_cname = (e: core.RecordEvent) => {
+  const dao = $app
   const log = mkLog(`BeforeUpdate_cname`)
-  const id = e.model.getId()
-  const newCname = e.model.get('cname').trim()
+  const id = e.record?.get('id')
+  const newCname = e.record?.get('cname').trim()
 
   // Only check if cname is already in use locally
   if (newCname.length > 0) {
@@ -28,4 +28,5 @@ export const BeforeUpdate_cname = (e: core.ModelEvent) => {
     }
     log(`CNAME validation passed for: "${newCname}"`)
   }
+  e.next()
 }
