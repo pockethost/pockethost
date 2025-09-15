@@ -1,5 +1,6 @@
 import '../lib/handlers/instance/hooks'
 import '../lib/handlers/lemon/hooks'
+import '../lib/handlers/creemio/hooks'
 import '../lib/handlers/mail/hooks'
 import '../lib/handlers/meta/hooks'
 import '../lib/handlers/mirror/hooks'
