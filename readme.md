@@ -1,21 +1,17 @@
-# pockethost
+<img  alt="Banner Pockethost" src="./assets/Banner.png" />
 
----
 
-### Sponsored by https://pockethost.io. Instantly host your PocketBase projects.
+# Pockethost
 
----
+**PocketHost** is a **multi-user, multi-tenant hosting platform** for [PocketBase](https://pocketbase.io).  
+With PocketHost, you can run **hundreds or even thousands of PocketBase instances** on a single server or across a global edge network.
 
-## Introduction
+### Features:
 
-PocketHost is the multi-user, multi-tenant PocketBase server. Run hundreds, even thousands, of PocketBase instances at the same time on a single server or a global network.
-
-Features:
-
-- Create unlimited PocketBase instances
-- Each instance runs on its own subdomain
-- Secure by default - Docker + automatic SSL
-- Custom domain (CNAME) support
+- 🚀 **Unlimited instances** – spin up as many PocketBase instances as you need  
+- 🌐 **Per-instance subdomains** – each instance is isolated and accessible at its own subdomain  
+- 🔒 **Secure by default** – runs in Docker with automatic SSL certificates  
+- 🎯 **Custom domain support** – connect your own domain via CNAME  
 
 ## Quickstart
 
@@ -41,4 +37,8 @@ Features:
 
 ## Support
 
-PocketHost has a thriving [Discord community](https://discord.gg/nVTxCMEcGT).
+💬 Join our [Discord community](https://discord.gg/nVTxCMEcGT).
+
+📖 [Documentation](https://pockethost.io/docs)
+
+### Sponsored by [pockethost.io](https://pockethost.io) – Instantly host your PocketBase projects 
