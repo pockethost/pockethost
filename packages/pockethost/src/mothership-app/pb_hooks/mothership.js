@@ -679,9 +679,14 @@ const HandleLemonSqueezySale = (c) => {
 			audit(`LS`, `Signup processed.`, context);
 		};
 		const signup_canceller = () => {
-			userRec.set(`subscription`, `free`);
-			userRec.set(`subscription_quantity`, 0);
-			userRec.set(`subscription_interval`, ``);
+			if (userRec.get(`subscription`) !== `premium`) return;
+			const currentQuantity = userRec.get(`subscription_quantity`);
+			const newQuantity = Math.max(currentQuantity - (context.quantity || 1), 0);
+			userRec.set(`subscription_quantity`, newQuantity);
+			if (newQuantity === 0) {
+				userRec.set(`subscription`, `free`);
+				userRec.set(`subscription_interval`, ``);
+			}
 			dao.saveRecord(userRec);
 			log(`saved user`);
 			audit(`LS`, `Signup cancelled.`, context);

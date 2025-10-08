@@ -9,9 +9,6 @@ routerAdd("POST", "/api/instance", (c) => {
 routerAdd("DELETE", "/api/instance/:id", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceDelete(c);
 }, $apis.requireRecordAuth());
-routerAdd("POST", "/api/instance/:id/webhook/test", (c) => {
-	return require(`${__hooks}/mothership`).HandleInstanceWebhookTest(c);
-}, $apis.requireRecordAuth());
 routerAdd("GET", "/api/instance/resolve", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceResolve(c);
 }, $apis.requireAdminAuth());
