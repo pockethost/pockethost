@@ -37,7 +37,7 @@
     <slot />
   </div>
 
-  <footer class="text-neutral-content px-4 md:px-20 py-10 text-sm relative z-10">
+  <footer class="text-neutral-content px-4 md:px-20 py-10 text-sm relative z-1">
     <div class=" flex justify-between items-center">
       <div class="">
         <a href="/" rel="noreferrer">
