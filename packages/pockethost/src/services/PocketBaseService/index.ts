@@ -11,6 +11,7 @@ import {
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
+  PH_CONTAINER_LAUNCH_WARN_MS,
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
 } from '@'
 import { map } from '@s-libs/micro-dash'
@@ -212,6 +213,9 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
           info(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
           info(`[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`)
+          if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
+            warn(`Container ${instanceId} launch took ${startupDuration}ms`)
+          }
 
           dbg(`Got started container`, container)
           started = true

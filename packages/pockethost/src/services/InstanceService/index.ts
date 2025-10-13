@@ -313,11 +313,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       })
     }
     const api = await instanceApis[instance.id]!
-    const end = now()
-    const duration = end - start
-    if (duration > 200) {
-      warn(`Container ${instance.id} launch took ${duration}ms`)
-    }
 
     const endRequest = api.startRequest()
     res.on('close', endRequest)
