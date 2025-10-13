@@ -11,8 +11,10 @@ import {
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
+  PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
 } from '@'
 import { map } from '@s-libs/micro-dash'
+import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
 import MemoryStream from 'memorystream'
@@ -58,6 +60,9 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
   if (!maxVersion) {
     throw new Error(`No max version found for PocketBase`)
   }
+
+  // Limit concurrent spawns to mitigate thundering herd issues
+  const limiter = new Bottleneck({ maxConcurrent: PH_MAX_CONCURRENT_DOCKER_LAUNCHES() })
 
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
@@ -291,7 +296,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
   }
 
   return {
-    spawn: _spawn,
+    spawn: (cfg: SpawnConfig) => limiter.schedule(() => _spawn(cfg)),
   }
 }
 

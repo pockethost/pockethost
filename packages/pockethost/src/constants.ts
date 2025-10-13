@@ -67,6 +67,7 @@ export const createSettings = () => ({
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 5), // 5 seconds
   PH_CONTAINER_LAUNCH_WARN_MS: mkNumber(200),
+  PH_MAX_CONCURRENT_DOCKER_LAUNCHES: mkNumber(5),
 
   MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
@@ -166,6 +167,7 @@ export const IPCIDR_LIST = () => settings().IPCIDR_LIST
 export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
+export const PH_MAX_CONCURRENT_DOCKER_LAUNCHES = () => settings().PH_MAX_CONCURRENT_DOCKER_LAUNCHES
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
   [
@@ -302,6 +304,7 @@ export const logConstants = () => {
     SYSLOGD_PORT,
     DOCKER_CONTAINER_HOST,
     PH_GOBOT_ROOT,
+    PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
     MOTHERSHIP_DATA_ROOT,
     MOTHERSHIP_DATA_DB,
     PH_MOTHERSHIP_MIRROR_PORT,
