@@ -10,6 +10,7 @@ import {
   SSL_KEY,
 } from '@'
 import { forEach } from '@s-libs/micro-dash'
+import { exec } from 'child_process'
 import cors from 'cors'
 import express, { ErrorRequestHandler } from 'express'
 import 'express-async-errors'
@@ -26,7 +27,7 @@ export type FirewallOptions = {
 }
 
 export const firewall = async ({ logger }: FirewallOptions) => {
-  const { dbg, error } = logger.create(`firewall`)
+  const { dbg, error, info } = logger.create(`firewall`)
 
   const PROD_ROUTES = {
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
@@ -49,6 +50,34 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     dbg(`Health check`)
     res.json({ status: 'firewall ok', code: 200 })
     res.end()
+  })
+
+  app.get(`/api/_private/reset`, (req, res, next) => {
+    dbg(`Reset password`)
+
+    const secretParam = Array.isArray((req.query as any)?.secret)
+      ? (req.query as any).secret[0]
+      : (req.query as any)?.secret
+
+    if (!secretParam || secretParam !== process.env.PH_SECRET) {
+      res.status(401).json({ error: 'unauthorized', code: 401 })
+      res.end()
+      return
+    }
+
+    exec('pm2 restart edge-daemon', (err, stdout, stderr) => {
+      if (err) {
+        error(err)
+        res.status(500).json({ error: 'pm2 reset failed', code: 500 })
+        res.end()
+        return
+      }
+      info(stdout)
+      info(stderr)
+
+      res.json({ status: 'pm2 reset ok', code: 200 })
+      res.end()
+    })
   })
 
   // Use the IP blocker middleware
