@@ -66,6 +66,7 @@ export const createSettings = () => ({
   IPCIDR_LIST: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 5), // 5 seconds
+  PH_CONTAINER_LAUNCH_WARN_MS: mkNumber(200),
 
   MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
@@ -164,6 +165,7 @@ export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 export const IPCIDR_LIST = () => settings().IPCIDR_LIST
 export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
+export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
   [
@@ -266,6 +268,7 @@ export const logConstants = () => {
     IPCIDR_LIST,
     DAEMON_PORT,
     DAEMON_PB_IDLE_TTL,
+    PH_CONTAINER_LAUNCH_WARN_MS,
     MOTHERSHIP_URL,
     MOTHERSHIP_NAME,
     MOTHERSHIP_ADMIN_USERNAME,
