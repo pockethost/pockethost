@@ -2,7 +2,6 @@ import {
   InstanceFields,
   InstanceId,
   LoggerService,
-  LogLevelName,
   mkInstanceUrl,
   mkSingleton,
   MothershipAdminClientService,
@@ -17,7 +16,7 @@ export type CronServiceConfig = SingletonBaseConfig & {}
 export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>) => {
   const mirror = await MothershipMirrorService()
   const logger = (config.logger ?? LoggerService()).create(`CronService`)
-  logger.setLevel(LogLevelName.Debug)
+  // logger.setLevel(LogLevelName.Debug)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
 
