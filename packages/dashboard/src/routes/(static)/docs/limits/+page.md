@@ -49,7 +49,7 @@ To conserve resources, PocketHost instances may enter a **hibernation** state du
 
 ### Important Caveats:
 
-- **Scheduled Tasks and Backups**: Automated tasks like scheduled backups may fail to execute if the instance is in hibernation at the scheduled time. Waking up the instance on a schedule will not trigger any missed intervals. This is generally less of an issue as your instance grows and becomes more active.
+- **Scheduled Tasks and Backups**: Automated tasks like scheduled backups may fail to execute if the instance is in hibernation at the scheduled time. Waking up the instance on a schedule will not trigger any missed intervals. This is generally less of an issue as your instance grows and becomes more active. Check out [weboooks](/docs/webhooks) for an alternative means of running scheduled tasks that survive hibernation.
 - **Instance Waking**: While the instance will wake up for new requests, the first request after hibernation may experience a delay as the instance restarts.
 
 ## Usage Limits
