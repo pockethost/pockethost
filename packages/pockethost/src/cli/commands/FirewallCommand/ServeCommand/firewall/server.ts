@@ -21,6 +21,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
+import { createRateLimiterMiddleware } from './rate-limiter'
 
 export type FirewallOptions = {
   logger: Logger
@@ -82,6 +83,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   // Use the IP blocker middleware
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
+  app.use(createRateLimiterMiddleware(logger))
 
   forEach(hostnameRoutes, (target, host) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
