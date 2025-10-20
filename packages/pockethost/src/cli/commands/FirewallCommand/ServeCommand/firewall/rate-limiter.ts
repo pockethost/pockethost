@@ -49,7 +49,8 @@ export const createRateLimiterMiddleware = (logger: Logger) => {
     const ip = getClientIp(req)
     if (!ip) {
       warn(`Could not determine IP address`)
-      return next()
+      res.status(429).send(`IP address not found`)
+      return
     }
 
     const hostname = req.hostname
