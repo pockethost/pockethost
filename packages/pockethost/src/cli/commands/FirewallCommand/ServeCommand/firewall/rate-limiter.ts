@@ -23,11 +23,18 @@ const getConnectingIp = (req: express.Request): string | undefined => {
 }
 
 // Middleware factory to create a rate limiting middleware
-export const createRateLimiterMiddleware = (logger: Logger, userProxyIps: string[] = []) => {
+export const createRateLimiterMiddleware = (
+  logger: Logger,
+  userProxyIps: string[] = [],
+  userProxyWhitelistIps: string[] = []
+) => {
   const { dbg, warn } = logger.create(`RateLimiter`)
   dbg(`Creating`)
   if (userProxyIps.length > 0) {
     dbg(`User proxy IPs: ${userProxyIps.join(', ')}`)
+  }
+  if (userProxyWhitelistIps.length > 0) {
+    dbg(`User proxy whitelist IPs (bypass rate limiting): ${userProxyWhitelistIps.join(', ')}`)
   }
 
   const isUserProxy = (connectingIp: string | undefined): boolean => {
@@ -69,6 +76,14 @@ export const createRateLimiterMiddleware = (logger: Logger, userProxyIps: string
   })
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const connectingIp = getConnectingIp(req)
+
+    // Check if connecting IP is whitelisted - bypass all rate limiting
+    if (connectingIp && userProxyWhitelistIps.includes(connectingIp)) {
+      dbg(`Whitelisted user proxy IP detected: ${connectingIp} - bypassing rate limiting`)
+      return next()
+    }
+
     const ip = getClientIp(req)
     if (isUserProxy(ip)) {
       dbg(`User Proxy IP detected: ${ip}`, req.headers)

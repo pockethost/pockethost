@@ -7,6 +7,7 @@ import {
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   PH_USER_PROXY_IPS,
+  PH_USER_PROXY_WHITELIST_IPS,
   SSL_CERT,
   SSL_KEY,
 } from '@'
@@ -84,7 +85,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   // Use the IP blocker middleware
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
-  app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
+  app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS(), PH_USER_PROXY_WHITELIST_IPS()))
 
   forEach(hostnameRoutes, (target, host) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
