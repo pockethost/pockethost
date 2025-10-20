@@ -84,11 +84,11 @@ export const createRateLimiterMiddleware = (
       return next()
     }
 
-    const ip = getClientIp(req)
-    if (isUserProxy(ip)) {
-      dbg(`User Proxy IP detected: ${ip}`, req.headers)
+    if (isUserProxy(connectingIp)) {
+      dbg(`User Proxy IP detected: ${connectingIp}`, req.headers)
     }
 
+    const ip = getClientIp(req)
     if (!ip) {
       warn(`Could not determine IP address`)
       res.status(429).send(`IP address not found`)
