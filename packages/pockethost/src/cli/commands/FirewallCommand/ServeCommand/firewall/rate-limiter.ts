@@ -2,10 +2,12 @@ import express from 'express'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { Logger } from 'src/common'
 
-const getClientIp = (req: express.Request): string | undefined => {
+const getConnectingIp = (req: express.Request): string | undefined => {
+  // Check Cloudflare headers
   const cf = req.headers['cf-connecting-ip'] || req.headers['true-client-ip']
   if (cf) return Array.isArray(cf) ? cf[0] : cf
 
+  // Check X-Forwarded-For
   const xff = req.headers['x-forwarded-for']
   const xffStr = Array.isArray(xff) ? xff.join(',') : xff
   if (typeof xffStr === 'string') {
@@ -13,6 +15,7 @@ const getClientIp = (req: express.Request): string | undefined => {
     if (ip) return ip
   }
 
+  // Check X-Real-IP
   const xri = req.headers['x-real-ip']
   if (xri) return Array.isArray(xri) ? xri[0] : xri
 
@@ -20,9 +23,29 @@ const getClientIp = (req: express.Request): string | undefined => {
 }
 
 // Middleware factory to create a rate limiting middleware
-export const createRateLimiterMiddleware = (logger: Logger) => {
+export const createRateLimiterMiddleware = (logger: Logger, userProxyIps: string[] = []) => {
   const { dbg, warn } = logger.create(`RateLimiter`)
   dbg(`Creating`)
+  if (userProxyIps.length > 0) {
+    dbg(`User proxy IPs: ${userProxyIps.join(', ')}`)
+  }
+
+  const isUserProxy = (connectingIp: string | undefined): boolean => {
+    if (!connectingIp) return false
+    return userProxyIps.includes(connectingIp)
+  }
+
+  const getClientIp = (req: express.Request): string | undefined => {
+    const connectingIp = getConnectingIp(req)
+
+    // If from user proxy, check custom header first
+    if (isUserProxy(connectingIp)) {
+      const customIp = req.headers['x-pockethost-client-ip']
+      if (customIp) return Array.isArray(customIp) ? customIp[0] : customIp
+    }
+
+    return connectingIp
+  }
 
   const ipRateLimiter = new RateLimiterMemory({
     points: 1000,
@@ -47,6 +70,10 @@ export const createRateLimiterMiddleware = (logger: Logger) => {
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const ip = getClientIp(req)
+    if (isUserProxy(ip)) {
+      dbg(`User Proxy IP detected: ${ip}`, req.headers)
+    }
+
     if (!ip) {
       warn(`Could not determine IP address`)
       res.status(429).send(`IP address not found`)

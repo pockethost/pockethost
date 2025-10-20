@@ -64,6 +64,7 @@ export const createSettings = () => ({
   APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
   IPCIDR_LIST: mkCsvString([]),
+  PH_USER_PROXY_IPS: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 5), // 5 seconds
   PH_CONTAINER_LAUNCH_WARN_MS: mkNumber(200),
@@ -164,6 +165,7 @@ export const APP_URL = (...path: string[]) => [settings().APP_URL, path.join(`/`
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
 export const IPCIDR_LIST = () => settings().IPCIDR_LIST
+export const PH_USER_PROXY_IPS = () => settings().PH_USER_PROXY_IPS
 export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
@@ -268,6 +270,7 @@ export const logConstants = () => {
     APP_URL,
     APEX_DOMAIN,
     IPCIDR_LIST,
+    PH_USER_PROXY_IPS,
     DAEMON_PORT,
     DAEMON_PB_IDLE_TTL,
     PH_CONTAINER_LAUNCH_WARN_MS,

@@ -39,6 +39,24 @@ If you're making numerous requests from the client side, we recommend using the 
 
 In general, exceeding the rate limit often indicates a coding issue. Another option is to write custom routes using [JS Hooks](/docs/programming) to perform bulk fetching and filtering server-side, which can be difficult to manage effectively on the client side.
 
+### Server-Side Rendering (SSR) and Proxy Servers
+
+If you're using a proxy server for Server-Side Rendering (SSR) purposes, all requests to PocketHost will appear to come from your server's IP address rather than your end users' IPs. This means your server will quickly hit the per-IP rate limits (1,000 requests/hour and 5 concurrent requests), affecting all your users.
+
+**Our recommended solutions:**
+
+1. **Switch to Client-Side Rendering (CSR)** - Make API calls directly from the browser instead of through your server
+2. **Use [PocketPages.dev](https://pocketpages.dev)** - A lightweight SSR solution that runs directly within PocketBase
+
+**If you must use a proxy server:**
+
+If neither of the above solutions work for your use case, you can configure your proxy to forward the real client IP addresses:
+
+1. Configure your proxy server to send the `X-PocketHost-Client-IP` header with each request, containing the real client's IP address
+2. Contact [PocketHost Support](/support) to whitelist your proxy server's IP address
+
+Once whitelisted, PocketHost will use the IP from the `X-PocketHost-Client-IP` header for rate limiting instead of your proxy server's IP, ensuring each end user gets their own rate limit allocation.
+
 ### Special Cases
 
 In special cases, such as during conferences or events where a large amount of traffic originates from a single IP, we have ways to expand or bypass these rate limits. If this applies to you, please contact [PocketHost Support](/support).
