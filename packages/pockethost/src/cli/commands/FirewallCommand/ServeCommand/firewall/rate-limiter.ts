@@ -28,7 +28,8 @@ export const createRateLimiterMiddleware = (
   userProxyIps: string[] = [],
   userProxyWhitelistIps: string[] = []
 ) => {
-  const { dbg, warn } = logger.create(`RateLimiter`)
+  const rateLimiterLogger = logger.create(`RateLimiter`)
+  const { dbg, warn } = rateLimiterLogger
   dbg(`Creating`)
   if (userProxyIps.length > 0) {
     dbg(`User proxy IPs: ${userProxyIps.join(', ')}`)
@@ -77,45 +78,53 @@ export const createRateLimiterMiddleware = (
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const connectingIp = getConnectingIp(req)
+    const endClientIp = getClientIp(req)
+    const hostname = req.hostname
 
-    // Check if connecting IP is whitelisted - bypass all rate limiting
-    if (connectingIp && userProxyWhitelistIps.includes(connectingIp)) {
-      dbg(`Whitelisted user proxy IP detected: ${connectingIp} - bypassing rate limiting`)
-      return next()
-    }
+    const { dbg, warn } = rateLimiterLogger
+      .create(hostname)
+      .breadcrumb(connectingIp || `unknown`)
+      .breadcrumb(endClientIp || `unknown`)
 
-    if (isUserProxy(connectingIp)) {
-      dbg(`User Proxy IP detected: ${connectingIp}`, req.headers)
-    }
+    dbg(`\n`)
+    dbg(`--------------------------------`)
+    dbg(`Incoming request`)
+    dbg(`Hostname: ${hostname}`)
+    dbg(`Connecting IP: ${connectingIp || `unknown`}`)
+    dbg(`End Client IP: ${endClientIp || `unknown`}`)
+    dbg(`\n`)
 
-    const ip = getClientIp(req)
-    if (!ip) {
-      warn(`Could not determine IP address`)
-      res.status(429).send(`IP address not found`)
+    if (!hostname) {
+      warn(`Could not determine hostname`)
+      res.status(429).send(`Hostname not found`)
       return
     }
 
-    const hostname = req.hostname
-    // dbg(`Request from ${ip} for host ${hostname}`)
+    if (isUserProxy(connectingIp)) {
+      dbg(`User Proxy IP detected`, req.headers)
+    }
 
-    // Check rate limits first (requests per hour)
+    // Check rate limits first (requests per hour per IP per hostname)
     try {
-      const ipResult = await ipRateLimiter.consume(ip)
-      dbg(`IP points remaining for ${ip}: ${ipResult.remainingPoints}`)
+      const key = `${endClientIp}:${hostname}`
+      const ipResult = await ipRateLimiter.consume(key)
+      dbg(`IP request accepted. Key: ${key}. Points remaining: ${ipResult.remainingPoints}`)
     } catch (rateLimiterRes: any) {
       const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
-      warn(`IP rate limit exceeded for ${ip} on host ${hostname}. Retry after ${retryAfter} seconds`)
+      warn(`IP rate limit exceeded. Retry after ${retryAfter} seconds`)
       res.set('Retry-After', String(retryAfter))
       res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [1]`)
       return
     }
 
+    // Check hostname rate limit (requests per hour per hostname)
     try {
-      const hostnameResult = await hostnameRateLimiter.consume(hostname)
-      dbg(`Hostname points remaining for ${hostname}: ${hostnameResult.remainingPoints}`)
+      const key = hostname
+      const hostnameResult = await hostnameRateLimiter.consume(key)
+      dbg(`Hostname request accepted. Key: ${key}. Points remaining: ${hostnameResult.remainingPoints}`)
     } catch (rateLimiterRes: any) {
       const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
-      warn(`Hostname rate limit exceeded for ${hostname} by IP ${ip}. Retry after ${retryAfter} seconds`)
+      warn(`Hostname rate limit exceeded. Retry after ${retryAfter} seconds`)
       res.set('Retry-After', String(retryAfter))
       res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [2]`)
       return
@@ -127,37 +136,42 @@ export const createRateLimiterMiddleware = (
     // Helper to release concurrent points
     const releaseConcurrentPoints = async () => {
       if (ipConcurrentConsumed) {
-        const ipConcurrentResult = await ipConcurrentLimiter.reward(ip, 1)
-        dbg(`Released concurrent point for IP ${ip}. Points remaining: ${ipConcurrentResult.remainingPoints}`)
+        const key = `${endClientIp}:${hostname}`
+        const ipConcurrentResult = await ipConcurrentLimiter.reward(key, 1)
+        dbg(`Released IP concurrent point. Key: ${key}. Points remaining: ${ipConcurrentResult.remainingPoints}`)
       }
       if (hostnameConcurrentConsumed) {
-        const hostnameConcurrentResult = await hostnameConcurrentLimiter.reward(hostname, 1)
+        const key = hostname
+        const hostnameConcurrentResult = await hostnameConcurrentLimiter.reward(key, 1)
         dbg(
-          `Released concurrent point for hostname ${hostname}. Points remaining: ${hostnameConcurrentResult.remainingPoints}`
+          `Released hostname concurrent point. Key: ${key}. Points remaining: ${hostnameConcurrentResult.remainingPoints}`
         )
       }
     }
 
-    // Check concurrent limits
+    // Check concurrent limits per IP per hostname
     try {
-      const ipConcurrentResult = await ipConcurrentLimiter.consume(ip)
+      const key = `${endClientIp}:${hostname}`
+      const ipConcurrentResult = await ipConcurrentLimiter.consume(key)
+      dbg(`IP concurrent request accepted. Key: ${key}. Points remaining: ${ipConcurrentResult.remainingPoints}`)
       ipConcurrentConsumed = true
-      dbg(`IP concurrent request accepted for ${ip}. Points remaining: ${ipConcurrentResult.remainingPoints}`)
     } catch (rateLimiterRes: any) {
-      warn(`IP concurrent limit exceeded for ${ip} on host ${hostname}`)
+      warn(`IP concurrent limit exceeded.`)
       res.status(429).send(`Too Many Requests: concurrent request limit exceeded [3]`)
       return
     }
 
+    // Check overall concurrent limits per host
     try {
-      const hostnameConcurrentResult = await hostnameConcurrentLimiter.consume(hostname)
-      hostnameConcurrentConsumed = true
+      const key = hostname
+      const hostnameConcurrentResult = await hostnameConcurrentLimiter.consume(key)
       dbg(
-        `Hostname concurrent request accepted for ${hostname} on IP ${ip}. Points remaining: ${hostnameConcurrentResult.remainingPoints}`
+        `Hostname concurrent request accepted. Key: ${key}. Points remaining: ${hostnameConcurrentResult.remainingPoints}`
       )
+      hostnameConcurrentConsumed = true
     } catch (rateLimiterRes: any) {
       await releaseConcurrentPoints()
-      warn(`Hostname concurrent limit exceeded for ${hostname} by IP ${ip}`)
+      warn(`Hostname concurrent limit exceeded.`)
       res.status(429).send(`Too Many Requests: concurrent request limit exceeded [4]`)
       return
     }
