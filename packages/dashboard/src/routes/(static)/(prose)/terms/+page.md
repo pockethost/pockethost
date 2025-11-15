@@ -2,7 +2,7 @@
 
 # Terms of Service
 
-**Effective Date: October 5, 2024**
+**Last Modified Date: September 12, 2025**
 
 Welcome to PocketHost! These Terms of Service ("Terms") govern your access to and use of PocketHost's services, so please read them carefully.
 
@@ -38,8 +38,6 @@ There are no age restrictions for using our services. However, by using PocketHo
 - **Extended Refunds**: We may provide refunds beyond the 30-day window at our discretion. Our goal is to ensure customer satisfaction.
 
 ## 5. Fair Use Policy
-
-PocketHost offers generous free projects, storage, bandwidth, and CPU on a Fair Use basis.
 
 ### 5.1 What is 'Fair'?
 
