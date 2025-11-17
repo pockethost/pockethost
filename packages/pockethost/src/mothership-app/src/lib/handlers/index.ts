@@ -1,5 +1,6 @@
 export * from './instance'
 export * from './lemon'
+export * from './creemio'
 export * from './mail'
 export * from './meta'
 export * from './mirror'
