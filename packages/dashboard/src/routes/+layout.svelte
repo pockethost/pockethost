@@ -110,6 +110,9 @@
     }
     gtag('js', new Date())
 
-    gtag('config', 'G-5Q6CM5HPCX')
+    gtag('config', 'G-5Q6CM5HPCX', {
+      // Avoid sending the cookie to subdomains of pockethost.io.
+      'cookie_domain': 'none'
+    })
   </script>
 </div>
