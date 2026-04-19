@@ -39,6 +39,24 @@ const isCfImageService = (req: express.Request): boolean => {
   return true
 }
 
+/** For rate-limit logs: raw Host / X-Forwarded-Host vs req.hostname (Express parses Host). */
+const hostForensics = (req: express.Request) => {
+  const rawHost = req.get('host')
+  const forwardedHost = req.get('x-forwarded-host')
+  const fromXfh = forwardedHost?.split(',')[0]?.trim().split(':')[0]?.toLowerCase()
+  const xForwardedHostConflicts =
+    fromXfh && req.hostname && fromXfh !== req.hostname.toLowerCase() ? true : undefined
+
+  return {
+    hostname: req.hostname,
+    hostHeader: rawHost ?? null,
+    xForwardedHost: forwardedHost ?? null,
+    xForwardedHostConflicts,
+    method: req.method,
+    url: req.originalUrl?.slice(0, 256) ?? '',
+  }
+}
+
 // Middleware factory to create a rate limiting middleware
 export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps: string[] = []) => {
   const rateLimiterLogger = logger.create(`RateLimiter`)
@@ -153,7 +171,8 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     } catch (rateLimiterRes: any) {
       const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
       warn(
-        `${trustedClient ? 'Trusted' : 'Untrusted'} IP rate limit exceeded. Retry after ${retryAfter} seconds [1]. ${rateLimiterRes}`
+        `${trustedClient ? 'Trusted' : 'Untrusted'} IP rate limit exceeded. Retry after ${retryAfter} seconds [1]. ${rateLimiterRes}`,
+        hostForensics(req)
       )
       res.set('Retry-After', String(retryAfter))
       res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [1]`)
@@ -173,7 +192,8 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     } catch (rateLimiterRes: any) {
       const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
       warn(
-        `${trustedClient ? 'Trusted' : 'Untrusted'} Hostname rate limit exceeded. Retry after ${retryAfter} seconds [2]. ${rateLimiterRes}`
+        `${trustedClient ? 'Trusted' : 'Untrusted'} Hostname rate limit exceeded. Retry after ${retryAfter} seconds [2]. ${rateLimiterRes}`,
+        hostForensics(req)
       )
       res.set('Retry-After', String(retryAfter))
       res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [2]`)
@@ -219,7 +239,10 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       } catch (rewardErr) {
         warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} IP concurrent limiter.`, rewardErr)
       }
-      warn(`${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent limit exceeded. [3]. ${rateLimiterRes}`)
+      warn(
+        `${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent limit exceeded. [3]. ${rateLimiterRes}`,
+        hostForensics(req)
+      )
       res.status(429).send(`Too Many Requests: concurrent request limit exceeded [3]`)
       return
     }
@@ -249,7 +272,10 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
         warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} hostname concurrent limiter.`, rewardErr)
       }
       await releaseConcurrentPoints()
-      warn(`${trustedClient ? 'Trusted' : 'Untrusted'} hostname concurrent limit exceeded. [4]. ${rateLimiterRes}`)
+      warn(
+        `${trustedClient ? 'Trusted' : 'Untrusted'} hostname concurrent limit exceeded. [4]. ${rateLimiterRes}`,
+        hostForensics(req)
+      )
       res.status(429).send(`Too Many Requests: concurrent request limit exceeded [4]`)
       return
     }
