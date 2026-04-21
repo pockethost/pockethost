@@ -32,8 +32,8 @@
     // Disable the button to prevent double submissions
     isButtonDisabled = true
 
-    // Remove extra whitespace, and numbers from the subdomain
-    const instanceNameValidation = formSubdomain.trim().replace(/[0-9]/g, '')
+    // Remove extra whitespace from the subdomain
+    const instanceNameValidation = formSubdomain.trim()
 
     // Prompt the user to confirm the version change
     const confirmVersionChange = confirm(`Are you sure you want to rename your instance to ${instanceNameValidation}?`)
