@@ -1,6 +1,15 @@
 import express from 'express'
+import IPCIDR from 'ip-cidr'
+import { isIPv4, isIPv6 } from 'node:net'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { Logger } from 'src/common'
+
+const toProxyCidrString = (entry: string): string => {
+  if (entry.includes('/')) return entry
+  if (isIPv4(entry)) return `${entry}/32`
+  if (isIPv6(entry)) return `${entry}/128`
+  return entry
+}
 
 const getConnectingIp = (req: express.Request): string | undefined => {
   // Check Cloudflare headers
@@ -77,9 +86,20 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     dbg(`User proxy IPs: ${trustedUserProxyIps.join(', ')}`)
   }
 
+  const trustedProxyCidrs: IPCIDR[] = []
+  for (const raw of trustedUserProxyIps) {
+    const entry = raw.trim()
+    if (!entry) continue
+    try {
+      trustedProxyCidrs.push(new IPCIDR(toProxyCidrString(entry)))
+    } catch (err) {
+      warn(`Invalid PH_USER_PROXY_IPS entry, skipping: ${entry}`, err)
+    }
+  }
+
   const isTrustedUserProxy = (connectingIp: string | undefined): boolean => {
     if (!connectingIp) return false
-    return trustedUserProxyIps.includes(connectingIp)
+    return trustedProxyCidrs.some((cidr) => cidr.contains(connectingIp))
   }
 
   const getClientIp = (req: express.Request): string | undefined => {
