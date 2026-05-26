@@ -77,6 +77,20 @@ const LIMITS = {
   trustedHostnameConcurrent: { points: 250, duration: 0 },
 } as const
 
+/** Larger denominator → cheaper file routes vs API (FILES_WEIGHT_NUM / WEIGHT_DEN). */
+const WEIGHT_DEN = 10
+const FILES_WEIGHT_NUM = 1
+const API_WEIGHT_NUM = WEIGHT_DEN
+
+const isPocketBaseFilesPath = (path: string): boolean =>
+  path === '/api/files' || path.startsWith('/api/files/')
+
+/** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
+const toMicroPointLimit = (cfg: { points: number; duration: number }) => ({
+  points: cfg.points * WEIGHT_DEN,
+  duration: cfg.duration,
+})
+
 // Middleware factory to create a rate limiting middleware
 export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps: string[] = []) => {
   const rateLimiterLogger = logger.create(`RateLimiter`)
@@ -114,16 +128,20 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     return connectingIp
   }
 
-  const untrustedIpRateLimiter = new RateLimiterMemory(LIMITS.untrustedIp)
-  const untrustedHostnameRateLimiter = new RateLimiterMemory(LIMITS.untrustedHostname)
-  const trustedIpRateLimiter = new RateLimiterMemory(LIMITS.trustedIp)
-  const trustedHostnameRateLimiter = new RateLimiterMemory(LIMITS.trustedHostname)
+  const untrustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIp))
+  const untrustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedHostname))
+  const trustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIp))
+  const trustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedHostname))
 
   // Concurrent request limiters (duration 0 means we manually manage release)
-  const untrustedIpConcurrentLimiter = new RateLimiterMemory(LIMITS.untrustedIpConcurrent)
-  const trustedIpConcurrentLimiter = new RateLimiterMemory(LIMITS.trustedIpConcurrent)
-  const untrustedHostnameConcurrentLimiter = new RateLimiterMemory(LIMITS.untrustedHostnameConcurrent)
-  const trustedHostnameConcurrentLimiter = new RateLimiterMemory(LIMITS.trustedHostnameConcurrent)
+  const untrustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIpConcurrent))
+  const trustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIpConcurrent))
+  const untrustedHostnameConcurrentLimiter = new RateLimiterMemory(
+    toMicroPointLimit(LIMITS.untrustedHostnameConcurrent)
+  )
+  const trustedHostnameConcurrentLimiter = new RateLimiterMemory(
+    toMicroPointLimit(LIMITS.trustedHostnameConcurrent)
+  )
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const connectingIp = getConnectingIp(req)
@@ -164,17 +182,19 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       dbg(`User Proxy IP detected`, req.headers)
     }
 
+    const consumeWeight = isPocketBaseFilesPath(req.path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
+
     // Check rate limits first (requests per hour per IP per hostname)
     {
       const key = `${endClientIp}:${hostname}`
       const cfg = trustedClient ? LIMITS.trustedIp : LIMITS.untrustedIp
       const limiter = trustedClient ? trustedIpRateLimiter : untrustedIpRateLimiter
       try {
-        const ipResult = await limiter.consume(key)
+        const ipResult = await limiter.consume(key, consumeWeight)
         dbg(
           `${trustedClient ? 'Trusted' : 'Untrusted'} IP request accepted. Key: ${key}. Points remaining: ${ipResult.remainingPoints}${
             trustedClient ? ' (trusted)' : ''
-          }`
+          } (weight=${consumeWeight}/${WEIGHT_DEN})`
         )
       } catch (rateLimiterRes: any) {
         const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
@@ -182,8 +202,10 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
           `[1] ${trustedClient ? 'Trusted' : 'Untrusted'} IP rate limit exceeded. ` +
             `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
             `hostname=${hostname} trustReason=${trustReason} ` +
-            `limit=${cfg.points}/${cfg.duration}s consumed=${rateLimiterRes.consumedPoints} ` +
-            `remaining=${rateLimiterRes.remainingPoints} retryAfter=${retryAfter}s`,
+            `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
+            `limitApproxApi=${cfg.points}/${cfg.duration}s ` +
+            `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'} ` +
+            `retryAfter=${retryAfter}s`,
           hostForensics(req)
         )
         res.set('Retry-After', String(retryAfter))
@@ -198,11 +220,11 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       const cfg = trustedClient ? LIMITS.trustedHostname : LIMITS.untrustedHostname
       const limiter = trustedClient ? trustedHostnameRateLimiter : untrustedHostnameRateLimiter
       try {
-        const hostnameResult = await limiter.consume(key)
+        const hostnameResult = await limiter.consume(key, consumeWeight)
         dbg(
           `${trustedClient ? 'Trusted' : 'Untrusted'} Hostname request accepted. Key: ${key}. Points remaining: ${hostnameResult.remainingPoints}${
             trustedClient ? ' (trusted)' : ''
-          }`
+          } (weight=${consumeWeight}/${WEIGHT_DEN})`
         )
       } catch (rateLimiterRes: any) {
         const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
@@ -210,8 +232,10 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
           `[2] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname rate limit exceeded. ` +
             `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
             `hostname=${hostname} trustReason=${trustReason} ` +
-            `limit=${cfg.points}/${cfg.duration}s consumed=${rateLimiterRes.consumedPoints} ` +
-            `remaining=${rateLimiterRes.remainingPoints} retryAfter=${retryAfter}s`,
+            `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
+            `limitApproxApi=${cfg.points}/${cfg.duration}s ` +
+            `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'} ` +
+            `retryAfter=${retryAfter}s`,
           hostForensics(req)
         )
         res.set('Retry-After', String(retryAfter))
@@ -242,21 +266,21 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     const ipConcurrentCfg = trustedClient ? LIMITS.trustedIpConcurrent : LIMITS.untrustedIpConcurrent
     const ipConcurrentKey = `${endClientIp}:${hostname}`
     try {
-      const ipConcurrentResult = await ipConcurrentLimiterInstance.consume(ipConcurrentKey)
+      const ipConcurrentResult = await ipConcurrentLimiterInstance.consume(ipConcurrentKey, consumeWeight)
       dbg(
         `${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent request accepted. Key: ${ipConcurrentKey}. Points remaining: ${ipConcurrentResult.remainingPoints}${
           trustedClient ? ' (trusted)' : ''
-        }`
+        } (weight=${consumeWeight}/${WEIGHT_DEN})`
       )
       releaseConcurrentCallbacks.push(async () => {
-        const ipConcurrentReleaseResult = await ipConcurrentLimiterInstance.reward(ipConcurrentKey, 1)
+        const ipConcurrentReleaseResult = await ipConcurrentLimiterInstance.reward(ipConcurrentKey, consumeWeight)
         dbg(
           `${trustedClient ? 'Trusted' : 'Untrusted'} released IP concurrent point. Key: ${ipConcurrentKey}. Points remaining: ${ipConcurrentReleaseResult.remainingPoints}`
         )
       })
     } catch (rateLimiterRes: any) {
       try {
-        await ipConcurrentLimiterInstance.reward(ipConcurrentKey, 1)
+        await ipConcurrentLimiterInstance.reward(ipConcurrentKey, consumeWeight)
       } catch (rewardErr) {
         warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} IP concurrent limiter.`, rewardErr)
       }
@@ -264,8 +288,9 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
         `[3] ${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent limit exceeded. ` +
           `key=${ipConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
           `hostname=${hostname} trustReason=${trustReason} ` +
-          `limit=${ipConcurrentCfg.points} consumed=${rateLimiterRes.consumedPoints} ` +
-          `remaining=${rateLimiterRes.remainingPoints}`,
+          `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
+          `limitApproxApi=${ipConcurrentCfg.points} ` +
+          `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'}`,
         hostForensics(req)
       )
       res.set('Retry-After', '1')
@@ -280,31 +305,30 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     const hostnameConcurrentCfg = trustedClient ? LIMITS.trustedHostnameConcurrent : LIMITS.untrustedHostnameConcurrent
     const hostnameConcurrentKey = hostname
     try {
-      const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(hostnameConcurrentKey)
+      const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(hostnameConcurrentKey, consumeWeight)
       dbg(
         `${trustedClient ? 'Trusted' : 'Untrusted'} hostname concurrent request accepted. Key: ${hostnameConcurrentKey}. Points remaining: ${hostnameConcurrentResult.remainingPoints}${
           trustedClient ? ' (trusted)' : ''
-        }`
+        } (weight=${consumeWeight}/${WEIGHT_DEN})`
       )
       releaseConcurrentCallbacks.push(async () => {
-        const hostnameConcurrentReleaseResult = await hostnameConcurrentLimiterInstance.reward(hostnameConcurrentKey, 1)
+        const hostnameConcurrentReleaseResult = await hostnameConcurrentLimiterInstance.reward(
+          hostnameConcurrentKey,
+          consumeWeight
+        )
         dbg(
           `${trustedClient ? 'Trusted' : 'Untrusted'} released hostname concurrent point. Key: ${hostnameConcurrentKey}. Points remaining: ${hostnameConcurrentReleaseResult.remainingPoints}`
         )
       })
     } catch (rateLimiterRes: any) {
-      try {
-        await hostnameConcurrentLimiterInstance.reward(hostnameConcurrentKey, 1)
-      } catch (rewardErr) {
-        warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} hostname concurrent limiter.`, rewardErr)
-      }
       await releaseConcurrentPoints()
       warn(
         `[4] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname concurrent limit exceeded. ` +
           `key=${hostnameConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
           `hostname=${hostname} trustReason=${trustReason} ` +
-          `limit=${hostnameConcurrentCfg.points} consumed=${rateLimiterRes.consumedPoints} ` +
-          `remaining=${rateLimiterRes.remainingPoints}`,
+          `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
+          `limitApproxApi=${hostnameConcurrentCfg.points} ` +
+          `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'}`,
         hostForensics(req)
       )
       res.set('Retry-After', '1')
