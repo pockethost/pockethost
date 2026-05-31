@@ -171,9 +171,8 @@ const tryUserSubscribe = (() => {
     console.log('Subscribing to user', id)
     client()
       .client.collection('users')
-      .subscribe<UserFields>(id, (data) => {
-        console.log('User subscribed update', data)
-        client().client.collection('users').authRefresh().catch(console.error)
+      .subscribe<UserFields>(id, () => {
+        console.log('User subscribed update')
       })
       .then((u) => {
         console.log('Subscribed to user', id)
