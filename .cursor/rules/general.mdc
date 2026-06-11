@@ -4,12 +4,22 @@ alwaysApply: true
 
 # Project Context
 
-- This project is about PocketBase, the PocketBase JS client, and the PocketBase JSVM.
+PocketHost is a **multi-tenant PocketBase hosting platform** (monorepo). Core pieces:
+
+- **`packages/pockethost`** — Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
+- **`packages/dashboard`** — SvelteKit marketing site and user docs
+- **`packages/pockethost-instance`** — Docker image for per-instance PocketBase containers
+- **`mothership-app`** — PocketBase control-plane app (hooks, migrations, handler APIs)
+
+Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, pnpm workspaces.
+
+Read [MEMORY.md](MEMORY.md) before substantive architectural work.
 
 # Programming Style
 
-- Prefer factory functions that return an API object instead of classes
+- Prefer factory functions that return an API object instead of classes (`createX`, `mkX` — matches existing code)
 - Prefer early returns
+- Match surrounding file conventions (imports via `@` alias in `packages/pockethost`)
 
 # Generating Markdown
 
@@ -18,8 +28,11 @@ alwaysApply: true
 - If there are code snippets, indent the code snippets with two spaces and the correct language for proper rendering. Indentations level 0 and 4 is not allowed.
 - If a markdown code block is indented with any value other than 2 spaces, automatically fix it
 
-# Generating code
+# Generating code — command guardrails
 
-- Never run build commands
-- Never run type checking commands
-- Never start servers
+Avoid side-effectful or long-running operations unless the user explicitly asks:
+
+- **Do not** start hosting services (`mothership`, `firewall`, `edge:daemon`, `serve`) — they spawn Docker instances and bind ports.
+- **Do not** run full production builds (`dashboard` vite build, Docker image build/push) or deploy (`wrangler pages deploy`).
+- **Do not** run `tsc` / `svelte-check` unless the user asks — use targeted reads and local reasoning instead.
+- **OK**: `pnpm lint` / Prettier, read-only git commands, file edits, one-off non-server scripts.

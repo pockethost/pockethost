@@ -1,0 +1,44 @@
+---
+description: Read MEMORY.md before substantive work; update it in the same change set when architecture shifts
+alwaysApply: true
+---
+
+# MEMORY.md — read first, update always
+
+[MEMORY.md](MEMORY.md) is the living source of truth for PocketHost architecture. Agents must **use** it for context and **maintain** it as work proceeds.
+
+## Read (start of task)
+
+Before planning or coding on CLI commands, mothership/edge/firewall services, instance lifecycle, dashboard UI, PocketBase hooks/migrations, or dev workflow:
+
+1. **Read MEMORY.md** — prefer it over chat history or assumptions about older repo shapes.
+2. If MEMORY and code disagree, **trust the code** but **fix MEMORY in the same change set**.
+
+## Update (before marking done)
+
+Update MEMORY.md in the **same commit/PR** when you change anything in the table below — do not defer.
+
+| Area | Examples |
+|------|----------|
+| Monorepo layout | `packages/pockethost`, `packages/dashboard`, `packages/pockethost-instance`, mothership-app workspace |
+| CLI surface | `pockethost` subcommands (`mothership`, `firewall`, `edge`, `serve`, `pocketbase`, `health`, `mail`) |
+| Runtime roles | Mothership (control plane), edge daemon (instance spawner), firewall (reverse proxy + rate limits) |
+| Instance model | `Instance` schema, Docker lifecycle, port pool, volume paths under `DATA_ROOT` |
+| Mothership app | `pb_hooks`, `pb_migrations`, handler APIs under `mothership-app/src/lib/handlers` |
+| Settings / env | `PH_*`, `MOTHERSHIP_*`, `APEX_DOMAIN`, `constants.ts` / `createSettings()` |
+| Dashboard | SvelteKit routes, docs under `packages/dashboard/src/routes`, Wrangler deploy |
+| PocketBase versions | `PH_ALLOWED_POCKETBASE_SEMVER`, `versions.cjs`, `update-versions` flow |
+| Dev contract | `pnpm dev:cli`, `pnpm dev:dashboard`, `.env`, `PH_HOME`, `setup.sh` |
+| Greenfield breaks | Removed APIs, renamed paths, invalidated caches |
+
+## Style
+
+- Under ~150 lines — current state only, not a roadmap.
+- Tables over prose; **delete obsolete rows** when breaking changes land.
+- **Active threads**: in-flight cross-cutting work only.
+
+## Self-check
+
+- *Did I read MEMORY.md before starting?*
+- *Did I change how instances spawn, mothership APIs work, firewall routing, or settings load?* → Update MEMORY now.
+- *Did I break/remove/rename something?* → Update MEMORY and drop stale references.

@@ -1,0 +1,8 @@
+---
+description: On commit requests, follow skill commit — no improvised workflow
+alwaysApply: true
+---
+
+# Commits
+
+When the user asks to commit (including `/commit`), read and follow [`.cursor/skills/commit/SKILL.md`](../skills/commit/SKILL.md). Do not duplicate that workflow here.

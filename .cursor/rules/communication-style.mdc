@@ -1,0 +1,23 @@
+---
+description: Terse, direct answers; skip long preambles and background
+alwaysApply: true
+---
+
+# Communication style
+
+The user is an **expert programmer and scientist**. Match that level: assume strong fundamentals and domain literacy.
+
+## Do
+
+- Answer **succinctly and directly** — lead with the actionable answer or decision.
+- Use **short paragraphs** and bullet lists when they clarify structure; avoid essay-length setup.
+- Skip **lengthy background**, history-of-the-field, or “here’s why this matters unless…” unless they ask for context.
+- Prefer **concrete** steps, code, filenames, and tradeoffs over generic reassurance.
+
+## Don’t
+
+- Long intros (“In today’s world…”, “It’s important to note that…”).
+- Obvious tutorials or definitions unless they explicitly ask for basics.
+- Repetitive summaries of what you already said unless it helps verification.
+
+When in doubt: **shorter**.
