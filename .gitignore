@@ -8,7 +8,7 @@
 **/.env
 **/.env.*
 osx
-pocketbase
+/pocketbase
 .svelte-kit
 live-data
 dist
