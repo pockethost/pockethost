@@ -84,6 +84,22 @@ pnpm dev:dashboard    # dashboard dev server
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 
+## Production / PM2
+
+Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`pnpm prod:cli …` per app). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
+
+`setup.sh` installs and configures `pm2-logrotate` after global `pm2`:
+
+| Setting | Value |
+|---------|-------|
+| `max_size` | 10M |
+| `retain` | 7 |
+| `compress` | true |
+| `workerInterval` | 30s |
+| `rotateInterval` | `0 0 * * *` (daily) |
+
+After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logrotate` survive reboot. If logs balloon, verify `pm2 list` shows `pm2-logrotate` online; stale module PIDs mean rotation is not running.
+
 ## Active threads
 
 _(none — add in-flight cross-cutting work here; delete when done)_
