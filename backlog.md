@@ -22,7 +22,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Power off stops edge container** | Low | S–M | Branch `instance-shutdown`. Today `power=false` only blocks new proxy requests (`InstanceService` power check); the Docker container keeps running until idle TTL. Merge branch: mirror listener → kill container on power transition; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `power+status` shutting-down UX (`instancePower.ts`). Power button matches docs; delete/version gates trustworthy. |
+| ~~**Power off stops edge container**~~ | — | — | **Done 2026-06-12** — mirror listener shuts down container on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard shutting-down UX (`instancePower.ts`). |
 | **Edge-owned instance delete** | Med | M | Branch `feat/remote-delete` (WIP stub). `HandleInstanceDelete` calls `$os.removeAll($DATA_ROOT/$id)` in mothership PB — wrong layer: path omits `volume`, mothership Docker has no instance-data bind (`mothership.ts` only mounts `pb_*`). Finish edge `DELETE /_api/instance/:id`: stop container, remove `DATA_ROOT/{volume}/{id}`, return ack; mothership deletes PB record only after edge success (or edge reacts to mirror delete). Remove instance FS ops + `DATA_ROOT` from mothership handlers. |
 | **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
 | **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
@@ -57,7 +57,16 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
+
+### Dashboard & docs UX
+
+| Item | Risk | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
+| **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
+| **Docs structure & organization** | Low | M–L | Reorganize `(static)/docs/**` — clearer IA, fewer duplicate topics, better cross-links from dashboard `CardHeader` docs paths. |
 
 ### Codebase health & CI
 
@@ -103,10 +112,10 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | Coupling | Where | Problem |
 | -------- | ----- | ------- |
 | Instance delete FS | `HandleInstanceDelete` | Mothership `$os.removeAll` on wrong host/path; edge owns `DATA_ROOT/{volume}/{id}` |
-| Power off | `HandleInstanceUpdate` + `InstanceService` | DB flag only; container may still run until idle TTL |
+| Power off | `HandleInstanceUpdate` + `InstanceService` | **Fixed** — mirror listener shuts down container on `power=false`; dashboard shows shutting-down until `status=idle` |
 | Runtime status | `HandleInstancesResetIdle` vs edge daemon | Mothership resets all `status=idle` on boot; edge stops containers without syncing status |
 | Request policy | `HandleInstanceResolve` vs `InstanceService` | Duplicate gating logic; resolve unused in repo |
-| Branches | `instance-shutdown`, `feat/remote-delete` | Power-off + remote delete partially implemented, not merged |
+| Branches | `feat/remote-delete` | Remote delete partially implemented, not merged |
 
 ### Dependencies between items
 
@@ -142,6 +151,7 @@ _Completed items with date + link to PR/release._
 | ---- | ---- |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
+| 2026-06-12 | **Power off stops edge container** — `InstanceService` mirror listener shuts down Docker on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `instancePower.ts` shutting-down UX; delete/version gated on fully-off (`status=idle`) |
 
 ---
 
