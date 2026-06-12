@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Direct PocketBase Version Sync',
+    path: '/blog/pocketbase-version-sync',
+  },
+  {
     title: 'PocketHost 2.3.0',
     path: '/blog/pockethost-2-3-0-release',
   },

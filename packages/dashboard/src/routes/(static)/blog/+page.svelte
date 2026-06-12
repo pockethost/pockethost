@@ -6,6 +6,7 @@ import { toc } from './toc'
 
   // Extract date from blog posts - we'll create a mapping for the major ones
   const postDates: Record<string, string> = {
+    '/blog/pocketbase-version-sync': 'Jun 12, 2026',
     '/blog/pockethost-2-3-0-release': 'Jul 22, 2025',
     '/blog/webhooks-launch': 'Jul 22, 2025',
     '/blog/mothership-mirror-service': 'Jul 21, 2025',
@@ -18,6 +19,8 @@ import { toc } from './toc'
   }
 
   const postDescriptions: Record<string, string> = {
+    '/blog/pocketbase-version-sync':
+      'PocketBase versions now sync directly from GitHub — no Gobot middleman, faster updates, no token required.',
     '/blog/pockethost-2-3-0-release':
       'Our biggest release yet! Introducing webhooks, automated custom domains, hard paywall, and major infrastructure improvements.',
     '/blog/webhooks-launch':
