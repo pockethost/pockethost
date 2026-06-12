@@ -8,10 +8,12 @@ Living architecture reference for agents. Current state only; update in the same
 |---------|------|------|
 | CLI + services | `packages/pockethost` | Node hosting stack: CLI, mothership, edge, firewall |
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
-| Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers |
+| Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
 
 Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
+
+**Instance image publish** (after Dockerfile changes): `cd packages/pockethost-instance && pnpm build && pnpm push`. Tags: `0.0.1` + `latest`. Spawn path: `DOCKER_INSTANCE_IMAGE_NAME` in `constants.ts`.
 
 ## CLI (`pockethost`)
 

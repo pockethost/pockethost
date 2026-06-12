@@ -117,7 +117,7 @@ _Move completed items here with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
-| 2026-06-12 | **Node 22 upgrade** — `.nvmrc` (`lts/jod`), dashboard CI 22.x, instance Dockerfile, tsdown `node22`, root `engines.node >=22`; native deps smoke-tested locally |
+| 2026-06-12 | **Node 22 upgrade** — `.nvmrc` (`lts/jod`), dashboard CI 22.x, instance Dockerfile, tsdown `node22`, root `engines.node >=22`; `benallfree/pockethost-instance:latest` rebuilt+pushed (Node v22.22.3) |
 
 ---
 
