@@ -12,6 +12,7 @@ import {
   mkInternalUrl,
   mkSingleton,
   PH_CONTAINER_LAUNCH_WARN_MS,
+  PH_CONTAINER_STOP_TIMEOUT_SEC,
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
   DOCKER_INSTANCE_IMAGE_NAME,
 } from '@'
@@ -204,7 +205,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             }
           }
         )
-        .on('start', async (container: Container) => {
+        .on('start', async (dockerContainer: Container) => {
           const containerReadyTime = Date.now()
           const startupDuration = containerReadyTime - containerStartTime
 
@@ -214,12 +215,12 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             warn(`Container ${instanceId} launch took ${startupDuration}ms`)
           }
 
-          dbg(`Got started container`, container)
+          dbg(`Got started container`, dockerContainer)
           started = true
 
           try {
             // Get container info to retrieve the assigned port
-            const containerInfo = await container.inspect()
+            const containerInfo = await dockerContainer.inspect()
             const ports = containerInfo.NetworkSettings?.Ports?.['8090/tcp']
 
             if (!ports || !ports[0] || !ports[0].HostPort) {
@@ -234,16 +235,18 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             resolve({
               on: emitter.on.bind(emitter),
               kill: () =>
-                container.stop({ signal: `SIGINT` }).catch((e) => {
-                  error(e)
-                  return container.stop({ signal: `SIGKILL` }).catch(error)
-                }),
+                dockerContainer
+                  .stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() })
+                  .catch((e) => {
+                    error(e)
+                    return dockerContainer.kill().catch(error)
+                  }),
               portBinding,
             })
           } catch (e) {
             error(`Failed to get port binding: ${e}`)
             try {
-              await container.stop()
+              await dockerContainer.stop()
             } catch (stopError) {
               error(`Failed to stop container after port binding error: ${stopError}`)
             }

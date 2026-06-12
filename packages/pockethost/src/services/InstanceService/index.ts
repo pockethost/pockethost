@@ -54,7 +54,22 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   const pbService = await PocketbaseService()
 
+  const mirror = await MothershipMirrorService()
+
   const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
+
+  const instancePowerById = new Map<InstanceId, boolean>()
+  for (const instance of mirror.getInstances()) {
+    instancePowerById.set(instance.id, instance.power)
+  }
+
+  const shutdownRunningInstance = async (id: InstanceId, reason: string) => {
+    const pending = instanceApis[id]
+    if (!pending) return
+    dbg(`Shutting down ${id}: ${reason}`)
+    const api = await pending
+    api.shutdown()
+  }
 
   const createInstanceApi = async (instance: InstanceFields): Promise<InstanceApi> => {
     const shutdownManager: (() => void)[] = []
@@ -190,6 +205,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       /** Health check */
       await tryFetch(`${internalUrl}/api/health`, {
         preflight: async () => {
+          const current = await mirror.getInstance(id)
+          if (current && !current.power) throw new Error(`Instance powered off during startup`)
           if (stopped()) throw new Error(`Container stopped ${id}`)
           return started()
         },
@@ -242,7 +259,23 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     }
   }
 
-  const mirror = await MothershipMirrorService()
+  mirror.onInstanceUpserted((instance) => {
+    const wasPoweredOn = instancePowerById.get(instance.id) ?? true
+    instancePowerById.set(instance.id, instance.power)
+
+    if (wasPoweredOn && !instance.power) {
+      shutdownRunningInstance(instance.id, 'power off').catch((e) => {
+        error(`Error shutting down ${instance.id} on power off`, { e })
+      })
+    }
+  })
+
+  mirror.onInstanceDeleted((instanceId) => {
+    instancePowerById.delete(instanceId)
+    shutdownRunningInstance(instanceId, 'instance deleted').catch((e) => {
+      error(`Error shutting down ${instanceId} on delete`, { e })
+    })
+  })
 
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
