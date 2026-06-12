@@ -1,0 +1,51 @@
+---
+description: Capture dev goals in TODO.md; rank backlog by feasibility, deps, and user value
+alwaysApply: true
+---
+
+# TODO.md — backlog capture and prioritization
+
+[TODO.md](TODO.md) is the product/platform roadmap. [MEMORY.md](MEMORY.md) is architecture — do not duplicate it here.
+
+## Capture
+
+When a task, idea, bug, or refactor surfaces in chat or code review:
+
+1. **Add or update a row** in TODO.md (same change set when the item is confirmed — do not defer to "later").
+2. Place it in **Now**, **Next**, or **Icebox** using the rules below.
+3. Include **Risk**, **Effort** (S/M/L/XL), and a one-line **user benefit** (who gains what).
+4. When work ships, move the row to **Done** with date + PR/commit link; delete stale duplicates.
+
+## Prioritization (Next section order)
+
+Sort **Next** top → bottom by:
+
+1. **Dependencies** — blockers first (e.g. Node 22 before mothership PB bump if it reduces upgrade risk).
+2. **Feasibility** — prefer low risk + small effort when user benefit is comparable.
+3. **End-user benefit** — visible customer value beats internal-only work at equal cost.
+
+**Low-hanging fruit / easy wins** belong near the top when they deliver incremental, shippable progress with a clear user story.
+
+## Maintenance and refactors
+
+Platform chores (runtime bumps, deps, refactors) are valid — **attach them to user value** in the Notes column:
+
+- ✅ `Node 22 upgrade` — keeps hosting secure and unblocks PB v0.39 for customers
+- ✅ `Refactor rate-limiter config` — prerequisite for user-controlled IP whitelisting
+- ❌ `Refactor constants.ts` with no linked backlog item or user outcome
+
+Pure housekeeping with no near-term benefit → **Icebox**, or fold into a user-facing item as a sub-note.
+
+## Section rules
+
+| Section | When |
+|---------|------|
+| **Now** | Max 1–3 items; someone is actively working |
+| **Next** | Committed; sorted by deps → feasibility → user benefit |
+| **Icebox** | Spikes, low demand, or high uncertainty — revisit when Next thins |
+
+## Self-check
+
+- *Did we discover a new goal this session?* → Row in TODO.md?
+- *Did we finish something?* → Done section updated?
+- *Does Next order still reflect deps and easy wins first?*

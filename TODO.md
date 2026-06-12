@@ -20,7 +20,7 @@ _Active or imminently starting. Keep this section small._
 
 ## Next (backlog)
 
-_Committed direction; rough priority top → bottom._
+_Committed direction; sorted deps → feasibility → user benefit (top = do first)._
 
 ### Platform & runtime
 
@@ -44,6 +44,7 @@ _Committed direction; rough priority top → bottom._
 | ---- | ---- | ------ | ----- |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
 | **SFTP instead of FTPS** | Med | M | Docs/FAQ already say "SFTP"; UI says FTPS (`instances/.../ftp`). Evaluate `ftp-srv` fork vs OpenSSH/sftp subsystem; credential model unchanged? |
+| **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
 ### Developer experience
@@ -83,6 +84,7 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 
 ```
 Node 22 ──► Mothership v0.39 (easier to upgrade PB on current LTS)
+Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
@@ -103,6 +105,7 @@ _Move completed items here with date + link to PR/release._
 ## How to use this file
 
 1. **Now** — max 1–3 items; move here only when someone is actively working.
-2. **Next** — ordered by intent, not promise; re-rank in planning chats.
+2. **Next** — sorted **dependencies → feasibility → end-user benefit**. Prefer low-hanging fruit and easy wins that ship incremental value. Re-rank when scope or blockers change.
 3. **Icebox** — ideas, spikes, "nice if"; no shame in deleting stale rows.
-4. Update when scope changes; don't duplicate MEMORY.md architecture detail.
+4. **Maintenance/refactors** — allowed; note the user outcome they unlock (see `.cursor/rules/todo-backlog.mdc`).
+5. Agents: capture new items in the same change set; don't duplicate MEMORY.md architecture detail.
