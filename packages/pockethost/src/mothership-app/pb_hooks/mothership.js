@@ -183,6 +183,129 @@ const HandleInstanceResolve = (c) => {
 };
 
 //#endregion
+//#region src/lib/firewall/subscription.ts
+/** Subscription plan ids stored on users — keep values in sync with common/schema/User.ts */
+let SubscriptionType = /* @__PURE__ */ function(SubscriptionType$1) {
+	SubscriptionType$1["Legacy"] = "legacy";
+	SubscriptionType$1["Free"] = "free";
+	SubscriptionType$1["Premium"] = "premium";
+	SubscriptionType$1["Founder"] = "founder";
+	SubscriptionType$1["Flounder"] = "flounder";
+	return SubscriptionType$1;
+}({});
+const isPaidSubscription = (subscription) => subscription === SubscriptionType.Premium || subscription === SubscriptionType.Founder || subscription === SubscriptionType.Flounder || subscription === SubscriptionType.Legacy;
+
+//#endregion
+//#region src/lib/firewall/ipAddress.ts
+/** Keep in sync with packages/pockethost/src/common/ipAddress.ts */
+const IPV4_REG = /^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/;
+const isIPv4 = (value) => IPV4_REG.test(value.trim());
+const isIPv6 = (value) => {
+	const trimmed = value.trim();
+	if (!trimmed.includes(":")) return false;
+	if (isIPv4(trimmed)) return false;
+	const normalized = trimmed.startsWith("[") && trimmed.endsWith("]") ? trimmed.slice(1, -1) : trimmed;
+	const zoneIdx = normalized.indexOf("%");
+	const host = zoneIdx >= 0 ? normalized.slice(0, zoneIdx) : normalized;
+	if (!/^[0-9a-fA-F:.]+$/.test(host)) return false;
+	const parts = host.split(":");
+	if (parts.length < 2 || parts.length > 8) return false;
+	if (parts.some((part) => part.length > 4)) return false;
+	if (host.includes("::")) return host.indexOf("::") === host.lastIndexOf("::");
+	return parts.length === 8;
+};
+
+//#endregion
+//#region src/lib/firewall/validateFirewallAccess.ts
+const TRUSTED_IPS_FREE_MAX = 5;
+const TRUSTED_IPS_PAID_MAX = 20;
+const PROXY_IPS_PAID_MAX = 3;
+const normalizeCidr = (entry) => {
+	const trimmed = entry.trim();
+	if (!trimmed) return null;
+	if (trimmed.includes("/")) {
+		const [ipPart, prefixPart] = trimmed.split("/");
+		if (!ipPart || prefixPart === void 0) return null;
+		const prefix = Number(prefixPart);
+		if (!Number.isInteger(prefix)) return null;
+		if (isIPv4(ipPart)) {
+			if (prefix < 0 || prefix > 32) return null;
+			return `${ipPart}/${prefix}`;
+		}
+		if (isIPv6(ipPart)) {
+			if (prefix < 0 || prefix > 128) return null;
+			return `${ipPart}/${prefix}`;
+		}
+		return null;
+	}
+	if (isIPv4(trimmed)) return `${trimmed}/32`;
+	if (isIPv6(trimmed)) return `${trimmed}/128`;
+	return null;
+};
+const parseTrustedIpEntries = (raw) => {
+	if (!raw) return [];
+	if (!Array.isArray(raw)) return [];
+	return raw.map((item) => {
+		if (typeof item === "string") {
+			const cidr = normalizeCidr(item);
+			return cidr ? { cidr } : null;
+		}
+		if (item && typeof item === "object" && typeof item.cidr === "string") {
+			const cidr = normalizeCidr(item.cidr);
+			if (!cidr) return null;
+			const label = item.label;
+			return {
+				cidr,
+				...label ? { label: String(label).trim() } : {}
+			};
+		}
+		return null;
+	}).filter((item) => item !== null);
+};
+const sanitizeTrustedIpEntries = (entries) => {
+	const seen = /* @__PURE__ */ new Set();
+	const result = [];
+	for (const entry of entries) {
+		const cidr = normalizeCidr(entry.cidr);
+		if (!cidr || seen.has(cidr)) continue;
+		seen.add(cidr);
+		result.push({
+			cidr,
+			...entry.label?.trim() ? { label: entry.label.trim() } : {}
+		});
+	}
+	return result;
+};
+const validateFirewallAccessFields = ({ trusted_ips, proxy_ips, subscription }) => {
+	const trusted = sanitizeTrustedIpEntries(parseTrustedIpEntries(trusted_ips));
+	const proxy = sanitizeTrustedIpEntries(parseTrustedIpEntries(proxy_ips));
+	const paid = isPaidSubscription(subscription);
+	const trustedMax = paid ? TRUSTED_IPS_PAID_MAX : TRUSTED_IPS_FREE_MAX;
+	if (trusted.length > trustedMax) return {
+		ok: false,
+		message: `Trusted IP limit is ${trustedMax} for your plan.`
+	};
+	if (proxy.length > 0 && !paid) return {
+		ok: false,
+		message: "SSR / proxy mode requires a Pro plan or higher."
+	};
+	if (proxy.length > PROXY_IPS_PAID_MAX) return {
+		ok: false,
+		message: `Proxy IP limit is ${PROXY_IPS_PAID_MAX}.`
+	};
+	const trustedSet = new Set(trusted.map((entry) => entry.cidr));
+	for (const entry of proxy) if (trustedSet.has(entry.cidr)) return {
+		ok: false,
+		message: `IP ${entry.cidr} cannot be both trusted and a proxy.`
+	};
+	return {
+		ok: true,
+		trusted_ips: trusted,
+		proxy_ips: proxy
+	};
+};
+
+//#endregion
 //#region ../../../../node_modules/.pnpm/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
 function keysOfNonArray(object) {
 	return object ? Object.getOwnPropertyNames(object) : [];
@@ -275,14 +398,16 @@ const HandleInstanceUpdate = (c) => {
 			webhooks: null,
 			syncAdmin: null,
 			dev: null,
-			cname: null
+			cname: null,
+			trusted_ips: null,
+			proxy_ips: null
 		}
 	});
 	c.bind(data);
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const id = c.pathParam("id");
-	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname } } = data;
+	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname, trusted_ips, proxy_ips } } = data;
 	log(`vars`, JSON.stringify({
 		id,
 		subdomain,
@@ -292,7 +417,9 @@ const HandleInstanceUpdate = (c) => {
 		webhooks,
 		syncAdmin,
 		dev,
-		cname
+		cname,
+		trusted_ips,
+		proxy_ips
 	}));
 	const record = dao.findRecordById("instances", id);
 	const authRecord = c.get("authRecord");
@@ -307,6 +434,19 @@ const HandleInstanceUpdate = (c) => {
 		const createResponse = createCloudflareCustomHostname(newCname, log);
 		if (createResponse) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
 	}
+	let nextTrustedIps;
+	let nextProxyIps;
+	if (trusted_ips !== null || proxy_ips !== null) {
+		const subscription = authRecord.get("subscription") || SubscriptionType.Free;
+		const validation = validateFirewallAccessFields({
+			trusted_ips: trusted_ips !== null ? trusted_ips : record.get("trusted_ips"),
+			proxy_ips: proxy_ips !== null ? proxy_ips : record.get("proxy_ips"),
+			subscription
+		});
+		if (!validation.ok) throw new BadRequestError(validation.message);
+		nextTrustedIps = validation.trusted_ips;
+		nextProxyIps = validation.proxy_ips;
+	}
 	const sanitized = removeEmptyKeys({
 		subdomain,
 		version,
@@ -315,7 +455,9 @@ const HandleInstanceUpdate = (c) => {
 		webhooks,
 		syncAdmin,
 		dev,
-		cname
+		cname,
+		...nextTrustedIps !== void 0 ? { trusted_ips: nextTrustedIps } : {},
+		...nextProxyIps !== void 0 ? { proxy_ips: nextProxyIps } : {}
 	});
 	const form = new RecordUpsertForm($app, record);
 	form.loadData(sanitized);

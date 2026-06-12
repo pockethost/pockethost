@@ -1,5 +1,12 @@
-import { type InstanceWebhookCollection } from '$common'
+import { SubscriptionType } from '$lib/firewall/subscription'
+import { validateFirewallAccessFields, type TrustedIpEntry } from '$lib/firewall/validateFirewallAccess'
 import { mkLog, StringKvLookup } from '$util/Logger'
+
+type InstanceWebhookCollection = Array<{
+  endpoint: string
+  value: string
+  lastFired?: unknown
+}>
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
 
 // Helper function to make Cloudflare API calls
@@ -75,6 +82,8 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin: null,
       dev: null,
       cname: null,
+      trusted_ips: null,
+      proxy_ips: null,
     },
   }) as {
     id: string
@@ -87,6 +96,8 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin: boolean | null
       dev: boolean | null
       cname: string | null
+      trusted_ips: unknown
+      proxy_ips: unknown
     }
   }
 
@@ -98,7 +109,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
 
   const id = c.pathParam('id')
   const {
-    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname },
+    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname, trusted_ips, proxy_ips },
   } = data
 
   log(
@@ -113,6 +124,8 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       syncAdmin,
       dev,
       cname,
+      trusted_ips,
+      proxy_ips,
     })
   )
 
@@ -142,6 +155,25 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     }
   }
 
+  let nextTrustedIps: TrustedIpEntry[] | undefined
+  let nextProxyIps: TrustedIpEntry[] | undefined
+
+  if (trusted_ips !== null || proxy_ips !== null) {
+    const subscription = (authRecord.get('subscription') as SubscriptionType) || SubscriptionType.Free
+    const validation = validateFirewallAccessFields({
+      trusted_ips: trusted_ips !== null ? trusted_ips : record.get('trusted_ips'),
+      proxy_ips: proxy_ips !== null ? proxy_ips : record.get('proxy_ips'),
+      subscription,
+    })
+
+    if (!validation.ok) {
+      throw new BadRequestError(validation.message)
+    }
+
+    nextTrustedIps = validation.trusted_ips
+    nextProxyIps = validation.proxy_ips
+  }
+
   const sanitized = removeEmptyKeys({
     subdomain,
     version,
@@ -151,6 +183,8 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     syncAdmin,
     dev,
     cname,
+    ...(nextTrustedIps !== undefined ? { trusted_ips: nextTrustedIps } : {}),
+    ...(nextProxyIps !== undefined ? { proxy_ips: nextProxyIps } : {}),
   })
 
   const form = new RecordUpsertForm($app, record)

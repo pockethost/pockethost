@@ -9,7 +9,7 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "$common": ["../common/index.ts"],
+      "$lib/*": ["src/lib/*"],
       "$util/*": ["src/lib/util/*"]
     }
   },
