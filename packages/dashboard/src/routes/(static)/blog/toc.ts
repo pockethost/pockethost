@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Dashboard UI: Web Awesome Migration',
+    path: '/blog/web-awesome-migration',
+  },
+  {
     title: 'Direct PocketBase Version Sync',
     path: '/blog/pocketbase-version-sync',
   },

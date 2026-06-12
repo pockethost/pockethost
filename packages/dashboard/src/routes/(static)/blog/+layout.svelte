@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import { toc } from './toc'
+  import { cloudLogo } from '$lib/brand'
 
   $: isIndexPage = $page.url.pathname === '/blog'
   $: blogPath = $page.url.pathname.includes('/blog/') ? $page.url.pathname : ''
@@ -27,7 +28,7 @@
 
     <div class="w-full mx-auto px-4 h-24 md:h-32 flex items-center justify-center relative mb-8">
       <img
-        src="/pockethost-cloud-logo.png"
+        src={cloudLogo}
         class="w-full blur-xl h-full scale-y-[2.5] object-fill absolute top-0 left-0 z-0"
         alt=""
       />
