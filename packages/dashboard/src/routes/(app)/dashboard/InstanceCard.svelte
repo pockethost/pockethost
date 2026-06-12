@@ -3,6 +3,7 @@
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
+  import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { isInstanceShuttingDown } from '$util/instancePower'
   import type { InstanceFields } from 'pockethost/common'
 
@@ -59,6 +60,7 @@
         <p class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30">
           <span>v{instance.version}</span>
         </p>
+        <InstanceRuntimeBadge {instance} />
       </div>
     </div>
 

@@ -8,6 +8,7 @@
   import { client } from '$src/pocketbase-client'
   import { type InstanceId } from 'pockethost/common'
   import Toggle from './Toggle.svelte'
+  import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import { onMount } from 'svelte'
@@ -75,6 +76,7 @@
           >
             v{$instance.version}
           </a>
+          <InstanceRuntimeBadge instance={$instance} />
           {#if $instance.dev}
             <a
               href={`/instances/${$instance.id}/dev`}
@@ -117,8 +119,9 @@
           <wa-icon name="bars"></wa-icon>
         </button>
 
-        <h2 class="text-lg font-bold text-white truncate min-w-0">
-          {$instance.subdomain}
+        <h2 class="text-lg font-bold text-white min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span class="truncate">{$instance.subdomain}</span>
+          <InstanceRuntimeBadge instance={$instance} />
           {#if $instance.dev}
             <a
               href={`/instances/${$instance.id}/dev`}
