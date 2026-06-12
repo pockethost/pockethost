@@ -2,6 +2,7 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/instance-power-status': 'Jun 12, 2026',
     '/blog/web-awesome-migration': 'Jun 12, 2026',
     '/blog/pocketbase-version-sync': 'Jun 12, 2026',
     '/blog/pockethost-2-3-0-release': 'Jul 22, 2025',
@@ -16,6 +17,8 @@
   }
 
   const postDescriptions: Record<string, string> = {
+    '/blog/instance-power-status':
+      'Power off now stops your container for real. The dashboard shows Running vs Sleeping, and destructive actions wait for shutdown.',
     '/blog/web-awesome-migration':
       'The dashboard now runs on Web Awesome — cleaner components, readable docs, and a simpler frontend stack.',
     '/blog/pocketbase-version-sync':

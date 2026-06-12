@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Running, Sleeping, and Power Off',
+    path: '/blog/instance-power-status',
+  },
+  {
     title: 'Dashboard UI: Web Awesome Migration',
     path: '/blog/web-awesome-migration',
   },
