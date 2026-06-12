@@ -16,11 +16,22 @@ _Sorted deps → feasibility → user benefit (top = suggest first). Re-rank whe
 
 ### Platform & runtime
 
+#### Mothership ↔ edge decoupling
+
+_Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothership = metadata + auth + billing; edge = containers, volumes, runtime status._
+
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. |
+| **Power off stops edge container** | Low | S–M | Branch `instance-shutdown`. Today `power=false` only blocks new proxy requests (`InstanceService` power check); the Docker container keeps running until idle TTL. Merge branch: mirror listener → kill container on power transition; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `power+status` shutting-down UX (`instancePower.ts`). Power button matches docs; delete/version gates trustworthy. |
+| **Edge-owned instance delete** | Med | M | Branch `feat/remote-delete` (WIP stub). `HandleInstanceDelete` calls `$os.removeAll($DATA_ROOT/$id)` in mothership PB — wrong layer: path omits `volume`, mothership Docker has no instance-data bind (`mothership.ts` only mounts `pb_*`). Finish edge `DELETE /_api/instance/:id`: stop container, remove `DATA_ROOT/{volume}/{id}`, return ack; mothership deletes PB record only after edge success (or edge reacts to mirror delete). Remove instance FS ops + `DATA_ROOT` from mothership handlers. |
+| **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
+| **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
+
+| Item | Risk | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Blocked by mothership↔edge decoupling above** (especially delete + status + power off). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
-| **Decouple mothership** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Customers get faster mothership fixes without redeploying the whole stack. |
+| **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **mothership↔edge decoupling** (no instance FS/runtime in handlers). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
 
 ### Billing & pricing
@@ -55,8 +66,8 @@ _Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — das
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Dashboard realtime reconnect resync** | Low | S–M | SSE delivers deltas only — missed events while disconnected leave stale UI (e.g. email verify hang). On PB SDK `PB_CONNECT` (+ optional tab visibility), `resyncAppState`: `authRefresh`, refetch instances, stats; expose `onAppResync` for route stores. Remove 1s verify poll in `PocketbaseClient.ts`; consolidate with `stores.ts` subscribe logic. |
-| **CI quality gates (hosting stack)** | Low | M | Add `ci.yaml`: root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`. Today only `publish-dashboard.yaml` runs (build, no typecheck). Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
-| **Targeted unit tests** | Low | M | Zero tests in repo today. Start with semver resolution (`maxSatisfyingVersion`), instance-app version bucketing (`v22`/`v23` in `InstanceService`), firewall rate-limiter rules. Depends on CI gates. |
+| **CI quality gates (hosting stack)** | Low | M | Extend `ci.yaml` (today: mothership-hooks freshness only): root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`, `pnpm test` once suite exists. `publish-dashboard.yaml` still build-only. Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
+| **Test suite bootstrap** | Low | M | **Zero automated tests** — no `*.test.ts`, no test runner, no CI test job. Code review gap: version selection, instance spawn bucketing, and firewall rules are untested pure logic. Add Vitest (root or `packages/pockethost`), `pnpm test`, first cases: `maxSatisfyingVersion`, `InstanceService` v22/v23 bucketing, `rate-limiter.ts`. Wire into CI gates. Catches regressions before they hit hosted instances. |
 | **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
 
 ---
@@ -87,13 +98,29 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 - Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, stats (`total_flounder_subscribers`).
 - **Must:** grandfather email + grace period before tier removal.
 
+### Mothership ↔ edge coupling (today)
+
+| Coupling | Where | Problem |
+| -------- | ----- | ------- |
+| Instance delete FS | `HandleInstanceDelete` | Mothership `$os.removeAll` on wrong host/path; edge owns `DATA_ROOT/{volume}/{id}` |
+| Power off | `HandleInstanceUpdate` + `InstanceService` | DB flag only; container may still run until idle TTL |
+| Runtime status | `HandleInstancesResetIdle` vs edge daemon | Mothership resets all `status=idle` on boot; edge stops containers without syncing status |
+| Request policy | `HandleInstanceResolve` vs `InstanceService` | Duplicate gating logic; resolve unused in repo |
+| Branches | `instance-shutdown`, `feat/remote-delete` | Power-off + remote delete partially implemented, not merged |
+
 ### Dependencies between items
 
 ```
+Power off stops container ──► delete / version-change UX (fully-off gate)
+Edge-owned delete ──► mothership port (no instance DATA_ROOT in PB hooks)
+Runtime status on edge ──► trustworthy idle precondition for delete
+Mothership↔edge decoupling ──► v0.39 migration
+Mothership↔edge decoupling ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
-CI gates ──► targeted unit tests
+CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
+Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
