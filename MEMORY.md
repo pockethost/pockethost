@@ -69,7 +69,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - Bootstrap: `src/lib/webawesome.ts` imported from root `+layout.svelte`
 - Theme: `wa-dark wa-theme-default` on `<html>`; brand green via `--wa-color-brand: #1eb854`
 - Layout: solid `#111111` background (BlurBg removed); content caps `max-w-content` / `max-w-prose` / `max-w-form`
-- Images: plain `<img>` + Vite imports (no `@sveltejs/enhanced-img`); co-located doc/blog assets synced to `static/` via `scripts/sync-route-images.js` on `dev`/`build`
+- Images: plain `<img>` + Vite imports (no `@sveltejs/enhanced-img`); co-located doc/blog assets synced to `static/generated/` via `scripts/sync-route-images.js` on `dev`/`build` (gitignored; markdown refs use `/generated/...`)
 - App routes: `packages/dashboard/src/routes/`
 - User docs: `(static)/docs/**` as `+page.md`
 - Blog: `(static)/blog/**`

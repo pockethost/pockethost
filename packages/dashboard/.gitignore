@@ -6,7 +6,5 @@ node_modules
 dist-server
 .idea
 
-# Route-colocated images mirrored from src/routes (see scripts/sync-route-images.js)
-/static/blog/
-/static/docs/
-/static/pricing/
+# Route-colocated images mirrored to static/generated/ (see scripts/sync-route-images.js)
+/static/generated/

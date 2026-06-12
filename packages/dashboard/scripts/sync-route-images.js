@@ -1,10 +1,10 @@
-import { copyFileSync, mkdirSync, readdirSync, statSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const routesRoot = path.join(packageRoot, 'src/routes')
-const staticRoot = path.join(packageRoot, 'static')
+const staticRoot = path.join(packageRoot, 'static', 'generated')
 const extensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'])
 
 function walkImages(dir, out = []) {
@@ -18,6 +18,8 @@ function walkImages(dir, out = []) {
   }
   return out
 }
+
+if (existsSync(staticRoot)) rmSync(staticRoot, { recursive: true, force: true })
 
 const files = walkImages(routesRoot)
 let copied = 0
@@ -48,4 +50,4 @@ for (const file of files) {
   }
 }
 
-console.log(`Synced ${files.length} route images (${copied} static files)`)
+console.log(`Synced ${files.length} route images (${copied} files → static/generated/)`)

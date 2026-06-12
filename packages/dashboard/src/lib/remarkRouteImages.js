@@ -16,7 +16,7 @@ function routeUrlBase(filePath) {
   )
 }
 
-/** Rewrite co-located markdown images to absolute route paths for static deploy. */
+/** Rewrite co-located markdown images to /generated/... for static deploy. */
 export function remarkRouteImages() {
   return (tree, file) => {
     const filePath = file.path || file.history?.[0]
@@ -26,7 +26,7 @@ export function remarkRouteImages() {
     visit(tree, 'image', (node) => {
       const url = node.url
       if (!url || url.startsWith('http') || url.startsWith('/')) return
-      node.url = `${urlBase}/${url.replace(/^\.\//, '')}`
+      node.url = `/generated${urlBase}/${url.replace(/^\.\//, '')}`
     })
   }
 }
@@ -42,7 +42,7 @@ export function rehypeRouteImages() {
       if (node.tagName !== 'img') return
       const src = node.properties?.src
       if (typeof src !== 'string' || src.startsWith('http') || src.startsWith('/')) return
-      node.properties.src = `${urlBase}/${src.replace(/^\.\//, '')}`
+      node.properties.src = `/generated${urlBase}/${src.replace(/^\.\//, '')}`
     })
   }
 }
