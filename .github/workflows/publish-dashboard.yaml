@@ -5,15 +5,15 @@ on:
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
-      - package.json
-      - pnpm-lock.yaml
+      - packages/pockethost/package.json
+      - packages/pockethost/src/common/**
   pull_request_target:
     types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
-      - package.json
-      - pnpm-lock.yaml
+      - packages/pockethost/package.json
+      - packages/pockethost/src/common/**
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
