@@ -14,7 +14,7 @@ _Active or imminently starting. Keep this section small._
 
 | Item | Notes |
 | ---- | ----- |
-| —    | _Nothing pinned yet — pick from Next._ |
+| —    | _Nothing pinned — pick from Next._ |
 
 ---
 
@@ -54,7 +54,7 @@ _Committed direction; sorted deps → feasibility → user benefit (top = do fir
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Cursor skills — PocketPages** | Low | S | Add `skills.md` for PocketPages (pockethost / PB JSVM / JS SDK skills already exist under `.cursor/skills/`). |
+| **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
 
 ### Codebase health & CI
 
@@ -62,11 +62,10 @@ _Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — das
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Dashboard realtime reconnect resync** | Low | S–M | SSE delivers deltas only — missed events while disconnected leave stale UI (e.g. email verify hang). On PB SDK `PB_CONNECT` (+ optional tab visibility), `resyncAppState`: `authRefresh`, refetch instances, stats; expose `onAppResync` for route stores. Remove 1s verify poll in `PocketbaseClient.ts`; consolidate with `stores.ts` subscribe logic. |
 | **CI quality gates (hosting stack)** | Low | M | Add `ci.yaml`: root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`. Today only `publish-dashboard.yaml` runs (build, no typecheck). Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
-| **Mothership build hygiene** | Low | S | Stop treating checked-in `pb_hooks/mothership.js` (~3k lines) as source of truth; wire `tsdown --watch` into dev; optional `git diff --exit-code` after build in CI. Prevents stale handler bundles reaching prod. |
 | **Targeted unit tests** | Low | M | Zero tests in repo today. Start with semver resolution (`maxSatisfyingVersion`), instance-app version bucketing (`v22`/`v23` in `InstanceService`), firewall rate-limiter rules. Depends on CI gates. |
 | **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
-| **Dashboard auth realtime** | Low | S | `PocketbaseClient.ts` still polls for email verification (subscribe TODO from v0.8 era). Replace polling with PB realtime when SDK/route supports it — snappier signup UX. |
 
 ---
 
@@ -80,6 +79,7 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
 | **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in Next — keep here only if VPN-forward design stalls. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
+| **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
 
 ---
 
@@ -87,7 +87,7 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 
 ### Node 22 vs Bun
 
-- **Node 22:** incremental, low risk, addresses LTS drift. Do in Next, not Icebox.
+- **Node 22:** shipped 2026-06-12 (see Done).
 - **Bun:** real DX wins (native TS, faster installs) but production risk on dockerode, patched `tail`, PM2. Keep in Icebox until `bun-experimental` is rebased and edge nodes soak-tested.
 
 ### Pricing migration (Flounder)
@@ -100,11 +100,15 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 ```
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
-CI gates ──► targeted unit tests + mothership build freshness check
+Mothership build hygiene ──► CI gates (fresh handler bundle check)
+CI gates ──► targeted unit tests
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
+Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → pockethost/pocketpages overlays)
+Ecosystem agent skills ──► agent skills npm + Cursor plugin (Icebox)
+Realtime reconnect resync ──► removes verify polling; fixes stale instances/auth after SSE gap
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
 ```
@@ -118,6 +122,7 @@ _Move completed items here with date + link to PR/release._
 | Date | Item |
 | ---- | ---- |
 | 2026-06-12 | **Node 22 upgrade** — `.nvmrc` (`lts/jod`), dashboard CI 22.x, instance Dockerfile, tsdown `node22`, root `engines.node >=22`; `benallfree/pockethost-instance:latest` rebuilt+pushed (Node v22.22.3) |
+| 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
 
 ---
 
