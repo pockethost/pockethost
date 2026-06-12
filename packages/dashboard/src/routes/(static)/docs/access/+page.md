@@ -42,8 +42,8 @@ Trusted IPs receive a **5× higher per-IP quota** by default (600/min burst, 5,0
 
 | Plan | Trusted IPs per instance |
 |------|--------------------------|
-| Free | 5 |
-| Pro, Founder, Flounder, Legacy | 20 |
+| Pro, Legacy | 5 |
+| Founder, Flounder | 20 |
 
 ### Adding an entry
 
@@ -93,7 +93,7 @@ If you can avoid server-side PocketHost calls:
 | **Problem** | Many users, one shared egress IP | Server proxies; all traffic looks like one IP |
 | **Fix** | Boost that IP's per-IP quota 5× | Read `X-PocketHost-Client-IP` for per-user limits |
 | **Plans** | All plans | Pro+ |
-| **Max entries** | 5 (Free) / 20 (paid) | 3 |
+| **Max entries** | 5 (Pro/Legacy) / 20 (Founder/Flounder) | 3 |
 
 You can use both on one instance (e.g. trust office WiFi **and** register a Vercel egress IP as a proxy).
 

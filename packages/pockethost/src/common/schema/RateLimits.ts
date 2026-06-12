@@ -47,17 +47,25 @@ export const DEFAULT_RATE_LIMIT_PROFILE: RateLimitProfile = {
   ipBoostMultiplier: 5,
 }
 
-export const TRUSTED_IPS_FREE_MAX = 5
-export const TRUSTED_IPS_PAID_MAX = 20
+export const TRUSTED_IPS_PRO_LEGACY_MAX = 5
+export const TRUSTED_IPS_FOUNDER_FLOUNDER_MAX = 20
 export const PROXY_IPS_PAID_MAX = 3
 
 export type IpLimitMode = 'default' | 'boost' | 'proxy' | 'cf-image'
 
+export const isFounderFlounderSubscription = (subscription: SubscriptionType): boolean =>
+  subscription === SubscriptionType.Founder || subscription === SubscriptionType.Flounder
+
+export const isProLegacySubscription = (subscription: SubscriptionType): boolean =>
+  subscription === SubscriptionType.Premium || subscription === SubscriptionType.Legacy
+
 export const isPaidSubscription = (subscription: SubscriptionType): boolean =>
-  subscription === SubscriptionType.Premium ||
-  subscription === SubscriptionType.Founder ||
-  subscription === SubscriptionType.Flounder ||
-  subscription === SubscriptionType.Legacy
+  isProLegacySubscription(subscription) || isFounderFlounderSubscription(subscription)
+
+export const getTrustedIpsMax = (subscription: SubscriptionType): number =>
+  isFounderFlounderSubscription(subscription)
+    ? TRUSTED_IPS_FOUNDER_FLOUNDER_MAX
+    : TRUSTED_IPS_PRO_LEGACY_MAX
 
 export const mergeRateLimitPartial = (
   base: RateLimitProfile,
@@ -169,7 +177,7 @@ export const validateFirewallAccessFields = ({
   const trusted = sanitizeTrustedIpEntries(parseTrustedIpEntries(trusted_ips))
   const proxy = sanitizeTrustedIpEntries(parseTrustedIpEntries(proxy_ips))
   const paid = isPaidSubscription(subscription)
-  const trustedMax = paid ? TRUSTED_IPS_PAID_MAX : TRUSTED_IPS_FREE_MAX
+  const trustedMax = getTrustedIpsMax(subscription)
 
   if (trusted.length > trustedMax) {
     return { ok: false, message: `Trusted IP limit is ${trustedMax} for your plan.` }

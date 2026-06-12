@@ -193,7 +193,12 @@ let SubscriptionType = /* @__PURE__ */ function(SubscriptionType$1) {
 	SubscriptionType$1["Flounder"] = "flounder";
 	return SubscriptionType$1;
 }({});
-const isPaidSubscription = (subscription) => subscription === SubscriptionType.Premium || subscription === SubscriptionType.Founder || subscription === SubscriptionType.Flounder || subscription === SubscriptionType.Legacy;
+const TRUSTED_IPS_PRO_LEGACY_MAX = 5;
+const TRUSTED_IPS_FOUNDER_FLOUNDER_MAX = 20;
+const isFounderFlounderSubscription = (subscription) => subscription === SubscriptionType.Founder || subscription === SubscriptionType.Flounder;
+const isProLegacySubscription = (subscription) => subscription === SubscriptionType.Premium || subscription === SubscriptionType.Legacy;
+const isPaidSubscription = (subscription) => isProLegacySubscription(subscription) || isFounderFlounderSubscription(subscription);
+const getTrustedIpsMax = (subscription) => isFounderFlounderSubscription(subscription) ? TRUSTED_IPS_FOUNDER_FLOUNDER_MAX : TRUSTED_IPS_PRO_LEGACY_MAX;
 
 //#endregion
 //#region src/lib/firewall/ipAddress.ts
@@ -217,8 +222,6 @@ const isIPv6 = (value) => {
 
 //#endregion
 //#region src/lib/firewall/validateFirewallAccess.ts
-const TRUSTED_IPS_FREE_MAX = 5;
-const TRUSTED_IPS_PAID_MAX = 20;
 const PROXY_IPS_PAID_MAX = 3;
 const normalizeCidr = (entry) => {
 	const trimmed = entry.trim();
@@ -280,7 +283,7 @@ const validateFirewallAccessFields = ({ trusted_ips, proxy_ips, subscription }) 
 	const trusted = sanitizeTrustedIpEntries(parseTrustedIpEntries(trusted_ips));
 	const proxy = sanitizeTrustedIpEntries(parseTrustedIpEntries(proxy_ips));
 	const paid = isPaidSubscription(subscription);
-	const trustedMax = paid ? TRUSTED_IPS_PAID_MAX : TRUSTED_IPS_FREE_MAX;
+	const trustedMax = getTrustedIpsMax(subscription);
 	if (trusted.length > trustedMax) return {
 		ok: false,
 		message: `Trusted IP limit is ${trustedMax} for your plan.`

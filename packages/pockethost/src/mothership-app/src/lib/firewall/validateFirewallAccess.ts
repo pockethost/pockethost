@@ -1,13 +1,12 @@
 import { isIPv4, isIPv6 } from './ipAddress'
-import { isPaidSubscription, SubscriptionType } from './subscription'
+import { getTrustedIpsMax, isPaidSubscription, SubscriptionType } from './subscription'
 
 export type TrustedIpEntry = {
   cidr: string
   label?: string
 }
 
-export const TRUSTED_IPS_FREE_MAX = 5
-export const TRUSTED_IPS_PAID_MAX = 20
+export { TRUSTED_IPS_FOUNDER_FLOUNDER_MAX, TRUSTED_IPS_PRO_LEGACY_MAX } from './subscription'
 export const PROXY_IPS_PAID_MAX = 3
 
 export const normalizeCidr = (entry: string): string | null => {
@@ -88,7 +87,7 @@ export const validateFirewallAccessFields = ({
   const trusted = sanitizeTrustedIpEntries(parseTrustedIpEntries(trusted_ips))
   const proxy = sanitizeTrustedIpEntries(parseTrustedIpEntries(proxy_ips))
   const paid = isPaidSubscription(subscription)
-  const trustedMax = paid ? TRUSTED_IPS_PAID_MAX : TRUSTED_IPS_FREE_MAX
+  const trustedMax = getTrustedIpsMax(subscription)
 
   if (trusted.length > trustedMax) {
     return { ok: false, message: `Trusted IP limit is ${trustedMax} for your plan.` }

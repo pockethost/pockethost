@@ -2,12 +2,11 @@
   import {
     DEFAULT_RATE_LIMIT_PROFILE,
     getEffectiveIpLimits,
+    getTrustedIpsMax,
     parseTrustedIpEntries,
-    TRUSTED_IPS_FREE_MAX,
-    TRUSTED_IPS_PAID_MAX,
   } from 'pockethost/common'
   import { INSTANCE_ADMIN_LOGS_URL } from '$src/env'
-  import { isUserPaid } from '$util/stores'
+  import { userSubscriptionType } from '$util/stores'
   import { instance } from '../store'
   import TrustedIpForm from './TrustedIpForm.svelte'
   import TrustedIpList from './TrustedIpList.svelte'
@@ -19,8 +18,7 @@
     proxyItems.setAll(parseTrustedIpEntries($instance.proxy_ips))
   }
 
-  $: paid = $isUserPaid
-  $: trustedMax = paid ? TRUSTED_IPS_PAID_MAX : TRUSTED_IPS_FREE_MAX
+  $: trustedMax = getTrustedIpsMax($userSubscriptionType)
   $: boosted = getEffectiveIpLimits(DEFAULT_RATE_LIMIT_PROFILE, 'boost')
   $: defaultIp = getEffectiveIpLimits(DEFAULT_RATE_LIMIT_PROFILE, 'default')
   $: adminLogsUrl = INSTANCE_ADMIN_LOGS_URL($instance)
