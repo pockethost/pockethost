@@ -24,15 +24,14 @@ If you're still interested in creating a PocketHost hosting environment for your
 ```
 apt-get update
 apt-get install -y nginx nodejs npm
-npm i -g n pnpm
-n lts
+curl -fsSL https://bun.sh/install | bash
 hash -r
 git clone git@github.com:benallfree/pockethost.git pockethost-latest
 cd pockethost-latest
-pnpm
+bun install
 cd ..
 git clone git@github.com:benallfree/pockethost.git pockethost-lts
 cd pockethost-lts
-pnpm
+bun install
 cd ..
 ```

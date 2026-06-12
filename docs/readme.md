@@ -7,10 +7,10 @@ PocketHost is designed to run full stack on your local development machine.
 ```bash
 git clone git@github.com:benallfree/pockethost.git
 cd pockethost
-pnpm
-pnpm dev:lander # Marketing site only, talks to pockethost.io
-pnpm dev:dashboard # Dashboard site only, talks to pockethost.io
-pnpm dev # Everything, talks to pockethost.lvh.me
+bun install
+bun dev:lander # Marketing site only, talks to pockethost.io
+bun dev:dashboard # Dashboard site only, talks to pockethost.io
+bun dev # Everything, talks to pockethost.lvh.me
 ```
 
 ## Just the Frontend
@@ -24,7 +24,7 @@ If you're only doing frontend development, it is much easier to point these at t
 
 ## All Our Base
 
-You can run the complete PocketHost stack locally. A simple `pnpm dev` will fire up:
+You can run the complete PocketHost stack locally. A simple `bun dev` will fire up:
 
 - `https://pockethost.lvh.me` - Marketing/blog
 - `https://app.pockethost.lvh.me` - Dashboard (app)

@@ -28,7 +28,7 @@ Update MEMORY.md in the **same commit/PR** when you change anything in the table
 | Settings / env | `PH_*`, `MOTHERSHIP_*`, `APEX_DOMAIN`, `constants.ts` / `createSettings()` |
 | Dashboard | SvelteKit routes, docs under `packages/dashboard/src/routes`, Wrangler deploy |
 | PocketBase versions | `PH_ALLOWED_POCKETBASE_SEMVER`, `versions.cjs`, `update-versions` flow |
-| Dev contract | `pnpm dev:cli`, `pnpm dev:dashboard`, `.env`, `PH_HOME`, `setup.sh` |
+| Dev contract | `bun dev:cli`, `bun dev:dashboard`, `.env`, `PH_HOME`, `setup.sh` |
 | Greenfield breaks | Removed APIs, renamed paths, invalidated caches |
 
 ## Style

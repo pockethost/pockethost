@@ -6,12 +6,12 @@ alwaysApply: true
 
 PocketHost is a **multi-tenant PocketBase hosting platform** (monorepo). Core pieces:
 
-- **`packages/pockethost`** — Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
+- **`packages/pockethost`** — Bun CLI and services (mothership, edge daemon, firewall, instance lifecycle)
 - **`packages/dashboard`** — SvelteKit marketing site and user docs
 - **`packages/pockethost-instance`** — Docker image for per-instance PocketBase containers
 - **`mothership-app`** — PocketBase control-plane app (hooks, migrations, handler APIs)
 
-Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, pnpm workspaces.
+Stack: TypeScript (ESM), Bun runtime, Commander CLI, Express, Docker, PocketBase JS client, Bun workspaces.
 
 Read [MEMORY.md](MEMORY.md) before substantive architectural work.
 
@@ -35,4 +35,4 @@ Avoid side-effectful or long-running operations unless the user explicitly asks:
 - **Do not** start hosting services (`mothership`, `firewall`, `edge:daemon`, `serve`) — they spawn Docker instances and bind ports.
 - **Do not** run full production builds (`dashboard` vite build, Docker image build/push) or deploy (`wrangler pages deploy`).
 - **Do not** run `tsc` / `svelte-check` unless the user asks — use targeted reads and local reasoning instead.
-- **OK**: `pnpm lint` / Prettier, read-only git commands, file edits, one-off non-server scripts.
+- **OK**: `bun lint` / Prettier, read-only git commands, file edits, one-off non-server scripts.

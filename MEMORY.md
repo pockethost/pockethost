@@ -6,16 +6,16 @@ Living architecture reference for agents. Current state only; update in the same
 
 | Package | Path | Role |
 |---------|------|------|
-| CLI + services | `packages/pockethost` | Node hosting stack: CLI, mothership, edge, firewall |
+| CLI + services | `packages/pockethost` | Bun hosting stack: CLI, mothership, edge, firewall |
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
 
-Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
+Workspace: Bun workspaces in root `package.json` — `packages/*` plus `mothership-app`.
 
 ## CLI (`pockethost`)
 
-Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env settings in `cli/ioc.ts`.
+Entry: `packages/pockethost/src/cli/index.ts` (`#!/usr/bin/env bun`). IOC bootstraps logger + env settings in `cli/ioc.ts`.
 
 | Command | Purpose |
 |---------|---------|
@@ -25,9 +25,9 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 | `serve` | Local/dev serve helper |
 | `pocketbase` | PocketBase binary download / version management |
 | `health` | Health checks |
-| `mail` | Outbound mail helper |
+| `mail` | Outbound mail helper (`sendmail` reads mothership SQLite via `bun:sqlite`) |
 
-Root scripts: `pnpm dev:cli`, `pnpm dev:dashboard`, `pnpm prod:cli`.
+Root scripts: `bun dev:cli`, `bun dev:dashboard`, `bun prod:cli`.
 
 ## Runtime topology
 
@@ -63,7 +63,7 @@ Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 
 ## Dashboard
 
-SvelteKit + Vite + Tailwind/DaisyUI. Static adapter; deploy via Wrangler Pages (`pnpm deploy` in package).
+SvelteKit + Vite + Tailwind/DaisyUI. Static adapter; deploy via Wrangler Pages (`bun deploy` in package).
 
 - App routes: `packages/dashboard/src/routes/`
 - User docs: `(static)/docs/**` as `+page.md`
@@ -76,19 +76,19 @@ Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Version list maint
 ## Dev workflow
 
 ```bash
-pnpm install          # root
+bun install           # root
 cp .env-template .env # if present; configure PH_HOME, apex domain, mothership creds
-pnpm dev:cli          # CLI in development
-pnpm dev:dashboard    # dashboard dev server
+bun dev:cli           # CLI in development
+bun dev:dashboard     # dashboard dev server
 ```
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 
 ## Production / PM2
 
-Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`pnpm prod:cli …` per app). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
+Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`bun run prod:cli …` per app). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
 
-`setup.sh` installs and configures `pm2-logrotate` after global `pm2`:
+`setup.sh` installs Bun for the `pockethost` user, clones the repo to `~/pockethost`, runs `bun install`, and installs global `pm2` via `bun install -g pm2`. It then configures `pm2-logrotate`:
 
 | Setting | Value |
 |---------|-------|
