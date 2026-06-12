@@ -1,0 +1,34 @@
+---
+description: Simple prose without em-dashes or semicolons
+alwaysApply: true
+---
+
+# Prose style
+
+Write in plain, simple sentences. Avoid punctuation that packs multiple ideas into one line.
+
+## Do
+
+- Use short sentences. One idea per sentence when possible.
+- Split compound thoughts with periods, commas, or bullet lists.
+- Use "and", "but", or "so" to connect related ideas when a single sentence still reads clearly.
+
+## Don't
+
+- **Em-dashes (—)**. Rephrase or use a period instead.
+- **Semicolons**. Use two sentences, or rewrite with "and" / a comma where it stays grammatical.
+
+## Examples
+
+```markdown
+❌ The firewall blocks the IP — rate limits still apply for other clients.
+✅ The firewall blocks the IP. Rate limits still apply for other clients.
+
+❌ Update the schema; restart mothership to pick up the migration.
+✅ Update the schema. Restart mothership to pick up the migration.
+
+❌ This works for IPv4; IPv6 needs a separate check.
+✅ This works for IPv4. IPv6 needs a separate check.
+```
+
+Applies to chat replies, commit messages, PR text, and user-facing docs unless code or identifiers require exact punctuation.
