@@ -23,7 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | ~~**Power off stops edge container**~~ | — | — | **Done 2026-06-12** — mirror listener shuts down container on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard shutting-down UX (`instancePower.ts`). |
-| **Edge-owned instance delete** | Med | M | Branch `feat/remote-delete` (WIP stub). `HandleInstanceDelete` calls `$os.removeAll($DATA_ROOT/$id)` in mothership PB — wrong layer: path omits `volume`, mothership Docker has no instance-data bind (`mothership.ts` only mounts `pb_*`). Finish edge `DELETE /_api/instance/:id`: stop container, remove `DATA_ROOT/{volume}/{id}`, return ack; mothership deletes PB record only after edge success (or edge reacts to mirror delete). Remove instance FS ops + `DATA_ROOT` from mothership handlers. |
+| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). Edge `OrphanInstanceDataService`: every `PH_ORPHAN_DATA_CLEANUP_INTERVAL_MS` (24h default), rimraf `DATA_ROOT` dirs with `pb_data` but no mothership mirror record; stop bound containers first. Skip reserved paths (`cloud-storage-mount`, legacy `MOTHERSHIP_NAME` dir). Later: synchronous delete API if 24h lag is too slow. |
 | **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
 | **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
 
@@ -34,6 +34,15 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **mothership↔edge decoupling** (no instance FS/runtime in handlers). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
 
+#### Storage & volumes
+
+_Cost and backup efficiency — shrink what lives on edge block storage._
+
+| Item | Risk | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| **S3-default file storage (sqlite-only volumes)** | Med | M–L | Today PB backups include file uploads unless the user configures S3; host volume holds uploads + sqlite. Default or require S3 for `_pb_files_` so the instance volume is sqlite (+ hooks) only — smaller disks, faster backups, cleaner tiering. Customers get leaner backups; platform pays less for block storage. Prerequisite for **Rclone tiered instance data cache**. |
+| **Rclone tiered instance data cache** | Med–High | XL | Hot cache on edge for active instances; idle/cold data on cheaper remote storage via rclone (or similar). Goal: avoid provisioning 1–2 TB per node when most instances are largely idle. Spike: mount semantics, sync latency on wake, consistency on hibernate/delete. Lowers platform storage cost; pairs with sqlite-only volumes + hibernate economics. |
+
 ### Billing & pricing
 
 | Item | Risk | Effort | Notes |
@@ -42,7 +51,8 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
 | **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). Grandfather existing plans. |
 | **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror: **Starter 1 min**, **Pro 1 hr** (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Mothership sets TTL from plan; update limits/marketing docs. Pro keeps instances warm longer (cron, PB jobs); Starter hibernates faster to save platform resources. |
-| **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas. |
+| **Enforced storage quotas** | Med | L | Migrate from fair-use to hard limits: sqlite DB size, FTP upload usage, PB file storage (volume or S3-metered). Dashboard surfacing + mothership schema + edge reject/warn. Prerequisite for honest **Pricing clarity**; vectors: sqlite size, FTPS/SFTP uploads, PB file uploads. |
+| **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas + **Enforced storage quotas**. |
 | **Annual billing options** | Low | M | Lemon Squeezy variant SKUs + dashboard copy. |
 
 ### Instance features
@@ -50,7 +60,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
-| **SFTP instead of FTPS** | Med | M | Docs/FAQ already say "SFTP"; UI says FTPS (`instances/.../ftp`). Evaluate `ftp-srv` fork vs OpenSSH/sftp subsystem; credential model unchanged? |
+| **SFTP instead of FTPS** | Med | M | Docs/FAQ already say "SFTP"; UI says FTPS (`instances/.../ftp`). Evaluate `ftp-srv` fork vs OpenSSH/sftp subsystem. Support SSH authorized keys (user-supplied pubkey) in addition to or instead of password? Credential UX + dashboard key management. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
@@ -59,6 +69,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
+| **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
 
 ### Dashboard & docs UX
@@ -113,7 +124,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Coupling | Where | Problem |
 | -------- | ----- | ------- |
-| Instance delete FS | `HandleInstanceDelete` | Mothership `$os.removeAll` on wrong host/path; edge owns `DATA_ROOT/{volume}/{id}` |
+| Instance delete FS | `HandleInstanceDelete` + edge orphan cleanup | Mothership deletes PB record only; edge rimraf orphaned dirs on 24h interval (`OrphanInstanceDataService`) |
 | Power off | `HandleInstanceUpdate` + `InstanceService` | **Fixed** — mirror listener shuts down container on `power=false`; dashboard shows shutting-down until `status=idle` |
 | Runtime status | `HandleInstancesResetIdle` vs edge daemon | Mothership resets all `status=idle` on boot; edge stops containers without syncing status |
 | Request policy | `HandleInstanceResolve` vs `InstanceService` | Duplicate gating logic; resolve unused in repo |
@@ -143,6 +154,11 @@ Ecosystem agent skills ──► agent skills npm + Cursor plugin (Icebox)
 Realtime reconnect resync ──► removes verify polling; fixes stale instances/auth after SSE gap
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
+S3-default file storage ──► sqlite-only volumes; leaner PB backups
+S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
+Enforced storage quotas ──► pricing clarity + honest plan limits
+Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
+PocketHost CLI & SDK ──► watch mode replaces manual FTP for dev sync (pairs with SFTP)
 ```
 
 ---
