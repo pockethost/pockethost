@@ -10,4 +10,6 @@ You can view live logs while your PocketHost instance is running. `console.log` 
 
 For enhanced logging, use [Dev mode](/docs/dev-mode).
 
-These logs are also accessible in the logging area of your PocketBase admin dashboard.
+These logs are also accessible in the logging area of your PocketBase admin dashboard at `https://<your-instance>.pockethost.io/_/#/logs`.
+
+Request lines show the **client IP** as PocketBase and the PocketHost firewall see it. When configuring [trusted IPs or proxy mode](/docs/access#finding-your-client-ip) on the instance **Access** tab, check here first if you are unsure which address to add.

@@ -165,6 +165,9 @@
         <a href={`/instances/${id}/logs`} class={activeClass(`logs`)}>Logs</a>
       </li>
       <li>
+        <a href={`/instances/${id}/access`} class={activeClass(`access`)}>Access</a>
+      </li>
+      <li>
         <a href={`/instances/${id}/ftp`} class={activeClass(`ftp`)}>FTP Access</a>
       </li>
       <li>

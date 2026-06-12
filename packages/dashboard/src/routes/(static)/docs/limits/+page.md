@@ -19,17 +19,24 @@ The first layer of rate limiting is imposed by **Cloudflare**, which restricts r
 
 PocketHost enforces additional rate limits at the application level:
 
+#### Burst Request Limits (per minute)
+
+- **120 requests per minute per IP address**
+- **1,200 requests per minute per instance**
+
+These limits catch runaway loops and traffic spikes. When exceeded, `Retry-After` is at most **60 seconds**.
+
 #### Hourly Request Limits
 
 - **1,000 requests per hour per IP address**
 - **10,000 requests per hour per instance**
 
-These limits reset every hour and track the total number of requests made.
+These limits track sustained usage over an hour. When exceeded, clients receive a 429 response with `Retry-After` capped at **60 seconds** (not the full hour).
 
 #### Concurrent Request Limits
 
-- **5 simultaneous requests per IP address**
-- **50 simultaneous requests per instance**
+- **15 simultaneous requests per IP address**
+- **250 simultaneous requests per instance**
 
 These limits restrict the number of active requests that can be processed at the same time. Once a request completes, the slot becomes available for new requests.
 
@@ -39,27 +46,17 @@ If you're making numerous requests from the client side, we recommend using the 
 
 In general, exceeding the rate limit often indicates a coding issue. Another option is to write custom routes using [JS Hooks](/docs/programming) to perform bulk fetching and filtering server-side, which can be difficult to manage effectively on the client side.
 
-### Server-Side Rendering (SSR) and Proxy Servers
+Need to raise limits for a shared office IP or an SSR proxy? Configure **Trusted IPs** and **SSR / Proxy Mode** on the instance **Access** tab — see [Access Controls](/docs/access).
 
-If you're using a proxy server for Server-Side Rendering (SSR) purposes, all requests to PocketHost will appear to come from your server's IP address rather than your end users' IPs. This means your server will quickly hit the per-IP rate limits (1,000 requests/hour and 5 concurrent requests), affecting all your users.
+### Plan-based instance limits
 
-**Our recommended solutions:**
+Default limits apply to all instances. Pro, Founder, and Flounder tiers receive higher instance-level burst and hourly quotas. Limits are configured in mothership `settings` (`rate_limit_tiers`) and enforced by the firewall via `MothershipMirrorService`.
 
-1. **Switch to Client-Side Rendering (CSR)** - Make API calls directly from the browser instead of through your server
-2. **Use [PocketPages.dev](https://pocketpages.dev)** - A lightweight SSR solution that runs directly within PocketBase
-
-**If you must use a proxy server:**
-
-If neither of the above solutions work for your use case, you can configure your proxy to forward the real client IP addresses:
-
-1. Configure your proxy server to send the `X-PocketHost-Client-IP` header with each request, containing the real client's IP address
-2. Contact [PocketHost Support](/support) to whitelist your proxy server's IP address
-
-Once whitelisted, PocketHost will use the IP from the `X-PocketHost-Client-IP` header for rate limiting instead of your proxy server's IP, ensuring each end user gets their own rate limit allocation.
+Per-user and per-instance limit overrides can be set by admins in mothership (JSON `rate_limits` fields on `users` / `instances`).
 
 ### Special Cases
 
-In special cases, such as during conferences or events where a large amount of traffic originates from a single IP, we have ways to expand or bypass these rate limits. If this applies to you, please contact [PocketHost Support](/support).
+For edge cases not covered by self-serve controls, contact [PocketHost Support](/support).
 
 ## Hibernation
 

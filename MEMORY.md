@@ -36,9 +36,9 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase app at `mothership-app/` — `pb_hooks/`, `pb_migrations/`, TS handlers in `src/lib/handlers/`.
+- **Mothership**: PocketBase app at `mothership-app/` — `pb_hooks/`, `pb_migrations/`, TS handlers in `src/lib/handlers/`. **JSVM boundary:** `src/common/` is Node-only; mothership handlers must not import it (tsdown → `pb_hooks/mothership.js`). Skill: `.cursor/skills/pocketbase-jsvm/pockethost-boundary.md`.
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`).
-- **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`.
+- **Firewall**: Express + `http-proxy-middleware`; syncs mothership via `MothershipMirrorService`; dynamic rate limits from `settings.rate_limit_tiers` + per-user/instance `rate_limits` JSON; self-serve `trusted_ips` / `proxy_ips` on instances; global proxy fallback via `PH_USER_PROXY_IPS` + `X-PocketHost-Client-IP`.
 
 ## Key paths & settings
 
@@ -56,7 +56,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `PocketBaseService` — instance PB process management
 - `InstanceService` — instance lifecycle
 - `MothershipAdminClientService` — admin PB client + instance mixin
-- `MothershipMirrorService` — mothership data sync
+- `MothershipMirrorService` — mothership data sync (users, instances, settings)
 - `CronService`, `ProxyService`, `InstanceLoggerService`
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
@@ -66,6 +66,7 @@ Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 SvelteKit + Vite + Tailwind/DaisyUI. Static adapter; deploy via Wrangler Pages (`pnpm deploy` in package).
 
 - App routes: `packages/dashboard/src/routes/`
+- Instance **Access** page: `instances/[instanceId]/access` — trusted IPs + SSR proxy self-serve
 - User docs: `(static)/docs/**` as `+page.md`
 - Blog: `(static)/blog/**`
 

@@ -62,6 +62,11 @@ export const INSTANCE_ADMIN_URL = (instance: InstanceFields) => {
   return INSTANCE_URL(instance, `_/`)
 }
 
+/** PocketBase admin request logs — useful for finding the client IP to add as a trusted IP. */
+export const INSTANCE_ADMIN_LOGS_URL = (instance: InstanceFields) => {
+  return `${INSTANCE_ADMIN_URL(instance)}#/logs`
+}
+
 export const FTP_URL = (email: string) => {
   return `"${email}"@ftp.${PUBLIC_APEX_DOMAIN}:21`
 }
