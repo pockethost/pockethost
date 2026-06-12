@@ -126,7 +126,7 @@
       </nav>
     </div>
 
-    <div class="docs-content prose max-w-prose w-full text-white/90">
+    <div class="docs-content prose max-w-prose w-full min-w-0 text-white/90">
       <slot />
     </div>
   </div>
