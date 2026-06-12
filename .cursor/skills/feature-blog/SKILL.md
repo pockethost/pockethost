@@ -23,7 +23,7 @@ PocketHost **does not** maintain product version announcements (no `PocketHost 2
 
 ## Workflow
 
-1. **Land the feature** — code, docs, MEMORY/TODO updates as usual.
+1. **Land the feature** — code, docs, MEMORY/backlog updates as usual.
 2. **Draft the post** — follow [blog-voice](../blog-voice/SKILL.md). Lead with the user win, not the semver.
 3. **Wire the blog** (new post):
    - `packages/dashboard/src/routes/(static)/blog/{slug}/+page.md`

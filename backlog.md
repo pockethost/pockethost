@@ -1,26 +1,18 @@
-# PocketHost — dev goals
+# PocketHost — backlog
 
-Living backlog for product and platform work. Not a substitute for [MEMORY.md](MEMORY.md) (architecture); this is _what we might build_ and _when_.
+Living backlog for product and platform work. Not a substitute for [MEMORY.md](MEMORY.md) (architecture); this is _what we might build_.
 
-**Sections:** [Now](#now) → [Next (backlog)](#next-backlog) → [Icebox](#icebox)
+**Sections:** [Backlog](#backlog) → [Icebox](#icebox) → [Done](#done)
 
 Legend: **Risk** low / med / high · **Effort** S / M / L / XL
 
----
-
-## Now
-
-_Active or imminently starting. Keep this section small._
-
-| Item | Notes |
-| ---- | ----- |
-| —    | _Nothing pinned — pick from Next._ |
+Pull work from the backlog when you ask — nothing is pinned as "in progress" here.
 
 ---
 
-## Next (backlog)
+## Backlog
 
-_Committed direction; sorted deps → feasibility → user benefit (top = do first)._
+_Sorted deps → feasibility → user benefit (top = suggest first). Re-rank when scope or blockers change._
 
 ### Platform & runtime
 
@@ -71,13 +63,13 @@ _Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — das
 
 ## Icebox
 
-_Worth tracking; not scheduled. Revisit when Next thins or demand appears._
+_Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
-| **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in Next — keep here only if VPN-forward design stalls. |
+| **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in backlog — keep here only if VPN-forward design stalls. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
 
@@ -117,7 +109,7 @@ SFTP ──► docs already claim SFTP; FTPS UI is misleading today
 
 ## Done
 
-_Move completed items here with date + link to PR/release._
+_Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
@@ -128,8 +120,8 @@ _Move completed items here with date + link to PR/release._
 
 ## How to use this file
 
-1. **Now** — max 1–3 items; move here only when someone is actively working.
-2. **Next** — sorted **dependencies → feasibility → end-user benefit**. Prefer low-hanging fruit and easy wins that ship incremental value. Re-rank when scope or blockers change.
-3. **Icebox** — ideas, spikes, "nice if"; no shame in deleting stale rows.
-4. **Maintenance/refactors** — allowed; note the user outcome they unlock (see `.cursor/rules/todo-backlog.mdc`).
+1. **Backlog** — sorted **dependencies → feasibility → end-user benefit**. Top rows are the default suggestion when you ask "what's next?"
+2. **Icebox** — ideas, spikes, "nice if"; no shame in deleting stale rows.
+3. **Done** — move shipped items here; delete from backlog.
+4. **Maintenance/refactors** — allowed; note the user outcome they unlock (see `.cursor/rules/backlog.mdc`).
 5. Agents: capture new items in the same change set; don't duplicate MEMORY.md architecture detail.
