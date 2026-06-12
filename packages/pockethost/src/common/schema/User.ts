@@ -1,4 +1,5 @@
 import { type BaseFields } from './types'
+import type { RateLimitPartial } from './RateLimits'
 
 export enum SubscriptionType {
   Legacy = 'legacy',
@@ -31,6 +32,7 @@ export type UserFields<TExtra = {}> = BaseFields & {
   subscription_quantity: number
   isStatsRole: boolean
   suspension: string
+  rate_limits: RateLimitPartial | null
 } & TExtra
 
 export type WithCredentials = {

@@ -1,4 +1,4 @@
-import type { BaseFields, RecordId, Subdomain, UserFields, UserId } from '.'
+import type { BaseFields, RateLimitPartial, RecordId, Subdomain, TrustedIpEntry, UserFields, UserId } from '.'
 
 export type VersionId = string
 
@@ -51,6 +51,9 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   cname_active: boolean
   volume: string
   idleTtl: number
+  trusted_ips: TrustedIpEntry[] | null
+  proxy_ips: TrustedIpEntry[] | null
+  rate_limits: RateLimitPartial | null
 } & TExtra
 
 export type WithUser<TUser = UserFields> = {

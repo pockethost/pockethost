@@ -4,7 +4,10 @@ import { InstanceFields, InstanceId } from '..'
 export type UpdateInstancePayload = {
   id: InstanceId
   fields: Partial<
-    Pick<InstanceFields, 'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'version' | 'dev' | 'cname'>
+    Pick<
+      InstanceFields,
+      'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'version' | 'dev' | 'cname' | 'trusted_ips' | 'proxy_ips'
+    >
   >
 }
 
@@ -15,7 +18,7 @@ export type UpdateInstanceResult = {
   message?: string
 }
 
-export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> = {
+export const UpdateInstancePayloadSchema = {
   type: 'object',
   properties: {
     id: { type: 'string' },
@@ -53,9 +56,33 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
         },
         dev: { type: 'boolean', nullable: true },
         cname: { type: 'string', nullable: true },
+        trusted_ips: {
+          type: 'array',
+          nullable: true,
+          items: {
+            type: 'object',
+            properties: {
+              cidr: { type: 'string' },
+              label: { type: 'string', nullable: true },
+            },
+            required: ['cidr'],
+          },
+        },
+        proxy_ips: {
+          type: 'array',
+          nullable: true,
+          items: {
+            type: 'object',
+            properties: {
+              cidr: { type: 'string' },
+              label: { type: 'string', nullable: true },
+            },
+            required: ['cidr'],
+          },
+        },
       },
     },
   },
   required: ['id', 'fields'],
   additionalProperties: false,
-}
+} as unknown as JSONSchemaType<UpdateInstancePayload>

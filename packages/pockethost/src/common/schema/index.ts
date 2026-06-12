@@ -1,5 +1,6 @@
 export * from './Instance'
 export * from './InstanceLog'
+export * from './RateLimits'
 export * from './Rest'
 export * from './types'
 export * from './User'
