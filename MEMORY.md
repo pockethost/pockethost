@@ -103,4 +103,6 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-_(none — add in-flight cross-cutting work here; delete when done)_
+| Branch | Status | Note |
+|--------|--------|------|
+| `self-serve-firewall` | On hold | Do not merge until after the pricing update lands. |
