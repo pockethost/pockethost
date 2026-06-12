@@ -80,6 +80,8 @@ Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at
 
 ## Dev workflow
 
+Requires **Node.js 22** (`.nvmrc`: `lts/jod`; `nvm install` in `setup.sh`).
+
 ```bash
 pnpm install          # root
 cp .env-template .env # if present; configure PH_HOME, apex domain, mothership creds

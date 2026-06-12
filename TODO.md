@@ -26,7 +26,6 @@ _Committed direction; sorted deps → feasibility → user benefit (top = do fir
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Node 22 upgrade** | Low | S | `.nvmrc` (`lts/jod`), dashboard CI, `setup.sh`, optional instance Dockerfile. Rebuild native deps (`better-sqlite3`, dockerode tree). Smoke: mothership, edge daemon, firewall, FTP, `pocketbase update`. Node 20 maintenance ended Apr 2026 — do this first. |
 | **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
 | **Decouple mothership** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Customers get faster mothership fixes without redeploying the whole stack. |
@@ -99,7 +98,6 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 ### Dependencies between items
 
 ```
-Node 22 ──► Mothership v0.39 (easier to upgrade PB on current LTS)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 CI gates ──► targeted unit tests + mothership build freshness check
@@ -119,7 +117,7 @@ _Move completed items here with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
-| —    | —    |
+| 2026-06-12 | **Node 22 upgrade** — `.nvmrc` (`lts/jod`), dashboard CI 22.x, instance Dockerfile, tsdown `node22`, root `engines.node >=22`; native deps smoke-tested locally |
 
 ---
 
