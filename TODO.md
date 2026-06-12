@@ -75,7 +75,7 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 22, not a replacement until proven. |
+| **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
 | **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in Next — keep here only if VPN-forward design stalls. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
@@ -85,9 +85,9 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 
 ## Analysis notes
 
-### Node 22 vs Bun
+### Node 24 vs Bun
 
-- **Node 22:** shipped 2026-06-12 (see Done).
+- **Node 24:** shipped 2026-06-12 (see Done).
 - **Bun:** real DX wins (native TS, faster installs) but production risk on dockerode, patched `tail`, PM2. Keep in Icebox until `bun-experimental` is rebased and edge nodes soak-tested.
 
 ### Pricing migration (Flounder)
@@ -121,7 +121,7 @@ _Move completed items here with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
-| 2026-06-12 | **Node 22 upgrade** — `.nvmrc` (`lts/jod`), dashboard CI 22.x, instance Dockerfile, tsdown `node22`, root `engines.node >=22`; `benallfree/pockethost-instance:latest` rebuilt+pushed (Node v22.22.3) |
+| 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
 
 ---

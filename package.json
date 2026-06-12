@@ -18,7 +18,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.11",

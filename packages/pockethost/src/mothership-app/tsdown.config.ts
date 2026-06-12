@@ -11,7 +11,7 @@ export default defineConfig({
   outDir: 'pb_hooks',
   shims: true,
   skipNodeModulesBundle: false,
-  target: 'node22',
+  target: 'node24',
   platform: 'node',
   minify: false,
   sourcemap: false,

@@ -82,7 +82,7 @@ Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at
 
 ## Dev workflow
 
-Requires **Node.js 22** (`.nvmrc`: `lts/jod`; `nvm install` in `setup.sh`).
+Requires **Node.js 24** (`.nvmrc`: `lts/krypton`; `nvm install` in `setup.sh`).
 
 ```bash
 pnpm install               # root
