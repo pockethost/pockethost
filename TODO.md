@@ -53,6 +53,18 @@ _Committed direction; sorted deps → feasibility → user benefit (top = do fir
 | ---- | ---- | ------ | ----- |
 | **Cursor skills — PocketPages** | Low | S | Add `skills.md` for PocketPages (pockethost / PB JSVM / JS SDK skills already exist under `.cursor/skills/`). |
 
+### Codebase health & CI
+
+_Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — dashboard has deploy CI; the hosting stack has none._
+
+| Item | Risk | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| **CI quality gates (hosting stack)** | Low | M | Add `ci.yaml`: root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`. Today only `publish-dashboard.yaml` runs (build, no typecheck). Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
+| **Mothership build hygiene** | Low | S | Stop treating checked-in `pb_hooks/mothership.js` (~3k lines) as source of truth; wire `tsdown --watch` into dev; optional `git diff --exit-code` after build in CI. Prevents stale handler bundles reaching prod. |
+| **Targeted unit tests** | Low | M | Zero tests in repo today. Start with semver resolution (`maxSatisfyingVersion`), instance-app version bucketing (`v22`/`v23` in `InstanceService`), firewall rate-limiter rules. Depends on CI gates. |
+| **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
+| **Dashboard auth realtime** | Low | S | `PocketbaseClient.ts` still polls for email verification (subscribe TODO from v0.8 era). Replace polling with PB realtime when SDK/route supports it — snappier signup UX. |
+
 ---
 
 ## Icebox
@@ -85,6 +97,8 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 ```
 Node 22 ──► Mothership v0.39 (easier to upgrade PB on current LTS)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
+Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
+CI gates ──► targeted unit tests + mothership build freshness check
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
