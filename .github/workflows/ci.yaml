@@ -15,8 +15,6 @@ jobs:
 
       - name: pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10.26.2
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4
