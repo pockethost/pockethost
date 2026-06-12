@@ -5,8 +5,11 @@
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
   import { versions as allVersions, is23Available } from '$src/util/stores'
+  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   $: ({ id, power, version } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
+  $: isShuttingDown = isInstanceShuttingDown($instance)
 
   let is22OrLower = false
   let is23OrHigher = false
@@ -78,8 +81,10 @@
 <div class="max-w-2xl"> 
 <CardHeader documentation={`/docs/versions`}>Version Change</CardHeader>
 
-  {#if power}
+  {#if power && !isShuttingDown}
     <AlertBar message="Your instance must be powered off to change the version." type="error" />
+  {:else if isShuttingDown}
+    <AlertBar message="Instance is shutting down. Please wait until it has fully stopped." type="warning" />
   {/if}
 
   <div class="mb-8">
@@ -132,7 +137,7 @@
   <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
     <VersionPicker bind:selectedVersion bind:versions />
 
-    <wa-button type="submit" variant="danger" disabled={power || isButtonDisabled}>Change Version</wa-button>
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
   </form>
 </div>
 

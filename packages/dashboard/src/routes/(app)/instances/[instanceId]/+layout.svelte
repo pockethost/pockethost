@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores'
+  import AlertBar from '$components/AlertBar.svelte'
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { globalInstancesStore } from '$util/stores'
   import { assert } from 'pockethost/common'
@@ -7,6 +8,7 @@
   import { client } from '$src/pocketbase-client'
   import { type InstanceId } from 'pockethost/common'
   import Toggle from './Toggle.svelte'
+  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import { onMount } from 'svelte'
   import Prism from 'prismjs'
@@ -25,6 +27,8 @@
   }
 
   $: ({ id } = $instance || {})
+  $: isShuttingDown = $instance ? isInstanceShuttingDown($instance) : false
+  $: isFullyOff = $instance ? isInstanceFullyOff($instance) : false
 
   const { updateInstance } = client()
 
@@ -85,9 +89,24 @@
     </div>
 
     <div>
-      <Toggle checked={$instance.power} onChange={handlePowerChange($instance.id)} />
+      <Toggle
+        checked={$instance.power}
+        loading={isShuttingDown}
+        disabled={isShuttingDown}
+        onChange={handlePowerChange($instance.id)}
+      />
     </div>
   </div>
+
+  {#if isShuttingDown}
+    <div class="mb-8 hidden md:block">
+      <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
+    </div>
+  {:else if isFullyOff}
+    <div class="mb-8 hidden md:block">
+      <AlertBar message="This instance is turned off and will not respond to requests." type="warning" />
+    </div>
+  {/if}
 
   <div class="flex gap-4 flex-col md:flex-row relative">
     <div
@@ -113,9 +132,24 @@
       </div>
 
       <div class="flex-shrink-0">
-        <Toggle checked={$instance.power} onChange={handlePowerChange($instance.id)} />
+        <Toggle
+          checked={$instance.power}
+          loading={isShuttingDown}
+          disabled={isShuttingDown}
+          onChange={handlePowerChange($instance.id)}
+        />
       </div>
     </div>
+
+    {#if isShuttingDown}
+      <div class="mb-4 md:hidden px-1">
+        <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
+      </div>
+    {:else if isFullyOff}
+      <div class="mb-4 md:hidden px-1">
+        <AlertBar message="This instance is turned off and will not respond to requests." type="warning" />
+      </div>
+    {/if}
 
     {#if sidebarOpen && window.innerWidth < 768}
       <div class="fixed inset-0 bg-black bg-opacity-50 z-50 backdrop-blur-sm" onclick={() => (sidebarOpen = false)}></div>

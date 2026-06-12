@@ -2,13 +2,17 @@
   import { goto } from '$app/navigation'
   import { INSTANCE_ADMIN_URL } from '$src/env'
   import { client } from '$src/pocketbase-client'
-  export let instance
+  import Toggle from '../instances/[instanceId]/Toggle.svelte'
+  import { isInstanceShuttingDown } from '$util/instancePower'
+  import type { InstanceFields } from 'pockethost/common'
+
+  export let instance: InstanceFields
+
+  $: isShuttingDown = isInstanceShuttingDown(instance)
 
   const { updateInstance } = client()
 
-  const handlePowerChange = (e: Event) => {
-    const target = e.target as HTMLInputElement
-    const power = target.checked
+  const handlePowerChange = (power: boolean) => {
     updateInstance({ id: instance.id, fields: { power } })
   }
 
@@ -59,7 +63,12 @@
     </div>
 
     <div class="flex flex-shrink-0 self-center" onclick={(e) => e.stopPropagation()}>
-      <wa-switch checked={instance.power} onchange={handlePowerChange}></wa-switch>
+      <Toggle
+        checked={instance.power}
+        loading={isShuttingDown}
+        disabled={isShuttingDown}
+        onChange={handlePowerChange}
+      />
     </div>
   </div>
 </div>
