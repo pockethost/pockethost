@@ -2,7 +2,8 @@
   "name": "pockethost-mothership-app",
   "scripts": {
     "build": "tsdown",
-    "dev": "tsdown --watch"
+    "dev": "tsdown --watch",
+    "check:fresh": "tsdown && git diff --exit-code -- pb_hooks/"
   },
   "devDependencies": {
     "@s-libs/micro-dash": "^18.0.0",

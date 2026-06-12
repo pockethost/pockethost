@@ -9,7 +9,9 @@
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "dev:cli": "cd packages/pockethost && pnpm dev",
+    "dev:mothership-hooks": "pnpm --filter pockethost-mothership-app dev",
     "dev:dashboard": "cd packages/dashboard && pnpm dev",
+    "check:mothership-hooks": "pnpm --filter pockethost-mothership-app check:fresh",
     "prod:cli": "cd packages/pockethost && pnpm start",
     "nofile": "cat /proc/sys/fs/file-nr",
     "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts"

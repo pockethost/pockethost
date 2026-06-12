@@ -38,7 +38,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase app at `mothership-app/` — `pb_hooks/`, `pb_migrations/`, TS handlers in `src/lib/handlers/`.
+- **Mothership**: PocketBase app at `mothership-app/` — `pb_migrations/`, TS handlers in `src/lib/handlers/`. **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale).
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`).
 - **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`.
 
@@ -85,11 +85,14 @@ Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at
 Requires **Node.js 22** (`.nvmrc`: `lts/jod`; `nvm install` in `setup.sh`).
 
 ```bash
-pnpm install          # root
-cp .env-template .env # if present; configure PH_HOME, apex domain, mothership creds
-pnpm dev:cli          # CLI in development
-pnpm dev:dashboard    # dashboard dev server
+pnpm install               # root
+cp .env-template .env      # if present; configure PH_HOME, apex domain, mothership creds
+pnpm dev:mothership-hooks  # terminal 1 — tsdown --watch when editing mothership handlers
+pnpm dev:cli               # terminal 2 — CLI / mothership / edge / firewall
+pnpm dev:dashboard         # dashboard dev server
 ```
+
+After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 
