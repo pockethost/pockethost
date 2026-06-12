@@ -2,6 +2,8 @@
 
 The JSVM is **Goja** (Go-based ES interpreter), not Node or a browser.
 
+**Version note:** Goja constraints are shared across PocketBase versions, but hook/route APIs differ at v0.23 — see [SKILL.md § Version split](SKILL.md#version-split--read-this-first). Use [old docs](https://pocketbase.io/old/docs/js-overview/) for ≤ v0.22 and [current docs](https://pocketbase.io/docs/js-overview/) for ≥ v0.23.
+
 ## Unavailable
 
 | Category | Not available |

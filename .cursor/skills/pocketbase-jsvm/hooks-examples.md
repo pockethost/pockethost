@@ -1,6 +1,19 @@
 # JSVM Hook Examples
 
-## Bootstrap with shared config
+Examples below are tagged by PocketBase version where they differ. See [SKILL.md § Version split](SKILL.md#version-split--read-this-first).
+
+## Bootstrap with shared config (≥ v0.23)
+
+```js
+// pb_hooks/main.pb.js
+onBootstrap((e) => {
+  e.next()
+  const config = require(`${__hooks}/config/config.js`)
+  console.log('Instance initialized!', config.appName)
+})
+```
+
+## Bootstrap with shared config (≤ v0.22)
 
 ```js
 // pb_hooks/main.pb.js
@@ -20,13 +33,23 @@ module.exports = {
 
 ## Custom route (client calls via pb.send)
 
+≤ v0.22:
+
 ```js
 routerAdd('POST', '/test/:testId', (c) => {
   return c.json(200, { testId: c.pathParam('testId') })
 })
 ```
 
-## Record hook on create
+≥ v0.23:
+
+```js
+routerAdd('POST', '/test/{testId}', (e) => {
+  return e.json(200, { testId: e.request.pathValue('testId') })
+})
+```
+
+## Record hook on create (≤ v0.22 naming; ≥ v0.23 uses `*Success` hooks + `e.next()`)
 
 ```js
 onRecordAfterCreateRequest((e) => {
@@ -41,7 +64,7 @@ onRecordAfterCreateRequest((e) => {
 }, 'users')
 ```
 
-## Mothership pattern (this repo)
+## Mothership pattern (≤ v0.22 API — this repo)
 
 Split logic into a compiled `.cjs` module; keep `*.pb.js` as thin routers:
 
@@ -53,9 +76,14 @@ routerAdd('POST', '/api/instance', (c) => {
 
 Reference: `packages/pockethost/src/mothership-app/pb_hooks/mothership.pb.js`
 
-## Instance admin sync (this repo)
+## Instance admin sync — v22 vs v23 (this repo)
 
-Bootstrap hook reading env and running SQL:
+Compare side-by-side:
+
+- ≤ v0.22: `packages/pockethost/src/instance-app/v22/pb_hooks/_ph_admin_sync.pb.js` (`$app.onBeforeServe`, `$app.dao()`, `_admins`)
+- ≥ v0.23: `packages/pockethost/src/instance-app/v23/pb_hooks/_ph_admin_sync.pb.js` (`onBootstrap`, `e.app`, `_superusers`)
+
+≥ v0.23 example:
 
 ```js
 onBootstrap((e) => {
