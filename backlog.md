@@ -40,7 +40,8 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | ---- | ---- | ------ | ----- |
 | **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). Today: sale webhook + hardcoded `store.pockethost.io` checkout URLs; account page defers quantity changes to support. Customers self-serve plan changes without support tickets. |
 | **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
-| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances), **Pro ~$49.99/mo** (~250 instances). Grandfather existing plans. |
+| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). Grandfather existing plans. |
+| **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror: **Starter 1 min**, **Pro 1 hr** (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Mothership sets TTL from plan; update limits/marketing docs. Pro keeps instances warm longer (cron, PB jobs); Starter hibernates faster to save platform resources. |
 | **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas. |
 | **Annual billing options** | Low | M | Lemon Squeezy variant SKUs + dashboard copy. |
 
@@ -104,7 +105,8 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 ### Pricing migration (Flounder)
 
-- Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, stats (`total_flounder_subscribers`).
+- Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, stats (`total_flounder_subscribers`), edge `instance.idleTtl` / `DAEMON_PB_IDLE_TTL`.
+- **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
 - **Must:** grandfather email + grace period before tier removal.
 
 ### Mothership ↔ edge coupling (today)
@@ -130,7 +132,9 @@ Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
 CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
 Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
+Pricing redo ──► plan-tier hibernate intervals (Starter 1 min / Pro 1 hr)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
+Plan-tier hibernate ──► limits docs + pricing/marketing copy
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
