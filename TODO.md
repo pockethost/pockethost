@@ -29,11 +29,15 @@ _Committed direction; sorted deps → feasibility → user benefit (top = do fir
 | **Node 22 upgrade** | Low | S | `.nvmrc` (`lts/jod`), dashboard CI, `setup.sh`, optional instance Dockerfile. Rebuild native deps (`better-sqlite3`, dockerode tree). Smoke: mothership, edge daemon, firewall, FTP, `pocketbase update`. Node 20 maintenance ended Apr 2026 — do this first. |
 | **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
+| **Decouple mothership** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Customers get faster mothership fixes without redeploying the whole stack. |
+| **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
 
 ### Billing & pricing
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). Today: sale webhook + hardcoded `store.pockethost.io` checkout URLs; account page defers quantity changes to support. Customers self-serve plan changes without support tickets. |
+| **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
 | **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances), **Pro ~$49.99/mo** (~250 instances). Grandfather existing plans. |
 | **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas. |
 | **Annual billing options** | Low | M | Lemon Squeezy variant SKUs + dashboard copy. |
@@ -75,7 +79,7 @@ _Worth tracking; not scheduled. Revisit when Next thins or demand appears._
 | ---- | ---- | ------ | ----- |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 22, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
-| **Global Fly.io proxy** | Med | XL | Re-evaluate anycast/edge proxy for lower TTFB worldwide. Architecture spike: firewall ↔ Fly ↔ origin edges. |
+| **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in Next — keep here only if VPN-forward design stalls. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 
 ---
@@ -100,6 +104,9 @@ Mothership v0.39 ──► custom binaries (version catalog + spawn path must be
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 CI gates ──► targeted unit tests + mothership build freshness check
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
+Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
+Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
+Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
 ```
