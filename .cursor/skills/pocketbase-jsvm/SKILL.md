@@ -3,26 +3,36 @@ name: pocketbase-jsvm
 description: >-
   Writes PocketBase server-side JavaScript in the Goja JSVM: pb_hooks, routerAdd,
   record hooks, cron jobs, and synchronous $app APIs. Use for *.pb.js files,
-  pb_hooks, pb_migrations JS, or server-side PocketBase extensions — not the
-  npm JS SDK.
+  pb_hooks, pb_migrations JS, mothership-app handlers, or server-side PocketBase
+  extensions — not the npm JS SDK. Read pockethost-boundary.md before importing
+  from packages/pockethost/src/common/ or adding shared code to mothership-app.
 ---
 
 # PocketBase JSVM
 
-PocketBase embeds a **Goja** JavaScript engine for server-side extensions. Code runs **inside** the PocketBase process — synchronous, no Node/Browser APIs.
+PocketBase embeds **Goja** — not Node, not a browser. Hook code is synchronous; use `$app`, `$http.send()`, and local `require()`.
 
-Official docs: https://pocketbase.io/docs/js-overview/
+Official docs: [JS overview](https://pocketbase.io/docs/js-overview/) · [JSVM API](https://pocketbase.io/jsvm/)
+
+## PocketHost: read the boundary first
+
+**`packages/pockethost/src/common/` is Node-only. Never import it from mothership-app.**
+
+Mothership handlers compile to `pb_hooks/mothership.js` via tsdown. Node built-ins (e.g. `node:net`) at module top level crash PocketBase at startup. See **[pockethost-boundary.md](pockethost-boundary.md)** for the full split, build audit, and agent checklist.
+
+Runtime deep-dive: **[runtime-reference.md](runtime-reference.md)** (Goja, goja_nodejs, optional upstream vendoring).
 
 ## Pre-flight checklist
 
-Before writing hook code, verify:
+Before writing or bundling hook code:
 
-- [ ] No `async`/`await`, Promises, or `.then()`
+- [ ] No imports from `$common`, `../common/`, or `packages/pockethost/src/common/`
+- [ ] No `node:*` built-ins (`net`, `fs`, `path`, `crypto`, …)
+- [ ] No `async`/`await`, Promises, `.then()` in handlers
 - [ ] No `fetch`, `setTimeout`, `setInterval`, DOM APIs
-- [ ] No Node built-ins (`fs`, `http`, `path`, etc.)
-- [ ] Use `require()` for modules (CommonJS only)
-- [ ] Use `$app` / record APIs — not `new PocketBase()`
+- [ ] CommonJS `require()` for shared modules under `${__hooks}/`
 - [ ] External HTTP via `$http.send()` (sync), not `fetch`
+- [ ] After mothership changes: `pnpm build` in `mothership-app/` and `rg 'require\("node:' pb_hooks/mothership.js` → empty
 
 For full environment constraints, see [constraints.md](constraints.md).
 
@@ -36,13 +46,16 @@ pb_hooks/
 └── posts.create.pb.js
 ```
 
-- Only `*.pb.js` files are auto-loaded as hook entry points.
-- Shared modules: plain `.js` files loaded via `require()`.
-- Use `${__hooks}` for the hooks directory path:
+PocketHost:
 
-```js
-const config = require(`${__hooks}/config/config.js`)
-```
+| App | Hook source | Output |
+|-----|-------------|--------|
+| Mothership | `mothership-app/src/lib/handlers/` | `mothership-app/pb_hooks/mothership.js` |
+| Instance templates | `instance-app/v*/pb_hooks/` | shipped in Docker image |
+
+- Only `*.pb.js` files are auto-loaded as hook entry points (plus compiled routers like `mothership.pb.js`).
+- Shared JSVM modules: plain `.js` or tsdown bundle, loaded via `require(\`${__hooks}/…\`)`.
+- Typings: `mothership-app/src/types/types.d.ts`
 
 ## Hook categories
 
@@ -91,7 +104,7 @@ Clients call custom routes via `pb.send()` — see **pocketbase-js-sdk**.
 
 ## Record operations
 
-Modern API uses `$app` (prefer over legacy `$app.dao()` where docs show both):
+Prefer `$app` (see JSVM reference for full API):
 
 ```js
 routerAdd('PATCH', '/posts/:postId', (c) => {
@@ -116,8 +129,6 @@ $app.db().newQuery('SELECT * FROM posts WHERE id = {:id}')
 
 ## External HTTP
 
-Use synchronous `$http.send()`:
-
 ```js
 const res = $http.send({
   url: 'https://api.example.com/webhook',
@@ -129,15 +140,15 @@ const res = $http.send({
 
 ## Environment variables
 
-Only `process.env` is shimmed:
-
 ```js
 const value = process.env.MY_SECRET || ''
 ```
 
-PocketHost injects env vars (e.g. `ADMIN_SYNC` in instance hooks).
+PocketHost injects env vars (e.g. `MOTHERSHIP_CLOUDFLARE_*` in mothership).
 
 ## Modules
+
+Handlers run in **isolated contexts** ([docs](https://pocketbase.io/docs/js-overview/#handlers-scope)). Share code via `require()`:
 
 ```js
 // pb_hooks/utils.js
@@ -147,23 +158,17 @@ module.exports = {
 ```
 
 ```js
-// pb_hooks/main.pb.js
-const { mkLog } = require(`${__hooks}/utils.js`)
-const log = mkLog('main')
+onAfterBootstrap((e) => {
+  const { mkLog } = require(`${__hooks}/utils.js`)
+  mkLog('main')('ready')
+})
 ```
-
-## PocketHost specifics
-
-- User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
-- Template hooks in this repo: `packages/pockethost/src/instance-app/v*/pb_hooks/`
-- Mothership hooks: `packages/pockethost/src/mothership-app/pb_hooks/`
-- Generated API typings: `packages/pockethost/src/mothership-app/src/types/types.d.ts`
-- Pocker sandbox may restrict `$os` — avoid OS-level calls.
 
 ## Examples
 
-See [hooks-examples.md](hooks-examples.md) for copy-paste patterns from this repo and PocketHost docs.
+See [hooks-examples.md](hooks-examples.md) for mothership and instance patterns from this repo.
 
 ## API reference
 
-Browse generated typings in `types.d.ts` for `routerAdd`, `$apis`, `$app`, cron, and record hook signatures.
+- Generated typings: `mothership-app/src/types/types.d.ts`
+- Official: https://pocketbase.io/jsvm/

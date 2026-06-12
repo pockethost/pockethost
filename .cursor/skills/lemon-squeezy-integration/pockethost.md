@@ -130,4 +130,4 @@ Note: PocketHost uses both `/buy/{uuid}` and `/checkout/buy/{uuid}` URL formats 
 
 ## Rebuild note
 
-Source lives in `src/lib/handlers/lemon/`. Compiled output is in `pb_hooks/mothership.js` — ensure hook build runs after handler changes.
+Source lives in `src/lib/handlers/lemon/`. Compiled output is in `pb_hooks/mothership.js` — ensure hook build runs after handler changes. Do not import `$common` / `src/common/` into handlers (JSVM crash). See `.cursor/skills/pocketbase-jsvm/pockethost-boundary.md`.

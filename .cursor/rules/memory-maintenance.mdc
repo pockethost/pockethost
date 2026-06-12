@@ -12,7 +12,8 @@ alwaysApply: true
 Before planning or coding on CLI commands, mothership/edge/firewall services, instance lifecycle, dashboard UI, PocketBase hooks/migrations, or dev workflow:
 
 1. **Read MEMORY.md** — prefer it over chat history or assumptions about older repo shapes.
-2. If MEMORY and code disagree, **trust the code** but **fix MEMORY in the same change set**.
+2. If editing **mothership-app handlers** or shared validation/types: read `.cursor/skills/pocketbase-jsvm/pockethost-boundary.md` — `src/common/` is Node-only.
+3. If MEMORY and code disagree, **trust the code** but **fix MEMORY in the same change set**.
 
 ## Update (before marking done)
 
@@ -25,6 +26,7 @@ Update MEMORY.md in the **same commit/PR** when you change anything in the table
 | Runtime roles | Mothership (control plane), edge daemon (instance spawner), firewall (reverse proxy + rate limits) |
 | Instance model | `Instance` schema, Docker lifecycle, port pool, volume paths under `DATA_ROOT` |
 | Mothership app | `pb_hooks`, `pb_migrations`, handler APIs under `mothership-app/src/lib/handlers` |
+| Mothership JSVM boundary | No imports from `src/common/` into mothership-app; audit `pb_hooks/mothership.js` for `require("node:` — skill `pocketbase-jsvm/pockethost-boundary.md` |
 | Settings / env | `PH_*`, `MOTHERSHIP_*`, `APEX_DOMAIN`, `constants.ts` / `createSettings()` |
 | Dashboard | SvelteKit routes, docs under `packages/dashboard/src/routes`, Wrangler deploy |
 | PocketBase versions | `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_POCKETBASE_ROOT`, `settings.pocketbase_versions`, `pocketbase update` flow |

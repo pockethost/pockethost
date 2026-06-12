@@ -43,7 +43,7 @@ onRecordAfterCreateRequest((e) => {
 
 ## Mothership pattern (this repo)
 
-Split logic into a compiled `.cjs` module; keep `*.pb.js` as thin routers:
+TypeScript handlers live in `mothership-app/src/lib/handlers/`. tsdown bundles them to `pb_hooks/mothership.js`. Thin `*.pb.js` routers delegate via `require()`:
 
 ```js
 routerAdd('POST', '/api/instance', (c) => {
@@ -52,6 +52,15 @@ routerAdd('POST', '/api/instance', (c) => {
 ```
 
 Reference: `packages/pockethost/src/mothership-app/pb_hooks/mothership.pb.js`
+
+**Boundary:** handlers must not import `packages/pockethost/src/common/` (`$common`). Put JSVM-safe helpers in `mothership-app/src/lib/util/`. After edits:
+
+```bash
+cd packages/pockethost/src/mothership-app && pnpm build
+rg 'require\("node:' pb_hooks/mothership.js   # must be empty
+```
+
+See `.cursor/skills/pocketbase-jsvm/pockethost-boundary.md`.
 
 ## Instance admin sync (this repo)
 
