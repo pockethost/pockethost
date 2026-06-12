@@ -44,7 +44,6 @@
     "fs-extra": "^11.2.0",
     "ftp-srv": "github:pockethost/ftp-srv#0fc708bae0d5d7a55ce948767f082d6fcfb2af59",
     "glob": "^11.0.1",
-    "gobot": "1.0.0-alpha.41",
     "http-proxy": "^1.18.1",
     "http-proxy-middleware": "^3.0.3",
     "ip-cidr": "^4.0.2",

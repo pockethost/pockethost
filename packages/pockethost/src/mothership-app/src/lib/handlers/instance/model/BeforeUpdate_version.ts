@@ -1,5 +1,5 @@
 import { mkLog } from '$util/Logger'
-import { versions } from '$util/versions'
+import { listVersions } from '$util/versions'
 
 export const BeforeUpdate_version = (e: core.ModelEvent) => {
   const dao = e.dao || $app.dao()
@@ -7,6 +7,7 @@ export const BeforeUpdate_version = (e: core.ModelEvent) => {
   const log = mkLog(`BeforeUpdate_version`)
 
   const version = e.model.get('version')
+  const versions = listVersions()
   if (!versions.includes(version)) {
     const msg = `Invalid version ${version}. Version must be one of: ${versions.join(', ')}`
     log(`[ERROR] ${msg}`)

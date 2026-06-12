@@ -1,5 +1,5 @@
 import { mkLog } from '$util/Logger'
-import { versions } from '$util/versions'
+import { listVersions } from '$util/versions'
 
 export const HandleInstanceCreate = (c: echo.Context) => {
   const dao = $app.dao()
@@ -15,7 +15,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   log(`TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
-    version: versions[0],
+    version: listVersions()[0],
     region: 'sfo-2',
   }) as { subdomain?: string; version?: string; region?: string }
 

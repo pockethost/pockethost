@@ -1,4 +1,4 @@
-import { versions } from '$util/versions'
+import { listVersions } from '$util/versions'
 import { error } from '../error'
 
 export const HandleSignupConfirm = (c: echo.Context) => {
@@ -16,7 +16,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
   const password = parsed.password?.trim()
   const desiredInstanceName = parsed.instanceName?.trim()
   const region = parsed.region?.trim()
-  const version = parsed.version?.trim() || versions[0]
+  const version = parsed.version?.trim() || listVersions()[0]
 
   if (!email) {
     throw error(`email`, 'required', 'Email is required')

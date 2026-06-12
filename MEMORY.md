@@ -47,7 +47,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 
-Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`.
+Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`).
 
 ## Services (factory pattern)
 
@@ -71,7 +71,7 @@ SvelteKit + Vite + Tailwind/DaisyUI. Static adapter; deploy via Wrangler Pages (
 
 ## PocketBase versions
 
-Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Version list maintained in `mothership-app/pb_hooks/versions.cjs`; refresh via `pocketbase update-versions` / `freshenPocketbaseVersions`.
+Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
 
 ## Dev workflow
 

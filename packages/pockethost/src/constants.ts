@@ -34,7 +34,7 @@ export const _SSL_HOME = join(_PH_HOME, `ssl`)
 export const _IS_DEV = process.env.NODE_ENV === 'development'
 export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env.get('APEX_DOMAIN').default('pockethost.lvh.me').asString()
-export const _HTTP_PROTOCOL = env.get('HTTP_PROTOCOL').default('https:').asString()
+export const _HTTP_PROTOCOL = env.get('HTTP_PROTOCOL').default(_IS_DEV ? 'http:' : 'https:').asString()
 export const _MOTHERSHIP_NAME = env.get('MOTHERSHIP_NAME').default('pockethost-central').asString()
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
@@ -54,7 +54,7 @@ const createDevCert = async () => {
 
 export const createSettings = () => ({
   DEBUG: mkBoolean(_DEBUG),
-  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<=0.23.*`),
+  PH_ALLOWED_POCKETBASE_SEMVER: mkString(`<1.0.0`),
 
   PH_HOME: mkPath(_PH_HOME, { create: true }),
   PH_PROJECT_ROOT: mkPath(PH_PROJECT_ROOT()),
@@ -114,8 +114,9 @@ export const createSettings = () => ({
   SYSLOGD_PORT: mkNumber(6514),
 
   DOCKER_CONTAINER_HOST: mkString(`host.docker.internal`),
+  DOCKER_INSTANCE_IMAGE_NAME: mkString(`benallfree/pockethost-instance`),
 
-  PH_GOBOT_ROOT: mkPath(join(_PH_HOME, 'gobot'), { create: true }),
+  PH_POCKETBASE_ROOT: mkPath(join(_PH_HOME, 'pocketbase'), { create: true }),
 
   VOLUME_MOUNT_POINT: mkPath(join(_DATA_ROOT, 'cloud-storage-mount'), {
     create: true,
@@ -187,6 +188,7 @@ export const MOTHERSHIP_HOOKS_DIR = (...paths: string[]) => join(settings().MOTH
 export const MOTHERSHIP_APP_DIR = () => settings().MOTHERSHIP_APP_DIR
 export const MOTHERSHIP_SEMVER = () => settings().MOTHERSHIP_SEMVER
 export const MOTHERSHIP_PORT = () => env.get('MOTHERSHIP_PORT').default(8090).asPortNumber()
+export const MOTHERSHIP_CONTAINER_NAME = 'pockethost-mothership'
 
 export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
 export const DATA_ROOT = (...paths: string[]) => join(settings().DATA_ROOT, ...paths)
@@ -226,12 +228,11 @@ export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
 export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
 
 export const DOCKER_CONTAINER_HOST = () => settings().DOCKER_CONTAINER_HOST
+export const DOCKER_INSTANCE_IMAGE_NAME = () => settings().DOCKER_INSTANCE_IMAGE_NAME
 
-export const PH_GOBOT_ROOT = (...paths: string[]) => join(settings().PH_GOBOT_ROOT, ...paths)
+export const PH_POCKETBASE_ROOT = (...paths: string[]) => join(settings().PH_POCKETBASE_ROOT, ...paths)
 
 export const PH_MOTHERSHIP_MIRROR_PORT = () => env.get('PH_EDGE_MIRROR_PORT').default(3001).asPortNumber()
-
-export const PH_GOBOT_VERBOSITY = () => env.get(`PH_GOBOT_VERBOSITY`).default(1).asIntPositive()
 
 export const VOLUME_MOUNT_POINT = () => settings().VOLUME_MOUNT_POINT
 export const VOLUME_CACHE_DIR = () => settings().VOLUME_CACHE_DIR
@@ -306,12 +307,12 @@ export const logConstants = () => {
     LS_WEBHOOK_SECRET,
     SYSLOGD_PORT,
     DOCKER_CONTAINER_HOST,
-    PH_GOBOT_ROOT,
+    DOCKER_INSTANCE_IMAGE_NAME,
+    PH_POCKETBASE_ROOT,
     PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
     MOTHERSHIP_DATA_ROOT,
     MOTHERSHIP_DATA_DB,
     PH_MOTHERSHIP_MIRROR_PORT,
-    PH_GOBOT_VERBOSITY,
     VOLUME_MOUNT_POINT,
     VOLUME_CACHE_DIR,
     VOLUME_REMOTE_NAME,

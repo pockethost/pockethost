@@ -1,9 +1,9 @@
 import {
   APEX_DOMAIN,
-  GobotService,
   InstanceLogWriter,
   Logger,
   LoggerService,
+  PocketBaseBinaryService,
   SingletonBaseConfig,
   asyncExitHook,
   createCleanupManager,
@@ -13,6 +13,7 @@ import {
   mkSingleton,
   PH_CONTAINER_LAUNCH_WARN_MS,
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
+  DOCKER_INSTANCE_IMAGE_NAME,
 } from '@'
 import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
@@ -48,16 +49,12 @@ export type PocketbaseProcess = {
   started: () => boolean
 }
 
-export const DOCKER_INSTANCE_IMAGE_NAME = `benallfree/pockethost-instance`
-
 export const createPocketbaseService = async (config: PocketbaseServiceConfig) => {
   const _serviceLogger = (config.logger ?? LoggerService()).create('PocketbaseService')
   const { dbg, error, warn, abort } = _serviceLogger
 
-  const { gobot } = GobotService()
-  const bot = await gobot(`pocketbase`, { os: 'linux' })
-  console.log(await bot.versions())
-  const maxVersion = (await bot.versions())[0]
+  const pb = PocketBaseBinaryService()
+  const maxVersion = pb.versions()[0]
   if (!maxVersion) {
     throw new Error(`No max version found for PocketBase`)
   }
@@ -85,11 +82,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     const iLogger = InstanceLogWriter(instanceId, volume, 'exec', logger)
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
-    const realVersion = await bot.maxSatisfyingVersion(_version)
+    const realVersion = pb.maxSatisfyingVersion(_version)
     if (!realVersion) {
       throw new Error(`No PocketBase version satisfying ${_version}`)
     }
-    const binPath = await bot.getBinaryFilePath(realVersion)
+    const binPath = pb.getBinaryPath(realVersion)
     if (!existsSync(binPath)) {
       throw new Error(`PocketBase binary (${binPath}) not found. Contact pockethost.io.`)
     }
@@ -131,7 +128,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
       }
 
       const createOptions: ContainerCreateOptions = {
-        Image: DOCKER_INSTANCE_IMAGE_NAME,
+        Image: DOCKER_INSTANCE_IMAGE_NAME(),
         Env: map(
           {
             ...env,
@@ -175,7 +172,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
       const emitter = docker
         .run(
-          DOCKER_INSTANCE_IMAGE_NAME,
+          DOCKER_INSTANCE_IMAGE_NAME(),
           [''], // Supplied by createOptions
           [stdout, stderr],
           createOptions,
