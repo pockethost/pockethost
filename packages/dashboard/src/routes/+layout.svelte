@@ -11,6 +11,7 @@
   import GdprBanner from '@beyonk/gdpr-cookie-consent-banner'
   import PromoBanner from './PromoBanner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
+  import { cloudLogo } from '$lib/brand'
 
   const currentYear = new Date().getFullYear()
 
@@ -37,7 +38,7 @@
     <div class=" flex justify-between items-center">
       <div class="">
         <a href="/" rel="noreferrer">
-          <img src="/pockethost-cloud-logo.png" alt="Pockethost Logo" class="h-28 md:h-36 w-auto" />
+          <img src={cloudLogo} alt="Pockethost Logo" class="h-28 md:h-36 w-auto" />
         </a>
         <div class="flex items-center gap-4 md:gap-6">
           <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank">

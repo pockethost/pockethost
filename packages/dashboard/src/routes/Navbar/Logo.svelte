@@ -1,5 +1,5 @@
 <script>
-  import logo from './pockethost-cloud-logo.png'
+  import { cloudLogo as logo } from '$lib/brand'
 
   export let hideLogoText = false
   export let className = ""
