@@ -19,7 +19,7 @@ function routeUrlBase(filePath) {
 /** Rewrite co-located markdown images to /generated/... for static deploy. */
 export function remarkRouteImages() {
   return (tree, file) => {
-    const filePath = file.path || file.history?.[0]
+    const filePath = file.filename || file.path || file.history?.[0]
     const urlBase = filePath ? routeUrlBase(filePath) : null
     if (!urlBase) return
 
@@ -34,7 +34,7 @@ export function remarkRouteImages() {
 /** Rehype pass for img[src] after markdown → HTML (used by mdsvex +page.md pipeline). */
 export function rehypeRouteImages() {
   return (tree, file) => {
-    const filePath = file.path || file.history?.[0]
+    const filePath = file.filename || file.path || file.history?.[0]
     const urlBase = filePath ? routeUrlBase(filePath) : null
     if (!urlBase) return
 
