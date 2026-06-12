@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { faStar } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
-
   const testimonials = [
     {
       name: 'Riddge Mussington',
@@ -47,16 +44,16 @@
   ]
 </script>
 
-<div class="flex flex-col items-center gap-12 mb-20 px-4 py-12 ">
-  <h2 class="text-4xl font-bold text-center text-gray-900 dark:text-white tracking-tight">
-    What Our Users Say
-  </h2>
+<div class="flex flex-col items-center gap-12 mb-20 px-4 py-12">
+  <h2 class="text-4xl font-bold text-center text-gray-900 dark:text-white tracking-tight">What Our Users Say</h2>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
     {#each testimonials as testimonial}
-      <div class=" dark:text-gray-100 rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-white/10 dark:border-gray-700">
+      <div
+        class="dark:text-gray-100 rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-white/10 dark:border-gray-700"
+      >
         <div class="flex items-center gap-1 mb-4">
           {#each Array(5) as _}
-            <Fa icon={faStar} class="text-yellow-400 w-5 h-5" />
+            <wa-icon name="star" class="text-yellow-400 w-5 h-5"></wa-icon>
           {/each}
         </div>
         {#if testimonial.quote}
@@ -75,6 +72,6 @@
 
 <style>
   .grid > div {
-    min-height: 160px; /* Ensures consistent card height */
+    min-height: 160px;
   }
 </style>

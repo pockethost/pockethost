@@ -1,29 +1,31 @@
 <script lang="ts">
-  export let checked = false
-  export let onClass = 'success'
-  export let offClass = 'red-500'
-  export let onText = 'ON'
-  export let offText = 'OFF'
-  export let onChange = (isChecked: boolean) => {}
+  interface Props {
+    checked?: boolean
+    onClass?: string
+    offClass?: string
+    onText?: string
+    offText?: string
+    onChange?: (isChecked: boolean) => void
+  }
+
+  let {
+    checked = $bindable(false),
+    onClass = 'text-green-500',
+    offClass = 'text-red-500',
+    onText = 'ON',
+    offText = 'OFF',
+    onChange = () => {},
+  }: Props = $props()
 
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement
-    const isChecked = target.checked
-    e.preventDefault()
-    onChange(isChecked)
+    onChange(target.checked)
   }
 </script>
 
-<div class="form-control w-fit">
-  <label class="label cursor-pointer">
-    <span class="label-text text-sm md:text-lg mr-2">
-      <span class="font-bold text-{checked ? onClass : offClass}">{checked ? onText : offText}</span></span
-    >
-    <input
-      type="checkbox"
-      class="toggle border-white/20 bg-{checked ? onClass : offClass} hover:bg-{checked ? onClass : offClass}"
-      {checked}
-      on:change={handleChange}
-    />
-  </label>
+<div class="flex items-center gap-2 w-fit">
+  <span class="text-sm md:text-lg font-bold {checked ? onClass : offClass}">
+    {checked ? onText : offText}
+  </span>
+  <wa-switch checked={checked} onchange={handleChange}></wa-switch>
 </div>

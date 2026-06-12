@@ -84,8 +84,8 @@
 
   <ErrorMessage message={errorMessage} />
 
-  <form class="flex change-version-form-container-query gap-4" on:submit={handleSave}>
-    <button type="submit" class="btn btn-error" disabled={power || isButtonDisabled}>Delete Instance</button>
+  <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
+    <wa-button type="submit" variant="danger" disabled={power || isButtonDisabled}>Delete Instance</wa-button>
   </form>
 </div>
 

@@ -1,10 +1,8 @@
 <script lang="ts">
-  import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
   import FeatureIcon from './FeatureIcon.svelte'
   import PrimaryButton from './PrimaryButton.svelte'
-  import { faArrowRight } from '@fortawesome/free-solid-svg-icons'
 
-  export let icon: IconDefinition
+  export let icon: string
   export let title
   export let tagline
   export let content
@@ -23,5 +21,5 @@
 
   <p class="mb-12">{content}</p>
 
-  <PrimaryButton text={linkText} url={linkURL} icon={faArrowRight} />
+  <PrimaryButton text={linkText} url={linkURL} icon="arrow-right" />
 </div>

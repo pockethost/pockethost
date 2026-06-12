@@ -17,7 +17,7 @@
       </div>
       {#if feature.img}
         <div class="h-full mt-4 md:mt-0">
-          <enhanced:img src={feature.img} class="rounded-lg border h-full object-contain" />
+          <img src={feature.img} alt="" class="rounded-lg border h-full max-h-48 object-contain" />
         </div>
       {/if}
     </div>

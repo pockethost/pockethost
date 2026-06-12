@@ -1,10 +1,8 @@
 <script lang="ts">
   import { slide } from 'svelte/transition'
-  import { isUserLoggedIn, isUserVerified } from '$util/stores'
+  import { isUserVerified } from '$util/stores'
   import { client } from '$src/pocketbase-client'
   import UserLoggedIn from './guards/UserLoggedIn.svelte'
-  import { faCheck, faEnvelopeSquare } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
 
   const { resendVerificationEmail } = client()
 
@@ -12,7 +10,6 @@
   let formError: string = ''
 
   const handleClick = async () => {
-    // Update the state
     isButtonProcessing = true
 
     try {
@@ -22,7 +19,6 @@
       formError = `Something went wrong with sending the verification email. ${e.message}`
     }
 
-    // Wait a bit after the success before showing the button again
     setTimeout(() => {
       isButtonProcessing = false
     }, 5000)
@@ -31,29 +27,32 @@
 
 <UserLoggedIn>
   {#if !$isUserVerified}
-    <div class="alert alert-info p-4 rounded-md flex flex-col md:flex-row justify-between">
-      <div class="flex gap-4 items-center text-start">
+    <wa-callout variant="brand" class="p-4">
+      <wa-icon slot="icon" name="envelope"></wa-icon>
+      <div class="flex flex-col md:flex-row justify-between gap-4 w-full">
+        <div class="flex gap-4 items-center text-start">
+          <div>Please verify your account by clicking the link in your email</div>
+        </div>
 
-        <Fa icon={faEnvelopeSquare} class="text-2xl" />
-        
-        <div>Please verify your account by clicking the link in your email</div>
+        <div class="text-right w-full md:w-auto">
+          {#if isButtonProcessing}
+            <wa-button variant="success" size="small" disabled>
+              <wa-icon slot="start" name="check"></wa-icon>
+              Sent!
+            </wa-button>
+          {:else}
+            <wa-button type="button" variant="neutral" size="small" appearance="outline" class="w-full" onclick={handleClick}>
+              Resend Email
+            </wa-button>
+          {/if}
+
+          {#if formError}
+            <div transition:slide class="border-top text-center mt-2 pt-2">
+              {formError}
+            </div>
+          {/if}
+        </div>
       </div>
-
-      <div class="text-right w-full md:w-auto">
-        {#if isButtonProcessing}
-          <div class="btn btn-success btn-sm">
-            <Fa icon={faCheck} class="text-xl"/> Sent!
-          </div>
-        {:else}
-          <button type="button" class="btn btn-outline-secondary btn-sm w-full" on:click={handleClick}>Resend Email</button>
-        {/if}
-
-        {#if formError}
-          <div transition:slide class="border-top text-center mt-2 pt-2">
-            {formError}
-          </div>
-        {/if}
-      </div>
-    </div>
+    </wa-callout>
   {/if}
 </UserLoggedIn>

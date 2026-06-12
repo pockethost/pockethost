@@ -5,8 +5,6 @@
   import Form from './Form.svelte'
   import List from './List.svelte'
   import { items } from './stores'
-  import Fa from 'svelte-fa'
-  import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
 
   $: {
     const { id, secrets } = $instance
@@ -31,7 +29,6 @@
   any <code>pb_hooks</code> you have created.
 </div>
 
-<!-- If the user has any secrets, render them in a code block -->
 {#if $items.length > 0}
   <div class="mb-8">
     <CodeSample {code} />
@@ -39,10 +36,10 @@
 {/if}
 
 {#if $items.length === 0}
-  <div class="alert border-2 border-primary mb-8">
-    <Fa icon={faUserSecret} />
+  <wa-callout variant="brand" class="border-2 border-primary mb-8">
+    <wa-icon slot="icon" name="user-secret"></wa-icon>
     <span>No secrets yet. Create your first secret to get started.</span>
-  </div>
+  </wa-callout>
 {:else}
   <List />
 {/if}

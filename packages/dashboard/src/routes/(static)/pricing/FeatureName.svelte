@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { faInfo } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
   import { writable } from 'svelte/store'
 
   export let item: any
@@ -12,16 +10,16 @@
   }
 </script>
 
-<td class={` py-3 pr-4 text-left text-neutral-content leading-6`}>
-  <div class="">
+<td class="py-3 pr-4 text-left text-neutral-content leading-6">
+  <div>
     <span class="flex-shrink-0">{item.name}</span>
     {#if item.isNew}
-      <span class="badge badge-primary ml-2">new</span>
+      <wa-badge variant="brand" class="ml-2">new</wa-badge>
     {/if}
     {#if item.info}
-      <button class="badge badge-secondary badge-sm ml-2" on:click={handleInfoClick}>
-        <Fa icon={faInfo} />
-      </button>
+      <wa-button variant="neutral" size="small" class="ml-2" onclick={handleInfoClick}>
+        <wa-icon name="circle-info"></wa-icon>
+      </wa-button>
     {/if}
   </div>
 

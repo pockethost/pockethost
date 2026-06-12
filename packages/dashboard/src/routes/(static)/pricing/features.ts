@@ -1,5 +1,5 @@
 import { DISCORD_URL } from '$src/env'
-import regions from './regions.png?enhanced'
+import regions from './regions.png'
 
 export const features = [
    {
@@ -19,7 +19,7 @@ export const features = [
   {
     title: 'Unmetered',
     description:
-      'Enjoy unmetered bandwidth, storage, and computational resources under our <a href="/docs/pricing-ethos" class="link">fair use policy</a>.',
+      'Enjoy unmetered bandwidth, storage, and computational resources under our <a href="/docs/pricing-ethos" class="text-primary">fair use policy</a>.',
   },
 
   {
@@ -37,11 +37,11 @@ export const features = [
 
   {
     title: 'Community',
-    description: `Access to <a href="${DISCORD_URL}" class="link">Discord</a> with over 1,500 developers and technical resources.`,
+    description: `Access to <a href="${DISCORD_URL}" class="text-primary">Discord</a> with over 1,500 developers and technical resources.`,
   },
   {
     title: 'Priority Support',
-    description: `Access to private support channels on <a href="${DISCORD_URL}" class="link">Discord</a>.`,
+    description: `Access to private support channels on <a href="${DISCORD_URL}" class="text-primary">Discord</a>.`,
   },
   {
     title: 'Custom Domain',
@@ -53,7 +53,7 @@ export const features = [
   },
   {
     title: 'Early Access',
-    description: `Get your hands on our experimental <a href="/blog/announcing-pocker" class="link">Pocker</a> tech before anyone else. Help us push the boundaries of what's possible.`,
+    description: `Get your hands on our experimental <a href="/blog/announcing-pocker" class="text-primary">Pocker</a> tech before anyone else. Help us push the boundaries of what's possible.`,
   },
   {
     title: 'Reliable',

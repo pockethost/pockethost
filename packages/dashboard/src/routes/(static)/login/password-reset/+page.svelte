@@ -1,7 +1,6 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
-  import BlurBg from '$components/BlurBg.svelte'
 
   const { requestPasswordReset } = client()
 
@@ -34,10 +33,9 @@
   <title>Password Reset - PocketHost</title>
 </svelte:head>
 
-<BlurBg />
-<div class=" w-full flex items-center justify-center px-4 md:px-16 h-[70vh]">
-  <div class="card w-[100%]  lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
-    <div class="card-body">
+<div class="w-full flex items-center justify-center px-4 md:px-16 h-[70vh]">
+  <wa-card class="w-[100%] lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
+    <div class="p-6">
       {#if userShouldCheckTheirEmail}
         <div class="text-center">
           <h2 class="mb-4">Check Your Email</h2>
@@ -46,35 +44,37 @@
           </p>
 
           <div class="display-1">
-            <i class="bi bi-envelope-check" />
+            <i class="bi bi-envelope-check"></i>
           </div>
         </div>
       {:else}
-        <h2 class="card-title mb-4">Password Reset</h2>
+        <h2 class="text-xl font-bold mb-4">Password Reset</h2>
 
-        <form on:submit={handleSubmit}>
-          <div class="form-control w-full ">
-            <label class="label" for="email">Email address</label>
-            <input
+        <form onsubmit={handleSubmit}>
+          <div class="w-full mb-4">
+            <label class="block mb-1" for="email">Email address</label>
+            <wa-input
               type="email"
-              class="input input-bordered w-full"
               id="email"
               placeholder="name@example.com"
-              bind:value={email}
+              value={email}
+              oninput={(e) => (email = e.currentTarget.value)}
               required
               autocomplete="email"
-            />
+              class="w-full"
+            ></wa-input>
           </div>
 
           <AlertBar message={formError} type="error" />
 
-          <div class="mt-6 card-actions justify-end">
-            <button type="submit" class="btn bg-primary hover:bg-light w-full" disabled={isFormButtonDisabled}>
-              Reset Password <i class="bi bi-arrow-right-short" />
-            </button>
+          <div class="mt-6 flex justify-end">
+            <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
+              Reset Password
+              <wa-icon slot="end" name="arrow-right"></wa-icon>
+            </wa-button>
           </div>
         </form>
       {/if}
     </div>
-  </div>
+  </wa-card>
 </div>

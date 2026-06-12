@@ -5,25 +5,17 @@
   import { SECRET_KEY_REGEX, type UpdateInstancePayload } from 'pockethost/common'
   import { instance } from '../store.js'
   import { items } from './stores.js'
-  import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
 
-  // Keep track of the new key and value to be added
   let secretKey: string = ''
   let secretValue: string = ''
 
-  // These will validate the key and value before being submitted
   let isKeyValid = false
   let isValueValid = false
   let isFormValid = false
 
-  // This will animate a success message when the key is saved
   let successfulSave = false
-
-  // Keep track of any error message
   let errorMessage: string = ''
 
-  // Watch for changes in real time and update the key and value as the user types them
   $: {
     secretKey = secretKey.toUpperCase()
     secretValue = secretValue.trim()
@@ -32,18 +24,13 @@
     isFormValid = isKeyValid && isValueValid
   }
 
-  // Submit the form to create the new environment variable
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
-
-    // Reset any messaging
     errorMessage = ''
 
     try {
-      // Block the button from submitting more than once
       isFormValid = false
 
-      // Save to the database
       items.upsert({ name: secretKey, value: secretValue })
       await client().updateInstance({
         id: $instance.id,
@@ -60,17 +47,11 @@
         },
       })
 
-      // Reset the values when the POST is done
       secretKey = ''
       secretValue = ''
-
-      // Enable the submit button
       isFormValid = true
-
-      // Show the success message
       successfulSave = true
 
-      // Remove the success toast after a few seconds
       setTimeout(() => {
         successfulSave = false
       }, 5000)
@@ -89,18 +70,19 @@
 
   <AlertBar message={errorMessage} type="error" />
 
-  <form on:submit={handleSubmit} class="mb-4">
+  <form onsubmit={handleSubmit} class="mb-4">
     <div class="flex flex-row gap-1 mb-4">
-      <label class="flex-1 form-control w-2/5">
-        <input
+      <label class="flex-1 w-2/5">
+        <wa-input
           id="secret-key"
           type="text"
-          bind:value={secretKey}
+          value={secretKey}
+          oninput={(e) => (secretKey = e.currentTarget.value)}
           placeholder="Key"
-          class={`input input-bordered ${!isKeyValid && secretKey.length > 0 ? 'input-error text-error' : ''}`}
-        />
+          class={!isKeyValid && secretKey.length > 0 ? 'border-error' : ''}
+        ></wa-input>
         {#if !isKeyValid && secretKey.length > 0}
-          <div class="label">
+          <div class="mt-1">
             <span class="text-error">
               All key names must be upper case, alphanumeric, and may include underscore (_).
             </span>
@@ -108,28 +90,22 @@
         {/if}
       </label>
 
-      <div class="flex-1 form-control w-2/5">
-        <input
+      <div class="flex-1 w-2/5">
+        <wa-input
           id="secret-value"
           type="text"
-          bind:value={secretValue}
+          value={secretValue}
+          oninput={(e) => (secretValue = e.currentTarget.value)}
           placeholder="Value"
-          class="input input-bordered"
-        />
+        ></wa-input>
       </div>
 
       <div class="flex-none text-right w-1/5 md:w-auto">
-        <button type="submit" class="btn btn-primary px-2.5 md:px-3" disabled={!isFormValid}>
-          Add <Fa icon={faFloppyDisk} />
-        </button>
+        <wa-button type="submit" variant="brand" class="px-2.5 md:px-3" disabled={!isFormValid}>
+          Add
+          <wa-icon slot="end" name="floppy-disk"></wa-icon>
+        </wa-button>
       </div>
     </div>
-
-    <!-- {#if !isKeyValid && secretKey.length > 0}
-      <AlertBar
-        message="All key names must be upper case, alphanumeric, and may include underscore (_)."
-        type="error"
-      />
-    {/if} -->
   </form>
 </div>

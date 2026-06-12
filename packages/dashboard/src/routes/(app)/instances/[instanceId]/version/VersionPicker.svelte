@@ -1,25 +1,30 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
 
-  // Props definition with default value if needed
   export let versions: string[]
   export let selectedVersion: string = ''
   export let disabled: boolean = false
 
-  // Emit an update when the selection changes
+  const dispatch = createEventDispatcher()
+
   function handleSelect(event: Event) {
     const detail = (event.target as HTMLSelectElement).value
-    selectedVersion = detail // Update the local selected version
+    selectedVersion = detail
     dispatch('change', detail)
   }
-
-  // Create a dispatcher for custom events
-  const dispatch = createEventDispatcher()
 </script>
 
-<select class="select select-bordered w-full" bind:value={selectedVersion} on:change={handleSelect} {disabled}>
-  <option value="" disabled>Select a version</option>
+<wa-select
+  class="w-full"
+  value={selectedVersion}
+  oninput={(e) => {
+    selectedVersion = (e.target as HTMLSelectElement).value
+    handleSelect(e)
+  }}
+  {disabled}
+>
+  <wa-option value="" disabled>Select a version</wa-option>
   {#each versions as version}
-    <option value={version}>{version}</option>
+    <wa-option value={version}>{version}</wa-option>
   {/each}
-</select>
+</wa-select>

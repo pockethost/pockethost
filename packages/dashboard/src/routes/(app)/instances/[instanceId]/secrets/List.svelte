@@ -5,8 +5,6 @@
   import { instance } from '../store'
   import { reduce } from '@s-libs/micro-dash'
   import { logger, type UpdateInstancePayload } from 'pockethost/common'
-  import Fa from 'svelte-fa'
-  import { faTrash } from '@fortawesome/free-solid-svg-icons'
 
   const handleDelete = (name: string) => async (e: Event) => {
     e.preventDefault()
@@ -46,17 +44,18 @@
           {item.value.slice(0, 2) + item.value.slice(2).replaceAll(/./g, '*')}
         </td>
         <td class="text-right">
-          <button
+          <wa-button
             aria-label="Delete"
-            on:click={handleDelete(item.name)}
+            onclick={handleDelete(item.name)}
             type="button"
-            class="btn btn-sm btn-square btn-outline btn-warning"
+            variant="warning"
+            size="small"
+            appearance="outline"
           >
-            <Fa icon={faTrash} />
-          </button>
+            <wa-icon name="trash"></wa-icon>
+          </wa-button>
         </td>
       </tr>
     {/each}
   </tbody>
 </table>
-

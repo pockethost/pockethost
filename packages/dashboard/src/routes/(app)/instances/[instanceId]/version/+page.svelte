@@ -85,7 +85,7 @@
   <div class="mb-8">
     We recommend you <strong>do a full backup</strong>
     before making a change. We support the latest patch of
-    <a href="https://github.com/pocketbase/pocketbase/releases" class="link">every minor release</a> of PocketBase.
+    <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase.
   </div>
 
   {#if !is23OrHigher}
@@ -107,7 +107,7 @@
             <td
               >Create a new v0.23.* instance and follow the <a
                 href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-                class="link">manual upgrade process</a
+                class="text-primary">manual upgrade process</a
               >.</td
             >
           </tr>
@@ -117,7 +117,7 @@
             <td
               >Create a new &lt;=v0.22.* instance and migrate your data manually. Refer to the <a
                 href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-                class="link">v0.23.* manual upgrade process</a
+                class="text-primary">v0.23.* manual upgrade process</a
               > and attempt to reverse it.</td
             >
           </tr>
@@ -129,10 +129,10 @@
   <AlertBar message={successMessage} type="success" flash />
   <AlertBar message={errorMessage} type="error" />
 
-  <form class="flex change-version-form-container-query gap-4" on:submit={handleSave}>
+  <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
     <VersionPicker bind:selectedVersion bind:versions />
 
-    <button type="submit" class="btn btn-error" disabled={power || isButtonDisabled}>Change Version</button>
+    <wa-button type="submit" variant="danger" disabled={power || isButtonDisabled}>Change Version</wa-button>
   </form>
 </div>
 
