@@ -1,5 +1,4 @@
 import { Logger, LoggerService } from '@'
-import fetch, { Response } from 'node-fetch'
 
 export const TRYFETCH_RETRY_MS = 50
 export const TRYFETCH_TIMEOUT_MS = 500

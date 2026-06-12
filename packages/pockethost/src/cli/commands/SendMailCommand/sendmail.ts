@@ -1,6 +1,6 @@
 import { PocketBase, UserFields, logger } from '@'
 import { map } from '@s-libs/micro-dash'
-import Database from 'better-sqlite3'
+import { Database } from 'bun:sqlite'
 import Bottleneck from 'bottleneck'
 import { Command, InvalidArgumentError } from 'commander'
 import {
@@ -59,7 +59,7 @@ export const SendMailCommand = () =>
       }
       await Promise.all(
         map(campaign.vars, async (sql, k) => {
-          const result = db.prepare(sql).get() as { value: string }
+          const result = db.query(sql).get() as { value: string }
           vars[k.toLocaleLowerCase()] = result.value
         })
       )
@@ -74,7 +74,7 @@ export const SendMailCommand = () =>
     WHERE sm.id IS NULL;
      `
       dbg(sql)
-      const users = db.prepare(sql).all().slice(0, limit) as UserFields[]
+      const users = db.query(sql).all().slice(0, limit) as UserFields[]
 
       // dbg({ users })
 

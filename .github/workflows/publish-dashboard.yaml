@@ -6,14 +6,14 @@ on:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
       - package.json
-      - pnpm-lock.yaml
+      - bun.lock
   pull_request_target:
     types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
       - package.json
-      - pnpm-lock.yaml
+      - bun.lock
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
@@ -39,22 +39,14 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           persist-credentials: false
 
-      - name: pnpm
-        uses: pnpm/action-setup@v3.0.0
-        with:
-          version: 10.12.4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'pnpm'
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Prepare build
         run: |
-          pnpm i
+          bun ci
           cd packages/dashboard
-          pnpm build
+          bun run build
 
       - name: Expose git commit data
         uses: rlespinasse/git-commit-data-action@v1.5.0

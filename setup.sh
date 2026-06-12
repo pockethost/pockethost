@@ -59,15 +59,22 @@ su - pockethost -c "ssh-keyscan github.com >> ~/.ssh/known_hosts"
 # As pockethost user
 #####
 
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-git clone git@github.com:pockethost/pockethost.git
-cd pockethost
-nvm install
-npm i -g pnpm pm2
+su - pockethost <<'EOF'
+set -e
+
+curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"
+
+git clone git@github.com:pockethost/pockethost.git ~/pockethost
+cd ~/pockethost
+
+bun install -g pm2
+bun install
+
 pm2 install pm2-logrotate
 pm2 set pm2-logrotate:max_size 10M
 pm2 set pm2-logrotate:retain 7
 pm2 set pm2-logrotate:compress true
 pm2 set pm2-logrotate:workerInterval 30
 pm2 set pm2-logrotate:rotateInterval '0 0 * * *'
-pnpm i
+EOF

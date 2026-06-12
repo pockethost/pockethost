@@ -1,8 +1,7 @@
-#!/usr/bin/env -S tsx
+#!/usr/bin/env bun
 
 import { LogLevelName, gracefulExit, logger } from '@'
 import { program } from 'commander'
-import { EventSource } from 'eventsource'
 import { version } from '../../package.json'
 import { EdgeCommand } from './commands/EdgeCommand'
 import { FirewallCommand } from './commands/FirewallCommand'
@@ -17,9 +16,6 @@ export type GlobalOptions = {
   logLevel?: LogLevelName
   debug: boolean
 }
-
-//@ts-ignore
-global.EventSource = EventSource
 
 export const main = async () => {
   await initIoc()

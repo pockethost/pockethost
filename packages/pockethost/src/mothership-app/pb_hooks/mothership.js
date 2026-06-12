@@ -1,3 +1,4 @@
+Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
 //#region src/lib/util/Logger.ts
 const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
@@ -54,8 +55,7 @@ const HandleInstanceCreate = (c) => {
 	record.set("version", version);
 	record.set("dev", true);
 	record.set("syncAdmin", true);
-	const form = new RecordUpsertForm($app, record);
-	form.submit();
+	new RecordUpsertForm($app, record).submit();
 	return c.json(200, { instance: record });
 };
 
@@ -80,8 +80,7 @@ const HandleInstanceDelete = (c) => {
 	if (record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be shut down first.`);
 	const path = [$os.getenv("DATA_ROOT"), id].join("/");
 	log(`path ${path}`);
-	const res = $os.removeAll(path);
-	log(`res`, res);
+	log(`res`, $os.removeAll(path));
 	dao.deleteRecord(record);
 	return c.json(200, { status: "ok" });
 };
@@ -89,7 +88,7 @@ const HandleInstanceDelete = (c) => {
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceResolve.ts
 const HandleInstanceResolve = (c) => {
-	const dao = $app.dao();
+	$app.dao();
 	const log = mkLog(`GET:instance/resolve`);
 	log(`TOP OF GET`);
 	const host = c.queryParam("host");
@@ -97,8 +96,7 @@ const HandleInstanceResolve = (c) => {
 	const instance = (() => {
 		try {
 			log(`Checking for cname ${host}`);
-			const record = $app.dao().findFirstRecordByData("instances", "cname", host);
-			return record;
+			return $app.dao().findFirstRecordByData("instances", "cname", host);
 		} catch (e) {
 			log(`${host} is not a cname`);
 		}
@@ -106,15 +104,13 @@ const HandleInstanceResolve = (c) => {
 		if (!subdomain) throw new BadRequestError(`Subdomain or instance ID is required when resolving an instance without a cname.`);
 		try {
 			log(`Checking for instance ID ${subdomain}`);
-			const record = $app.dao().findRecordById("instances", subdomain);
-			return record;
+			return $app.dao().findRecordById("instances", subdomain);
 		} catch (e) {
 			log(`${subdomain} is not an instance ID`);
 		}
 		try {
 			log(`Checking for subdomain ${subdomain}`);
-			const record = $app.dao().findFirstRecordByData("instances", `subdomain`, subdomain);
-			return record;
+			return $app.dao().findFirstRecordByData("instances", `subdomain`, subdomain);
 		} catch (e) {
 			log(`${subdomain} is not a subdomain`);
 		}
@@ -131,8 +127,7 @@ const HandleInstanceResolve = (c) => {
 		if (!userId) throw new BadRequestError(`Instance has no user.`);
 		try {
 			log(`Checking for user ${userId}`);
-			const record = $app.dao().findRecordById("users", userId);
-			return record;
+			return $app.dao().findRecordById("users", userId);
 		} catch (e) {
 			log(`User ${userId} not found`);
 		}
@@ -147,11 +142,10 @@ const HandleInstanceResolve = (c) => {
 	const tokenKey = user.getString("tokenKey");
 	const passwordHash = user.getString("passwordHash");
 	const email = user.getString("email");
-	const userJSON = JSON.parse(JSON.stringify(user));
 	const ret = {
 		instance,
 		user: {
-			...userJSON,
+			...JSON.parse(JSON.stringify(user)),
 			tokenKey,
 			passwordHash,
 			email
@@ -162,7 +156,7 @@ const HandleInstanceResolve = (c) => {
 };
 
 //#endregion
-//#region ../../../../node_modules/.pnpm/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
+//#region ../../../../node_modules/.bun/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
 function keysOfNonArray(object) {
 	return object ? Object.getOwnPropertyNames(object) : [];
 }
@@ -194,11 +188,10 @@ function reduce(collection, iteratee, accumulator) {
 //#endregion
 //#region src/lib/util/removeEmptyKeys.ts
 const removeEmptyKeys = (obj) => {
-	const sanitized = reduce(obj, (acc, value, key) => {
+	return reduce(obj, (acc, value, key) => {
 		if (value !== null && value !== void 0) acc[key] = value;
 		return acc;
 	}, {});
-	return sanitized;
 };
 
 //#endregion
@@ -226,8 +219,8 @@ const callCloudflareAPI = (endpoint, method, body, log) => {
 		const response = $http.send(config);
 		if (log) log(`Cloudflare API response:`, response);
 		return response;
-	} catch (error$1) {
-		if (log) log(`Cloudflare API error:`, error$1);
+	} catch (error) {
+		if (log) log(`Cloudflare API error:`, error);
 		return null;
 	}
 };
@@ -280,11 +273,9 @@ const HandleInstanceUpdate = (c) => {
 	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
 	const oldCname = record.getString("cname").trim();
 	const newCname = cname ? cname.trim() : "";
-	const cnameChanged = oldCname !== newCname;
-	if (cnameChanged && newCname) {
+	if (oldCname !== newCname && newCname) {
 		log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`);
-		const createResponse = createCloudflareCustomHostname(newCname, log);
-		if (createResponse) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
+		if (createCloudflareCustomHostname(newCname, log)) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
 	}
 	const sanitized = removeEmptyKeys({
 		subdomain,
@@ -305,8 +296,7 @@ const HandleInstanceUpdate = (c) => {
 //#endregion
 //#region src/lib/handlers/instance/bootstrap/HandleInstancesResetIdle.ts
 const HandleInstancesResetIdle = (e) => {
-	const dao = $app.dao();
-	dao.db().newQuery(`update instances set status='idle'`).execute();
+	$app.dao().db().newQuery(`update instances set status='idle'`).execute();
 };
 
 //#endregion
@@ -316,8 +306,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 	const log = mkLog(`bootstrap:migrate-cnames`);
 	log(`Starting cname to domains migration`);
 	try {
-		const domainsCollection = dao.findCollectionByNameOrId("domains");
-		if (!domainsCollection) {
+		if (!dao.findCollectionByNameOrId("domains")) {
 			log(`Domains collection not found, skipping migration`);
 			return;
 		}
@@ -340,10 +329,10 @@ const HandleMigrateCnamesToDomains = (e) => {
 				try {
 					dao.findFirstRecordByFilter("domains", `instance = "${instanceId}" && domain = "${cname}"`);
 					domainExists = true;
-				} catch (e$1) {}
+				} catch (e) {}
 				if (!domainExists) {
-					const domainsCollection$1 = dao.findCollectionByNameOrId("domains");
-					const domainRecord = new Record(domainsCollection$1);
+					const domainsCollection = dao.findCollectionByNameOrId("domains");
+					const domainRecord = new Record(domainsCollection);
 					domainRecord.set("instance", instanceId);
 					domainRecord.set("domain", cname);
 					domainRecord.set("active", instance.getBool("cname_active"));
@@ -351,8 +340,8 @@ const HandleMigrateCnamesToDomains = (e) => {
 					log(`Created domain record for ${cname}`);
 					cnameMigrated++;
 				}
-			} catch (error$1) {
-				log(`Failed to migrate cname for instance ${instance.getId()}:`, error$1);
+			} catch (error) {
+				log(`Failed to migrate cname for instance ${instance.getId()}:`, error);
 			}
 		});
 		log(`Phase 1 complete: migrated ${cnameMigrated} cnames to domains collection`);
@@ -382,13 +371,13 @@ const HandleMigrateCnamesToDomains = (e) => {
 					log(`Updated instance ${instanceId}: added ${missingIds.length} domain IDs to domains array`);
 					instancesUpdated++;
 				}
-			} catch (error$1) {
-				log(`Failed to update domains array for instance ${instanceId}:`, error$1);
+			} catch (error) {
+				log(`Failed to update domains array for instance ${instanceId}:`, error);
 			}
 		});
 		log(`Phase 2 complete: updated domains arrays for ${instancesUpdated} instances`);
-	} catch (error$1) {
-		log(`Error migrating cnames: ${error$1}`);
+	} catch (error) {
+		log(`Error migrating cnames: ${error}`);
 	}
 };
 
@@ -405,12 +394,11 @@ const HandleMigrateInstanceVersions = (e) => {
 		const newVersion = (() => {
 			if (v.startsWith(`~`)) {
 				const [major, minor] = v.slice(1).split(".");
-				const newVersion$1 = [
+				return [
 					major,
 					minor,
 					"*"
 				].join(".");
-				return newVersion$1;
 			} else if (v === `^0` || v === `0` || v === "1") return versions[0];
 			return v;
 		})();
@@ -451,21 +439,20 @@ const mkAudit = (log, dao) => {
 //#region src/lib/handlers/instance/model/AfterCreate_notify_discord.ts
 const AfterCreate_notify_discord = (e) => {
 	const dao = e.dao || $app.dao();
-	const log = mkLog(`instances:create:discord:notify`);
-	const audit = mkAudit(log, dao);
+	const audit = mkAudit(mkLog(`instances:create:discord:notify`), dao);
 	const webhookUrl = process.env.DISCORD_STREAM_CHANNEL_URL;
 	if (!webhookUrl) return;
 	const version = e.model.get("version");
 	try {
-		const res = $http.send({
+		$http.send({
 			url: webhookUrl,
 			method: "POST",
 			body: JSON.stringify({ content: `Someone just created an app running PocketBase v${version}` }),
 			headers: { "content-type": "application/json" },
 			timeout: 5
 		});
-	} catch (e$1) {
-		audit(`ERROR`, `Instance creation discord notify failed with ${e$1}`);
+	} catch (e) {
+		audit(`ERROR`, `Instance creation discord notify failed with ${e}`);
 	}
 };
 
@@ -478,15 +465,14 @@ const BeforeUpdate_cname = (e) => {
 	const newCname = e.model.get("cname").trim();
 	if (newCname.length > 0) {
 		const result = new DynamicModel({ id: "" });
-		const inUse = (() => {
+		if ((() => {
 			try {
 				dao.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result);
-			} catch (e$1) {
+			} catch (e) {
 				return false;
 			}
 			return true;
-		})();
-		if (inUse) {
+		})()) {
 			const msg = `[ERROR] [${id}] Custom domain ${newCname} already in use.`;
 			log(`${msg}`);
 			throw new BadRequestError(msg);
@@ -498,7 +484,7 @@ const BeforeUpdate_cname = (e) => {
 //#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_version.ts
 const BeforeUpdate_version = (e) => {
-	const dao = e.dao || $app.dao();
+	e.dao || $app.dao();
 	const log = mkLog(`BeforeUpdate_version`);
 	const version = e.model.get("version");
 	if (!versions.includes(version)) {
@@ -600,7 +586,7 @@ const HandleLemonSqueezySale = (c) => {
 			}
 		})();
 		log(`user record ok`, userRec);
-		const event_name_map = {
+		const event_handler = {
 			order_created: () => {
 				signup_finalizer();
 			},
@@ -613,11 +599,10 @@ const HandleLemonSqueezySale = (c) => {
 			subscription_payment_refunded: () => {
 				signup_canceller();
 			}
-		};
-		const event_handler = event_name_map[context.event_name];
+		}[context.event_name];
 		if (!event_handler) throw new Error(`Unsupported event: ${context.event_name}`);
 		else log(`event handler ok`, event_handler);
-		const product_handler_map = {
+		const product_handler = {
 			[FOUNDER_ANNUAL_PV_ID]: () => {
 				userRec.set(`subscription`, `founder`);
 				userRec.set(`subscription_interval`, `year`);
@@ -663,8 +648,7 @@ const HandleLemonSqueezySale = (c) => {
 				userRec.set(`subscription_interval`, `life`);
 				userRec.set(`subscription_quantity`, 250);
 			}
-		};
-		const product_handler = product_handler_map[pv_id];
+		}[pv_id];
 		if (!product_handler) throw new Error(`No product handler for ${pv_id}`);
 		else log(`product handler ok`, pv_id);
 		const signup_finalizer = () => {
@@ -728,8 +712,7 @@ const HandleMailSend = (c) => {
 		html: body
 	});
 	$app.newMailClient().send(email);
-	const msg = `Sent to ${to}`;
-	log(msg);
+	log(`Sent to ${to}`);
 	return c.json(200, { status: "ok" });
 };
 
@@ -828,8 +811,7 @@ const mkNotificationProcessor = (log, dao, test = false) => (notificationRec) =>
 					timeout: 5
 				};
 				log(`sending discord message`, params);
-				const res = $http.send(params);
-				log(`discord sent`, res);
+				log(`discord sent`, $http.send(params));
 			}
 			break;
 		default: throw new Error(`Unsupported channel: ${channel}`);
@@ -868,11 +850,10 @@ const HandleProcessNotification = (e) => {
 	log({ notificationRec });
 	try {
 		dao.expandRecord(notificationRec, ["message_template"]);
-		const messageTemplateRec = notificationRec.expandedOne(`message_template`);
-		if (!messageTemplateRec) throw new Error(`Missing message template`);
+		if (!notificationRec.expandedOne(`message_template`)) throw new Error(`Missing message template`);
 		processNotification(notificationRec);
-	} catch (e$1) {
-		audit(`ERROR`, `${e$1}`, { notification: notificationRec.getId() });
+	} catch (e) {
+		audit(`ERROR`, `${e}`, { notification: notificationRec.getId() });
 	}
 };
 
@@ -894,11 +875,10 @@ const HandleUserWelcomeMessage = (e) => {
 		if (!isVerified) return;
 		if (isVerified === oldModel.getBool(`verified`)) return;
 		log(`user just became verified`);
-		const uid = newModel.getId();
-		notify(`email`, `welcome`, uid);
+		notify(`email`, `welcome`, newModel.getId());
 		newModel.set(`welcome`, new DateTime());
-	} catch (e$1) {
-		audit(`ERROR`, `${e$1}`, { user: newModel.getId() });
+	} catch (e) {
+		audit(`ERROR`, `${e}`, { user: newModel.getId() });
 	}
 };
 
@@ -913,7 +893,7 @@ const error = (fieldName, slug, description, extra) => new ApiError(500, descrip
 //#region src/lib/handlers/signup/isAvailable.ts
 const isAvailable = (slug) => {
 	try {
-		const record = $app.dao().findFirstRecordByData("instances", "subdomain", slug);
+		$app.dao().findFirstRecordByData("instances", "subdomain", slug);
 		return false;
 	} catch {
 		return true;
@@ -2882,7 +2862,7 @@ const wordList = [
 const shortestWordSize = wordList.reduce((shortestWord, currentWord) => currentWord.length < shortestWord.length ? currentWord : shortestWord).length;
 const longestWordSize = wordList.reduce((longestWord, currentWord) => currentWord.length > longestWord.length ? currentWord : longestWord).length;
 function generate(options) {
-	const { minLength, maxLength,...rest } = options || {};
+	const { minLength, maxLength, ...rest } = options || {};
 	function word() {
 		let min = typeof minLength !== "number" ? shortestWordSize : limitWordSize(minLength);
 		const max = typeof maxLength !== "number" ? longestWordSize : limitWordSize(maxLength);
@@ -2904,8 +2884,7 @@ function generate(options) {
 		return wordSize;
 	}
 	function randInt(lessThan) {
-		const r = Math.random();
-		return Math.floor(r * lessThan);
+		return Math.floor(Math.random() * lessThan);
 	}
 	if (options === void 0) return word();
 	if (typeof options === "number") options = { exactly: options };
@@ -2915,7 +2894,7 @@ function generate(options) {
 		options.max = options.exactly;
 	}
 	if (typeof options.wordsPerString !== "number") options.wordsPerString = 1;
-	if (typeof options.formatter !== "function") options.formatter = (word$1) => word$1;
+	if (typeof options.formatter !== "function") options.formatter = (word) => word;
 	if (typeof options.separator !== "string") options.separator = " ";
 	const total = options.min + randInt(options.max + 1 - options.min);
 	let results = [];
@@ -2964,8 +2943,7 @@ const HandleSignupConfirm = (c) => {
 	const parsed = (() => {
 		const rawBody = readerToString(c.request().body);
 		try {
-			const parsed$1 = JSON.parse(rawBody);
-			return parsed$1;
+			return JSON.parse(rawBody);
 		} catch (e) {
 			throw new BadRequestError(`Error parsing payload. You call this JSON? ${rawBody}`, e);
 		}
@@ -2978,15 +2956,14 @@ const HandleSignupConfirm = (c) => {
 	if (!email) throw error(`email`, "required", "Email is required");
 	if (!password) throw error(`password`, `required`, "Password is required");
 	if (!desiredInstanceName) throw error(`instanceName`, `required`, `Instance name is required`);
-	const userExists = (() => {
+	if ((() => {
 		try {
-			const record = dao.findFirstRecordByData("users", "email", email);
+			dao.findFirstRecordByData("users", "email", email);
 			return true;
 		} catch {
 			return false;
 		}
-	})();
-	if (userExists) throw error(`email`, `exists`, `That user account already exists. Try a password reset.`);
+	})()) throw error(`email`, `exists`, `That user account already exists. Try a password reset.`);
 	dao.runInTransaction((txDao) => {
 		const usersCollection = dao.findCollectionByNameOrId("users");
 		const instanceCollection = $app.dao().findCollectionByNameOrId("instances");
@@ -3119,7 +3096,7 @@ const HandleStatsRequest = (c) => {
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (c) => {
 	const dao = $app.dao();
-	const log = mkLog(`user-token`);
+	mkLog(`user-token`);
 	const id = c.pathParam("id");
 	if (!id) throw new BadRequestError(`User ID is required.`);
 	const rec = dao.findRecordById("users", id);

@@ -1,9 +1,7 @@
 import { forEach } from '@s-libs/micro-dash'
-import devcert from 'devcert'
 import dotenv from 'dotenv'
 import envPaths from 'env-paths'
 import { default as env } from 'env-var'
-import { mkdirSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import {
@@ -44,13 +42,6 @@ export const _INSTANCE_APP_ROOT = (...paths: string[]) =>
   join(env.get('PH_INSTANCE_APP_ROOT').default(join(__dirname, 'instance-app')).asString(), ...paths)
 
 const TLS_PFX = `tls`
-
-const createDevCert = async () => {
-  mkdirSync(_SSL_HOME, { recursive: true })
-  const { key, cert } = await devcert.certificateFor(_APEX_DOMAIN, {})
-  writeFileSync(join(_SSL_HOME, `${TLS_PFX}.key`), key)
-  writeFileSync(join(_SSL_HOME, `${TLS_PFX}.cert`), cert)
-}
 
 export const createSettings = () => ({
   DEBUG: mkBoolean(_DEBUG),
