@@ -6,11 +6,19 @@ import {
   LoggerService,
   mkSingleton,
   PocketBase,
+  RATE_LIMIT_TIERS_SETTING,
+  RateLimitTiers,
   SingletonBaseConfig,
   UserFields,
   UserId,
 } from '@'
 import { forEach } from '@s-libs/micro-dash'
+
+export type SettingsFields = {
+  id: string
+  name: string
+  value: unknown
+}
 
 export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
   client: PocketBase
@@ -23,6 +31,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   const [onInstanceDeleted, fireInstanceDeleted] = createEvent<InstanceId>()
   const [onUserUpserted, fireUserUpserted] = createEvent<UserFields>()
   const [onUserDeleted, fireUserDeleted] = createEvent<UserId>()
+  const [onSettingUpserted, fireSettingUpserted] = createEvent<SettingsFields>()
 
   const client = config.client
 
@@ -33,6 +42,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     instancesByCanonicalSubdomain: { [_: string]: InstanceFields }
     instancesBySubdomain: { [_: string]: InstanceFields }
     instancesByCname: { [_: string]: InstanceFields }
+    settingsByName: { [_: string]: SettingsFields }
   } = {
     users: {},
     instancesById: {},
@@ -40,6 +50,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     instancesByCanonicalSubdomain: {},
     instancesBySubdomain: {},
     instancesByCname: {},
+    settingsByName: {},
   }
 
   const upsertInstance = (record: InstanceFields) => {
@@ -82,6 +93,15 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     }
   }
 
+  const upsertSetting = (record: SettingsFields) => {
+    dbg(`upsertSetting ${record.name}`)
+    mirror.settingsByName[record.name] = record
+  }
+
+  const deleteSetting = (name: string) => {
+    delete mirror.settingsByName[name]
+  }
+
   client
     .collection(`instances`)
     .subscribe<InstanceFields>(`*`, (e) => {
@@ -116,6 +136,22 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     })
     .catch(error)
 
+  client
+    .collection(`settings`)
+    .subscribe<SettingsFields>(`*`, (e) => {
+      const { action, record } = e
+      if (action === `create` || action === `update`) {
+        dbg(`setting`, { action, record })
+        upsertSetting(record)
+        fireSettingUpserted(record)
+      }
+      if (action === `delete`) {
+        dbg(`setting`, { action, record })
+        deleteSetting(record.name)
+      }
+    })
+    .catch(error)
+
   const init = async () => {
     dbg(`init`)
     const instancesPromise = client
@@ -138,7 +174,17 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
         })
       })
       .catch(error)
-    await Promise.all([instancesPromise, usersPromise])
+    const settingsPromise = client
+      .collection(`settings`)
+      .getFullList<SettingsFields>()
+      .then((settings) => {
+        dbg(`settings: ${settings.length}`)
+        forEach(settings, (setting) => {
+          upsertSetting(setting)
+        })
+      })
+      .catch(error)
+    await Promise.all([instancesPromise, usersPromise, settingsPromise])
   }
   await init().catch(error)
 
@@ -156,10 +202,19 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     async getUser(id: UserId) {
       return mirror.users[id]
     },
+    getSetting(name: string) {
+      return mirror.settingsByName[name]?.value
+    },
+    getRateLimitTiers(): RateLimitTiers | null {
+      const value = mirror.settingsByName[RATE_LIMIT_TIERS_SETTING]?.value
+      if (!value || typeof value !== 'object') return null
+      return value as RateLimitTiers
+    },
     onInstanceUpserted,
     onInstanceDeleted,
     onUserDeleted,
     onUserUpserted,
+    onSettingUpserted,
     getInstances: () => Object.values(mirror.instancesById),
     getUsers: () => Object.values(mirror.users),
   }

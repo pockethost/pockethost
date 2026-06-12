@@ -1,52 +1,8 @@
 import express from 'express'
-import IPCIDR from 'ip-cidr'
-import { isIPv4, isIPv6 } from 'node:net'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { Logger } from 'src/common'
-
-const toProxyCidrString = (entry: string): string => {
-  if (entry.includes('/')) return entry
-  if (isIPv4(entry)) return `${entry}/32`
-  if (isIPv6(entry)) return `${entry}/128`
-  return entry
-}
-
-const getConnectingIp = (req: express.Request): string | undefined => {
-  // Check Cloudflare headers
-  const cf = req.headers['cf-connecting-ip'] || req.headers['true-client-ip']
-  if (cf) return Array.isArray(cf) ? cf[0] : cf
-
-  // Check X-Forwarded-For
-  const xff = req.headers['x-forwarded-for']
-  const xffStr = Array.isArray(xff) ? xff.join(',') : xff
-  if (typeof xffStr === 'string') {
-    const ip = xffStr.split(',')?.[0]?.trim()
-    if (ip) return ip
-  }
-
-  // Check X-Real-IP
-  const xri = req.headers['x-real-ip']
-  if (xri) return Array.isArray(xri) ? xri[0] : xri
-
-  return req.ip || req.socket?.remoteAddress
-}
-
-const headerContains = (header: string | string[] | undefined, token: string): boolean => {
-  if (!header) return false
-  const tokenLc = token.toLowerCase()
-  if (Array.isArray(header)) return header.some((value) => value.toLowerCase().includes(tokenLc))
-  return header.toLowerCase().includes(tokenLc)
-}
-
-const isCfImageService = (req: express.Request): boolean => {
-  const viaMatches = headerContains(req.headers['via'], 'image-resizing-proxy')
-  if (!viaMatches) return false
-
-  const cdnLoopMatches = headerContains(req.headers['cdn-loop'], 'cloudflare')
-  if (!cdnLoopMatches) return false
-
-  return true
-}
+import { mkLimiterPool, WEIGHT_DEN } from './limiterPool'
+import { getConnectingIp, isCfImageService, resolveRequestPolicy, MirrorApi } from './resolveRequestPolicy'
 
 /** For rate-limit logs: raw Host / X-Forwarded-Host vs req.hostname (Express parses Host). */
 const hostForensics = (req: express.Request) => {
@@ -66,187 +22,163 @@ const hostForensics = (req: express.Request) => {
   }
 }
 
-const LIMITS = {
-  untrustedIp: { points: 1000, duration: 60 * 60 },
-  untrustedHostname: { points: 10000, duration: 60 * 60 },
-  trustedIp: { points: 5000, duration: 60 * 60 },
-  trustedHostname: { points: 20000, duration: 60 * 60 },
-  untrustedIpConcurrent: { points: 15, duration: 0 },
-  trustedIpConcurrent: { points: 50, duration: 0 },
-  untrustedHostnameConcurrent: { points: 250, duration: 0 },
-  trustedHostnameConcurrent: { points: 250, duration: 0 },
-} as const
+/** Max Retry-After (seconds) for hourly quota breaches — avoids hour-long lockouts after bursts. */
+const HOURLY_RETRY_AFTER_CAP_SEC = 60
+const BURST_DURATION_SEC = 60
+const HOURLY_DURATION_SEC = 60 * 60
 
 /** Larger denominator → cheaper file routes vs API (FILES_WEIGHT_NUM / WEIGHT_DEN). */
-const WEIGHT_DEN = 10
 const FILES_WEIGHT_NUM = 1
 const API_WEIGHT_NUM = WEIGHT_DEN
 
 const isPocketBaseFilesPath = (path: string): boolean =>
   path === '/api/files' || path.startsWith('/api/files/')
 
-/** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
-const toMicroPointLimit = (cfg: { points: number; duration: number }) => ({
-  points: cfg.points * WEIGHT_DEN,
-  duration: cfg.duration,
-})
+const cappedRetryAfterSec = (msBeforeNext: number | undefined, capSec: number): number =>
+  Math.max(1, Math.min(Math.ceil((msBeforeNext ?? 1000) / 1000), capSec))
 
-// Middleware factory to create a rate limiting middleware
-export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps: string[] = []) => {
+export type RateLimiterMiddlewareConfig = {
+  logger: Logger
+  globalProxyIps?: string[]
+  mirror: MirrorApi
+}
+
+export const createRateLimiterMiddleware = ({
+  logger,
+  globalProxyIps = [],
+  mirror,
+}: RateLimiterMiddlewareConfig) => {
   const rateLimiterLogger = logger.create(`RateLimiter`)
   const { dbg, warn } = rateLimiterLogger
   dbg(`Creating`)
-  if (trustedUserProxyIps.length > 0) {
-    dbg(`User proxy IPs: ${trustedUserProxyIps.join(', ')}`)
+  if (globalProxyIps.length > 0) {
+    dbg(`Global proxy IPs: ${globalProxyIps.join(', ')}`)
   }
 
-  const trustedProxyCidrs: IPCIDR[] = []
-  for (const raw of trustedUserProxyIps) {
-    const entry = raw.trim()
-    if (!entry) continue
+  const limiterPool = mkLimiterPool()
+
+  const consumeLimit = async ({
+    limiter,
+    key,
+    weight,
+    limitPoints,
+    durationSec,
+  }: {
+    limiter: RateLimiterMemory
+    key: string
+    weight: number
+    limitPoints: number
+    durationSec: number
+  }) => {
     try {
-      trustedProxyCidrs.push(new IPCIDR(toProxyCidrString(entry)))
-    } catch (err) {
-      warn(`Invalid PH_USER_PROXY_IPS entry, skipping: ${entry}`, err)
+      const result = await limiter.consume(key, weight)
+      return { ok: true as const, result }
+    } catch (rateLimiterRes: any) {
+      const retryAfter =
+        durationSec === HOURLY_DURATION_SEC
+          ? cappedRetryAfterSec(rateLimiterRes.msBeforeNext, HOURLY_RETRY_AFTER_CAP_SEC)
+          : cappedRetryAfterSec(rateLimiterRes.msBeforeNext, durationSec)
+      return { ok: false as const, rateLimiterRes, retryAfter, limitPoints, durationSec }
     }
   }
-
-  const isTrustedUserProxy = (connectingIp: string | undefined): boolean => {
-    if (!connectingIp) return false
-    return trustedProxyCidrs.some((cidr) => cidr.contains(connectingIp))
-  }
-
-  const getClientIp = (req: express.Request): string | undefined => {
-    const connectingIp = getConnectingIp(req)
-
-    // If from user proxy, check custom header first
-    if (isTrustedUserProxy(connectingIp)) {
-      const customIp = req.headers['x-pockethost-client-ip']
-      if (customIp) return Array.isArray(customIp) ? customIp[0] : customIp
-    }
-
-    return connectingIp
-  }
-
-  const untrustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIp))
-  const untrustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedHostname))
-  const trustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIp))
-  const trustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedHostname))
-
-  // Concurrent request limiters (duration 0 means we manually manage release)
-  const untrustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIpConcurrent))
-  const trustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIpConcurrent))
-  const untrustedHostnameConcurrentLimiter = new RateLimiterMemory(
-    toMicroPointLimit(LIMITS.untrustedHostnameConcurrent)
-  )
-  const trustedHostnameConcurrentLimiter = new RateLimiterMemory(
-    toMicroPointLimit(LIMITS.trustedHostnameConcurrent)
-  )
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const connectingIp = getConnectingIp(req)
-    const endClientIp = getClientIp(req)
     const hostname = req.hostname
-    const cfImageService = isCfImageService(req)
-    const userProxy = isTrustedUserProxy(connectingIp)
-    const trustedClient = cfImageService || userProxy
-    const trustReason = cfImageService ? 'cf-image' : userProxy ? 'user-proxy' : 'none'
-
-    const { dbg, warn, info } = rateLimiterLogger
-      .create(hostname)
-      .breadcrumb(connectingIp || `unknown`)
-      .breadcrumb(endClientIp || `unknown`)
-
-    if (trustedClient) {
-      info(`Trusted client detected (reason=${trustReason})`, req.headers)
-    }
-
-    dbg(`\n`)
-    dbg(`--------------------------------`)
-    dbg(`Incoming request`)
-    dbg(`Hostname: ${hostname}`)
-    dbg(`Connecting IP: ${connectingIp || `unknown`}`)
-    dbg(`End Client IP: ${endClientIp || `unknown`}`)
-    dbg(`Trust: ${trustedClient} (reason=${trustReason})`)
-    dbg(`\n`)
+    const connectingIp = getConnectingIp(req)
+    const { dbg, warn, info } = rateLimiterLogger.create(hostname || 'unknown')
 
     if (!hostname) {
       warn(
-        `Could not determine hostname. connectingIp=${connectingIp ?? 'unknown'} endClientIp=${endClientIp ?? 'unknown'} hostHeader=${req.get('host') ?? 'none'} xForwardedHost=${req.get('x-forwarded-host') ?? 'none'}`
+        `Could not determine hostname. connectingIp=${connectingIp ?? 'unknown'} hostHeader=${req.get('host') ?? 'none'} xForwardedHost=${req.get('x-forwarded-host') ?? 'none'}`
       )
       res.status(400).send(`Hostname not found`)
       return
     }
 
-    if (isTrustedUserProxy(connectingIp)) {
-      dbg(`User Proxy IP detected`, req.headers)
+    const policy = await resolveRequestPolicy({
+      req,
+      hostname,
+      mirror,
+      globalProxyIps,
+    })
+
+    const { endClientIp, limits, ipLimits, ipLimitMode, trustReason, isProxyMode } = policy
+
+    const hostnameLogger = rateLimiterLogger
+      .create(hostname)
+      .breadcrumb(connectingIp || `unknown`)
+      .breadcrumb(endClientIp || `unknown`)
+    const hostnameDbg = hostnameLogger.dbg.bind(hostnameLogger)
+    const hostnameWarn = hostnameLogger.warn.bind(hostnameLogger)
+    const hostnameInfo = hostnameLogger.info.bind(hostnameLogger)
+
+    if (ipLimitMode !== 'default' || isCfImageService(req)) {
+      hostnameInfo(`Rate limit policy (mode=${ipLimitMode}, reason=${trustReason})`, req.headers)
     }
+
+    hostnameDbg(`\n`)
+    hostnameDbg(`--------------------------------`)
+    hostnameDbg(`Incoming request`)
+    hostnameDbg(`Hostname: ${hostname}`)
+    hostnameDbg(`Connecting IP: ${connectingIp || `unknown`}`)
+    hostnameDbg(`End Client IP: ${endClientIp || `unknown`}`)
+    hostnameDbg(`IP limit mode: ${ipLimitMode} (reason=${trustReason})`)
+    hostnameDbg(`Limits: ${JSON.stringify(limits)}`)
+    hostnameDbg(`\n`)
 
     const consumeWeight = isPocketBaseFilesPath(req.path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
 
-    // Check rate limits first (requests per hour per IP per hostname)
+    const ipBurstLimiter = limiterPool.get(ipLimits.ipBurst, BURST_DURATION_SEC)
+    const hostnameBurstLimiter = limiterPool.get(limits.hostnameBurst, BURST_DURATION_SEC)
+    const ipHourlyLimiter = limiterPool.get(ipLimits.ipHourly, HOURLY_DURATION_SEC)
+    const hostnameHourlyLimiter = limiterPool.get(limits.hostnameHourly, HOURLY_DURATION_SEC)
+    const ipConcurrentLimiter = limiterPool.get(ipLimits.ipConcurrent, 0)
+    const hostnameConcurrentLimiter = limiterPool.get(limits.hostnameConcurrent, 0)
+
+    const ipKey = `${endClientIp}:${hostname}`
+
     {
-      const key = `${endClientIp}:${hostname}`
-      const cfg = trustedClient ? LIMITS.trustedIp : LIMITS.untrustedIp
-      const limiter = trustedClient ? trustedIpRateLimiter : untrustedIpRateLimiter
-      try {
-        const ipResult = await limiter.consume(key, consumeWeight)
-        dbg(
-          `${trustedClient ? 'Trusted' : 'Untrusted'} IP request accepted. Key: ${key}. Points remaining: ${ipResult.remainingPoints}${
-            trustedClient ? ' (trusted)' : ''
-          } (weight=${consumeWeight}/${WEIGHT_DEN})`
-        )
-      } catch (rateLimiterRes: any) {
-        const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
-        warn(
-          `[1] ${trustedClient ? 'Trusted' : 'Untrusted'} IP rate limit exceeded. ` +
-            `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
-            `hostname=${hostname} trustReason=${trustReason} ` +
-            `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
-            `limitApproxApi=${cfg.points}/${cfg.duration}s ` +
-            `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'} ` +
-            `retryAfter=${retryAfter}s`,
+      const burst = await consumeLimit({
+        limiter: ipBurstLimiter,
+        key: ipKey,
+        weight: consumeWeight,
+        limitPoints: ipLimits.ipBurst,
+        durationSec: BURST_DURATION_SEC,
+      })
+      if (!burst.ok) {
+        hostnameWarn(
+          `[1] IP burst limit exceeded. key=${ipKey} mode=${ipLimitMode} reason=${trustReason} ` +
+            `limit=${burst.limitPoints}/${burst.durationSec}s retryAfter=${burst.retryAfter}s`,
           hostForensics(req)
         )
-        res.set('Retry-After', String(retryAfter))
-        res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [1]`)
+        res.set('Retry-After', String(burst.retryAfter))
+        res.status(429).send(`Too Many Requests: retry after ${burst.retryAfter} seconds [1]`)
         return
       }
     }
 
-    // Check hostname rate limit (requests per hour per hostname)
     {
-      const key = hostname
-      const cfg = trustedClient ? LIMITS.trustedHostname : LIMITS.untrustedHostname
-      const limiter = trustedClient ? trustedHostnameRateLimiter : untrustedHostnameRateLimiter
-      try {
-        const hostnameResult = await limiter.consume(key, consumeWeight)
-        dbg(
-          `${trustedClient ? 'Trusted' : 'Untrusted'} Hostname request accepted. Key: ${key}. Points remaining: ${hostnameResult.remainingPoints}${
-            trustedClient ? ' (trusted)' : ''
-          } (weight=${consumeWeight}/${WEIGHT_DEN})`
-        )
-      } catch (rateLimiterRes: any) {
-        const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
-        warn(
-          `[2] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname rate limit exceeded. ` +
-            `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
-            `hostname=${hostname} trustReason=${trustReason} ` +
-            `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
-            `limitApproxApi=${cfg.points}/${cfg.duration}s ` +
-            `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'} ` +
-            `retryAfter=${retryAfter}s`,
+      const burst = await consumeLimit({
+        limiter: hostnameBurstLimiter,
+        key: hostname,
+        weight: consumeWeight,
+        limitPoints: limits.hostnameBurst,
+        durationSec: BURST_DURATION_SEC,
+      })
+      if (!burst.ok) {
+        hostnameWarn(
+          `[2] Hostname burst limit exceeded. key=${hostname} mode=${ipLimitMode} reason=${trustReason} ` +
+            `limit=${burst.limitPoints}/${burst.durationSec}s retryAfter=${burst.retryAfter}s`,
           hostForensics(req)
         )
-        res.set('Retry-After', String(retryAfter))
-        res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [2]`)
+        res.set('Retry-After', String(burst.retryAfter))
+        res.status(429).send(`Too Many Requests: retry after ${burst.retryAfter} seconds [2]`)
         return
       }
     }
 
     const releaseConcurrentCallbacks: Array<() => Promise<void>> = []
 
-    // Helper to release concurrent points
     const releaseConcurrentPoints = async () => {
       if (releaseConcurrentCallbacks.length === 0) return
       const callbacks = releaseConcurrentCallbacks.splice(0, releaseConcurrentCallbacks.length)
@@ -261,36 +193,20 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       )
     }
 
-    // Check concurrent limits per IP per hostname
-    const ipConcurrentLimiterInstance = trustedClient ? trustedIpConcurrentLimiter : untrustedIpConcurrentLimiter
-    const ipConcurrentCfg = trustedClient ? LIMITS.trustedIpConcurrent : LIMITS.untrustedIpConcurrent
-    const ipConcurrentKey = `${endClientIp}:${hostname}`
     try {
-      const ipConcurrentResult = await ipConcurrentLimiterInstance.consume(ipConcurrentKey, consumeWeight)
-      dbg(
-        `${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent request accepted. Key: ${ipConcurrentKey}. Points remaining: ${ipConcurrentResult.remainingPoints}${
-          trustedClient ? ' (trusted)' : ''
-        } (weight=${consumeWeight}/${WEIGHT_DEN})`
-      )
+      const ipConcurrentResult = await ipConcurrentLimiter.consume(ipKey, consumeWeight)
       releaseConcurrentCallbacks.push(async () => {
-        const ipConcurrentReleaseResult = await ipConcurrentLimiterInstance.reward(ipConcurrentKey, consumeWeight)
-        dbg(
-          `${trustedClient ? 'Trusted' : 'Untrusted'} released IP concurrent point. Key: ${ipConcurrentKey}. Points remaining: ${ipConcurrentReleaseResult.remainingPoints}`
-        )
+        await ipConcurrentLimiter.reward(ipKey, consumeWeight)
       })
-    } catch (rateLimiterRes: any) {
+      hostnameDbg(`IP concurrent accepted. Key: ${ipKey}. Remaining: ${ipConcurrentResult.remainingPoints}`)
+    } catch {
       try {
-        await ipConcurrentLimiterInstance.reward(ipConcurrentKey, consumeWeight)
+        await ipConcurrentLimiter.reward(ipKey, consumeWeight)
       } catch (rewardErr) {
-        warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} IP concurrent limiter.`, rewardErr)
+        hostnameWarn(`Failed to revert IP concurrent limiter.`, rewardErr)
       }
-      warn(
-        `[3] ${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent limit exceeded. ` +
-          `key=${ipConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
-          `hostname=${hostname} trustReason=${trustReason} ` +
-          `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
-          `limitApproxApi=${ipConcurrentCfg.points} ` +
-          `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'}`,
+      hostnameWarn(
+        `[3] IP concurrent limit exceeded. key=${ipKey} mode=${ipLimitMode} limit=${ipLimits.ipConcurrent}`,
         hostForensics(req)
       )
       res.set('Retry-After', '1')
@@ -298,37 +214,15 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       return
     }
 
-    // Check overall concurrent limits per host
-    const hostnameConcurrentLimiterInstance = trustedClient
-      ? trustedHostnameConcurrentLimiter
-      : untrustedHostnameConcurrentLimiter
-    const hostnameConcurrentCfg = trustedClient ? LIMITS.trustedHostnameConcurrent : LIMITS.untrustedHostnameConcurrent
-    const hostnameConcurrentKey = hostname
     try {
-      const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(hostnameConcurrentKey, consumeWeight)
-      dbg(
-        `${trustedClient ? 'Trusted' : 'Untrusted'} hostname concurrent request accepted. Key: ${hostnameConcurrentKey}. Points remaining: ${hostnameConcurrentResult.remainingPoints}${
-          trustedClient ? ' (trusted)' : ''
-        } (weight=${consumeWeight}/${WEIGHT_DEN})`
-      )
+      await hostnameConcurrentLimiter.consume(hostname, consumeWeight)
       releaseConcurrentCallbacks.push(async () => {
-        const hostnameConcurrentReleaseResult = await hostnameConcurrentLimiterInstance.reward(
-          hostnameConcurrentKey,
-          consumeWeight
-        )
-        dbg(
-          `${trustedClient ? 'Trusted' : 'Untrusted'} released hostname concurrent point. Key: ${hostnameConcurrentKey}. Points remaining: ${hostnameConcurrentReleaseResult.remainingPoints}`
-        )
+        await hostnameConcurrentLimiter.reward(hostname, consumeWeight)
       })
-    } catch (rateLimiterRes: any) {
+    } catch {
       await releaseConcurrentPoints()
-      warn(
-        `[4] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname concurrent limit exceeded. ` +
-          `key=${hostnameConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
-          `hostname=${hostname} trustReason=${trustReason} ` +
-          `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
-          `limitApproxApi=${hostnameConcurrentCfg.points} ` +
-          `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'}`,
+      hostnameWarn(
+        `[4] Hostname concurrent limit exceeded. key=${hostname} limit=${limits.hostnameConcurrent}`,
         hostForensics(req)
       )
       res.set('Retry-After', '1')
@@ -336,7 +230,50 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       return
     }
 
-    // Release concurrent points when response finishes
+    {
+      const hourly = await consumeLimit({
+        limiter: ipHourlyLimiter,
+        key: ipKey,
+        weight: consumeWeight,
+        limitPoints: ipLimits.ipHourly,
+        durationSec: HOURLY_DURATION_SEC,
+      })
+      if (!hourly.ok) {
+        await releaseConcurrentPoints()
+        hostnameWarn(
+          `[5] IP hourly limit exceeded. key=${ipKey} mode=${ipLimitMode} limit=${hourly.limitPoints}/${hourly.durationSec}s retryAfter=${hourly.retryAfter}s`,
+          hostForensics(req)
+        )
+        res.set('Retry-After', String(hourly.retryAfter))
+        res.status(429).send(`Too Many Requests: retry after ${hourly.retryAfter} seconds [5]`)
+        return
+      }
+    }
+
+    {
+      const hourly = await consumeLimit({
+        limiter: hostnameHourlyLimiter,
+        key: hostname,
+        weight: consumeWeight,
+        limitPoints: limits.hostnameHourly,
+        durationSec: HOURLY_DURATION_SEC,
+      })
+      if (!hourly.ok) {
+        await releaseConcurrentPoints()
+        hostnameWarn(
+          `[6] Hostname hourly limit exceeded. key=${hostname} limit=${hourly.limitPoints}/${hourly.durationSec}s retryAfter=${hourly.retryAfter}s`,
+          hostForensics(req)
+        )
+        res.set('Retry-After', String(hourly.retryAfter))
+        res.status(429).send(`Too Many Requests: retry after ${hourly.retryAfter} seconds [6]`)
+        return
+      }
+    }
+
+    if (isProxyMode) {
+      hostnameDbg(`Proxy mode request routed via end client IP ${endClientIp}`)
+    }
+
     res.on('finish', releaseConcurrentPoints)
     res.on('close', releaseConcurrentPoints)
 

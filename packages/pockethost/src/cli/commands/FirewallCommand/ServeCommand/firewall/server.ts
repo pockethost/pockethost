@@ -4,11 +4,15 @@ import {
   IPCIDR_LIST,
   IS_DEV,
   Logger,
+  MOTHERSHIP_ADMIN_PASSWORD,
+  MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
+  MOTHERSHIP_URL,
   PH_USER_PROXY_IPS,
   SSL_CERT,
   SSL_KEY,
+  tryFetch,
 } from '@'
 import { forEach } from '@s-libs/micro-dash'
 import { exec } from 'child_process'
@@ -23,6 +27,8 @@ import https from 'https'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
 import { createRateLimiterMiddleware } from './rate-limiter'
+import { MothershipAdminClientService } from 'src/services/MothershipAdminClientService'
+import { MothershipMirrorService } from 'src/services/MothershipMirrorService'
 
 export type FirewallOptions = {
   logger: Logger
@@ -86,7 +92,28 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   // Use the IP blocker middleware
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
-  app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
+
+  await tryFetch(MOTHERSHIP_URL(`/api/health`), { logger })
+
+  await MothershipAdminClientService({
+    url: MOTHERSHIP_URL(),
+    username: MOTHERSHIP_ADMIN_USERNAME(),
+    password: MOTHERSHIP_ADMIN_PASSWORD(),
+    logger,
+  })
+
+  const mirror = await MothershipMirrorService({
+    client: (await MothershipAdminClientService()).client.client,
+    logger,
+  })
+
+  app.use(
+    createRateLimiterMiddleware({
+      logger,
+      globalProxyIps: PH_USER_PROXY_IPS(),
+      mirror,
+    })
+  )
 
   forEach(hostnameRoutes, (target, host) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
