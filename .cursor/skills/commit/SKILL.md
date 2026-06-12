@@ -83,3 +83,7 @@ EOF
 ## Report
 
 Summarize commits created (hash + subject) and list anything left unstaged, with a short reason.
+
+## User-facing features
+
+If the session shipped customer-visible `feat` / `enh` work and no blog post exists yet, remind the user (or offer to draft one per `.cursor/skills/feature-blog/SKILL.md`). Do not block the commit on the post unless they asked for both in one go.

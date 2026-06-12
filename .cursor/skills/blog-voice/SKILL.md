@@ -3,7 +3,8 @@ name: blog-voice
 description: >-
   Write PocketHost blog posts in Ben Allfree's voice (@cap'n). Use when drafting
   or editing posts under packages/dashboard/src/routes/(static)/blog/, updating
-  blog/toc.ts, or when the user asks for blog content in the PocketHost style.
+  blog/toc.ts, announcing a shipped feature (with feature-blog skill), or when
+  the user asks for blog content in the PocketHost style.
 ---
 
 # PocketHost blog voice
@@ -35,7 +36,7 @@ Use the post's publish date. Blank line, then the body.
 | Short announcement (3–6 paragraphs) | Signature → hook → what changed → user impact → optional CTA |
 | Longer technical post | Add `###` sections; rhetorical questions OK ("But what about…?") |
 
-Avoid changelog-style bullet dumps unless the post is explicitly a release notes roundup (see `pockethost-2-3-0-release`).
+Avoid changelog-style bullet dumps. One feature per post — see `feature-blog` skill; legacy version roundups (`pockethost-2-3-0-release`) are not the current pattern.
 
 ## PocketHost vocabulary
 
