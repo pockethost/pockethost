@@ -6,3 +6,5 @@ alwaysApply: true
 # Commits
 
 When the user asks to commit (including `/commit`), read and follow [`.cursor/skills/commit/SKILL.md`](../skills/commit/SKILL.md). Do not duplicate that workflow here.
+
+**Conversation scope:** commit only what this chat discussed. Ignore other uncommitted work. If that work cannot be committed without a dependent change from another conversation, halt and explain instead of staging the dependency.
