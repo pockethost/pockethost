@@ -79,6 +79,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Revisit v0.22→v0.23 version boundary UX** | Low | S | Dashboard version picker filters minors across the v22/v23 line (`instances/.../version/+page.svelte`); warns manual migration both directions. Re-evaluate: in-place v22→v23 upgrade should work on PocketHost (JSVM hook rewrites are a separate concern); rollbacks were never supported. May drop the hard boundary and simplify picker + `/docs/versions`. |
 | **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
 | **Docs structure & organization** | Low | M–L | Reorganize `(static)/docs/**` — clearer IA, fewer duplicate topics, better cross-links from dashboard `CardHeader` docs paths. |
