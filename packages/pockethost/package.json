@@ -20,8 +20,8 @@
   },
   "scripts": {
     "check:types": "tsc --noEmit ",
-    "dev": "NODE_ENV=development NODE_OPTIONS='--experimental-eventsource' tsx ./src/cli/index.ts",
-    "start": "NODE_OPTIONS='--experimental-eventsource' tsx ./src/cli/index.ts"
+    "dev": "NODE_ENV=development node --experimental-eventsource --import tsx ./src/cli/index.ts",
+    "start": "node --experimental-eventsource --import tsx ./src/cli/index.ts"
   },
   "dependencies": {
     "@s-libs/micro-dash": "^18.0.0",
