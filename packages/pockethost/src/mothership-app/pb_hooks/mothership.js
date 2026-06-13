@@ -94,14 +94,6 @@ const HandleInstanceDelete = (c) => {
 	if (!record) throw new BadRequestError(`Instance ${id} not found.`);
 	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
 	if (record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be shut down first.`);
-	const path = [
-		$os.getenv("DATA_ROOT"),
-		"instances",
-		id
-	].join("/");
-	log(`path ${path}`);
-	const res = $os.removeAll(path);
-	log(`res`, res);
 	dao.deleteRecord(record);
 	return c.json(200, { status: "ok" });
 };
