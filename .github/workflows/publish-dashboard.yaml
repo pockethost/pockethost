@@ -5,14 +5,12 @@ on:
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
-      - packages/pockethost/package.json
       - packages/pockethost/src/common/**
   pull_request_target:
     types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
-      - packages/pockethost/package.json
       - packages/pockethost/src/common/**
 
 env:
@@ -48,7 +46,6 @@ jobs:
           PATHS=(
             .github/workflows/publish-dashboard.yaml
             packages/dashboard
-            packages/pockethost/package.json
             packages/pockethost/src/common
           )
 
