@@ -62,8 +62,11 @@ export const INSTANCE_ADMIN_URL = (instance: InstanceFields) => {
   return INSTANCE_URL(instance, `_/`)
 }
 
-export const FTP_URL = (email: string) => {
-  return `"${email}"@ftp.${PUBLIC_APEX_DOMAIN}:21`
+export const FTP_HOST = `ftp.${PUBLIC_APEX_DOMAIN}`
+
+/** One-shot lftp connect + list. Replace YOUR_PASSWORD with your PocketHost password. */
+export const LFTP_COMMAND = (email: string) => {
+  return `lftp -c 'set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; open -u "${email}","YOUR_PASSWORD" ftp://${FTP_HOST}:21; ls; quit'`
 }
 
 export const DISCORD_URL = `https://discord.gg/nVTxCMEcGT`

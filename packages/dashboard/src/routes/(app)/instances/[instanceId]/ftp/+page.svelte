@@ -1,7 +1,7 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { FTP_URL } from '$src/env'
+  import { FTP_HOST, LFTP_COMMAND } from '$src/env'
   import { client } from '$src/pocketbase-client'
   import { bash } from 'svelte-highlight/languages'
 
@@ -12,15 +12,19 @@
   if (!email) {
     throw new Error(`Email expected here`)
   }
-  const ftpUrl = FTP_URL(email)
+  const lftpCommand = LFTP_COMMAND(email)
 </script>
 
 <div class="max-w-2xl">
   <CardHeader documentation={`/docs/ftp`}>FTP Access</CardHeader>
-  <div class="mb-8">Securely access your instance files via FTPS. Use your PocketHost account login and password.</div>
+  <div class="mb-8">
+    Access instance files via explicit FTPS (AUTH TLS) at <code>{FTP_HOST}</code>. Log in with your PocketHost email
+    and password. The macOS <code>ftp</code> client does not support TLS — use <code>lftp</code> or FileZilla (see
+    docs).
+  </div>
 
   <div class="mb-12">
-    <CodeSample code={`ftp ${ftpUrl}`} language={bash} />
+    <CodeSample code={lftpCommand} language={bash} />
   </div>
 
   <table class="table">

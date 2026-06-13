@@ -57,15 +57,14 @@ _See [Using the PocketHost Dashboard](#) for an in-depth guide._
 
 ## 5. Exploring the Instance via FTP
 
-For advanced management, you can access your instance files via FTP.
+For advanced management, you can access your instance files via FTPS.
 
-- **FTP Credentials**: Obtain your FTP username and password from the dashboard.
-- **FTP Client**: Use any standard FTP client (like FileZilla or WinSCP) to connect.
-  - **Host**: `<instance>.pockethost.io`
-  - **Port**: `21`
-- **File Management**: Upload, download, or modify files as needed.
+- **Host**: `ftp.pockethost.io` (not your instance subdomain)
+- **Port**: `21` with explicit FTPS (AUTH TLS)
+- **Credentials**: your pockethost.io email and password
+- **Clients**: [lftp](https://lftp.yar.ru/) or FileZilla (Require explicit FTP over TLS). The macOS `ftp` command does not work.
 
-_Detailed instructions are available in [FTP Access and File Management](#)._
+_Detailed instructions are in [FTP Access](/docs/ftp)._
 
 ---
 
