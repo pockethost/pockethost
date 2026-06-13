@@ -51,6 +51,7 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 | **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
 | **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). Grandfather existing plans. |
 | **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror: **Starter 1 min**, **Pro 1 hr** (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Mothership sets TTL from plan; update limits/marketing docs. Pro keeps instances warm longer (cron, PB jobs); Starter hibernates faster to save platform resources. |
+| **Plan-tier rate limits** | Med | M | Subscription tier → firewall limits per instance hostname (today global `LIMITS` in `rate-limiter.ts`: trusted/untrusted IP + hostname hourly + concurrent). Mothership resolves plan on instance; edge/firewall applies tier-specific points (e.g. Starter lower hostname ceiling, Pro higher). Distinct from **User-controlled rate limiting** (customer knobs). Pro gets headroom for production traffic; Starter stays fair on shared firewall. |
 | **Enforced storage quotas** | Med | L | Migrate from fair-use to hard limits: sqlite DB size, FTP upload usage, PB file storage (volume or S3-metered). Dashboard surfacing + mothership schema + edge reject/warn. Prerequisite for honest **Pricing clarity**; vectors: sqlite size, FTPS/SFTP uploads, PB file uploads. |
 | **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas + **Enforced storage quotas**. |
 | **Annual billing options** | Low | M | Lemon Squeezy variant SKUs + dashboard copy. |
@@ -145,8 +146,10 @@ Mothership build hygiene ──► CI gates (fresh handler bundle check)
 CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
 Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
 Pricing redo ──► plan-tier hibernate intervals (Starter 1 min / Pro 1 hr)
+Pricing redo ──► plan-tier rate limits (Starter vs Pro firewall ceilings)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Plan-tier hibernate ──► limits docs + pricing/marketing copy
+Plan-tier rate limits ──► pricing clarity + marketing copy (published req/hr limits)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
