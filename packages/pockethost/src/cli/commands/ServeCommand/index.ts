@@ -3,6 +3,7 @@ import { Command } from 'commander'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
 import { mothership } from '../MothershipCommand/ServeCommand/mothership'
+import { sftp } from '../SftpCommand/ServeCommand/sftp'
 
 export const ServeCommand = () => {
   const cmd = new Command(`serve`).description(`Run the entire PocketHost stack`).action(async () => {
@@ -23,6 +24,8 @@ export const ServeCommand = () => {
     dbg(`Daemon ready`)
     await firewall({ logger })
     dbg(`Firewall ready`)
+    await sftp()
+    dbg(`SFTP ready`)
     await neverendingPromise(logger)
   })
   return cmd

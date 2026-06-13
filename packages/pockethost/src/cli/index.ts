@@ -10,6 +10,7 @@ import { MothershipCommand } from './commands/MothershipCommand'
 import { PocketBaseCommand } from './commands/PocketBaseCommand'
 import { MailCommand } from './commands/SendMailCommand'
 import { ServeCommand } from './commands/ServeCommand'
+import { SftpCommand } from './commands/SftpCommand'
 import { initIoc } from './ioc'
 
 export type GlobalOptions = {
@@ -28,6 +29,7 @@ export const main = async () => {
     .addCommand(FirewallCommand())
     .addCommand(MailCommand())
     .addCommand(ServeCommand())
+    .addCommand(SftpCommand())
     .addCommand(PocketBaseCommand())
     .action(async () => {
       logger().context({ cli: 'main' })

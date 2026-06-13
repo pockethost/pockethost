@@ -42,6 +42,7 @@ ufw allow OpenSSH
 ufw allow https
 ufw allow http
 ufw allow ftp
+ufw allow 2222/tcp
 echo "y" | ufw enable
 
 # Copy root's authorized_keys to pockethost
