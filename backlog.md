@@ -61,6 +61,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Scheduled / reliable automatic backups** | Med | M–L | **Follow up:** Discord `wesochuck` (Wes Osborn) — asked whether webhooks in the PocketHost UI should trigger PB backups; confirmed manual backup is best for now. **Problem:** low-traffic instances hibernate; PB cron and webhook→JSVM backup scripts both require a warm container, so scheduled backups are unreliable today. **Options to spike:** platform cron that wakes instance → runs backup → hibernates; mothership/edge-initiated backup without full PB runtime; dashboard schedule UX. Frequent customer ask. |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
 | **SFTP instead of FTPS** | Med | M | Docs/FAQ already say "SFTP"; UI says FTPS (`instances/.../ftp`). Evaluate `ftp-srv` fork vs OpenSSH/sftp subsystem. Support SSH authorized keys (user-supplied pubkey) in addition to or instead of password? Credential UX + dashboard key management. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
@@ -195,6 +196,7 @@ Pricing redo ──► plan-tier hibernate intervals (Starter 1 min / Pro 1 hr)
 Pricing redo ──► plan-tier rate limits (Starter vs Pro firewall ceilings)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Plan-tier hibernate ──► limits docs + pricing/marketing copy
+Scheduled automatic backups ──► plan-tier hibernate or platform wake; idle blocks PB cron + webhook backup
 Plan-tier rate limits ──► pricing clarity + marketing copy (published req/hr limits)
 Pricing change pre-announcement email ──► Pricing redo — Flounder sunset
 Pricing change community post ──► Pricing redo — Flounder sunset
