@@ -47,7 +47,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 - Settings factory: `packages/pockethost/src/constants.ts` → `createSettings()`.
 - Data root: `PH_HOME` (default `env-paths('pockethost').data`) / `DATA_ROOT`.
 - Layout under `DATA_ROOT`: `mothership/` (control-plane PB data), `instances/<instanceId>/` (customer instance dirs). Helpers: `MOTHERSHIP_DATA_ROOT`, `INSTANCES_ROOT`, `mkInstanceDataPath`. `MOTHERSHIP_NAME` is hostname only — not a filesystem path.
-- Instance delete: mothership `DELETE /api/instance/:id` removes the PB record only (after power-off + idle). Edge `edge cleanup` (PM2 `edge-cleanup`, daily): admin `getInstances()` → instance IDs, then rimraf orphaned dirs under `DATA_ROOT/instances/` (stops bound containers first).
+- Instance delete: mothership `DELETE /api/instance/:id` removes the PB record only (after power-off + idle). Edge `edge cleanup` (PM2 `edge-cleanup`, daily): admin `getInstances()` → instance IDs, then rimraf orphaned dirs under `DATA_ROOT/instances/` (stops bound containers first). `--dry-run` reports orphans without removing.
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 

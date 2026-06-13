@@ -38,8 +38,8 @@ const fetchInstanceIds = async (): Promise<string[]> => {
   return instances.map((instance) => instance.id)
 }
 
-const stopContainersBoundToDataPath = async (dataPath: string) => {
-  const { dbg, warn } = logger().create('stopContainersBoundToDataPath')
+const stopContainersBoundToDataPath = async (dataPath: string, { dryRun = false } = {}) => {
+  const { dbg, info, warn } = logger().create('stopContainersBoundToDataPath')
   const bindPrefix = `${resolve(dataPath)}:`
   const docker = new Docker()
   const containers = await docker.listContainers({ all: true })
@@ -49,12 +49,17 @@ const stopContainersBoundToDataPath = async (dataPath: string) => {
       if (!summary.Image.startsWith(DOCKER_INSTANCE_IMAGE_NAME())) return
 
       const container = docker.getContainer(summary.Id)
-      const info = await container.inspect()
-      const binds = info.HostConfig?.Binds ?? []
+      const containerInfo = await container.inspect()
+      const binds = containerInfo.HostConfig?.Binds ?? []
       if (!binds.some((bind) => bind.startsWith(bindPrefix))) return
 
+      if (dryRun) {
+        info(`  would stop container ${summary.Id} bound to ${dataPath}`)
+        return
+      }
+
       dbg(`Stopping container ${summary.Id} bound to ${dataPath}`)
-      if (info.State.Running) {
+      if (containerInfo.State.Running) {
         try {
           await container.stop({ signal: 'SIGINT' })
         } catch (e) {
@@ -62,14 +67,14 @@ const stopContainersBoundToDataPath = async (dataPath: string) => {
           await container.stop({ signal: 'SIGKILL' }).catch(() => undefined)
         }
       }
-      if (!info.HostConfig?.AutoRemove) {
+      if (!containerInfo.HostConfig?.AutoRemove) {
         await container.remove({ force: true }).catch(() => undefined)
       }
     })
   )
 }
 
-export const cleanupOrphanInstanceData = async () => {
+export const cleanupOrphanInstanceData = async ({ dryRun = false } = {}) => {
   const { dbg, info, warn } = logger().create('cleanupOrphanInstanceData')
   const instancesRoot = resolve(INSTANCES_ROOT())
   const instanceIds = await fetchInstanceIds()
@@ -95,6 +100,15 @@ export const cleanupOrphanInstanceData = async () => {
 
   if (orphanDirs.length === 0) {
     info(`No orphan instance data directories to remove`)
+    return 0
+  }
+
+  if (dryRun) {
+    info(`Dry run: would remove ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`)
+    for (const dir of orphanDirs) {
+      info(`  would remove: ${dir}`)
+      await stopContainersBoundToDataPath(dir, { dryRun: true })
+    }
     return 0
   }
 
