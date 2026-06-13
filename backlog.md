@@ -117,6 +117,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | ---- | ---- | ------ | ----- |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
+| **501(c)(3) nonprofit formation** | Med–High | XL | Become an official 501(c)(3): separate bank account, IP transfer from PocketHost to the org, IRS tax-exempt status, state registration, bylaws/board. **Lifetime Flounder revenue** allocates a portion to the nonprofit (fund split + accounting). Explore corporate **sponsorships** for ongoing support. Community gets mission-driven, tax-deductible infrastructure; platform gets durable legal structure beyond a single operator. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
 | **Drop ajv from RestHelper** | Low | M | Four small mothership REST payloads (`CreateInstance`, etc.) → hand validation; remove `ajv` + trim `type-fest` to built-in utility types. Modest client bundle win; only if schemas stay stable. |
