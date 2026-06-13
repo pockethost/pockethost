@@ -23,6 +23,11 @@ export type MixinContext = {
   logger: Logger
 }
 
+const AUTH_RETRY_INITIAL_MS = 1000
+const AUTH_RETRY_MAX_MS = 30000
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 export const MothershipAdminClientService = mkSingleton(async (cfg: ClientServiceConfig) => {
   const { url, username, password, logger } = mergeConfig<ClientServiceConfig>(
     {
@@ -36,6 +41,8 @@ export const MothershipAdminClientService = mkSingleton(async (cfg: ClientServic
   const { dbg, error } = logger.create(`MothershipAdminClientService`)
   const client = createAdminPbClient(url, logger)
 
+  let retryMs = AUTH_RETRY_INITIAL_MS
+
   while (true) {
     try {
       await client.adminAuthViaEmail(username, password)
@@ -48,8 +55,11 @@ export const MothershipAdminClientService = mkSingleton(async (cfg: ClientServic
         await client.createFirstAdmin(username, password)
         await client.adminAuthViaEmail(username, password)
         dbg(`Logged in`)
+        break
       } catch (e) {
-        error(`CANNOT AUTHENTICATE TO ${url}`)
+        error(`CANNOT AUTHENTICATE TO ${url}, retrying in ${retryMs}ms`)
+        await sleep(retryMs)
+        retryMs = Math.min(retryMs * 2, AUTH_RETRY_MAX_MS)
       }
     }
   }
