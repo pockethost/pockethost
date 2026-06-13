@@ -2,10 +2,10 @@ import { DISCORD_URL } from '$src/env'
 import regions from './regions.png'
 
 export const features = [
-   {
-    title: 'Global Infrastructure',
+  {
+    title: 'Global Ingress',
     description:
-      'PocketHost spans 40+ edge locations, connecting users via distributed edge servers with an enterprise-grade VPN for optimal data routing and 10-30ms latency for top application performance.',
+      'Fly.io edge locations worldwide terminate traffic close to your users, then route over a private network to PocketHost for low-latency access from anywhere.',
     img: regions,
   },
   {
