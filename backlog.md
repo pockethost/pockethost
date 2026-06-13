@@ -22,11 +22,8 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Runtime status owned by edge** | Med | M | **Spike Jun 2026 — reverted; bigger than S–M.** Split **intent** (`power`, version, secrets on mothership) from **runtime** (`status`: starting/running/idle on edge). Today: edge boot kills Docker without status write; `HandleInstancesResetIdle` blind-resets on mothership boot; partial restarts desync DB vs containers. **Phase 1 (min shippable):** edge boot → stop containers → admin `POST /api/instances/runtime/reset` → all `idle` via `dao.saveRecord` per row (**not raw SQL** — dashboard SSE misses bulk SQL); remove mothership bootstrap reset; mirror resync + edge `reconcileRuntimeStatus()` on mothership recovery (warm `instanceApis` → push running/starting, else idle). **Phase 2 (failure paths):** edge heartbeat lease (`runtime_lease_expires_at` or similar) renewed per warm instance; mothership cron expires stale leases → idle (edge crash / failed write). **Icebox witness:** container SSE/WS to mothership with instance-scoped token — only if edge lease insufficient. **Also:** pairs with **Dashboard realtime reconnect resync** (missed SSE while tab/disconnected). Blocks v0.39 + package split until Phase 1 lands. |
-
-| Item | Risk | Effort | Notes |
-| ---- | ---- | ------ | ----- |
-| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Blocked by runtime status** (delete, power-off, and resolve decoupling done). |
+| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Runtime status Phase 1 done** (delete, power-off, resolve decoupling done). |
+| **InstanceService batch status updates** | Low | S | **Partially done** — reconnect reconcile moved to `POST /api/mirror` (live IDs → mothership `saveRecord` loop). Remaining: per-spawn/shutdown status writes in `InstanceService`; v0.39 batch record APIs may collapse further. |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
 | **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status** (instance FS/delete and resolve decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
@@ -85,6 +82,12 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
 | **Docs structure & organization** | Low | M–L | Reorganize `(static)/docs/**` — clearer IA, fewer duplicate topics, better cross-links from dashboard `CardHeader` docs paths. |
 
+### Legal & compliance
+
+| Item | Risk | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| **GDPR compliance** | Med | L–XL | Privacy policy + cookie consent, lawful-basis/subprocessor documentation, data retention policies, account data export and erasure (instances, mothership records, Lemon Squeezy billing flows). EU customers and businesses can use PocketHost with clear data rights and regulatory coverage. |
+
 ### Codebase health & CI
 
 _Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — dashboard has deploy CI; the hosting stack has none._
@@ -99,7 +102,7 @@ _Post–Node 24 audit (Jun 2026). Shrink lockfile, drop dead deps, lean on nativ
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Dashboard realtime reconnect resync** | Low | S–M | SSE delivers deltas only — missed events while disconnected leave stale UI (e.g. email verify hang). On PB SDK `PB_CONNECT` (+ optional tab visibility), `resyncAppState`: `authRefresh`, refetch instances, stats; expose `onAppResync` for route stores. Remove 1s verify poll in `PocketbaseClient.ts`; consolidate with `stores.ts` subscribe logic. |
+| **Dashboard mothership disconnect UX** | Low | S–M | **Low priority** — refresh fixes stale state today. Reconnect path partially helped: `POST /api/mirror` live reconcile uses mothership `saveRecord` loop → dashboard SSE gets status updates. Remaining: detect SSE disconnect, reconnect banner, full `resyncAppState` on reconnect; remove verify poll. |
 | **CI quality gates (hosting stack)** | Low | M | Extend `ci.yaml` (today: mothership-hooks freshness only): root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`, `pnpm test` once suite exists. `publish-dashboard.yaml` still build-only. Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
 | **Test suite bootstrap** | Low | M | **Zero automated tests** — no `*.test.ts`, no test runner, no CI test job. Code review gap: version selection, instance spawn bucketing, and firewall rules are untested pure logic. Add Vitest (root or `packages/pockethost`), `pnpm test`, first cases: `maxSatisfyingVersion`, `InstanceService` v22/v23 bucketing, `rate-limiter.ts`. Wire into CI gates. Catches regressions before they hit hosted instances. |
 | **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
@@ -112,7 +115,8 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Container runtime witness (SSE/lease from instance)** | Med | M–L | Optional Phase 2+ if edge heartbeat lease is not enough: instance container holds mothership connection (SSE or ping) with instance-scoped token; disconnect → idle. Splits ownership with edge; needs auth endpoint + instance image change. Icebox until **Runtime status owned by edge** Phase 1–2 evaluated in prod. |
+| **Container runtime witness (SSE/lease from instance)** | Med | M–L | Optional Phase 2+ if edge heartbeat lease is not enough: instance container holds mothership connection (SSE or ping) with instance-scoped token; disconnect → idle. Splits ownership with edge; needs auth endpoint + instance image change. Icebox until **Runtime status Phase 2** evaluated in prod. |
+| **Runtime status heartbeat lease (Phase 2)** | Med | M | Edge renews `runtime_lease_expires_at` per warm instance; mothership cron expires stale leases → `idle` when edge dies without shutdown hook. Phase 1 sync protocol shipped 2026-06-13; undefined `status` during edge outage accepted until then. |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
 | **501(c)(3) nonprofit formation** | Med–High | XL | Become an official 501(c)(3): separate bank account, IP transfer from PocketHost to the org, IRS tax-exempt status, state registration, bylaws/board. **Lifetime Flounder revenue** allocates a portion to the nonprofit (fund split + accounting). Explore corporate **sponsorships** for ongoing support. Community gets mission-driven, tax-deductible infrastructure; platform gets durable legal structure beyond a single operator. |
@@ -159,8 +163,8 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 **Recommended phases:**
 
-1. **Sync protocol** — edge boot reset (saveRecord loop), remove mothership bootstrap reset, mothership-down recovery (mirror resync + reconcile warm instances upward).
-2. **Lease / heartbeat** — edge renews lease per warm instance; mothership cron expires → idle (covers edge death without shutdown hook).
+1. **Sync protocol (shipped 2026-06-13)** — `POST /api/mirror` (`resetIdle` on edge boot, live instance list on reconnect); mothership flips status (gated on `power`) then returns dump; edge upserts mirror. `PB_CONNECT` triggers sync with warm `instanceApis`.
+2. **Lease / heartbeat** — edge renews lease per warm instance; mothership cron expires → idle (covers edge death without shutdown hook). Deferred.
 3. **Optional container witness** — SSE or ping from container; see Icebox row. Heavier; only if edge lease has blind spots.
 
 **Code touchpoints:** `daemon.ts` (container wipe), `HandleInstancesResetIdle.ts` (remove), `InstanceService` (spawn/shutdown status writes, reconcile), `MothershipMirrorService` (resync, recovery watch), new admin route, dashboard SSE/resync.
@@ -169,7 +173,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Coupling | Where | Status |
 | -------- | ----- | ------ |
-| Runtime status | `HandleInstancesResetIdle` vs edge daemon; no lease on crash | Open — see **Runtime status owned by edge** + spike notes above |
+| Runtime status | `HandleInstancesResetIdle` vs edge daemon; no lease on crash | Done (Phase 1) — `POST /api/mirror` sync, `saveRecord` idle/live loops, Phase 2 lease deferred |
 | Request policy | `InstanceService` edge proxy | Done — removed unused `HandleInstanceResolve`; edge mirror owns request gating |
 
 Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **instance delete FS** (`HandleInstanceDelete` record-only + PM2 `edge cleanup`), **request policy** (removed `HandleInstanceResolve`; edge proxy only).
@@ -179,10 +183,11 @@ Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **inst
 ```
 Runtime status on edge (Phase 1 sync) ──► v0.39 migration
 Runtime status Phase 2 (heartbeat lease) ──► stale `running` cleanup when edge dies without shutdown hook
-Runtime status owned by edge ──► Dashboard realtime reconnect resync (complementary; missed SSE while disconnected)
+Runtime status owned by edge ──► Dashboard mothership disconnect UX (complementary; missed SSE while disconnected)
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
+Mothership v0.39 ──► InstanceService batch status updates (batch record API spike)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
 CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
 Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
@@ -197,6 +202,7 @@ Public pricing page update ──► Last-chance Flounder blast
 Last-chance Flounder blast ──► Pricing redo — Flounder sunset (lifetime tier pull)
 Halt lifetime edition sales ──► Pricing redo (policy; ship after comms)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
+GDPR compliance ──► account data export/deletion UX; privacy policy + subprocessors docs; Lemon Squeezy data flows
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
 Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → pockethost/pocketpages overlays)
@@ -237,6 +243,7 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data under `$DATA_ROOT/instances/<id>/` |
 | 2026-06-12 | **Remove instance region field** — dropped `instances.region`, create/signup/migrate handlers; PB migration `1781308900`; pricing reframed to Fly global ingress (not per-instance region) |
 | 2026-06-12 | **Remove mothership s3 collection** — dropped unused `instances.s3` relation + `s3` creds collection; users configure S3 in PB admin (`/docs/s3` unchanged) |
+| 2026-06-13 | **Runtime status sync protocol (Phase 1)** — `POST /api/mirror` (`resetIdle` + live reconcile), `saveRecord` loops for dashboard SSE, `PB_CONNECT` edge sync |
 | 2026-06-13 | **Edge-owned instance delete** — mothership `HandleInstanceDelete` drops PB record only (idle gate); `edge cleanup` + PM2 `edge-cleanup` (daily); admin `getInstances()` → rimraf orphans under `INSTANCES_ROOT`; `--dry-run`; removed `HandleInstanceDataPaths` (`53671ae7`–`13b77d45`) |
 | 2026-06-13 | **Dashboard highlight + color deps** — dropped `prismjs` + twilight CSS (instance layout already used `CodeSample`/svelte-highlight); fixed Tableau10 palette in `secrets/stores.ts`; removed `d3-scale` + `d3-scale-chromatic` |
 

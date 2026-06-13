@@ -58,9 +58,9 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pockethost/src/services/`:
 
 - `PocketBaseService` — instance PB process management
-- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted
+- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`
 - `MothershipAdminClientService` — admin PB client + instance mixin
-- `MothershipMirrorService` — mothership data sync via PocketBase realtime SSE
+- `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
