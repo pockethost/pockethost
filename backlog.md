@@ -23,7 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | ~~**Power off stops edge container**~~ | — | — | **Done 2026-06-12** — mirror listener shuts down container on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard shutting-down UX (`instancePower.ts`). |
-| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). PM2 `edge-cleanup` runs `edge cleanup` daily: admin `GET /api/instances/data-paths`, rimraf orphaned `DATA_ROOT` dirs (stop bound containers first). Skip reserved paths (legacy `MOTHERSHIP_NAME` dir). |
+| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). PM2 `edge-cleanup` runs `edge cleanup` daily: admin `GET /api/instances/data-paths`, rimraf orphaned dirs under `DATA_ROOT/instances/` (stop bound containers first). |
 | **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
 | **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
 

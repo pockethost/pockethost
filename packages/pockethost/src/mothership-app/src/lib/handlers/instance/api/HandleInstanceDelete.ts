@@ -44,7 +44,7 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     throw new BadRequestError(`Instance must be shut down first.`)
   }
 
-  const path = [$os.getenv('DATA_ROOT'), id].join('/')
+  const path = [$os.getenv('DATA_ROOT'), 'instances', id].join('/')
   log(`path ${path}`)
   const res = $os.removeAll(path)
   log(`res`, res)

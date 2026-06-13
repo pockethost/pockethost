@@ -222,7 +222,8 @@ export const PH_MOTHERSHIP_MIRROR_PORT = () => env.get('PH_EDGE_MIRROR_PORT').de
 
 /** Helpers */
 
-export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) => DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
+export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) => DATA_ROOT('mothership', ...paths)
+export const INSTANCES_ROOT = (...paths: string[]) => DATA_ROOT('instances', ...paths)
 export const MOTHERSHIP_DATA_DB = () => join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) => join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
@@ -232,7 +233,7 @@ export const mkInstanceHostname = (instance: InstanceFields) =>
   [instance.subdomain, APEX_DOMAIN()].filter(Boolean).join('.')
 export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
   [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)].filter(Boolean).join('/')
-export const mkInstanceDataPath = (instanceId: string, ...path: string[]) => DATA_ROOT(instanceId, ...path)
+export const mkInstanceDataPath = (instanceId: string, ...path: string[]) => INSTANCES_ROOT(instanceId, ...path)
 
 export const logConstants = () => {
   const vars = {
@@ -286,6 +287,7 @@ export const logConstants = () => {
     PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
     MOTHERSHIP_DATA_ROOT,
     MOTHERSHIP_DATA_DB,
+    INSTANCES_ROOT,
     PH_MOTHERSHIP_MIRROR_PORT,
   }
   forEach(vars, (v, k) => {

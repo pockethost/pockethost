@@ -5,7 +5,7 @@ import { spawn } from 'child_process'
 import { Mode, constants, createReadStream, createWriteStream, readFileSync, writeFileSync } from 'fs'
 import { FileStat, FileSystem, FtpConnection } from 'ftp-srv'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
-import { DATA_ROOT } from '../../../../..'
+import { INSTANCES_ROOT } from '../../../../..'
 import * as fsAsync from './fs-async'
 import { POWERED_OFF_ONLY } from './guards'
 
@@ -122,7 +122,7 @@ export class PhFs implements FileSystem {
 
   constructor(connection: FtpConnection, client: PocketBase, logger: Logger) {
     const cwd = `/`
-    const root = DATA_ROOT()
+    const root = INSTANCES_ROOT()
     this.connection = connection
     this.client = client
     this.log = logger.create(`PhFs`)
