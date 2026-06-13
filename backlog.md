@@ -76,6 +76,7 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Remove Pocker from pricing features** | Low | S | Drop experimental Pocker promo from `pricing/features.ts` (link to `/blog/announcing-pocker`). Pricing page reflects current Docker-based hosting, not retired/experimental container marketing. |
 | **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
 | **Docs structure & organization** | Low | M–L | Reorganize `(static)/docs/**` — clearer IA, fewer duplicate topics, better cross-links from dashboard `CardHeader` docs paths. |
