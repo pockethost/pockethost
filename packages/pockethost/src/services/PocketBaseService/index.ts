@@ -29,7 +29,6 @@ export type Env = { [_: string]: string }
 export type SpawnConfig = {
   subdomain: string
   instanceId: string
-  volume: string
   version?: string
   extraBinds?: string[]
   env?: Env
@@ -77,10 +76,10 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
       dev: false,
       ...cfg,
     }
-    const { version, subdomain, instanceId, volume, extraBinds, env, stderr, stdout, dev } = _cfg
+    const { version, subdomain, instanceId, extraBinds, env, stderr, stdout, dev } = _cfg
 
     logger.breadcrumb(subdomain).breadcrumb(instanceId)
-    const iLogger = InstanceLogWriter(instanceId, volume, 'exec', logger)
+    const iLogger = InstanceLogWriter(instanceId, 'exec', logger)
 
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = pb.maxSatisfyingVersion(_version)
@@ -120,7 +119,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
         dbg(data.toString())
       })
       const Binds = [
-        `${mkInstanceDataPath(volume, instanceId)}:${mkContainerHomePath()}`,
+        `${mkInstanceDataPath(instanceId)}:${mkContainerHomePath()}`,
         `${binPath}:${mkContainerHomePath(`pocketbase`)}:ro`,
       ]
 

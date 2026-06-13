@@ -15,11 +15,6 @@ module.exports = {
       cron_restart: '0 0 * * *',
     },
     {
-      name: `edge-volume`,
-      script: 'pnpm prod:cli edge volume mount',
-      // cron_restart: '0 0 * * *',
-    },
-    {
       name: `mothership`,
       script: 'pnpm prod:cli mothership serve',
     },

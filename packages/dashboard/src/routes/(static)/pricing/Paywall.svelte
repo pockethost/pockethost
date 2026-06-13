@@ -18,7 +18,7 @@
     features={[
       'Access to all features',
       '7 day risk-free trial',
-      '35+ regions',
+      'Global Fly ingress, private network routing',
       'Unlimited bandwidth, storage, and CPU',
       'FTP Access',
       'Flexible - only pay for as many as you need',

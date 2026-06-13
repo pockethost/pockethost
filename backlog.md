@@ -23,7 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | ~~**Power off stops edge container**~~ | — | — | **Done 2026-06-12** — mirror listener shuts down container on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard shutting-down UX (`instancePower.ts`). |
-| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). PM2 `edge-cleanup` runs `edge cleanup` daily: admin `GET /api/instances/data-paths`, rimraf orphaned `DATA_ROOT` dirs (stop bound containers first). Skip reserved paths (`cloud-storage-mount`, legacy `MOTHERSHIP_NAME` dir). |
+| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). PM2 `edge-cleanup` runs `edge cleanup` daily: admin `GET /api/instances/data-paths`, rimraf orphaned dirs under `DATA_ROOT/instances/` (stop bound containers first). |
 | **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
 | **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
 
@@ -40,7 +40,6 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Audit cloud-storage data layout** | Med | S–M | `$DATA_ROOT/cloud-storage-mount` is the rclone FUSE mount (`VOLUME_MOUNT_POINT`; PM2 `edge-volume`). `edge volume migrate` uses volume name `cloud-storage` → `$DATA_ROOT/cloud-storage/<id>/`. Mount point vs volume tier names diverge; infra mount dir sits alongside instance data under `data/`. Spike: intended layout, rename/consolidate paths, move mount outside `DATA_ROOT` if needed, align migrate/mount/cleanup reserved paths, document in MEMORY. Prerequisite for **Rclone tiered instance data cache** — predictable storage namespace before tiering rollout. |
 | **S3-default file storage (sqlite-only volumes)** | Med | M–L | Today PB backups include file uploads unless the user configures S3; host volume holds uploads + sqlite. Default or require S3 for `_pb_files_` so the instance volume is sqlite (+ hooks) only — smaller disks, faster backups, cleaner tiering. Customers get leaner backups; platform pays less for block storage. Prerequisite for **Rclone tiered instance data cache**. |
 | **Rclone tiered instance data cache** | Med–High | XL | Hot cache on edge for active instances; idle/cold data on cheaper remote storage via rclone (or similar). Goal: avoid provisioning 1–2 TB per node when most instances are largely idle. Spike: mount semantics, sync latency on wake, consistency on hibernate/delete. Lowers platform storage cost; pairs with sqlite-only volumes + hibernate economics. |
 
@@ -52,6 +51,7 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 | **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
 | **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). Grandfather existing plans. |
 | **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror: **Starter 1 min**, **Pro 1 hr** (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Mothership sets TTL from plan; update limits/marketing docs. Pro keeps instances warm longer (cron, PB jobs); Starter hibernates faster to save platform resources. |
+| **Plan-tier rate limits** | Med | M | Subscription tier → firewall limits per instance hostname (today global `LIMITS` in `rate-limiter.ts`: trusted/untrusted IP + hostname hourly + concurrent). Mothership resolves plan on instance; edge/firewall applies tier-specific points (e.g. Starter lower hostname ceiling, Pro higher). Distinct from **User-controlled rate limiting** (customer knobs). Pro gets headroom for production traffic; Starter stays fair on shared firewall. |
 | **Enforced storage quotas** | Med | L | Migrate from fair-use to hard limits: sqlite DB size, FTP upload usage, PB file storage (volume or S3-metered). Dashboard surfacing + mothership schema + edge reject/warn. Prerequisite for honest **Pricing clarity**; vectors: sqlite size, FTPS/SFTP uploads, PB file uploads. |
 | **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas + **Enforced storage quotas**. |
 | **Annual billing options** | Low | M | Lemon Squeezy variant SKUs + dashboard copy. |
@@ -77,6 +77,7 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Remove Pocker from pricing features** | Low | S | Drop experimental Pocker promo from `pricing/features.ts` (link to `/blog/announcing-pocker`). Pricing page reflects current Docker-based hosting, not retired/experimental container marketing. |
 | **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
 | **Docs structure & organization** | Low | M–L | Reorganize `(static)/docs/**` — clearer IA, fewer duplicate topics, better cross-links from dashboard `CardHeader` docs paths. |
@@ -145,8 +146,10 @@ Mothership build hygiene ──► CI gates (fresh handler bundle check)
 CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
 Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
 Pricing redo ──► plan-tier hibernate intervals (Starter 1 min / Pro 1 hr)
+Pricing redo ──► plan-tier rate limits (Starter vs Pro firewall ceilings)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Plan-tier hibernate ──► limits docs + pricing/marketing copy
+Plan-tier rate limits ──► pricing clarity + marketing copy (published req/hr limits)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
@@ -156,7 +159,6 @@ Realtime reconnect resync ──► removes verify polling; fixes stale instance
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
-Audit cloud-storage data layout ──► Rclone tiered instance data cache (mount vs volume paths)
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
@@ -174,6 +176,9 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
 | 2026-06-12 | **Power off stops edge container** — `InstanceService` mirror listener shuts down Docker on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `instancePower.ts` shutting-down UX; delete/version gated on fully-off (`status=idle`) |
+| 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data always `$DATA_ROOT/<id>/` |
+| 2026-06-12 | **Remove instance region field** — dropped `instances.region`, create/signup/migrate handlers; PB migration `1781308900`; pricing reframed to Fly global ingress (not per-instance region) |
+| 2026-06-12 | **Remove mothership s3 collection** — dropped unused `instances.s3` relation + `s3` creds collection; users configure S3 in PB admin (`/docs/s3` unchanged) |
 
 ---
 
