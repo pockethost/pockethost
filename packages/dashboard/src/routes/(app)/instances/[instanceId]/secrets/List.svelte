@@ -3,7 +3,6 @@
   import { items } from './stores'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
-  import { reduce } from '@s-libs/micro-dash'
   import { logger, type UpdateInstancePayload } from 'pockethost/common'
 
   const handleDelete = (name: string) => async (e: Event) => {
@@ -13,8 +12,7 @@
     await client().updateInstance({
       id: $instance.id,
       fields: {
-        secrets: reduce(
-          $items,
+        secrets: $items.reduce(
           (c, v) => {
             const { name, value } = v
             c[name] = value

@@ -1,5 +1,3 @@
-import { keys, values } from '@s-libs/micro-dash'
-
 export enum VirtualFolderNames {
   Cache = `.cache`,
   Data = 'pb_data',
@@ -27,8 +25,8 @@ export const FolderNamesMap: {
   [VirtualFolderNames.Hooks]: PhysicalFolderNames.Hooks,
 } as const
 
-export const INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES = keys(FolderNamesMap)
-export const INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES = values(FolderNamesMap)
+export const INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES = Object.keys(FolderNamesMap)
+export const INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES = Object.values(FolderNamesMap)
 
 export function isInstanceRootVirtualFolder(name: string): name is VirtualFolderNames {
   return INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES.includes(name as VirtualFolderNames)

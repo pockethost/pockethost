@@ -1,4 +1,3 @@
-import { map } from '@s-libs/micro-dash'
 import { execSync } from 'child_process'
 import fs from 'fs'
 
@@ -30,9 +29,8 @@ const rollup = () => {
     cached[command]++
   })
 
-  map(cached, (v, k) => {
-    return { v, k }
-  })
+  Object.entries(cached)
+    .map(([k, v]) => ({ v, k }))
     .filter(({ v, k }) => {
       return v > 1000
     })

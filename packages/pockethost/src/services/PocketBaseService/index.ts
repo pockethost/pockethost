@@ -16,7 +16,6 @@ import {
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
   DOCKER_INSTANCE_IMAGE_NAME,
 } from '@'
-import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync, globSync } from 'fs'
@@ -129,14 +128,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
       const createOptions: ContainerCreateOptions = {
         Image: DOCKER_INSTANCE_IMAGE_NAME(),
-        Env: map(
-          {
-            ...env,
-            DEV: dev && gte(realVersion, `0.20.1`),
-            PH_APEX_DOMAIN: APEX_DOMAIN(),
-          },
-          (v, k) => `${k}=${v}`
-        ),
+        Env: Object.entries({
+          ...env,
+          DEV: dev && gte(realVersion, `0.20.1`),
+          PH_APEX_DOMAIN: APEX_DOMAIN(),
+        }).map(([k, v]) => `${k}=${v}`),
         name: `${subdomain}-${+new Date()}`,
         HostConfig: {
           Init: true,

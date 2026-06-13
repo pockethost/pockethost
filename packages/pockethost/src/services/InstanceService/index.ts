@@ -22,7 +22,6 @@ import {
   stringify,
   tryFetch,
 } from '@'
-import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'fs'
 import { basename, join } from 'path'
@@ -142,14 +141,14 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         subdomain: instance.subdomain,
         instanceId: instance.id,
         dev: instance.dev,
-        extraBinds: flatten([
+        extraBinds: [
           globSync(join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js')).map(
             (file) => `${file}:${mkContainerHomePath(`pb_migrations/${basename(file)}`)}:ro`
           ),
           globSync(join(INSTANCE_APP_HOOK_DIR(instanceAppVersion), '*.js')).map(
             (file) => `${file}:${mkContainerHomePath(`pb_hooks/${basename(file)}`)}:ro`
           ),
-        ]),
+        ].flat(),
         env: {
           ...instance.secrets,
           PH_APP_NAME: instance.subdomain,
@@ -179,7 +178,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       const { exitCode, stopped, started, url: internalUrl } = childProcess
       exitCode.then((code) => {
         dbg(`Instance exited with code ${code}`)
-        dbg(`Shutting down: There are now ${values(instanceApis).length} still in API cache`)
+        dbg(`Shutting down: There are now ${Object.values(instanceApis).length} still in API cache`)
         shutdown()
         delete instanceApis[id]
       })
@@ -350,7 +349,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   asyncExitHook(async () => {
     dbg(`Shutting down instance manager`)
-    const p = Promise.all(map(instanceApis, async (api) => (await api).shutdown()))
+    const p = Promise.all(Object.values(instanceApis).map(async (api) => (await api).shutdown()))
     await p
   })
 

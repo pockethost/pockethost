@@ -10,7 +10,6 @@ import {
   UserFields,
   UserId,
 } from '@'
-import { forEach } from '@s-libs/micro-dash'
 
 export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
   client: PocketBase
@@ -126,7 +125,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
       .getFullList<InstanceFields>()
       .then((instances) => {
         dbg(`instances: ${instances.length}`)
-        forEach(instances, (instance) => {
+        instances.forEach((instance) => {
           upsertInstance(instance)
         })
       })
@@ -136,7 +135,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
       .getFullList<UserFields>()
       .then((users) => {
         dbg(`users: ${users.length}`)
-        forEach(users, (user) => {
+        users.forEach((user) => {
           upsertUser(user)
         })
       })

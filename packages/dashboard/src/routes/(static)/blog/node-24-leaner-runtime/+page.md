@@ -34,7 +34,7 @@ When Bun lands, it will be because the container lifecycle and logging story are
 
 ### What's next
 
-More dependency diet work is queued: inlining small Express middleware helpers, replacing `@s-libs/micro-dash` with plain JavaScript in the mothership hook bundle, and tightening the dashboard frontend bundle.
+More dependency diet work is queued: inlining small Express middleware helpers and tightening the dashboard frontend bundle.
 
 The big platform thread is unchanged: edge-owned runtime status, then Mothership PocketBase v0.39. Leaner deps do not block that work. They just make every step after it cheaper.
 

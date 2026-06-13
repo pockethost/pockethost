@@ -1,11 +1,10 @@
 <script lang="ts">
   import { globalInstancesStore, userSubscriptionType, userStore } from '$util/stores'
-  import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
   import { SubscriptionType } from 'pockethost/common'
 
   $: maxInstances = $userStore?.subscription_quantity || 0
-  $: instanceCount = values($globalInstancesStore).length
+  $: instanceCount = Object.values($globalInstancesStore).length
 </script>
 
 <svelte:head>

@@ -10,7 +10,6 @@ import {
   SSL_CERT,
   SSL_KEY,
 } from '@'
-import { forEach } from '@s-libs/micro-dash'
 import { exec } from 'child_process'
 import cors from 'cors'
 import express, { ErrorRequestHandler } from 'express'
@@ -88,7 +87,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
   app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
 
-  forEach(hostnameRoutes, (target, host) => {
+  Object.entries(hostnameRoutes).forEach(([host, target]) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
   })
 

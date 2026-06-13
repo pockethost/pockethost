@@ -18,7 +18,6 @@
     "@awesome.me/webawesome": "^3.8.0",
     "@beyonk/gdpr-cookie-consent-banner": "^12.1.6",
     "@microsoft/fetch-event-source": "github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0",
-    "@s-libs/micro-dash": "^18.0.0",
     "@sveltejs/adapter-static": "^3.0.8",
     "@sveltejs/kit": "^2.22.2",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",

@@ -1,5 +1,4 @@
 import { DOCKER_INSTANCE_IMAGE_NAME, mkContainerHomePath } from '@'
-import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { PassThrough } from 'node:stream'
 
@@ -61,7 +60,7 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
 
   const createOptions: ContainerCreateOptions = {
     Image: DOCKER_INSTANCE_IMAGE_NAME(),
-    Env: map(env, (v, k) => `${k}=${v}`),
+    Env: Object.entries(env).map(([k, v]) => `${k}=${v}`),
     name,
     HostConfig: {
       Init: true,

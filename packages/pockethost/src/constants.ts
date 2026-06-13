@@ -1,4 +1,3 @@
-import { forEach } from '@s-libs/micro-dash'
 import envPaths from 'env-paths'
 import { default as env } from 'env-var'
 import { existsSync } from 'fs'
@@ -283,7 +282,7 @@ export const logConstants = () => {
     INSTANCES_ROOT,
     PH_MOTHERSHIP_MIRROR_PORT,
   }
-  forEach(vars, (v, k) => {
+  for (const [k, v] of Object.entries(vars)) {
     console.log(`${k}: ${v()}`)
-  })
+  }
 }

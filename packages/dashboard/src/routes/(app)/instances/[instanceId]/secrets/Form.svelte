@@ -1,7 +1,6 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client/index.js'
-  import { reduce } from '@s-libs/micro-dash'
   import { SECRET_KEY_REGEX, type UpdateInstancePayload } from 'pockethost/common'
   import { instance } from '../store.js'
   import { items } from './stores.js'
@@ -35,8 +34,7 @@
       await client().updateInstance({
         id: $instance.id,
         fields: {
-          secrets: reduce(
-            $items,
+          secrets: $items.reduce(
             (c, v) => {
               const { name, value } = v
               c[name] = value

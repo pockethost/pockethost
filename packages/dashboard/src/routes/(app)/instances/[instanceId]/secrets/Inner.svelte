@@ -1,6 +1,5 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
-  import { forEach } from '@s-libs/micro-dash'
   import { instance } from '../store'
   import Form from './Form.svelte'
   import List from './List.svelte'
@@ -10,9 +9,9 @@
     const { id, secrets } = $instance
     items.clear()
 
-    forEach(secrets || {}, (value, name) => {
+    for (const [name, value] of Object.entries(secrets || {})) {
       items.upsert({ name, value })
-    })
+    }
   }
 
   $: code =

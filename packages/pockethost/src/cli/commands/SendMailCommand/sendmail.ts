@@ -1,5 +1,4 @@
 import { PocketBase, UserFields, logger } from '@'
-import { map } from '@s-libs/micro-dash'
 import Database from 'better-sqlite3'
 import Bottleneck from 'bottleneck'
 import { Command, InvalidArgumentError } from 'commander'
@@ -58,7 +57,7 @@ export const SendMailCommand = () =>
         messageId,
       }
       await Promise.all(
-        map(campaign.vars, async (sql, k) => {
+        Object.entries(campaign.vars).map(async ([k, sql]) => {
           const result = db.prepare(sql).get() as { value: string }
           vars[k.toLocaleLowerCase()] = result.value
         })

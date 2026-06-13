@@ -1,5 +1,3 @@
-import { forEach } from '@s-libs/micro-dash'
-
 export type Unsubscribe = () => void
 
 export const createGenericSyncEvent = <TPayload>(): [
@@ -17,7 +15,7 @@ export const createGenericSyncEvent = <TPayload>(): [
   }
 
   const fireEvent = (payload: TPayload) => {
-    forEach(callbacks, (cb) => cb(payload))
+    Object.values(callbacks).forEach((cb) => cb(payload))
   }
 
   return [onEvent, fireEvent]

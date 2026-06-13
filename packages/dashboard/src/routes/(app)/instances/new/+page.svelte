@@ -1,6 +1,5 @@
 <script lang="ts">
   import { globalInstancesStore, userSubscriptionType, versions, userStore } from '$util/stores'
-  import { values } from '@s-libs/micro-dash'
   import Creator from './Creator.svelte'
   import Paywall from './Paywall.svelte'
 
@@ -8,7 +7,7 @@
   let instanceCount = 0
   let canCreate = false
   $: {
-    instanceCount = values($globalInstancesStore).length
+    instanceCount = Object.values($globalInstancesStore).length
     canCreate = instanceCount < maxInstances && $versions.length > 0
   }
 </script>

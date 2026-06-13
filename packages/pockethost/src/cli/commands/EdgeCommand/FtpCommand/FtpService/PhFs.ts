@@ -1,5 +1,4 @@
 import { InstanceFields, InstanceLogWriterApi, Logger, PocketBase, assert, seqid } from '@'
-import { compact, forEach, map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import { spawn } from 'child_process'
 import { Mode, constants, createReadStream, createWriteStream, readFileSync, writeFileSync } from 'fs'
@@ -47,12 +46,12 @@ const prepPackageJson = (cwd: string, logger: InstanceLogWriterApi) => {
 
     let stripped = false
     if (pkg.dependencies) {
-      forEach(pkg.dependencies, (version, name) => {
+      for (const [name, version] of Object.entries(pkg.dependencies)) {
         if (version.startsWith('workspace:')) {
           pkg.dependencies[name] = version.replace('workspace:', '')
           stripped = true
         }
-      })
+      }
     }
     const stringified = JSON.stringify(pkg, null, 2)
     writeFileSync(packageJsonPath, stringified)
@@ -252,7 +251,7 @@ export class PhFs implements FileSystem {
       .readdir(fsPath)
       .then((fileNames) => {
         return Promise.all(
-          map(fileNames, (fileName) => {
+          fileNames.map((fileName) => {
             const filePath = join(fsPath, fileName)
             return fsAsync
               .access(filePath, constants.F_OK)
@@ -267,7 +266,7 @@ export class PhFs implements FileSystem {
           })
         )
       })
-      .then(compact)
+      .then((stats) => stats.filter((stat): stat is FileStat => stat != null))
   }
 
   async get(fileName: string): Promise<FileStat> {

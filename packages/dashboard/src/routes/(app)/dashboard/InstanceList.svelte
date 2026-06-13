@@ -1,6 +1,5 @@
 <script lang="ts">
   import { globalInstancesStore } from '$util/stores'
-  import { values } from '@s-libs/micro-dash'
   import { type InstanceFields } from 'pockethost/common'
   import InstanceCard from './InstanceCard.svelte'
   import { page } from '$app/state'
@@ -55,7 +54,7 @@
     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'
   }
 
-  $: filteredInstances = values($globalInstancesStore)
+  $: filteredInstances = Object.values($globalInstancesStore)
     .filter((instance) => {
       const target = (instance.cname || instance.subdomain).toLowerCase()
       const matchesQuery = target.includes(searchQuery.toLowerCase())

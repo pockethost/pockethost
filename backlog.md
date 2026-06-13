@@ -95,7 +95,6 @@ _Post–Node 24 audit (Jun 2026). Shrink lockfile, drop dead deps, lean on nativ
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Remove @s-libs/micro-dash** | Low | S–M | Replace `map`/`forEach`/`values`/`keys`/`reduce`/`flatten`/`compact` with natives (~25 files in pockethost + dashboard + mothership-app). **Shrinks tsdown `pb_hooks/mothership.js` bundle** — fewer deps shipped into PB JSVM. |
 | **Dashboard highlight + color deps** | Low | S | Unify syntax highlighting on highlight.js / svelte-highlight; drop `prismjs` + twilight CSS (`+layout.svelte` `Prism.highlightAll`). Replace `d3-scale`/`d3-scale-chromatic` with fixed Tableau10 palette (`secrets/stores.ts` only). Smaller dashboard bundle. |
 | **Inline Express middleware deps** | Low | S | Replace `express-sslify`, `cors`, `vhost`, `express-async-errors`, `exit-hook` with small local helpers in firewall + `ProxyService`. Fewer transitive deps on edge nodes. |
 
@@ -188,7 +187,7 @@ Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
 PocketHost CLI & SDK ──► watch mode replaces manual FTP for dev sync (pairs with SFTP)
 Node 24 upgrade ──► Dependency diet — Node 24 natives (done)
-Remove micro-dash ──► smaller mothership hook bundle (pairs with mothership build hygiene)
+Remove micro-dash ──► smaller mothership hook bundle (done 2026-06-12)
 PH_* env consolidation ──► env-var/env-paths (loadEnvFile in constants.ts)
 Dependency diet (overall) ──► fewer deps to validate on Bun soak
 Replace tail + patch ──► Bun icebox unblock (patched tail today)
@@ -202,6 +201,7 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-12 | **Remove @s-libs/micro-dash** — natives in ~22 files (pockethost, dashboard, mothership-app); dropped dep from lockfile; `pb_hooks/mothership.js` −37 lines |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
 | 2026-06-12 | **Retire duplicate resolve gating** — removed unused `HandleInstanceResolve` + `GET /api/instance/resolve`; edge `InstanceService` owns request policy |

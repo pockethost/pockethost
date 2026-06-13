@@ -99,44 +99,8 @@ const HandleInstanceDelete = (c) => {
 };
 
 //#endregion
-//#region ../../../../node_modules/.pnpm/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
-function keysOfNonArray(object) {
-	return object ? Object.getOwnPropertyNames(object) : [];
-}
-function forOwnOfNonArray(object, iteratee) {
-	forEachOfArray(keysOfNonArray(object), (key) => iteratee(object[key], key));
-	return object;
-}
-function forEach(collection, iteratee) {
-	if (Array.isArray(collection)) forEachOfArray(collection, iteratee);
-	else forOwnOfNonArray(collection, iteratee);
-	return collection;
-}
-function forEachOfArray(array, iteratee) {
-	for (let i = 0, len = array.length; i < len; ++i) if (iteratee(array[i], i) === false) break;
-}
-function doReduce(iterationFn, collection, iteratee, accumulator, initAccum) {
-	iterationFn(collection, (value, indexOrKey) => {
-		if (initAccum) {
-			accumulator = value;
-			initAccum = false;
-		} else accumulator = iteratee(accumulator, value, indexOrKey);
-	});
-	return accumulator;
-}
-function reduce(collection, iteratee, accumulator) {
-	return doReduce(forEach, collection, iteratee, accumulator, arguments.length < 3);
-}
-
-//#endregion
 //#region src/lib/util/removeEmptyKeys.ts
-const removeEmptyKeys = (obj) => {
-	const sanitized = reduce(obj, (acc, value, key) => {
-		if (value !== null && value !== void 0) acc[key] = value;
-		return acc;
-	}, {});
-	return sanitized;
-};
+const removeEmptyKeys = (obj) => Object.fromEntries(Object.entries(obj).filter(([, value]) => value != null));
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceUpdate.ts

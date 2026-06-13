@@ -1,5 +1,3 @@
-import { values } from '@s-libs/micro-dash'
-
 export type Unsubscribe = () => void
 
 export type EventSubscriber<TPayload> = (cb: EventHandler<TPayload>) => Unsubscribe
@@ -19,7 +17,7 @@ export const createEvent = <TPayload>(
   const onEvent = (cb: EventHandler<TPayload>) => {
     const id = i++
     callbacks[id] = cb
-    callbacksArray = values(callbacks)
+    callbacksArray = Object.values(callbacks)
     return () => {
       delete callbacks[id]
     }

@@ -1,4 +1,3 @@
-import { reduce, values } from '@s-libs/micro-dash'
 import { LoggerService, seqid } from '.'
 
 export type CleanupFunc = () => Promise<void> | void
@@ -44,16 +43,12 @@ export const createCleanupManager = (slug?: string) => {
   const shutdown: () => Promise<void> = () => {
     if (_shutdownP) return _shutdownP
 
-    const _cleanupFuncs = values(cleanups)
+    const _cleanupFuncs = Object.values(cleanups)
       .sort((a, b) => a.priority - b.priority)
       .map((v) => v.cleanup)
-    _shutdownP = reduce(
-      _cleanupFuncs,
-      (c, v) => {
-        return c.then(() => v())
-      },
-      Promise.resolve()
-    ).catch((e) => {
+    _shutdownP = _cleanupFuncs
+      .reduce((c, v) => c.then(() => v()), Promise.resolve())
+      .catch((e) => {
       error(
         `Cleanup functions are failing. This should never happen, check all cleanup functions to make sure they are trapping their exceptions.`
       )

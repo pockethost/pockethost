@@ -24,7 +24,6 @@
     "start": "node --experimental-eventsource --import tsx ./src/cli/index.ts"
   },
   "dependencies": {
-    "@s-libs/micro-dash": "^18.0.0",
     "ajv": "^8.17.1",
     "better-sqlite3": "^11.7.2",
     "bottleneck": "^2.19.5",

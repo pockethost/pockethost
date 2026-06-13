@@ -49,9 +49,6 @@ importers:
       '@microsoft/fetch-event-source':
         specifier: github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0
         version: https://codeload.github.com/pockethost/fetch-event-source/tar.gz/ebe3b7122647b48b93fd11effbbfb915d98956b0
-      '@s-libs/micro-dash':
-        specifier: ^18.0.0
-        version: 18.0.0
       '@sveltejs/adapter-static':
         specifier: ^3.0.8
         version: 3.0.8(@sveltejs/kit@2.22.2(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.34.9)(vite@6.3.5(@types/node@24.13.2)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))(svelte@5.34.9)(vite@6.3.5(@types/node@24.13.2)(jiti@2.4.2)(sass@1.89.2)(tsx@4.20.3)(yaml@2.8.0)))
@@ -127,9 +124,6 @@ importers:
 
   packages/pockethost:
     dependencies:
-      '@s-libs/micro-dash':
-        specifier: ^18.0.0
-        version: 18.0.0
       ajv:
         specifier: ^8.17.1
         version: 8.17.1
@@ -256,9 +250,6 @@ importers:
 
   packages/pockethost/src/mothership-app:
     devDependencies:
-      '@s-libs/micro-dash':
-        specifier: ^18.0.0
-        version: 18.0.0
       tsdown:
         specifier: ^0.12.9
         version: 0.12.9(typescript@5.7.3)
@@ -1334,9 +1325,6 @@ packages:
     resolution: {integrity: sha512-J8o22LuF0kTe7m+8PvW9wk3/bRq5+mRo5Dqo6+vXb7otCm3TPhYOJqOaQtGU9YMWQSL3krMnoOxMr0+9E6F3Ug==}
     cpu: [x64]
     os: [win32]
-
-  '@s-libs/micro-dash@18.0.0':
-    resolution: {integrity: sha512-/EiBrhJIDVBI3DpWPaezO065VOQ/UUiLx3BLtkNx59S7T5AuYUxLp64fw3uR8Uk5qkIwQimhFMlvn/S1NkZanA==}
 
   '@shoelace-style/animations@1.2.0':
     resolution: {integrity: sha512-avvo1xxkLbv2dgtabdewBbqcJfV0e0zCwFqkPMnHFGbJbBHorRFfMAHh1NG9ymmXn0jW95ibUVH03E1NYXD6Gw==}
@@ -4270,10 +4258,6 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.44.1':
     optional: true
 
-  '@s-libs/micro-dash@18.0.0':
-    dependencies:
-      tslib: 2.8.1
-
   '@shoelace-style/animations@1.2.0': {}
 
   '@shoelace-style/localize@3.2.2': {}
@@ -6480,7 +6464,8 @@ snapshots:
       - supports-color
       - vue-tsc
 
-  tslib@2.8.1: {}
+  tslib@2.8.1:
+    optional: true
 
   tsx@4.19.2:
     dependencies:
