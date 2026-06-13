@@ -9,6 +9,9 @@ routerAdd("POST", "/api/instance", (c) => {
 routerAdd("DELETE", "/api/instance/:id", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceDelete(c);
 }, $apis.requireRecordAuth());
+routerAdd("POST", "/api/instances/runtime/reset", (c) => {
+	return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(c);
+}, $apis.requireAdminAuth());
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
 	return require(`${__hooks}/mothership`).BeforeUpdate_version(e);
@@ -46,6 +49,9 @@ onAfterBootstrap((e) => {
 //#region src/lib/handlers/mirror/hooks.ts
 routerAdd("GET", "/api/mirror", (c) => {
 	return require(`${__hooks}/mothership`).HandleMirrorData(c);
+}, $apis.gzip(), $apis.requireAdminAuth());
+routerAdd("POST", "/api/mirror", (c) => {
+	return require(`${__hooks}/mothership`).HandleMirrorSync(c);
 }, $apis.gzip(), $apis.requireAdminAuth());
 
 //#endregion

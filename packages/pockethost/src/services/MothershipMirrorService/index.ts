@@ -3,6 +3,7 @@ import {
   EDGE_APEX_DOMAIN,
   InstanceFields,
   InstanceId,
+  InstanceStatus,
   LoggerService,
   mkSingleton,
   PocketBase,
@@ -10,6 +11,22 @@ import {
   UserFields,
   UserId,
 } from '@'
+
+export type MirrorLiveInstance = {
+  id: InstanceId
+  status: InstanceStatus.Starting | InstanceStatus.Running
+}
+
+export type MirrorSyncOptions = {
+  instances?: MirrorLiveInstance[]
+  resetIdle?: boolean
+}
+
+export type MirrorSyncResponse = {
+  users: UserFields[]
+  instances: InstanceFields[]
+  updated: number
+}
 
 export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
   client: PocketBase
@@ -22,6 +39,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   const [onInstanceDeleted, fireInstanceDeleted] = createEvent<InstanceId>()
   const [onUserUpserted, fireUserUpserted] = createEvent<UserFields>()
   const [onUserDeleted, fireUserDeleted] = createEvent<UserId>()
+  const [onResynced, fireResynced] = createEvent<undefined>()
 
   const client = config.client
 
@@ -84,6 +102,34 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     }
   }
 
+  const applyMirrorDump = (users: UserFields[], instances: InstanceFields[]) => {
+    users.forEach((user) => upsertUser(user))
+    instances.forEach((instance) => upsertInstance(instance))
+  }
+
+  const syncMirror = async (options: MirrorSyncOptions = {}) => {
+    const { instances = [], resetIdle = false } = options
+    dbg(`syncMirror`, { live: instances.length, resetIdle })
+    const { users, instances: mirrorInstances, updated } = await client.send<MirrorSyncResponse>(`/api/mirror`, {
+      method: `POST`,
+      body: { instances, resetIdle },
+    })
+    applyMirrorDump(users, mirrorInstances)
+    dbg(`synced mirror: ${mirrorInstances.length} instances, ${users.length} users, ${updated} live`)
+  }
+
+  let sseConnectedOnce = false
+  client.realtime
+    .subscribe(`PB_CONNECT`, () => {
+      if (!sseConnectedOnce) {
+        sseConnectedOnce = true
+        return
+      }
+      dbg(`mothership SSE reconnected, syncing mirror with live instances`)
+      fireResynced(undefined)
+    })
+    .catch(error)
+
   client
     .collection(`instances`)
     .subscribe<InstanceFields>(`*`, (e) => {
@@ -118,31 +164,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     })
     .catch(error)
 
-  const init = async () => {
-    dbg(`init`)
-    const instancesPromise = client
-      .collection(`instances`)
-      .getFullList<InstanceFields>()
-      .then((instances) => {
-        dbg(`instances: ${instances.length}`)
-        instances.forEach((instance) => {
-          upsertInstance(instance)
-        })
-      })
-      .catch(error)
-    const usersPromise = client
-      .collection(`users`)
-      .getFullList<UserFields>()
-      .then((users) => {
-        dbg(`users: ${users.length}`)
-        users.forEach((user) => {
-          upsertUser(user)
-        })
-      })
-      .catch(error)
-    await Promise.all([instancesPromise, usersPromise])
-  }
-  await init().catch(error)
+  await syncMirror({ resetIdle: true, instances: [] }).catch(error)
 
   const api = {
     async getInstance(id: InstanceId) {
@@ -162,6 +184,8 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     onInstanceDeleted,
     onUserDeleted,
     onUserUpserted,
+    onResynced,
+    syncMirror,
     getInstances: () => Object.values(mirror.instancesById),
     getUsers: () => Object.values(mirror.users),
   }

@@ -204,10 +204,32 @@ const HandleInstanceUpdate = (c) => {
 };
 
 //#endregion
+//#region src/lib/handlers/instance/bootstrap/resetInstancesIdle.ts
+const resetInstancesIdle = (dao) => {
+	const records = dao.findRecordsByFilter(`instances`, `status != 'idle'`).filter((r) => !!r);
+	let reset = 0;
+	for (const record of records) {
+		record.set(`status`, `idle`);
+		dao.saveRecord(record);
+		reset++;
+	}
+	return reset;
+};
+
+//#endregion
+//#region src/lib/handlers/instance/api/HandleInstancesRuntimeReset.ts
+const HandleInstancesRuntimeReset = (c) => {
+	const reset = resetInstancesIdle($app.dao());
+	return c.json(200, {
+		ok: true,
+		reset
+	});
+};
+
+//#endregion
 //#region src/lib/handlers/instance/bootstrap/HandleInstancesResetIdle.ts
 const HandleInstancesResetIdle = (e) => {
-	const dao = $app.dao();
-	dao.db().newQuery(`update instances set status='idle'`).execute();
+	resetInstancesIdle($app.dao());
 };
 
 //#endregion
@@ -654,13 +676,59 @@ const HandleMetaUpdateAtBoot = (c) => {
 };
 
 //#endregion
-//#region src/lib/handlers/mirror/api/HandleMirrorData.ts
-const HandleMirrorData = (c) => {
-	const users = $app.dao().findRecordsByExpr("verified_users", $dbx.exp("1=1"));
-	const instances = $app.dao().findRecordsByExpr("instances", $dbx.exp("instances.uid in (select id from verified_users)"));
-	return c.json(200, {
+//#region src/lib/handlers/mirror/lib/buildMirrorDump.ts
+const exportRecord = (record) => record.publicExport();
+const buildMirrorDump = (dao) => {
+	const users = dao.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord);
+	const instances = dao.findRecordsByExpr(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportRecord);
+	return {
 		users,
 		instances
+	};
+};
+
+//#endregion
+//#region src/lib/handlers/mirror/api/HandleMirrorData.ts
+const HandleMirrorData = (c) => {
+	return c.json(200, buildMirrorDump($app.dao()));
+};
+
+//#endregion
+//#region src/lib/handlers/mirror/lib/applyLiveInstances.ts
+/** saveRecord per row (not bulk SQL) so dashboard SSE clients get status updates. */
+const applyLiveInstances = (dao, liveInstances) => {
+	let updated = 0;
+	for (const live of liveInstances) {
+		const id = live?.id?.trim();
+		const status = live?.status?.trim();
+		if (!id || !status) continue;
+		if (status !== `starting` && status !== `running`) continue;
+		let record;
+		try {
+			record = dao.findRecordById(`instances`, id);
+		} catch {
+			continue;
+		}
+		if (!record.get(`power`)) continue;
+		if (record.getString(`status`) === status) continue;
+		record.set(`status`, status);
+		dao.saveRecord(record);
+		updated++;
+	}
+	return updated;
+};
+
+//#endregion
+//#region src/lib/handlers/mirror/api/HandleMirrorSync.ts
+const HandleMirrorSync = (c) => {
+	const dao = $app.dao();
+	const { data } = $apis.requestInfo(c);
+	if (data.resetIdle) resetInstancesIdle(dao);
+	const liveInstances = Array.isArray(data.instances) ? data.instances : [];
+	const updated = applyLiveInstances(dao, liveInstances);
+	return c.json(200, {
+		...buildMirrorDump(dao),
+		updated
 	});
 };
 
@@ -3038,12 +3106,14 @@ exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;
 exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
+exports.HandleInstancesRuntimeReset = HandleInstancesRuntimeReset;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
 exports.HandleMirrorData = HandleMirrorData;
+exports.HandleMirrorSync = HandleMirrorSync;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;

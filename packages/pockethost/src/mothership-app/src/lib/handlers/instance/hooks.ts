@@ -22,6 +22,14 @@ routerAdd(
   },
   $apis.requireRecordAuth()
 )
+routerAdd(
+  'POST',
+  '/api/instances/runtime/reset',
+  (c) => {
+    return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(c)
+  },
+  $apis.requireAdminAuth()
+)
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
   return require(`${__hooks}/mothership`).BeforeUpdate_version(e)

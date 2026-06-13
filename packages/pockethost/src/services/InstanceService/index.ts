@@ -26,7 +26,7 @@ import Bottleneck from 'bottleneck'
 import { globSync } from 'fs'
 import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
-import { MothershipMirrorService } from '../MothershipMirrorService'
+import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipMirrorService'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -64,6 +64,37 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const api = await pending
     api.shutdown()
   }
+
+  const resolveLiveStatus = async (pending: Promise<InstanceApi>): Promise<InstanceStatus.Running | InstanceStatus.Starting> => {
+    try {
+      await Promise.race([
+        pending,
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error(`still starting`)), 0)
+        }),
+      ])
+      return InstanceStatus.Running
+    } catch {
+      return InstanceStatus.Starting
+    }
+  }
+
+  const getLiveInstances = async (): Promise<MirrorLiveInstance[]> => {
+    return Promise.all(
+      Object.entries(instanceApis).map(async ([id, pending]) => ({
+        id,
+        status: await resolveLiveStatus(pending),
+      }))
+    )
+  }
+
+  mirror.onResynced(() => {
+    getLiveInstances()
+      .then((instances) => mirror.syncMirror({ instances }))
+      .catch((e) => {
+        error(`Error syncing mirror after mothership reconnect`, { e })
+      })
+  })
 
   const createInstanceApi = async (instance: InstanceFields): Promise<InstanceApi> => {
     const shutdownManager: (() => void)[] = []

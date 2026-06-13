@@ -64,7 +64,9 @@ export async function daemon({ logger }: DaemonOptions) {
     logger,
   })
 
-  await MothershipMirrorService({ client: (await MothershipAdminClientService()).client.client, logger })
+  const { client } = await MothershipAdminClientService()
+
+  await MothershipMirrorService({ client: client.client, logger })
 
   await CronService({ logger })
 
