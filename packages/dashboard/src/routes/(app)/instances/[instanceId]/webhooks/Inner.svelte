@@ -5,8 +5,6 @@
   import Form from './Form.svelte'
   import List from './List.svelte'
   import { items } from './stores'
-  import Fa from 'svelte-fa'
-  import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
 
   $: {
     const { id, webhooks } = $instance
@@ -35,7 +33,6 @@
   scheduler.
 </div>
 
-<!-- If the user has any secrets, render them in a code block -->
 {#if $items.length > 0}
   <div class="mb-8">
     <CodeSample {code} />
@@ -43,10 +40,10 @@
 {/if}
 
 {#if $items.length === 0}
-  <div class="alert border-2 border-primary mb-8">
-    <Fa icon={faUserSecret} />
+  <wa-callout variant="brand" class="border-2 border-primary mb-8">
+    <wa-icon slot="icon" name="user-secret"></wa-icon>
     <span>No webhooks yet. Create your first webhook to get started.</span>
-  </div>
+  </wa-callout>
 {:else}
   <List />
 {/if}

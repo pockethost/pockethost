@@ -3,8 +3,6 @@
   import { values } from '@s-libs/micro-dash'
   import InstanceList from './InstanceList.svelte'
   import { SubscriptionType } from 'pockethost/common'
-  import { faPlus } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
 
   $: maxInstances = $userStore?.subscription_quantity || 0
   $: instanceCount = values($globalInstancesStore).length
@@ -15,18 +13,20 @@
 </svelte:head>
 
 <div class="flex flex-row items-center justify-between mt-6 mb-4 md:mb-6 gap-4">
-  <h2 class="text-2xl md:text-4xl text-base-content font-bold capitalize">Dashboard</h2>
+  <h2 class="text-2xl md:text-4xl text-white font-bold capitalize">Dashboard</h2>
 
   <div class="group">
     <div class="h-full relative">
-      <a
+      <wa-button
         href={instanceCount >= maxInstances ? '#' : '/instances/new'}
-        class="my-3 btn relative {instanceCount >= maxInstances
-          ? 'bg-slate-800 hover:bg-slate-800 pointer-events-none border hover:border-white/40'
-          : 'bg-primary hover:bg-light '}"
+        variant="brand"
+        class="my-3 {instanceCount >= maxInstances
+          ? 'pointer-events-none opacity-60'
+          : ''}"
       >
-        <Fa icon={faPlus} /> New Instance
-      </a>
+        <wa-icon slot="start" name="plus"></wa-icon>
+        New Instance
+      </wa-button>
       <div
         class="hidden group-hover:block absolute top-full right-0 bg-[#111111]/80 border border-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg w-64 z-20 {instanceCount >=
           maxInstances && 'border-red-400'}"
@@ -44,35 +44,28 @@
               {#if $userSubscriptionType === SubscriptionType.Founder}
                 {instanceCount}/<a
                   href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
-                  class="link"
+                  class="text-primary"
                   target="_blank">{maxInstances}</a
                 >
               {:else}
                 {instanceCount}/{maxInstances}
               {/if}
             </div>
-            <progress
-              class="progress mt-2
-                {instanceCount >= maxInstances
-                ? 'progress-error'
-                : instanceCount >= maxInstances * 0.75
-                  ? 'progress-warning'
-                  : 'progress-primary'} w-full"
+            <wa-progress-bar
+              class="mt-2 w-full"
               value={instanceCount}
               max={maxInstances}
-            ></progress>
+            ></wa-progress-bar>
           </div>
           {#if instanceCount >= maxInstances}
-            <a href="/support" class="link btn btn-sm mt-2 w-full text-xs bg-primary no-underline hover:bg-light"
-              >Increase your limit</a
-            >
+            <wa-button href="/support" variant="brand" size="small" class="mt-2 w-full text-xs">
+              Increase your limit
+            </wa-button>
           {/if}
         {:else}
           <div class="text-sm opacity-6.0">You need to upgrade before creating more Instances</div>
 
-          <a href="/access" class="link btn btn-sm mt-2 w-full text-xs bg-primary no-underline hover:bg-light"
-            >Upgrade!</a
-          >
+          <wa-button href="/access" variant="brand" size="small" class="mt-2 w-full text-xs">Upgrade!</wa-button>
         {/if}
       </div>
     </div>

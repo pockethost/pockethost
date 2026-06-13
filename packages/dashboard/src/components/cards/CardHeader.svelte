@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
-
   export let documentation: string = ''
 </script>
 
@@ -9,9 +6,10 @@
   <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
     <h3 class="text-xl font-bold"><slot /></h3>
 
-    <a href={documentation} class="btn btn-sm btn-outline btn-primary" target="_blank"
-      >Full documentation <Fa icon={faArrowUpRightFromSquare} class="opacity-50 text-sm" /></a
-    >
+    <wa-button href={documentation} variant="brand" size="small" appearance="outline" target="_blank">
+      Full documentation
+      <wa-icon slot="end" name="arrow-up-right-from-square" class="opacity-50 text-sm"></wa-icon>
+    </wa-button>
   </div>
 {/if}
 

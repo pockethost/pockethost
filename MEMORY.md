@@ -8,10 +8,12 @@ Living architecture reference for agents. Current state only; update in the same
 |---------|------|------|
 | CLI + services | `packages/pockethost` | Node hosting stack: CLI, mothership, edge, firewall |
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
-| Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers |
+| Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
 
 Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
+
+**Instance image publish** (after Dockerfile changes): `cd packages/pockethost-instance && pnpm build && pnpm push`. Tags: `0.0.1` + `latest`. Spawn path: `DOCKER_INSTANCE_IMAGE_NAME` in `constants.ts`.
 
 ## CLI (`pockethost`)
 
@@ -21,7 +23,7 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 |---------|---------|
 | `mothership` | Control-plane PocketBase (users, instances, billing hooks) |
 | `firewall` | Reverse proxy, vhost routing, rate limiting |
-| `edge` | Edge node: daemon (instance spawner), FTP, volume migrate, syslog |
+| `edge` | Edge node: daemon (instance spawner), `cleanup` (orphan data), FTP, syslog |
 | `serve` | Local/dev serve helper |
 | `pocketbase` | PocketBase binary download / version management |
 | `health` | Health checks |
@@ -36,7 +38,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase app at `mothership-app/` — `pb_hooks/`, `pb_migrations/`, TS handlers in `src/lib/handlers/`. **JSVM boundary:** `src/common/` is Node-only; mothership handlers must not import it (tsdown → `pb_hooks/mothership.js`). Skill: `.cursor/skills/pocketbase-jsvm/pockethost-boundary.md`.
+- **Mothership**: PocketBase app at `mothership-app/` — `pb_migrations/`, TS handlers in `src/lib/handlers/`. **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). **JSVM boundary:** `src/common/` is Node-only; mothership handlers must not import it. Skill: `.cursor/skills/pocketbase-jsvm/pockethost-boundary.md`.
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`).
 - **Firewall**: Express + `http-proxy-middleware`; syncs mothership via `MothershipMirrorService`; dynamic rate limits from `settings.rate_limit_tiers` + per-user/instance `rate_limits` JSON; self-serve `trusted_ips` / `proxy_ips` on instances; global proxy fallback via `PH_USER_PROXY_IPS` + `X-PocketHost-Client-IP`.
 
@@ -44,17 +46,19 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 
 - Settings factory: `packages/pockethost/src/constants.ts` → `createSettings()`.
 - Data root: `PH_HOME` (default `env-paths('pockethost').data`) / `DATA_ROOT`.
+- Layout under `DATA_ROOT`: `mothership/` (control-plane PB data), `instances/<instanceId>/` (customer instance dirs). Helpers: `MOTHERSHIP_DATA_ROOT`, `INSTANCES_ROOT`, `mkInstanceDataPath`. `MOTHERSHIP_NAME` is hostname only — not a filesystem path.
+- Instance delete: mothership `DELETE /api/instance/:id` removes the PB record only (after power-off + idle). Edge `edge cleanup` (PM2 `edge-cleanup`, daily): admin `getInstances()` → instance IDs, then rimraf orphaned dirs under `DATA_ROOT/instances/` (stops bound containers first). `--dry-run` reports orphans without removing.
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 
-Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`).
+Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `PH_CONTAINER_STOP_TIMEOUT_SEC` (SIGINT stop timeout before SIGKILL), `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`), `DOCKER_INSTANCE_IMAGE_NAME` (default `benallfree/pockethost-instance` → `:latest`; prod edge nodes are `linux/amd64` — pin a semver tag if `:latest` is wrong arch).
 
 ## Services (factory pattern)
 
 Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pockethost/src/services/`:
 
 - `PocketBaseService` — instance PB process management
-- `InstanceService` — instance lifecycle
+- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted
 - `MothershipAdminClientService` — admin PB client + instance mixin
 - `MothershipMirrorService` — mothership data sync (users, instances, settings)
 - `CronService`, `ProxyService`, `InstanceLoggerService`
@@ -63,9 +67,15 @@ Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 
 ## Dashboard
 
-SvelteKit + Vite + Tailwind/DaisyUI. Static adapter; deploy via Wrangler Pages (`pnpm deploy` in package).
+SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free tier). Static adapter; deploy via Wrangler Pages (`pnpm deploy` in package).
 
+- UI: `wa-*` web components; icons via `<wa-icon>` (Font Awesome Free)
+- Bootstrap: `src/lib/webawesome.ts` imported from root `+layout.svelte`
+- Theme: `wa-dark wa-theme-default` on `<html>`; brand green via `--wa-color-brand: #1eb854`
+- Layout: solid `#111111` background (BlurBg removed); content caps `max-w-content` / `max-w-prose` / `max-w-form`
+- Images: plain `<img>` + Vite imports (no `@sveltejs/enhanced-img`); co-located doc/blog assets synced to `static/generated/` via `scripts/sync-route-images.js` on `dev`/`build` (gitignored; markdown refs use `/generated/...`)
 - App routes: `packages/dashboard/src/routes/`
+- Instance power UX: `src/util/instancePower.ts` — `isInstanceShuttingDown` (`!power && status≠idle`), `isInstanceFullyOff` (`!power && idle`); gates delete/version change
 - Instance **Access** page: `instances/[instanceId]/access` — trusted IPs + SSR proxy self-serve
 - User docs: `(static)/docs/**` as `+page.md`
 - Blog: `(static)/blog/**`
@@ -76,12 +86,17 @@ Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at
 
 ## Dev workflow
 
+Requires **Node.js 24** (`.nvmrc`: `lts/krypton`; `nvm install` in `setup.sh`).
+
 ```bash
-pnpm install          # root
-cp .env-template .env # if present; configure PH_HOME, apex domain, mothership creds
-pnpm dev:cli          # CLI in development
-pnpm dev:dashboard    # dashboard dev server
+pnpm install               # root
+cp .env-template .env      # if present; configure PH_HOME, apex domain, mothership creds
+pnpm dev:mothership-hooks  # terminal 1 — tsdown --watch when editing mothership handlers
+pnpm dev:cli               # terminal 2 — CLI / mothership / edge / firewall
+pnpm dev:dashboard         # dashboard dev server
 ```
+
+After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 

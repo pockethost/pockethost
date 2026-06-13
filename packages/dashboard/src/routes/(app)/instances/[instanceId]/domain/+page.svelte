@@ -93,7 +93,7 @@
     const trimmed = formCname.trim()
 
     if (trimmed && !$isUserPaid) {
-      errorMessage = `Oof, you hit a paywall. This is a Pro feature only. Please <a class='link' href="/account">upgrade your account.</a>`
+      errorMessage = `Oof, you hit a paywall. This is a Pro feature only. Please <a class='text-primary' href="/account">upgrade your account.</a>`
       return
     }
 
@@ -151,14 +151,15 @@
     {/if}
   {/if}
 
-  <form class="flex rename-instance-form-container-query gap-4" on:submit={onRename}>
+  <form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
     <div class="relative flex-1">
-      <input
+      <wa-input
         title="Only valid domain name patterns are allowed"
         type="text"
-        bind:value={formCname}
-        class="input input-bordered w-full pr-10"
-      />
+        value={formCname}
+        oninput={(e) => (formCname = e.currentTarget.value)}
+        class="w-full pr-10"
+      ></wa-input>
       {#if cnameToCheck}
         <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
           {#if domainHealthy === true}
@@ -166,13 +167,13 @@
           {:else if domainHealthy === false}
             <span class="text-red-500 text-lg">✗</span>
           {:else if domainHealthy === null}
-            <span class="loading loading-spinner loading-sm"></span>
+            <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
           {/if}
         </div>
       {/if}
     </div>
 
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}> Update Custom Domain </button>
+    <wa-button type="submit" variant="danger" disabled={isButtonDisabled}>Update Custom Domain</wa-button>
   </form>
 </div>
 

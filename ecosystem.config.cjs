@@ -15,11 +15,6 @@ module.exports = {
       cron_restart: '0 0 * * *',
     },
     {
-      name: `edge-volume`,
-      script: 'pnpm prod:cli edge volume mount',
-      // cron_restart: '0 0 * * *',
-    },
-    {
       name: `mothership`,
       script: 'pnpm prod:cli mothership serve',
     },
@@ -37,6 +32,11 @@ module.exports = {
       name: `health-compact`,
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
       script: 'pnpm prod:cli health compact',
+    },
+    {
+      name: `edge-cleanup`,
+      restart_delay: 60 * 60 * 1000 * 24, // 1 day
+      script: 'pnpm prod:cli edge cleanup',
     },
   ],
 }

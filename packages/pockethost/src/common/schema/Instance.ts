@@ -35,7 +35,6 @@ export type InstanceWebhookItem = {
 }
 
 export type InstanceFields<TExtra = {}> = BaseFields & {
-  region: string
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
@@ -49,7 +48,6 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   dev: boolean
   /** @deprecated Will be removed - frontend now handles health checking directly */
   cname_active: boolean
-  volume: string
   idleTtl: number
   trusted_ips: TrustedIpEntry[] | null
   proxy_ips: TrustedIpEntry[] | null

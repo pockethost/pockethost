@@ -1,0 +1,53 @@
+---
+description: Capture dev goals in backlog.md; rank by feasibility, deps, and user value
+alwaysApply: true
+---
+
+# backlog.md — capture and prioritization
+
+[backlog.md](backlog.md) is the product/platform backlog. [MEMORY.md](MEMORY.md) is architecture — do not duplicate it here.
+
+There is no "in progress" section — work is pulled from the backlog on request.
+
+## Capture
+
+When a task, idea, bug, or refactor surfaces in chat or code review:
+
+1. **Add or update a row** in backlog.md (same change set when the item is confirmed — do not defer to "later").
+2. Place it in **Backlog** or **Icebox** using the rules below.
+3. Include **Risk**, **Effort** (S/M/L/XL), and a one-line **user benefit** (who gains what).
+4. When work ships, move the row to **Done** with date + PR/commit link; delete stale duplicates.
+
+## Prioritization (Backlog order)
+
+Sort **Backlog** top → bottom by:
+
+1. **Dependencies** — blockers first (e.g. Node 24 before mothership PB bump if it reduces upgrade risk).
+2. **Feasibility** — prefer low risk + small effort when user benefit is comparable.
+3. **End-user benefit** — visible customer value beats internal-only work at equal cost.
+
+**Low-hanging fruit / easy wins** belong near the top when they deliver incremental, shippable progress with a clear user story.
+
+## Maintenance and refactors
+
+Platform chores (runtime bumps, deps, refactors) are valid — **attach them to user value** in the Notes column:
+
+- ✅ `Node 24 upgrade` — keeps hosting secure and unblocks PB v0.39 for customers
+- ✅ `Refactor rate-limiter config` — prerequisite for user-controlled IP whitelisting
+- ❌ `Refactor constants.ts` with no linked backlog item or user outcome
+
+Pure housekeeping with no near-term benefit → **Icebox**, or fold into a user-facing item as a sub-note.
+
+## Section rules
+
+| Section | When |
+|---------|------|
+| **Backlog** | Committed; sorted by deps → feasibility → user benefit |
+| **Icebox** | Spikes, low demand, or high uncertainty — revisit when backlog thins |
+| **Done** | Shipped items with date + link |
+
+## Self-check
+
+- *Did we discover a new goal this session?* → Row in backlog.md?
+- *Did we finish something?* → Done section updated?
+- *Does backlog order still reflect deps and easy wins first?*

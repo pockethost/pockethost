@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { faClock, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
   import { userStore } from '$util/stores'
-  import Fa from 'svelte-fa'
   import { onMount, onDestroy } from 'svelte'
   export let name = ''
   export let description = ''
@@ -77,21 +75,18 @@
   }
 </script>
 
-<!-- It's a card, so use card -->
-<div class="card w-96 shadow-xl bg-neutral text-neutral-content">
-  <div class="card-body items-center text-center">
-    <div class="card-title">
-      <h2 id="tier-startup" class="text-2xl font-semibold leading-8 text-white">
-        {name}
-      </h2>
-    </div>
+<wa-card class="w-96 shadow-xl bg-neutral text-neutral-content">
+  <div class="p-6 items-center text-center">
+    <h2 id="tier-startup" class="text-2xl font-semibold leading-8 text-white mb-4">
+      {name}
+    </h2>
 
     {#if qtyRemaining <= 0}
       <div class="text-error text-xl font-black text-center">{soldOutText}</div>
     {:else if startDate || endDate}
       <div class="text-center">
         <div class="flex items-center justify-center">
-          <Fa icon={faClock} class="mr-2 text-accent" />
+          <wa-icon name="clock" class="mr-2 text-accent"></wa-icon>
           <span class="text-lg font-semibold text-accent"
             >{comingSoon ? comingSoonText : availableText} {countdown}</span
           >
@@ -119,9 +114,9 @@
       {#each features as feature}
         <div class="text-gray-300 flex items-center text-sm">
           {#if feature.startsWith('-')}
-            <Fa icon={faTimes} class="text-error mr-2" />
+            <wa-icon name="xmark" class="text-error mr-2"></wa-icon>
           {:else}
-            <Fa icon={faCheck} class="text-primary mr-2" />
+            <wa-icon name="check" class="text-primary mr-2"></wa-icon>
           {/if}
           <span>{feature.replace(/^-/, '')}</span>
         </div>
@@ -143,58 +138,49 @@
       </div>
     {/if}
 
-    <div class="card-actions">
+    <div class="flex flex-col gap-2">
       {#if priceAnnually[0] > 0}
-        <a
+        <wa-button
           href={comingSoon ? undefined : checkoutYearURL}
-          class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 hover:bg-white/20 focus-visible:outline-white `}
-          on:click={handlePricingClick}
-          aria-disabled={qtyRemaining <= 0}
+          variant="neutral"
+          class="w-full"
+          disabled={qtyRemaining <= 0}
+          onclick={handlePricingClick}
         >
           {#if priceAnnually[2]}
-            <span
-              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through`}
-            >
+            <span class="text-xl font-bold tracking-tight {qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through">
               ${priceAnnually[0]}
             </span>
-            <span class={`text-xl font-bold tracking-tight`}>
-              ${priceAnnually[2]}
-            </span>
+            <span class="text-xl font-bold tracking-tight">${priceAnnually[2]}</span>
           {:else}
-            <span class="text-xl font-bold tracking-tight">
-              ${priceAnnually[0]}
-            </span>
+            <span class="text-xl font-bold tracking-tight">${priceAnnually[0]}</span>
           {/if}
-          <span class={`text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}`}>
+          <span class="text-sm font-semibold leading-6 {qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}">
             / {priceAnnually[1]}
           </span>
-        </a>
+        </wa-button>
       {/if}
       {#if priceMonthly[0] > 0}
-        <a
+        <wa-button
           href={comingSoon ? undefined : checkoutMonthURL}
-          class={`btn ${qtyRemaining <= 0 ? 'btn-disabled' : ''} w-full rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white `}
-          on:click={handlePricingClick}
+          variant="neutral"
+          class="w-full"
+          disabled={qtyRemaining <= 0}
+          onclick={handlePricingClick}
         >
           {#if priceMonthly[2]}
-            <span
-              class={`text-xl font-bold tracking-tight ${qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through`}
-            >
+            <span class="text-xl font-bold tracking-tight {qtyRemaining <= 0 ? 'text-gray-700' : 'text-gray-400'} line-through">
               ${priceMonthly[0]}
             </span>
-            <span class="text-xl font-bold tracking-tight">
-              ${priceMonthly[2]}
-            </span>
+            <span class="text-xl font-bold tracking-tight">${priceMonthly[2]}</span>
           {:else}
-            <span class="text-xl font-bold tracking-tight">
-              ${priceMonthly[0]}
-            </span>
+            <span class="text-xl font-bold tracking-tight">${priceMonthly[0]}</span>
           {/if}
-          <span class="text-sm font-semibold leading-6 ${qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}">
-            / {priceMonthly[1]}</span
-          >
-        </a>
+          <span class="text-sm font-semibold leading-6 {qtyRemaining <= 0 ? 'text-gray-600' : 'text-gray-300'}">
+            / {priceMonthly[1]}
+          </span>
+        </wa-button>
       {/if}
     </div>
   </div>
-</div>
+</wa-card>

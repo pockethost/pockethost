@@ -13,8 +13,6 @@ PocketHost runs your PocketBase instance on-demand. That means PocketHost waits 
 
 Instances are placed in hibernation after 5 seconds of idle time.
 
-![View of an instance in the Idle state](/docs/instance-idle-screenshot.png)
-
 > Note: There is a slight "first hit" penalty if PocketHost needs to spin up your idle instance before responding to a request. In practice, this is not noticeable to most users for most applications. It's nearly indistinguishable from normal network delays.
 
 ## Usage Metering
@@ -24,8 +22,6 @@ _Note: Usage Metering is not active until PocketHost reaches v1.0. There is no p
 ## Instance Versioning
 
 By default, your instance will use the latest major+minor release of PocketBase. The PocketBase version is locked when your instance is created. We use [semver](https://semver.org/) ([npm package](https://docs.npmjs.com/cli/v6/using-npm/semver)) to determine the version range that should be allowed for your instance. When your instance is launched, it will use the latest matching version.
-
-![View of an instance showing the which version of PocketBase it is running](/docs/instance-version-screenshot.png)
 
 For example, if the latest version of PocketBase is `0.10.4`, your instance will automatically run with `~0.10.4`, meaning that `major=0` and `minor=10` are locked, but `patch=4 or higher` will be applied.
 

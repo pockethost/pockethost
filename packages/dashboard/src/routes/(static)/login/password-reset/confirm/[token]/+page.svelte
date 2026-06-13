@@ -2,14 +2,12 @@
   import { page } from '$app/stores'
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
-  import BlurBg from '$components/BlurBg.svelte'
 
   const { requestPasswordResetConfirm } = client()
 
   let password: string = ''
   let formErrors: string[] = []
 
-  // Check for a token in the URL
   $: ({ token } = $page.params)
 
   let isFormButtonDisabled: boolean = true
@@ -18,16 +16,13 @@
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
 
-    // Clear out the error message
     formErrors = []
 
-    // Check for the token and block the request if it doesn't exist
     if (!token) {
       formErrors = ['No token was found. Please check your email again for the link.']
       return
     }
 
-    // Lock the button to prevent multiple submissions
     isFormButtonDisabled = true
 
     try {
@@ -49,36 +44,37 @@
 <svelte:head>
   <title>Reset Your Password - PocketHost</title>
 </svelte:head>
-<BlurBg />
 
 <div class="w-full flex items-center justify-center px-4 md:px-16 h-[70vh]">
-  <div class="card w-[100%]  lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
-    <div class="card-body">
-      <h2 class="card-title mb-4">New Password</h2>
+  <wa-card class="w-[100%] lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
+    <div class="p-6">
+      <h2 class="text-xl font-bold mb-4">New Password</h2>
 
-      <form on:submit={handleSubmit}>
-        <div class="form-control w-full">
-          <label class="label" for="password">New Password</label>
-          <input
+      <form onsubmit={handleSubmit}>
+        <div class="w-full mb-4">
+          <label class="block mb-1" for="password">New Password</label>
+          <wa-input
             type="password"
-            class="input input-bordered w-full"
             id="password"
-            bind:value={password}
+            value={password}
+            oninput={(e) => (password = e.currentTarget.value)}
             required
             autocomplete="new-password"
-          />
+            class="w-full"
+          ></wa-input>
         </div>
 
         {#each formErrors as error}
           <AlertBar message={error} type="error" />
         {/each}
 
-        <div class="mt-4 card-actions justify-end">
-          <button type="submit" class="btn bg-primary hover:bg-light w-full" disabled={isFormButtonDisabled}>
-            Save <i class="bi bi-arrow-right-short" />
-          </button>
+        <div class="mt-4 flex justify-end">
+          <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
+            Save
+            <wa-icon slot="end" name="arrow-right"></wa-icon>
+          </wa-button>
         </div>
       </form>
     </div>
-  </div>
+  </wa-card>
 </div>

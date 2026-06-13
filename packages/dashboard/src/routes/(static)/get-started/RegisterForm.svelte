@@ -5,8 +5,6 @@
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
   import NewInstanceProcessingBlock from './NewInstanceProcessingBlock.svelte'
-  import Fa from 'svelte-fa'
-  import { faArrowRight, faRotate } from '@fortawesome/free-solid-svg-icons'
   import { onMount } from 'svelte'
 
   export let isSignUpView: boolean = false
@@ -61,27 +59,22 @@
     generateSlug()
   })
 
-  // Set up the variables to hold the form information
   let email: string = ''
   let password: string = ''
   let formError: string = ''
 
-  // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled =
     email.length === 0 || password.length === 0 || $instanceInfo.name.length === 0 || !$instanceInfo.available
 
-  // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
     generateSlug()
   }
 
-  // Toggle between registration and login forms
   const handleLoginClick = () => {
     isSignUpView = !isSignUpView
   }
 
-  // Handle the form submission
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     isFormButtonDisabled = true
@@ -105,28 +98,27 @@
   </div>
 {:else}
   <div in:slide={{ delay: 400 }} out:slide>
-    <form class="p-10 px-5 md:px-10 pb-5 flex flex-col" on:submit={handleSubmit}>
-      <h2 class="font-bold text-white mb-6 text-center text-2xl">
-        Create your first Instance, fast.
-      </h2>
+    <form class="p-10 px-5 md:px-10 pb-5 flex flex-col" onsubmit={handleSubmit}>
+      <h2 class="font-bold text-white mb-6 text-center text-2xl">Create your first Instance, fast.</h2>
 
       <div>
-        <label class="label" for="instance">
-          <span class="label-text">Instance Name</span>
+        <label class="block mb-1" for="instance">
+          <span>Instance Name</span>
         </label>
 
-        <div class="input-group flex">
-          <input
+        <div class="flex gap-1">
+          <wa-input
             type="text"
             placeholder="instance-name"
-            bind:value={$instanceNameField}
+            value={$instanceNameField}
+            oninput={(e) => instanceNameField.set(e.currentTarget.value)}
             id="instance"
-            class="input input-bordered w-full"
-          />
+            class="w-full"
+          ></wa-input>
 
-          <button type="button" class="btn btn-square" on:click={handleInstanceNameRegeneration}
-            ><Fa icon={faRotate} />
-          </button>
+          <wa-button type="button" variant="neutral" appearance="outline" onclick={handleInstanceNameRegeneration}>
+            <wa-icon name="rotate"></wa-icon>
+          </wa-button>
         </div>
 
         <div style="font-size: 15px; padding: 5px">
@@ -141,50 +133,54 @@
           {/if}
         </div>
       </div>
-      <div class="divider my-2 text-white"></div>
+      <wa-divider class="my-2 text-white"></wa-divider>
 
       <div>
-        <label class="label" for="id">
-          <span class="label-text">Email</span>
+        <label class="block mb-1" for="email">
+          <span>Email</span>
         </label>
 
-        <input
+        <wa-input
           type="email"
-          class="input input-bordered w-full"
           id="email"
           placeholder="name@example.com"
           autocomplete="email"
-          bind:value={email}
+          value={email}
+          oninput={(e) => (email = e.currentTarget.value)}
           required
-        />
+          class="w-full"
+        ></wa-input>
       </div>
 
       <div class="mb-6">
-        <label class="label" for="password">
-          <span class="label-text">Password</span>
+        <label class="block mb-1" for="password">
+          <span>Password</span>
         </label>
-        <input
+        <wa-input
           type="password"
-          class="input input-bordered w-full"
           id="password"
           placeholder="Password"
           autocomplete="new-password"
-          bind:value={password}
+          value={password}
+          oninput={(e) => (password = e.currentTarget.value)}
           required
-        />
+          class="w-full"
+        ></wa-input>
       </div>
 
       <AlertBar message={formError} type="error" />
 
       <div class="w-full">
-        <button type="submit" class="btn w-full bg-primary hover:bg-light" disabled={isFormButtonDisabled}>
-          Create <Fa icon={faArrowRight} />
-        </button>
+        <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
+          Create
+          <wa-icon slot="end" name="arrow-right"></wa-icon>
+        </wa-button>
       </div>
     </form>
 
     <div class="p-4 text-sm border-t border-white/10 text-center">
-      Already have an account? <button type="button" class="link text-primary ml-1 dark:text-secondary" on:click={handleLoginClick}>Log in</button>
+      Already have an account?
+      <button type="button" class="text-primary ml-1 dark:text-secondary" onclick={handleLoginClick}>Log in</button>
     </div>
   </div>
 {/if}

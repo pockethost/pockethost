@@ -9,12 +9,17 @@
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "dev:cli": "cd packages/pockethost && pnpm dev",
+    "dev:mothership-hooks": "pnpm --filter pockethost-mothership-app dev",
     "dev:dashboard": "cd packages/dashboard && pnpm dev",
+    "check:mothership-hooks": "pnpm --filter pockethost-mothership-app check:fresh",
     "prod:cli": "cd packages/pockethost && pnpm start",
     "nofile": "cat /proc/sys/fs/file-nr",
     "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts"
   },
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.27.11",
     "prettier": "^3.4.2",
@@ -28,7 +33,6 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "@sveltejs/enhanced-img": "patches/@sveltejs__enhanced-img.patch",
       "tail": "patches/tail.patch",
       "@types/tail": "patches/@types__tail.patch"
     },

@@ -3,18 +3,15 @@
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import Meta from '$components/guards/Meta.svelte'
   import '../app.css'
+  import '$lib/webawesome.ts'
   import { onMount } from 'svelte'
   import { init } from '$util/stores'
-  import '@beyonk/gdpr-cookie-consent-banner/banner.css' // optional, you can also define your own styles
+  import '@beyonk/gdpr-cookie-consent-banner/banner.css'
   // @ts-ignore
   import GdprBanner from '@beyonk/gdpr-cookie-consent-banner'
   import PromoBanner from './PromoBanner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
-
-  import Fa from 'svelte-fa'
-  import { faDiscord, faGithub, faProductHunt, faYoutube } from '@fortawesome/free-brands-svg-icons'
-
-  import { get } from 'svelte/store'
+  import { cloudLogo } from '$lib/brand'
 
   const currentYear = new Date().getFullYear()
 
@@ -37,24 +34,24 @@
     <slot />
   </div>
 
-  <footer class="text-neutral-content px-4 md:px-20 py-10 text-sm relative z-1">
+  <footer class="text-white px-4 md:px-20 py-10 text-sm relative z-1">
     <div class=" flex justify-between items-center">
       <div class="">
         <a href="/" rel="noreferrer">
-          <img src="/pockethost-cloud-logo.png" alt="Pockethost Logo" class="h-28 md:h-36 w-auto" />
+          <img src={cloudLogo} alt="Pockethost Logo" class="h-28 md:h-36 w-auto" />
         </a>
         <div class="flex items-center gap-4 md:gap-6">
           <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank">
-            <Fa icon={faGithub} />
+            <wa-icon name="github" family="brands"></wa-icon>
           </a>
           <a href="https://www.producthunt.com/products/pockethost" rel="noreferrer" target="_blank">
-            <Fa icon={faProductHunt} />
+            <wa-icon name="product-hunt" family="brands"></wa-icon>
           </a>
           <a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank">
-            <Fa icon={faDiscord} />
+            <wa-icon name="discord" family="brands"></wa-icon>
           </a>
           <a href="https://www.youtube.com/@pocketba5ed" rel="noreferrer" target="_blank">
-            <Fa icon={faYoutube} />
+            <wa-icon name="youtube" family="brands"></wa-icon>
           </a>
         </div>
       </div>
@@ -101,7 +98,6 @@
   showEditIcon={false}
 />
 <div>
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-5Q6CM5HPCX"></script>
   <script>
     window.dataLayer = window.dataLayer || []
@@ -111,7 +107,6 @@
     gtag('js', new Date())
 
     gtag('config', 'G-5Q6CM5HPCX', {
-      // Avoid sending the cookie to subdomains of pockethost.io.
       'cookie_domain': 'none'
     })
   </script>

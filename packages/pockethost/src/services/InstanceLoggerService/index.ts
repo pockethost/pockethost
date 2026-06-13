@@ -74,13 +74,13 @@ const MultiChannelLimiter = () => {
 
 const limiter = MultiChannelLimiter()
 
-export function InstanceLogWriter(instanceId: string, volume: string, target: string, logger: Logger) {
+export function InstanceLogWriter(instanceId: string, target: string, logger: Logger) {
   const lgr = logger.create(`InstanceLogWriter`).breadcrumb(instanceId).breadcrumb(target)
   const { dbg, info, error, warn } = lgr
 
-  ensureInstanceDirectoryStructure(instanceId, volume, lgr)
+  ensureInstanceDirectoryStructure(instanceId, lgr)
 
-  const logFile = mkInstanceDataPath(volume, instanceId, `logs`, `${target}.log`)
+  const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 
   const appendLogEntry = async (msg: string, stream: 'stdout' | 'stderr') =>
     limiter.schedule(logFile, async () => {
@@ -124,14 +124,14 @@ export function InstanceLogWriter(instanceId: string, volume: string, target: st
   return api
 }
 
-export function InstanceLogReader(instanceId: string, volume: string, target: string, logger: Logger) {
+export function InstanceLogReader(instanceId: string, target: string, logger: Logger) {
   const { dbg, info, error, warn } = logger.create(`InstanceLogReader`).breadcrumb(instanceId).breadcrumb(target)
 
-  ensureInstanceDirectoryStructure(instanceId, volume, logger)
+  ensureInstanceDirectoryStructure(instanceId, logger)
 
   const api = {
     tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
-      const logFile = mkInstanceDataPath(volume, instanceId, `logs`, `${target}.log`)
+      const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 
       let tid: any
       let unsub: any

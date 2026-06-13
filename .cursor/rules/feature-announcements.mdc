@@ -1,0 +1,16 @@
+---
+description: Ship user-facing features with blog posts, not semver release notes
+alwaysApply: true
+---
+
+# Feature announcements
+
+PocketHost comms = **blog posts per feature**, not PocketHost semver releases or CHANGELOG roundups.
+
+When landing **user-facing** `feat` / `enh` work:
+
+1. Read `.cursor/skills/feature-blog/SKILL.md` for the full workflow.
+2. Use `.cursor/skills/blog-voice/SKILL.md` for tone and file paths.
+3. Propose or draft a post unless the change is internal-only (refactor, deps, routine fix).
+
+Do **not** add new `PocketHost X.Y.Z` release posts or maintain versioned announcement churn unless the user explicitly asks.

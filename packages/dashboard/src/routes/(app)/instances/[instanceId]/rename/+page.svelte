@@ -70,16 +70,17 @@
   <AlertBar message={successMessage} type="success" flash />
   <AlertBar message={errorMessage} type="error" />
 
-  <form class="flex rename-instance-form-container-query gap-4" on:submit={onRename}>
-    <input
+  <form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
+    <wa-input
       title="Only letters and dashes are allowed"
       required
       type="text"
-      bind:value={formSubdomain}
-      class="input input-bordered w-full"
-    />
+      value={formSubdomain}
+      oninput={(e) => (formSubdomain = e.currentTarget.value)}
+      class="w-full"
+    ></wa-input>
 
-    <button type="submit" class="btn btn-error" disabled={isButtonDisabled}>Rename Instance</button>
+    <wa-button type="submit" variant="danger" disabled={isButtonDisabled}>Rename Instance</wa-button>
   </form>
 
   <style>

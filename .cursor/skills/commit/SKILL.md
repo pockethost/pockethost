@@ -1,10 +1,9 @@
 ---
 name: commit
 description: >-
-  Create git commits scoped to the current conversation only (e.g. /commit).
-  Never stages unrelated WIP or cross-chat dependencies; halts if a dependent
-  change from another conversation is required. Use when the user says /commit
-  or asks to commit session work.
+  Create scoped git commits from the current conversation (e.g. /commit).
+  Splits logical changes, never blind full-folder commits. Use when the user
+  says /commit or asks to commit session work.
 disable-model-invocation: true
 ---
 
@@ -14,26 +13,12 @@ Parse `/commit` or a plain **commit** request the same way.
 
 ## Scope
 
-Commits are scoped to **this conversation only**. The commit command applies to the work discussed here, not to other open chats or unrelated WIP in the working tree.
-
-- Use **this conversation's context** to decide what belongs in each commit.
-- **Only commit changes from this conversation.** Leave everything else unstaged, even if it is modified on disk.
-- Stage paths explicitly (`git add <path>…`). Never `git add .` or `git add -A` unless the user asks to commit everything.
+- Use **conversation context** to decide what belongs in each commit.
+- **Only commit changes from the current conversation** — leave unrelated WIP unstaged.
+- Stage paths explicitly (`git add <path>…`); never `git add .` or `git add -A` unless the user asks to commit everything.
 - Make **as many logical commits as reasonable** (separate by type, scope, or unrelated work).
-- Never commit generated or local-only artifacts unless explicitly part of this conversation: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
-- If a changed file is ambiguous (possible work from another session), **do not stage it**. Leave it unstaged unless the user clarifies it belongs here.
-
-### Dependency halt
-
-Before staging, check whether the conversation's changes **depend on** other uncommitted changes that were **not** part of this conversation (e.g. a type or helper added in another chat that this diff imports or requires).
-
-If a clean commit of this conversation's work is **not possible** without also committing that external dependency:
-
-1. **Stop.** Do not commit.
-2. Tell the user what blocks the commit: which files or hunks are required dependents, and which conversation or task they likely came from.
-3. Offer options: commit the dependency in its own session first, narrow this commit to a subset that stands alone, or explicitly expand scope if they want both in one commit.
-
-Do not silently bundle unrelated or cross-conversation changes to "make it work."
+- Never commit generated or local-only artifacts unless explicitly part of the task: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
+- If a changed file is ambiguous (possible work from another session), **ask** before staging.
 
 ## Git safety
 
@@ -51,10 +36,9 @@ Do not silently bundle unrelated or cross-conversation changes to "make it work.
    - `git diff` (staged and unstaged)
    - `git log --oneline -8`
 2. Map each changed file to **this conversation**. Leave everything else unstaged.
-3. Check **dependency halt** (imports, types, or build coupling to unstaged changes from outside this conversation). Stop before staging if blocked.
-4. Draft one or more commit messages (subject **under 50 characters**).
-5. Stage only the scoped files (or hunks), then commit each logical group sequentially.
-6. Run `git status` after the last commit to verify success.
+3. Draft one or more commit messages (subject **under 50 characters**).
+4. Stage only the scoped files (or hunks), then commit each logical group sequentially.
+5. Run `git status` after the last commit to verify success.
 
 ## Message format
 
@@ -98,6 +82,8 @@ EOF
 
 ## Report
 
-If halted on a dependency, report the blocker and do not summarize commits.
+Summarize commits created (hash + subject) and list anything left unstaged, with a short reason.
 
-Otherwise summarize commits created (hash + subject) and list anything left unstaged, with a short reason.
+## User-facing features
+
+If the session shipped customer-visible `feat` / `enh` work and no blog post exists yet, remind the user (or offer to draft one per `.cursor/skills/feature-blog/SKILL.md`). Do not block the commit on the post unless they asked for both in one go.

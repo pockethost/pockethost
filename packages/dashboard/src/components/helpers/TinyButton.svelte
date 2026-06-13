@@ -1,14 +1,27 @@
 <script lang="ts">
-  export let disabled: boolean = false
-  export let style: 'primary' | 'warning' | 'danger' | 'success' = 'primary'
-  export let className = ''
-  export let click: () => void = () => {}
+  interface Props {
+    disabled?: boolean
+    style?: 'primary' | 'warning' | 'danger' | 'success'
+    className?: string
+    click?: () => void
+  }
+
+  let { disabled = false, style = 'primary', className = '', click = () => {} }: Props = $props()
+
+  const variantMap = {
+    primary: 'brand',
+    warning: 'warning',
+    danger: 'danger',
+    success: 'success',
+  } as const
 </script>
 
-<button
-  type="button"
-  class="btn btn-{style} {className} btn-sm"
+<wa-button
+  variant={variantMap[style]}
+  size="small"
+  class={className}
   {disabled}
-  style="--bs-btn-padding-y: .05rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
-  on:click={click}><slot /></button
+  onclick={click}
 >
+  <slot />
+</wa-button>

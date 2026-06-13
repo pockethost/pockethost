@@ -15,7 +15,6 @@ export const HandleSignupConfirm = (c: echo.Context) => {
   const email = parsed.email?.trim().toLowerCase()
   const password = parsed.password?.trim()
   const desiredInstanceName = parsed.instanceName?.trim()
-  const region = parsed.region?.trim()
   const version = parsed.version?.trim() || listVersions()[0]
 
   if (!email) {
@@ -65,7 +64,6 @@ export const HandleSignupConfirm = (c: echo.Context) => {
     try {
       const instance = new Record(instanceCollection)
       instance.set('subdomain', desiredInstanceName)
-      instance.set('region', region || `sfo-2`)
       instance.set('uid', user.get('id'))
       instance.set('status', 'idle')
       instance.set('power', true)

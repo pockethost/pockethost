@@ -3,8 +3,6 @@
   import { values } from '@s-libs/micro-dash'
   import { type InstanceFields } from 'pockethost/common'
   import InstanceCard from './InstanceCard.svelte'
-  import { faArrowDownAZ, faArrowDownZA } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
   import { page } from '$app/state'
   import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
@@ -37,7 +35,6 @@
     goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true })
   }
 
-  // Reactively update URL when state changes
   $: if (sortBy || sortDirection || searchQuery || filterPower) {
     updateUrl()
   }
@@ -84,35 +81,39 @@
   </div>
 
   <div class="flex flex-1 justify-start md:justify-end gap-2">
-    <div class="dropdown dropdown-start md:dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
+    <wa-dropdown placement="bottom-end">
+      <wa-button slot="trigger" variant="neutral" size="small" appearance="outline">
         Filter: {filterPower === 'all' ? 'All' : filterPower === 'on' ? 'Power On' : 'Power Off'}
-      </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box mt-2 w-40 p-2 shadow">
-        <li><button on:click={() => (filterPower = 'all')}>All</button></li>
-        <li><button on:click={() => (filterPower = 'on')}>Power On</button></li>
-        <li><button on:click={() => (filterPower = 'off')}>Power Off</button></li>
-      </ul>
-    </div>
+      </wa-button>
+      <wa-dropdown-item>
+        <button type="button" onclick={() => (filterPower = 'all')}>All</button>
+      </wa-dropdown-item>
+      <wa-dropdown-item>
+        <button type="button" onclick={() => (filterPower = 'on')}>Power On</button>
+      </wa-dropdown-item>
+      <wa-dropdown-item>
+        <button type="button" onclick={() => (filterPower = 'off')}>Power Off</button>
+      </wa-dropdown-item>
+    </wa-dropdown>
 
-    <div class="dropdown dropdown-start md:dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-sm text-white border border-white/10 hover:border-primary">
+    <wa-dropdown placement="bottom-end">
+      <wa-button slot="trigger" variant="neutral" size="small" appearance="outline">
         Sort: {sortBy}
-      </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-300 rounded-box z-[100] mt-2 w-40 p-2 shadow">
-        <li><button on:click={() => (sortBy = 'power')}>Power</button></li>
-        <li><button on:click={() => (sortBy = 'subdomain')}>Subdomain</button></li>
-        <li><button on:click={() => (sortBy = 'created')}>Created</button></li>
-      </ul>
-    </div>
+      </wa-button>
+      <wa-dropdown-item>
+        <button type="button" onclick={() => (sortBy = 'power')}>Power</button>
+      </wa-dropdown-item>
+      <wa-dropdown-item>
+        <button type="button" onclick={() => (sortBy = 'subdomain')}>Subdomain</button>
+      </wa-dropdown-item>
+      <wa-dropdown-item>
+        <button type="button" onclick={() => (sortBy = 'created')}>Created</button>
+      </wa-dropdown-item>
+    </wa-dropdown>
 
-    <button
-      tabindex="0"
-      on:click={toggleSortDirection}
-      class="btn btn-sm text-white border border-white/10 hover:border-primary"
-    >
-      <Fa icon={sortDirection === 'desc' ? faArrowDownZA : faArrowDownAZ} />
-    </button>
+    <wa-button variant="neutral" size="small" appearance="outline" onclick={toggleSortDirection}>
+      <wa-icon name={sortDirection === 'desc' ? 'arrow-down-z-a' : 'arrow-down-a-z'}></wa-icon>
+    </wa-button>
   </div>
 </div>
 

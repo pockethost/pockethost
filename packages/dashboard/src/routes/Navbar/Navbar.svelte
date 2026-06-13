@@ -1,37 +1,33 @@
 <script lang="ts">
   import Logo from '$src/routes/Navbar/Logo.svelte'
-  import Fa from 'svelte-fa'
   import NavbarMenu from './NavbarMenu.svelte'
-  import { faDiscord, faGithub, faProductHunt, faYoutube } from '@fortawesome/free-brands-svg-icons'
 </script>
 
-<div class="navbar px-4 md:px-20 flex justify-between">
-  <div class="flex-1 min-w-10 m-0">
-    <div class="dropdown md:hidden">
-      <div tabindex="0" role="button" class="px-0 mx-0 hover:bg-transparent lg:hidden">
-       <Logo/>
-      </div>
+<div class="px-4 md:px-20 flex justify-between items-center">
+  <div class="flex-1 min-w-10 m-0 flex items-center">
+    <wa-dropdown class="md:hidden">
+      <wa-button slot="trigger" appearance="plain" class="px-0 mx-0 lg:hidden">
+        <Logo />
+      </wa-button>
       <NavbarMenu isCollapsed />
-    </div>
+    </wa-dropdown>
     <a href="/" class="hidden md:flex items-center">
       <Logo />
-      <!-- Redundant with the Logo component -->
-      <!-- <div class="hidden md:block ml-1 text-sm">PocketHost</div> -->
     </a>
-    
+
     <div class="block h-8 w-px bg-gray-300 mx-4"></div>
-    <div class="flex items-center  gap-4">
+    <div class="flex items-center gap-4">
       <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank">
-        <Fa icon={faGithub} />
+        <wa-icon name="github" family="brands"></wa-icon>
       </a>
       <a href="https://www.producthunt.com/products/pockethost" rel="noreferrer" target="_blank">
-        <Fa icon={faProductHunt} />
+        <wa-icon name="product-hunt" family="brands"></wa-icon>
       </a>
       <a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank">
-        <Fa icon={faDiscord} />
+        <wa-icon name="discord" family="brands"></wa-icon>
       </a>
       <a href="https://www.youtube.com/@pocketba5ed" rel="noreferrer" target="_blank">
-        <Fa icon={faYoutube} />
+        <wa-icon name="youtube" family="brands"></wa-icon>
       </a>
     </div>
   </div>

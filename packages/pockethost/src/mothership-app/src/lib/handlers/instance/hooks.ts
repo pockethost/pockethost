@@ -49,10 +49,6 @@ onAfterBootstrap((e) => {
   // return require(`${__hooks}/mothership`).HandleMigrateInstanceVersions(e)
 })
 
-onAfterBootstrap((e) => {
-  // return require(`${__hooks}/mothership`).HandleMigrateRegions(e)
-})
-
 /** Reset instance status to idle on start */
 onAfterBootstrap((e) => {
   return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e)

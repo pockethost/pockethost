@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
   import { slide } from 'svelte/transition'
 
   export let message = ''
 </script>
 
-{#if message}
-  <div in:slide class="alert alert-error mb-4">
-    <Fa icon={faCircleExclamation} />
-    {message}
+  {#if message}
+  <div in:slide>
+    <wa-callout variant="danger" class="mb-4">
+      <wa-icon slot="icon" name="circle-exclamation"></wa-icon>
+      {message}
+    </wa-callout>
   </div>
-{/if}
+  {/if}

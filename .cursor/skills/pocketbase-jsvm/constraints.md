@@ -1,41 +1,33 @@
 # JSVM Environment Constraints
 
-The JSVM is **Goja** inside PocketBase — not Node, not a browser. See [runtime-reference.md](runtime-reference.md) and [PocketBase JS overview](https://pocketbase.io/docs/js-overview/).
+The JSVM is **Goja** (Go-based ES interpreter), not Node or a browser.
 
-## PocketHost boundary
+**Version note:** Goja constraints are shared across PocketBase versions, but hook/route APIs differ at v0.23 — see [SKILL.md § Version split](SKILL.md#version-split--read-this-first). Use [old docs](https://pocketbase.io/old/docs/js-overview/) for ≤ v0.22 and [current docs](https://pocketbase.io/docs/js-overview/) for ≥ v0.23.
 
-**Never import `packages/pockethost/src/common/` into mothership-app.** That tree is Node-only; tsdown will bundle `node:*` and npm deps into `pb_hooks/mothership.js` and crash PocketBase. Details: [pockethost-boundary.md](pockethost-boundary.md).
-
-## Unavailable (do not use in hooks)
+## Unavailable
 
 | Category | Not available |
 |----------|---------------|
-| Node built-ins | `node:net`, `node:fs`, `node:path`, `node:crypto`, `node:http`, … (throws `No such built-in module`) |
-| Async | Promises, `async`/`await`, `.then()` in hook handlers |
+| Async | Promises, `async`/`await`, `.then()` |
 | Browser | `window`, `document`, `fetch`, DOM events |
 | Timers | `setTimeout`, `setInterval` |
-| Full Node `process` | Only `process.env` shim |
-| npm “Node” packages | Anything pulling the above at load time |
+| Node | `fs`, `http`, `path`, `crypto` (Node), etc. |
+| Other | `BigInt`, `Intl`, full RegExp feature set |
 
-## Available (prefer in this order)
+## Available
 
 | Category | Available |
 |----------|-----------|
-| PocketBase globals | `$app`, `$apis`, `$http`, `$os`, `$security`, `$filesystem`, … — [JSVM ref](https://pocketbase.io/jsvm/) |
-| Modules | CommonJS `require()` for **local** files under `pb_hooks/` |
-| Env | `process.env` shim |
-| ES syntax | Most ES6+ (arrows, classes, destructuring, optional chaining, Map, Set; engine not 100% spec-complete) |
-| goja_nodejs (partial) | Some of `console`, `buffer`, `url`, `util`, `process` — **do not depend on these** for new code |
-
-**Note:** JSVM typings list a Go `net` namespace; that is **not** `require("node:net")`.
+| Modules | CommonJS `require()` / `module.exports` for **your** files |
+| Env | `process.env` shim only |
+| HTTP | `$http.send()` (synchronous) |
+| ES syntax | ES6–ES2020 mostly: arrows, classes, template literals, destructuring, spread/rest, optional chaining, nullish coalescing, Map, Set |
+| PocketBase | `$app`, `$apis`, `$os` (may be restricted on PocketHost), hook globals |
 
 ## Common mistakes
 
 ```js
-// WRONG — Node built-in (crashes at load time in bundled mothership.js)
-const { isIPv4 } = require('node:net')
-
-// WRONG — async not supported in handlers
+// WRONG — async not supported
 async function handler() {
   const data = await fetch(url)
 }
@@ -43,11 +35,9 @@ async function handler() {
 // WRONG — Node module
 const fs = require('fs')
 
-// WRONG — npm SDK belongs in client apps
+// WRONG — SDK belongs in client apps
 const pb = new PocketBase('http://127.0.0.1:8090')
-
-// WRONG — PocketHost: imports Node common/ into mothership handler
-import { validateX } from '$common'
+await pb.collection('posts').create({ title: 'x' })
 
 // RIGHT — sync hook with $app
 onRecordBeforeCreateRequest((e) => {
@@ -56,20 +46,11 @@ onRecordBeforeCreateRequest((e) => {
 
 // RIGHT — sync external call
 const res = $http.send({ url: 'https://api.example.com', method: 'GET' })
-
-// RIGHT — pure JS validation in mothership-app/src/lib/util/
-function isIPv4(s) {
-  return /^(?:\d{1,3}\.){3}\d{1,3}$/.test(s) // simplify as needed
-}
 ```
 
 ## Porting Node code
 
-1. Move logic to `mothership-app/src/lib/` (JSVM-safe).
-2. Replace Node APIs with PocketBase globals or pure JS.
-3. Rebuild hooks and audit bundle (see [pockethost-boundary.md](pockethost-boundary.md)).
-
-[pocketbase-node](https://www.npmjs.com/package/pocketbase-node) offers a small Node-compat subset for JSVM — use only when PocketBase-native APIs are insufficient.
+[pocketbase-node](https://www.npmjs.com/package/pocketbase-node) provides a subset of Node APIs compatible with JSVM. Prefer PocketBase-native APIs (`$app`, `$http`) first.
 
 ## PocketHost docs source
 

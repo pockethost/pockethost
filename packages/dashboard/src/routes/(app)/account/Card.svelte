@@ -12,9 +12,9 @@
 </script>
 
 <div class="m-10 inline-block">
-  <div class="card w-96 {active ? `bg-neutral` : 'bg-base-100'} shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title">
+  <wa-card class="w-96 {active ? 'bg-neutral' : 'bg-neutral-800'} shadow-xl">
+    <div class="p-6">
+      <h2 class="text-xl font-bold mb-4">
         {name}
       </h2>
       {#if startLimit > 0}
@@ -45,25 +45,25 @@
         {#if active}
           <div class="text-success text-center text-2xl">This is your current plan.</div>
           <p class="mt-10 text-neutral-content">
-            To change to a different plan, contact <a class="link" href={`"${DISCORD_URL}"`}
+            To change to a different plan, contact <a class="text-primary" href={`"${DISCORD_URL}"`}
               ><code>.noaxis</code> on Discord</a
             >
           </p>
         {:else if prices.length > 0}
-          <div class="card-actions justify-center">
+          <div class="flex justify-center gap-2 flex-wrap">
             {#each prices as price}
               {#if (startLimit > 0 && limit === 0) || !upgradable}
-                <button class="btn btn-primary" disabled>{price.title}</button>
+                <wa-button variant="brand" disabled>{price.title}</wa-button>
               {:else}
-                <a class="btn btn-primary" href={price.link} target="_blank">{price.title}</a>
+                <wa-button href={price.link} variant="brand" target="_blank">{price.title}</wa-button>
               {/if}
             {/each}
           </div>
           {#if !upgradable}
-            To change to this plan, <a href="/support" class="link">contact support</a>
+            To change to this plan, <a href="/support" class="text-primary">contact support</a>
           {/if}
         {/if}
       </div>
     </div>
-  </div>
+  </wa-card>
 </div>

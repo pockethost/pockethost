@@ -3,12 +3,8 @@
   import { items } from './stores'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
-  import { reduce } from '@s-libs/micro-dash'
-  import { logger, type UpdateInstancePayload } from 'pockethost/common'
-  import Fa from 'svelte-fa'
-  import { faTrash, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'
+  import { logger } from 'pockethost/common'
 
-  // Track which webhooks have expanded details
   let expandedWebhooks: Set<string> = new Set()
 
   const toggleExpanded = (endpoint: string) => {
@@ -61,31 +57,41 @@
         <td>{item.value}</td>
         <td>
           {#if item.lastFired}
-            <button
-              class="btn btn-ghost btn-sm p-1 {getStatusColor(item.lastFired.response.status)}"
-              on:click={() => toggleExpanded(item.endpoint)}
+            <wa-button
+              variant="neutral"
+              size="small"
+              appearance="plain"
+              class="p-1 {getStatusColor(item.lastFired.response.status)}"
+              onclick={() => toggleExpanded(item.endpoint)}
               title="Click to view response details"
             >
-              <Fa icon={expandedWebhooks.has(item.endpoint) ? faChevronDown : faChevronRight} class="mr-1" />
+              <wa-icon
+                slot="start"
+                name={expandedWebhooks.has(item.endpoint) ? 'chevron-down' : 'chevron-right'}
+              ></wa-icon>
               <span class="font-mono font-bold">{item.lastFired.response.status}</span>
-            </button>
+            </wa-button>
           {:else}
             <span class="text-gray-400">No runs yet</span>
           {/if}
         </td>
         <td class="text-right">
-          <button
+          <wa-button
             aria-label="Delete"
-            on:click={handleDelete(item.endpoint)}
+            onclick={handleDelete(item.endpoint)}
             type="button"
-            class="btn btn-sm btn-square btn-outline btn-warning"><Fa icon={faTrash} /></button
+            variant="warning"
+            size="small"
+            appearance="outline"
           >
+            <wa-icon name="trash"></wa-icon>
+          </wa-button>
         </td>
       </tr>
 
       {#if item.lastFired && expandedWebhooks.has(item.endpoint)}
         <tr transition:fade>
-          <td colspan="4" class="bg-base-200 p-4">
+          <td colspan="4" class="bg-neutral-800 p-4">
             <div class="space-y-2">
               <div class="flex justify-between items-center">
                 <h4 class="font-semibold">Last Execution Details</h4>
@@ -96,20 +102,20 @@
                 <div>
                   <label class="font-medium text-sm">Status Code:</label>
                   <div class="mt-1">
-                    <span
-                      class="badge {item.lastFired.response.status >= 200 && item.lastFired.response.status < 300
-                        ? 'badge-success'
-                        : 'badge-error'}"
+                    <wa-badge
+                      variant={item.lastFired.response.status >= 200 && item.lastFired.response.status < 300
+                        ? 'success'
+                        : 'danger'}
                     >
                       {item.lastFired.response.status}
-                    </span>
+                    </wa-badge>
                   </div>
                 </div>
 
                 <div class="md:col-span-1">
                   <label class="font-medium text-sm">Response Body:</label>
                   <div class="mt-1">
-                    <pre class="text-xs bg-base-300 p-2 rounded max-h-32 overflow-y-auto">{item.lastFired.response
+                    <pre class="text-xs bg-neutral-800 p-2 rounded max-h-32 overflow-y-auto">{item.lastFired.response
                         .body || '(empty)'}</pre>
                   </div>
                 </div>
