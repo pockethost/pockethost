@@ -86,6 +86,18 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 _Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — dashboard has deploy CI; the hosting stack has none._
 
+#### Dependency diet
+
+_Post–Node 24 audit (Jun 2026). Shrink lockfile, drop dead deps, lean on natives where safe. Keep: `dockerode`, `semver`, `rate-limiter-flexible`, `ftp-srv`, `pocketbase`, SSE fork._
+
+| Item | Risk | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| **Dependency diet — dead deps** | Low | S | Remove unused: `fs-extra` (+ `@types/fs-extra`), dead `devcert`/`createDevCert` in `constants.ts`, dashboard `just-camel-case`/`cron-parser`/`@types/js-cookie`, root `@changesets/cli` + `.changeset/` (blog-driven releases), root `tslib`; fix unused d3 imports in `webhooks/stores.ts`. Smaller lockfile; less audit noise. |
+| **Dependency diet — Node 24 natives** | Low | S–M | Drop `node-fetch`, `eventsource`, `memorystream` for global `fetch`/`EventSource`/`PassThrough`. `glob` → `node:fs` `globSync` except `HealthCommand/compact.ts` brace expansion (`{-shm,-wal}`) — split patterns or keep `glob` there. `dotenv` → `process.loadEnvFile` or tiny parser; fold into **PH_* env consolidation** when touching `env-var`/`env-paths`. Leaner hosting runtime. |
+| **Remove @s-libs/micro-dash** | Low | S–M | Replace `map`/`forEach`/`values`/`keys`/`reduce`/`flatten`/`compact` with natives (~25 files in pockethost + dashboard + mothership-app). **Shrinks tsdown `pb_hooks/mothership.js` bundle** — fewer deps shipped into PB JSVM. |
+| **Dashboard highlight + color deps** | Low | S | Unify syntax highlighting on highlight.js / svelte-highlight; drop `prismjs` + twilight CSS (`+layout.svelte` `Prism.highlightAll`). Replace `d3-scale`/`d3-scale-chromatic` with fixed Tableau10 palette (`secrets/stores.ts` only). Smaller dashboard bundle. |
+| **Inline Express middleware deps** | Low | S | Replace `express-sslify`, `cors`, `vhost`, `express-async-errors`, `exit-hook` with small local helpers in firewall + `ProxyService`. Fewer transitive deps on edge nodes. |
+
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Dashboard realtime reconnect resync** | Low | S–M | SSE delivers deltas only — missed events while disconnected leave stale UI (e.g. email verify hang). On PB SDK `PB_CONNECT` (+ optional tab visibility), `resyncAppState`: `authRefresh`, refetch instances, stats; expose `onAppResync` for route stores. Remove 1s verify poll in `PocketbaseClient.ts`; consolidate with `stores.ts` subscribe logic. |
@@ -106,6 +118,8 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in backlog — keep here only if VPN-forward design stalls. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
+| **Drop ajv from RestHelper** | Low | M | Four small mothership REST payloads (`CreateInstance`, etc.) → hand validation; remove `ajv` + trim `type-fest` to built-in utility types. Modest client bundle win; only if schemas stay stable. |
+| **Replace tail + pnpm patch** | Med | M | `InstanceLoggerService` uses patched `tail` (`.close()`). Reimplement with `fs.watch`/readline or subprocess; drop `patches/tail.patch`. Relevant to **Bun** soak (transitive native deps). |
 
 ---
 
@@ -115,6 +129,12 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 - **Node 24:** shipped 2026-06-12 (see Done).
 - **Bun:** real DX wins (native TS, faster installs) but production risk on dockerode, patched `tail`, PM2. Keep in Icebox until `bun-experimental` is rebased and edge nodes soak-tested.
+
+### Dependency diet (keep vs replace)
+
+- **Keep (core):** `dockerode`, `semver`, `rate-limiter-flexible`, `ip-cidr`, `ftp-srv` fork, `pocketbase`, `@microsoft/fetch-event-source` fork, `commander`, `cron`, `Bottleneck`, `http-proxy`/`http-proxy-middleware`, `better-sqlite3` (sendmail), `node-os-utils` (health).
+- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **SFTP** lands).
+- **Hoist/dedupe (minor):** `tsx` (root + pockethost), `wrangler` (root + dashboard) — no functional change.
 
 ### Pricing migration (Flounder)
 
@@ -163,6 +183,12 @@ S3-default file storage ──► Rclone tiered instance data cache (cold tier t
 Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
 PocketHost CLI & SDK ──► watch mode replaces manual FTP for dev sync (pairs with SFTP)
+Node 24 upgrade ──► Dependency diet — Node 24 natives
+Dependency diet — dead deps ──► (standalone; good first PR in diet series)
+Remove micro-dash ──► smaller mothership hook bundle (pairs with mothership build hygiene)
+PH_* env consolidation ──► absorbs dotenv/env-var/env-paths from Node 24 natives item
+Dependency diet (overall) ──► fewer deps to validate on Bun soak
+Replace tail + patch ──► Bun icebox unblock (patched tail today)
 ```
 
 ---
