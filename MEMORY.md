@@ -23,7 +23,7 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 |---------|---------|
 | `mothership` | Control-plane PocketBase (users, instances, billing hooks) |
 | `firewall` | Reverse proxy, vhost routing, rate limiting |
-| `edge` | Edge node: daemon (instance spawner), FTP, volume migrate, syslog |
+| `edge` | Edge node: daemon (instance spawner), FTP, syslog |
 | `serve` | Local/dev serve helper |
 | `pocketbase` | PocketBase binary download / version management |
 | `health` | Health checks |

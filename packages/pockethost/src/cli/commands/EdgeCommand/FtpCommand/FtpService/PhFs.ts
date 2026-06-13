@@ -170,9 +170,6 @@ export class PhFs implements FileSystem {
       if (instanceRootDir && POWERED_OFF_ONLY.includes(instanceRootDir) && instance.power) {
         throw new Error(`Instance must be powered off first`)
       }
-      if (instance.volume) {
-        fsPathParts.push(instance.volume)
-      }
       fsPathParts.push(instance.id)
       dbg({
         fsPathParts,

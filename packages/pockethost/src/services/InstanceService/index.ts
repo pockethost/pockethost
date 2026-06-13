@@ -77,7 +77,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const { id, subdomain, version } = instance
     const systemInstanceLogger = instanceServiceLogger.create(subdomain).breadcrumb(id).breadcrumb(version)
     const { dbg, warn, error, info, trace } = systemInstanceLogger
-    const userInstanceLogger = InstanceLogWriter(instance.id, instance.volume, `exec`, systemInstanceLogger)
+    const userInstanceLogger = InstanceLogWriter(instance.id, `exec`, systemInstanceLogger)
 
     shutdownManager.push(() => {
       dbg(`Shutting down`)
@@ -146,7 +146,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       const spawnArgs: SpawnConfig = {
         subdomain: instance.subdomain,
         instanceId: instance.id,
-        volume: instance.volume,
         dev: instance.dev,
         extraBinds: flatten([
           globSync(join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js')).map(
