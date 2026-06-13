@@ -178,6 +178,7 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Power off stops edge container** — `InstanceService` mirror listener shuts down Docker on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `instancePower.ts` shutting-down UX; delete/version gated on fully-off (`status=idle`) |
 | 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data always `$DATA_ROOT/<id>/` |
 | 2026-06-12 | **Remove instance region field** — dropped `instances.region`, create/signup/migrate handlers; PB migration `1781308900`; pricing reframed to Fly global ingress (not per-instance region) |
+| 2026-06-12 | **Remove mothership s3 collection** — dropped unused `instances.s3` relation + `s3` creds collection; users configure S3 in PB admin (`/docs/s3` unchanged) |
 
 ---
 
