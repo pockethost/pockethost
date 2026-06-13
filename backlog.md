@@ -93,6 +93,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **GDPR compliance** | Med | L–XL | Privacy policy + cookie consent, lawful-basis/subprocessor documentation, data retention policies, account data export and erasure (instances, mothership records, Lemon Squeezy billing flows). EU customers and businesses can use PocketHost with clear data rights and regulatory coverage. |
+| **GDPR delete account** | Med | M–L | Self-service account erasure: confirm + email verification, cancel Lemon Squeezy subscription, delete all instances (edge cleanup + mothership records), SSH keys, and auth user. Grace period optional. Subset of **GDPR compliance**; unblocks EU users exercising right to erasure without support tickets. |
 
 ### Codebase health & CI
 
@@ -210,6 +211,7 @@ Last-chance Flounder blast ──► Pricing redo — Flounder sunset (lifetime 
 Halt lifetime edition sales ──► Pricing redo (policy; ship after comms)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 GDPR compliance ──► account data export/deletion UX; privacy policy + subprocessors docs; Lemon Squeezy data flows
+GDPR delete account ──► GDPR compliance (erasure); edge cleanup for all instances; LS subscription cancel
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
 Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → pockethost/pocketpages overlays)
