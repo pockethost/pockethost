@@ -52,23 +52,18 @@ const HandleInstanceCreate = (c) => {
 	log(`TOP OF POST`);
 	let data = new DynamicModel({
 		subdomain: "",
-		version: listVersions()[0],
-		region: "sfo-2"
+		version: listVersions()[0]
 	});
 	log(`before bind`);
 	c.bind(data);
 	log(`after bind`);
 	data = JSON.parse(JSON.stringify(data));
-	const { subdomain, version, region } = data;
-	log(`vars`, JSON.stringify({
-		subdomain,
-		region
-	}));
+	const { subdomain, version } = data;
+	log(`vars`, JSON.stringify({ subdomain }));
 	if (!subdomain) throw new BadRequestError(`Subdomain is required when creating an instance.`);
 	const collection = dao.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
 	record.set("uid", authRecord.getId());
-	record.set("region", region || `sfo-1`);
 	record.set("subdomain", subdomain);
 	record.set("power", true);
 	record.set("status", "idle");
@@ -442,17 +437,6 @@ const HandleMigrateInstanceVersions = (e) => {
 		} else unrecognized.push(v);
 	});
 	log({ unrecognized });
-};
-
-//#endregion
-//#region src/lib/handlers/instance/bootstrap/HandleMigrateRegions.ts
-/** Migrate version numbers */
-const HandleMigrateRegions = (e) => {
-	const dao = $app.dao();
-	const log = mkLog(`HandleMigrateRegions`);
-	log(`Migrating regions`);
-	dao.db().newQuery(`update instances set region='sfo-1' where region=''`).execute();
-	log(`Migrated regions`);
 };
 
 //#endregion
@@ -2996,7 +2980,6 @@ const HandleSignupConfirm = (c) => {
 	const email = parsed.email?.trim().toLowerCase();
 	const password = parsed.password?.trim();
 	const desiredInstanceName = parsed.instanceName?.trim();
-	const region = parsed.region?.trim();
 	const version = parsed.version?.trim() || listVersions()[0];
 	if (!email) throw error(`email`, "required", "Email is required");
 	if (!password) throw error(`password`, `required`, "Password is required");
@@ -3028,7 +3011,6 @@ const HandleSignupConfirm = (c) => {
 		try {
 			const instance = new Record(instanceCollection);
 			instance.set("subdomain", desiredInstanceName);
-			instance.set("region", region || `sfo-2`);
 			instance.set("uid", user.get("id"));
 			instance.set("status", "idle");
 			instance.set("power", true);
@@ -3177,7 +3159,6 @@ exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
-exports.HandleMigrateRegions = HandleMigrateRegions;
 exports.HandleMirrorData = HandleMirrorData;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;

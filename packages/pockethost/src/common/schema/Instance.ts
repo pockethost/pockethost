@@ -35,7 +35,6 @@ export type InstanceWebhookItem = {
 }
 
 export type InstanceFields<TExtra = {}> = BaseFields & {
-  region: string
   subdomain: Subdomain
   uid: UserId
   status: InstanceStatus
