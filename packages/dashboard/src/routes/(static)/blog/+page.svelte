@@ -2,6 +2,7 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/runtime-status-sync': 'Jun 13, 2026',
     '/blog/node-24-leaner-runtime': 'Jun 12, 2026',
     '/blog/instance-power-status': 'Jun 12, 2026',
     '/blog/web-awesome-migration': 'Jun 12, 2026',
@@ -18,6 +19,8 @@
   }
 
   const postDescriptions: Record<string, string> = {
+    '/blog/runtime-status-sync':
+      'Dashboard instance status stays honest across Mothership and edge restarts — one mirror sync handshake instead of stale guesses.',
     '/blog/node-24-leaner-runtime':
       'We dropped 100+ lockfile packages by moving to Node 24 natives. Same hosting behavior, lighter stack, and deliberate prep for a future Bun soak.',
     '/blog/instance-power-status':

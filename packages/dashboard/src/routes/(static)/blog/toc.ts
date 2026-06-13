@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Instance Status That Survives Restarts',
+    path: '/blog/runtime-status-sync',
+  },
+  {
     title: 'A Leaner Runtime on Node 24',
     path: '/blog/node-24-leaner-runtime',
   },
