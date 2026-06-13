@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'Your logs.db Might Be Gigabytes of Empty Space',
+    path: '/blog/pocketbase-sqlite-vacuum',
+  },
+  {
     title: 'Instance Status That Survives Restarts',
     path: '/blog/runtime-status-sync',
   },
