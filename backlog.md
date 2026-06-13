@@ -95,7 +95,6 @@ _Post–Node 24 audit (Jun 2026). Shrink lockfile, drop dead deps, lean on nativ
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Dashboard highlight + color deps** | Low | S | Unify syntax highlighting on highlight.js / svelte-highlight; drop `prismjs` + twilight CSS (`+layout.svelte` `Prism.highlightAll`). Replace `d3-scale`/`d3-scale-chromatic` with fixed Tableau10 palette (`secrets/stores.ts` only). Smaller dashboard bundle. |
 | **Inline Express middleware deps** | Low | S | Replace `express-sslify`, `cors`, `vhost`, `express-async-errors`, `exit-hook` with small local helpers in firewall + `ProxyService`. Fewer transitive deps on edge nodes. |
 
 | Item | Risk | Effort | Notes |
@@ -239,6 +238,7 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Remove instance region field** — dropped `instances.region`, create/signup/migrate handlers; PB migration `1781308900`; pricing reframed to Fly global ingress (not per-instance region) |
 | 2026-06-12 | **Remove mothership s3 collection** — dropped unused `instances.s3` relation + `s3` creds collection; users configure S3 in PB admin (`/docs/s3` unchanged) |
 | 2026-06-13 | **Edge-owned instance delete** — mothership `HandleInstanceDelete` drops PB record only (idle gate); `edge cleanup` + PM2 `edge-cleanup` (daily); admin `getInstances()` → rimraf orphans under `INSTANCES_ROOT`; `--dry-run`; removed `HandleInstanceDataPaths` (`53671ae7`–`13b77d45`) |
+| 2026-06-13 | **Dashboard highlight + color deps** — dropped `prismjs` + twilight CSS (instance layout already used `CodeSample`/svelte-highlight); fixed Tableau10 palette in `secrets/stores.ts`; removed `d3-scale` + `d3-scale-chromatic` |
 
 ---
 

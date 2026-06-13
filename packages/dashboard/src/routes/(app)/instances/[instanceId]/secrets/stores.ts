@@ -1,9 +1,18 @@
-import { scaleOrdinal } from 'd3-scale'
-import { schemeTableau10 } from 'd3-scale-chromatic'
 import { writable } from 'svelte/store'
 
-// color scale used in both visualizations
-const colorScale = scaleOrdinal(schemeTableau10)
+// Tableau 10 — same palette as d3-scale-chromatic schemeTableau10
+const TABLEAU10 = [
+  '#4e79a7',
+  '#f28e2c',
+  '#e15759',
+  '#76b7b2',
+  '#59a14f',
+  '#edc948',
+  '#b07aa1',
+  '#ff9da7',
+  '#9c755f',
+  '#bab0ab',
+] as const
 
 // in the store describe a list of items by name and value
 
@@ -22,7 +31,7 @@ function formatInput(input: SecretsArray): SecretsArray {
     .map(({ name, value }, index) => ({
       name,
       value,
-      color: colorScale(index.toString()),
+      color: TABLEAU10[index % TABLEAU10.length],
     }))
 }
 

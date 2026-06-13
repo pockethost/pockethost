@@ -11,9 +11,6 @@
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
   import Logo from '$src/routes/Navbar/Logo.svelte'
-  import { onMount } from 'svelte'
-  import Prism from 'prismjs'
-  import 'prismjs/components/prism-typescript'
 
   let isReady = false
   let sidebarOpen = false
@@ -52,10 +49,6 @@
 
   $: isActive = (path: string) => $page.url.pathname.endsWith(path)
   $: activeClass = (path: string) => (isActive(path) ? 'text-secondary' : '')
-
-  onMount(() => {
-    Prism.highlightAll()
-  })
 </script>
 
 <svelte:head>
