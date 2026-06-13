@@ -2,6 +2,7 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/node-24-leaner-runtime': 'Jun 12, 2026',
     '/blog/instance-power-status': 'Jun 12, 2026',
     '/blog/web-awesome-migration': 'Jun 12, 2026',
     '/blog/pocketbase-version-sync': 'Jun 12, 2026',
@@ -17,6 +18,8 @@
   }
 
   const postDescriptions: Record<string, string> = {
+    '/blog/node-24-leaner-runtime':
+      'We dropped 100+ lockfile packages by moving to Node 24 natives. Same hosting behavior, lighter stack, and deliberate prep for a future Bun soak.',
     '/blog/instance-power-status':
       'Power off now stops your container for real. The dashboard shows Running vs Sleeping, and destructive actions wait for shutdown.',
     '/blog/web-awesome-migration':

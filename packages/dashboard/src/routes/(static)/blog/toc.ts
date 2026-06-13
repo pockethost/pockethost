@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'A Leaner Runtime on Node 24',
+    path: '/blog/node-24-leaner-runtime',
+  },
+  {
     title: 'Running, Sleeping, and Power Off',
     path: '/blog/instance-power-status',
   },
