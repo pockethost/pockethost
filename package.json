@@ -14,7 +14,8 @@
     "check:mothership-hooks": "pnpm --filter pockethost-mothership-app check:fresh",
     "prod:cli": "cd packages/pockethost && pnpm start",
     "nofile": "cat /proc/sys/fs/file-nr",
-    "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts"
+    "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts",
+    "live-sync": "bash packages/pockethost/scripts/live-sync.sh"
   },
   "type": "module",
   "engines": {
