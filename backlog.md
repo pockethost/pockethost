@@ -43,11 +43,17 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 ### Billing & pricing
 
+_Pricing/lifetime sunset sequence: pre-announce email + community post → update public pricing page → last-chance Flounder blast → retire lifetime sales and tiers._
+
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Pricing change pre-announcement email** | Low | S–M | **Before** pricing update or lifetime sunset: email all users that changes are coming, what to expect, and that they can stay or leave. **Blocker** for **Pricing redo — Flounder sunset** and pulling lifetime support. |
+| **Pricing change community post** | Low | S | Reddit (and similar) heads-up aligned with pre-announce email — same story, public channel. **Blocker** for pricing redo. |
+| **Last-chance Flounder blast** | Low | S–M | **After** public pricing page is updated: one email to existing users — final Flounder/lifetime offer or migration nudge before tier removal. Runs between pricing-page ship and lifetime pull. |
+| **Halt lifetime edition sales** | Low | S | Stop selling lifetime tiers once comms are out. Policy: **no new lifetime purchases for rest of 2026** (possibly never again). Decouple from full pricing redo if needed. |
 | **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). Today: sale webhook + hardcoded `store.pockethost.io` checkout URLs; account page defers quantity changes to support. Customers self-serve plan changes without support tickets. |
 | **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
-| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder tier; email existing subscribers before pull. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). Grandfather existing plans. |
+| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder/lifetime tiers; grandfather existing subscribers. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). **Blocked by:** pre-announce email, community post, pricing-page update, last-chance blast, halt lifetime sales. |
 | **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror: **Starter 1 min**, **Pro 1 hr** (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Mothership sets TTL from plan; update limits/marketing docs. Pro keeps instances warm longer (cron, PB jobs); Starter hibernates faster to save platform resources. |
 | **Plan-tier rate limits** | Med | M | Subscription tier → firewall limits per instance hostname (today global `LIMITS` in `rate-limiter.ts`: trusted/untrusted IP + hostname hourly + concurrent). Mothership resolves plan on instance; edge/firewall applies tier-specific points (e.g. Starter lower hostname ceiling, Pro higher). Distinct from **User-controlled rate limiting** (customer knobs). Pro gets headroom for production traffic; Starter stays fair on shared firewall. |
 | **Enforced storage quotas** | Med | L | Migrate from fair-use to hard limits: sqlite DB size, FTP upload usage, PB file storage (volume or S3-metered). Dashboard surfacing + mothership schema + edge reject/warn. Prerequisite for honest **Pricing clarity**; vectors: sqlite size, FTPS/SFTP uploads, PB file uploads. |
@@ -131,11 +137,11 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 - **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **SFTP** lands).
 - **Hoist/dedupe (minor):** `tsx` (root + pockethost), `wrangler` (root + dashboard) — no functional change.
 
-### Pricing migration (Flounder)
+### Pricing migration (Flounder + lifetime)
 
 - Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, stats (`total_flounder_subscribers`), edge `instance.idleTtl` / `DAEMON_PB_IDLE_TTL`.
 - **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
-- **Must:** grandfather email + grace period before tier removal.
+- **Comms sequence (blockers):** (1) pre-announce email to all users — stay or leave; (2) Reddit/community post; (3) update public pricing page; (4) last-chance Flounder blast to existing users; (5) halt new lifetime sales (rest of 2026, maybe permanent); (6) retire tiers with grandfather + grace period.
 
 ### Mothership ↔ edge coupling (remaining)
 
@@ -161,6 +167,11 @@ Pricing redo ──► plan-tier rate limits (Starter vs Pro firewall ceilings)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Plan-tier hibernate ──► limits docs + pricing/marketing copy
 Plan-tier rate limits ──► pricing clarity + marketing copy (published req/hr limits)
+Pricing change pre-announcement email ──► Pricing redo — Flounder sunset
+Pricing change community post ──► Pricing redo — Flounder sunset
+Public pricing page update ──► Last-chance Flounder blast
+Last-chance Flounder blast ──► Pricing redo — Flounder sunset (lifetime tier pull)
+Halt lifetime edition sales ──► Pricing redo (policy; ship after comms)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
