@@ -19,8 +19,8 @@ import {
 import { map } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
-import { existsSync } from 'fs'
-import MemoryStream from 'memorystream'
+import { existsSync, globSync } from 'fs'
+import { PassThrough } from 'node:stream'
 import { gte } from 'semver'
 import { EventEmitter } from 'stream'
 import { AsyncReturnType } from 'type-fest'
@@ -32,8 +32,8 @@ export type SpawnConfig = {
   version?: string
   extraBinds?: string[]
   env?: Env
-  stdout?: MemoryStream
-  stderr?: MemoryStream
+  stdout?: PassThrough
+  stderr?: PassThrough
   dev?: boolean
   logger: Logger
 }
@@ -71,8 +71,8 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
       version: maxVersion,
       extraBinds: [],
       env: {},
-      stderr: new MemoryStream(),
-      stdout: new MemoryStream(),
+      stderr: new PassThrough(),
+      stdout: new PassThrough(),
       dev: false,
       ...cfg,
     }

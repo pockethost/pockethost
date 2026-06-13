@@ -1,7 +1,7 @@
 import { DOCKER_INSTANCE_IMAGE_NAME, mkContainerHomePath } from '@'
 import { map } from '@s-libs/micro-dash'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
-import MemoryStream from 'memorystream'
+import { PassThrough } from 'node:stream'
 
 export type PocketBaseContainerSpawnConfig = {
   binPath: string
@@ -32,8 +32,8 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
 
   const docker = new Docker()
   const pocketbasePath = mkContainerHomePath('pocketbase')
-  const stdout = new MemoryStream()
-  const stderr = new MemoryStream()
+  const stdout = new PassThrough()
+  const stderr = new PassThrough()
 
   stdout.on('data', (data) => onStdout?.(data.toString()))
   stderr.on('data', (data) => onStderr?.(data.toString()))

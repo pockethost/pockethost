@@ -1,6 +1,5 @@
 import Bottleneck from 'bottleneck'
 import { execSync } from 'child_process'
-import fetch from 'node-fetch'
 import { default as osu } from 'node-os-utils'
 import { freemem } from 'os'
 import { DAEMON_PORT, DISCORD_HEALTH_CHANNEL_URL, LoggerService, MOTHERSHIP_PORT, stringify } from '../../..'

@@ -1,6 +1,5 @@
 import { LoggerService } from '@'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import fetch from 'node-fetch'
 import { dirname } from 'path'
 
 export const smartFetch = async <TRet>(url: string, path: string): Promise<TRet> => {

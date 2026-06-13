@@ -5,9 +5,8 @@ import {
   PH_POCKETBASE_ROOT,
   SingletonBaseConfig,
 } from '@'
-import { chmodSync, createWriteStream, existsSync, readdirSync, rmSync } from 'fs'
+import { chmodSync, createWriteStream, existsSync, globSync, readdirSync, rmSync } from 'fs'
 import { mkdir } from 'fs/promises'
-import fetch from 'node-fetch'
 import { join } from 'path'
 import { spawn, type ChildProcess } from 'node:child_process'
 import { compare, maxSatisfying, valid } from 'semver'

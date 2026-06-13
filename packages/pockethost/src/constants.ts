@@ -1,7 +1,7 @@
 import { forEach } from '@s-libs/micro-dash'
-import dotenv from 'dotenv'
 import envPaths from 'env-paths'
 import { default as env } from 'env-var'
+import { existsSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import {
@@ -21,7 +21,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export const PH_PROJECT_ROOT = (...paths: string[]) => join(__dirname, '..', '..', '..', ...paths)
 
-dotenv.config({ path: [`.env`, PH_PROJECT_ROOT('.env')] })
+for (const envPath of ['.env', PH_PROJECT_ROOT('.env')]) {
+  if (existsSync(envPath)) process.loadEnvFile(envPath)
+}
 
 export const _PH_HOME = env.get('PH_HOME').default(envPaths(`pockethost`).data).asString()
 

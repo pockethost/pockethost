@@ -1,6 +1,5 @@
 import { dirname, join, resolve } from 'path'
-import { existsSync, readdirSync, rmSync, statSync } from 'fs'
-import { globSync } from 'glob'
+import { existsSync, globSync, readdirSync, rmSync, statSync } from 'fs'
 import {
   INSTANCES_ROOT,
   LoggerService,
@@ -16,7 +15,7 @@ export const findInstanceDataDirs = (): string[] => {
   const instancesRoot = resolve(INSTANCES_ROOT())
   const dirs = new Set<string>()
 
-  for (const pbDataPath of globSync(`${instancesRoot}/*/pb_data`, { absolute: true })) {
+  for (const pbDataPath of globSync(`${instancesRoot}/*/pb_data`)) {
     dirs.add(resolve(dirname(pbDataPath)))
   }
 

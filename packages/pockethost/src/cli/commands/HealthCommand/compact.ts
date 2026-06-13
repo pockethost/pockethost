@@ -1,6 +1,8 @@
 import { INSTANCES_ROOT, logger } from '@'
 import { execSync } from 'child_process'
-import { globSync } from 'glob'
+import { globSync } from 'node:fs'
+
+const SQLITE_SIDEcarSuffixes = ['-shm', '-wal'] as const
 
 export const compact = async () => {
   const { info, error } = logger()
@@ -8,8 +10,10 @@ export const compact = async () => {
   const files = [
     ...new Set(
       [`data`, `logs`].flatMap((db) =>
-        globSync(`${INSTANCES_ROOT('*', 'pb_data', `${db}.db`)}` + `{-shm,-wal}`).map((f) =>
-          f.replace(/-(?:shm|wal)$/, '')
+        SQLITE_SIDEcarSuffixes.flatMap((suffix) =>
+          globSync(`${INSTANCES_ROOT('*', 'pb_data', `${db}.db`)}${suffix}`).map((f) =>
+            f.replace(/-(?:shm|wal)$/, '')
+          )
         )
       )
     ),
