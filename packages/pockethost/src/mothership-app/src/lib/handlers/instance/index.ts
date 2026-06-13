@@ -1,5 +1,4 @@
 export * from './api/HandleInstanceCreate'
-export * from './api/HandleInstanceDataPaths'
 export * from './api/HandleInstanceDelete'
 export * from './api/HandleInstanceResolve'
 export * from './api/HandleInstanceUpdate'

@@ -76,18 +76,6 @@ const HandleInstanceCreate = (c) => {
 };
 
 //#endregion
-//#region src/lib/handlers/instance/api/HandleInstanceDataPaths.ts
-const HandleInstanceDataPaths = (c) => {
-	const records = $app.dao().findRecordsByExpr("instances", $dbx.exp("1=1"));
-	const instances = [];
-	for (const record of records) instances.push({
-		id: record.id,
-		volume: record.getString("volume") ?? ""
-	});
-	return c.json(200, { instances });
-};
-
-//#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceDelete.ts
 const HandleInstanceDelete = (c) => {
 	const dao = $app.dao();
@@ -3158,7 +3146,6 @@ exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleInstanceCreate = HandleInstanceCreate;
-exports.HandleInstanceDataPaths = HandleInstanceDataPaths;
 exports.HandleInstanceDelete = HandleInstanceDelete;
 exports.HandleInstanceResolve = HandleInstanceResolve;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;

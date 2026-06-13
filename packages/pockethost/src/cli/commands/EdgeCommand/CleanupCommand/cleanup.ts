@@ -1,59 +1,41 @@
-import { basename, dirname, resolve } from 'path'
+import { dirname, resolve } from 'path'
 import { existsSync, rmSync } from 'fs'
 import { globSync } from 'glob'
 import Docker from 'dockerode'
 import {
-  DATA_ROOT,
   DOCKER_INSTANCE_IMAGE_NAME,
+  INSTANCES_ROOT,
   LoggerService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
-  MOTHERSHIP_NAME,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
-  VOLUME_MOUNT_POINT,
   logger,
   mkInstanceDataPath,
 } from '@'
 
-type InstanceDataPath = {
-  id: string
-  volume: string
-}
-
-const reservedTopLevelNames = () =>
-  new Set([basename(VOLUME_MOUNT_POINT()), MOTHERSHIP_NAME(), 'cloud-storage-mount'])
-
-export const findInstanceDataDirs = (dataRoot: string): string[] => {
-  const dataRootResolved = resolve(dataRoot)
-  const reserved = reservedTopLevelNames()
+export const findInstanceDataDirs = (): string[] => {
+  const instancesRoot = resolve(INSTANCES_ROOT())
   const dirs = new Set<string>()
 
-  for (const pbDataPath of globSync(`${dataRootResolved}/**/pb_data`, { nodir: true, absolute: true })) {
-    const instanceDir = resolve(dirname(pbDataPath))
-    if (!instanceDir.startsWith(dataRootResolved)) continue
-
-    const rel = instanceDir.slice(dataRootResolved.length).replace(/^\/+/, '')
-    const topLevel = rel.split('/')[0]
-    if (!topLevel || reserved.has(topLevel)) continue
-
-    dirs.add(instanceDir)
+  for (const pbDataPath of globSync(`${instancesRoot}/*/pb_data`, { absolute: true })) {
+    dirs.add(resolve(dirname(pbDataPath)))
   }
 
   return [...dirs]
 }
 
-const fetchInstanceDataPaths = async (): Promise<InstanceDataPath[]> => {
-  const { dbg } = logger().create('fetchInstanceDataPaths')
-  const api = await MothershipAdminClientService({
+const fetchInstanceIds = async (): Promise<string[]> => {
+  const { dbg } = logger().create('fetchInstanceIds')
+  const { client } = await MothershipAdminClientService({
     url: MOTHERSHIP_URL(),
     username: MOTHERSHIP_ADMIN_USERNAME(),
     password: MOTHERSHIP_ADMIN_PASSWORD(),
     logger: LoggerService(),
   })
-  const res = await api.client.client.send('/api/instances/data-paths', { method: 'GET' })
-  dbg(`Fetched ${res.instances?.length ?? 0} instance data paths from mothership`)
-  return (res.instances ?? []) as InstanceDataPath[]
+  const instances = await client.getInstances()
+  dbg(`Fetched ${instances.length} instances from mothership`)
+  return instances.map((instance) => instance.id)
 }
 
 const stopContainersBoundToDataPath = async (dataPath: string) => {
@@ -89,14 +71,30 @@ const stopContainersBoundToDataPath = async (dataPath: string) => {
 
 export const cleanupOrphanInstanceData = async () => {
   const { dbg, info, warn } = logger().create('cleanupOrphanInstanceData')
-  const instances = await fetchInstanceDataPaths()
-  const validPaths = new Set(
-    instances.map((instance) => resolve(mkInstanceDataPath(instance.volume, instance.id)))
-  )
+  const instancesRoot = resolve(INSTANCES_ROOT())
+  const instanceIds = await fetchInstanceIds()
+  const validPaths = new Set(instanceIds.map((id) => resolve(mkInstanceDataPath(id))))
 
-  const orphanDirs = findInstanceDataDirs(DATA_ROOT()).filter((dir) => !validPaths.has(dir))
+  const localDirs = findInstanceDataDirs()
+  const orphanDirs = localDirs.filter((dir) => !validPaths.has(dir))
+  const keptDirs = localDirs.filter((dir) => validPaths.has(dir))
+
+  info(`Scanning ${instancesRoot} for orphan instance data`)
+  info(`Local: ${localDirs.length} director${localDirs.length === 1 ? 'y' : 'ies'} with pb_data`)
+  for (const dir of keptDirs) {
+    info(`  keep: ${dir}`)
+  }
+  for (const dir of orphanDirs) {
+    info(`  orphan: ${dir}`)
+  }
+
+  info(`Mothership: ${instanceIds.length} instance record${instanceIds.length === 1 ? '' : 's'}`)
+  for (const id of instanceIds) {
+    dbg(`${id} -> ${mkInstanceDataPath(id)}`)
+  }
+
   if (orphanDirs.length === 0) {
-    dbg(`No orphan instance data directories found`)
+    info(`No orphan instance data directories to remove`)
     return 0
   }
 
