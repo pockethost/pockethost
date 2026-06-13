@@ -1,16 +1,10 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
-  import { onMount } from 'svelte'
 
   const { authViaEmail } = client()
 
   export let isSignUpView: boolean = true
-
-  type WaInputEl = HTMLElement & { value: string }
-
-  let emailInput: WaInputEl
-  let passwordInput: WaInputEl
 
   let email: string = ''
   let password: string = ''
@@ -21,53 +15,12 @@
 
   let isButtonLoading: boolean = false
 
-  const readWaInputValue = (el: WaInputEl | undefined) => {
-    if (!el) return ''
-    return el.value ?? el.shadowRoot?.querySelector('input')?.value ?? ''
-  }
-
-  const syncFieldValues = () => {
-    email = readWaInputValue(emailInput)
-    password = readWaInputValue(passwordInput)
-  }
-
-  const bindWaInput = (el: WaInputEl, setValue: (value: string) => void) => {
-    const sync = () => setValue(readWaInputValue(el))
-    el.addEventListener('change', sync)
-    const inner = el.shadowRoot?.querySelector('input')
-    inner?.addEventListener('input', sync)
-    inner?.addEventListener('change', sync)
-    return () => {
-      el.removeEventListener('change', sync)
-      inner?.removeEventListener('input', sync)
-      inner?.removeEventListener('change', sync)
-    }
-  }
-
-  onMount(() => {
-    const unbindEmail = emailInput ? bindWaInput(emailInput, (value) => (email = value)) : () => {}
-    const unbindPassword = passwordInput ? bindWaInput(passwordInput, (value) => (password = value)) : () => {}
-    const autofillInterval = setInterval(syncFieldValues, 250)
-    const stopAutofillInterval = setTimeout(() => clearInterval(autofillInterval), 5000)
-
-    document.addEventListener('focusin', syncFieldValues)
-
-    return () => {
-      unbindEmail()
-      unbindPassword()
-      clearInterval(autofillInterval)
-      clearTimeout(stopAutofillInterval)
-      document.removeEventListener('focusin', syncFieldValues)
-    }
-  })
-
   const handleRegisterClick = () => {
     isSignUpView = !isSignUpView
   }
 
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
-    syncFieldValues()
     if (!email || !password) return
 
     isButtonLoading = true
@@ -84,42 +37,43 @@
   }
 </script>
 
-<form class="p-10 pb-5 flex flex-col gap-2" autocomplete="on" onsubmit={handleSubmit} onpointerdown={syncFieldValues}>
+<form class="p-10 pb-5 flex flex-col gap-2" method="post" autocomplete="on" onsubmit={handleSubmit}>
   <h2 class="font-bold text-white mb-3 text-center text-2xl">Log In</h2>
 
   <div>
-    <wa-input
-      bind:this={emailInput}
+    <label class="auth-label" for="email">Email</label>
+    <input
       type="email"
-      name="email"
       id="email"
-      label="Email"
+      name="email"
+      class="auth-field"
       placeholder="name@example.com"
       autocomplete="username"
+      bind:value={email}
       required
-      class="w-full"
-    ></wa-input>
+    />
   </div>
 
   <div class="mb-3">
+    <label class="auth-label" for="password">Password</label>
     <div class="relative">
-      <wa-input
-        bind:this={passwordInput}
+      <input
         type={showPassword ? 'text' : 'password'}
-        name="password"
         id="password"
-        label="Password"
+        name="password"
+        class="auth-field pr-10"
         placeholder="Password"
         autocomplete="current-password"
+        bind:value={password}
         required
-        class="w-full"
-      ></wa-input>
+      />
       {#if password.length > 0}
         <button
           type="button"
-          class="absolute bottom-0 right-4 flex items-center text-gray-500 h-[var(--wa-form-control-height)]"
+          class="absolute inset-y-0 right-3 flex items-center text-gray-500"
           onclick={() => (showPassword = !showPassword)}
           tabindex="-1"
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           <wa-icon name={showPassword ? 'eye-slash' : 'eye'}></wa-icon>
         </button>
@@ -156,3 +110,35 @@
     </button>
   </div>
 </div>
+
+<style>
+  .auth-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.9);
+  }
+
+  .auth-field {
+    width: 100%;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border-radius: var(--wa-border-radius-m, 0.375rem);
+    border: 1px solid rgb(255 255 255 / 0.15);
+    background-color: rgb(17 17 17 / 0.7);
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .auth-field::placeholder {
+    color: rgb(255 255 255 / 0.4);
+  }
+
+  .auth-field:focus {
+    outline: none;
+    border-color: var(--wa-color-focus, #3b82f6);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--wa-color-focus, #3b82f6) 40%, transparent);
+  }
+</style>
