@@ -2,6 +2,7 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/pocketbase-sqlite-vacuum': 'Jun 13, 2026',
     '/blog/runtime-status-sync': 'Jun 13, 2026',
     '/blog/node-24-leaner-runtime': 'Jun 12, 2026',
     '/blog/instance-power-status': 'Jun 12, 2026',
@@ -19,6 +20,8 @@
   }
 
   const postDescriptions: Record<string, string> = {
+    '/blog/pocketbase-sqlite-vacuum':
+      'PocketBase log retention deletes rows but SQLite keeps the disk. Our Mothership logs.db was 6.5 GB for ~1,800 records — vacuum fixed it in seconds.',
     '/blog/runtime-status-sync':
       'Dashboard instance status stays honest across Mothership and edge restarts — one mirror sync handshake instead of stale guesses.',
     '/blog/node-24-leaner-runtime':
