@@ -89,7 +89,6 @@ _Post–Node 24 audit (Jun 2026). Shrink lockfile, drop dead deps, lean on nativ
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Dependency diet — dead deps** | Low | S | Remove unused: `fs-extra` (+ `@types/fs-extra`), dead `devcert`/`createDevCert` in `constants.ts`, dashboard `just-camel-case`/`cron-parser`/`@types/js-cookie`, root `@changesets/cli` + `.changeset/` (blog-driven releases), root `tslib`; fix unused d3 imports in `webhooks/stores.ts`. Smaller lockfile; less audit noise. |
 | **Dependency diet — Node 24 natives** | Low | S–M | Drop `node-fetch`, `eventsource`, `memorystream` for global `fetch`/`EventSource`/`PassThrough`. `glob` → `node:fs` `globSync` except `HealthCommand/compact.ts` brace expansion (`{-shm,-wal}`) — split patterns or keep `glob` there. `dotenv` → `process.loadEnvFile` or tiny parser; fold into **PH_* env consolidation** when touching `env-var`/`env-paths`. Leaner hosting runtime. |
 | **Remove @s-libs/micro-dash** | Low | S–M | Replace `map`/`forEach`/`values`/`keys`/`reduce`/`flatten`/`compact` with natives (~25 files in pockethost + dashboard + mothership-app). **Shrinks tsdown `pb_hooks/mothership.js` bundle** — fewer deps shipped into PB JSVM. |
 | **Dashboard highlight + color deps** | Low | S | Unify syntax highlighting on highlight.js / svelte-highlight; drop `prismjs` + twilight CSS (`+layout.svelte` `Prism.highlightAll`). Replace `d3-scale`/`d3-scale-chromatic` with fixed Tableau10 palette (`secrets/stores.ts` only). Smaller dashboard bundle. |
@@ -178,7 +177,7 @@ Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
 PocketHost CLI & SDK ──► watch mode replaces manual FTP for dev sync (pairs with SFTP)
 Node 24 upgrade ──► Dependency diet — Node 24 natives
-Dependency diet — dead deps ──► (standalone; good first PR in diet series)
+Dependency diet — Node 24 natives ──► (standalone; next in diet series)
 Remove micro-dash ──► smaller mothership hook bundle (pairs with mothership build hygiene)
 PH_* env consolidation ──► absorbs dotenv/env-var/env-paths from Node 24 natives item
 Dependency diet (overall) ──► fewer deps to validate on Bun soak
@@ -196,6 +195,7 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
 | 2026-06-12 | **Retire duplicate resolve gating** — removed unused `HandleInstanceResolve` + `GET /api/instance/resolve`; edge `InstanceService` owns request policy |
+| 2026-06-12 | **Dependency diet — dead deps** — dropped `fs-extra`, `devcert`, dashboard `just-camel-case`/`cron-parser`/`@types/js-cookie`, root `@changesets/cli`/`.changeset/`, `tslib`; removed dead `createDevCert`; unused d3 imports in webhooks store |
 | 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
 | 2026-06-12 | **Power off stops edge container** — `InstanceService` mirror listener shuts down Docker on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `instancePower.ts` shutting-down UX; delete/version gated on fully-off (`status=idle`) |
 | 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data under `$DATA_ROOT/instances/<id>/` |

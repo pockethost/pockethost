@@ -1,10 +1,5 @@
-import { scaleOrdinal } from 'd3-scale'
-import { schemeTableau10 } from 'd3-scale-chromatic'
 import { type InstanceWebhookCollection, type InstanceWebhookItem } from 'pockethost/common'
 import { writable } from 'svelte/store'
-
-// color scale used in both visualizations
-const colorScale = scaleOrdinal(schemeTableau10)
 
 // Use the proper types from the schema
 export type CronItem = InstanceWebhookItem
