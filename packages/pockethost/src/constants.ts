@@ -29,6 +29,8 @@ export const _PH_HOME = env.get('PH_HOME').default(envPaths(`pockethost`).data).
 
 export const _DATA_ROOT = env.get('DATA_ROOT').default(join(_PH_HOME, `data`)).asString()
 
+export const _MOTHERSHIP_DATA_ROOT = env.get('MOTHERSHIP_DATA_ROOT').default(join(_PH_HOME, `mothership_data`)).asString()
+
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
@@ -81,6 +83,7 @@ export const createSettings = () => ({
     required: false,
   }),
   MOTHERSHIP_SEMVER: mkString('0.22.*'),
+  MOTHERSHIP_DATA_ROOT: mkPath(_MOTHERSHIP_DATA_ROOT, { create: true }),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),
@@ -250,7 +253,7 @@ export const VOLUME_DEBUG = () => settings().VOLUME_DEBUG
 
 /** Helpers */
 
-export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) => DATA_ROOT(MOTHERSHIP_NAME(), ...paths)
+export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) => join(settings().MOTHERSHIP_DATA_ROOT, ...paths)
 export const MOTHERSHIP_DATA_DB = () => join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) => join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
@@ -286,6 +289,7 @@ export const logConstants = () => {
     MOTHERSHIP_HOOKS_DIR,
     MOTHERSHIP_APP_DIR,
     MOTHERSHIP_SEMVER,
+    MOTHERSHIP_DATA_ROOT,
     MOTHERSHIP_CLOUDFLARE_API_TOKEN,
     MOTHERSHIP_CLOUDFLARE_ZONE_ID,
     MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
@@ -313,7 +317,6 @@ export const logConstants = () => {
     DOCKER_INSTANCE_IMAGE_NAME,
     PH_POCKETBASE_ROOT,
     PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
-    MOTHERSHIP_DATA_ROOT,
     MOTHERSHIP_DATA_DB,
     PH_MOTHERSHIP_MIRROR_PORT,
     VOLUME_MOUNT_POINT,

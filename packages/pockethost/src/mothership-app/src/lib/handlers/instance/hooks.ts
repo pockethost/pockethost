@@ -30,6 +30,14 @@ routerAdd(
   },
   $apis.requireAdminAuth()
 )
+routerAdd(
+  'GET',
+  '/api/instances/data-paths',
+  (c) => {
+    return require(`${__hooks}/mothership`).HandleInstanceDataPaths(c)
+  },
+  $apis.requireAdminAuth()
+)
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
   return require(`${__hooks}/mothership`).BeforeUpdate_version(e)

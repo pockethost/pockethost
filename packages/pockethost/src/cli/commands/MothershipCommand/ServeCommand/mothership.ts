@@ -38,7 +38,6 @@ export async function mothership({ logger }: MothershipConfig) {
   /** Launch central database */
   info(`Serving`)
   const env = {
-    DATA_ROOT: mkContainerHomePath(`data`),
     LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
     DISCORD_TEST_CHANNEL_URL: DISCORD_TEST_CHANNEL_URL(),
     DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),

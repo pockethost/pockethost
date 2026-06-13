@@ -23,7 +23,7 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 |---------|---------|
 | `mothership` | Control-plane PocketBase (users, instances, billing hooks) |
 | `firewall` | Reverse proxy, vhost routing, rate limiting |
-| `edge` | Edge node: daemon (instance spawner), FTP, volume migrate, syslog |
+| `edge` | Edge node: `daemon serve`, `cleanup` (orphan data), FTP, volume migrate |
 | `serve` | Local/dev serve helper |
 | `pocketbase` | PocketBase binary download / version management |
 | `health` | Health checks |
@@ -45,7 +45,9 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 ## Key paths & settings
 
 - Settings factory: `packages/pockethost/src/constants.ts` → `createSettings()`.
-- Data root: `PH_HOME` (default `env-paths('pockethost').data`) / `DATA_ROOT`.
+- Data root: `PH_HOME` (default `env-paths('pockethost').data`) / `DATA_ROOT` (`$PH_HOME/data` — instance volumes only).
+- Mothership PB data: `$PH_HOME/mothership_data` (`MOTHERSHIP_DATA_ROOT`; override via env). Not under `data/` — mothership is not an instance.
+- Instance delete: mothership `DELETE /api/instance/:id` removes the PB record only (after power-off + idle). Edge `edge cleanup` (PM2 `edge-cleanup`, daily): admin `GET /api/instances/data-paths` → `{ id, volume }[]`, then rimraf orphaned dirs under `DATA_ROOT` (stops bound containers first).
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 
