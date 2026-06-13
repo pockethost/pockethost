@@ -1,10 +1,12 @@
 import { mkLog } from '$util/Logger'
 
-export const BeforeUpdate_cname = (e: core.ModelEvent) => {
-  const dao = e.dao || $app.dao()
+export const BeforeUpdate_cname = (e: core.RecordUpdateEvent) => {
   const log = mkLog(`BeforeUpdate_cname`)
-  const id = e.model.getId()
-  const newCname = e.model.get('cname').trim()
+  const record = e.record
+  if (!record) return
+
+  const id = record.id
+  const newCname = record.get('cname').trim()
 
   // Only check if cname is already in use locally
   if (newCname.length > 0) {
@@ -14,7 +16,7 @@ export const BeforeUpdate_cname = (e: core.ModelEvent) => {
 
     const inUse = (() => {
       try {
-        dao.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result)
+        $app.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result)
       } catch (e) {
         return false
       }

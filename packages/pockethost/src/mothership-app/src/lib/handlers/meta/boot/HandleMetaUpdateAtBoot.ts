@@ -1,27 +1,29 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleMetaUpdateAtBoot = (c: core.BootstrapEvent) => {
+export const HandleMetaUpdateAtBoot = (_e: core.BootstrapEvent) => {
   const log = mkLog('HandleMetaUpdateAtBoot')
   log(`At top of HandleMetaUpdateAtBoot`)
   log(`app URL`, process.env.APP_URL)
-  const form = new SettingsUpsertForm($app)
-  form.meta = {
-    ...$app.settings().meta,
-    appUrl: process.env.APP_URL || $app.settings().meta.appUrl,
+
+  const settings = $app.settings()
+  settings.meta = {
+    ...settings.meta,
+    appUrl: process.env.APP_URL || settings.meta.appUrl,
     verificationTemplate: {
-      ...$app.settings().meta.verificationTemplate,
+      ...settings.meta.verificationTemplate,
       actionUrl: `{APP_URL}/login/confirm-account/{TOKEN}`,
     },
     resetPasswordTemplate: {
-      ...$app.settings().meta.resetPasswordTemplate,
+      ...settings.meta.resetPasswordTemplate,
       actionUrl: `{APP_URL}/login/password-reset/confirm/{TOKEN}`,
     },
     confirmEmailChangeTemplate: {
-      ...$app.settings().meta.confirmEmailChangeTemplate,
+      ...settings.meta.confirmEmailChangeTemplate,
       actionUrl: `{APP_URL}/login/confirm-email-change/{TOKEN}`,
     },
   }
-  log(`Saving form`)
-  form.submit()
-  log(`Saved form`)
+
+  log(`Saving settings`)
+  $app.save(settings)
+  log(`Saved settings`)
 }

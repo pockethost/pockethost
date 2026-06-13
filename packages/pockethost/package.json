@@ -43,7 +43,7 @@
     "ip-cidr": "^4.0.2",
     "json-stringify-safe": "^5.0.1",
     "node-os-utils": "^1.3.7",
-    "pocketbase": "^0.21.3",
+    "pocketbase": "^0.26.0",
     "rate-limiter-flexible": "^8.1.0",
     "semver": "^7.6.3",
     "tail": "^2.2.6",

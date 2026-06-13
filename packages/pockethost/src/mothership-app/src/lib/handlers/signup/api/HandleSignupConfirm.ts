@@ -1,10 +1,24 @@
 import { listVersions } from '$util/versions'
 import { error } from '../error'
 
-export const HandleSignupConfirm = (c: echo.Context) => {
-  const dao = $app.dao()
+const suggestUniqueAuthRecordUsername = (collection: string, baseUsername: string) => {
+  let username = baseUsername
+  for (let i = 0; i < 10; i++) {
+    try {
+      const total = $app.countRecords(
+        collection,
+        $dbx.exp('LOWER([[username]])={:username}', { username: username.toLowerCase() })
+      )
+      if (total === 0) break
+    } catch {}
+    username = baseUsername + $security.randomStringWithAlphabet(3 + i, '123456789')
+  }
+  return username
+}
+
+export const HandleSignupConfirm = (e: core.RequestEvent) => {
   const parsed = (() => {
-    const rawBody = readerToString(c.request().body)
+    const rawBody = readerToString(e.request.body)
     try {
       const parsed = JSON.parse(rawBody)
       return parsed
@@ -31,7 +45,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
 
   const userExists = (() => {
     try {
-      const record = dao.findFirstRecordByData('users', 'email', email)
+      $app.findFirstRecordByData('users', 'email', email)
       return true
     } catch {
       return false
@@ -42,21 +56,19 @@ export const HandleSignupConfirm = (c: echo.Context) => {
     throw error(`email`, `exists`, `That user account already exists. Try a password reset.`)
   }
 
-  dao.runInTransaction((txDao) => {
-    const usersCollection = dao.findCollectionByNameOrId('users')
-    const instanceCollection = $app.dao().findCollectionByNameOrId('instances')
+  $app.runInTransaction((txApp) => {
+    const usersCollection = $app.findCollectionByNameOrId('users')
+    const instanceCollection = $app.findCollectionByNameOrId('instances')
 
     const user = new Record(usersCollection)
     try {
-      const username = $app
-        .dao()
-        .suggestUniqueAuthRecordUsername('users', 'user' + $security.randomStringWithAlphabet(5, '123456789'))
+      const username = suggestUniqueAuthRecordUsername('users', 'user' + $security.randomStringWithAlphabet(5, '123456789'))
       user.set('username', username)
       user.set('email', email)
       user.set('subscription', 'free')
       user.set('subscription_quantity', 0)
       user.setPassword(password)
-      txDao.saveRecord(user)
+      txApp.save(user)
     } catch (e) {
       throw error(`email`, `fail`, `Could not create user: ${e}`)
     }
@@ -70,7 +82,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       instance.set('syncAdmin', true)
       instance.set('dev', true)
       instance.set('version', version)
-      txDao.saveRecord(instance)
+      txApp.save(instance)
     } catch (e) {
       if (`${e}`.match(/ UNIQUE /)) {
         throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`)
@@ -81,5 +93,5 @@ export const HandleSignupConfirm = (c: echo.Context) => {
     $mails.sendRecordVerification($app, user)
   })
 
-  return c.json(200, { status: 'ok' })
+  return e.json(200, { status: 'ok' })
 }

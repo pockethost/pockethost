@@ -1,6 +1,7 @@
 import { canFetch, LoggerService, MOTHERSHIP_URL, neverendingPromise, syncCachedVersionsToMothership } from '@'
 import { Command } from 'commander'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
+import { ftp } from '../EdgeCommand/FtpCommand/ServeCommand/ftp'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
 import { mothership } from '../MothershipCommand/ServeCommand/mothership'
 
@@ -23,6 +24,8 @@ export const ServeCommand = () => {
     dbg(`Daemon ready`)
     await firewall({ logger })
     dbg(`Firewall ready`)
+    await ftp({ logger })
+    dbg(`FTP ready`)
     await neverendingPromise(logger)
   })
   return cmd

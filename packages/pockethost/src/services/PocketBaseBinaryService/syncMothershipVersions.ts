@@ -49,7 +49,7 @@ export const syncMothershipVersions = async (versions: PocketbaseVersionEntry[])
 
   try {
     const client = new PocketBase(mothershipUrl)
-    await client.admins.authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
+    await client.collection(`_superusers`).authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
     const value: PocketbaseVersionsValue = {
       versions,

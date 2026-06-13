@@ -24,7 +24,7 @@ const parsePocketbaseVersionsValue = (raw: unknown): PocketbaseVersionsValue | n
 
 export const readPocketbaseVersions = (): PocketbaseVersionEntry[] => {
   try {
-    const record = $app.dao().findFirstRecordByData('settings', 'name', POCKETBASE_VERSIONS_SETTING)
+    const record = $app.findFirstRecordByData('settings', 'name', POCKETBASE_VERSIONS_SETTING)
     const value = parsePocketbaseVersionsValue(record.getString('value'))
     if (!value?.versions?.length) return []
     return value.versions

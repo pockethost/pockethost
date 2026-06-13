@@ -1,3 +1,3 @@
-routerAdd('GET', '/api/stats', (c) => {
-  return require(`${__hooks}/mothership`).HandleStatsRequest(c)
+routerAdd('GET', '/api/stats', (e) => {
+  return require(`${__hooks}/mothership`).HandleStatsRequest(e)
 })

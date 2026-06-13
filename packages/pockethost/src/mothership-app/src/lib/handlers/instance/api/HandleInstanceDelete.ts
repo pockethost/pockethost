@@ -1,8 +1,6 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleInstanceDelete = (c: echo.Context) => {
-  const dao = $app.dao()
-
+export const HandleInstanceDelete = (e: core.RequestEvent) => {
   const log = mkLog(`DELETE:instance`)
 
   log(`TOP OF DELETE`)
@@ -10,13 +8,13 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     id: '',
   })
 
-  c.bind(data)
+  e.bindBody(data)
   log(`After bind`)
 
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const id = c.pathParam('id')
+  const id = e.request.pathValue('id')
 
   log(
     `vars`,
@@ -25,14 +23,14 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     })
   )
 
-  const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record
+  const authRecord = e.auth
   log(`authRecord`, JSON.stringify(authRecord))
 
   if (!authRecord) {
     throw new BadRequestError(`Expected authRecord here`)
   }
 
-  const record = dao.findRecordById('instances', id)
+  const record = $app.findRecordById('instances', id)
   if (!record) {
     throw new BadRequestError(`Instance ${id} not found.`)
   }
@@ -44,7 +42,7 @@ export const HandleInstanceDelete = (c: echo.Context) => {
     throw new BadRequestError(`Instance must be shut down first.`)
   }
 
-  dao.deleteRecord(record)
+  $app.delete(record)
 
-  return c.json(200, { status: 'ok' })
+  return e.json(200, { status: 'ok' })
 }

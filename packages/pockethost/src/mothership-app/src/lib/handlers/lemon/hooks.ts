@@ -1,3 +1,3 @@
-routerAdd('POST', '/api/ls', (c) => {
-  return require(`${__hooks}/mothership`).HandleLemonSqueezySale(c)
+routerAdd('POST', '/api/ls', (e) => {
+  return require(`${__hooks}/mothership`).HandleLemonSqueezySale(e)
 })

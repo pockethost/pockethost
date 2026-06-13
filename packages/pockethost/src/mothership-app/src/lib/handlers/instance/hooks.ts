@@ -1,55 +1,60 @@
 routerAdd(
   'PUT',
-  '/api/instance/:id',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleInstanceUpdate(c)
+  '/api/instance/{id}',
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleInstanceUpdate(e)
   },
-  $apis.requireRecordAuth()
+  $apis.requireAuth()
 )
 routerAdd(
   'POST',
   '/api/instance',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleInstanceCreate(c)
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleInstanceCreate(e)
   },
-  $apis.requireRecordAuth()
+  $apis.requireAuth()
 )
 routerAdd(
   'DELETE',
-  '/api/instance/:id',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleInstanceDelete(c)
+  '/api/instance/{id}',
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleInstanceDelete(e)
   },
-  $apis.requireRecordAuth()
+  $apis.requireAuth()
 )
 routerAdd(
   'POST',
   '/api/instances/runtime/reset',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(c)
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(e)
   },
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )
 /** Validate instance version */
-onModelBeforeUpdate((e) => {
-  return require(`${__hooks}/mothership`).BeforeUpdate_version(e)
+onRecordUpdate((e) => {
+  require(`${__hooks}/mothership`).BeforeUpdate_version(e)
+  e.next()
 }, 'instances')
 
 /** Validate cname */
-onModelBeforeUpdate((e) => {
-  return require(`${__hooks}/mothership`).BeforeUpdate_cname(e)
+onRecordUpdate((e) => {
+  require(`${__hooks}/mothership`).BeforeUpdate_cname(e)
+  e.next()
 }, 'instances')
 
 /** Notify discord on instance create */
-// onModelAfterCreate((e) => {
+// onRecordAfterCreateSuccess((e) => {
+//   e.next()
 //   return require(`${__hooks}/mothership`).AfterCreate_notify_discord(e)
 // }, 'instances')
 
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
+  e.next()
   // return require(`${__hooks}/mothership`).HandleMigrateInstanceVersions(e)
 })
 
 /** Reset instance status to idle on start */
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
+  e.next()
   return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e)
 })

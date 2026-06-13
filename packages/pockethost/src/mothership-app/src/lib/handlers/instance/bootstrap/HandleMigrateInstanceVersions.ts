@@ -1,13 +1,11 @@
 import { mkLog } from '$util/Logger'
 import { listVersions } from '$util/versions'
 
-export const HandleMigrateInstanceVersions = (e: core.BootstrapEvent) => {
-  const dao = $app.dao()
-
+export const HandleMigrateInstanceVersions = (_e: core.BootstrapEvent) => {
   const log = mkLog(`bootstrap`)
 
   const versions = listVersions()
-  const records = dao.findRecordsByFilter(`instances`, '1=1').filter((r) => !!r)
+  const records = $app.findRecordsByFilter(`instances`, '1=1').filter((r) => !!r)
   const unrecognized: string[] = []
   records.forEach((record) => {
     const v = record.getString('version').trim()
@@ -26,7 +24,7 @@ export const HandleMigrateInstanceVersions = (e: core.BootstrapEvent) => {
     })()
     if (versions.includes(newVersion)) {
       record.set(`version`, newVersion)
-      dao.saveRecord(record)
+      $app.save(record)
     } else {
       unrecognized.push(v)
     }

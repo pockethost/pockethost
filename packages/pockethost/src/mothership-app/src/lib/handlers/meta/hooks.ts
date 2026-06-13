@@ -1,3 +1,4 @@
-onAfterBootstrap((e) => {
-  return require(`${__hooks}/mothership`).HandleMetaUpdateAtBoot(e)
+onBootstrap((e) => {
+  e.next()
+  require(`${__hooks}/mothership`).HandleMetaUpdateAtBoot(e)
 })

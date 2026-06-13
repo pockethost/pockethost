@@ -1,18 +1,18 @@
 routerAdd(
   'GET',
   '/api/mirror',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleMirrorData(c)
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleMirrorData(e)
   },
   $apis.gzip(),
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )
 routerAdd(
   'POST',
   '/api/mirror',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleMirrorSync(c)
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleMirrorSync(e)
   },
   $apis.gzip(),
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )

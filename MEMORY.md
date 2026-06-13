@@ -24,7 +24,7 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 | `mothership` | Control-plane PocketBase (users, instances, billing hooks) |
 | `firewall` | Reverse proxy, vhost routing, rate limiting |
 | `edge` | Edge node: daemon (instance spawner), `cleanup` (orphan data), FTP, syslog |
-| `serve` | Local/dev serve helper |
+| `serve` | Local/dev full stack: mothership (if needed), edge daemon, firewall, FTP |
 | `pocketbase` | PocketBase binary download / version management |
 | `health` | Health checks |
 | `mail` | Outbound mail helper |
@@ -38,7 +38,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase app at `mothership-app/` — `pb_migrations/`, TS handlers in `src/lib/handlers/`. **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale).
+- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks`. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`).
 - **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`.
 
@@ -59,7 +59,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 
 - `PocketBaseService` — instance PB process management
 - `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`
-- `MothershipAdminClientService` — admin PB client + instance mixin
+- `MothershipAdminClientService` — admin PB client via `_superusers` collection auth (npm `pocketbase` ≥0.26)
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
 
@@ -82,7 +82,9 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 
 ## PocketBase versions
 
-Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
+Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). **Mothership** pinned separately via `MOTHERSHIP_SEMVER` (`0.39.*`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
+
+**Mothership v0.39 production cutover:** (1) backup `pb_data`; (2) run `packages/pockethost/scripts/mothership-v039-preupgrade.sql` against `data.db` (drops custom SQL views that block embedded v0.23 migration); (3) deploy 0.39 binary + new hooks + snapshot migrations; (4) restart edge. Rollback: restore backup + 0.22 binary + prior hooks/migrations.
 
 ## Dev workflow
 
@@ -91,6 +93,7 @@ Requires **Node.js 24** (`.nvmrc`: `lts/krypton`; `nvm install` in `setup.sh`).
 ```bash
 pnpm install               # root
 cp .env-template .env      # if present; configure PH_HOME, apex domain, mothership creds
+pnpm live-sync             # optional — rsync prod mothership pb_data → .pockethost/data/mothership/pb_data; set DATA_ROOT
 pnpm dev:mothership-hooks  # terminal 1 — tsdown --watch when editing mothership handlers
 pnpm dev:cli               # terminal 2 — CLI / mothership / edge / firewall
 pnpm dev:dashboard         # dashboard dev server

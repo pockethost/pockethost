@@ -72,7 +72,7 @@ export const createSettings = () => ({
   MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
     required: false,
   }),
-  MOTHERSHIP_SEMVER: mkString('0.22.*'),
+  MOTHERSHIP_SEMVER: mkString('0.39.*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),
@@ -83,7 +83,7 @@ export const createSettings = () => ({
   PH_FTP_PORT: mkNumber(21),
   SSL_KEY: mkPath(join(_SSL_HOME, `${TLS_PFX}.key`)),
   SSL_CERT: mkPath(join(_SSL_HOME, `${TLS_PFX}.cert`)),
-  PH_FTP_PASV_IP: mkString(`0.0.0.0`),
+  PH_FTP_PASV_IP: mkString(_IS_DEV ? `127.0.0.1` : `0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
 

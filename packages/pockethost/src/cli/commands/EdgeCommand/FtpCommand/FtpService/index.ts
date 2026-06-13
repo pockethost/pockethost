@@ -19,6 +19,17 @@ import { PhFs } from './PhFs'
 
 export type FtpConfig = SingletonBaseConfig & { mothershipUrl: string }
 
+const isLocalClientIp = (ip?: string | null) => {
+  if (!ip) return false
+  return ip === `127.0.0.1` || ip === `::1` || ip.startsWith(`::ffff:127.`)
+}
+
+/** IP advertised in PASV/EPSV responses for the data channel. */
+const resolvePasvUrl = (clientIp?: string) => {
+  if (isLocalClientIp(clientIp)) return `127.0.0.1`
+  return PH_FTP_PASV_IP()
+}
+
 export const ftpService = mkSingleton((config: FtpConfig) => {
   const { mothershipUrl } = mergeConfig(
     {
@@ -38,7 +49,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     anonymous: false,
     log: _ftpServiceLogger,
     tls,
-    pasv_url: PH_FTP_PASV_IP(),
+    pasv_url: resolvePasvUrl,
     pasv_max: PH_FTP_PASV_PORT_MAX(),
     pasv_min: PH_FTP_PASV_PORT_MIN(),
   })

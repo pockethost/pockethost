@@ -27,7 +27,7 @@ PocketBase embeds a **Goja** JavaScript engine for server-side extensions. Code 
 | **Record hooks** | `onRecordAfterCreateRequest`, … | `onRecordAfterCreateSuccess`, … (call `e.next()`) |
 | **Admin auth table** | `_admins` (`passwordHash`) | `_superusers` (`password`) |
 
-When in doubt, open the **JSVM reference for that version** — hook names, route handler signatures, and `$app` methods differ. Porting between versions is not a find-and-replace; see the [v0.23 migration notes](https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0).
+When in doubt, open the **JSVM reference for that version** — hook names, route handler signatures, and `$app` methods differ. For mothership v0.39 port work, read [v023-upgrade.md](v023-upgrade.md) and the [official JSVM upgrade guide](https://pocketbase.io/v023upgrade/jsvm/).
 
 ## Pre-flight checklist
 
@@ -201,7 +201,7 @@ const log = mkLog('main')
 
 - User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
 - Instance templates: `packages/pockethost/src/instance-app/v22/` (≤ v0.22) and `v23/` (≥ v0.23) — compare `_ph_admin_sync.pb.js` for a side-by-side API diff.
-- Mothership hooks (≤ v0.22-style API): `packages/pockethost/src/mothership-app/pb_hooks/`
+- Mothership hooks (≥ v0.23 after v0.39 migration): `packages/pockethost/src/mothership-app/pb_hooks/` — port guide in [v023-upgrade.md](v023-upgrade.md)
 - Typings: `instance-app/v22/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
 - PocketHost sandbox may restrict `$os` — avoid OS-level calls.
 

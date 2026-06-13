@@ -1,9 +1,8 @@
-export const HandleStatsRequest = (c: echo.Context) => {
-  const result = new DynamicModel({
-    total_flounder_subscribers: 0,
-  })
+export const HandleStatsRequest = (e: core.RequestEvent) => {
+  const total_flounder_subscribers = $app.countRecords(
+    `users`,
+    $dbx.exp(`subscription = 'flounder' && verified = 1`)
+  )
 
-  $app.dao().db().select('total_flounder_subscribers').from('stats').one(result)
-
-  return c.json(200, result)
+  return e.json(200, { total_flounder_subscribers })
 }

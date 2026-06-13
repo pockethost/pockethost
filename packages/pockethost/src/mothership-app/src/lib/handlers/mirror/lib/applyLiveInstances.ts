@@ -3,8 +3,8 @@ type LiveInstance = {
   status?: string
 }
 
-/** saveRecord per row (not bulk SQL) so dashboard SSE clients get status updates. */
-export const applyLiveInstances = (dao: core.Dao, liveInstances: LiveInstance[]) => {
+/** save per row (not bulk SQL) so dashboard SSE clients get status updates. */
+export const applyLiveInstances = (app: core.App, liveInstances: LiveInstance[]) => {
   let updated = 0
 
   for (const live of liveInstances) {
@@ -15,7 +15,7 @@ export const applyLiveInstances = (dao: core.Dao, liveInstances: LiveInstance[])
 
     let record: models.Record
     try {
-      record = dao.findRecordById(`instances`, id)
+      record = app.findRecordById(`instances`, id)
     } catch {
       continue
     }
@@ -24,7 +24,7 @@ export const applyLiveInstances = (dao: core.Dao, liveInstances: LiveInstance[])
     if (record.getString(`status`) === status) continue
 
     record.set(`status`, status)
-    dao.saveRecord(record)
+    app.save(record)
     updated++
   }
 

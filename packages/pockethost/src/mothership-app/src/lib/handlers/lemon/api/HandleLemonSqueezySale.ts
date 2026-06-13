@@ -42,11 +42,9 @@ type LemonSqueezyDebugContext = PartialDeep<{
   variant_name: string
 }>
 
-export const HandleLemonSqueezySale = (c: echo.Context) => {
-  const dao = $app.dao()
-
+export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
   const log = mkLog(`ls`)
-  const audit = mkAudit(log, dao)
+  const audit = mkAudit(log, $app)
   const context: LemonSqueezyDebugContext = {}
 
   log(`Top of ls`)
@@ -57,12 +55,12 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
     }
     log(`Secret`, context.secret)
 
-    context.raw = readerToString(c.request().body)
+    context.raw = readerToString(e.request.body)
 
     context.body_hash = $security.hs256(context.raw, context.secret)
     log(`Body hash`, context.body_hash)
 
-    context.xsignature_header = c.request().header.get('X-Signature')
+    context.xsignature_header = e.request.header.get('X-Signature')
     log(`Signature`, context.xsignature_header)
 
     if (context.xsignature_header == undefined || !$security.equal(context.body_hash, context.xsignature_header)) {
@@ -156,7 +154,7 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
 
     const userRec = (() => {
       try {
-        return dao.findFirstRecordByData('users', 'id', context.user_id)
+        return $app.findFirstRecordByData('users', 'id', context.user_id)
       } catch (e) {
         throw new Error(`User ${context.user_id} not found`)
       }
@@ -251,10 +249,10 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
 
     const signup_finalizer = () => {
       product_handler()
-      dao.saveRecord(userRec)
+      $app.save(userRec)
       log(`saved user`)
 
-      const notify = mkNotifier(log, dao)
+      const notify = mkNotifier(log, $app)
       const { user_id } = context
       if (!user_id) {
         throw new Error(`User ID expected here`)
@@ -276,16 +274,16 @@ export const HandleLemonSqueezySale = (c: echo.Context) => {
         userRec.set(`subscription`, `free`)
         userRec.set(`subscription_interval`, ``)
       }
-      dao.saveRecord(userRec)
+      $app.save(userRec)
       log(`saved user`)
       audit(`LS`, `Signup cancelled.`, context)
     }
 
     event_handler()
 
-    return c.json(200, { status: 'ok' })
-  } catch (e) {
-    audit(`LS_ERR`, `${e}`, context)
-    return c.json(500, { status: `error`, error: e.message })
+    return e.json(200, { status: 'ok' })
+  } catch (err) {
+    audit(`LS_ERR`, `${err}`, context)
+    return e.json(500, { status: `error`, error: `${err}` })
   }
 }
