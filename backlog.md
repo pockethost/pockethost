@@ -22,7 +22,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) without syncing status — stale `running` after edge restart/cron. Edge already writes status on spawn/shutdown in `InstanceService`; add reconciliation on daemon boot and narrow/remove mothership bootstrap reset. |
+| **Runtime status owned by edge** | Med | M | **Spike Jun 2026 — reverted; bigger than S–M.** Split **intent** (`power`, version, secrets on mothership) from **runtime** (`status`: starting/running/idle on edge). Today: edge boot kills Docker without status write; `HandleInstancesResetIdle` blind-resets on mothership boot; partial restarts desync DB vs containers. **Phase 1 (min shippable):** edge boot → stop containers → admin `POST /api/instances/runtime/reset` → all `idle` via `dao.saveRecord` per row (**not raw SQL** — dashboard SSE misses bulk SQL); remove mothership bootstrap reset; mirror resync + edge `reconcileRuntimeStatus()` on mothership recovery (warm `instanceApis` → push running/starting, else idle). **Phase 2 (failure paths):** edge heartbeat lease (`runtime_lease_expires_at` or similar) renewed per warm instance; mothership cron expires stale leases → idle (edge crash / failed write). **Icebox witness:** container SSE/WS to mothership with instance-scoped token — only if edge lease insufficient. **Also:** pairs with **Dashboard realtime reconnect resync** (missed SSE while tab/disconnected). Blocks v0.39 + package split until Phase 1 lands. |
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
@@ -113,6 +113,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Container runtime witness (SSE/lease from instance)** | Med | M–L | Optional Phase 2+ if edge heartbeat lease is not enough: instance container holds mothership connection (SSE or ping) with instance-scoped token; disconnect → idle. Splits ownership with edge; needs auth endpoint + instance image change. Icebox until **Runtime status owned by edge** Phase 1–2 evaluated in prod. |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
 | **501(c)(3) nonprofit formation** | Med–High | XL | Become an official 501(c)(3): separate bank account, IP transfer from PocketHost to the org, IRS tax-exempt status, state registration, bylaws/board. **Lifetime Flounder revenue** allocates a portion to the nonprofit (fund split + accounting). Explore corporate **sponsorships** for ongoing support. Community gets mission-driven, tax-deductible infrastructure; platform gets durable legal structure beyond a single operator. |
@@ -142,11 +143,34 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 - **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
 - **Comms sequence (blockers):** (1) pre-announce email to all users — stay or leave; (2) Reddit/community post; (3) update public pricing page; (4) last-chance Flounder blast to existing users; (5) halt new lifetime sales (rest of 2026, maybe permanent); (6) retire tiers with grandfather + grace period.
 
+### Runtime status (spike notes, Jun 2026)
+
+**Problem:** `instances.status` is runtime truth for dashboard (Running/Sleeping, delete gate, power-off UX) but two writers disagree:
+
+| Event | Docker | Mothership `status` today |
+| --- | --- | --- |
+| Edge boot (`daemon.ts` stops all instance containers) | wiped | unchanged unless mothership also rebooted |
+| Mothership boot (`HandleInstancesResetIdle` raw SQL) | edge may still have warm containers | all forced `idle` |
+| Normal hibernate / power-off | stopped | edge writes `idle` via admin client ✓ |
+| Edge crash / failed write | gone or orphaned | may stay `running` |
+
+**Model to target:** `power` = user intent (mothership). `status` = runtime (edge-owned). Spawn is request-driven, not status-driven.
+
+**Prototype (reverted):** edge boot reset endpoint + mirror recovery watch + reconcile. Worked in mothership DB but dashboard stale until reset used `saveRecord` per instance (raw SQL bypasses PocketBase realtime; dashboard `stores.ts` subscribes to `instances/*`).
+
+**Recommended phases:**
+
+1. **Sync protocol** — edge boot reset (saveRecord loop), remove mothership bootstrap reset, mothership-down recovery (mirror resync + reconcile warm instances upward).
+2. **Lease / heartbeat** — edge renews lease per warm instance; mothership cron expires → idle (covers edge death without shutdown hook).
+3. **Optional container witness** — SSE or ping from container; see Icebox row. Heavier; only if edge lease has blind spots.
+
+**Code touchpoints:** `daemon.ts` (container wipe), `HandleInstancesResetIdle.ts` (remove), `InstanceService` (spawn/shutdown status writes, reconcile), `MothershipMirrorService` (resync, recovery watch), new admin route, dashboard SSE/resync.
+
 ### Mothership ↔ edge coupling (remaining)
 
 | Coupling | Where | Status |
 | -------- | ----- | ------ |
-| Runtime status | `HandleInstancesResetIdle` vs edge daemon | Open — mothership blind-resets on boot; daemon stops containers without status sync |
+| Runtime status | `HandleInstancesResetIdle` vs edge daemon; no lease on crash | Open — see **Runtime status owned by edge** + spike notes above |
 | Request policy | `InstanceService` edge proxy | Done — removed unused `HandleInstanceResolve`; edge mirror owns request gating |
 
 Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **instance delete FS** (`HandleInstanceDelete` record-only + PM2 `edge cleanup`), **request policy** (removed `HandleInstanceResolve`; edge proxy only).
@@ -154,7 +178,9 @@ Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **inst
 ### Dependencies between items
 
 ```
-Runtime status on edge ──► v0.39 migration
+Runtime status on edge (Phase 1 sync) ──► v0.39 migration
+Runtime status Phase 2 (heartbeat lease) ──► stale `running` cleanup when edge dies without shutdown hook
+Runtime status owned by edge ──► Dashboard realtime reconnect resync (complementary; missed SSE while disconnected)
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
