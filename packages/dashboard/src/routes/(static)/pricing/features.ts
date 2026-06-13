@@ -52,10 +52,6 @@ export const features = [
     description: 'Limited-time opportunity for lifetime Pro tier access (up to 250 instances) with a single payment.',
   },
   {
-    title: 'Early Access',
-    description: `Get your hands on our experimental <a href="/blog/announcing-pocker" class="text-primary">Pocker</a> tech before anyone else. Help us push the boundaries of what's possible.`,
-  },
-  {
     title: 'Reliable',
     description: 'Industry-leading 99.95% uptime guarantee ensures consistent application availability.',
   },
