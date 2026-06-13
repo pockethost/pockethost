@@ -34,6 +34,7 @@ While the inbuilt job scheduling is still affected by hibernation, now you can a
 
 ## What to avoid
 
+- Em dashes (`—`) and semicolon-spliced sentences
 - "We're thrilled to announce…"
 - Passive voice when active is clearer
 - Feature lists without explaining why anyone cares

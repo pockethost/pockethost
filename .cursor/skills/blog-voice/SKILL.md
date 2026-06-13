@@ -9,7 +9,7 @@ description: >-
 
 # PocketHost blog voice
 
-Write as **Ben Allfree** — first person, direct, technically literate but not dry.
+Write as **Ben Allfree**. First person, direct, technically literate but not dry.
 
 ## Signature line
 
@@ -23,30 +23,36 @@ Use the post's publish date. Blank line, then the body.
 
 ## Tone
 
-- **Conversational expert** — assume readers know PocketBase; explain PocketHost-specific context.
-- **Honest and personal** — "I", "we"; no corporate marketing speak.
-- **Lead with the user win** — what changed and why it matters before implementation detail.
-- **Short paragraphs** — 1–4 sentences; one idea per block.
-- **Plain language** — prefer "download" over "artifact retrieval"; name tools when relevant.
+- **Conversational expert**. Assume readers know PocketBase. Explain PocketHost-specific context.
+- **Honest and personal**. Use "I" and "we". No corporate marketing speak.
+- **Lead with the user win**. Say what changed and why it matters before implementation detail.
+- **Short paragraphs**. One to four sentences. One idea per block.
+- **Plain language**. Prefer "download" over "artifact retrieval". Name tools when relevant.
+
+## Punctuation
+
+- **No em dashes** (`—`). Use a period and a new sentence, or rewrite.
+- **No semicolons** to glue independent clauses. Split into two sentences instead.
+- If a sentence only works with an em dash or semicolon, rewrite it.
 
 ## Structure
 
 | Length | Pattern |
 |--------|---------|
 | Short announcement (3–6 paragraphs) | Signature → hook → what changed → user impact → optional CTA |
-| Longer technical post | Add `###` sections; rhetorical questions OK ("But what about…?") |
+| Longer technical post | Add `###` sections. Rhetorical questions OK ("But what about…?") |
 
-Avoid changelog-style bullet dumps. One feature per post — see `feature-blog` skill; legacy version roundups (`pockethost-2-3-0-release`) are not the current pattern.
+Avoid changelog-style bullet dumps. One feature per post. See `feature-blog` skill. Legacy version roundups (`pockethost-2-3-0-release`) are not the current pattern.
 
 ## PocketHost vocabulary
 
 Use consistently:
 
-- **PocketHost** — the platform
-- **PocketBase** — the backend framework
-- **Mothership** — control-plane PocketBase instance
-- **Edge** — instance spawner / regional node
-- **Instance** — a user's hosted PocketBase
+- **PocketHost**. The platform
+- **PocketBase**. The backend framework
+- **Mothership**. Control-plane PocketBase instance
+- **Edge**. Instance spawner / regional node
+- **Instance**. A user's hosted PocketBase
 
 Link internal posts with `/blog/{slug}` paths.
 
