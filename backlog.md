@@ -22,16 +22,14 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| ~~**Power off stops edge container**~~ | — | — | **Done 2026-06-12** — mirror listener shuts down container on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard shutting-down UX (`instancePower.ts`). |
-| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). PM2 `edge-cleanup` runs `edge cleanup` daily: admin `getInstances()`, rimraf orphaned dirs under `DATA_ROOT/instances/` (stop bound containers first). |
-| **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
-| **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
+| **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) without syncing status — stale `running` after edge restart/cron. Edge already writes status on spawn/shutdown in `InstanceService`; add reconciliation on daemon boot and narrow/remove mothership bootstrap reset. |
+| **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove handler + route before multi-region; mothership stays metadata API. |
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Blocked by mothership↔edge decoupling above** (especially delete + status + power off). |
+| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Blocked by runtime status + resolve cleanup** (delete and power-off decoupling done). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
-| **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **mothership↔edge decoupling** (no instance FS/runtime in handlers). Customers get faster mothership fixes without redeploying the whole stack. |
+| **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status + resolve cleanup** (instance FS/delete decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
 
 #### Storage & volumes
@@ -41,6 +39,7 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **S3-default file storage (sqlite-only volumes)** | Med | M–L | Today PB backups include file uploads unless the user configures S3; host volume holds uploads + sqlite. Default or require S3 for `_pb_files_` so the instance volume is sqlite (+ hooks) only — smaller disks, faster backups, cleaner tiering. Customers get leaner backups; platform pays less for block storage. Prerequisite for **Rclone tiered instance data cache**. |
+| **S3 redirect for file downloads** | Med | M | When PB file uploads live on S3, firewall/edge should not proxy bytes through the origin — return a redirect (302/307) to a presigned S3 URL instead. Saves edge egress bandwidth; customers get direct CDN/S3 delivery. Spike: detect S3-backed `/api/files/...` vs local, signing TTL, auth/CORS, rate-limiter interaction (`isPocketBaseFilesPath`). Pairs with **S3-default file storage**; ships independently when users configure S3 in PB admin. |
 | **Rclone tiered instance data cache** | Med–High | XL | Hot cache on edge for active instances; idle/cold data on cheaper remote storage via rclone (or similar). Goal: avoid provisioning 1–2 TB per node when most instances are largely idle. Spike: mount semantics, sync latency on wake, consistency on hibernate/delete. Lowers platform storage cost; pairs with sqlite-only volumes + hibernate economics. |
 
 ### Billing & pricing
@@ -115,7 +114,6 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | ---- | ---- | ------ | ----- |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
-| **Global Fly.io proxy** | Med | XL | Superseded by **Multi-region Fly edges** in backlog — keep here only if VPN-forward design stalls. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
 | **Drop ajv from RestHelper** | Low | M | Four small mothership REST payloads (`CreateInstance`, etc.) → hand validation; remove `ajv` + trim `type-fest` to built-in utility types. Modest client bundle win; only if schemas stay stable. |
@@ -142,24 +140,20 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 - **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
 - **Must:** grandfather email + grace period before tier removal.
 
-### Mothership ↔ edge coupling (today)
+### Mothership ↔ edge coupling (remaining)
 
-| Coupling | Where | Problem |
-| -------- | ----- | ------- |
-| Instance delete FS | `HandleInstanceDelete` + `edge cleanup` | Mothership deletes PB record only; daily PM2 job rimraf orphaned dirs via admin `getInstances()` |
-| Power off | `HandleInstanceUpdate` + `InstanceService` | **Fixed** — mirror listener shuts down container on `power=false`; dashboard shows shutting-down until `status=idle` |
-| Runtime status | `HandleInstancesResetIdle` vs edge daemon | Mothership resets all `status=idle` on boot; edge stops containers without syncing status |
-| Request policy | `HandleInstanceResolve` vs `InstanceService` | Duplicate gating logic; resolve unused in repo |
-| Branches | `feat/remote-delete` | Remote delete partially implemented, not merged |
+| Coupling | Where | Status |
+| -------- | ----- | ------ |
+| Runtime status | `HandleInstancesResetIdle` vs edge daemon | Open — mothership blind-resets on boot; daemon stops containers without status sync |
+| Request policy | `HandleInstanceResolve` vs `InstanceService` | Open — duplicate gating; resolve unused in repo |
+
+Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **instance delete FS** (`HandleInstanceDelete` record-only + PM2 `edge cleanup`).
 
 ### Dependencies between items
 
 ```
-Power off stops container ──► delete / version-change UX (fully-off gate)
-Edge-owned delete ──► mothership port (no instance DATA_ROOT in PB hooks)
-Runtime status on edge ──► trustworthy idle precondition for delete
-Mothership↔edge decoupling ──► v0.39 migration
-Mothership↔edge decoupling ──► Decouple mothership (package split)
+Runtime status on edge + retire resolve ──► v0.39 migration
+Mothership↔edge decoupling (status + resolve) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
@@ -180,6 +174,8 @@ SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limit
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
+S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
+S3 redirect for file downloads ──► pricing clarity / bandwidth docs (honest egress story)
 Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
 PocketHost CLI & SDK ──► watch mode replaces manual FTP for dev sync (pairs with SFTP)
@@ -202,9 +198,10 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
 | 2026-06-12 | **Power off stops edge container** — `InstanceService` mirror listener shuts down Docker on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `instancePower.ts` shutting-down UX; delete/version gated on fully-off (`status=idle`) |
-| 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data always `$DATA_ROOT/<id>/` |
+| 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data under `$DATA_ROOT/instances/<id>/` |
 | 2026-06-12 | **Remove instance region field** — dropped `instances.region`, create/signup/migrate handlers; PB migration `1781308900`; pricing reframed to Fly global ingress (not per-instance region) |
 | 2026-06-12 | **Remove mothership s3 collection** — dropped unused `instances.s3` relation + `s3` creds collection; users configure S3 in PB admin (`/docs/s3` unchanged) |
+| 2026-06-13 | **Edge-owned instance delete** — mothership `HandleInstanceDelete` drops PB record only (idle gate); `edge cleanup` + PM2 `edge-cleanup` (daily); admin `getInstances()` → rimraf orphans under `INSTANCES_ROOT`; `--dry-run`; removed `HandleInstanceDataPaths` (`53671ae7`–`13b77d45`) |
 
 ---
 
