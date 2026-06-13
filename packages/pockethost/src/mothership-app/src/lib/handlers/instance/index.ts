@@ -1,6 +1,5 @@
 export * from './api/HandleInstanceCreate'
 export * from './api/HandleInstanceDelete'
-export * from './api/HandleInstanceResolve'
 export * from './api/HandleInstanceUpdate'
 export * from './bootstrap/HandleInstancesResetIdle'
 export * from './bootstrap/HandleMigrateCnamesToDomains'

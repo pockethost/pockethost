@@ -9,9 +9,6 @@ routerAdd("POST", "/api/instance", (c) => {
 routerAdd("DELETE", "/api/instance/:id", (c) => {
 	return require(`${__hooks}/mothership`).HandleInstanceDelete(c);
 }, $apis.requireRecordAuth());
-routerAdd("GET", "/api/instance/resolve", (c) => {
-	return require(`${__hooks}/mothership`).HandleInstanceResolve(c);
-}, $apis.requireAdminAuth());
 /** Validate instance version */
 onModelBeforeUpdate((e) => {
 	return require(`${__hooks}/mothership`).BeforeUpdate_version(e);

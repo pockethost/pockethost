@@ -99,81 +99,6 @@ const HandleInstanceDelete = (c) => {
 };
 
 //#endregion
-//#region src/lib/handlers/instance/api/HandleInstanceResolve.ts
-const HandleInstanceResolve = (c) => {
-	const dao = $app.dao();
-	const log = mkLog(`GET:instance/resolve`);
-	log(`TOP OF GET`);
-	const host = c.queryParam("host");
-	if (!host) throw new BadRequestError(`Host is required when resolving an instance.`);
-	const instance = (() => {
-		try {
-			log(`Checking for cname ${host}`);
-			const record = $app.dao().findFirstRecordByData("instances", "cname", host);
-			return record;
-		} catch (e) {
-			log(`${host} is not a cname`);
-		}
-		const [subdomain, ...junk] = host.split(".");
-		if (!subdomain) throw new BadRequestError(`Subdomain or instance ID is required when resolving an instance without a cname.`);
-		try {
-			log(`Checking for instance ID ${subdomain}`);
-			const record = $app.dao().findRecordById("instances", subdomain);
-			return record;
-		} catch (e) {
-			log(`${subdomain} is not an instance ID`);
-		}
-		try {
-			log(`Checking for subdomain ${subdomain}`);
-			const record = $app.dao().findFirstRecordByData("instances", `subdomain`, subdomain);
-			return record;
-		} catch (e) {
-			log(`${subdomain} is not a subdomain`);
-		}
-		throw new BadRequestError(`Instance not found.`);
-	})();
-	log(`Checking for instance suspension`);
-	if (instance.get("suspension")) throw new BadRequestError(instance.get("suspension"));
-	const APP_URL = (...path) => [$os.getenv("APP_URL"), ...path].join("/");
-	const DOC_URL = (...path) => APP_URL("docs", ...path);
-	log(`Checking for power`);
-	if (!instance.getBool("power")) throw new BadRequestError(`This instance is powered off. See ${DOC_URL(`power`)} for more information.`);
-	const user = (() => {
-		const userId = instance.get("uid");
-		if (!userId) throw new BadRequestError(`Instance has no user.`);
-		try {
-			log(`Checking for user ${userId}`);
-			const record = $app.dao().findRecordById("users", userId);
-			return record;
-		} catch (e) {
-			log(`User ${userId} not found`);
-		}
-		throw new BadRequestError(`User not found.`);
-	})();
-	log(`Checking for user suspension`);
-	if (user.get("suspension")) throw new BadRequestError(user.get("suspension"));
-	log(`Checking for active instances`);
-	if (user.getInt("subscription_quantity") === 0) throw new BadRequestError(`Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>.`);
-	log(`Checking for verified account`);
-	if (!user.getBool("verified")) throw new BadRequestError(`Log in at ${APP_URL()} to verify your account.`);
-	const tokenKey = user.getString("tokenKey");
-	const passwordHash = user.getString("passwordHash");
-	const email = user.getString("email");
-	const userJSON = JSON.parse(JSON.stringify(user));
-	const ret = {
-		instance,
-		user: {
-			...userJSON,
-			tokenKey,
-			passwordHash,
-			email
-		}
-	};
-	log(`Returning instance and user`, ret);
-	return c.json(200, ret);
-};
-
-//#endregion
 //#region ../../../../node_modules/.pnpm/@s-libs+micro-dash@18.0.0/node_modules/@s-libs/micro-dash/fesm2022/micro-dash.mjs
 function keysOfNonArray(object) {
 	return object ? Object.getOwnPropertyNames(object) : [];
@@ -3147,7 +3072,6 @@ exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;
-exports.HandleInstanceResolve = HandleInstanceResolve;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;
 exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;

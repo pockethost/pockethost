@@ -23,13 +23,12 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) without syncing status — stale `running` after edge restart/cron. Edge already writes status on spawn/shutdown in `InstanceService`; add reconciliation on daemon boot and narrow/remove mothership bootstrap reset. |
-| **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove handler + route before multi-region; mothership stays metadata API. |
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Blocked by runtime status + resolve cleanup** (delete and power-off decoupling done). |
+| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Blocked by runtime status** (delete, power-off, and resolve decoupling done). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
-| **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status + resolve cleanup** (instance FS/delete decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
+| **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status** (instance FS/delete and resolve decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
 
 #### Storage & volumes
@@ -144,15 +143,15 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | Coupling | Where | Status |
 | -------- | ----- | ------ |
 | Runtime status | `HandleInstancesResetIdle` vs edge daemon | Open — mothership blind-resets on boot; daemon stops containers without status sync |
-| Request policy | `HandleInstanceResolve` vs `InstanceService` | Open — duplicate gating; resolve unused in repo |
+| Request policy | `InstanceService` edge proxy | Done — removed unused `HandleInstanceResolve`; edge mirror owns request gating |
 
-Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **instance delete FS** (`HandleInstanceDelete` record-only + PM2 `edge cleanup`).
+Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **instance delete FS** (`HandleInstanceDelete` record-only + PM2 `edge cleanup`), **request policy** (removed `HandleInstanceResolve`; edge proxy only).
 
 ### Dependencies between items
 
 ```
-Runtime status on edge + retire resolve ──► v0.39 migration
-Mothership↔edge decoupling (status + resolve) ──► Decouple mothership (package split)
+Runtime status on edge ──► v0.39 migration
+Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
@@ -196,6 +195,7 @@ _Completed items with date + link to PR/release._
 | ---- | ---- |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
+| 2026-06-12 | **Retire duplicate resolve gating** — removed unused `HandleInstanceResolve` + `GET /api/instance/resolve`; edge `InstanceService` owns request policy |
 | 2026-06-12 | **Mothership build hygiene** — `pnpm dev:mothership-hooks` (tsdown watch), `pnpm check:mothership-hooks`, `.github/workflows/ci.yaml` freshness gate; MEMORY dev workflow updated |
 | 2026-06-12 | **Power off stops edge container** — `InstanceService` mirror listener shuts down Docker on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard `instancePower.ts` shutting-down UX; delete/version gated on fully-off (`status=idle`) |
 | 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data under `$DATA_ROOT/instances/<id>/` |
