@@ -58,14 +58,17 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
 
   const deleteInstance = (id: InstanceId) => {
     const oldInstance = mirror.instancesById[id]
-    if (oldInstance) {
-      const canonicalId = `${oldInstance.id}.${EDGE_APEX_DOMAIN()}`
-      const canonicalSubdomain = `${oldInstance.subdomain}.${EDGE_APEX_DOMAIN()}`
-      delete mirror.instancesById[canonicalId]
-      delete mirror.instancesBySubdomain[canonicalSubdomain]
+    if (!oldInstance) return
+
+    const canonicalId = `${oldInstance.id}.${EDGE_APEX_DOMAIN()}`
+    const canonicalSubdomain = `${oldInstance.subdomain}.${EDGE_APEX_DOMAIN()}`
+
+    delete mirror.instancesById[id]
+    delete mirror.instancesBySubdomain[oldInstance.subdomain]
+    delete mirror.instancesByCanonicalId[canonicalId]
+    delete mirror.instancesByCanonicalSubdomain[canonicalSubdomain]
+    if (oldInstance.cname) {
       delete mirror.instancesByCname[oldInstance.cname]
-      delete mirror.instancesByCanonicalId[canonicalId]
-      delete mirror.instancesByCanonicalSubdomain[canonicalSubdomain]
     }
   }
 

@@ -24,7 +24,7 @@ import {
 } from '@'
 import { flatten, map, values } from '@s-libs/micro-dash'
 import Bottleneck from 'bottleneck'
-import { globSync } from 'glob'
+import { globSync } from 'fs'
 import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import { MothershipMirrorService } from '../MothershipMirrorService'
@@ -57,11 +57,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const mirror = await MothershipMirrorService()
 
   const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
-
-  const instancePowerById = new Map<InstanceId, boolean>()
-  for (const instance of mirror.getInstances()) {
-    instancePowerById.set(instance.id, instance.power)
-  }
 
   const shutdownRunningInstance = async (id: InstanceId, reason: string) => {
     const pending = instanceApis[id]
@@ -259,10 +254,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   }
 
   mirror.onInstanceUpserted((instance) => {
-    const wasPoweredOn = instancePowerById.get(instance.id) ?? true
-    instancePowerById.set(instance.id, instance.power)
-
-    if (wasPoweredOn && !instance.power) {
+    if (!instance.power) {
       shutdownRunningInstance(instance.id, 'power off').catch((e) => {
         error(`Error shutting down ${instance.id} on power off`, { e })
       })
@@ -270,7 +262,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   })
 
   mirror.onInstanceDeleted((instanceId) => {
-    instancePowerById.delete(instanceId)
     shutdownRunningInstance(instanceId, 'instance deleted').catch((e) => {
       error(`Error shutting down ${instanceId} on delete`, { e })
     })

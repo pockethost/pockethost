@@ -60,7 +60,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `PocketBaseService` — instance PB process management
 - `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted
 - `MothershipAdminClientService` — admin PB client + instance mixin
-- `MothershipMirrorService` — mothership data sync
+- `MothershipMirrorService` — mothership data sync via PocketBase realtime SSE
 - `CronService`, `ProxyService`, `InstanceLoggerService`
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
@@ -76,6 +76,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - Images: plain `<img>` + Vite imports (no `@sveltejs/enhanced-img`); co-located doc/blog assets synced to `static/generated/` via `scripts/sync-route-images.js` on `dev`/`build` (gitignored; markdown refs use `/generated/...`)
 - App routes: `packages/dashboard/src/routes/`
 - Instance power UX: `src/util/instancePower.ts` — `isInstanceShuttingDown` (`!power && status≠idle`), `isInstanceFullyOff` (`!power && idle`); gates delete/version change
+- CLI runs with `NODE_OPTIONS=--experimental-eventsource` (Node 24 native `EventSource` for PocketBase mirror SSE)
 - User docs: `(static)/docs/**` as `+page.md`
 - Blog: `(static)/blog/**`
 
