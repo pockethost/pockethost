@@ -23,7 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | ~~**Power off stops edge container**~~ | — | — | **Done 2026-06-12** — mirror listener shuts down container on `power=false`; `PH_CONTAINER_STOP_TIMEOUT_SEC`; dashboard shutting-down UX (`instancePower.ts`). |
-| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). Edge `OrphanInstanceDataService`: every `PH_ORPHAN_DATA_CLEANUP_INTERVAL_MS` (24h default), rimraf `DATA_ROOT` dirs with `pb_data` but no mothership mirror record; stop bound containers first. Skip reserved paths (`cloud-storage-mount`, legacy `MOTHERSHIP_NAME` dir). Later: synchronous delete API if 24h lag is too slow. |
+| **Edge-owned instance delete** | Med | M | Mothership `HandleInstanceDelete` drops PB record only (no FS). PM2 `edge-cleanup` runs `edge cleanup` daily: admin `GET /api/instances/data-paths`, rimraf orphaned `DATA_ROOT` dirs (stop bound containers first). Skip reserved paths (`cloud-storage-mount`, legacy `MOTHERSHIP_NAME` dir). |
 | **Runtime status owned by edge** | Med | S–M | Split **intent** (mothership: `power`, version, secrets) from **runtime** (`status`: starting/running/idle). `HandleInstancesResetIdle` blind-resets all rows on mothership boot; edge daemon stops containers on start (`daemon.ts`) but does not write status back — stale `running` after edge restart/cron. Edge reconciles status on spawn/shutdown/daemon boot; narrow or remove mothership bootstrap reset. |
 | **Retire duplicate resolve gating** | Low | S | `HandleInstanceResolve` duplicates `InstanceService` proxy policy (suspension, power, billing, verified); no in-repo callers. Remove or relocate to edge-only before multi-region; mothership stays metadata API. |
 
@@ -40,6 +40,7 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Audit cloud-storage data layout** | Med | S–M | `$DATA_ROOT/cloud-storage-mount` is the rclone FUSE mount (`VOLUME_MOUNT_POINT`; PM2 `edge-volume`). `edge volume migrate` uses volume name `cloud-storage` → `$DATA_ROOT/cloud-storage/<id>/`. Mount point vs volume tier names diverge; infra mount dir sits alongside instance data under `data/`. Spike: intended layout, rename/consolidate paths, move mount outside `DATA_ROOT` if needed, align migrate/mount/cleanup reserved paths, document in MEMORY. Prerequisite for **Rclone tiered instance data cache** — predictable storage namespace before tiering rollout. |
 | **S3-default file storage (sqlite-only volumes)** | Med | M–L | Today PB backups include file uploads unless the user configures S3; host volume holds uploads + sqlite. Default or require S3 for `_pb_files_` so the instance volume is sqlite (+ hooks) only — smaller disks, faster backups, cleaner tiering. Customers get leaner backups; platform pays less for block storage. Prerequisite for **Rclone tiered instance data cache**. |
 | **Rclone tiered instance data cache** | Med–High | XL | Hot cache on edge for active instances; idle/cold data on cheaper remote storage via rclone (or similar). Goal: avoid provisioning 1–2 TB per node when most instances are largely idle. Spike: mount semantics, sync latency on wake, consistency on hibernate/delete. Lowers platform storage cost; pairs with sqlite-only volumes + hibernate economics. |
 
@@ -124,7 +125,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Coupling | Where | Problem |
 | -------- | ----- | ------- |
-| Instance delete FS | `HandleInstanceDelete` + edge orphan cleanup | Mothership deletes PB record only; edge rimraf orphaned dirs on 24h interval (`OrphanInstanceDataService`) |
+| Instance delete FS | `HandleInstanceDelete` + `edge cleanup` | Mothership deletes PB record only; daily PM2 job rimraf orphaned dirs via `/api/instances/data-paths` |
 | Power off | `HandleInstanceUpdate` + `InstanceService` | **Fixed** — mirror listener shuts down container on `power=false`; dashboard shows shutting-down until `status=idle` |
 | Runtime status | `HandleInstancesResetIdle` vs edge daemon | Mothership resets all `status=idle` on boot; edge stops containers without syncing status |
 | Request policy | `HandleInstanceResolve` vs `InstanceService` | Duplicate gating logic; resolve unused in repo |
@@ -155,6 +156,7 @@ Realtime reconnect resync ──► removes verify polling; fixes stale instance
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 SFTP ──► docs already claim SFTP; FTPS UI is misleading today
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
+Audit cloud-storage data layout ──► Rclone tiered instance data cache (mount vs volume paths)
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
