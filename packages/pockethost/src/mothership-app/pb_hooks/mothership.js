@@ -19,7 +19,28 @@ const interpolateString = (template, dict) => {
 
 //#endregion
 //#region src/lib/util/versions.ts
-const versions = require(`${__hooks}/versions.cjs`);
+const POCKETBASE_VERSIONS_SETTING = "pocketbase_versions";
+const parsePocketbaseVersionsValue = (raw) => {
+	if (!raw) return null;
+	if (typeof raw === "string") try {
+		return JSON.parse(raw);
+	} catch {
+		return null;
+	}
+	return raw;
+};
+const readPocketbaseVersions = () => {
+	try {
+		const record = $app.dao().findFirstRecordByData("settings", "name", POCKETBASE_VERSIONS_SETTING);
+		const value = parsePocketbaseVersionsValue(record.getString("value"));
+		if (!value?.versions?.length) return [];
+		return value.versions;
+	} catch {
+		return [];
+	}
+};
+/** Minor wildcard versions (e.g. `0.22.*`) from mothership settings */
+const listVersions = () => readPocketbaseVersions().map((entry) => entry.range);
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceCreate.ts
@@ -32,23 +53,18 @@ const HandleInstanceCreate = (c) => {
 	log(`TOP OF POST`);
 	let data = new DynamicModel({
 		subdomain: "",
-		version: versions[0],
-		region: "sfo-2"
+		version: listVersions()[0]
 	});
 	log(`before bind`);
 	c.bind(data);
 	log(`after bind`);
 	data = JSON.parse(JSON.stringify(data));
-	const { subdomain, version, region } = data;
-	log(`vars`, JSON.stringify({
-		subdomain,
-		region
-	}));
+	const { subdomain, version } = data;
+	log(`vars`, JSON.stringify({ subdomain }));
 	if (!subdomain) throw new BadRequestError(`Subdomain is required when creating an instance.`);
 	const collection = dao.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
 	record.set("uid", authRecord.getId());
-	record.set("region", region || `sfo-1`);
 	record.set("subdomain", subdomain);
 	record.set("power", true);
 	record.set("status", "idle");
@@ -78,9 +94,6 @@ const HandleInstanceDelete = (c) => {
 	if (!record) throw new BadRequestError(`Instance ${id} not found.`);
 	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
 	if (record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be shut down first.`);
-	const path = [$os.getenv("DATA_ROOT"), id].join("/");
-	log(`path ${path}`);
-	log(`res`, $os.removeAll(path));
 	dao.deleteRecord(record);
 	return c.json(200, { status: "ok" });
 };
@@ -386,6 +399,7 @@ const HandleMigrateCnamesToDomains = (e) => {
 const HandleMigrateInstanceVersions = (e) => {
 	const dao = $app.dao();
 	const log = mkLog(`bootstrap`);
+	const versions = listVersions();
 	const records = dao.findRecordsByFilter(`instances`, "1=1").filter((r) => !!r);
 	const unrecognized = [];
 	records.forEach((record) => {
@@ -408,17 +422,6 @@ const HandleMigrateInstanceVersions = (e) => {
 		} else unrecognized.push(v);
 	});
 	log({ unrecognized });
-};
-
-//#endregion
-//#region src/lib/handlers/instance/bootstrap/HandleMigrateRegions.ts
-/** Migrate version numbers */
-const HandleMigrateRegions = (e) => {
-	const dao = $app.dao();
-	const log = mkLog(`HandleMigrateRegions`);
-	log(`Migrating regions`);
-	dao.db().newQuery(`update instances set region='sfo-1' where region=''`).execute();
-	log(`Migrated regions`);
 };
 
 //#endregion
@@ -487,6 +490,7 @@ const BeforeUpdate_version = (e) => {
 	e.dao || $app.dao();
 	const log = mkLog(`BeforeUpdate_version`);
 	const version = e.model.get("version");
+	const versions = listVersions();
 	if (!versions.includes(version)) {
 		const msg = `Invalid version ${version}. Version must be one of: ${versions.join(", ")}`;
 		log(`[ERROR] ${msg}`);
@@ -2951,8 +2955,7 @@ const HandleSignupConfirm = (c) => {
 	const email = parsed.email?.trim().toLowerCase();
 	const password = parsed.password?.trim();
 	const desiredInstanceName = parsed.instanceName?.trim();
-	const region = parsed.region?.trim();
-	const version = parsed.version?.trim() || versions[0];
+	const version = parsed.version?.trim() || listVersions()[0];
 	if (!email) throw error(`email`, "required", "Email is required");
 	if (!password) throw error(`password`, `required`, "Password is required");
 	if (!desiredInstanceName) throw error(`instanceName`, `required`, `Instance name is required`);
@@ -2982,7 +2985,6 @@ const HandleSignupConfirm = (c) => {
 		try {
 			const instance = new Record(instanceCollection);
 			instance.set("subdomain", desiredInstanceName);
-			instance.set("region", region || `sfo-2`);
 			instance.set("uid", user.get("id"));
 			instance.set("status", "idle");
 			instance.set("power", true);
@@ -3114,7 +3116,7 @@ const HandleUserTokenRequest = (c) => {
 //#region src/lib/handlers/versions/api/HandleVersionsRequest.ts
 /** Return a list of available PocketBase versions */
 const HandleVersionsRequest = (c) => {
-	return c.json(200, { versions });
+	return c.json(200, { versions: listVersions() });
 };
 
 //#endregion
@@ -3131,7 +3133,6 @@ exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
-exports.HandleMigrateRegions = HandleMigrateRegions;
 exports.HandleMirrorData = HandleMirrorData;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;

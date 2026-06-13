@@ -13,21 +13,22 @@
 </script>
 
 {#if isVisible}
-<div class="px-4 md:px-20">
-
-  <div class="alert py-2 flex justify-center rounded-md px-8 items-center alert-warning  relative">
-    <div class=" flex-1 text-sm flex text-white items-center justify-start gap-4" >
-      {latestPost.title}
-      <a href={latestPost.path} class="btn  btn-xs bg-transparent border-white   hover:bg-transparent">Learn more</a>
-    </div>
-    <button
-      class="btn btn-ghost btn-circle btn-sm text-xl hover:bg-yellow-300/20"
-      on:click={dismissBanner}
-      aria-label="Dismiss banner"
-    >
-      ✕
-    </button>
+  <div class="px-4 md:px-20">
+    <wa-callout variant="warning" class="py-2 justify-center px-8">
+      <div class="flex-1 text-sm flex text-white items-center justify-start gap-4">
+        {latestPost.title}
+        <wa-button href={latestPost.path} variant="neutral" size="small" appearance="outline">Learn more</wa-button>
+      </div>
+      <wa-button
+        slot="actions"
+        variant="neutral"
+        size="small"
+        appearance="plain"
+        onclick={dismissBanner}
+        aria-label="Dismiss banner"
+      >
+        <wa-icon name="xmark"></wa-icon>
+      </wa-button>
+    </wa-callout>
   </div>
-</div>
-
 {/if}

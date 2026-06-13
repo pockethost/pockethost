@@ -3,8 +3,6 @@
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase-client'
   import { handleCreateNewInstance } from '$util/database'
-  import { faArrowsRotate, faCircleExclamation } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
 
@@ -54,17 +52,14 @@
     }
   })
 
-  // Generate the initial slug on load
   generateSlug()
 
   let formError: string = ''
   let isSubmitting = false
 
-  // Disable the form button until all fields are filled out
   let isFormButtonDisabled: boolean = true
   $: isFormButtonDisabled = $instanceInfo.name.length === 0 || !$instanceInfo.available
 
-  // Generate a unique name for the PocketHost instance
   const handleInstanceNameRegeneration = () => {
     generateSlug()
   }
@@ -83,20 +78,27 @@
   }
 </script>
 
-
 <Card>
-  <form  on:submit={handleSubmit}>
+  <form onsubmit={handleSubmit}>
     <CardHeader>Choose a name for your PocketBase instance.</CardHeader>
 
-    <div class="flex rename-instance-form-container-query">
-      <input type="text" bind:value={$instanceNameField} class="input input-bordered w-full" />
+    <div class="flex rename-instance-form-container-query gap-2">
+      <wa-input
+        type="text"
+        value={$instanceNameField}
+        oninput={(e) => instanceNameField.set(e.currentTarget.value)}
+        class="w-full"
+      ></wa-input>
 
-      <button
+      <wa-button
         type="button"
-        class="btn btn-outline btn-secondary"
+        variant="neutral"
+        appearance="outline"
         aria-label="Regenerate Instance Name"
-        on:click={handleInstanceNameRegeneration}><Fa icon={faArrowsRotate} /></button
+        onclick={handleInstanceNameRegeneration}
       >
+        <wa-icon name="rotate"></wa-icon>
+      </wa-button>
     </div>
 
     <div style="font-size: 15px;" class="p-2 mb-4">
@@ -110,22 +112,35 @@
     </div>
 
     {#if formError}
-      <div transition:slide class="alert alert-error mb-5">
-        <Fa icon={faCircleExclamation} />
+      <wa-callout variant="danger" class="mb-5">
+        <wa-icon slot="icon" name="circle-exclamation"></wa-icon>
         <span>{formError}</span>
-      </div>
+      </wa-callout>
     {/if}
 
     <div class="flex items-center justify-center gap-4">
-      <a href="/dashboard" class="btn flex-1">Cancel</a>
+      <wa-button href="/dashboard" variant="neutral" class="flex-1">Cancel</wa-button>
 
-      <button type="submit" class="btn bg-primary hover:bg-light flex-1" disabled={isFormButtonDisabled}>
+      <wa-button type="submit" variant="brand" class="flex-1" disabled={isFormButtonDisabled}>
         {#if isSubmitting}
-          <span class="loading loading-spinner loading-md"></span>
+          <span class="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
         {:else}
-          Create <i class="bi bi-arrow-right-short" />
+          Create
+          <wa-icon slot="end" name="arrow-right"></wa-icon>
         {/if}
-      </button>
+      </wa-button>
     </div>
   </form>
 </Card>
+
+<style>
+  .rename-instance-form-container-query {
+    flex-direction: column;
+  }
+
+  @container (min-width: 400px) {
+    .rename-instance-form-container-query {
+      flex-direction: row;
+    }
+  }
+</style>

@@ -1,5 +1,5 @@
 import { mkLog } from '$util/Logger'
-import { versions } from '$util/versions'
+import { listVersions } from '$util/versions'
 
 export const HandleInstanceCreate = (c: echo.Context) => {
   const dao = $app.dao()
@@ -15,9 +15,8 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   log(`TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
-    version: versions[0],
-    region: 'sfo-2',
-  }) as { subdomain?: string; version?: string; region?: string }
+    version: listVersions()[0],
+  }) as { subdomain?: string; version?: string }
 
   log(`before bind`)
 
@@ -28,9 +27,9 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const { subdomain, version, region } = data
+  const { subdomain, version } = data
 
-  log(`vars`, JSON.stringify({ subdomain, region }))
+  log(`vars`, JSON.stringify({ subdomain }))
 
   if (!subdomain) {
     throw new BadRequestError(`Subdomain is required when creating an instance.`)
@@ -39,7 +38,6 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   const collection = dao.findCollectionByNameOrId('instances')
   const record = new Record(collection)
   record.set('uid', authRecord.getId())
-  record.set('region', region || `sfo-1`)
   record.set('subdomain', subdomain)
   record.set('power', true)
   record.set('status', 'idle')

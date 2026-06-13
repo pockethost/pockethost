@@ -5,8 +5,8 @@ import {
   DISCORD_HEALTH_CHANNEL_URL,
   DISCORD_STREAM_CHANNEL_URL,
   DISCORD_TEST_CHANNEL_URL,
+  asyncExitHook,
   exitHook,
-  GobotService,
   IS_DEV,
   Logger,
   LS_WEBHOOK_SECRET,
@@ -18,25 +18,26 @@ import {
   MOTHERSHIP_HOOKS_DIR,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_PORT,
+  MOTHERSHIP_CONTAINER_NAME,
   MOTHERSHIP_SEMVER,
   MOTHERSHIP_URL,
+  PocketBaseBinaryService,
+  spawnPocketBaseContainer,
   TEST_EMAIL,
   tryFetch,
 } from '@'
-import { GobotOptions } from 'gobot'
 
 export type MothershipConfig = {
   logger: Logger
 }
 
 export async function mothership({ logger }: MothershipConfig) {
-  const { dbg, error, info, warn } = logger.create(`mothership`)
+  const { dbg, error, info } = logger.create(`mothership`)
   info(`Starting`)
 
   /** Launch central database */
   info(`Serving`)
   const env = {
-    DATA_ROOT: mkContainerHomePath(`data`),
     LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
     DISCORD_TEST_CHANNEL_URL: DISCORD_TEST_CHANNEL_URL(),
     DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),
@@ -50,57 +51,95 @@ export async function mothership({ logger }: MothershipConfig) {
   }
   dbg({ env })
 
-  const options: Partial<GobotOptions> = {
-    version: MOTHERSHIP_SEMVER(),
-    env,
-  }
-  dbg({ options })
-  const { gobot } = GobotService()
-  const bot = await gobot(`pocketbase`, options)
+  const pb = PocketBaseBinaryService()
+  const port = MOTHERSHIP_PORT()
+  const pbData = mkContainerHomePath('pb_data')
+  const hooksDir = mkContainerHomePath('pb_hooks')
+  const migrationsDir = mkContainerHomePath('pb_migrations')
+  const publicDir = mkContainerHomePath('pb_public')
 
   const args = [
     `serve`,
     `--http`,
-    `0.0.0.0:${MOTHERSHIP_PORT()}`,
+    `0.0.0.0:${port}`,
     `--dir`,
-    MOTHERSHIP_DATA_ROOT(`pb_data`),
+    pbData,
     `--hooksDir`,
-    MOTHERSHIP_HOOKS_DIR(),
+    hooksDir,
     `--migrationsDir`,
-    MOTHERSHIP_MIGRATIONS_DIR(),
+    migrationsDir,
     `--publicDir`,
-    _MOTHERSHIP_APP_ROOT(`pb_public`),
+    publicDir,
   ]
   if (IS_DEV()) {
     args.push(`--dev`)
   }
   dbg({ args })
 
-  bot.run(args, { env, cwd: _MOTHERSHIP_APP_ROOT() }, (proc) => {
-    proc.stdout.on('data', (data) => {
-      const lines = data.toString().split(`\n`) as string[]
-      lines.forEach((line) => info(line))
+  const logLines = (lines: string[], log: (line: string) => void) => {
+    lines.forEach((line) => {
+      if (line) log(line)
     })
-    proc.stderr.on('data', (data) => {
-      const lines = data.toString().split(`\n`) as string[]
-      lines.forEach((line) => error(line))
+  }
+
+  if (pb.needsContainerRuntime()) {
+    info(`Starting mothership in Docker (${pb.platform.os}_${pb.platform.arch})`)
+    const binPath = await pb.ensureBinary(MOTHERSHIP_SEMVER())
+    const container = await spawnPocketBaseContainer({
+      binPath,
+      args,
+      binds: [
+        `${MOTHERSHIP_DATA_ROOT('pb_data')}:${pbData}`,
+        `${MOTHERSHIP_HOOKS_DIR()}:${hooksDir}:ro`,
+        `${MOTHERSHIP_MIGRATIONS_DIR()}:${migrationsDir}:ro`,
+        `${_MOTHERSHIP_APP_ROOT('pb_public')}:${publicDir}:ro`,
+      ],
+      env,
+      port,
+      name: MOTHERSHIP_CONTAINER_NAME,
+      onStdout: (chunk) => logLines(chunk.split('\n'), info),
+      onStderr: (chunk) => logLines(chunk.split('\n'), error),
+      onExit: (code) => error(`Pocketbase exited with code ${code}`),
     })
-    proc.on('close', (code, signal) => {
-      error(`Pocketbase exited with code ${code} and signal ${signal}`)
+    asyncExitHook(async () => {
+      await container.kill()
     })
-    proc.on('error', (err) => {
-      error(`Pocketbase error: ${err}`)
-    })
-    proc.on('exit', (code, signal) => {
-      error(`Pocketbase exited with code ${code} and signal ${signal}`)
-    })
-    proc.on('message', (msg) => {
-      console.log(`***message`, msg)
-    })
-    exitHook(() => {
-      proc.kill()
-    })
-  })
+  } else {
+    pb.run(
+      MOTHERSHIP_SEMVER(),
+      [
+        `serve`,
+        `--http`,
+        `0.0.0.0:${port}`,
+        `--dir`,
+        MOTHERSHIP_DATA_ROOT(`pb_data`),
+        `--hooksDir`,
+        MOTHERSHIP_HOOKS_DIR(),
+        `--migrationsDir`,
+        MOTHERSHIP_MIGRATIONS_DIR(),
+        `--publicDir`,
+        _MOTHERSHIP_APP_ROOT(`pb_public`),
+        ...(IS_DEV() ? [`--dev`] : []),
+      ],
+      { env, cwd: _MOTHERSHIP_APP_ROOT() },
+      (proc) => {
+        proc.stdout?.on('data', (data) => logLines(data.toString().split(`\n`), info))
+        proc.stderr?.on('data', (data) => logLines(data.toString().split(`\n`), error))
+        proc.on('close', (code, signal) => {
+          error(`Pocketbase exited with code ${code} and signal ${signal}`)
+        })
+        proc.on('error', (err) => {
+          error(`Pocketbase error: ${err}`)
+        })
+        proc.on('exit', (code, signal) => {
+          error(`Pocketbase exited with code ${code} and signal ${signal}`)
+        })
+        exitHook(() => {
+          proc.kill()
+        })
+      }
+    )
+  }
   const ready = tryFetch(MOTHERSHIP_URL(`/api/health`), { logger })
   return ready
 }

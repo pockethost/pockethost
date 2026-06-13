@@ -4,9 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --wa-color-brand: #1eb854;
+  --wa-color-brand-on: #ffffff;
+  --wa-color-success: #1eb854;
+  --wa-color-warning: #fbbf24;
+  --wa-color-danger: #ef4444;
+}
 
 * {
- font-family: 'Figtree', sans-serif;
+  font-family: 'Figtree', sans-serif;
 }
 
 .prose :where(pre):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
@@ -24,8 +31,37 @@
   quotes: none;
 }
 
+.prose :where(img):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  @apply max-w-full h-auto w-auto;
+}
+
 .docs-content img {
   @apply rounded-lg border border-white/10;
+}
+
+/* Dark site — default typography plugin colors assume a light background */
+.prose {
+  @apply prose-invert;
+  --tw-prose-body: rgb(255 255 255 / 0.88);
+  --tw-prose-headings: #ffffff;
+  --tw-prose-lead: rgb(255 255 255 / 0.75);
+  --tw-prose-links: #1eb854;
+  --tw-prose-bold: #ffffff;
+  --tw-prose-counters: rgb(255 255 255 / 0.55);
+  --tw-prose-bullets: rgb(255 255 255 / 0.45);
+  --tw-prose-hr: rgb(255 255 255 / 0.15);
+  --tw-prose-quotes: rgb(255 255 255 / 0.75);
+  --tw-prose-quote-borders: #1eb854;
+  --tw-prose-captions: rgb(255 255 255 / 0.55);
+  --tw-prose-code: #92a3ff;
+  --tw-prose-pre-code: rgb(255 255 255 / 0.9);
+  --tw-prose-pre-bg: rgb(0 0 0 / 0.45);
+  --tw-prose-th-borders: rgb(255 255 255 / 0.2);
+  --tw-prose-td-borders: rgb(255 255 255 / 0.12);
+}
+
+.prose :where(a):not(:where([class~='not-prose'], [class~='not-prose'] *)):hover {
+  color: #1db990;
 }
 
 .prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
@@ -42,22 +78,7 @@ pre {
   box-shadow: none !important;
 }
 
-    
-
-.alert-error {
-  @apply bg-red-500/60 border-white/10 text-white
-}
-.alert-success {
-  @apply bg-green-500/60 border-white/10 text-white
-}
-.alert-info {
-  @apply bg-blue-500/60 border-white/10 text-white
-}
-.alert-warning {
-  @apply bg-yellow-500/30 border-white/10 text-white
-}
-
-    .content {
+.content {
       position: relative;
       z-index: 1;
       color: white;

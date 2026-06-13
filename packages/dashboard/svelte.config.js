@@ -1,17 +1,18 @@
 import adapter from '@sveltejs/adapter-static'
 import { mdsvex } from 'mdsvex'
-import { enhancedImages } from 'mdsvex-enhanced-images'
 import { sveltePreprocess } from 'svelte-preprocess'
+import { remarkRouteImages, rehypeRouteImages } from './src/lib/remarkRouteImages.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   extensions: ['.svelte', '.svx', '.md'],
   preprocess: [
-    sveltePreprocess(),
     mdsvex({
       extensions: ['.svx', '.md'],
-      remarkPlugins: [enhancedImages],
+      remarkPlugins: [remarkRouteImages],
+      rehypePlugins: [rehypeRouteImages],
     }),
+    sveltePreprocess(),
   ],
   kit: {
     adapter: adapter({

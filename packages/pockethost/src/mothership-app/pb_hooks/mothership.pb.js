@@ -22,7 +22,6 @@ onModelBeforeUpdate((e) => {
 }, "instances");
 /** Notify discord on instance create */
 onAfterBootstrap((e) => {});
-onAfterBootstrap((e) => {});
 /** Reset instance status to idle on start */
 onAfterBootstrap((e) => {
 	return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e);

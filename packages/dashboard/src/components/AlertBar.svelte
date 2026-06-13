@@ -1,65 +1,47 @@
 <script lang="ts">
-  import {
-    faCircleCheck,
-    faCircleInfo,
-    faCircleXmark,
-    faTriangleExclamation,
-    type IconDefinition,
-  } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
-  import { slide } from 'svelte/transition'
-
-  // https://daisyui.com/components/alert/
   type AlertTypes = 'default' | 'info' | 'success' | 'warning' | 'error'
 
-  export let message: string = ''
-  export let type: AlertTypes
-  export let additionalClasses: string = ''
-  export let flash = false
+  interface Props {
+    message?: string
+    type: AlertTypes
+    additionalClasses?: string
+    flash?: boolean
+  }
 
-  let isHidden = false
-  $: {
+  let { message = '', type, additionalClasses = '', flash = false }: Props = $props()
+
+  let isHidden = $state(false)
+
+  $effect(() => {
     isHidden = false
     if (flash && message) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         isHidden = true
       }, 5000)
+      return () => clearTimeout(timer)
     }
+  })
+
+  const variantMap: Record<AlertTypes, string> = {
+    default: 'neutral',
+    info: 'brand',
+    success: 'success',
+    warning: 'warning',
+    error: 'danger',
   }
 
-  // Set up the default alert classes and icon
-  let alertTypeClass = ''
-  let alertTypeIcon: IconDefinition = faCircleInfo
-
-  if (type === 'default') {
-    alertTypeClass = ''
-    alertTypeIcon = faCircleInfo
+  const iconMap: Record<AlertTypes, string> = {
+    default: 'circle-info',
+    info: 'circle-info',
+    success: 'circle-check',
+    warning: 'triangle-exclamation',
+    error: 'circle-xmark',
   }
-
-  if (type === 'info') {
-    alertTypeClass = 'alert-info'
-    alertTypeIcon = faCircleInfo
-  }
-
-  if (type === 'success') {
-    alertTypeClass = 'alert-success'
-    alertTypeIcon = faCircleCheck
-  }
-
-  if (type === 'warning') {
-    alertTypeClass = 'alert-warning'
-    alertTypeIcon = faTriangleExclamation
-  }
-
-  if (type === 'error') {
-    alertTypeClass = 'alert-error'
-    alertTypeIcon = faCircleXmark
-  } 
 </script>
 
 {#if message && !isHidden}
-  <div class="alert flex md:justify-start text-left mb-4 {alertTypeClass}  {additionalClasses} justify-center" transition:slide role="alert">
-    <Fa icon={alertTypeIcon} />
+  <wa-callout variant={variantMap[type]} class="mb-4 {additionalClasses}">
+    <wa-icon slot="icon" name={iconMap[type]}></wa-icon>
     <span>{@html message}</span>
-  </div>
+  </wa-callout>
 {/if}

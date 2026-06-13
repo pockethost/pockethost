@@ -49,10 +49,10 @@
     <p>Additional Resources:</p>
     <ul class="list-disc pl-4">
       <li>
-        <a href={`https://pocketbase.io/docs/api-records/`} target="_blank" class="link">PocketBase Web APIs</a>
+        <a href={`https://pocketbase.io/docs/api-records/`} target="_blank" class="text-primary">PocketBase Web APIs</a>
       </li>
       <li>
-        <a href="https://www.npmjs.com/package/pocketbase" target="_blank" class="link">PocketBase NPM Package</a>
+        <a href="https://www.npmjs.com/package/pocketbase" target="_blank" class="text-primary">PocketBase NPM Package</a>
       </li>
     </ul>
   </div>

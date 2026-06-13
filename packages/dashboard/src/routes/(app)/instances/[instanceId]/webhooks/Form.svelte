@@ -1,49 +1,31 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client/index.js'
-  import { reduce } from '@s-libs/micro-dash'
-  import { type UpdateInstancePayload } from 'pockethost/common'
   import { instance } from '../store.js'
   import { items } from './stores.js'
-  import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
-  import Fa from 'svelte-fa'
 
-  // Validate webhook endpoint path (must start with /, can include query params, no host/protocol)
   const validateWebhookEndpoint = (endpoint: string): boolean => {
     if (!endpoint || endpoint.length === 0) return false
-
-    // Must start with /
     if (!endpoint.startsWith('/')) return false
-
-    // Check if it contains protocol or host (should not)
     if (endpoint.includes('://') || endpoint.includes('://')) return false
     if (endpoint.includes('http://') || endpoint.includes('https://')) return false
 
-    // Basic path validation - should be a valid URL path
     try {
-      // Create a fake URL to validate the path part
       const testUrl = new URL(`http://example.com${endpoint}`)
       const path = testUrl.pathname
-
-      // Path should be at least 2 characters (including the leading /)
       if (path.length < 2) return false
-
-      // Should not contain invalid characters for URL paths
       if (path.includes('//') || path.includes('\\')) return false
-
       return true
     } catch {
       return false
     }
   }
 
-  // Basic cron expression validation
   const validateCronExpression = (cronExpression: string): boolean => {
     if (!cronExpression || cronExpression.length === 0) return false
 
     const expression = cronExpression.trim()
 
-    // Check for predefined macros first
     const validMacros = [
       '@yearly',
       '@annually',
@@ -62,31 +44,23 @@
       return true
     }
 
-    // Basic validation: should have 5 parts separated by spaces
     const parts = expression.split(/\s+/)
     if (parts.length !== 5) return false
 
-    // Each part should contain valid cron characters
     const validChars = /^[\d*,\-/?LW#]+$/
     return parts.every((part) => validChars.test(part))
   }
 
-  // Keep track of the new key and value to be added
   let apiEndpoint: string = ''
   let cronValue: string = ''
 
-  // These will validate the key and value before being submitted
   let isApiEndpointValid = false
   let isCronValueValid = false
   let isFormValid = false
 
-  // This will animate a success message when the key is saved
   let successfulSave = false
-
-  // Keep track of any error message
   let errorMessage: string = ''
 
-  // Watch for changes in real time and update the key and value as the user types them
   $: {
     apiEndpoint = apiEndpoint.trim()
     isApiEndpointValid = validateWebhookEndpoint(apiEndpoint)
@@ -94,18 +68,13 @@
     isFormValid = isApiEndpointValid && isCronValueValid
   }
 
-  // Submit the form to create the new environment variable
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
-
-    // Reset any messaging
     errorMessage = ''
 
     try {
-      // Block the button from submitting more than once
       isFormValid = false
 
-      // Save to the database
       items.upsert({ endpoint: apiEndpoint, value: cronValue.trim() })
       await client().updateInstance({
         id: $instance.id,
@@ -114,17 +83,11 @@
         },
       })
 
-      // Reset the values when the POST is done
       apiEndpoint = ''
       cronValue = ''
-
-      // Enable the submit button
       isFormValid = true
-
-      // Show the success message
       successfulSave = true
 
-      // Remove the success toast after a few seconds
       setTimeout(() => {
         successfulSave = false
       }, 5000)
@@ -143,18 +106,19 @@
 
   <AlertBar message={errorMessage} type="error" />
 
-  <form on:submit={handleSubmit} class="mb-4">
+  <form onsubmit={handleSubmit} class="mb-4">
     <div class="flex flex-row gap-1 mb-4">
-      <label class="flex-1 form-control w-2/5">
-        <input
+      <label class="flex-1 w-2/5">
+        <wa-input
           id="webhook-api-endpoint"
           type="text"
-          bind:value={apiEndpoint}
+          value={apiEndpoint}
+          oninput={(e) => (apiEndpoint = e.currentTarget.value)}
           placeholder="/api/webhooks/my-endpoint"
-          class={`input input-bordered ${!isApiEndpointValid && apiEndpoint.length > 0 ? 'input-error text-error' : ''}`}
-        />
+          class={!isApiEndpointValid && apiEndpoint.length > 0 ? 'border-error' : ''}
+        ></wa-input>
         {#if !isApiEndpointValid && apiEndpoint.length > 0}
-          <div class="label">
+          <div class="mt-1">
             <span class="text-error">
               API endpoints must be valid paths starting with / (e.g., <code>/api/webhooks/my-webhook</code> or
               <code>/api/cron?token=abc</code>). Do not include protocol or host.
@@ -162,16 +126,17 @@
           </div>
         {/if}
       </label>
-      <div class="flex-1 form-control w-2/5">
-        <input
+      <div class="flex-1 w-2/5">
+        <wa-input
           id="webhook-schedule"
           type="text"
-          bind:value={cronValue}
+          value={cronValue}
+          oninput={(e) => (cronValue = e.currentTarget.value)}
           placeholder="Schedule (UTC time)"
-          class={`input input-bordered ${!isCronValueValid && cronValue.length > 0 ? 'input-error text-error' : ''}`}
-        />
+          class={!isCronValueValid && cronValue.length > 0 ? 'border-error' : ''}
+        ></wa-input>
         {#if !isCronValueValid && cronValue.length > 0}
-          <div class="label">
+          <div class="mt-1">
             <span class="text-error">
               Please enter a valid cron expression (e.g., <code>0 9 * * 1-5</code> for weekdays at 9 AM UTC, or
               <code>@daily</code> for daily at midnight UTC).
@@ -181,9 +146,10 @@
       </div>
 
       <div class="flex-none text-right w-1/5 md:w-auto">
-        <button type="submit" class="btn btn-primary px-2.5 md:px-3" disabled={!isFormValid}>
-          Add <Fa icon={faFloppyDisk} />
-        </button>
+        <wa-button type="submit" variant="brand" class="px-2.5 md:px-3" disabled={!isFormValid}>
+          Add
+          <wa-icon slot="end" name="floppy-disk"></wa-icon>
+        </wa-button>
       </div>
     </div>
 
@@ -215,10 +181,7 @@
           <tr>
             <td><code>Day of Month</code></td>
             <td>1-31</td>
-            <td
-              ><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code>
-              <code>W</code></td
-            >
+            <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>W</code></td>
           </tr>
           <tr>
             <td><code>Month</code></td>
@@ -228,10 +191,7 @@
           <tr>
             <td><code>Day of Week</code></td>
             <td>0-6 or SUN-SAT</td>
-            <td
-              ><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code>
-              <code>#</code></td
-            >
+            <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>#</code></td>
           </tr>
         </tbody>
       </table>

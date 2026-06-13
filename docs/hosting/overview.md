@@ -4,7 +4,7 @@ This guide covers how to set up a production hosting environment for PocketHost.
 
 - You want to create a hosting service business powered by PocketHost
 - You want a private copy of PocketHost where you control all the underlying infrastructure
-- You want to run PocketHost from a region not yet offered by pockethost.io
+- You want to run PocketHost on your own hardware or VPS
 
 Running a hosting service is not easy. To provide a great hosting experience for users, you need to know about:
 

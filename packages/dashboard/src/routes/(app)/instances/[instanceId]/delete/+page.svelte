@@ -6,9 +6,12 @@
   import { globalInstancesStore } from '$util/stores'
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
-  import AlertBar from '$src/components/AlertBar.svelte'
+  import AlertBar from '$components/AlertBar.svelte'
+  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   $: ({ id, power, version } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
+  $: isShuttingDown = isInstanceShuttingDown($instance)
 
   // Create a copy of the version
   let selectedVersion = version
@@ -66,8 +69,10 @@
 <div class="max-w-2xl">
   <CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
 
-  {#if power}
+  {#if power && !isShuttingDown}
     <AlertBar message="Instance must be powered off before deleting." type="error" />
+  {:else if isShuttingDown}
+    <AlertBar message="Instance is shutting down. Please wait until it has fully stopped." type="warning" />
   {/if}
 
   <div class="mb-8">
@@ -84,8 +89,8 @@
 
   <ErrorMessage message={errorMessage} />
 
-  <form class="flex change-version-form-container-query gap-4" on:submit={handleSave}>
-    <button type="submit" class="btn btn-error" disabled={power || isButtonDisabled}>Delete Instance</button>
+  <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Delete Instance</wa-button>
   </form>
 </div>
 

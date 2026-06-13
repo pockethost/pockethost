@@ -1,5 +1,17 @@
 export const toc = [
   {
+    title: 'Running, Sleeping, and Power Off',
+    path: '/blog/instance-power-status',
+  },
+  {
+    title: 'Dashboard UI: Web Awesome Migration',
+    path: '/blog/web-awesome-migration',
+  },
+  {
+    title: 'Direct PocketBase Version Sync',
+    path: '/blog/pocketbase-version-sync',
+  },
+  {
     title: 'PocketHost 2.3.0',
     path: '/blog/pockethost-2-3-0-release',
   },

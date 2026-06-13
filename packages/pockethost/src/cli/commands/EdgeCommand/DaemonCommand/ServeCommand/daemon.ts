@@ -3,6 +3,7 @@ import {
   Logger,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
+  MOTHERSHIP_CONTAINER_NAME,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
   PocketbaseService,
@@ -33,14 +34,18 @@ export async function daemon({ logger }: DaemonOptions) {
   info(`Found ${containers.length} containers`)
   await Promise.all(
     containers.map(async (container) => {
-      if (container.State === 'running' && container.Image === DOCKER_INSTANCE_IMAGE_NAME) {
-        try {
-          info(`Stopping ${container.Id}`)
-          await docker.getContainer(container.Id).stop()
-          info(`Stopped ${container.Id}`)
-        } catch (e) {
-          warn(`Failed to stop ${container.Id}, but that's probably OK`, e)
-        }
+      if (container.State !== 'running' || !container.Image.startsWith(DOCKER_INSTANCE_IMAGE_NAME())) {
+        return
+      }
+      if (container.Names.some((name) => name === `/${MOTHERSHIP_CONTAINER_NAME}` || name.endsWith(MOTHERSHIP_CONTAINER_NAME))) {
+        return
+      }
+      try {
+        info(`Stopping ${container.Id}`)
+        await docker.getContainer(container.Id).stop()
+        info(`Stopped ${container.Id}`)
+      } catch (e) {
+        warn(`Failed to stop ${container.Id}, but that's probably OK`, e)
       }
     })
   )

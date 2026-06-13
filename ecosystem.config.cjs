@@ -15,11 +15,6 @@ module.exports = {
       cron_restart: '0 0 * * *',
     },
     {
-      name: `edge-volume`,
-      script: 'bun run prod:cli edge volume mount',
-      // cron_restart: '0 0 * * *',
-    },
-    {
       name: `mothership`,
       script: 'bun run prod:cli mothership serve',
     },
@@ -27,11 +22,6 @@ module.exports = {
       name: `pocketbase-update`,
       restart_delay: 60 * 60 * 1000, // 1 hour
       script: 'bun run prod:cli pocketbase update',
-    },
-    {
-      name: `mothership-update-versions`,
-      restart_delay: 60 * 60 * 1000, // 1 hour
-      script: 'bun run prod:cli mothership update-versions',
     },
     {
       name: `health-check`,
@@ -42,6 +32,11 @@ module.exports = {
       name: `health-compact`,
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
       script: 'bun run prod:cli health compact',
+    },
+    {
+      name: `edge-cleanup`,
+      restart_delay: 60 * 60 * 1000 * 24, // 1 day
+      script: 'bun run prod:cli edge cleanup',
     },
   ],
 }

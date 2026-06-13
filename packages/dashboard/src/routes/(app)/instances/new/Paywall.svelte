@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { userSubscriptionType, userStore } from '$util/stores'
-  import { PLAN_NAMES } from 'pockethost/common'
+  import { userStore } from '$util/stores'
 
   $: maxInstances = $userStore?.subscription_quantity || 0
 </script>
 
-<div class="card max-w-sm bg-[#111111]/80 border border-white/10 shadow-md">
-  <div class="card-body">
-    <h2 class="card-title">Paywall!</h2>
+<wa-card class="max-w-sm bg-[#111111]/80 border border-white/10 shadow-md">
+  <div class="p-6">
+    <h2 class="text-xl font-bold mb-2">Paywall!</h2>
     <p>Oof. You hit a paywall because you are out of instances.</p>
-    <div class="card-actions w-full mt-6">
-      <a href="/access" class="btn w-full bg-primary hover:bg-light">Unlock more</a>
+    <div class="w-full mt-6">
+      <wa-button href="/access" variant="brand" class="w-full">Unlock more</wa-button>
     </div>
   </div>
-</div>
+</wa-card>

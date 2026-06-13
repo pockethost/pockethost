@@ -30,20 +30,22 @@
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center">
-  <div class="card w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
-    <div class="card-body text-center">
+  <wa-card class="w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
+    <div class="p-6 text-center">
       <h2 class="mb-4">Confirming Your Account</h2>
 
       {#if formError}
-        <div transition:slide class="alert alert-error mb-5">
-          <i class="fa-solid fa-circle-exclamation"></i>
-          <span>{formError}</span>
+        <div in:slide>
+          <wa-callout variant="danger" class="mb-5">
+            <wa-icon slot="icon" name="circle-exclamation"></wa-icon>
+            <span>{formError}</span>
+          </wa-callout>
         </div>
       {:else}
-        <div class="spinner-border mx-auto" role="status">
-          <span class="visually-hidden">Loading...</span>
+        <div class="inline-block w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" role="status">
+          <span class="sr-only">Loading...</span>
         </div>
       {/if}
     </div>
-  </div>
+  </wa-card>
 </div>

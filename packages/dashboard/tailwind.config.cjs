@@ -4,19 +4,20 @@ module.exports = {
   safelist: [
     'lg:pl-72',
     {
-      pattern: /(toggle|text|bg)-(error|success|warning|red-500)/,
-      variants: ['responsive', 'hover'],
-    },
-    {
       pattern: /size-.*/,
     },
   ],
   theme: {
     extend: {
       colors: {
-        primary: '#3532b9',
-        secondary: '#92a3ff',
-        light:'#3a37ca'
+        primary: '#1eb854',
+        secondary: '#1db990',
+        light: '#3a37ca',
+      },
+      maxWidth: {
+        content: '72rem',
+        prose: '65ch',
+        form: '42rem',
       },
       animation: {
         text: 'text 5s ease infinite',
@@ -35,29 +36,5 @@ module.exports = {
       },
     },
   },
-  daisyui: {
-    themes: [
-      'light',
-      'dark',
-      {
-        // Custom theme definitions
-        dark: {
-          ...require('daisyui/src/theming/themes')['dark'],
-          primary: '#1eb854',
-          secondary: '#1db990',
-          'base-content': '#ffffff',
-        },
-      },
-      {
-        // Custom theme definitions
-        light: {
-          ...require('daisyui/src/theming/themes')['light'],
-          primary: '#1eb854',
-          secondary: '#1db990',
-          'base-content': '#222',
-        },
-      },
-    ],
-  },
-  plugins: [require('@tailwindcss/typography'), require('daisyui')],
+  plugins: [require('@tailwindcss/typography')],
 }

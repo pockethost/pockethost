@@ -1,20 +1,14 @@
-import { GobotService, IS_DEV, Logger, MOTHERSHIP_DATA_ROOT, MOTHERSHIP_MIGRATIONS_DIR, MOTHERSHIP_SEMVER } from '@'
-import { GobotOptions } from 'gobot'
+import { IS_DEV, Logger, MOTHERSHIP_DATA_ROOT, MOTHERSHIP_MIGRATIONS_DIR, MOTHERSHIP_SEMVER, PocketBaseBinaryService } from '@'
 
 export type SchemaOptions = {
   logger: Logger
 }
 
 export async function schema({ logger }: SchemaOptions) {
-  const { dbg, error, info, warn } = logger.create(`schema`)
+  const { dbg, error, info } = logger.create(`schema`)
   info(`Starting`)
 
-  const options: Partial<GobotOptions> = {
-    version: MOTHERSHIP_SEMVER(),
-  }
-  dbg(`gobot options`, options)
-  const { gobot } = GobotService()
-  const bot = await gobot(`pocketbase`, options)
+  const pb = PocketBaseBinaryService()
 
   const args = [
     `migrate`,
@@ -32,7 +26,11 @@ export async function schema({ logger }: SchemaOptions) {
     args.push(`--dev`)
   }
   dbg({ args })
-  const code = await bot.run(args)
+  const pbData = MOTHERSHIP_DATA_ROOT(`pb_data`)
+  const migrationsDir = MOTHERSHIP_MIGRATIONS_DIR()
+  const code = await pb.run(MOTHERSHIP_SEMVER(), args, {
+    binds: [`${pbData}:${pbData}`, `${migrationsDir}:${migrationsDir}`],
+  })
   if (code !== 0) {
     error(`Failed to migrate schema ${code}`)
   }

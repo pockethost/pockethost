@@ -1,4 +1,4 @@
-export * from './GobotService'
+export * from './PocketBaseBinaryService'
 export * from './InstanceLoggerService'
 export * from './InstanceService'
 export * from './MothershipAdminClientService'

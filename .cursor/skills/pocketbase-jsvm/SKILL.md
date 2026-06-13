@@ -4,19 +4,36 @@ description: >-
   Writes PocketBase server-side JavaScript in the Goja JSVM: pb_hooks, routerAdd,
   record hooks, cron jobs, and synchronous $app APIs. Use for *.pb.js files,
   pb_hooks, pb_migrations JS, or server-side PocketBase extensions — not the
-  npm JS SDK.
+  npm JS SDK. Always check target PocketBase version: v0.22 and v0.23+ use
+  different JSVM APIs and docs.
 ---
 
 # PocketBase JSVM
 
 PocketBase embeds a **Goja** JavaScript engine for server-side extensions. Code runs **inside** the PocketBase process — synchronous, no Node/Browser APIs.
 
-Official docs: https://pocketbase.io/docs/js-overview/
+## Version split — read this first
+
+**v0.23 is a breaking JSVM boundary.** PocketHost runs both legacy (≤ v0.22) and modern (≥ v0.23) instances. **Always confirm the instance PocketBase version before writing or porting hooks** — do not mix APIs across versions.
+
+| | ≤ v0.22 | ≥ v0.23 |
+|---|---------|---------|
+| **Overview** | [old/js-overview](https://pocketbase.io/old/docs/js-overview/) | [js-overview](https://pocketbase.io/docs/js-overview/) |
+| **API reference** | [old/jsvm](https://pocketbase.io/old/jsvm/) | [jsvm](https://pocketbase.io/jsvm/) |
+| **Typings (PocketHost)** | `packages/pockethost/src/instance-app/v22/types/types.d.ts` | `pb_data/types.d.ts` on instance; PocketHost templates in `instance-app/v23/` |
+| **Record access** | `$app.dao().findRecordById(...)` | `$app.findRecordById(...)` |
+| **Startup hook** | `$app.onBeforeServe().add((e) => { ... })` or `onAfterBootstrap` | `onBootstrap((e) => { e.next(); ... })` |
+| **Custom routes** | `(c) =>`, `c.pathParam('id')`, path `/api/foo/:id` | `(e) =>`, `e.request.pathValue('id')`, path `/api/foo/{id}` |
+| **Record hooks** | `onRecordAfterCreateRequest`, … | `onRecordAfterCreateSuccess`, … (call `e.next()`) |
+| **Admin auth table** | `_admins` (`passwordHash`) | `_superusers` (`password`) |
+
+When in doubt, open the **JSVM reference for that version** — hook names, route handler signatures, and `$app` methods differ. Porting between versions is not a find-and-replace; see the [v0.23 migration notes](https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0).
 
 ## Pre-flight checklist
 
 Before writing hook code, verify:
 
+- [ ] **Target PocketBase version** — use the matching JSVM docs (≤ v0.22 vs ≥ v0.23)
 - [ ] No `async`/`await`, Promises, or `.then()`
 - [ ] No `fetch`, `setTimeout`, `setInterval`, DOM APIs
 - [ ] No Node built-ins (`fs`, `http`, `path`, etc.)
@@ -46,14 +63,16 @@ const config = require(`${__hooks}/config/config.js`)
 
 ## Hook categories
 
-| Category | Examples | Purpose |
-|----------|----------|---------|
-| Bootstrap | `onBootstrap`, `onAfterBootstrap` | Startup initialization |
-| HTTP routes | `routerAdd(method, path, handler, ...middlewares)` | Custom API endpoints |
-| Record hooks | `onRecordBeforeCreateRequest`, `onRecordAfterCreateRequest` | Validate/transform on CRUD |
-| Model hooks | `onModelBeforeUpdate`, `onModelAfterCreate` | Lower-level DAO events |
-| Cron | `cronAdd(id, expr, handler)`, `cronRemove(id)` | Scheduled jobs |
-| Middleware | `routerUse(...)` | Global route middleware |
+Names differ by version — check the JSVM reference for your target.
+
+| Category | ≤ v0.22 examples | ≥ v0.23 examples | Purpose |
+|----------|------------------|------------------|---------|
+| Bootstrap | `onAfterBootstrap`, `$app.onBeforeServe().add` | `onBootstrap` (+ `e.next()`) | Startup initialization |
+| HTTP routes | `routerAdd(method, path, handler, ...middlewares)` | same global, different handler arg | Custom API endpoints |
+| Record hooks | `onRecordBeforeCreateRequest`, `onRecordAfterCreateRequest` | `onRecordBeforeCreateRequest`, `onRecordAfterCreateSuccess`, … | Validate/transform on CRUD |
+| Model hooks | `onModelBeforeUpdate`, `onModelAfterCreate` | still available — verify in JSVM ref | Lower-level DAO events |
+| Cron | `cronAdd(id, expr, handler)`, `cronRemove(id)` | same | Scheduled jobs |
+| Middleware | `routerUse(...)` | same | Global route middleware |
 
 Collection-scoped hooks take the collection name/id as the last argument:
 
@@ -66,6 +85,8 @@ onRecordAfterCreateRequest((e) => {
 
 ## Custom routes
 
+**≤ v0.22** — Echo-style context `c`, colon params:
+
 ```js
 routerAdd('POST', '/test/:testId', (c) => {
   const testId = c.pathParam('testId')
@@ -73,7 +94,16 @@ routerAdd('POST', '/test/:testId', (c) => {
 })
 ```
 
-With auth middleware:
+**≥ v0.23** — request event `e`, brace params:
+
+```js
+routerAdd('POST', '/test/{testId}', (e) => {
+  const testId = e.request.pathValue('testId')
+  return e.json(200, { testId })
+})
+```
+
+With auth middleware (≤ v0.22 mothership pattern):
 
 ```js
 routerAdd('PUT', '/api/instance/:id', (c) => {
@@ -81,7 +111,7 @@ routerAdd('PUT', '/api/instance/:id', (c) => {
 }, $apis.requireRecordAuth())
 ```
 
-Request body and auth info:
+Request body and auth info (≤ v0.22):
 
 ```js
 const body = $apis.requestInfo(c).data
@@ -91,16 +121,31 @@ Clients call custom routes via `pb.send()` — see **pocketbase-js-sdk**.
 
 ## Record operations
 
-Modern API uses `$app` (prefer over legacy `$app.dao()` where docs show both):
+**≥ v0.23** — direct `$app` methods:
+
+```js
+routerAdd('PATCH', '/posts/{postId}', (e) => {
+  const postId = e.request.pathValue('postId')
+  const { status } = $apis.requestInfo(e).data
+
+  const record = $app.findRecordById('posts', postId)
+  record.set('status', status)
+  $app.save(record)
+
+  return e.json(200, { record })
+})
+```
+
+**≤ v0.22** — go through `$app.dao()`:
 
 ```js
 routerAdd('PATCH', '/posts/:postId', (c) => {
   const postId = c.pathParam('postId')
   const { status } = $apis.requestInfo(c).data
 
-  const record = $app.findRecordById('posts', postId)
+  const record = $app.dao().findRecordById('posts', postId)
   record.set('status', status)
-  $app.save(record)
+  $app.dao().saveRecord(record)
 
   return c.json(200, { record })
 })
@@ -155,10 +200,10 @@ const log = mkLog('main')
 ## PocketHost specifics
 
 - User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
-- Template hooks in this repo: `packages/pockethost/src/instance-app/v*/pb_hooks/`
-- Mothership hooks: `packages/pockethost/src/mothership-app/pb_hooks/`
-- Generated API typings: `packages/pockethost/src/mothership-app/src/types/types.d.ts`
-- Pocker sandbox may restrict `$os` — avoid OS-level calls.
+- Instance templates: `packages/pockethost/src/instance-app/v22/` (≤ v0.22) and `v23/` (≥ v0.23) — compare `_ph_admin_sync.pb.js` for a side-by-side API diff.
+- Mothership hooks (≤ v0.22-style API): `packages/pockethost/src/mothership-app/pb_hooks/`
+- Typings: `instance-app/v22/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
+- PocketHost sandbox may restrict `$os` — avoid OS-level calls.
 
 ## Examples
 
@@ -166,4 +211,6 @@ See [hooks-examples.md](hooks-examples.md) for copy-paste patterns from this rep
 
 ## API reference
 
-Browse generated typings in `types.d.ts` for `routerAdd`, `$apis`, `$app`, cron, and record hook signatures.
+1. Pick the **JSVM reference for the target version** (see [Version split](#version-split--read-this-first) above).
+2. Cross-check generated typings — v22: `instance-app/v22/types/types.d.ts`; mothership: `mothership-app/src/types/types.d.ts`.
+3. On a running instance, `pb_data/types.d.ts` matches that instance's PocketBase version.

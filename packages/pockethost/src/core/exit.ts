@@ -11,7 +11,10 @@ export const gracefulExit = async (signal?: number) => {
 }
 export { exitHook }
 
-export const neverendingPromise = (logger: Logger) =>
-  new Promise((resolve) => {
-    logger.dbg('Neverending promise')
+export const neverendingPromise = (logger: Logger) => {
+  logger.dbg('Neverending promise')
+  // A pending Promise alone does not keep the event loop alive.
+  return new Promise<void>(() => {
+    setInterval(() => {}, 2 ** 31 - 1)
   })
+}

@@ -125,9 +125,9 @@ Note: PocketHost uses both `/buy/{uuid}` and `/checkout/buy/{uuid}` URL formats 
 2. Generate share/checkout URL from dashboard; add to relevant Svelte card with `checkout[custom][user_id]` and `checkout[email]`
 3. Add `{product_id}-{variant_id}` to allowlist array in `HandleLemonSqueezySale.ts`
 4. Add entry to `product_handler_map` with correct `subscription`, `subscription_interval`, `subscription_quantity`
-5. Rebuild mothership hooks (`HandleLemonSqueezySale` compiles to `pb_hooks/mothership.js`)
+5. Rebuild mothership hooks: `pnpm --filter pockethost-mothership-app build` (or `pnpm dev:mothership-hooks` while developing)
 6. Test webhook with LS dashboard "Send test webhook" or a test purchase
 
 ## Rebuild note
 
-Source lives in `src/lib/handlers/lemon/`. Compiled output is in `pb_hooks/mothership.js` — ensure hook build runs after handler changes.
+Source lives in `src/lib/handlers/lemon/`. Compiled output is in `pb_hooks/mothership.js` — run `pnpm check:mothership-hooks` before commit (CI enforces freshness).

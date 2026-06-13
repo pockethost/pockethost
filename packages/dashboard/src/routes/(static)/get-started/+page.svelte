@@ -1,7 +1,6 @@
 <script lang="ts">
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import InstanceGeneratorWidget from '$src/routes/(static)/get-started/InstanceGeneratorWidget.svelte'
-  import BlurBg from '$components/BlurBg.svelte'
 </script>
 
 <svelte:head>

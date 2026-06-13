@@ -3,6 +3,15 @@ import { Logger, LoggerService } from '@'
 export const TRYFETCH_RETRY_MS = 50
 export const TRYFETCH_TIMEOUT_MS = 500
 
+export const canFetch = async (url: string, timeoutMs = TRYFETCH_TIMEOUT_MS): Promise<boolean> => {
+  try {
+    await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export type TryFetchConfig = {
   preflight: () => Promise<boolean>
   retryMs: number

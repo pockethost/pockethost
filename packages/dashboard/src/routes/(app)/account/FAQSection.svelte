@@ -52,7 +52,7 @@
     <FAQItem question="Cancellation and Refunds">
       <p class="mb-4">Short version: We only want your money if you are happy.</p>
       <p class="mb-4">
-        Long version: If you need to cancel your membership for any reason, please <a class="link" href={DISCORD_URL}
+        Long version: If you need to cancel your membership for any reason, please <a class="text-primary" href={DISCORD_URL}
           >contact <code>.noaxis</code> on Discord</a
         >. If you cancel within the first 5 days of a signup or renewal, we'll refund the full amount. Otherwise, we'll
         pro-rate it. Sound good?

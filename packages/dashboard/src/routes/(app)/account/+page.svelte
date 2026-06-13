@@ -1,6 +1,6 @@
 <script lang="ts">
   import { userSubscriptionType } from '$util/stores'
-  import { PLAN_NAMES, SubscriptionType } from 'pockethost/common'
+  import { PLAN_NAMES } from 'pockethost/common'
   import { userStore } from '$util/stores'
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
 </script>
@@ -15,17 +15,18 @@
     Your plan: <span class="text-success font-bold">{PLAN_NAMES[$userSubscriptionType]}</span>
   </div>
   <div class="m-4">
-    Allowed instances: {$userStore?.subscription_quantity} (<a href="/support" class="link text-primary">request more</a
-    >)
+    Allowed instances: {$userStore?.subscription_quantity} (<a href="/support" class="text-primary">request more</a>)
   </div>
   <div>
-    <a class="m-4 btn btn-neutral" href="https://gravatar.com/profile">
+    <wa-button href="https://gravatar.com/profile" variant="neutral" class="m-4">
       <Avatar class="w-5 h-5" />
       Update Avatar
-    </a>
+    </wa-button>
   </div>
 
   <div>
-    <a class="m-4 btn btn-neutral" href="https://store.pockethost.io/billing" target="_blank"> Manage Membership </a>
+    <wa-button href="https://store.pockethost.io/billing" variant="neutral" class="m-4" target="_blank">
+      Manage Membership
+    </wa-button>
   </div>
 </div>

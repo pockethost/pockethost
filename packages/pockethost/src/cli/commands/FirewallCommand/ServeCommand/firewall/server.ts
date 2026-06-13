@@ -46,7 +46,9 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   app.options('*', cors()) // include before other routes
   app.use(cors())
-  app.use(enforce.HTTPS())
+  if (!IS_DEV()) {
+    app.use(enforce.HTTPS())
+  }
 
   app.get(`/api/firewall/health`, (req, res, next) => {
     dbg(`Health check`)
@@ -114,22 +116,22 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     error(err)
   })
   httpServer.listen(80, () => {
-    dbg('SSL redirect server listening on 80')
+    dbg(IS_DEV() ? 'HTTP server listening on 80' : 'SSL redirect server listening on 80')
   })
 
-  // HTTPS server options
-  const httpsOptions = {
-    key: fs.readFileSync(SSL_KEY()),
-    cert: fs.readFileSync(SSL_CERT()),
+  if (!IS_DEV()) {
+    const httpsOptions = {
+      key: fs.readFileSync(SSL_KEY()),
+      cert: fs.readFileSync(SSL_CERT()),
+    }
+
+    const httpsServer = https.createServer(httpsOptions, app)
+    httpsServer.on('error', (err) => {
+      error(err)
+    })
+
+    httpsServer.listen(443, () => {
+      dbg('HTTPS server running on port 443')
+    })
   }
-
-  // Create HTTPS server
-  const httpsServer = https.createServer(httpsOptions, app)
-  httpsServer.on('error', (err) => {
-    error(err)
-  })
-
-  httpsServer.listen(443, () => {
-    dbg('HTTPS server running on port 443')
-  })
 }

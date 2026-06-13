@@ -27,7 +27,7 @@ Update MEMORY.md in the **same commit/PR** when you change anything in the table
 | Mothership app | `pb_hooks`, `pb_migrations`, handler APIs under `mothership-app/src/lib/handlers` |
 | Settings / env | `PH_*`, `MOTHERSHIP_*`, `APEX_DOMAIN`, `constants.ts` / `createSettings()` |
 | Dashboard | SvelteKit routes, docs under `packages/dashboard/src/routes`, Wrangler deploy |
-| PocketBase versions | `PH_ALLOWED_POCKETBASE_SEMVER`, `versions.cjs`, `update-versions` flow |
+| PocketBase versions | `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_POCKETBASE_ROOT`, `settings.pocketbase_versions`, `pocketbase update` flow |
 | Dev contract | `bun dev:cli`, `bun dev:dashboard`, `.env`, `PH_HOME`, `setup.sh` |
 | Greenfield breaks | Removed APIs, renamed paths, invalidated caches |
 

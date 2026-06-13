@@ -7,12 +7,9 @@
   $: isActive = $page.url.pathname.endsWith(`/docs/${path}`)
 </script>
 
-<li class:active={isActive} class="w-48">
-  <a href={`/docs/${path}`}>{title}</a>
-</li>
-
-<style lang="scss">
-  li.active {
-    @apply bg-secondary/20 rounded-md;
-  }
-</style>
+<a
+  href={`/docs/${path}`}
+  class="block w-48 px-2 py-1 rounded-md text-white hover:bg-white/10 {isActive ? 'bg-secondary/20' : ''}"
+>
+  {title}
+</a>

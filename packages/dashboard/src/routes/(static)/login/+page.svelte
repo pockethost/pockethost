@@ -1,5 +1,4 @@
 <script>
-  import BlurBg from '$components/BlurBg.svelte'
   import InstanceGeneratorWidget from '../get-started/InstanceGeneratorWidget.svelte'
 </script>
 

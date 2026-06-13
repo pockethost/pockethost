@@ -9,7 +9,7 @@
       <p>
         The PocketHost mothership is temporarily unreachable. Your instances are safe and still reachable. Go to the <a
           href="https://status.pockethost.io"
-          class="link font-semibold underline">status page</a
+          class="text-primary font-semibold underline">status page</a
         > for more information.
       </p>
     </div>
