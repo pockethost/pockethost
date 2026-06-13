@@ -51,4 +51,6 @@ rsync "${RSYNC_OPTS[@]}" \
   "${LIVE_SYNC_LOCAL}/"
 
 echo
-echo "Done. Set DATA_ROOT=${REPO_ROOT}/.pockethost/data in .env, then run mothership serve."
+echo "Done. Set DATA_ROOT=${REPO_ROOT}/.pockethost/data in .env, then run pnpm dev:cli serve."
+echo "Instance webhooks are off in dev by default (PH_DISABLE_INSTANCE_WEBHOOKS)."
+echo "Set PH_ENABLE_INSTANCE_WEBHOOKS=1 to test scheduled webhooks locally."

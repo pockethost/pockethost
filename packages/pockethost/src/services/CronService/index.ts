@@ -5,6 +5,7 @@ import {
   mkInstanceUrl,
   mkSingleton,
   MothershipAdminClientService,
+  PH_DISABLE_INSTANCE_WEBHOOKS,
   SingletonBaseConfig,
 } from '@'
 import Bottleneck from 'bottleneck'
@@ -19,6 +20,11 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
   // logger.setLevel(LogLevelName.Debug)
   const { dbg, error, info, warn } = logger
   info(`Starting`)
+
+  if (PH_DISABLE_INSTANCE_WEBHOOKS()) {
+    info(`Instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)`)
+    return {}
+  }
 
   const { client } = await MothershipAdminClientService()
 
