@@ -64,7 +64,10 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | ---- | ---- | ------ | ----- |
 | **Scheduled / reliable automatic backups** | Med | M–L | **Follow up:** Discord `wesochuck` (Wes Osborn) — asked whether webhooks in the PocketHost UI should trigger PB backups; confirmed manual backup is best for now. **Problem:** low-traffic instances hibernate; PB cron and webhook→JSVM backup scripts both require a warm container, so scheduled backups are unreliable today. **Options to spike:** platform cron that wakes instance → runs backup → hibernates; mothership/edge-initiated backup without full PB runtime; dashboard schedule UX. Frequent customer ask. |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
-| **SFTP instead of FTPS** | Med | M | Docs/FAQ already say "SFTP"; UI says FTPS (`instances/.../ftp`). Evaluate `ftp-srv` fork vs OpenSSH/sftp subsystem. Support SSH authorized keys (user-supplied pubkey) in addition to or instead of password? Credential UX + dashboard key management. |
+| **SFTP (ssh2) alongside FTPS** | Med | M | Node `ssh2` server on `PH_SFTP_PORT` (default 2222), same email/password auth + virtual FS as FTPS (`InstanceVfs` extracted from `PhFs`). Ship parallel to FTPS (`edge-sftp` PM2 + optional `serve`). Docs/UI: SFTP primary, FTPS legacy. V2: SSH pubkey auth + dashboard key management. |
+| **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
+| **FTPS sunset comms** | Low | S–M | After SFTP ships: blog post, dashboard notice, email to active FTPS users (if measurable), update `/docs/ftp` + FAQ with deprecation timeline. **Blocked by:** SFTP live in prod. Then schedule FTPS removal (**Remove FTPS**). |
+| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** SFTP shipped + **FTPS sunset comms** grace period elapsed. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
@@ -140,7 +143,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 ### Dependency diet (keep vs replace)
 
 - **Keep (core):** `dockerode`, `semver`, `rate-limiter-flexible`, `ip-cidr`, `ftp-srv` fork, `pocketbase`, `@microsoft/fetch-event-source` fork, `commander`, `cron`, `Bottleneck`, `http-proxy`/`http-proxy-middleware`, `better-sqlite3` (sendmail), `node-os-utils` (health).
-- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **SFTP** lands).
+- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **SFTP (ssh2)** live + **FTPS sunset comms** grace period, then **Remove FTPS**).
 - **Hoist/dedupe (minor):** `tsx` (root + pockethost), `wrangler` (root + dashboard) — no functional change.
 
 ### Pricing migration (Flounder + lifetime)
@@ -213,7 +216,10 @@ Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → poc
 Ecosystem agent skills ──► agent skills npm + Cursor plugin (Icebox)
 Realtime reconnect resync ──► removes verify polling; fixes stale instances/auth after SSE gap
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
-SFTP ──► docs already claim SFTP; FTPS UI is misleading today
+SFTP (ssh2) ──► docs already claim SFTP; FTPS UI is misleading today
+SFTP (ssh2) ──► FTPS login welcome banner (point users at SFTP on every FTPS connect)
+SFTP (ssh2) ──► FTPS sunset comms (blog, email, dashboard notice)
+FTPS sunset comms ──► Remove FTPS (grace period)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
