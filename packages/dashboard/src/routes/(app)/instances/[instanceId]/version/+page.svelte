@@ -5,27 +5,28 @@
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
   import PowerOffRequired from '../PowerOffRequired.svelte'
-  import { versions as allVersions, is23Available } from '$src/util/stores'
-  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
+  import { versions } from '$src/util/stores'
+  import { isInstanceFullyOff } from '$util/instancePower'
 
   $: ({ id, version } = $instance)
   $: isFullyOff = isInstanceFullyOff($instance)
-  $: isShuttingDown = isInstanceShuttingDown($instance)
 
-  let is22OrLower = false
-  let is23OrHigher = false
-  $: {
-    const [major, minor] = version.split('.').map(Number)
-    is22OrLower = minor! <= 22
-    is23OrHigher = minor! >= 23
+  const minorVersion = (v: string) => Number(v.split('.')[1] ?? 0)
+
+  const crossesV23Boundary = (from: string, to: string) => {
+    const fromMinor = minorVersion(from)
+    const toMinor = minorVersion(to)
+    return (fromMinor <= 22 && toMinor >= 23) || (fromMinor >= 23 && toMinor <= 22)
   }
 
-  let versions: string[] = []
-  $: {
-    versions = $allVersions.filter((v) => {
-      const [major, minor] = v.split('.').map(Number)
-      return (is22OrLower && minor! <= 22) || (is23OrHigher && minor! >= 23)
-    })
+  const confirmVersionChangeMessage = (from: string, to: string) => {
+    if (crossesV23Boundary(from, to)) {
+      if (minorVersion(to) >= 23) {
+        return `v0.23+ rewrites PocketBase JSVM APIs. Back up first and review any custom pb_hooks before upgrading.\n\nChange version to ${to}?`
+      }
+      return `Downgrading across the v0.23 boundary is not supported by PocketBase and may break your instance.\n\nChange version to ${to}?`
+    }
+    return `Are you sure you want to change the version to ${to}?`
   }
 
   // Create a copy of the version
@@ -53,12 +54,9 @@
     // Disable the button to prevent double submissions
     isButtonDisabled = true
 
-    // Prompt the user to confirm the version change
-    const confirmVersionChange = confirm(`Are you sure you want to change the version to ${selectedVersion}?`)
+    const confirmVersionChange = confirm(confirmVersionChangeMessage(version, selectedVersion))
 
-    // If they select yes, then update the version in pocketbase
     if (confirmVersionChange) {
-      // Save to the database
       errorMessage = ''
       client()
         .updateInstance({
@@ -72,11 +70,9 @@
           errorMessage = error.message
         })
     } else {
-      // If they hit cancel, reset the version number back to what it was initially
       selectedVersion = version
     }
 
-    // Set the button back to normal
     isButtonDisabled = false
   }
 </script>
@@ -91,49 +87,24 @@
     <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase.
   </div>
 
-  {#if !is23OrHigher}
-    <div class="mb-8 bg-info p-4 rounded text-info-content">
-      <p class="font-bold text-xl">Attention v0.23.* users:</p>
-      <p>v0.22.* to v0.23.* is a major migration boundary and requires a manual migration process.</p>
-      <table class="table">
-        <thead class="text-info-content">
-          <tr>
-            <td>Current Version</td>
-            <td>Desired Version</td>
-            <td>How to upgrade</td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>&lt;=v0.22.*</td>
-            <td>v0.23.*</td>
-            <td
-              >Create a new v0.23.* instance and follow the <a
-                href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-                class="text-primary">manual upgrade process</a
-              >.</td
-            >
-          </tr>
-          <tr>
-            <td>0.23.*</td>
-            <td>&lt;=v0.22.*</td>
-            <td
-              >Create a new &lt;=v0.22.* instance and migrate your data manually. Refer to the <a
-                href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0"
-                class="text-primary">v0.23.* manual upgrade process</a
-              > and attempt to reverse it.</td
-            >
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  {#if minorVersion(version) <= 22}
+    <wa-callout variant="warning" class="mb-8">
+      <wa-icon slot="icon" name="triangle-exclamation"></wa-icon>
+      <p>
+        Upgrading to <strong>v0.23+</strong> applies PocketBase's JSVM API changes on your existing data.
+        <a href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0" class="text-primary"
+          >Review the v0.23 migration notes</a
+        >
+        if you use custom <code>pb_hooks</code>.
+      </p>
+    </wa-callout>
   {/if}
 
   <AlertBar message={successMessage} type="success" flash />
   <AlertBar message={errorMessage} type="error" />
 
   <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
-    <VersionPicker bind:selectedVersion bind:versions disabled={!isFullyOff} />
+    <VersionPicker bind:selectedVersion versions={$versions} disabled={!isFullyOff} />
 
     <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
   </form>
