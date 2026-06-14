@@ -1,15 +1,15 @@
 ---
-description: phio customer CLI submodule — compatibility when changing file access or deploy paths
+description: phio customer CLI — compatibility when changing file access or deploy paths
 globs:
+  - packages/phio/**
   - packages/pockethost/src/services/InstanceFileAccess/**
   - packages/pockethost/src/cli/commands/EdgeCommand/FtpCommand/**
   - packages/pockethost/src/cli/commands/SftpCommand/**
-  - packages/phio/**
 ---
 
 # phio compatibility
 
-`packages/phio/` is the **customer-facing CLI** (submodule, separate release). It deploys via **FTPS** + `@samkirkland/ftp-deploy` using the `__auth__` cookie trick against `InstanceVfs`.
+`packages/phio/` is the **customer-facing CLI**. It deploys via **FTPS** using the vendored Kirkland sync engine (`vendor/ftp-deploy/`) and the `__auth__` cookie trick against `InstanceVfs`.
 
 Before landing changes to file access, VFS guards, FTPS auth, or instance paths:
 
@@ -17,4 +17,4 @@ Before landing changes to file access, VFS guards, FTPS auth, or instance paths:
 2. Confirm `phio deploy` / `dev` still work (especially instance-root writes like `.ftp-deploy-sync-state.json`).
 3. Note SFTP-only changes do not affect phio until phio migrates off FTPS.
 
-Do not add phio to the pnpm workspace without an explicit task. Submodule stays independent (Bun, Changesets).
+phio is a pnpm workspace package (Node 24 + tsx), same as `pockethost`.

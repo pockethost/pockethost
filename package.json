@@ -9,6 +9,7 @@
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
     "dev:cli": "cd packages/pockethost && pnpm dev",
+    "dev:phio": "cd packages/phio && pnpm dev",
     "dev:mothership-hooks": "pnpm --filter pockethost-mothership-app dev",
     "dev:dashboard": "cd packages/dashboard && pnpm dev",
     "check:mothership-hooks": "pnpm --filter pockethost-mothership-app check:fresh",
