@@ -59,6 +59,25 @@ const freeDiskBytes = (path: string): number | undefined => {
   }
 }
 
+const execOutput = (value: unknown): string => {
+  if (value == null) return ``
+  if (typeof value === `string`) return value
+  if (Buffer.isBuffer(value)) return value.toString(`utf8`)
+  return String(value)
+}
+
+const formatExecError = (e: unknown): string => {
+  if (!e || typeof e !== `object`) return String(e)
+  const err = e as { status?: number; signal?: string | null; stdout?: unknown; stderr?: unknown; message?: string }
+  const stderr = execOutput(err.stderr).trim()
+  const stdout = execOutput(err.stdout).trim()
+  const meta = [err.status != null ? `exit ${err.status}` : undefined, err.signal ? `signal ${err.signal}` : undefined]
+    .filter(Boolean)
+    .join(` `)
+  const lines = [meta, stderr && `stderr: ${stderr}`, stdout && `stdout: ${stdout}`].filter(Boolean)
+  return lines.join(` | `) || err.message || String(e)
+}
+
 const hasDiskBudget = (dbPath: string): { ok: boolean; detail?: string } => {
   const size = fileSizeBytes(dbPath)
   if (size === 0) return { ok: false, detail: `missing` }
@@ -80,7 +99,7 @@ export const vacuumSqliteFile = async (dbPath: string): Promise<VacuumResult> =>
     return { path: dbPath, beforeBytes, afterBytes: beforeBytes, skipped: disk.detail }
   }
 
-  execFileSync(`sqlite3`, [dbPath, `PRAGMA wal_checkpoint(TRUNCATE); VACUUM;`], { stdio: `pipe` })
+  execFileSync(`sqlite3`, [dbPath, `PRAGMA wal_checkpoint(TRUNCATE); VACUUM;`], { encoding: `utf8`, stdio: `pipe` })
 
   return { path: dbPath, beforeBytes, afterBytes: fileSizeBytes(dbPath) }
 }
@@ -262,7 +281,7 @@ export const vacuumIdleInstanceDbs = async ({ dryRun = false } = {}) => {
       logVacuumResult(result, false)
       results.push(result)
     } catch (e) {
-      warn(`Failed to vacuum ${dbPath}`, e)
+      warn(`Failed to vacuum ${dbPath}: ${formatExecError(e)}`)
     }
   }
 
@@ -316,7 +335,7 @@ export const vacuumMothershipDbs = async ({ dryRun = false } = {}) => {
         logVacuumResult(result, false)
         results.push(result)
       } catch (e) {
-        warn(`Failed to vacuum ${dbPath}`, e)
+        warn(`Failed to vacuum ${dbPath}: ${formatExecError(e)}`)
       }
     }
   } finally {
