@@ -9,7 +9,7 @@
   import '@beyonk/gdpr-cookie-consent-banner/banner.css'
   // @ts-ignore
   import GdprBanner from '@beyonk/gdpr-cookie-consent-banner'
-  import PromoBanner from './PromoBanner.svelte'
+  import PocketHost30Banner from './PocketHost30Banner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
   import { cloudLogo } from '$lib/brand'
   import a11yDark from 'svelte-highlight/styles/seti-ui'
@@ -31,7 +31,7 @@
 <div class="bg-[#111111]">
   <MothershipStatus />
   <Navbar />
-  <PromoBanner />
+  <PocketHost30Banner />
 
   <div class="px-4 md:px-20">
     <VerifyAccountBar />
