@@ -167,7 +167,7 @@ Adjust `remotePath` to your instance subdomain and folder.
 
 ## Instance layout
 
-After login you see a directory for each instance your key can access. `cd` into one to reach the usual PocketBase folders:
+After login you see a directory for each instance your key can access. Folder names are your instance **subdomains** (for example `harvest`), not UUIDs. `cd` into one to reach the usual PocketBase folders:
 
 | Directory | Description |
 | --------- | ----------- |
@@ -190,11 +190,16 @@ The instance root is **virtual**. You only see these standard folders, not arbit
 - Username must be your **email**, not your instance subdomain.
 - Key must be **Ed25519** (`ssh-ed25519`).
 - Check the key is allowed to access the instance (all instances vs specific list).
+- Point the client at the correct private key file. If OpenSSH offers the wrong key, add `IdentitiesOnly yes` under the host in `~/.ssh/config`.
 
 ### Connection refused or timeout
 
 - Port must be **2222**, not 21 or 22.
 - Host is `ftp.pockethost.io`, not `your-instance.pockethost.io`.
+
+### Unknown host key on first connect
+
+OpenSSH prompts to verify the server host key the first time you connect. That is expected. Type `yes` to continue, or add the host to `~/.ssh/known_hosts` via your client's trust flow. GUI clients (Cyberduck, FileZilla, WinSCP) show a similar fingerprint prompt.
 
 ### OpenSSH post-quantum warning
 

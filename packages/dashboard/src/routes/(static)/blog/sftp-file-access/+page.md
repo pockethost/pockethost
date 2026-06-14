@@ -13,7 +13,7 @@ Full setup instructions for macOS, Windows, Linux, and popular clients are in **
 - **Username:** your PocketHost email
 - **Auth:** Ed25519 SSH private key (no password login on SFTP)
 
-Create keys under **[Account → Keys](/account/keys)**. Run `ssh-keygen -t ed25519` locally and paste the public key, GitHub-style. Each key can access **all instances** or a **specific subset**.
+Create keys under **[Account → Keys](/account/keys)**. Run `ssh-keygen -t ed25519` locally and paste the public key, GitHub-style. Each key can access **all instances** or a **specific subset**. After login, instance folders at `/` are named by **subdomain**.
 
 ```bash
 sftp -i ~/.ssh/pockethost_ed25519 -P 2222 you@example.com@ftp.pockethost.io
@@ -47,13 +47,13 @@ If the warning annoys you locally, `WarnWeakCrypto no` in `~/.ssh/config` for th
 
 ### Roadmap
 
-| Phase | What | Status |
-| ----- | ---- | ------ |
-| SFTP on 2222, Ed25519 keys, scoped instance access | Shipped | Done |
-| Docs and dashboard key UI | Shipped | Done |
-| FTPS login banner pointing at SFTP | Soon | |
-| Post-quantum hybrid KEX | Blocked on upstream `ssh2` | |
-| FTPS sunset (blog, email, removal) | After grace period | |
+| Phase                                              | What                       | Status |
+| -------------------------------------------------- | -------------------------- | ------ |
+| SFTP on 2222, Ed25519 keys, scoped instance access | Shipped                    | Done   |
+| Docs and dashboard key UI                          | Shipped                    | Done   |
+| FTPS login banner pointing at SFTP                 | Soon                       |        |
+| Post-quantum hybrid KEX                            | Blocked on upstream `ssh2` |        |
+| FTPS sunset (blog, email, removal)                 | After grace period         |        |
 
 ### Try it
 
