@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 13, 2026_
-
 PocketBase log retention deletes old rows, but SQLite does not shrink the file. Over time your instance `logs.db` can balloon even when the admin UI shows a normal row count. We wrote up the full case study in [Your logs.db Might Be Gigabytes of Empty Space](/blog/pocketbase-sqlite-vacuum). Today we are shipping the fix for hosted instances.
 
 **Auto Vacuum** runs SQLite `VACUUM` on your instance `data.db` and `logs.db` during PocketHost's nightly maintenance sweep. It is **on by default** for every instance. You can turn it off per instance if you prefer to manage compaction yourself.
@@ -30,5 +28,7 @@ When Mothership data lives on the same host, the job briefly stops Mothership to
 ### Why bother
 
 Smaller databases mean faster backups, less disk pressure on the edge, and fewer surprises when you `ls -lh pb_data/*.db`. You should not have to think about SQLite freelists. Auto Vacuum handles the boring part while you sleep.
+
+Our first production sweep across the fleet **reclaimed about 52 GB** from compacted `data.db` and `logs.db` files alone, roughly **10% of used space** on the node that ran it.
 
 Questions or before/after numbers? [Discord](https://discord.gg/nVTxCMEcGT).

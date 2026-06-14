@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 12, 2026_
-
 If you've ever flipped the power switch on a PocketHost instance and wondered whether anything actually happened — fair question. Power off used to be mostly a database flag. Your instance might still be running on the edge until something else cleaned it up.
 
 That's fixed now, and the dashboard finally shows you what's going on.

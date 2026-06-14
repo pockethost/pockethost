@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 12, 2026_
-
 The PocketHost dashboard has been on DaisyUI and a handful of Svelte wrapper libraries for a while. It worked, but the stack was showing its age — inconsistent components, icon packages bolted on separately, and a docs layout that was getting harder to read on wide monitors.
 
 We just finished migrating the whole dashboard to [Web Awesome](https://webawesome.com/) (free tier) and cleaned up a few related rough edges along the way.

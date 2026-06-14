@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 13, 2026_
-
 If you have ever fought FTPS passive mode, self-signed cert warnings, or `lftp` flags just to upload a hook, this one is for you.
 
 **SFTP is now the way to manage instance files on PocketHost.** Same virtual layout (`/{your-instance}/pb_hooks`, `pb_migrations`, and the rest). Standard SSH tooling on port 2222. **FTPS is deprecated** and will go away after a grace period.

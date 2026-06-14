@@ -1,11 +1,13 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import { cloudLogo } from '$lib/brand'
+  import BlogAuthor from '$components/BlogAuthor.svelte'
 
   export let data
 
   $: isIndexPage = $page.url.pathname === '/blog'
   $: ({ title, pageTitle, description, ogType } = data.meta || {})
+  $: ({ author, date } = data)
   $: ogImage = title
     ? `https://cdn.cheto.app/og/joioes1x8zagn0v?name=${encodeURIComponent(title)}`
     : undefined
@@ -59,6 +61,9 @@
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-8 z-10 relative">
+      {#if author}
+        <BlogAuthor {author} {date} />
+      {/if}
       <article
         class="prose prose-lg max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-primary dark:prose-a:text-secondary hover:prose-a:text-primary-focus prose-strong:text-white prose-code:text-primary dark:prose-code:text-secondary prose-pre:bg-neutral-800 prose-blockquote:border-l-primary"
       >

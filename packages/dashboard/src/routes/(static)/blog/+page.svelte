@@ -1,25 +1,7 @@
 <script lang="ts">
+  import { gravatarUrl } from '$lib/gravatar'
+  import { getAuthor } from '$lib/blog/authors'
   import { toc } from './toc'
-
-  const postDates: Record<string, string> = {
-    '/blog/auto-vacuum': 'Jun 13, 2026',
-    '/blog/sftp-file-access': 'Jun 13, 2026',
-    '/blog/pocketbase-sqlite-vacuum': 'Jun 13, 2026',
-    '/blog/runtime-status-sync': 'Jun 13, 2026',
-    '/blog/node-24-leaner-runtime': 'Jun 12, 2026',
-    '/blog/instance-power-status': 'Jun 12, 2026',
-    '/blog/web-awesome-migration': 'Jun 12, 2026',
-    '/blog/pocketbase-version-sync': 'Jun 12, 2026',
-    '/blog/pockethost-2-3-0-release': 'Jul 22, 2025',
-    '/blog/webhooks-launch': 'Jul 22, 2025',
-    '/blog/mothership-mirror-service': 'Jul 21, 2025',
-    '/blog/custom-domains-automation': 'Jul 19, 2025',
-    '/blog/kingdom': 'Jan 15, 2025',
-    '/blog/hard-paywall-is-live': 'Jan 10, 2025',
-    '/blog/announcing-dev-channel': 'Jan 8, 2025',
-    '/blog/hard-paywall': 'Jan 6, 2025',
-    '/blog/announcing-pocker': 'Dec 20, 2024',
-  }
 </script>
 
 <div class="mx-auto px-4 md:px-20 z-10 relative">
@@ -36,6 +18,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each toc as item, index}
+      {@const author = getAuthor(item.author)}
       <div class="group">
         <a href={item.path} class="block h-full transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
           <wa-card class="h-full border border-white/10 bg-[#111111]/30 shadow-lg hover:border-white/50">
@@ -54,16 +37,24 @@
                 </p>
               {/if}
 
-              <div class="flex items-center justify-between mt-auto">
-                {#if postDates[item.path]}
-                  <div class="flex items-center gap-2 text-xs text-white/60">
-                    <wa-icon name="calendar"></wa-icon>
-                    <span>{postDates[item.path]}</span>
-                  </div>
-                {/if}
+              <div class="flex items-center justify-between mt-auto gap-4">
+                <div class="flex items-center gap-2 text-xs text-white/60 min-w-0">
+                  <img
+                    src={gravatarUrl(author.email, 20)}
+                    alt=""
+                    width="20"
+                    height="20"
+                    class="rounded-full shrink-0 bg-white/10"
+                  />
+                  <span class="truncate">{author.handle}</span>
+                  {#if item.date}
+                    <span class="text-white/40 shrink-0">·</span>
+                    <span class="shrink-0">{item.date}</span>
+                  {/if}
+                </div>
 
                 <div
-                  class="flex items-center gap-2 text-primary dark:text-secondary group-hover:gap-3 transition-all duration-300"
+                  class="flex items-center gap-2 text-primary dark:text-secondary group-hover:gap-3 transition-all duration-300 shrink-0"
                 >
                   <span class="text-sm font-medium">Read more</span>
                   <wa-icon

@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 12, 2026_
-
 PocketHost has always tried to stay current with PocketBase releases. When Gani ships a new patch, we want it available on PocketHost quickly — ideally the same day.
 
 Until now, that pipeline ran through [Gobot](https://github.com/benallfree/gobot), a small package I wrote years ago to download GitHub release binaries. It worked, but it was an extra layer between PocketHost and the PocketBase releases API. Keeping Gobot happy meant more moving parts, and version discovery could lag behind what was actually on GitHub.
