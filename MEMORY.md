@@ -64,7 +64,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `MothershipAdminClientService` — admin PB client + instance mixin
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
-- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action).
+- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action). SFTP relative paths use `InstanceVfs.cwd` (updated on REALPATH to directories), matching FTPS CWD semantics for deploy delete/upload.
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 

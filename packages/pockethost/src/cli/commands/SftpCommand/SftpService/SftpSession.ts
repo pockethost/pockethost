@@ -73,9 +73,10 @@ const flagsToFsMode = (flags: number): string => {
   return 'r'
 }
 
-const normalizeSftpPath = (path: string) => {
-  if (!path || path === '.') return '/'
-  return path.startsWith('/') ? path : `/${path}`
+/** Relative paths must stay relative so InstanceVfs joins them with session cwd (FTPS CWD equivalent). */
+const toVfsPath = (path: string) => {
+  if (!path || path === '.') return '.'
+  return path
 }
 
 export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: Logger) => {
@@ -97,10 +98,18 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
 
   sftp
     .on('REALPATH', (reqid, path) => {
-      const normalized = normalizeSftpPath(path)
+      const vfsPath = toVfsPath(path)
       vfs
-        .resolvePath(normalized)
-        .then(({ clientPath }) => {
+        .resolvePath(vfsPath)
+        .then(async ({ clientPath, fsPath }) => {
+          try {
+            const fileStat = await stat(fsPath)
+            if (fileStat.isDirectory()) {
+              await vfs.chdir(vfsPath)
+            }
+          } catch {
+            // Still return canonical path when stat fails (symlinks, virtual roots, etc.)
+          }
           sftp.name(reqid, [
             {
               filename: clientPath,
@@ -122,19 +131,19 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
     })
     .on('STAT', (reqid, path) => {
       vfs
-        .stat(normalizeSftpPath(path))
+        .stat(toVfsPath(path))
         .then((entry) => sftp.attrs(reqid, entryToAttrs(entry)))
         .catch((err) => sftp.status(reqid, statusForError(err)))
     })
     .on('LSTAT', (reqid, path) => {
       vfs
-        .stat(normalizeSftpPath(path))
+        .stat(toVfsPath(path))
         .then((entry) => sftp.attrs(reqid, entryToAttrs(entry)))
         .catch((err) => sftp.status(reqid, statusForError(err)))
     })
     .on('OPENDIR', (reqid, path) => {
       vfs
-        .list(normalizeSftpPath(path))
+        .list(toVfsPath(path))
         .then((entries) => {
           const handle = allocHandle({ type: 'dir', entries, index: 0 })
           sftp.handle(reqid, handle)
@@ -161,12 +170,12 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
       )
     })
     .on('OPEN', (reqid, path, flags) => {
-      const normalized = normalizeSftpPath(path)
+      const vfsPath = toVfsPath(path)
       const mode = flagsToFsMode(flags)
       const isWrite = mode.includes('w') || mode.includes('a') || mode.includes('+')
 
       vfs
-        .resolvePath(normalized)
+        .resolvePath(vfsPath)
         .then(async ({ fsPath, clientPath, instance, restOfVirtualPath }) => {
           if (isWrite) {
             vfs.assertMutablePath(restOfVirtualPath, instance, 'write')
@@ -266,25 +275,25 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
     })
     .on('MKDIR', (reqid, path) => {
       vfs
-        .mkdir(normalizeSftpPath(path))
+        .mkdir(toVfsPath(path))
         .then(() => sftp.status(reqid, STATUS_CODE.OK))
         .catch((err) => sftp.status(reqid, statusForError(err)))
     })
     .on('RMDIR', (reqid, path) => {
       vfs
-        .delete(normalizeSftpPath(path))
+        .delete(toVfsPath(path))
         .then(() => sftp.status(reqid, STATUS_CODE.OK))
         .catch((err) => sftp.status(reqid, statusForError(err)))
     })
     .on('REMOVE', (reqid, path) => {
       vfs
-        .delete(normalizeSftpPath(path))
+        .delete(toVfsPath(path))
         .then(() => sftp.status(reqid, STATUS_CODE.OK))
         .catch((err) => sftp.status(reqid, statusForError(err)))
     })
     .on('RENAME', (reqid, oldPath, newPath) => {
       vfs
-        .rename(normalizeSftpPath(oldPath), normalizeSftpPath(newPath))
+        .rename(toVfsPath(oldPath), toVfsPath(newPath))
         .then(() => sftp.status(reqid, STATUS_CODE.OK))
         .catch((err) => sftp.status(reqid, statusForError(err)))
     })
