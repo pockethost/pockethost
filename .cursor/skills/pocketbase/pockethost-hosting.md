@@ -2,9 +2,9 @@
 
 PocketHost provisions and runs PocketBase instances at `*.pockethost.io`.
 
-## Instance layout (via FTP)
+## Instance layout (via SFTP)
 
-Connect via FTPS at `ftp.pockethost.io` with your PocketHost credentials. Each instance has:
+Connect via SFTP at `ftp.pockethost.io:2222` with your PocketHost email and an Ed25519 SSH key registered under **Account → Keys**. Each instance folder at `/` is named by **subdomain**. Inside:
 
 | Directory | Purpose |
 |-----------|---------|

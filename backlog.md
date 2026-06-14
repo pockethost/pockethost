@@ -64,9 +64,8 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | ---- | ---- | ------ | ----- |
 | **Scheduled / reliable automatic backups** | Med | M–L | **Follow up:** Discord `wesochuck` (Wes Osborn) — asked whether webhooks in the PocketHost UI should trigger PB backups; confirmed manual backup is best for now. **Problem:** low-traffic instances hibernate; PB cron and webhook→JSVM backup scripts both require a warm container, so scheduled backups are unreliable today. **Options to spike:** platform cron that wakes instance → runs backup → hibernates; mothership/edge-initiated backup without full PB runtime; dashboard schedule UX. Frequent customer ask. |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
-| **SFTP (ssh2) alongside FTPS** | Med | M | **Done (branch)** — `ssh2` on `PH_SFTP_PORT`, Ed25519 key auth, dashboard key UI, scoped instance access, shared `InstanceVfs`. FTPS still u/p on port 21 until sunset. |
 | **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
-| **FTPS sunset comms** | Low | S–M | After SFTP ships: blog post, dashboard notice, email to active FTPS users (if measurable), update `/docs/ftp` + FAQ with deprecation timeline. **Blocked by:** SFTP live in prod. Then schedule FTPS removal (**Remove FTPS**). |
+| **FTPS sunset comms** | Low | S–M | Blog (`/blog/sftp-file-access`) + `/docs/ftp` deprecation copy shipped. Remaining: dashboard notice, email to active FTPS users, explicit sunset date. **Blocked by:** SFTP prod deploy. Then schedule **Remove FTPS**. |
 | **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** SFTP shipped + **FTPS sunset comms** grace period elapsed. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
@@ -145,7 +144,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 ### Dependency diet (keep vs replace)
 
 - **Keep (core):** `dockerode`, `semver`, `rate-limiter-flexible`, `ip-cidr`, `ftp-srv` fork, `pocketbase`, `@microsoft/fetch-event-source` fork, `commander`, `cron`, `Bottleneck`, `http-proxy`/`http-proxy-middleware`, `better-sqlite3` (sendmail), `node-os-utils` (health).
-- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **SFTP (ssh2)** live + **FTPS sunset comms** grace period, then **Remove FTPS**).
+- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **FTPS sunset comms** grace period, then **Remove FTPS**).
 - **Hoist/dedupe (minor):** `tsx` (root + pockethost), `wrangler` (root + dashboard) — no functional change.
 
 ### Pricing migration (Flounder + lifetime)
@@ -220,9 +219,7 @@ Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → poc
 Ecosystem agent skills ──► agent skills npm + Cursor plugin (Icebox)
 Realtime reconnect resync ──► removes verify polling; fixes stale instances/auth after SSE gap
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
-SFTP (ssh2) ──► docs already claim SFTP; FTPS UI is misleading today
-SFTP (ssh2) ──► FTPS login welcome banner (point users at SFTP on every FTPS connect)
-SFTP (ssh2) ──► FTPS sunset comms (blog, email, dashboard notice)
+FTPS login welcome banner ──► FTPS sunset comms (point legacy users at SFTP)
 FTPS sunset comms ──► Remove FTPS (grace period)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
@@ -246,6 +243,7 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-13 | **SFTP (ssh2) alongside FTPS** — merge `sftp` (d4b45de5): `ssh2` on `PH_SFTP_PORT`, Ed25519 key auth, Account → Keys UI, scoped `InstanceVfs`; release runbook `docs/production.md` |
 | 2026-06-12 | **Remove @s-libs/micro-dash** — natives in ~22 files (pockethost, dashboard, mothership-app); dropped dep from lockfile; `pb_hooks/mothership.js` −37 lines |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
