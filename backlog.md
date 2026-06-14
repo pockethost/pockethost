@@ -254,6 +254,7 @@ _Completed items with date + link to PR/release._
 | 2026-06-13 | **FTPS login welcome banner** — `ftp-srv` `greeting` on connect: SFTP host/port, `/docs/ftp`, deprecation + grace-period notice |
 | 2026-06-14 | **PocketHost 3.0 prep notice** — site-wide banner, `/3.0` info page (SFTP, Flounder sunset, pricing for new signups), prose layout typography |
 | 2026-06-14 | **phio SFTP deploy + docs** — `dev`/`deploy` on SFTP :2222, auto-provision `Phio` deploy key, `.phioconfig` project linking, `/docs/phio` |
+| 2026-06-14 | **phio sftp command** — interactive SFTP via system client (`--print`), `/docs/phio` + README |
 
 ---
 

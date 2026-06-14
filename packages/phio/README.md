@@ -23,11 +23,13 @@ phio list
 phio link [instance]
 phio dev [instance]
 phio deploy [instance]
+phio sftp [instance]
 phio logs [instance]
 ```
 
 - **`phio dev`** — watch local changes and sync over SFTP
 - **`phio deploy`** — one-shot SFTP sync
+- **`phio sftp`** — interactive SFTP session (uses system `sftp` when available)
 - **`phio logs`** — tail instance logs
 
 `dev` and `deploy` accept `-v/--verbose`, `-i/--include`, and `-e/--exclude`.

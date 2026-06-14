@@ -10,6 +10,7 @@ import { ListCommand } from './commands/ListCommand'
 import { LoginCommand } from './commands/LoginCommand'
 import { LogoutCommand } from './commands/LogoutCommand'
 import { LogsCommand } from './commands/LogsCommand'
+import { SftpCommand } from './commands/SftpCommand'
 
 ensurePhioRoot()
 
@@ -23,6 +24,7 @@ program
   .addCommand(ListCommand())
   .addCommand(LinkCommand())
   .addCommand(DeployCommand())
+  .addCommand(SftpCommand())
   .addCommand(LogoutCommand())
   .addCommand(InfoCommand())
 

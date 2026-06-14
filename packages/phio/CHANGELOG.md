@@ -5,6 +5,7 @@
 ### Minor Changes
 
 - SFTP deploy and dev sync (`ftp.pockethost.io:2222`, Ed25519 key auth)
+- `phio sftp` — interactive SFTP via system client (`--print` for the command line)
 - Auto-provision deploy key labeled `Phio` under Account → Keys
 - Project instance linking via `.phioconfig` (migrates legacy `package.json` / `pockethost.json`)
 - Walk up to project root from subdirectories before sync

@@ -1,6 +1,6 @@
 ---
 title: phio CLI
-description: Install and use the phio CLI to link, watch, deploy, and tail logs for PocketHost instances over SFTP
+description: Install and use the phio CLI to link, watch, deploy, browse files, and tail logs for PocketHost instances over SFTP
 ---
 # phio CLI
 
@@ -58,6 +58,7 @@ phio logs my-instance
 | `phio link [instance]` | Link this directory to an instance (writes `.phioconfig`) |
 | `phio dev [instance]` | Watch local files and sync on change |
 | `phio deploy [instance]` | One-shot sync to remote |
+| `phio sftp [instance]` | Interactive SFTP session to instance files |
 | `phio logs [instance]` | Tail instance logs over SSE |
 
 `dev` and `deploy` accept:
@@ -69,6 +70,26 @@ phio logs my-instance
 Default **includes**: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
 
 Default **excludes**: `pb_data/**`.
+
+`phio sftp` accepts:
+
+- `--print` — print the underlying `sftp` command instead of running it (useful when OpenSSH client tools are not installed)
+
+## Interactive SFTP (`phio sftp`)
+
+Browse and edit instance files in an interactive SFTP session. phio uses the same **`Phio`** deploy key as `dev` and `deploy`.
+
+```bash
+phio sftp              # linked instance from .phioconfig
+phio sftp my-instance  # explicit instance
+phio sftp --print      # show the sftp command without running it
+```
+
+When a project is linked, phio opens your instance directory (`{subdomain}/`). With no linked instance, phio connects at the SFTP root so you can `cd` into any instance you have access to.
+
+phio runs your system's **`sftp`** client when it is on `PATH` (OpenSSH on macOS/Linux, optional Windows OpenSSH). If `sftp` is missing, phio prints the full command to run manually. See **[SFTP File Access](/docs/ftp)** for client setup on every platform.
+
+This is file access only (`ls`, `cd`, `get`, `put`, and the rest). There is no remote shell or `exec`.
 
 ## Linking an instance (`.phioconfig`)
 
@@ -93,7 +114,7 @@ phio migrates those to `.phioconfig` automatically the first time it reads them.
 
 ## Deploy key (SFTP auth)
 
-phio does not use your PocketHost password for file sync. On `login`, `info`, and before each `dev`/`deploy`, phio:
+phio does not use your PocketHost password for file sync. On `login`, `info`, and before each `dev`, `deploy`, or `sftp`, phio:
 
 1. Generates or loads an Ed25519 keypair under your phio config directory (default `~/.config/phio/`):
    - `phio_deploy_ed25519` (private key)
@@ -120,7 +141,7 @@ phio connects to:
 
 Sync is incremental. phio writes `.ftp-deploy-sync-state.json` at the instance root to track what changed. Do not delete that file unless you want a full resync.
 
-Manual SFTP client setup (Cyberduck, FileZilla, `sftp`, and the rest) is in **[SFTP File Access](/docs/ftp)**.
+Use **`phio sftp`** for an interactive session with the same credentials, or see **[SFTP File Access](/docs/ftp)** for Cyberduck, FileZilla, VS Code extensions, and manual `sftp` setup.
 
 ## Environment variables
 
@@ -182,6 +203,10 @@ The **`Phio`** key in **[Account → Keys](/account/keys)** must match `~/.confi
 ### Permission denied (publickey) during deploy
 
 Confirm you are logged in (`phio login` or `PHIO_USERNAME`/`PHIO_PASSWORD`), then run `phio info` to verify the deploy key is registered.
+
+### `Could not find 'sftp' on PATH`
+
+Install OpenSSH client tools for your OS, or run `phio sftp --print` and paste the command into your preferred SFTP client. See **[SFTP File Access](/docs/ftp)**.
 
 ### Session expired
 
