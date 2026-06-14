@@ -1,16 +1,39 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { toc } from './toc'
   import { cloudLogo } from '$lib/brand'
 
+  export let data
+
   $: isIndexPage = $page.url.pathname === '/blog'
-  $: blogPath = $page.url.pathname.includes('/blog/') ? $page.url.pathname : ''
-  $: name = toc.find((entry) => entry.path === blogPath)?.title ?? 'PocketHost Blog'
+  $: ({ title, pageTitle, description, ogType } = data.meta || {})
+  $: ogImage = title
+    ? `https://cdn.cheto.app/og/joioes1x8zagn0v?name=${encodeURIComponent(title)}`
+    : undefined
 </script>
 
 <svelte:head>
-  <title>{name} - PocketHost</title>
-  <meta name="description" content="Stay updated with the latest PocketHost features, tutorials, and community news." />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description} />
+
+  <meta property="og:url" content={data.url} />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:title" content={pageTitle} />
+  {#if description}
+    <meta property="og:description" content={description} />
+  {/if}
+  {#if ogImage}
+    <meta property="og:image" content={ogImage} />
+  {/if}
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content={data.url} />
+  <meta name="twitter:title" content={pageTitle} />
+  {#if description}
+    <meta name="twitter:description" content={description} />
+  {/if}
+  {#if ogImage}
+    <meta name="twitter:image" content={ogImage} />
+  {/if}
 </svelte:head>
 
 <div class="min-h-screen">
@@ -32,7 +55,7 @@
         class="w-full blur-xl h-full scale-y-[2.5] object-fill absolute top-0 left-0 z-0"
         alt=""
       />
-      <h2 class="text-3xl md:text-5xl max-w-3xl text-center font-bold z-10">{name}</h2>
+      <h2 class="text-3xl md:text-5xl max-w-3xl text-center font-bold z-10">{title}</h2>
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-8 z-10 relative">

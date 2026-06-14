@@ -8,13 +8,10 @@
 </script>
 
 <svelte:head>
-  <!-- HTML Meta Tags -->
-  <title>PocketHost</title>
-  
   <link rel="manifest" href="/manifest.json" />
   
   <!-- Facebook Meta Tags -->
-  {#if !page.url.pathname.includes('/docs')}
+  {#if !page.url.pathname.includes('/docs') && !page.url.pathname.includes('/blog')}
     <meta name="description" content={tagline} />
     <meta property="og:url" content={baseUrl} />
     <meta property="og:type" content="website" />

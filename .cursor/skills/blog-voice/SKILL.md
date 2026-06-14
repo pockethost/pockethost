@@ -72,8 +72,8 @@ Skip implementation minutiae agents already know (factory patterns, import paths
 New post:
 
 1. `packages/dashboard/src/routes/(static)/blog/{slug}/+page.md`
-2. Add entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts`
-3. Add `postDates` and `postDescriptions` in `packages/dashboard/src/routes/(static)/blog/+page.svelte`
+2. Add entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts` (include `description` for OpenGraph and the blog index card)
+3. Add `postDates` in `packages/dashboard/src/routes/(static)/blog/+page.svelte`
 
 Slug: lowercase kebab-case, descriptive (`webhooks-launch`, not `post-12`).
 

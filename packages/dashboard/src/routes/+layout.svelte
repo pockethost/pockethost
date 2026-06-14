@@ -24,6 +24,7 @@
 <Meta />
 
 <svelte:head>
+  <title>PocketHost</title>
   {@html a11yDark}
 </svelte:head>
 
