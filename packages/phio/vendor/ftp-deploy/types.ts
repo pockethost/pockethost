@@ -4,11 +4,12 @@ export const syncFileDescription = "DO NOT DELETE THIS FILE. This file is used t
 export interface IFtpDeployArguments {
     server: string;
     username: string;
-    password: string;
+    /** Not used when protocol is "sftp" (use private-key-path instead). */
+    password?: string;
 
     /**
      * Server port
-     * @default 21
+     * @default 21 (ftp/ftps) or 2222 (sftp)
      */
     port?: number;
 
@@ -16,9 +17,13 @@ export interface IFtpDeployArguments {
      * "ftp": provides no encryption
      * "ftps": full encryption newest standard (aka "explicit" ftps)
      * "ftps-legacy": full encryption legacy standard (aka "implicit" ftps)
+     * "sftp": SSH file transfer (Ed25519 key auth)
      * @default "ftp"
      */
-    protocol?: "ftp" | "ftps" | "ftps-legacy";
+    protocol?: "ftp" | "ftps" | "ftps-legacy" | "sftp";
+
+    /** PEM or OpenSSH private key path. Required when protocol is "sftp". */
+    "private-key-path"?: string;
 
     /** @default "./" */
     "local-dir"?: string;
@@ -80,7 +85,8 @@ export interface IFtpDeployArgumentsWithDefaults {
     username: string;
     password: string;
     port: number;
-    protocol: "ftp" | "ftps" | "ftps-legacy";
+    protocol: "ftp" | "ftps" | "ftps-legacy" | "sftp";
+    "private-key-path": string | undefined;
     "local-dir": string;
     "server-dir": string;
     "state-name": string;

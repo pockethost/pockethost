@@ -10,7 +10,7 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
-| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). FTPS deploy via vendored Kirkland sync (`vendor/ftp-deploy/`). pnpm workspace package; Node 24 + tsx like `pockethost`. See `.cursor/skills/phio/SKILL.md`. |
+| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). SFTP deploy via vendored Kirkland sync (`vendor/ftp-deploy/`, `ssh2-sftp-client`). pnpm workspace package; Node 24 + tsx like `pockethost`. See `.cursor/skills/phio/SKILL.md`. |
 
 Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
 

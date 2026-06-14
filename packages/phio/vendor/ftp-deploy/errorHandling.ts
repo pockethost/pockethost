@@ -41,6 +41,13 @@ export function prettyError(logger: ILogger, args: IFtpDeployArgumentsWithDefaul
             logger.all(` - Contact your hosting provider and ask them for your servers hostname`);
         }
     }
+    else if (args.protocol === "sftp") {
+        const message = `${error?.message ?? error}`.toLowerCase();
+        if (message.includes("authentication") || message.includes("all configured")) {
+            logger.all(`Could not authenticate over SFTP with username "${args.username}".`);
+            logger.all(`Ensure the Phio deploy key is registered under Account → Keys.`);
+        }
+    }
     else if (typeof ftpError.code === "number") {
         if (ftpError.code === ErrorCode.NotLoggedIn) {
             const serverRequiresFTPS = ftpError.message.toLowerCase().includes("must use encryption");
