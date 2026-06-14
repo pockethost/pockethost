@@ -5,6 +5,9 @@ import Bottleneck from 'bottleneck'
 import { watch } from 'chokidar'
 import { Command } from 'commander'
 import multimatch from 'multimatch'
+import { ensureDeployKey } from '../lib/deployKey'
+import { PHIO_CONFIG_FILE } from '../lib/constants'
+import { PHIO_SFTP_HOST, PHIO_SFTP_PORT } from '../lib/sftpConnection'
 import { ensureLoggedIn } from '../lib/ensureLoggedIn'
 import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
 import { savedInstanceName } from './../lib/defaultInstanceId'
@@ -37,7 +40,7 @@ export const watchAndDeploy = async (
 ) => {
   if (!instanceName) {
     throw new Error(
-      `No instance name provided and none was found in package.json or pockethost.json. Use 'phio link <instance>'`
+      `No instance name provided and none was found in ${PHIO_CONFIG_FILE}. Use 'phio link <instance>'`
     )
   }
   console.log(`Dev mode`)
@@ -104,11 +107,19 @@ export async function deployMyCode(
 ) {
   await ensureLoggedIn()
   const client = await getClient()
+  const { privateKeyPath } = await ensureDeployKey(client)
+  const email = client.authStore.record?.email
+  if (!email) {
+    throw new Error(`You must be logged in first. Use 'phio login'`)
+  }
+
   console.log(`🚚 Deploy started for ${instanceName}`)
   const args: IFtpDeployArguments = {
-    server: 'ftp.pockethost.io',
-    username: `__auth__`,
-    password: client.authStore.exportToCookie(),
+    server: PHIO_SFTP_HOST,
+    protocol: 'sftp',
+    port: PHIO_SFTP_PORT,
+    username: email,
+    'private-key-path': privateKeyPath,
     'server-dir': `${instanceName}/`,
     include,
     exclude: [...excludeDefaults, ...exclude],

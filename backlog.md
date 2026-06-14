@@ -23,7 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **InstanceService batch status updates** | Low | S | **Partially done** — reconnect reconcile moved to `POST /api/mirror` (live IDs → mothership `saveRecord` loop). Remaining: per-spawn/shutdown status writes in `InstanceService`; v0.39 batch record APIs may collapse further. |
-| **Remove mothership-boot idle reset** | Low | S | `HandleInstancesResetIdle` still forces all instances `idle` on mothership boot even when edge has warm containers. Edge `POST /api/mirror` (`resetIdle` + live reconcile) fixes edge boot; mothership-only restart still flashes wrong status until next mirror connect. Remove bootstrap hook once Phase 2 lease or always-on edge reconcile is trusted. |
+| **Remove mothership-boot idle reset** | Low | S | **Keep for now** — `HandleInstancesResetIdle` forces all instances `idle` on mothership boot (assume idle until edge speaks up). Edge `POST /api/mirror` live reconcile restores warm rows on reconnect. Brief idle flash on mothership-only restart is acceptable. Remove only after Phase 2 lease or container witness (Icebox). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
 | **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status** (instance FS/delete and resolve decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
@@ -65,9 +65,8 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **Dashboard full instance backup (download)** | Med | M–L | On-demand archive of the entire instance data folder (`.tgz`) from the dashboard — sqlite, hooks, uploads, logs, config. **Problem:** corrupt DB or unbootable instance bricks recovery via PB admin backup/export; SFTP may be unreachable too. Edge tarballs volume while hibernated (no warm PB required), mothership returns a time-limited download URL. Disaster-recovery escape hatch; distinct from **Scheduled / reliable automatic backups** (PB cron) and PB Settings → Backups. |
 | **Dashboard vacuum now** | Med | M | On-demand SQLite `VACUUM` from dashboard: mothership enqueues job → edge force-stops warm instance → compact `data.db`/`logs.db` → report bytes reclaimed. Reuses `health compact` / `vacuumSqliteFile` but must stop running Docker mounts (nightly auto-vacuum skips them). Needs mothership→edge job channel (instance fields or collection + mirror listener), drain in-flight requests, mutex vs nightly sweep, disk-budget errors in UI. Brief downtime expected. Distinct from nightly **Auto Vacuum** (idle-only). |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
-| **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
-| **FTPS sunset comms** | Low | S–M | **Shipped:** blog `/blog/sftp-file-access`, `/blog/ftps-sunset`, `/blog/account-access-keys`, `/docs/ftp` SFTP-first + legacy FTPS section. **Remaining:** in-app dashboard notice (no FTPS banner in app routes yet), email to active FTPS users, explicit hard removal date, phio/CI deploy docs pointing at SFTP. Then schedule **Remove FTPS**. |
-| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** **phio SFTP migration** (FTPS deploy replacement) + **FTPS sunset comms** grace period elapsed. |
+| **FTPS sunset comms** | Low | S–M | **Shipped:** blog posts, `/docs/ftp`, FTPS 220 greeting, site-wide **PocketHost 3.0** banner + `/3.0` info page (SFTP, Flounder, pricing preview), `/docs/phio`. **Remaining:** email to active FTPS users, explicit hard removal date. Then schedule **Remove FTPS**. |
+| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** **FTPS sunset comms** grace period elapsed (phio SFTP deploy shipped). |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
@@ -76,7 +75,6 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **phio ↔ pockethost merge / rename** | Med | M–L | **Partial (2026-06-13):** phio in monorepo (`packages/phio`, pnpm + Node 24); Kirkland sync vendored at `vendor/ftp-deploy/`. Remaining: rename server → `pockethost-server`, publish CLI as `pockethost`, npm release from monorepo. VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
-| **phio SFTP migration (replace FTPS deploy)** | Med | M | **FTPS sunset blocker** — critical path before **Remove FTPS**. phio `dev`/`deploy` and SamKirkland FTP-Deploy-Action users still sync via FTPS + `__auth__` cookie (`ftp.pockethost.io:21`). **Auth model must match SFTP:** account login (`phio login` → email identity) + **required Ed25519 SSH key** (same keys as Account → Keys — path, `PHIO_SSH_KEY`, agent, or `phio keys use <label>`). SFTP has no password auth; phio file sync must not use the PB cookie as transport credentials. Key **instance scoping** (`all_instances` vs subset) then restricts which instances `dev`/`deploy`/CI can touch — CI gets a dedicated key limited to one instance. Replace transport: SFTP port 2222 via native `ssh2` or SFTP-capable sync in `vendor/ftp-deploy/`; drop `__auth__` FTPS. Docs: `/docs/ftp` phio + GitHub Actions examples; deprecate FTPS in phio output. Ship before **Remove FTPS**. |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
 | **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** `packages/phio` covers deploy/dev/logs; full SDK + dashboard parity still open. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
@@ -85,9 +83,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Stats role: view any instance by direct link** | Low | S | `isStatsRole` users open `/app/instances/:id` for support (logs, overview). Needs PB `viewRule` or `GET /api/instance/:id`, layout fallback fetch, `RealtimeLog` bypass. Read-only for non-owned instances; hide secrets/danger zone. |
 | **Account email change (verified swap)** | Med | M | Dashboard + mothership: save pending new email, send verification link, swap to primary only after confirm — never write an unverified address to auth `email`. **Today:** a naive email update leaves the account unverified → login and instance access break until support. Lemon Squeezy customer email may need sync on confirm. Customers can update email without locking themselves out or taking instances down. |
-| **Revisit v0.22→v0.23 version boundary UX** | Low | S | Dashboard version picker filters minors across the v22/v23 line (`instances/.../version/+page.svelte`); warns manual migration both directions. Re-evaluate: in-place v22→v23 upgrade should work on PocketHost (JSVM hook rewrites are a separate concern); rollbacks were never supported. May drop the hard boundary and simplify picker + `/docs/versions`. |
 | **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
 | **Docs structure & organization** | Low | M–L | Reorganize `(static)/docs/**` — clearer IA, fewer duplicate topics, better cross-links from dashboard `CardHeader` docs paths. |
@@ -119,10 +115,12 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Dockerize hosting node (`pockethost-server`)** | Med–High | L–XL | **Icebox — manual deploys first.** Replace git-pull + PM2 + host `.env` drift with one image (`packages/pockethost`), not dashboard/phio. **`PH_ROLE`:** `all` (dev default = packaged `serve`), `edge`, `mothership` (prod split). **Volume:** single `PH_HOME` mount (`data/`, `pocketbase/`, `ssl/`, `ssh/`). **PB binaries:** bake highest patch per minor (`latestPerMinor` / `downloadAll` at build) + runtime `freshen`. **Health:** split `health check` / `health compact` by role (drop PM2 assumptions, fix hardcoded paths like `/mnt/sfo_data`). **Instances:** stay one container per tenant via dockerode — not in-process. **SFTP:** per edge; shared host key on volume for LB. **Multi-edge:** needs `instances.edge` (or region), mirror filter, routing — orthogonal but enabled by reproducible nodes; pairs with **Multi-region Fly edges**. **Runtime portability (open):** host `docker.sock` works on VPS only; Fly image *is* the machine — likely **embedded dockerd or Podman** inside server container so spawn path is identical everywhere (nested runtime + volume for `/var/lib/docker` or podman store; pre-load `pockethost-instance` image). **Not decided yet** — run stack manually a few more times before picking DinD vs socket-mount vs Fly Machines API. Ties **phio ↔ rename** (`pockethost-server` image). Prerequisite for killing config-outage class. |
 | **Container runtime witness (SSE/lease from instance)** | Med | M–L | Optional Phase 2+ if edge heartbeat lease is not enough: instance container holds mothership connection (SSE or ping) with instance-scoped token; disconnect → idle. Splits ownership with edge; needs auth endpoint + instance image change. Icebox until **Runtime status Phase 2** evaluated in prod. |
 | **Runtime status heartbeat lease (Phase 2)** | Med | M | Edge renews `runtime_lease_expires_at` per warm instance; mothership cron expires stale leases → `idle` when edge dies without shutdown hook. Phase 1 sync protocol shipped 2026-06-13; undefined `status` during edge outage accepted until then. |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
+| **Stats role: view any instance by direct link** | Low | S | `isStatsRole` users open `/app/instances/:id` for support (logs, overview). Needs PB `viewRule` or `GET /api/instance/:id`, layout fallback fetch, `RealtimeLog` bypass. Read-only for non-owned instances; hide secrets/danger zone. Low support demand; revisit when needed. |
 | **501(c)(3) nonprofit formation** | Med–High | XL | Become an official 501(c)(3): separate bank account, IP transfer from PocketHost to the org, IRS tax-exempt status, state registration, bylaws/board. **Lifetime Flounder revenue** allocates a portion to the nonprofit (fund split + accounting). Explore corporate **sponsorships** for ongoing support. Community gets mission-driven, tax-deductible infrastructure; platform gets durable legal structure beyond a single operator. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
@@ -138,6 +136,14 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 - **Node 24:** shipped 2026-06-12 (see Done).
 - **Bun:** real DX wins (native TS, faster installs) but production risk on dockerode, patched `tail`, PM2. Keep in Icebox until `bun-experimental` is rebased and edge nodes soak-tested.
+
+### Dockerize hosting node (spike notes)
+
+- **Problem:** recent outages traced to PM2 / `.env` / host config drift; dev (`pnpm dev:cli serve`) vs prod (PM2 + Linux) split brain.
+- **Target:** `pockethost-server` image; dev `PH_ROLE=all` via compose; prod `edge` + `mothership` on separate hosts/volumes.
+- **Instance isolation unchanged:** `PocketbaseService` → dockerode → `benallfree/pockethost-instance` per instance.
+- **Fly vs VPS:** Fly Machine rootfs = your Dockerfile; no host docker.sock. Portable model = runtime inside operator container (dockerd or Podman API socket), not socket-mount to outer host. **Defer decision** until a few more manual deploy cycles.
+- **Phasing (when pulled):** (1) image + `PH_HOME` volume + baked PB binaries, (2) role entrypoint replaces PM2, (3) health/compact split, (4) multi-edge schema + routing.
 
 ### Dependency diet (keep vs replace)
 
@@ -161,7 +167,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | **2 — Heartbeat lease** | Icebox: edge renews `runtime_lease_expires_at`; mothership cron expires stale → `idle` (edge crash without shutdown hook). |
 | **3 — Container witness** | Icebox: optional SSE/lease from instance container. |
 
-**Remaining gaps:** mothership-boot `HandleInstancesResetIdle` (see backlog row), per-spawn/shutdown status writes in `InstanceService`, dashboard SSE reconnect UX.
+**Remaining gaps:** dashboard SSE reconnect UX. Mothership-boot idle reset is intentional (see backlog row); Phase 2 lease deferred to Icebox.
 
 ### Mothership ↔ edge coupling (remaining)
 
@@ -182,7 +188,6 @@ Runtime status owned by edge ──► Dashboard mothership disconnect UX (compl
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
-Mothership v0.39 ──► InstanceService batch status updates (batch record API spike)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
 CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
 Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
@@ -232,6 +237,7 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-13 | **v0.22→v0.23 version picker UX** — dropped hard minor filter in dashboard version picker; in-place cross-boundary upgrades allowed; v22 callout + confirm dialog for JSVM/custom-hook caution |
 | 2026-06-13 | **SFTP (ssh2) alongside FTPS** — merge `sftp` (d4b45de5): `ssh2` on `PH_SFTP_PORT`, Ed25519 key auth, Account → Keys UI, scoped `InstanceVfs`; release runbook `docs/production.md` |
 | 2026-06-13 | **SFTP prod init fix** — standalone `sftp serve` initializes `MothershipAdminClientService` so `edge-sftp` binds port 2222 |
 | 2026-06-12 | **Remove @s-libs/micro-dash** — natives in ~22 files (pockethost, dashboard, mothership-app); dropped dep from lockfile; `pb_hooks/mothership.js` −37 lines |
@@ -254,6 +260,10 @@ _Completed items with date + link to PR/release._
 | 2026-06-13 | **Dashboard highlight + color deps** — dropped `prismjs` + twilight CSS (instance layout already used `CodeSample`/svelte-highlight); fixed Tableau10 palette in `secrets/stores.ts`; removed `d3-scale` + `d3-scale-chromatic` |
 | 2026-06-13 | **VFS deploy sync state at instance root** — allow `.ftp-deploy-sync-state.json` for phio + FTP-Deploy-Action (`132cf51d`) |
 | 2026-06-13 | **SFTP relative paths for deploy** — `SftpSession` uses `InstanceVfs.cwd` (REALPATH on dirs); fixes ftp-deploy stale-file deletes (`pb_public/assets/*`) (`ec3bd82c`) |
+| 2026-06-13 | **FTPS login welcome banner** — `ftp-srv` `greeting` on connect: SFTP host/port, `/docs/ftp`, deprecation + grace-period notice |
+| 2026-06-14 | **PocketHost 3.0 prep notice** — site-wide banner, `/3.0` info page (SFTP, Flounder sunset, pricing for new signups), prose layout typography |
+| 2026-06-14 | **phio SFTP deploy + docs** — `dev`/`deploy` on SFTP :2222, auto-provision `Phio` deploy key, `.phioconfig` project linking, `/docs/phio` |
+| 2026-06-14 | **phio sftp command** — interactive SFTP via system client (`--print`), `/docs/phio` + README |
 
 ---
 

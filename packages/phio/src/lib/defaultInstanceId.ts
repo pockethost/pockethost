@@ -1,48 +1,70 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { PHIO_INSTANCE_NAME } from './constants'
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { PHIO_CONFIG_FILE, PHIO_INSTANCE_NAME } from './constants'
+
+type PhioConfig = {
+  instanceName?: string
+}
+
+const readPhioConfig = (): PhioConfig | null => {
+  if (!existsSync(PHIO_CONFIG_FILE)) {
+    return null
+  }
+  return JSON.parse(readFileSync(PHIO_CONFIG_FILE).toString()) as PhioConfig
+}
+
+const writePhioConfig = (instanceName: string) => {
+  writeFileSync(PHIO_CONFIG_FILE, JSON.stringify({ instanceName }, null, 2) + '\n')
+}
+
+const migrateLegacyPackageJson = (): string | null => {
+  if (!existsSync('package.json')) {
+    return null
+  }
+  const pkg = JSON.parse(readFileSync('package.json').toString())
+  const instanceName = pkg.pockethost?.instanceName
+  if (!instanceName) {
+    return null
+  }
+
+  writePhioConfig(instanceName)
+  delete pkg.pockethost.instanceName
+  if (Object.keys(pkg.pockethost).length === 0) {
+    delete pkg.pockethost
+  }
+  writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n')
+  console.log(`Migrated instance link from package.json to ${PHIO_CONFIG_FILE}`)
+  return instanceName
+}
+
+const migrateLegacyPockethostJson = (): string | null => {
+  if (!existsSync('pockethost.json')) {
+    return null
+  }
+  const legacy = JSON.parse(readFileSync('pockethost.json').toString())
+  const instanceName = legacy.instanceName
+  if (!instanceName) {
+    return null
+  }
+
+  writePhioConfig(instanceName)
+  unlinkSync('pockethost.json')
+  console.log(`Migrated instance link from pockethost.json to ${PHIO_CONFIG_FILE}`)
+  return instanceName
+}
 
 export const savedInstanceName = () => {
   if (PHIO_INSTANCE_NAME()) {
     return PHIO_INSTANCE_NAME()
   }
-  if (existsSync('package.json')) {
-    const pkg = JSON.parse(readFileSync('package.json').toString())
-    if (pkg.pockethost?.instanceName) {
-      return pkg.pockethost.instanceName
-    }
+
+  const phioConfig = readPhioConfig()
+  if (phioConfig?.instanceName) {
+    return phioConfig.instanceName
   }
-  if (existsSync('pockethost.json')) {
-    const pkg = JSON.parse(readFileSync('pockethost.json').toString())
-    if (pkg.instanceName) {
-      return pkg.instanceName
-    }
-  }
-  return null
+
+  return migrateLegacyPackageJson() ?? migrateLegacyPockethostJson()
 }
 
-export const saveInstanceName = (
-  instanceName: string,
-  file: 'package.json' | 'pockethost.json'
-) => {
-  if (!existsSync(file)) {
-    // Create new file if it doesn't exist
-    const newContent =
-      file === 'package.json'
-        ? { pockethost: { instanceName } }
-        : { instanceName }
-    writeFileSync(file, JSON.stringify(newContent, null, 2))
-    return
-  }
-
-  // Update existing file
-  const content = JSON.parse(readFileSync(file).toString())
-
-  if (file === 'package.json') {
-    content.pockethost = content.pockethost || {}
-    content.pockethost.instanceName = instanceName
-  } else {
-    content.instanceName = instanceName
-  }
-
-  writeFileSync(file, JSON.stringify(content, null, 2))
+export const saveInstanceName = (instanceName: string) => {
+  writePhioConfig(instanceName)
 }

@@ -1,7 +1,8 @@
 ---
-description: phio customer CLI — compatibility when changing file access or deploy paths
+description: phio customer CLI — compatibility, docs, and deploy contract
 globs:
   - packages/phio/**
+  - packages/dashboard/src/routes/(static)/docs/phio/**
   - packages/pockethost/src/services/InstanceFileAccess/**
   - packages/pockethost/src/cli/commands/EdgeCommand/FtpCommand/**
   - packages/pockethost/src/cli/commands/SftpCommand/**
@@ -9,12 +10,27 @@ globs:
 
 # phio compatibility
 
-`packages/phio/` is the **customer-facing CLI**. It deploys via **FTPS** using the vendored Kirkland sync engine (`vendor/ftp-deploy/`) and the `__auth__` cookie trick against `InstanceVfs`.
+`packages/phio/` is the **customer-facing CLI**. It deploys via **SFTP** (port 2222, Ed25519 deploy key) using the vendored Kirkland sync engine (`vendor/ftp-deploy/`) against `InstanceVfs`.
 
-Before landing changes to file access, VFS guards, FTPS auth, or instance paths:
+Before landing changes to file access, VFS guards, SFTP key auth, or instance paths:
 
 1. Read [`.cursor/skills/phio/SKILL.md`](../skills/phio/SKILL.md).
 2. Confirm `phio deploy` / `dev` still work (especially instance-root writes like `.ftp-deploy-sync-state.json`).
-3. Note SFTP-only changes do not affect phio until phio migrates off FTPS.
+3. Legacy FTPS (`edge ftp`) changes do not affect phio unless FTPS protocol is re-enabled in phio.
 
 phio is a pnpm workspace package (Node 24 + tsx), same as `pockethost`.
+
+# phio feature documentation
+
+Ship **user-facing** phio commands, flags, or behavior changes in the **same change set** as docs in **both** places:
+
+| Doc | Path |
+| --- | --- |
+| Package README | `packages/phio/README.md` |
+| Dashboard docs | `packages/dashboard/src/routes/(static)/docs/phio/+page.md` |
+
+Update the commands list, options, and any quick-start examples in both files. Keep them aligned (same command names, flags, defaults).
+
+**Skip** for internal-only work (refactors, deps, tests) with no CLI surface change.
+
+**Blog posts** are separate. Use [`.cursor/skills/feature-blog/SKILL.md`](../skills/feature-blog/SKILL.md) for customer announcements, not as a substitute for README or `/docs/phio`.

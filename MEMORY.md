@@ -10,7 +10,7 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
-| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). FTPS deploy via vendored Kirkland sync (`vendor/ftp-deploy/`). pnpm workspace package; Node 24 + tsx like `pockethost`. See `.cursor/skills/phio/SKILL.md`. |
+| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). SFTP deploy via vendored Kirkland sync (`vendor/ftp-deploy/`, `ssh2-sftp-client`). Instance link in project `.phioconfig` (migrates legacy `package.json` / `pockethost.json`). Resolves project root by scanning up for `.phioconfig`, else nearest `package.json` (skips the phio CLI package). Auto-provisions Ed25519 deploy key labeled `Phio`. Docs: `/docs/phio`. pnpm workspace package; Node 24 + tsx like `pockethost`. See `.cursor/skills/phio/SKILL.md`. |
 
 Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
 
@@ -104,6 +104,8 @@ pnpm dev:dashboard         # terminal 3 — Vite :5174, browse via https://pocke
 ```
 
 Dev TLS: `serve` runs `ensureDevTlsCerts` (devcert → `$PH_HOME/ssl/tls.{key,cert}`). Firewall terminates HTTPS on 443 in dev when certs exist. Use HTTPS URLs, not `:5174` direct (insecure context). `lvh.me` → 127.0.0.1; ports 80/443 may need sudo locally.
+
+**macOS Docker Desktop:** instance spawn uses nested file bind mounts (binary + platform hooks under the instance dir). VirtioFS breaks these on arm64 ([desktop-feedback#420](https://github.com/docker/desktop-feedback/issues/420)). Use **gRPC FUSE** file sharing (Settings → General), not VirtioFS. Restart Docker after switching.
 
 After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 

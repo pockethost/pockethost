@@ -24,7 +24,6 @@ try {
 }
 
 export const versions = writable<string[]>([])
-export const is23Available = writable(false)
 export const isMothershipReachable = writable(true)
 export const isUserLegacy = writable(false)
 export const userSubscriptionType = writable(SubscriptionType.Legacy)
@@ -78,7 +77,6 @@ export const init = () => {
     fetchVersions()
       .then((versionList) => {
         versions.set(versionList)
-        is23Available.set(versionList.includes('0.23.*'))
         console.log('Fetched versions', versionList)
       })
       .finally(() => {

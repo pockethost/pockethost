@@ -9,7 +9,7 @@ patchedDependencies:
 allowBuilds:
   '@parcel/watcher': true
   better-sqlite3: true
-  cpu-features: true
+  cpu-features: false
   dtrace-provider: true
   esbuild: true
   lzma-native: true
@@ -18,3 +18,6 @@ allowBuilds:
   ssh2: true
   svelte-preprocess: true
   workerd: true
+
+minimumReleaseAgeExclude:
+  - better-sqlite3@12.10.1

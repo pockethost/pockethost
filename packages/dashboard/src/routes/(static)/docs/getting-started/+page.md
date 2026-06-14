@@ -64,6 +64,8 @@ For hooks, migrations, and backups, use **SFTP** with an Ed25519 SSH key.
 
 Legacy FTPS on port 21 is deprecated. See **[SFTP File Access](/docs/ftp)** for macOS, Windows, Linux, and client-specific instructions.
 
+For watch-and-deploy from your project directory, use **[phio](/docs/phio)** (`phio link`, `phio dev`, `phio deploy`).
+
 ---
 
 **Next Steps**:
@@ -72,7 +74,7 @@ Now that you're set up, you can start building your application!
 
 - **Configure Your Database**: Set up collections and records in the admin UI.
 - **Integrate with Your App**: Connect your PocketBase instance to your web or mobile application.
-- **Deploy Updates**: Use [SFTP](/docs/ftp) or the admin UI to manage your instance files.
+- **Deploy Updates**: Use [phio](/docs/phio), [SFTP](/docs/ftp), or the admin UI to manage your instance files.
 
 ---
 

@@ -49,7 +49,8 @@ If the warning annoys you locally, `WarnWeakCrypto no` in `~/.ssh/config` for th
 | -------------------------------------------------- | -------------------------- | ------ |
 | SFTP on 2222, Ed25519 keys, scoped instance access | Shipped                    | Done   |
 | Docs and dashboard key UI                          | Shipped                    | Done   |
-| FTPS login banner pointing at SFTP                 | Soon                       |        |
+| FTPS login banner pointing at SFTP                 | Shipped                    | Done   |
+| In-app FTPS sunset callout (dashboard)             | Superseded by `/3.0` site banner | —      |
 | Post-quantum hybrid KEX                            | Blocked on upstream `ssh2` |        |
 | FTPS sunset (blog, email, removal)                 | After grace period         |        |
 

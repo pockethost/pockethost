@@ -13,7 +13,7 @@ export async function ensureDir(client: ftp.Client, logger: ILogger, timings: IT
     timings.stop("changingDir");
 }
 
-interface ISyncProvider {
+export interface ISyncProvider {
     createFolder(folderPath: string): Promise<void>;
     removeFile(filePath: string): Promise<void>;
     removeFolder(folderPath: string): Promise<void>;

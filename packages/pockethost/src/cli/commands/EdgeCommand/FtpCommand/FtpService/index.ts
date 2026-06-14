@@ -1,9 +1,12 @@
 import {
+  DOC_URL,
+  EDGE_APEX_DOMAIN,
   MOTHERSHIP_URL,
   PH_FTP_PASV_IP,
   PH_FTP_PASV_PORT_MAX,
   PH_FTP_PASV_PORT_MIN,
   PH_FTP_PORT,
+  PH_SFTP_PORT,
   SSL_CERT,
   SSL_KEY,
   SingletonBaseConfig,
@@ -30,6 +33,14 @@ const resolvePasvUrl = (clientIp?: string) => {
   return PH_FTP_PASV_IP()
 }
 
+const mkFtpsGreeting = () =>
+  [
+    'PocketHost FTPS is deprecated. Please migrate to SFTP.',
+    `SFTP: ftp.${EDGE_APEX_DOMAIN()}:${PH_SFTP_PORT()} with Ed25519 SSH keys (Account > Keys in the dashboard).`,
+    `Docs: ${DOC_URL('ftp')}`,
+    'FTPS removal date TBD. Grace period active.',
+  ].join('\n')
+
 export const ftpService = mkSingleton((config: FtpConfig) => {
   const { mothershipUrl } = mergeConfig(
     {
@@ -47,6 +58,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
   const ftpServer = new FtpSrv({
     url: 'ftp://0.0.0.0:' + PH_FTP_PORT(),
     anonymous: false,
+    greeting: mkFtpsGreeting(),
     log: _ftpServiceLogger,
     tls,
     pasv_url: resolvePasvUrl,

@@ -174,7 +174,7 @@
             href={`${base}/webhooks`}
             class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('webhooks'))}"
           >
-            <wa-icon name="webhook" class="text-base opacity-70"></wa-icon>
+            <wa-icon name="clock" class="text-base opacity-70"></wa-icon>
             Webhooks
           </a>
           <a

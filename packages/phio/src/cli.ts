@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import { program } from 'commander'
 import { version } from '../package.json'
+import { ensurePhioRoot } from './lib/phioRoot'
 import { DeployCommand } from './commands/DeployCommand'
 import { DevCommand } from './commands/DevCommand'
 import { InfoCommand } from './commands/InfoCommand'
@@ -9,7 +10,9 @@ import { ListCommand } from './commands/ListCommand'
 import { LoginCommand } from './commands/LoginCommand'
 import { LogoutCommand } from './commands/LogoutCommand'
 import { LogsCommand } from './commands/LogsCommand'
-import { WhoAmICommand } from './commands/WhoAmICommand'
+import { SftpCommand } from './commands/SftpCommand'
+
+ensurePhioRoot()
 
 program
   .name(`PocketHost CLI`)
@@ -18,10 +21,10 @@ program
   .addCommand(LoginCommand())
   .addCommand(LogsCommand())
   .addCommand(DevCommand())
-  .addCommand(WhoAmICommand())
   .addCommand(ListCommand())
   .addCommand(LinkCommand())
   .addCommand(DeployCommand())
+  .addCommand(SftpCommand())
   .addCommand(LogoutCommand())
   .addCommand(InfoCommand())
 
@@ -29,7 +32,7 @@ program
 program.exitOverride()
 
 program.parseAsync(process.argv).catch((err: NodeJS.ErrnoException & { code?: string }) => {
-  if (err.code === 'commander.helpDisplayed' || err.code === 'commander.version') {
+  if (err.code === 'commander.helpDisplayed' || err.code === 'commander.help' || err.code === 'commander.version') {
     process.exit(0)
   }
   if (err.code === 'commander.unknownCommand') {

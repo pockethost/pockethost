@@ -5,7 +5,7 @@ import { InstanceFields } from '../lib/InstanceFields'
 import { getClient, getInstanceBySubdomainCnameOrId } from './../lib/getClient'
 
 export const link = async (instanceName: string) => {
-  saveInstanceName(instanceName, 'package.json')
+  saveInstanceName(instanceName)
   const instance = await getInstanceBySubdomainCnameOrId(instanceName)
   if (!instance) {
     return
