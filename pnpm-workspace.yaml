@@ -1,3 +1,20 @@
 packages:
   - 'packages/*'
   - 'packages/pockethost/src/mothership-app'
+
+patchedDependencies:
+  tail: patches/tail.patch
+  '@types/tail': patches/@types__tail.patch
+
+allowBuilds:
+  '@parcel/watcher': true
+  better-sqlite3: true
+  cpu-features: true
+  dtrace-provider: true
+  esbuild: true
+  lzma-native: true
+  protobufjs: true
+  sharp: true
+  ssh2: true
+  svelte-preprocess: true
+  workerd: true
