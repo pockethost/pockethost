@@ -13,16 +13,16 @@ FTPS stays available during a short grace period so you can move hooks, migratio
 
 ### Deploy tooling (phio and GitHub Actions)
 
-If you use **`phio deploy`**, **`phio dev`**, or [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) against `ftp.pockethost.io:21`, you are on FTPS today.
+**`phio deploy`** and **`phio dev`** now sync over **SFTP on port 2222** with an auto-provisioned Ed25519 deploy key. See **[phio CLI](/docs/phio)**.
 
-We are migrating deploy sync to **SFTP on port 2222** with the same SSH keys you register under **[Account → Keys](/account/keys)**. The virtual instance layout and `.ftp-deploy-sync-state.json` at the instance root stay the same. Only the transport changes.
+If you use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) against `ftp.pockethost.io:21`, you are still on FTPS. Migrate to SFTP on port 2222 with an Ed25519 private key, or run **`phio deploy`** in CI instead.
 
-Until that migration ships:
+Until every CI pipeline moves off port 21:
 
-- **Manual SFTP** works now on 2222.
-- **phio / FTPS deploy** still works on 21 for a limited time.
+- **Manual SFTP** and **phio** work on 2222.
+- **FTPS deploy on 21** still works for a limited time.
 
-We will update phio, the docs, and CI examples when SFTP deploy is ready. Watch the blog or Discord for the all-clear.
+The virtual instance layout and `.ftp-deploy-sync-state.json` at the instance root stay the same. Only the transport changes.
 
 ### How to migrate today
 
@@ -31,7 +31,7 @@ We will update phio, the docs, and CI examples when SFTP deploy is ready. Watch 
 3. Point your SFTP client at `ftp.pockethost.io:2222` with your email as the username.
 4. Retire FTPS bookmarks and port-21 firewall rules.
 
-For GitHub Actions, switch from FTPS to SFTP once we publish the updated workflow snippet in `/docs/ftp`.
+For GitHub Actions, migrate from FTPS to SFTP or use **`phio deploy`** in CI. See [/docs/phio](/docs/phio).
 
 ### Why SFTP wins
 

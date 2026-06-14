@@ -27,3 +27,5 @@ export const PHIO_USERNAME = () => env.get('PHIO_USERNAME').asString() || ''
 export const PHIO_PASSWORD = () => env.get('PHIO_PASSWORD').asString() || ''
 export const PHIO_INSTANCE_NAME = () =>
   env.get('PHIO_INSTANCE_NAME').asString() || ''
+
+export const PHIO_CONFIG_FILE = '.phioconfig'

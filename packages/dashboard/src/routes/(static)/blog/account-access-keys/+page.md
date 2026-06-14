@@ -52,7 +52,7 @@ Those are the next chapters. The `ssh_keys` collection and scoped virtual filesy
 | ----- | ---- | ------ |
 | Account → Keys UI, Ed25519 registration | Shipped | Done |
 | Per-key instance scope on SFTP | Shipped | Done |
-| SFTP deploy via scoped keys (phio, CI) | In progress | |
+| SFTP deploy via scoped keys (phio, CI) | Shipped (phio) | Done |
 | Dashboard/API access with limited roles | Planned | |
 
 If you have been waiting to share hosting access without sharing everything, start with keys. Tell us what permission shape you need next on [Discord](https://discord.gg/nVTxCMEcGT).

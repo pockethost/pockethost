@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import { program } from 'commander'
 import { version } from '../package.json'
+import { ensurePhioRoot } from './lib/phioRoot'
 import { DeployCommand } from './commands/DeployCommand'
 import { DevCommand } from './commands/DevCommand'
 import { InfoCommand } from './commands/InfoCommand'
@@ -9,6 +10,9 @@ import { ListCommand } from './commands/ListCommand'
 import { LoginCommand } from './commands/LoginCommand'
 import { LogoutCommand } from './commands/LogoutCommand'
 import { LogsCommand } from './commands/LogsCommand'
+import { SftpCommand } from './commands/SftpCommand'
+
+ensurePhioRoot()
 
 program
   .name(`PocketHost CLI`)
@@ -20,6 +24,7 @@ program
   .addCommand(ListCommand())
   .addCommand(LinkCommand())
   .addCommand(DeployCommand())
+  .addCommand(SftpCommand())
   .addCommand(LogoutCommand())
   .addCommand(InfoCommand())
 

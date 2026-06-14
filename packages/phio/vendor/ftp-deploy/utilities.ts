@@ -174,12 +174,15 @@ export function getDefaultSettings(withoutDefaults: IFtpDeployArguments): IFtpDe
         }
     }
 
+    const protocol = withoutDefaults.protocol ?? "ftp";
+
     return {
         "server": withoutDefaults.server,
         "username": withoutDefaults.username,
-        "password": withoutDefaults.password,
-        "port": withoutDefaults.port ?? 21,
-        "protocol": withoutDefaults.protocol ?? "ftp",
+        "password": withoutDefaults.password ?? "",
+        "port": withoutDefaults.port ?? (protocol === "sftp" ? 2222 : 21),
+        "protocol": protocol,
+        "private-key-path": withoutDefaults["private-key-path"],
         "local-dir": withoutDefaults["local-dir"] ?? "./",
         "server-dir": withoutDefaults["server-dir"] ?? "./",
         "state-name": withoutDefaults["state-name"] ?? ".ftp-deploy-sync-state.json",

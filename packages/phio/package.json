@@ -1,6 +1,6 @@
 {
   "name": "phio",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "A CLI tool to manage your PocketHost instances",
   "repository": {
     "type": "git",
@@ -41,8 +41,8 @@
   ],
   "dependencies": {
     "@inquirer/prompts": "^7.3.2",
-    "@s-libs/micro-dash": "^18.0.0",
     "@microsoft/fetch-event-source": "github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0",
+    "@s-libs/micro-dash": "^18.0.0",
     "basic-ftp": "^5.0.5",
     "bottleneck": "^2.19.5",
     "chokidar": "^4.0.3",
@@ -59,12 +59,14 @@
     "pocketbase": "^0.25.1",
     "pretty-bytes": "^5.6.0",
     "pretty-ms": "^7.0.1",
+    "ssh2-sftp-client": "^12.1.1",
     "tsx": "^4.19.3",
     "yargs": "^17.7.1"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.0.0",
+    "@types/ssh2-sftp-client": "^9.0.6",
     "typescript": "^5.7.3"
   },
   "prettier": {

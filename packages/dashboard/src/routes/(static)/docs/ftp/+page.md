@@ -208,3 +208,17 @@ Recent OpenSSH clients may warn that the connection is not using a post-quantum 
 ## Legacy FTPS
 
 FTPS on port 21 (explicit TLS, email + password) remains available during the migration period. Do not use it for new projects. It will be removed after a documented sunset period.
+
+## Automated deploy (phio and CI)
+
+For day-to-day development, use **[phio](/docs/phio)** to link a project, watch local files, and sync over SFTP:
+
+```bash
+phio login
+phio link my-instance
+phio dev
+```
+
+phio manages its own Ed25519 deploy key (labeled **`Phio`** under Account → Keys). You do not need a separate key for phio unless you want scoped CI access.
+
+For GitHub Actions, either run **`phio deploy`** with `PHIO_USERNAME` / `PHIO_PASSWORD` secrets (see [phio CLI](/docs/phio)), or migrate [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) from FTPS on port 21 to SFTP on port 2222 with an Ed25519 private key. See **[FTPS sunset](/blog/ftps-sunset)** for the migration timeline.
