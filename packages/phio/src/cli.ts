@@ -29,7 +29,7 @@ program
 program.exitOverride()
 
 program.parseAsync(process.argv).catch((err: NodeJS.ErrnoException & { code?: string }) => {
-  if (err.code === 'commander.helpDisplayed' || err.code === 'commander.version') {
+  if (err.code === 'commander.helpDisplayed' || err.code === 'commander.help' || err.code === 'commander.version') {
     process.exit(0)
   }
   if (err.code === 'commander.unknownCommand') {
