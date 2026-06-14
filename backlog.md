@@ -83,6 +83,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Account email change (verified swap)** | Med | M | Dashboard + mothership: save pending new email, send verification link, swap to primary only after confirm — never write an unverified address to auth `email`. **Today:** a naive email update leaves the account unverified → login and instance access break until support. Lemon Squeezy customer email may need sync on confirm. Customers can update email without locking themselves out or taking instances down. |
 | **Revisit v0.22→v0.23 version boundary UX** | Low | S | Dashboard version picker filters minors across the v22/v23 line (`instances/.../version/+page.svelte`); warns manual migration both directions. Re-evaluate: in-place v22→v23 upgrade should work on PocketHost (JSVM hook rewrites are a separate concern); rollbacks were never supported. May drop the hard boundary and simplify picker + `/docs/versions`. |
 | **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
@@ -212,6 +213,7 @@ Halt lifetime edition sales ──► Pricing redo (policy; ship after comms)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 GDPR compliance ──► account data export/deletion UX; privacy policy + subprocessors docs; Lemon Squeezy data flows
 GDPR delete account ──► GDPR compliance (erasure); edge cleanup for all instances; LS subscription cancel
+Account email change (verified swap) ──► Lemon Squeezy lifecycle (customer email sync on confirm)
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
 Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → pockethost/pocketpages overlays)
