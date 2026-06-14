@@ -126,4 +126,4 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-_(none — add in-flight cross-cutting work here; delete when done)_
+- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`) — pending dual-auth CLI + prod mothership reload. Cutover has no preupgrade SQL step.
