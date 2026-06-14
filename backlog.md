@@ -65,7 +65,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **Scheduled / reliable automatic backups** | Med | M–L | **Follow up:** Discord `wesochuck` (Wes Osborn) — asked whether webhooks in the PocketHost UI should trigger PB backups; confirmed manual backup is best for now. **Problem:** low-traffic instances hibernate; PB cron and webhook→JSVM backup scripts both require a warm container, so scheduled backups are unreliable today. **Options to spike:** platform cron that wakes instance → runs backup → hibernates; mothership/edge-initiated backup without full PB runtime; dashboard schedule UX. Frequent customer ask. |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
 | **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
-| **FTPS sunset comms** | Low | S–M | Blog (`/blog/sftp-file-access`) + `/docs/ftp` deprecation copy shipped. Remaining: dashboard notice, email to active FTPS users, explicit sunset date. **Blocked by:** SFTP prod deploy. Then schedule **Remove FTPS**. |
+| **FTPS sunset comms** | Low | S–M | Blog (`/blog/sftp-file-access`) + `/docs/ftp` deprecation copy shipped. Remaining: dashboard notice, email to active FTPS users, explicit sunset date. Then schedule **Remove FTPS**. |
 | **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** SFTP shipped + **FTPS sunset comms** grace period elapsed. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
@@ -244,6 +244,7 @@ _Completed items with date + link to PR/release._
 | Date | Item |
 | ---- | ---- |
 | 2026-06-13 | **SFTP (ssh2) alongside FTPS** — merge `sftp` (d4b45de5): `ssh2` on `PH_SFTP_PORT`, Ed25519 key auth, Account → Keys UI, scoped `InstanceVfs`; release runbook `docs/production.md` |
+| 2026-06-13 | **SFTP prod init fix** — standalone `sftp serve` initializes `MothershipAdminClientService` so `edge-sftp` binds port 2222 |
 | 2026-06-12 | **Remove @s-libs/micro-dash** — natives in ~22 files (pockethost, dashboard, mothership-app); dropped dep from lockfile; `pb_hooks/mothership.js` −37 lines |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
