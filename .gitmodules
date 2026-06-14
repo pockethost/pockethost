@@ -1,3 +1,0 @@
-[submodule "packages/phio"]
-	path = packages/phio
-	url = git@github.com:pockethost/phio.git
