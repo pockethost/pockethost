@@ -257,8 +257,14 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
 
           update(log)
         },
-        onopen: async (response) => {},
-        onerror: (e) => {},
+        onopen: async (response) => {
+          if (!response.ok) {
+            throw new Error(`Log stream failed: ${response.status} ${response.statusText}`)
+          }
+        },
+        onerror: (e) => {
+          console.error(`Log stream error (${url}):`, e)
+        },
         onclose: () => {
           setTimeout(continuallyFetchFromEventSource, 100)
         },

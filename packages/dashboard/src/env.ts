@@ -36,6 +36,14 @@ export const INSTANCE_HOST = (instance: InstanceFields) => {
   return instance.cname || INSTANCE_BARE_HOST(instance)
 }
 
+/** In the browser, follow the page protocol so HTTPS dashboard pages can reach instance workers. */
+const instanceHttpProtocol = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.protocol
+  }
+  return PUBLIC_HTTP_PROTOCOL
+}
+
 /**
  * Helpful alias for generating the URL for a specific instance
  *
@@ -47,7 +55,7 @@ export const INSTANCE_HOST = (instance: InstanceFields) => {
  * @param {string[]} paths This is an optional list of additional paths to append to the instance URL.
  */
 export const INSTANCE_URL = (instance: InstanceFields, ...paths: string[]) => {
-  return `${PUBLIC_HTTP_PROTOCOL}//${INSTANCE_HOST(instance)}/${mkPath(...paths)}`
+  return `${instanceHttpProtocol()}//${INSTANCE_HOST(instance)}/${mkPath(...paths)}`
 }
 
 /**
