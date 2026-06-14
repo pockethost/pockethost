@@ -4,14 +4,20 @@
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
   import Toggle from '../Toggle.svelte'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
+  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   const { updateInstance } = client()
 
   $: ({ id, dev } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
+  $: isShuttingDown = isInstanceShuttingDown($instance)
 
   let errorMessage = ''
 
   const handleChange = (isChecked: boolean) => {
+    if (!isFullyOff) return
+
     updateInstance({ id, fields: { dev: isChecked } })
       .then(() => 'saved')
       .catch((error) => {
@@ -27,10 +33,18 @@
   degraded while Dev Mode is active.
 </p>
 
+<PowerOffRequired action="change Dev Mode" />
+
 <ErrorMessage message={errorMessage} />
 
 <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
   <div class="p-6 md:p-8">
-    <Toggle onChange={handleChange} checked={!!dev} onClass="warning" />
+    <Toggle
+      onChange={handleChange}
+      checked={!!dev}
+      onClass="warning"
+      disabled={!isFullyOff}
+      loading={isShuttingDown}
+    />
   </div>
 </wa-card>

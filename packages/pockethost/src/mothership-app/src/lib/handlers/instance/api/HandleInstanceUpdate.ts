@@ -145,6 +145,21 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     }
   }
 
+  const recordAutoVacuum = record.getBool('autoVacuum')
+  const advancedFieldChanging =
+    (subdomain !== null && subdomain !== record.getString('subdomain')) ||
+    (version !== null && version !== record.getString('version')) ||
+    (syncAdmin !== null && syncAdmin !== record.getBool('syncAdmin')) ||
+    (autoVacuum !== null && autoVacuum !== recordAutoVacuum) ||
+    (dev !== null && dev !== record.getBool('dev')) ||
+    cnameChanged
+
+  if (advancedFieldChanging) {
+    if (record.getBool('power') || record.getString('status').toLowerCase() !== 'idle') {
+      throw new BadRequestError(`Instance must be powered off first.`)
+    }
+  }
+
   const sanitized = removeEmptyKeys({
     subdomain,
     version,

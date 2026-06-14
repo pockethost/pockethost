@@ -9,10 +9,13 @@
   import { instance } from '../store'
   import { onDestroy } from 'svelte'
   import { browser } from '$app/environment'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
+  import { isInstanceFullyOff } from '$util/instancePower'
 
   const { updateInstance } = client()
 
   $: ({ cname, id } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
 
   // Health polling state
   let healthCheckInterval: ReturnType<typeof setTimeout>
@@ -90,6 +93,8 @@
   const onRename = (e: Event) => {
     e.preventDefault()
 
+    if (!isFullyOff) return
+
     const trimmed = formCname.trim()
 
     if (trimmed && !$isUserPaid) {
@@ -127,6 +132,8 @@
 
 <CardHeader documentation={`/docs/custom-domain`}>Custom Domain (CNAME)</CardHeader>
 
+<PowerOffRequired action="change the custom domain" />
+
   <div class="mb-8">Use a custom domain (CNAME) with your PocketHost instance.</div>
   {#if cname && regex.test(formCname.trim())}
     <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
@@ -158,6 +165,7 @@
         value={formCname}
         oninput={(e) => (formCname = e.currentTarget.value)}
         class="w-full pr-10"
+        disabled={!isFullyOff}
       ></wa-input>
       {#if cnameToCheck}
         <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -172,7 +180,7 @@
       {/if}
     </div>
 
-    <wa-button type="submit" variant="danger" disabled={isButtonDisabled}>Update Custom Domain</wa-button>
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button>
   </form>
 
 <style>

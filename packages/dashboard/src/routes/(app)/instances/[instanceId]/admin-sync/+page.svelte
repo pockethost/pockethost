@@ -4,15 +4,20 @@
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
   import Toggle from '../Toggle.svelte'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
+  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   const { updateInstance } = client()
 
   $: ({ id, syncAdmin } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
+  $: isShuttingDown = isInstanceShuttingDown($instance)
 
   let errorMessage = ''
 
   const handleChange = (isChecked: boolean) => {
-    // Update the database with the new value
+    if (!isFullyOff) return
+
     updateInstance({ id, fields: { syncAdmin: isChecked } })
       .then(() => 'saved')
       .catch((error) => {
@@ -28,10 +33,12 @@
   pockethost.io account.
 </p>
 
+<PowerOffRequired action="change Admin Sync" />
+
 <ErrorMessage message={errorMessage} />
 
 <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
   <div class="p-6 md:p-8">
-    <Toggle checked={!!syncAdmin} onChange={handleChange} />
+    <Toggle checked={!!syncAdmin} onChange={handleChange} disabled={!isFullyOff} loading={isShuttingDown} />
   </div>
 </wa-card>

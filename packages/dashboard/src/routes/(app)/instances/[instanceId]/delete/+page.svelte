@@ -5,12 +5,11 @@
   import { globalInstancesStore } from '$util/stores'
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
-  import AlertBar from '$components/AlertBar.svelte'
-  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
+  import { isInstanceFullyOff } from '$util/instancePower'
 
-  $: ({ id, power, subdomain } = $instance)
+  $: ({ id, subdomain } = $instance)
   $: isFullyOff = isInstanceFullyOff($instance)
-  $: isShuttingDown = isInstanceShuttingDown($instance)
 
   let isButtonDisabled = false
   let errorMessage = ''
@@ -19,6 +18,8 @@
 
   const handleSave = async (e: Event) => {
     e.preventDefault()
+
+    if (!isFullyOff) return
 
     isButtonDisabled = true
 
@@ -50,15 +51,9 @@
 
 <CardHeader documentation={`/docs/delete`}>Delete Instance</CardHeader>
 
-{#if power && !isShuttingDown}
-  <div class="mb-6">
-    <AlertBar message="Instance must be powered off before deleting." type="error" />
-  </div>
-{:else if isShuttingDown}
-  <div class="mb-6">
-    <AlertBar message="Instance is shutting down. Please wait until it has fully stopped." type="warning" />
-  </div>
-{/if}
+<div class="mb-6">
+  <PowerOffRequired poweredOffMessage="Instance must be powered off before deleting." />
+</div>
 
 <p class="text-white/70 text-sm mb-6 leading-relaxed">
   Deleting your instance is immediate and permanent. Everything below will be removed from PocketHost.

@@ -3,10 +3,13 @@
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import AlertBar from '$components/AlertBar.svelte'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
+  import { isInstanceFullyOff } from '$util/instancePower'
 
   const { updateInstance } = client()
 
   $: ({ subdomain, id } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
 
   // Create a copy of the subdomain
   let formSubdomain = subdomain
@@ -25,6 +28,8 @@
   // TODO: What are the limits for this?
   const onRename = (e: Event) => {
     e.preventDefault()
+
+    if (!isFullyOff) return
 
     errorMessage = ''
     successMessage = ''
@@ -61,6 +66,8 @@
 
 <CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
 
+<PowerOffRequired action="rename this instance" />
+
 <p class="text-white/70 text-sm mb-6 leading-relaxed">
     Renaming your instance will cause it to become <strong class="text-error">inaccessible</strong> by the old instance name.
     You also may not be able to change it back if someone else choose it.
@@ -79,10 +86,11 @@
         value={formSubdomain}
         oninput={(e) => (formSubdomain = e.currentTarget.value)}
         class="w-full"
+        disabled={!isFullyOff}
       ></wa-input>
     </div>
 
-    <wa-button type="submit" variant="danger" disabled={isButtonDisabled}>Rename Instance</wa-button>
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Rename Instance</wa-button>
   </form>
 
 <style>

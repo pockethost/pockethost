@@ -4,10 +4,11 @@
   import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
   import AlertBar from '$components/AlertBar.svelte'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
   import { versions as allVersions, is23Available } from '$src/util/stores'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
-  $: ({ id, power, version } = $instance)
+  $: ({ id, version } = $instance)
   $: isFullyOff = isInstanceFullyOff($instance)
   $: isShuttingDown = isInstanceShuttingDown($instance)
 
@@ -43,6 +44,8 @@
   // Update the version number
   const handleSave = async (e: Event) => {
     e.preventDefault()
+
+    if (!isFullyOff) return
 
     errorMessage = ''
     successMessage = ''
@@ -80,11 +83,7 @@
 
 <CardHeader documentation={`/docs/versions`}>Version Change</CardHeader>
 
-  {#if power && !isShuttingDown}
-    <AlertBar message="Your instance must be powered off to change the version." type="error" />
-  {:else if isShuttingDown}
-    <AlertBar message="Instance is shutting down. Please wait until it has fully stopped." type="warning" />
-  {/if}
+  <PowerOffRequired action="change the version" />
 
   <div class="mb-8">
     We recommend you <strong>do a full backup</strong>
@@ -134,7 +133,7 @@
   <AlertBar message={errorMessage} type="error" />
 
   <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
-    <VersionPicker bind:selectedVersion bind:versions />
+    <VersionPicker bind:selectedVersion bind:versions disabled={!isFullyOff} />
 
     <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
   </form>
