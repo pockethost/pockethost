@@ -73,6 +73,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       secrets: null,
       webhooks: null,
       syncAdmin: null,
+      autoVacuum: null,
       dev: null,
       cname: null,
     },
@@ -85,6 +86,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       secrets: StringKvLookup | null
       webhooks: InstanceWebhookCollection | null
       syncAdmin: boolean | null
+      autoVacuum: boolean | null
       dev: boolean | null
       cname: string | null
     }
@@ -98,7 +100,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
 
   const id = c.pathParam('id')
   const {
-    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname },
+    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname },
   } = data
 
   log(
@@ -111,6 +113,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
       secrets,
       webhooks,
       syncAdmin,
+      autoVacuum,
       dev,
       cname,
     })
@@ -149,6 +152,7 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     secrets,
     webhooks,
     syncAdmin,
+    autoVacuum,
     dev,
     cname,
   })

@@ -44,6 +44,8 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   power: boolean
   suspension: string
   syncAdmin: boolean
+  /** Defaults to true when unset */
+  autoVacuum?: boolean
   cname: string
   dev: boolean
   /** @deprecated Will be removed - frontend now handles health checking directly */

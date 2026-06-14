@@ -70,6 +70,7 @@ const HandleInstanceCreate = (c) => {
 	record.set("version", version);
 	record.set("dev", true);
 	record.set("syncAdmin", true);
+	record.set("autoVacuum", true);
 	const form = new RecordUpsertForm($app, record);
 	form.submit();
 	return c.json(200, { instance: record });
@@ -154,6 +155,7 @@ const HandleInstanceUpdate = (c) => {
 			secrets: null,
 			webhooks: null,
 			syncAdmin: null,
+			autoVacuum: null,
 			dev: null,
 			cname: null
 		}
@@ -162,7 +164,7 @@ const HandleInstanceUpdate = (c) => {
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const id = c.pathParam("id");
-	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname } } = data;
+	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname } } = data;
 	log(`vars`, JSON.stringify({
 		id,
 		subdomain,
@@ -171,6 +173,7 @@ const HandleInstanceUpdate = (c) => {
 		secrets,
 		webhooks,
 		syncAdmin,
+		autoVacuum,
 		dev,
 		cname
 	}));
@@ -194,6 +197,7 @@ const HandleInstanceUpdate = (c) => {
 		secrets,
 		webhooks,
 		syncAdmin,
+		autoVacuum,
 		dev,
 		cname
 	});
@@ -380,6 +384,13 @@ const AfterCreate_notify_discord = (e) => {
 	} catch (e$1) {
 		audit(`ERROR`, `Instance creation discord notify failed with ${e$1}`);
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/instance/model/BeforeCreate_autoVacuum.ts
+const BeforeCreate_autoVacuum = (e) => {
+	const record = e.model;
+	record.set("autoVacuum", true);
 };
 
 //#endregion
@@ -2968,6 +2979,7 @@ const HandleSignupConfirm = (c) => {
 			instance.set("status", "idle");
 			instance.set("power", true);
 			instance.set("syncAdmin", true);
+			instance.set("autoVacuum", true);
 			instance.set("dev", true);
 			instance.set("version", version);
 			txDao.saveRecord(instance);
@@ -3224,6 +3236,7 @@ const HandleVersionsRequest = (c) => {
 
 //#endregion
 exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
+exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;

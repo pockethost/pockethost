@@ -44,6 +44,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   record.set('version', version)
   record.set('dev', true)
   record.set('syncAdmin', true)
+  record.set('autoVacuum', true)
 
   const form = new RecordUpsertForm($app, record)
   form.submit()

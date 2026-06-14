@@ -4,7 +4,7 @@ import { InstanceFields, InstanceId } from '..'
 export type UpdateInstancePayload = {
   id: InstanceId
   fields: Partial<
-    Pick<InstanceFields, 'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'version' | 'dev' | 'cname'>
+    Pick<InstanceFields, 'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'autoVacuum' | 'version' | 'dev' | 'cname'>
   >
 }
 
@@ -23,6 +23,7 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
       type: 'object',
       properties: {
         syncAdmin: { type: 'boolean', nullable: true },
+        autoVacuum: { type: 'boolean', nullable: true },
         subdomain: { type: 'string', nullable: true },
         power: { type: 'boolean', nullable: true },
         version: {

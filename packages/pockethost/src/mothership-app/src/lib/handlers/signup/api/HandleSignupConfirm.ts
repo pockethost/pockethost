@@ -68,6 +68,7 @@ export const HandleSignupConfirm = (c: echo.Context) => {
       instance.set('status', 'idle')
       instance.set('power', true)
       instance.set('syncAdmin', true)
+      instance.set('autoVacuum', true)
       instance.set('dev', true)
       instance.set('version', version)
       txDao.saveRecord(instance)
