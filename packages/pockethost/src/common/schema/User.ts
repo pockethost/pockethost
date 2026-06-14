@@ -29,7 +29,6 @@ export type UserFields<TExtra = {}> = BaseFields & {
   subscription: SubscriptionType
   subscription_interval: SubscriptionInterval
   subscription_quantity: number
-  isStatsRole: boolean
   suspension: string
 } & TExtra
 

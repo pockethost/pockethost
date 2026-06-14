@@ -120,7 +120,6 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | **Runtime status heartbeat lease (Phase 2)** | Med | M | Edge renews `runtime_lease_expires_at` per warm instance; mothership cron expires stale leases → `idle` when edge dies without shutdown hook. Phase 1 sync protocol shipped 2026-06-13; undefined `status` during edge outage accepted until then. |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
 | **Multiple CNAMEs (Pro tier)** | Med | M | Custom domains beyond one per instance; low customer demand so far. |
-| **Stats role: view any instance by direct link** | Low | S | `isStatsRole` users open `/app/instances/:id` for support (logs, overview). Needs PB `viewRule` or `GET /api/instance/:id`, layout fallback fetch, `RealtimeLog` bypass. Read-only for non-owned instances; hide secrets/danger zone. Low support demand; revisit when needed. |
 | **501(c)(3) nonprofit formation** | Med–High | XL | Become an official 501(c)(3): separate bank account, IP transfer from PocketHost to the org, IRS tax-exempt status, state registration, bylaws/board. **Lifetime Flounder revenue** allocates a portion to the nonprofit (fund split + accounting). Explore corporate **sponsorships** for ongoing support. Community gets mission-driven, tax-deductible infrastructure; platform gets durable legal structure beyond a single operator. |
 | **T-shirts** | — | S | Community/swag; not engineering unless merch storefront. |
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
@@ -153,7 +152,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 ### Pricing migration (Flounder + lifetime)
 
-- Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, stats (`total_flounder_subscribers`), edge `instance.idleTtl` / `DAEMON_PB_IDLE_TTL`.
+- Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, edge `instance.idleTtl` / `DAEMON_PB_IDLE_TTL`.
 - **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
 - **Comms sequence (blockers):** (1) pre-announce email to all users — stay or leave; (2) Reddit/community post; (3) update public pricing page; (4) last-chance Flounder blast to existing users; (5) halt new lifetime sales (rest of 2026, maybe permanent); (6) retire tiers with grandfather + grace period.
 

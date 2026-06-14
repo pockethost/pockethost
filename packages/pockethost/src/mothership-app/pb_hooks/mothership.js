@@ -3207,14 +3207,6 @@ const BeforeUpdate_ssh_keys = (e) => {
 };
 
 //#endregion
-//#region src/lib/handlers/stats/api/HandleStatsRequest.ts
-const HandleStatsRequest = (c) => {
-	const result = new DynamicModel({ total_flounder_subscribers: 0 });
-	$app.dao().db().select("total_flounder_subscribers").from("stats").one(result);
-	return c.json(200, result);
-};
-
-//#endregion
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (c) => {
 	const dao = $app.dao();
@@ -3263,7 +3255,6 @@ exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;
 exports.HandleSignupCheck = HandleSignupCheck;
 exports.HandleSignupConfirm = HandleSignupConfirm;
-exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
