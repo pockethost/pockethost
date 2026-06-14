@@ -21,9 +21,19 @@ Long-term: may rename `packages/pockethost` → `pockethost-server` and publish 
 | `phio link <instance>` | Save default instance to `.phioconfig` (migrates legacy `package.json` / `pockethost.json`) |
 | `phio dev [instance]` | Chokidar watch → SFTP sync on change |
 | `phio deploy [instance]` | One-shot SFTP sync |
+| `phio sftp [instance]` | Interactive SFTP session (system `sftp` client; `--print` for command only) |
 | `phio logs [instance]` | SSE tail via `https://{subdomain}.pockethost.io/logs` |
 
 Env overrides: `PHIO_USERNAME`, `PHIO_PASSWORD`, `PHIO_INSTANCE_NAME`, `PHIO_MOTHERSHIP_URL`, `PHIO_HOME`.
+
+## Documentation (required for user-facing changes)
+
+Update **both** in the same PR:
+
+- `packages/phio/README.md`
+- `packages/dashboard/src/routes/(static)/docs/phio/+page.md`
+
+See [`.cursor/rules/phio.mdc`](../../rules/phio.mdc). Blog posts are optional announcements, not a substitute.
 
 ## Deploy key (SFTP prep)
 
