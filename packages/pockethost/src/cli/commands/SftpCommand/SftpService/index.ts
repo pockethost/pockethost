@@ -4,6 +4,8 @@ import {
   PH_SFTP_PORT,
   SingletonBaseConfig,
   asyncExitHook,
+  classifySftpError,
+  isUserError,
   logger,
   mergeConfig,
   mkSingleton,
@@ -30,7 +32,16 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
     config
   )
   const _sftpServiceLogger = logger()
-  const { dbg, info } = _sftpServiceLogger
+  const { dbg, info, error: logError } = _sftpServiceLogger
+
+  const logSftpError = (err: unknown, context?: Record<string, unknown>) => {
+    const classified = classifySftpError(err)
+    if (isUserError(classified)) {
+      dbg(`SFTP client error`, { ...context, message: classified.message })
+      return
+    }
+    logError(classified, context)
+  }
 
   const { client: adminApi } = await MothershipAdminClientService()
   const adminClient = adminApi.client
@@ -44,6 +55,10 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
     (client) => {
       let username = ``
       const state: SftpClientState = {}
+
+      client.on('error', (err) => {
+        logSftpError(err, username ? { username } : undefined)
+      })
 
       client
         .on('authentication', (ctx) => {
@@ -107,6 +122,10 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
         })
     }
   )
+
+  server.on('error', (err) => {
+    logSftpError(err)
+  })
 
   server.listen(PH_SFTP_PORT(), '0.0.0.0', () => {
     info(`SFTP server listening on port ${PH_SFTP_PORT()}`)

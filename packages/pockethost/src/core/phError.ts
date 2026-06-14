@@ -20,6 +20,21 @@ export const isSystemError = (err: unknown): err is PhError => err instanceof Er
 
 const DOCKER_RUN_EXIT_CODES = new Set([125, 126, 127])
 
+/** Client-side SFTP/SSH failures (bad client, wrong port/protocol, failed handshake). */
+const SFTP_CLIENT_ERROR =
+  /Handshake failed|no matching (host key|key exchange|cipher|MAC|compression|authentication method)|Authentication failed|All configured authentication methods failed|Unsupported protocol|Received HTTP request/i
+
+export const isSftpClientError = (err: unknown): boolean => {
+  const msg = err instanceof Error ? err.message : `${err}`
+  return SFTP_CLIENT_ERROR.test(msg)
+}
+
+export const classifySftpError = (err: unknown): PhError => {
+  if (err instanceof Error && err.phErrorKind) return err
+  if (isSftpClientError(err)) return userError(err instanceof Error ? err : new Error(`${err}`))
+  return systemError(err instanceof Error ? err : new Error(`${err}`))
+}
+
 /** Docker daemon / host resource failures. App exit codes (e.g. JSVM) are user-side. */
 export const isPlatformDockerFailure = (statusCode: number, err?: unknown): boolean => {
   if (DOCKER_RUN_EXIT_CODES.has(statusCode)) return true
