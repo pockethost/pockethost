@@ -102,6 +102,8 @@ pnpm dev:dashboard         # terminal 3 — Vite :5174, browse via https://pocke
 
 Dev TLS: `serve` runs `ensureDevTlsCerts` (devcert → `$PH_HOME/ssl/tls.{key,cert}`). Firewall terminates HTTPS on 443 in dev when certs exist. Use HTTPS URLs, not `:5174` direct (insecure context). `lvh.me` → 127.0.0.1; ports 80/443 may need sudo locally.
 
+**macOS Docker Desktop:** instance spawn uses nested file bind mounts (binary + platform hooks under the instance dir). VirtioFS breaks these on arm64 ([desktop-feedback#420](https://github.com/docker/desktop-feedback/issues/420)). Use **gRPC FUSE** file sharing (Settings → General), not VirtioFS. Restart Docker after switching.
+
 After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
