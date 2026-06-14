@@ -1,4 +1,11 @@
-import { canFetch, LoggerService, MOTHERSHIP_URL, neverendingPromise, syncCachedVersionsToMothership } from '@'
+import {
+  canFetch,
+  ensureDevTlsCerts,
+  LoggerService,
+  MOTHERSHIP_URL,
+  neverendingPromise,
+  syncCachedVersionsToMothership,
+} from '@'
 import { Command } from 'commander'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
@@ -11,6 +18,7 @@ export const ServeCommand = () => {
     const { dbg, info } = logger
     info(`Starting`)
 
+    await ensureDevTlsCerts(logger)
     const healthUrl = MOTHERSHIP_URL(`/api/health`)
     if (await canFetch(healthUrl)) {
       info(`Mothership already reachable, skipping launch`)

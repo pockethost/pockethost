@@ -30,6 +30,7 @@
     "commander": "^13.0.0",
     "cors": "^2.8.5",
     "cron": "^4.3.2",
+    "devcert": "^1.2.3",
     "dockerode": "^4.0.3",
     "env-paths": "^3.0.0",
     "env-var": "^7.5.0",
