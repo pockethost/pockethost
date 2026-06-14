@@ -12,6 +12,7 @@
   import PromoBanner from './PromoBanner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
   import { cloudLogo } from '$lib/brand'
+  import a11yDark from 'svelte-highlight/styles/seti-ui'
 
   const currentYear = new Date().getFullYear()
 
@@ -21,6 +22,10 @@
 </script>
 
 <Meta />
+
+<svelte:head>
+  {@html a11yDark}
+</svelte:head>
 
 <div class="bg-[#111111]">
   <MothershipStatus />
