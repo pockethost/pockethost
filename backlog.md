@@ -23,8 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. Coordinate with instance version catalog. **Runtime status Phase 1 done** (delete, power-off, resolve decoupling done). |
-| **InstanceService batch status updates** | Low | S | **Partially done** — reconnect reconcile moved to `POST /api/mirror` (live IDs → mothership `saveRecord` loop). Remaining: per-spawn/shutdown status writes in `InstanceService`; v0.39 batch record APIs may collapse further. |
-| **Remove mothership-boot idle reset** | Low | S | `HandleInstancesResetIdle` still forces all instances `idle` on mothership boot even when edge has warm containers. Edge `POST /api/mirror` (`resetIdle` + live reconcile) fixes edge boot; mothership-only restart still flashes wrong status until next mirror connect. Remove bootstrap hook once Phase 2 lease or always-on edge reconcile is trusted. |
+| **Remove mothership-boot idle reset** | Low | S | **Keep for now** — `HandleInstancesResetIdle` forces all instances `idle` on mothership boot (assume idle until edge speaks up). Edge `POST /api/mirror` live reconcile restores warm rows on reconnect. Brief idle flash on mothership-only restart is acceptable. Remove only after Phase 2 lease or container witness (Icebox). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
 | **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status** (instance FS/delete and resolve decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
@@ -159,7 +158,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | **2 — Heartbeat lease** | Icebox: edge renews `runtime_lease_expires_at`; mothership cron expires stale → `idle` (edge crash without shutdown hook). |
 | **3 — Container witness** | Icebox: optional SSE/lease from instance container. |
 
-**Remaining gaps:** mothership-boot `HandleInstancesResetIdle` (see backlog row), per-spawn/shutdown status writes in `InstanceService`, dashboard SSE reconnect UX.
+**Remaining gaps:** dashboard SSE reconnect UX. Mothership-boot idle reset is intentional (see backlog row); Phase 2 lease deferred to Icebox.
 
 ### Mothership ↔ edge coupling (remaining)
 
@@ -180,7 +179,6 @@ Runtime status owned by edge ──► Dashboard mothership disconnect UX (compl
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
-Mothership v0.39 ──► InstanceService batch status updates (batch record API spike)
 Mothership build hygiene ──► CI gates (fresh handler bundle check)
 CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
 Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
