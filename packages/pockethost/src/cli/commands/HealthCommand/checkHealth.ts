@@ -169,14 +169,14 @@ export const checkHealth = async () => {
       priority: 10,
       emoji: `:park:`,
       isHealthy: false,
-      url: `https://proxy.pockethost.io/_api/health`,
+      url: `https://proxy.pockethost.io/api/firewall/health`,
     },
     {
       name: `edge daemon`,
       priority: 8,
       emoji: `:imp:`,
       isHealthy: false,
-      url: `http://localhost:${DAEMON_PORT()}/_api/health`,
+      url: `http://localhost:${DAEMON_PORT()}/_api/daemon/health`,
     },
     {
       name: `mothership`,
