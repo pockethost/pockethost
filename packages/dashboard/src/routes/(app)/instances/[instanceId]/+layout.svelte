@@ -198,6 +198,9 @@
         <a href={`/instances/${id}/admin-sync`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`admin-sync`)}"
           >Admin Sync</a
         >
+        <a href={`/instances/${id}/auto-vacuum`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`auto-vacuum`)}"
+          >Auto Vacuum</a
+        >
         <a href={`/instances/${id}/dev`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`dev`)}">Dev Mode</a>
         <a href={`/instances/${id}/rename`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`rename`)}"
           >Rename</a
