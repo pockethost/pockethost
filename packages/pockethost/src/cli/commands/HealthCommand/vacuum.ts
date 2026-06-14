@@ -14,8 +14,7 @@ import {
 } from '@'
 import Bottleneck from 'bottleneck'
 import { execFileSync, execSync } from 'child_process'
-import { existsSync, globSync, statSync } from 'fs'
-import { default as osu } from 'node-os-utils'
+import { existsSync, globSync, statSync, statfsSync } from 'fs'
 import { basename, dirname, join, resolve } from 'path'
 
 const INSTANCE_DB_NAMES = [`data`, `logs`] as const
@@ -51,20 +50,20 @@ const formatSummaryBytes = (bytes: number): string => {
 
 const fileSizeBytes = (path: string): number => (existsSync(path) ? statSync(path).size : 0)
 
-const freeDiskBytes = async (path: string): Promise<number | undefined> => {
+const freeDiskBytes = (path: string): number | undefined => {
   try {
-    const { freeGb } = await osu.drive.info(dirname(path))
-    return freeGb * 1024 ** 3
+    const { bavail, bsize } = statfsSync(path)
+    return bavail * bsize
   } catch {
     return undefined
   }
 }
 
-const hasDiskBudget = async (dbPath: string): Promise<{ ok: boolean; detail?: string }> => {
+const hasDiskBudget = (dbPath: string): { ok: boolean; detail?: string } => {
   const size = fileSizeBytes(dbPath)
   if (size === 0) return { ok: false, detail: `missing` }
 
-  const free = await freeDiskBytes(dbPath)
+  const free = freeDiskBytes(dbPath)
   if (free === undefined) return { ok: true }
   if (free >= size) return { ok: true }
 
@@ -76,7 +75,7 @@ const hasDiskBudget = async (dbPath: string): Promise<{ ok: boolean; detail?: st
 
 export const vacuumSqliteFile = async (dbPath: string): Promise<VacuumResult> => {
   const beforeBytes = fileSizeBytes(dbPath)
-  const disk = await hasDiskBudget(dbPath)
+  const disk = hasDiskBudget(dbPath)
   if (!disk.ok) {
     return { path: dbPath, beforeBytes, afterBytes: beforeBytes, skipped: disk.detail }
   }
