@@ -169,7 +169,7 @@
           >Webhooks</a
         >
         <a href={`/instances/${id}/logs`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`logs`)}">Logs</a>
-        <a href={`/instances/${id}/ftp`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`ftp`)}">FTP Access</a>
+        <a href={`/instances/${id}/ftp`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`ftp`)}">SFTP</a>
         <a
           href={INSTANCE_ADMIN_URL($instance)}
           rel="noreferrer"

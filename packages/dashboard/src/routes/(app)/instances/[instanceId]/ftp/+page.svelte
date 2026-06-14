@@ -1,30 +1,37 @@
 <script lang="ts">
   import CodeSample from '$components/CodeSample.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
-  import { FTP_HOST, LFTP_COMMAND } from '$src/env'
+  import { FTP_HOST, SFTP_COMMAND, SFTP_PORT } from '$src/env'
   import { client } from '$src/pocketbase-client'
+  import { instance } from '../store'
   import { bash } from 'svelte-highlight/languages'
 
   const { user } = client()
   const { email } = user() || {}
 
-  // This will hide the component if the email was not found
   if (!email) {
     throw new Error(`Email expected here`)
   }
-  const lftpCommand = LFTP_COMMAND(email)
+
+  const sftpCommand = SFTP_COMMAND(email)
 </script>
 
 <div class="max-w-2xl">
-  <CardHeader documentation={`/docs/ftp`}>FTP Access</CardHeader>
-  <div class="mb-8">
-    Access instance files via explicit FTPS (AUTH TLS) at <code>{FTP_HOST}</code>. Log in with your PocketHost email
-    and password. The macOS <code>ftp</code> client does not support TLS — use <code>lftp</code> or FileZilla (see
-    docs).
+  <CardHeader documentation={`/docs/ftp`}>SFTP File Access</CardHeader>
+  <div class="mb-8 space-y-4">
+    <p>
+      Access instance files via <strong>SFTP</strong> at <code>{FTP_HOST}:{SFTP_PORT}</code>. Authentication is an
+      <strong>Ed25519 SSH key</strong> registered under <a href="/account/keys" class="text-primary">Account → Keys</a>.
+      Your username is your PocketHost email.
+    </p>
+    <p class="text-white/70 text-sm">
+      After connecting, <code>cd {$instance.subdomain}</code> to reach this instance. See
+      <a href="/docs/ftp" class="text-primary">SFTP File Access</a> for macOS, Windows, Linux, and client setup.
+    </p>
   </div>
 
   <div class="mb-12">
-    <CodeSample code={lftpCommand} language={bash} />
+    <CodeSample code={sftpCommand} language={bash} />
   </div>
 
   <table class="table">
