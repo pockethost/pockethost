@@ -125,8 +125,7 @@
   }
 </script>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/custom-domain`}>Custom Domain (CNAME)</CardHeader>
+<CardHeader documentation={`/docs/custom-domain`}>Custom Domain (CNAME)</CardHeader>
 
   <div class="mb-8">Use a custom domain (CNAME) with your PocketHost instance.</div>
   {#if cname && regex.test(formCname.trim())}
@@ -175,7 +174,6 @@
 
     <wa-button type="submit" variant="danger" disabled={isButtonDisabled}>Update Custom Domain</wa-button>
   </form>
-</div>
 
 <style>
   .rename-instance-form-container-query {

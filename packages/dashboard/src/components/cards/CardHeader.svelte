@@ -3,8 +3,8 @@
 </script>
 
 {#if documentation}
-  <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-    <h3 class="text-xl font-bold"><slot /></h3>
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
+    <h2 class="text-xl font-bold text-white"><slot /></h2>
 
     <wa-button href={documentation} variant="brand" size="small" appearance="outline" target="_blank">
       Full documentation
@@ -14,7 +14,7 @@
 {/if}
 
 {#if !documentation}
-  <h3 class="text-xl font-bold mb-4">
+  <h2 class="text-xl font-bold text-white mb-6">
     <slot />
-  </h3>
+  </h2>
 {/if}

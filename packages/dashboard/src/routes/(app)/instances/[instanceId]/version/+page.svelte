@@ -78,7 +78,6 @@
   }
 </script>
 
-<div class="max-w-2xl"> 
 <CardHeader documentation={`/docs/versions`}>Version Change</CardHeader>
 
   {#if power && !isShuttingDown}
@@ -139,7 +138,6 @@
 
     <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
   </form>
-</div>
 
 <style>
   .change-version-form-container-query {

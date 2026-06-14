@@ -59,10 +59,9 @@
   }
 </script>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
+<CardHeader documentation={`/docs/rename-instance`}>Rename Instance</CardHeader>
 
-  <p class="mb-8">
+<p class="text-white/70 text-sm mb-6 leading-relaxed">
     Renaming your instance will cause it to become <strong class="text-error">inaccessible</strong> by the old instance name.
     You also may not be able to change it back if someone else choose it.
   </p>
@@ -71,20 +70,37 @@
   <AlertBar message={errorMessage} type="error" />
 
   <form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
-    <wa-input
-      title="Only letters and dashes are allowed"
-      required
-      type="text"
-      value={formSubdomain}
-      oninput={(e) => (formSubdomain = e.currentTarget.value)}
-      class="w-full"
-    ></wa-input>
+    <div class="field flex-1">
+      <label class="field-label" for="rename-subdomain">Instance name</label>
+      <wa-input
+        id="rename-subdomain"
+        title="Only letters and dashes are allowed"
+        type="text"
+        value={formSubdomain}
+        oninput={(e) => (formSubdomain = e.currentTarget.value)}
+        class="w-full"
+      ></wa-input>
+    </div>
 
     <wa-button type="submit" variant="danger" disabled={isButtonDisabled}>Rename Instance</wa-button>
   </form>
 
-  <style>
-    .rename-instance-form-container-query {
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.5);
+  }
+
+  .rename-instance-form-container-query {
       flex-direction: column;
     }
 
@@ -93,5 +109,4 @@
         flex-direction: row;
       }
     }
-  </style>
-</div>
+</style>

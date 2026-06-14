@@ -14,7 +14,5 @@
   <title>{subdomain} webhooks - PocketHost</title>
 </svelte:head>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/webhooks/`}>Webhooks</CardHeader>
-  <SecretsInner />
-</div>
+<CardHeader documentation={`/docs/webhooks/`}>Webhooks</CardHeader>
+<SecretsInner />

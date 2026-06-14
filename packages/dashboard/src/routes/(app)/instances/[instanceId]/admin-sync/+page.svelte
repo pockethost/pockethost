@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
@@ -22,15 +21,17 @@
   }
 </script>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
+<CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
 
-  <p class="mb-8">
-    Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
-    pockethost.io account.
-  </p>
+<p class="text-white/70 text-sm mb-6 leading-relaxed">
+  Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
+  pockethost.io account.
+</p>
 
-  <ErrorMessage message={errorMessage} />
+<ErrorMessage message={errorMessage} />
 
-  <Toggle checked={!!syncAdmin} onChange={handleChange} />
-</div>
+<wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
+  <div class="p-6 md:p-8">
+    <Toggle checked={!!syncAdmin} onChange={handleChange} />
+  </div>
+</wa-card>

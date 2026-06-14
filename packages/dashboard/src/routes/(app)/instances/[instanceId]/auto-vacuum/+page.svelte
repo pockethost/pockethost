@@ -20,20 +20,19 @@
   }
 </script>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/auto-vacuum`}>Auto Vacuum</CardHeader>
+<CardHeader documentation={`/docs/auto-vacuum`}>Auto Vacuum</CardHeader>
 
-  <p class="mb-4">
-    Auto Vacuum reclaims disk space from your instance SQLite databases during PocketHost's nightly maintenance sweep.
-    PocketHost only runs compaction when your instance is idle (hibernated), not while it is actively serving traffic.
-  </p>
+<p class="text-white/70 text-sm mb-6 leading-relaxed">
+  Auto Vacuum reclaims disk space from your instance SQLite databases during PocketHost's nightly maintenance sweep.
+  PocketHost only runs compaction when your instance is idle (hibernated), not while it is actively serving traffic.
+  If a request wakes your instance during vacuum, you may see up to about 5 seconds of downtime while the database
+  finishes compacting.
+</p>
 
-  <p class="mb-8 text-white/70">
-    If a request wakes your instance during vacuum, you may see up to about 5 seconds of downtime while the database
-    finishes compacting.
-  </p>
+<ErrorMessage message={errorMessage} />
 
-  <ErrorMessage message={errorMessage} />
-
-  <Toggle checked={autoVacuum ?? true} onChange={handleChange} />
-</div>
+<wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
+  <div class="p-6 md:p-8">
+    <Toggle checked={autoVacuum ?? true} onChange={handleChange} />
+  </div>
+</wa-card>
