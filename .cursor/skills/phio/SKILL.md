@@ -18,7 +18,7 @@ Long-term: may rename `packages/pockethost` → `pockethost-server` and publish 
 |---------|---------|
 | `phio login` / `logout` / `info` (`whoami`) | Mothership auth; `info` shows config + deploy key (syncs key when logged in) |
 | `phio list` | List instances |
-| `phio link <instance>` | Save default instance to `package.json` (`pockethost.instanceName`) or `pockethost.json` |
+| `phio link <instance>` | Save default instance to `.phioconfig` (migrates legacy `package.json` / `pockethost.json`) |
 | `phio dev [instance]` | Chokidar watch → SFTP sync on change |
 | `phio deploy [instance]` | One-shot SFTP sync |
 | `phio logs [instance]` | SSE tail via `https://{subdomain}.pockethost.io/logs` |
@@ -74,7 +74,7 @@ When changing **any** of these server areas, verify phio still works:
 ### Quick smoke test (local)
 
 1. `pnpm dev:cli serve` (mothership + edge + SFTP)
-2. In a project with `pockethost.json`: `pnpm --filter phio dev -- deploy <subdomain> -v`
+2. In a project with `.phioconfig`: `pnpm --filter phio dev -- deploy <subdomain> -v`
 3. Confirm sync completes and `.ftp-deploy-sync-state.json` is written at instance root
 
 ## Related server code

@@ -29,7 +29,7 @@ export const toc: BlogTocEntry[] = [
     title: 'FTPS Is Going Away: Move to SFTP',
     path: '/blog/ftps-sunset',
     description:
-      'Port 21 FTPS is on a sunset path. SFTP on 2222 with SSH keys is the future, including phio deploy and GitHub Actions.',
+      'Port 21 FTPS is on a sunset path. SFTP on 2222 with SSH keys is the future. phio deploy and dev already use SFTP.',
     date: 'Jun 13, 2026',
     author: 'capn',
   },

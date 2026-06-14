@@ -16,11 +16,12 @@ For launch updates and deep dives on each change, follow the [PocketHost blog](/
 **What works today**
 
 - Manual uploads via SFTP. See [SFTP File Access](/docs/ftp) and register keys under [Account → Keys](/account/keys).
+- **`phio dev`**, **`phio deploy`**, and **`phio logs`** over SFTP. See [phio CLI](/docs/phio).
 - FTPS still works during the transition. New setups should use SFTP only.
 
 **What is still in progress**
 
-- `phio deploy`, `phio dev`, and GitHub Actions that sync over FTPS. We are moving deploy tooling to SFTP before port 21 goes away.
+- GitHub Actions workflows that still target FTPS on port 21. Migrate to SFTP or use `phio deploy` in CI. See [phio CLI](/docs/phio).
 
 More detail: [SFTP file access](/blog/sftp-file-access) · [FTPS sunset](/blog/ftps-sunset)
 

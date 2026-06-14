@@ -109,6 +109,7 @@
         <DocLink path="secrets" title="Secrets" />
         <DocLink path="webhooks" title="Webhooks" />
         <DocLink path="ftp" title="SFTP File Access" />
+        <DocLink path="phio" title="phio CLI" />
         <DocLink path="admin-sync" title="Admin Sync" />
         <DocLink path="auto-vacuum" title="Auto Vacuum" />
         <DocLink path="js" title="Extending via JS" />
