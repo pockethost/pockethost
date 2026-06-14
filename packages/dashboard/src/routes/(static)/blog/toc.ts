@@ -10,6 +10,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Mothership Is on PocketBase 0.39',
+    path: '/blog/mothership-pocketbase-v039',
+    description:
+      'The control plane finally crossed the v0.22 → v0.23 JSVM cutover. One-way door, smaller SQLite files, and a babysit-and-fix rollout as long as instances keep running.',
+    date: 'Jun 14, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Account Access Keys: Scoped SFTP Access',
     path: '/blog/account-access-keys',
     description:
