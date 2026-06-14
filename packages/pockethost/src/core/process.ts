@@ -1,10 +1,12 @@
-import { discordAlert, gracefulExit } from '@'
+import { discordAlert, gracefulExit, isUserError } from '@'
 import { DEBUG } from '.'
 ;['unhandledRejection', 'uncaughtException'].forEach((type) => {
   process.on(type, (e) => {
     console.error(`Unhandled:`, e)
     try {
-      discordAlert(e)
+      if (!isUserError(e)) {
+        discordAlert(e)
+      }
     } catch (e) {
       console.error(`Failed to alert Discord:`, e)
     }

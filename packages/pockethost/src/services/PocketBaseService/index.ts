@@ -7,7 +7,10 @@ import {
   SingletonBaseConfig,
   asyncExitHook,
   createCleanupManager,
+  isPlatformDockerFailure,
   mkContainerHomePath,
+  systemError,
+  userError,
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
@@ -83,11 +86,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     const _version = version || maxVersion // If _version is blank, we use the max version available
     const realVersion = pb.maxSatisfyingVersion(_version)
     if (!realVersion) {
-      throw new Error(`No PocketBase version satisfying ${_version}`)
+      throw userError(`No PocketBase version satisfying ${_version}`)
     }
     const binPath = pb.getBinaryPath(realVersion)
     if (!existsSync(binPath)) {
-      throw new Error(`PocketBase binary (${binPath}) not found. Contact pockethost.io.`)
+      throw systemError(`PocketBase binary (${binPath}) not found. Contact pockethost.io.`)
     }
 
     enum Events {
@@ -194,7 +197,12 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
               iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
               error(`${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`)
               emitter.emit(Events.Exit, castStatusCode)
-              reject(new Error(`${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`))
+              const stopErr = new Error(
+                `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
+              )
+              reject(
+                isPlatformDockerFailure(castStatusCode, err) ? systemError(stopErr) : userError(stopErr)
+              )
             } else {
               emitter.emit(Events.Exit, 0)
             }
@@ -219,12 +227,12 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             const ports = containerInfo.NetworkSettings?.Ports?.['8090/tcp']
 
             if (!ports || !ports[0] || !ports[0].HostPort) {
-              throw new Error('Could not get port binding from container')
+              throw systemError('Could not get port binding from container')
             }
 
             const portBinding = parseInt(ports[0].HostPort, 10)
             if (isNaN(portBinding)) {
-              throw new Error(`Invalid port binding: ${ports[0].HostPort}`)
+              throw systemError(`Invalid port binding: ${ports[0].HostPort}`)
             }
 
             resolve({
@@ -251,7 +259,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     }).catch((e) => {
       error(`Error starting container: ${e}`)
       cm.shutdown()
-      throw e
+      throw systemError(e instanceof Error ? e : new Error(String(e)))
     })
 
     const exitCode = new Promise<number>(async (resolveExit) => {
