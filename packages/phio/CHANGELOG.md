@@ -1,5 +1,14 @@
 # phio
 
+## 0.4.0
+
+### Minor Changes
+
+- SFTP deploy and dev sync (`ftp.pockethost.io:2222`, Ed25519 key auth)
+- Auto-provision deploy key labeled `Phio` under Account → Keys
+- Project instance linking via `.phioconfig` (migrates legacy `package.json` / `pockethost.json`)
+- Walk up to project root from subdirectories before sync
+
 ## 0.3.5
 
 ### Patch Changes
