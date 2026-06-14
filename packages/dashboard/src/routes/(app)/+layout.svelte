@@ -21,8 +21,21 @@
     <slot />
   </UserLoggedIn>
   <UserLoggedOut>
-    <p>
-      You must be <a href="/login" class="text-primary">logged in</a> to access this area.
-    </p>
+    <div class="flex flex-col items-center justify-center py-16 md:py-24 text-center">
+      <div
+        class="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5"
+      >
+        <wa-icon name="lock" class="text-xl text-neutral-400"></wa-icon>
+      </div>
+      <h2 class="mb-2 text-lg font-semibold text-white">Sign in required</h2>
+      <p class="mb-6 max-w-sm text-sm text-neutral-400">
+        Log in to manage your PocketBase instances and account settings.
+      </p>
+      <wa-button href="/login" variant="brand">Log in</wa-button>
+      <p class="mt-4 text-sm text-neutral-500">
+        No account?
+        <a href="/get-started" class="text-primary hover:text-secondary hover:underline">Get started</a>
+      </p>
+    </div>
   </UserLoggedOut>
 </div>
