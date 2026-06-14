@@ -115,6 +115,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Dockerize hosting node (`pockethost-server`)** | Med–High | L–XL | **Icebox — manual deploys first.** Replace git-pull + PM2 + host `.env` drift with one image (`packages/pockethost`), not dashboard/phio. **`PH_ROLE`:** `all` (dev default = packaged `serve`), `edge`, `mothership` (prod split). **Volume:** single `PH_HOME` mount (`data/`, `pocketbase/`, `ssl/`, `ssh/`). **PB binaries:** bake highest patch per minor (`latestPerMinor` / `downloadAll` at build) + runtime `freshen`. **Health:** split `health check` / `health compact` by role (drop PM2 assumptions, fix hardcoded paths like `/mnt/sfo_data`). **Instances:** stay one container per tenant via dockerode — not in-process. **SFTP:** per edge; shared host key on volume for LB. **Multi-edge:** needs `instances.edge` (or region), mirror filter, routing — orthogonal but enabled by reproducible nodes; pairs with **Multi-region Fly edges**. **Runtime portability (open):** host `docker.sock` works on VPS only; Fly image *is* the machine — likely **embedded dockerd or Podman** inside server container so spawn path is identical everywhere (nested runtime + volume for `/var/lib/docker` or podman store; pre-load `pockethost-instance` image). **Not decided yet** — run stack manually a few more times before picking DinD vs socket-mount vs Fly Machines API. Ties **phio ↔ rename** (`pockethost-server` image). Prerequisite for killing config-outage class. |
 | **Container runtime witness (SSE/lease from instance)** | Med | M–L | Optional Phase 2+ if edge heartbeat lease is not enough: instance container holds mothership connection (SSE or ping) with instance-scoped token; disconnect → idle. Splits ownership with edge; needs auth endpoint + instance image change. Icebox until **Runtime status Phase 2** evaluated in prod. |
 | **Runtime status heartbeat lease (Phase 2)** | Med | M | Edge renews `runtime_lease_expires_at` per warm instance; mothership cron expires stale leases → `idle` when edge dies without shutdown hook. Phase 1 sync protocol shipped 2026-06-13; undefined `status` during edge outage accepted until then. |
 | **Bun runtime migration** | Med–High | L | Branch: `bun-experimental` (not stale `bun`). Rebase onto main (`PocketBaseBinaryService`, gobot removal). Soak-test dockerode + edge daemon + PM2 on Linux before prod. Parallel to Node 24, not a replacement until proven. |
@@ -135,6 +136,14 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 - **Node 24:** shipped 2026-06-12 (see Done).
 - **Bun:** real DX wins (native TS, faster installs) but production risk on dockerode, patched `tail`, PM2. Keep in Icebox until `bun-experimental` is rebased and edge nodes soak-tested.
+
+### Dockerize hosting node (spike notes)
+
+- **Problem:** recent outages traced to PM2 / `.env` / host config drift; dev (`pnpm dev:cli serve`) vs prod (PM2 + Linux) split brain.
+- **Target:** `pockethost-server` image; dev `PH_ROLE=all` via compose; prod `edge` + `mothership` on separate hosts/volumes.
+- **Instance isolation unchanged:** `PocketbaseService` → dockerode → `benallfree/pockethost-instance` per instance.
+- **Fly vs VPS:** Fly Machine rootfs = your Dockerfile; no host docker.sock. Portable model = runtime inside operator container (dockerd or Podman API socket), not socket-mount to outer host. **Defer decision** until a few more manual deploy cycles.
+- **Phasing (when pulled):** (1) image + `PH_HOME` volume + baked PB binaries, (2) role entrypoint replaces PM2, (3) health/compact split, (4) multi-edge schema + routing.
 
 ### Dependency diet (keep vs replace)
 
