@@ -47,8 +47,12 @@
     }
   }
 
-  $: isActive = (path: string) => $page.url.pathname.endsWith(path)
-  $: activeClass = (path: string) => (isActive(path) ? 'text-secondary' : '')
+  $: pathname = $page.url.pathname
+  $: base = `/instances/${id}`
+  $: isOverviewActive = pathname === base || pathname === `${base}/`
+  $: sectionActive = (section: string) => pathname.startsWith(`${base}/${section}`)
+  $: navClass = (active: boolean) =>
+    active ? 'bg-white/10 text-white' : 'text-white/70 hover:text-white hover:bg-white/5'
 </script>
 
 <svelte:head>
@@ -56,75 +60,27 @@
 </svelte:head>
 
 {#if isReady}
-  <div class="hidden md:flex flex-row items-center justify-between py-6 mb-6 border-b border-white/10 relative">
-    <div>
-      <div class="flex flex-col items-start md:items-center gap-1 md:gap-3 md:flex-row">
-        <h2 class="text-2xl md:text-4xl md:text-left text-white font-bold break-words">
-          {$instance.subdomain}
-        </h2>
-        <div class="flex items-center justify-center gap-2">
-          <a
-            href={`/instances/${$instance.id}/version`}
-            class="bg-gray-500/20 text-gray-300 border border-gray-500/50 text-xs px-2 py-1 rounded-full"
-          >
-            v{$instance.version}
-          </a>
-          <InstanceRuntimeBadge instance={$instance} />
-          {#if $instance.dev}
-            <a
-              href={`/instances/${$instance.id}/dev`}
-              class="text-warning animate-pulse text-2xl"
-              title="Dev Mode Active (SLOW)"
-            >
-              🚧
-            </a>
-          {/if}
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <Toggle
-        checked={$instance.power}
-        loading={isShuttingDown}
-        disabled={isShuttingDown}
-        onChange={handlePowerChange($instance.id)}
-      />
-    </div>
-  </div>
-
-  {#if isShuttingDown}
-    <div class="mb-8 hidden md:block">
-      <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
-    </div>
-  {:else if isFullyOff}
-    <div class="mb-8 hidden md:block">
-      <AlertBar message="This instance is turned off and will not respond to requests." type="warning" />
-    </div>
-  {/if}
-
-  <div class="flex gap-4 flex-col md:flex-row relative">
+  <div class="max-w-4xl mx-auto py-4 md:py-8">
     <div
-      class="flex md:hidden items-center sticky top-0 gap-2 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md justify-between py-3 mb-0 border-b border-white/10 z-50"
+      class="flex md:hidden items-center sticky top-0 gap-3 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md py-3 mb-4 border-b border-white/10 z-40 -mx-4 px-4 justify-between"
     >
       <div class="flex items-center gap-3 min-w-0">
-        <button onclick={() => (sidebarOpen = !sidebarOpen)} class="flex-shrink-0">
+        <button type="button" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle instance menu">
           <wa-icon name="bars"></wa-icon>
         </button>
-
-        <h2 class="text-lg font-bold text-white min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <h1 class="text-lg font-bold text-white min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span class="truncate">{$instance.subdomain}</span>
           <InstanceRuntimeBadge instance={$instance} />
           {#if $instance.dev}
             <a
               href={`/instances/${$instance.id}/dev`}
-              class="text-warning animate-pulse text-xl ml-1 flex-shrink-0"
+              class="text-warning animate-pulse text-xl flex-shrink-0"
               title="Dev Mode Active (SLOW)"
             >
               🚧
             </a>
           {/if}
-        </h2>
+        </h1>
       </div>
 
       <div class="flex-shrink-0">
@@ -137,89 +93,180 @@
       </div>
     </div>
 
+    <div class="hidden md:flex flex-row items-start justify-between gap-4 mb-6 md:mb-8">
+      <div>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 class="text-2xl md:text-3xl font-bold text-white break-words">{$instance.subdomain}</h1>
+          <div class="flex items-center gap-2">
+            <a
+              href={`/instances/${$instance.id}/version`}
+              class="text-xs font-medium text-white/60 border border-white/10 bg-white/5 px-2.5 py-1 rounded-full hover:border-white/20 hover:text-white/80 transition-colors"
+            >
+              v{$instance.version}
+            </a>
+            <InstanceRuntimeBadge instance={$instance} />
+            {#if $instance.dev}
+              <a
+                href={`/instances/${$instance.id}/dev`}
+                class="text-warning animate-pulse text-xl"
+                title="Dev Mode Active (SLOW)"
+              >
+                🚧
+              </a>
+            {/if}
+          </div>
+        </div>
+      </div>
+
+      <Toggle
+        checked={$instance.power}
+        loading={isShuttingDown}
+        disabled={isShuttingDown}
+        onChange={handlePowerChange($instance.id)}
+      />
+    </div>
+
     {#if isShuttingDown}
-      <div class="mb-4 md:hidden px-1">
+      <div class="mb-4 md:mb-6">
         <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
       </div>
     {:else if isFullyOff}
-      <div class="mb-4 md:hidden px-1">
+      <div class="mb-4 md:mb-6">
         <AlertBar message="This instance is turned off and will not respond to requests." type="warning" />
       </div>
     {/if}
 
-    {#if sidebarOpen && window.innerWidth < 768}
-      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 backdrop-blur-sm" onclick={() => (sidebarOpen = false)}></div>
+    {#if sidebarOpen}
+      <div
+        class="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm md:hidden"
+        onclick={() => (sidebarOpen = false)}
+        role="presentation"
+      ></div>
     {/if}
 
-    <div
-      class="flex flex-col w-56 md:relative fixed md:top-auto top-0 left-0 h-full bg-[#111111] md:bg-transparent px-4 md:px-0 z-50 transform transition-transform duration-300 md:translate-x-0"
-      class:-translate-x-full={!sidebarOpen && window.innerWidth < 768}
-      onclick={handleCloseSidebar}
-      role="presentation"
-    >
-      <nav class="flex flex-col gap-1 text-white mb-6">
-        <div class="md:hidden flex items-start py-2">
+    <div class="flex gap-6 md:gap-8 flex-col md:flex-row relative">
+      <aside
+        class="flex flex-col w-52 md:w-44 shrink-0 fixed md:relative top-0 left-0 h-full md:h-auto bg-[#111111] md:bg-transparent px-4 md:px-0 z-50 transition-transform duration-300 -translate-x-full md:translate-x-0 pt-4 md:pt-0 overflow-y-auto md:overflow-visible"
+        class:translate-x-0={sidebarOpen}
+        onclick={handleCloseSidebar}
+        role="presentation"
+      >
+        <div class="md:hidden flex items-center pb-4 mb-2 border-b border-white/10">
           <Logo />
         </div>
-        <a href={`/instances/${id}`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(id)}">Overview</a>
-        <a href={`/instances/${id}/secrets`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`secrets`)}"
-          >Secrets</a
-        >
-        <a href={`/instances/${id}/webhooks`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`webhooks`)}"
-          >Webhooks</a
-        >
-        <a href={`/instances/${id}/logs`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`logs`)}">Logs</a>
-        <a href={`/instances/${id}/ftp`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`ftp`)}">SFTP</a>
-        <a
-          href={INSTANCE_ADMIN_URL($instance)}
-          rel="noreferrer"
-          target="_blank"
-          class="px-2 py-1 rounded hover:bg-white/10 flex items-center gap-2"
-        >
-          <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-6 inline-block" />
-          Admin
-          <wa-icon name="arrow-up-right-from-square" class="ml-2 text-xs"></wa-icon>
-        </a>
-      </nav>
 
-      <div class="mb-2">
-        <wa-icon name="triangle-exclamation" class="text-error inline"></wa-icon>
-        <span class="font-bold text-error">Danger Zone</span>
-        <wa-icon name="triangle-exclamation" class="text-error inline"></wa-icon>
-      </div>
+        <nav class="flex flex-col gap-1 text-sm font-medium">
+          <a
+            href={base}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(isOverviewActive)}"
+          >
+            <wa-icon name="gauge-high" class="text-base opacity-70"></wa-icon>
+            Overview
+          </a>
+          <a
+            href={`${base}/secrets`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('secrets'))}"
+          >
+            <wa-icon name="lock" class="text-base opacity-70"></wa-icon>
+            Secrets
+          </a>
+          <a
+            href={`${base}/webhooks`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('webhooks'))}"
+          >
+            <wa-icon name="webhook" class="text-base opacity-70"></wa-icon>
+            Webhooks
+          </a>
+          <a
+            href={`${base}/logs`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('logs'))}"
+          >
+            <wa-icon name="scroll" class="text-base opacity-70"></wa-icon>
+            Logs
+          </a>
+          <a
+            href={`${base}/ftp`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('ftp'))}"
+          >
+            <wa-icon name="folder-open" class="text-base opacity-70"></wa-icon>
+            SFTP
+          </a>
+          <a
+            href={INSTANCE_ADMIN_URL($instance)}
+            rel="noreferrer"
+            target="_blank"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-white/70 hover:text-white hover:bg-white/5"
+          >
+            <img src="/images/pocketbase-logo.svg" alt="" class="w-4 h-4 opacity-70" />
+            Admin
+            <wa-icon name="arrow-up-right-from-square" class="text-xs opacity-50 ml-auto"></wa-icon>
+          </a>
+        </nav>
 
-      <nav class="flex flex-col gap-1 text-white">
-        <a href={`/instances/${id}/version`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`version`)}"
-          >Change Version</a
-        >
-        <a href={`/instances/${id}/domain`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`domain`)}"
-          >Custom Domain</a
-        >
-        <a href={`/instances/${id}/admin-sync`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`admin-sync`)}"
-          >Admin Sync</a
-        >
-        <a href={`/instances/${id}/auto-vacuum`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`auto-vacuum`)}"
-          >Auto Vacuum</a
-        >
-        <a href={`/instances/${id}/dev`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`dev`)}">Dev Mode</a>
-        <a href={`/instances/${id}/rename`} class="px-2 py-1 rounded hover:bg-white/10 {activeClass(`rename`)}"
-          >Rename</a
-        >
-        <a
-          href={`/instances/${id}/delete`}
-          class="px-2 py-1 rounded hover:bg-white/10 text-error {activeClass(`delete`)}">Delete</a
-        >
-      </nav>
-    </div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-white/40 px-3 pt-5 pb-1">Advanced</p>
 
-    <div class="flex-1 min-w-0 max-w-content">
-      {#key $page.url.pathname}
-        <article class="flex flex-col gap-4 w-full">
+        <nav class="flex flex-col gap-1 text-sm font-medium">
+          <a
+            href={`${base}/version`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('version'))}"
+          >
+            <wa-icon name="code-branch" class="text-base opacity-70"></wa-icon>
+            Version
+          </a>
+          <a
+            href={`${base}/domain`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('domain'))}"
+          >
+            <wa-icon name="globe" class="text-base opacity-70"></wa-icon>
+            Custom Domain
+          </a>
+          <a
+            href={`${base}/admin-sync`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('admin-sync'))}"
+          >
+            <wa-icon name="arrows-rotate" class="text-base opacity-70"></wa-icon>
+            Admin Sync
+          </a>
+          <a
+            href={`${base}/auto-vacuum`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('auto-vacuum'))}"
+          >
+            <wa-icon name="broom" class="text-base opacity-70"></wa-icon>
+            Auto Vacuum
+          </a>
+          <a
+            href={`${base}/dev`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('dev'))}"
+          >
+            <wa-icon name="code" class="text-base opacity-70"></wa-icon>
+            Dev Mode
+          </a>
+          <a
+            href={`${base}/rename`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('rename'))}"
+          >
+            <wa-icon name="pen" class="text-base opacity-70"></wa-icon>
+            Rename
+          </a>
+          <a
+            href={`${base}/delete`}
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {sectionActive('delete')
+              ? 'bg-error/15 text-error'
+              : 'text-error/70 hover:text-error hover:bg-error/10'}"
+          >
+            <wa-icon name="trash" class="text-base opacity-70"></wa-icon>
+            Delete
+          </a>
+        </nav>
+      </aside>
+
+      <div class="flex-1 min-w-0 max-w-2xl">
+        {#key pathname}
           <slot />
-        </article>
-      {/key}
+        {/key}
+      </div>
     </div>
   </div>
 {:else}
-  <div>Instance not found</div>
+  <div class="max-w-4xl mx-auto py-4 md:py-8 text-white/70">Instance not found</div>
 {/if}

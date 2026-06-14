@@ -1,5 +1,6 @@
 import {
   APP_URL,
+  asyncExitHook,
   DAEMON_PB_IDLE_TTL,
   DOC_URL,
   INSTANCE_APP_HOOK_DIR,
@@ -8,21 +9,21 @@ import {
   InstanceId,
   InstanceLogWriter,
   InstanceStatus,
+  isSystemError,
   LoggerService,
-  MothershipAdminClientService,
-  PocketbaseService,
-  SingletonBaseConfig,
-  SpawnConfig,
-  asyncExitHook,
   mkContainerHomePath,
   mkInstanceUrl,
-  isSystemError,
   mkSingleton,
+  MothershipAdminClientService,
   now,
+  PocketbaseService,
   proxyService,
-  userError,
+  SingletonBaseConfig,
+  SpawnConfig,
   stringify,
   tryFetch,
+  userError,
+  VacuumLockService,
 } from '@'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'fs'
@@ -59,6 +60,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
 
+  const vacuumLocks = await VacuumLockService(config)
+  vacuumLocks.registerIsLive((id) => Boolean(instanceApis[id]))
+
   const shutdownRunningInstance = async (id: InstanceId, reason: string) => {
     const pending = instanceApis[id]
     if (!pending) return
@@ -67,7 +71,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     api.shutdown()
   }
 
-  const resolveLiveStatus = async (pending: Promise<InstanceApi>): Promise<InstanceStatus.Running | InstanceStatus.Starting> => {
+  const resolveLiveStatus = async (
+    pending: Promise<InstanceApi>
+  ): Promise<InstanceStatus.Running | InstanceStatus.Starting> => {
     try {
       await Promise.race([
         pending,
@@ -298,7 +304,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       error(`Error shutting down ${instanceId} on delete`, { e })
     })
   })
-
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
 
@@ -351,6 +356,12 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     dbg(`Checking for verified account`)
     if (!owner.verified) {
       throw userError(`Log in at ${APP_URL()} to verify your account.`)
+    }
+
+    if (vacuumLocks.isLocked(instance.id)) {
+      throw userError(
+        `This instance is temporarily unavailable due to database maintenance. Please try again in a few minutes.`
+      )
     }
 
     const start = now()

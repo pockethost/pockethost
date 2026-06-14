@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 13, 2026_
-
 If your dashboard said **Running** while PocketHost was rebooting pieces of itself in the background, that was fair skepticism. Instance status used to be a best guess scattered across Mothership, the edge, and whatever happened to survive a partial restart.
 
 We tightened that up. Status on the dashboard should track reality much more closely now, including when only Mothership or only the edge bounces.

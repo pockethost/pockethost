@@ -27,8 +27,7 @@ PocketHost **does not** maintain product version announcements (no `PocketHost 2
 2. **Draft the post** — follow [blog-voice](../blog-voice/SKILL.md). Lead with the user win, not the semver.
 3. **Wire the blog** (new post):
    - `packages/dashboard/src/routes/(static)/blog/{slug}/+page.md`
-   - Entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts`
-   - `postDates` and `postDescriptions` in `packages/dashboard/src/routes/(static)/blog/+page.svelte`
+   - Entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts` (`description`, `date`, `author`)
 4. **Commit** — separate commits are fine:
    - `feat(…): …` or `enh(…): …` for the feature
    - `docs(dashboard): blog post for …` for the announcement

@@ -23,6 +23,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **InstanceService batch status updates** | Low | S | **Partially done** — reconnect reconcile moved to `POST /api/mirror` (live IDs → mothership `saveRecord` loop). Remaining: per-spawn/shutdown status writes in `InstanceService`; v0.39 batch record APIs may collapse further. |
+| **Remove mothership-boot idle reset** | Low | S | `HandleInstancesResetIdle` still forces all instances `idle` on mothership boot even when edge has warm containers. Edge `POST /api/mirror` (`resetIdle` + live reconcile) fixes edge boot; mothership-only restart still flashes wrong status until next mirror connect. Remove bootstrap hook once Phase 2 lease or always-on edge reconcile is trusted. |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
 | **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status** (instance FS/delete and resolve decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
 | **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
@@ -44,7 +45,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Pricing change pre-announcement email** | Low | S–M | **Before** pricing update or lifetime sunset: email all users that changes are coming, what to expect, and that they can stay or leave. **Blocker** for **Pricing redo — Flounder sunset** and pulling lifetime support. |
-| **Pricing change community post** | Low | S | Reddit (and similar) heads-up aligned with pre-announce email — same story, public channel. **Blocker** for pricing redo. |
+| **Pricing change community post** | Low | S | Reddit (and similar) heads-up aligned with pre-announce email — same story, public channel. **Partial (2026-06-14):** blog `/blog/flounder-lifetime-sunset` (July 1 sales end, 30-day grace). **Remaining:** Reddit post, align with email. **Blocker** for pricing redo. |
 | **Last-chance Flounder blast** | Low | S–M | **After** public pricing page is updated: one email to existing users — final Flounder/lifetime offer or migration nudge before tier removal. Runs between pricing-page ship and lifetime pull. |
 | **Halt lifetime edition sales** | Low | S | Stop selling lifetime tiers once comms are out. Policy: **no new lifetime purchases for rest of 2026** (possibly never again). Decouple from full pricing redo if needed. |
 | **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). Today: sale webhook + hardcoded `store.pockethost.io` checkout URLs; account page defers quantity changes to support. Customers self-serve plan changes without support tickets. |
@@ -65,8 +66,8 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **Dashboard vacuum now** | Med | M | On-demand SQLite `VACUUM` from dashboard: mothership enqueues job → edge force-stops warm instance → compact `data.db`/`logs.db` → report bytes reclaimed. Reuses `health compact` / `vacuumSqliteFile` but must stop running Docker mounts (nightly auto-vacuum skips them). Needs mothership→edge job channel (instance fields or collection + mirror listener), drain in-flight requests, mutex vs nightly sweep, disk-budget errors in UI. Brief downtime expected. Distinct from nightly **Auto Vacuum** (idle-only). |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
 | **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
-| **FTPS sunset comms** | Low | S–M | Blog (`/blog/sftp-file-access`) + `/docs/ftp` deprecation copy shipped. Remaining: dashboard notice, email to active FTPS users, explicit sunset date. Then schedule **Remove FTPS**. |
-| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** SFTP shipped + **FTPS sunset comms** grace period elapsed. |
+| **FTPS sunset comms** | Low | S–M | **Shipped:** blog `/blog/sftp-file-access`, `/blog/ftps-sunset`, `/blog/account-access-keys`, `/docs/ftp` SFTP-first + legacy FTPS section. **Remaining:** in-app dashboard notice (no FTPS banner in app routes yet), email to active FTPS users, explicit hard removal date, phio/CI deploy docs pointing at SFTP. Then schedule **Remove FTPS**. |
+| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** **phio SFTP migration** (FTPS deploy replacement) + **FTPS sunset comms** grace period elapsed. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
@@ -74,10 +75,10 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **phio ↔ pockethost merge / rename** | Med | L–XL | Submodule `packages/phio` is the customer CLI (`bunx phio`); server package is `pockethost`. Options: merge phio into monorepo; or rename server → `pockethost-server` and publish CLI as `pockethost`. Until then: VFS/FTPS changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
-| **phio SFTP migration** | Med | M | phio `dev`/`deploy` still use FTPS + `__auth__` cookie. Migrate to SFTP + SSH keys before **Remove FTPS**. |
+| **phio ↔ pockethost merge / rename** | Med | M–L | **Partial (2026-06-13):** phio in monorepo (`packages/phio`, pnpm + Node 24); Kirkland sync vendored at `vendor/ftp-deploy/`. Remaining: rename server → `pockethost-server`, publish CLI as `pockethost`, npm release from monorepo. VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
+| **phio SFTP migration (replace FTPS deploy)** | Med | M | **FTPS sunset blocker** — critical path before **Remove FTPS**. phio `dev`/`deploy` and SamKirkland FTP-Deploy-Action users still sync via FTPS + `__auth__` cookie (`ftp.pockethost.io:21`). Replace with SFTP on port 2222 + Ed25519 SSH keys (Account → Keys). Scope: SFTP sync in `vendor/ftp-deploy/` or native `ssh2` in phio; key auth (path / agent / `phio login` → key provisioning); `/docs/ftp` phio + GitHub Actions examples; deprecate FTPS in phio output. Ship before **Remove FTPS**. |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
-| **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** phio submodule covers deploy/dev/logs; full SDK + dashboard parity still open. |
+| **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** `packages/phio` covers deploy/dev/logs; full SDK + dashboard parity still open. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
 
 ### Dashboard & docs UX
@@ -102,16 +103,9 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 _Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — dashboard has deploy CI; the hosting stack has none._
 
-#### Dependency diet
-
-_Post–Node 24 audit (Jun 2026). Shrink lockfile, drop dead deps, lean on natives where safe. Keep: `dockerode`, `semver`, `rate-limiter-flexible`, `ftp-srv`, `pocketbase`, SSE fork._
-
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Inline Express middleware deps** | Low | S | Replace `express-sslify`, `cors`, `vhost`, `express-async-errors`, `exit-hook` with small local helpers in firewall + `ProxyService`. Fewer transitive deps on edge nodes. |
-
-| Item | Risk | Effort | Notes |
-| ---- | ---- | ------ | ----- |
+| **Inline Express middleware deps** | Low | S | Replace `express-sslify`, `cors`, `vhost`, `express-async-errors`, `exit-hook` with small local helpers in firewall + `ProxyService`. Fewer transitive deps on edge nodes. Node 24 natives + dead-deps diet shipped 2026-06-12 (see Done). |
 | **Dashboard mothership disconnect UX** | Low | S–M | **Low priority** — refresh fixes stale state today. Reconnect path partially helped: `POST /api/mirror` live reconcile uses mothership `saveRecord` loop → dashboard SSE gets status updates. Remaining: detect SSE disconnect, reconnect banner, full `resyncAppState` on reconnect; remove verify poll. |
 | **CI quality gates (hosting stack)** | Low | M | Extend `ci.yaml` (today: mothership-hooks freshness only): root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`, `pnpm test` once suite exists. `publish-dashboard.yaml` still build-only. Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
 | **Test suite bootstrap** | Low | M | **Zero automated tests** — no `*.test.ts`, no test runner, no CI test job. Code review gap: version selection, instance spawn bucketing, and firewall rules are untested pure logic. Add Vitest (root or `packages/pockethost`), `pnpm test`, first cases: `maxSatisfyingVersion`, `InstanceService` v22/v23 bucketing, `rate-limiter.ts`. Wire into CI gates. Catches regressions before they hit hosted instances. |
@@ -134,6 +128,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | **Agent skills npm + Cursor plugin** | Low | S | Publish `@pocketbase/agent-skills` (semver); optional Cursor plugin manifest for one-click install. Depends on **PocketBase ecosystem agent skills** repo. |
 | **Drop ajv from RestHelper** | Low | M | Four small mothership REST payloads (`CreateInstance`, etc.) → hand validation; remove `ajv` + trim `type-fest` to built-in utility types. Modest client bundle win; only if schemas stay stable. |
 | **Replace tail + pnpm patch** | Med | M | `InstanceLoggerService` uses patched `tail` (`.close()`). Reimplement with `fs.watch`/readline or subprocess; drop `patches/tail.patch`. Relevant to **Bun** soak (transitive native deps). |
+| **Vacuum integrity_check on sqlite error** | Low | S | On `health compact` sqlite failure, run `PRAGMA integrity_check` and surface result in logs/Discord. Follow-up from edge vacuum lock work; no product UI. |
 
 ---
 
@@ -156,28 +151,17 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 - **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
 - **Comms sequence (blockers):** (1) pre-announce email to all users — stay or leave; (2) Reddit/community post; (3) update public pricing page; (4) last-chance Flounder blast to existing users; (5) halt new lifetime sales (rest of 2026, maybe permanent); (6) retire tiers with grandfather + grace period.
 
-### Runtime status (spike notes, Jun 2026)
+### Runtime status (Jun 2026)
 
-**Problem:** `instances.status` is runtime truth for dashboard (Running/Sleeping, delete gate, power-off UX) but two writers disagree:
+**Model:** `power` = user intent (mothership). `status` = runtime (edge-owned).
 
-| Event | Docker | Mothership `status` today |
-| --- | --- | --- |
-| Edge boot (`daemon.ts` stops all instance containers) | wiped | unchanged unless mothership also rebooted |
-| Mothership boot (`HandleInstancesResetIdle` raw SQL) | edge may still have warm containers | all forced `idle` |
-| Normal hibernate / power-off | stopped | edge writes `idle` via admin client ✓ |
-| Edge crash / failed write | gone or orphaned | may stay `running` |
+| Phase | Status |
+| --- | --- |
+| **1 — Mirror sync** | Shipped 2026-06-13: `POST /api/mirror` (`resetIdle` on edge boot, live reconcile via `saveRecord` loops). |
+| **2 — Heartbeat lease** | Icebox: edge renews `runtime_lease_expires_at`; mothership cron expires stale → `idle` (edge crash without shutdown hook). |
+| **3 — Container witness** | Icebox: optional SSE/lease from instance container. |
 
-**Model to target:** `power` = user intent (mothership). `status` = runtime (edge-owned). Spawn is request-driven, not status-driven.
-
-**Prototype (reverted):** edge boot reset endpoint + mirror recovery watch + reconcile. Worked in mothership DB but dashboard stale until reset used `saveRecord` per instance (raw SQL bypasses PocketBase realtime; dashboard `stores.ts` subscribes to `instances/*`).
-
-**Recommended phases:**
-
-1. **Sync protocol (shipped 2026-06-13)** — `POST /api/mirror` (`resetIdle` on edge boot, live instance list on reconnect); mothership flips status (gated on `power`) then returns dump; edge upserts mirror. `PB_CONNECT` triggers sync with warm `instanceApis`.
-2. **Lease / heartbeat** — edge renews lease per warm instance; mothership cron expires → idle (covers edge death without shutdown hook). Deferred.
-3. **Optional container witness** — SSE or ping from container; see Icebox row. Heavier; only if edge lease has blind spots.
-
-**Code touchpoints:** `daemon.ts` (container wipe), `HandleInstancesResetIdle.ts` (remove), `InstanceService` (spawn/shutdown status writes, reconcile), `MothershipMirrorService` (resync, recovery watch), new admin route, dashboard SSE/resync.
+**Remaining gaps:** mothership-boot `HandleInstancesResetIdle` (see backlog row), per-spawn/shutdown status writes in `InstanceService`, dashboard SSE reconnect UX.
 
 ### Mothership ↔ edge coupling (remaining)
 
@@ -193,6 +177,7 @@ Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **inst
 ```
 Runtime status on edge (Phase 1 sync) ──► v0.39 migration
 Runtime status Phase 2 (heartbeat lease) ──► stale `running` cleanup when edge dies without shutdown hook
+Remove mothership-boot idle reset ──► Runtime status Phase 2 or trusted edge reconcile on every mothership boot
 Runtime status owned by edge ──► Dashboard mothership disconnect UX (complementary; missed SSE while disconnected)
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
@@ -224,6 +209,7 @@ Realtime reconnect resync ──► removes verify polling; fixes stale instance
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 FTPS login welcome banner ──► FTPS sunset comms (point legacy users at SFTP)
 FTPS sunset comms ──► Remove FTPS (grace period)
+phio SFTP migration (replace FTPS deploy) ──► Remove FTPS (deploy path must exist before edge-ftp drop)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
@@ -262,9 +248,11 @@ _Completed items with date + link to PR/release._
 | 2026-06-13 | **Mothership PocketBase v0.39** — JSVM v0.23+ hook port, `_superusers` admin auth, snapshot migrations, preupgrade SQL for legacy views; `MOTHERSHIP_SEMVER=0.39.*`, npm `pocketbase` ^0.26 |
 | 2026-06-13 | **Runtime status sync protocol (Phase 1)** — `POST /api/mirror` (`resetIdle` + live reconcile), `saveRecord` loops for dashboard SSE, `PB_CONNECT` edge sync |
 | 2026-06-13 | **Edge-owned instance delete** — mothership `HandleInstanceDelete` drops PB record only (idle gate); `edge cleanup` + PM2 `edge-cleanup` (daily); admin `getInstances()` → rimraf orphans under `INSTANCES_ROOT`; `--dry-run`; removed `HandleInstanceDataPaths` (`53671ae7`–`13b77d45`) |
+| 2026-06-13 | **Edge vacuum locks + incremental compact** — `VacuumLockService` (`/_api/daemon/vacuum/lock|unlock`, `PH_SECRET`, 30min TTL); `InstanceService` spawn gate; `health compact --hours-back` (PM2 nightly 24h); abort instance sweep when edge down |
 | 2026-06-13 | **Nightly SQLite vacuum sweep** — `health compact` VACUUMs idle instance `data.db`/`logs.db` (skips running Docker mounts) + local Mothership DBs (brief PM2/docker stop); per-instance `autoVacuum` toggle (dashboard Danger Zone + `/docs/auto-vacuum`); disk budget guard; `--dry-run`; blog `/blog/pocketbase-sqlite-vacuum` updated |
 | 2026-06-13 | **Dashboard highlight + color deps** — dropped `prismjs` + twilight CSS (instance layout already used `CodeSample`/svelte-highlight); fixed Tableau10 palette in `secrets/stores.ts`; removed `d3-scale` + `d3-scale-chromatic` |
 | 2026-06-13 | **VFS deploy sync state at instance root** — allow `.ftp-deploy-sync-state.json` for phio + FTP-Deploy-Action (`132cf51d`) |
+| 2026-06-13 | **SFTP relative paths for deploy** — `SftpSession` uses `InstanceVfs.cwd` (REALPATH on dirs); fixes ftp-deploy stale-file deletes (`pb_public/assets/*`) (`ec3bd82c`) |
 
 ---
 

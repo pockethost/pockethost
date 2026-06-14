@@ -10,9 +10,9 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
-| Customer CLI | `packages/phio` | **Submodule** ([pockethost/phio](https://github.com/pockethost/phio)) — separate Changesets release (`bunx phio`). FTPS deploy via `@samkirkland/ftp-deploy`; not in pnpm workspace. See `.cursor/skills/phio/SKILL.md`. |
+| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). FTPS deploy via vendored Kirkland sync (`vendor/ftp-deploy/`). pnpm workspace package; Node 24 + tsx like `pockethost`. See `.cursor/skills/phio/SKILL.md`. |
 
-Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`. (`phio` excluded — Bun submodule.)
+Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
 
 **Instance image publish** (after Dockerfile changes): `cd packages/pockethost-instance && pnpm build && pnpm push`. Tags: `0.0.1` + `latest`. Spawn path: `DOCKER_INSTANCE_IMAGE_NAME` in `constants.ts`.
 
@@ -28,7 +28,7 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 | `sftp` | SFTP file access (`ssh2`, port `PH_SFTP_PORT` default 2222). Ed25519 SSH key auth, virtual FS shared with FTPS |
 | `serve` | Local/dev stack: mothership + daemon + firewall + SFTP |
 | `pocketbase` | PocketBase binary download / version management |
-| `health` | Edge monitoring (`health check`): PM2, HTTP/TCP, disk/RAM/TLS; posts to `DISCORD_HEALTH_CHANNEL_URL` each run. `health compact`: nightly SQLite `VACUUM` on idle instance `data.db`/`logs.db` where `instances.autoVacuum` is enabled (skips running Docker mounts) and local Mothership DBs (brief PM2/docker stop window). `--dry-run` |
+| `health` | Edge monitoring (`health check`): PM2, HTTP/TCP, disk/RAM/TLS; posts to `DISCORD_HEALTH_CHANNEL_URL` each run. `health compact`: nightly SQLite `VACUUM` on idle instance `data.db`/`logs.db` where `instances.autoVacuum` is enabled. Acquires per-instance locks via edge `POST /_api/daemon/vacuum/lock` (blocks spawns while locked). `--hours-back` limits sweep to recently touched DBs (PM2 nightly uses 24h). Local Mothership DBs vacuumed after instance sweep (brief PM2 stop window). Aborts instance sweep if edge is down. `--dry-run` |
 | `mail` | Outbound mail helper |
 
 Root scripts: `pnpm dev:cli`, `pnpm dev:dashboard`, `pnpm prod:cli`.
@@ -53,7 +53,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 
-Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `PH_CONTAINER_STOP_TIMEOUT_SEC` (SIGINT stop timeout before SIGKILL), `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`), `DOCKER_INSTANCE_IMAGE_NAME` (default `benallfree/pockethost-instance` → `:latest`; prod edge nodes are `linux/amd64` — pin a semver tag if `:latest` is wrong arch), `PH_SFTP_PORT` (default 2222), `PH_SFTP_HOST_KEY` (Ed25519 host key under `$PH_HOME/ssh/`, auto-generated), `PH_DISABLE_INSTANCE_WEBHOOKS` (defaults `true` in dev — edge `CronService` skips scheduled instance webhooks; override with `PH_ENABLE_INSTANCE_WEBHOOKS=1`), `PH_DISABLE_FIREWALL_RATE_LIMIT` (defaults `true` in dev — firewall skips rate limit middleware; override with `PH_ENABLE_FIREWALL_RATE_LIMIT=1`).
+Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `PH_CONTAINER_STOP_TIMEOUT_SEC` (SIGINT stop timeout before SIGKILL), `PH_SECRET` (internal daemon auth; dev defaults to `dev` when unset), `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`), `DOCKER_INSTANCE_IMAGE_NAME` (default `benallfree/pockethost-instance` → `:latest`; prod edge nodes are `linux/amd64` — pin a semver tag if `:latest` is wrong arch), `PH_SFTP_PORT` (default 2222), `PH_SFTP_HOST_KEY` (Ed25519 host key under `$PH_HOME/ssh/`, auto-generated), `PH_DISABLE_INSTANCE_WEBHOOKS` (defaults `true` in dev — edge `CronService` skips scheduled instance webhooks; override with `PH_ENABLE_INSTANCE_WEBHOOKS=1`), `PH_DISABLE_FIREWALL_RATE_LIMIT` (defaults `true` in dev — firewall skips rate limit middleware; override with `PH_ENABLE_FIREWALL_RATE_LIMIT=1`).
 
 ## Services (factory pattern)
 
@@ -64,7 +64,8 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `MothershipAdminClientService` — admin PB client via `_superusers` collection auth (npm `pocketbase` ≥0.26)
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
-- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action).
+- `VacuumLockService` — edge-owned per-instance vacuum locks (`/_api/daemon/vacuum/lock|unlock`, `PH_SECRET` auth, 30min TTL). `InstanceService` registers `isLive` and blocks spawns while locked.
+- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action). SFTP relative paths use `InstanceVfs.cwd` (updated on REALPATH to directories), matching FTPS CWD semantics for deploy delete/upload.
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 
@@ -78,7 +79,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - Layout: solid `#111111` background (BlurBg removed); content caps `max-w-content` / `max-w-prose` / `max-w-form`
 - Images: plain `<img>` + Vite imports (no `@sveltejs/enhanced-img`); co-located doc/blog assets synced to `static/generated/` via `scripts/sync-route-images.js` on `dev`/`build` (gitignored; markdown refs use `/generated/...`)
 - App routes: `packages/dashboard/src/routes/`
-- Instance power UX: `src/util/instancePower.ts` — `isInstanceShuttingDown` (`!power && status≠idle`), `isInstanceFullyOff` (`!power && idle`); gates delete/version change
+- Instance power UX: `src/util/instancePower.ts` — `isInstanceShuttingDown` (`!power && status≠idle`), `isInstanceFullyOff` (`!power && idle`); gates Advanced settings (version, domain, admin sync, auto vacuum, dev mode, rename, delete) via `PowerOffRequired.svelte`
 - CLI runs with `node --experimental-eventsource --import tsx` (Node 24 native `EventSource` for PocketBase mirror SSE)
 - User docs: `(static)/docs/**` as `+page.md`
 - Blog: `(static)/blog/**`

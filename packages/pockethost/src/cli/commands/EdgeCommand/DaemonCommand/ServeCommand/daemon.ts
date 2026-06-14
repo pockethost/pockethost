@@ -1,5 +1,8 @@
 import {
+  discordAlert,
   DOCKER_INSTANCE_IMAGE_NAME,
+  instanceService,
+  isSystemError,
   Logger,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
@@ -7,12 +10,10 @@ import {
   MOTHERSHIP_URL,
   MothershipAdminClientService,
   PocketbaseService,
-  discordAlert,
-  isSystemError,
-  instanceService,
   proxyService,
   realtimeLog,
   tryFetch,
+  VacuumLockService,
 } from '@'
 import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
@@ -38,7 +39,11 @@ export async function daemon({ logger }: DaemonOptions) {
       if (container.State !== 'running' || !container.Image.startsWith(DOCKER_INSTANCE_IMAGE_NAME())) {
         return
       }
-      if (container.Names.some((name) => name === `/${MOTHERSHIP_CONTAINER_NAME}` || name.endsWith(MOTHERSHIP_CONTAINER_NAME))) {
+      if (
+        container.Names.some(
+          (name) => name === `/${MOTHERSHIP_CONTAINER_NAME}` || name.endsWith(MOTHERSHIP_CONTAINER_NAME)
+        )
+      ) {
         return
       }
       try {
@@ -81,6 +86,7 @@ export async function daemon({ logger }: DaemonOptions) {
     instanceApiTimeoutMs: 5000,
     logger,
   })
+  await VacuumLockService({ logger })
 
   const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
     if (isSystemError(err)) {

@@ -1,4 +1,5 @@
 import type { LayoutLoad } from './$types'
+import { getAuthor } from '$lib/blog/authors'
 import { toc } from './toc'
 
 const blogIndexDescription =
@@ -13,6 +14,8 @@ export const load: LayoutLoad = async ({ url }) => {
   const description = isIndex ? blogIndexDescription : (entry?.description ?? blogIndexDescription)
   const pageTitle = isIndex ? 'Blog - PocketHost' : `${title} - PocketHost`
   const ogType = isIndex ? 'website' : 'article'
+  const author = entry ? getAuthor(entry.author) : undefined
+  const date = entry?.date
 
   return {
     url: url.href,
@@ -22,5 +25,7 @@ export const load: LayoutLoad = async ({ url }) => {
       description,
       ogType,
     },
+    author,
+    date,
   }
 }

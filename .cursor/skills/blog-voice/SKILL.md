@@ -11,15 +11,26 @@ description: >-
 
 Write as **Ben Allfree**. First person, direct, technically literate but not dry.
 
-## Signature line
+## Author and date
 
-Every post opens with:
+Author metadata lives in `packages/dashboard/src/lib/blog/authors.ts` (name, handle, email for Gravatar, optional link). Each `toc.ts` entry sets `author` (id, default `capn`) and `date` (`Mon D, YYYY`).
 
-```markdown
-_[@cap'n](https://discord.gg/nVTxCMEcGT) {Mon D, YYYY}_
+Posts no longer open with an inline signature line. The blog layout renders the author row with Gravatar automatically.
+
+To add a new author:
+
+```ts
+// packages/dashboard/src/lib/blog/authors.ts
+contributor: {
+  id: 'contributor',
+  name: 'Jane Doe',
+  handle: '@jane',
+  email: 'jane@example.com',
+  url: 'https://example.com',
+},
 ```
 
-Use the post's publish date. Blank line, then the body.
+Then set `author: 'contributor'` on the post's `toc.ts` entry.
 
 ## Tone
 
@@ -39,7 +50,7 @@ Use the post's publish date. Blank line, then the body.
 
 | Length | Pattern |
 |--------|---------|
-| Short announcement (3–6 paragraphs) | Signature → hook → what changed → user impact → optional CTA |
+| Short announcement (3–6 paragraphs) | Hook → what changed → user impact → optional CTA |
 | Longer technical post | Add `###` sections. Rhetorical questions OK ("But what about…?") |
 
 Avoid changelog-style bullet dumps. One feature per post. See `feature-blog` skill. Legacy version roundups (`pockethost-2-3-0-release`) are not the current pattern.
@@ -63,7 +74,7 @@ When describing engineering work:
 1. State the old pain or limitation in one sentence.
 2. Explain the new approach in plain terms (not a file tree).
 3. Tie back to user-visible behavior (dashboard, version picker, `serve`, etc.).
-4. Optional: one concrete detail (API used, command to run) — not a code dump.
+4. Optional: one concrete detail (API used, command to run). Not a code dump.
 
 Skip implementation minutiae agents already know (factory patterns, import paths) unless the post is a deep dive.
 
@@ -72,8 +83,7 @@ Skip implementation minutiae agents already know (factory patterns, import paths
 New post:
 
 1. `packages/dashboard/src/routes/(static)/blog/{slug}/+page.md`
-2. Add entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts` (include `description` for OpenGraph and the blog index card)
-3. Add `postDates` in `packages/dashboard/src/routes/(static)/blog/+page.svelte`
+2. Add entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts` with `description`, `date`, and `author` (see blog-voice skill)
 
 Slug: lowercase kebab-case, descriptive (`webhooks-launch`, not `post-12`).
 

@@ -36,7 +36,7 @@ module.exports = {
     {
       name: `health-compact`,
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
-      script: 'pnpm prod:cli health compact',
+      script: 'pnpm prod:cli health compact --hours-back=24',
     },
     {
       name: `edge-cleanup`,

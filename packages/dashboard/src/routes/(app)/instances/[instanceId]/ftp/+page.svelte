@@ -16,9 +16,8 @@
   const sftpCommand = SFTP_COMMAND(email)
 </script>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/ftp`}>SFTP File Access</CardHeader>
-  <div class="mb-8 space-y-4">
+<CardHeader documentation={`/docs/ftp`}>SFTP File Access</CardHeader>
+<div class="mb-8 space-y-4">
     <p>
       Access instance files via <strong>SFTP</strong> at <code>{FTP_HOST}:{SFTP_PORT}</code>. Authentication is an
       <strong>Ed25519 SSH key</strong> registered under <a href="/account/keys" class="text-primary">Account → Keys</a>.
@@ -60,5 +59,4 @@
         <td>The PocketBase JS hooks directory</td>
       </tr>
     </tbody>
-  </table>
-</div>
+</table>

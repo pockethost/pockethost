@@ -86,7 +86,9 @@ const isPocketBaseFilesPath = (path: string): boolean =>
   path === '/api/files' || path.startsWith('/api/files/')
 
 const isHealthProbePath = (path: string): boolean =>
-  path === '/api/firewall/health' || path === '/_api/daemon/health'
+  path === '/api/firewall/health' ||
+  path === '/_api/daemon/health' ||
+  path.startsWith('/_api/daemon/vacuum')
 
 /** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
 const toMicroPointLimit = (cfg: { points: number; duration: number }) => ({

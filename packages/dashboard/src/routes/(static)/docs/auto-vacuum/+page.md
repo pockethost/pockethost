@@ -16,6 +16,8 @@ Log retention deletes old rows, but SQLite does not shrink the file automaticall
 
 Vacuum is scheduled for idle windows. If a request arrives while compaction is running, you may see **up to about 5 seconds** of downtime while the database finishes.
 
+During the nightly sweep, edge holds a short maintenance lock on each instance being compacted. If your instance is next in the queue and you send a request at that moment, you may see a brief maintenance message instead of a normal response. Retrying after a few seconds is usually enough.
+
 ## Enabling Auto Vacuum
 
 Auto Vacuum is **on by default** for new instances. Toggle it per instance under **Danger Zone → Auto Vacuum** in the dashboard.

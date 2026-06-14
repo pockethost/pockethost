@@ -1,19 +1,23 @@
 <script lang="ts">
-  import Card from '$components/cards/Card.svelte'
   import CardHeader from '$components/cards/CardHeader.svelte'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
   import Toggle from '../Toggle.svelte'
+  import PowerOffRequired from '../PowerOffRequired.svelte'
+  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   const { updateInstance } = client()
 
   $: ({ id, syncAdmin } = $instance)
+  $: isFullyOff = isInstanceFullyOff($instance)
+  $: isShuttingDown = isInstanceShuttingDown($instance)
 
   let errorMessage = ''
 
   const handleChange = (isChecked: boolean) => {
-    // Update the database with the new value
+    if (!isFullyOff) return
+
     updateInstance({ id, fields: { syncAdmin: isChecked } })
       .then(() => 'saved')
       .catch((error) => {
@@ -22,15 +26,19 @@
   }
 </script>
 
-<div class="max-w-2xl">
-  <CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
+<CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
 
-  <p class="mb-8">
-    Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
-    pockethost.io account.
-  </p>
+<p class="text-white/70 text-sm mb-6 leading-relaxed">
+  Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
+  pockethost.io account.
+</p>
 
-  <ErrorMessage message={errorMessage} />
+<PowerOffRequired action="change Admin Sync" />
 
-  <Toggle checked={!!syncAdmin} onChange={handleChange} />
-</div>
+<ErrorMessage message={errorMessage} />
+
+<wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
+  <div class="p-6 md:p-8">
+    <Toggle checked={!!syncAdmin} onChange={handleChange} disabled={!isFullyOff} loading={isShuttingDown} />
+  </div>
+</wa-card>

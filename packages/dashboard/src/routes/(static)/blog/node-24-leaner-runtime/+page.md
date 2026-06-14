@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 12, 2026_
-
 PocketHost already runs on Node 24. The next step was to stop carrying polyfills Node ships for free.
 
 Over the last week we trimmed the hosting stack in two passes. First we dropped packages that nothing imported anymore. Then we replaced the rest with Node 24 built-ins and web standards. The lockfile is over 100 packages lighter. That means fewer things to audit, faster installs, and less surface area when we experiment with new runtimes.

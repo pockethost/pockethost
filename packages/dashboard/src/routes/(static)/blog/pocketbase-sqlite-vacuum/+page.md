@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jun 13, 2026_
-
 We just vacuumed our Mothership `logs.db` and reclaimed **6.5 GB of disk** from a file that held about **1,800 log rows**. If you self-host PocketHost or run PocketBase with request logging and retention turned on, yours might look the same. This is a PSA, not a product release.
 
 ### The case study

@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jul 22, 2025_
-
 We've just launched webhooks support for PocketHost! This is a game-changer for anyone who needs scheduled operations or event-driven workflows with their PocketBase instances.
 
 Previously, PocketBase's [job scheduling](https://pocketbase.io/docs/js-jobs-scheduling/) wouldn't work reliably on PocketHost because we hibernate inactive instances.

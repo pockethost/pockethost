@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Dec 20, 2024_
-
 Well, I've decided to go rogue and solve the problem of global PocketBase hosting. The Flounder series has raised enough money for us to do this, so I'm moving forward.
 
 We need a custom container solution for PocketHost/PocketBase. Docker is great, and individual VPS's are great if that's how you want to spend your time, but we can do a lot better.

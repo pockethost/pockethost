@@ -1,5 +1,3 @@
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jul 22, 2025_
-
 ### Minor Changes
 
 - b03fa83: Add blog functionality with dynamic promo banner integration and content management features

@@ -24,6 +24,10 @@ for (const envPath of ['.env', PH_PROJECT_ROOT('.env')]) {
   if (existsSync(envPath)) process.loadEnvFile(envPath)
 }
 
+if (process.env.NODE_ENV === 'development' && !process.env.PH_SECRET) {
+  process.env.PH_SECRET = 'dev'
+}
+
 export const _PH_HOME = env.get('PH_HOME').default(envPaths(`pockethost`).data).asString()
 
 export const _DATA_ROOT = env.get('DATA_ROOT').default(join(_PH_HOME, `data`)).asString()

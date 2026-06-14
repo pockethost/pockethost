@@ -20,14 +20,20 @@ export const HealthCommand = () => {
     )
     .addCommand(
       new Command(`compact`)
-        .description(`VACUUM idle instance and local Mothership SQLite databases; posts summary to Discord health channel`)
+        .description(
+          `VACUUM idle instance and local Mothership SQLite databases; posts summary to Discord health channel`
+        )
         .option(`--dry-run`, `Report databases that would be vacuumed without running VACUUM`, false)
-        .action(async ({ dryRun }: { dryRun: boolean }) => {
+        .option(`--hours-back <hours>`, `Only vacuum instances with db mtime within N hours`)
+        .action(async ({ dryRun, hoursBack }: { dryRun: boolean; hoursBack?: string }) => {
           logger().context({ cli: 'health:compact' })
           const { info } = logger()
           info(`Starting`)
           const { compact } = await import(`./compact`)
-          await compact({ dryRun })
+          await compact({
+            dryRun,
+            hoursBack: hoursBack != null ? Number(hoursBack) : undefined,
+          })
         })
     )
     .action(() => {

@@ -1,16 +1,16 @@
 ---
 name: phio
 description: >-
-  PocketHost customer CLI (phio submodule). Use when changing InstanceFileAccess,
+  PocketHost customer CLI (packages/phio). Use when changing InstanceFileAccess,
   FTPS, deploy flows, or when validating that server changes still work with
   phio dev/deploy and SamKirkland FTP-Deploy-Action.
 ---
 
 # phio — PocketHost customer CLI
 
-`packages/phio/` is a **git submodule** ([pockethost/phio](https://github.com/pockethost/phio)). Separate release (Changesets, current `0.3.x`). Not in the pnpm workspace. Runs on **Bun** (`bunx phio`).
+`packages/phio/` is the **customer CLI** in this monorepo. pnpm workspace package; Node 24 + tsx (same pattern as `pockethost`). Run via `pnpm --filter phio dev -- …` or `pnpm exec phio …`.
 
-Long-term: may merge into this monorepo or rename `packages/pockethost` → `pockethost-server` and reclaim the `pockethost` npm name for the CLI. Until then, treat phio as the **compatibility contract** for customer deploy tooling.
+Long-term: may rename `packages/pockethost` → `pockethost-server` and publish CLI as `pockethost`. Until then, treat phio as the **compatibility contract** for customer deploy tooling.
 
 ## Commands
 
@@ -28,7 +28,7 @@ Env overrides: `PHIO_USERNAME`, `PHIO_PASSWORD`, `PHIO_INSTANCE_NAME`, `PHIO_MOT
 
 ## Deploy path (FTPS)
 
-`dev` and `deploy` use `@samkirkland/ftp-deploy` (fork: `github:benallfree/ftp-deploy`):
+`dev` and `deploy` use the vendored Kirkland sync engine at `vendor/ftp-deploy/` (from [benallfree/ftp-deploy](https://github.com/benallfree/ftp-deploy) @ `132389e`):
 
 - **Server:** `ftp.pockethost.io` (FTPS, port 21)
 - **Username:** `__auth__` (magic — not a real user)
@@ -61,10 +61,8 @@ When changing **any** of these server areas, verify phio still works:
 ### Quick smoke test (local)
 
 1. `pnpm dev:cli serve` (mothership + edge + FTPS + SFTP)
-2. In a project with `pockethost.json`: `cd packages/phio && bun run dev -- deploy <subdomain> -v`
+2. In a project with `pockethost.json`: `pnpm --filter phio dev -- deploy <subdomain> -v`
 3. Confirm sync completes and `.ftp-deploy-sync-state.json` is written at instance root
-
-Submodule update: `git submodule update --init packages/phio`
 
 ## Related server code
 

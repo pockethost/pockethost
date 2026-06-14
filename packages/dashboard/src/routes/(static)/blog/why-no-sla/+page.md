@@ -1,7 +1,5 @@
 ## Why no SLA?
 
-_[@cap'n](https://discord.gg/nVTxCMEcGT) Jan 1, 2025_
-
 PocketHost is in its 3rd year as an open source hosting service. We have never offered an SLA. Why?
 
 ### I'm just one guy
