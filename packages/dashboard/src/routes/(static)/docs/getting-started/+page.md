@@ -55,16 +55,14 @@ PocketHost provides a user-friendly dashboard to manage your instances.
 
 _See [Using the PocketHost Dashboard](#) for an in-depth guide._
 
-## 5. Exploring the Instance via FTP
+## 5. Managing instance files (SFTP)
 
-For advanced management, you can access your instance files via FTPS.
+For hooks, migrations, and backups, use **SFTP** with an Ed25519 SSH key.
 
-- **Host**: `ftp.pockethost.io` (not your instance subdomain)
-- **Port**: `21` with explicit FTPS (AUTH TLS)
-- **Credentials**: your pockethost.io email and password
-- **Clients**: [lftp](https://lftp.yar.ru/) or FileZilla (Require explicit FTP over TLS). The macOS `ftp` command does not work.
+1. Create a key with `ssh-keygen -t ed25519` and register the public key under **[Account → Keys](/account/keys)**.
+2. Connect to `ftp.pockethost.io` on port **2222** with your email as the username and your private key.
 
-_Detailed instructions are in [FTP Access](/docs/ftp)._
+Legacy FTPS on port 21 is deprecated. See **[SFTP File Access](/docs/ftp)** for macOS, Windows, Linux, and client-specific instructions.
 
 ---
 
@@ -74,7 +72,7 @@ Now that you're set up, you can start building your application!
 
 - **Configure Your Database**: Set up collections and records in the admin UI.
 - **Integrate with Your App**: Connect your PocketBase instance to your web or mobile application.
-- **Deploy Updates**: Use FTP or the admin UI to manage your instance files.
+- **Deploy Updates**: Use [SFTP](/docs/ftp) or the admin UI to manage your instance files.
 
 ---
 
