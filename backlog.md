@@ -67,7 +67,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
 | **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
 | **FTPS sunset comms** | Low | S–M | Blog (`/blog/sftp-file-access`) + `/docs/ftp` deprecation copy shipped. Remaining: dashboard notice, email to active FTPS users, explicit sunset date. Then schedule **Remove FTPS**. |
-| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** SFTP shipped + **FTPS sunset comms** grace period elapsed. |
+| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** **phio SFTP migration** (FTPS deploy replacement) + **FTPS sunset comms** grace period elapsed. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
@@ -75,8 +75,8 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **phio ↔ pockethost merge / rename** | Med | L–XL | Submodule `packages/phio` is the customer CLI (`bunx phio`); server package is `pockethost`. Options: merge phio into monorepo; or rename server → `pockethost-server` and publish CLI as `pockethost`. Until then: VFS/FTPS changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
-| **phio SFTP migration** | Med | M | phio `dev`/`deploy` still use FTPS + `__auth__` cookie. Migrate to SFTP + SSH keys before **Remove FTPS**. |
+| **phio ↔ pockethost merge / rename** | Med | L–XL | Submodule `packages/phio` is the customer CLI (`bunx phio`); server package is `pockethost`. Options: merge phio into monorepo; or rename server → `pockethost-server` and publish CLI as `pockethost`. Until then: VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
+| **phio SFTP migration (replace FTPS deploy)** | Med | M | **FTPS sunset blocker.** phio `dev`/`deploy` and SamKirkland FTP-Deploy-Action users still sync via FTPS + `__auth__` cookie (`ftp.pockethost.io:21`). Replace with SFTP on port 2222 + Ed25519 SSH keys (Account → Keys). Scope: `@samkirkland/ftp-deploy` SFTP provider or fork; phio auth (key path / agent / `phio login` → key provisioning); update docs + CI examples; deprecate FTPS in phio output. Ship before **Remove FTPS**. |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
 | **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** phio submodule covers deploy/dev/logs; full SDK + dashboard parity still open. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
@@ -225,6 +225,7 @@ Realtime reconnect resync ──► removes verify polling; fixes stale instance
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
 FTPS login welcome banner ──► FTPS sunset comms (point legacy users at SFTP)
 FTPS sunset comms ──► Remove FTPS (grace period)
+phio SFTP migration (replace FTPS deploy) ──► Remove FTPS (deploy path must exist before edge-ftp drop)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
@@ -265,6 +266,7 @@ _Completed items with date + link to PR/release._
 | 2026-06-13 | **Nightly SQLite vacuum sweep** — `health compact` VACUUMs idle instance `data.db`/`logs.db` (skips running Docker mounts) + local Mothership DBs (brief PM2/docker stop); per-instance `autoVacuum` toggle (dashboard Danger Zone + `/docs/auto-vacuum`); disk budget guard; `--dry-run`; blog `/blog/pocketbase-sqlite-vacuum` updated |
 | 2026-06-13 | **Dashboard highlight + color deps** — dropped `prismjs` + twilight CSS (instance layout already used `CodeSample`/svelte-highlight); fixed Tableau10 palette in `secrets/stores.ts`; removed `d3-scale` + `d3-scale-chromatic` |
 | 2026-06-13 | **VFS deploy sync state at instance root** — allow `.ftp-deploy-sync-state.json` for phio + FTP-Deploy-Action (`132cf51d`) |
+| 2026-06-13 | **SFTP relative paths for deploy** — `SftpSession` uses `InstanceVfs.cwd` (REALPATH on dirs); fixes ftp-deploy stale-file deletes (`pb_public/assets/*`) (`ec3bd82c`) |
 
 ---
 
