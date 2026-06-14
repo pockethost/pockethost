@@ -183,9 +183,9 @@ const HandleInstanceUpdate = (c) => {
 	if (!authRecord) throw new Error(`Expected authRecord here`);
 	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
 	const oldCname = record.getString("cname").trim();
-	const newCname = cname ? cname.trim() : "";
-	const cnameChanged = oldCname !== newCname;
-	if (cnameChanged && newCname) {
+	const newCname = cname !== null ? cname.trim() : null;
+	const cnameChanged = newCname !== null && oldCname !== newCname;
+	if (cnameChanged && newCname.length > 0) {
 		log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`);
 		const createResponse = createCloudflareCustomHostname(newCname, log);
 		if (createResponse) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);

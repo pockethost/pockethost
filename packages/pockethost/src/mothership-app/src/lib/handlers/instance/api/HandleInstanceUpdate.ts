@@ -132,10 +132,10 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
 
   // Check if CNAME changed and handle Cloudflare
   const oldCname = record.getString('cname').trim()
-  const newCname = cname ? cname.trim() : ''
-  const cnameChanged = oldCname !== newCname
+  const newCname = cname !== null ? cname.trim() : null
+  const cnameChanged = newCname !== null && oldCname !== newCname
 
-  if (cnameChanged && newCname) {
+  if (cnameChanged && newCname.length > 0) {
     log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`)
 
     // Blindly add to Cloudflare
