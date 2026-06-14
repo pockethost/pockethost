@@ -1,37 +1,5 @@
-import { INSTANCES_ROOT, logger } from '@'
-import { execSync } from 'child_process'
-import { globSync } from 'node:fs'
+import { vacuumAll } from './vacuum'
 
-const SQLITE_SIDEcarSuffixes = ['-shm', '-wal'] as const
-
-export const compact = async () => {
-  const { info, error } = logger()
-
-  const files = [
-    ...new Set(
-      [`data`, `logs`].flatMap((db) =>
-        SQLITE_SIDEcarSuffixes.flatMap((suffix) =>
-          globSync(`${INSTANCES_ROOT('*', 'pb_data', `${db}.db`)}${suffix}`).map((f) =>
-            f.replace(/-(?:shm|wal)$/, '')
-          )
-        )
-      )
-    ),
-  ]
-
-  info(`Compacting ${files.length} files`, { files })
-
-  files.forEach((file) => {
-    const { info, error } = logger().child(file)
-    const cmd = `sqlite3 ${file} ".tables"`
-    info(cmd)
-    try {
-      execSync(cmd)
-      info(`Finished compacting`)
-    } catch (e) {
-      error(`Error compacting`, e)
-    }
-  })
-  // console.log('Compaction complete')
-  info(`Compaction complete`)
+export const compact = async ({ dryRun = false } = {}) => {
+  await vacuumAll({ dryRun })
 }

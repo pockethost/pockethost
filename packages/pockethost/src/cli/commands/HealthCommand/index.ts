@@ -20,7 +20,7 @@ export const HealthCommand = () => {
     )
     .addCommand(
       new Command(`compact`)
-        .description(`VACUUM idle instance and local Mothership SQLite databases (nightly via PM2 health-compact)`)
+        .description(`VACUUM idle instance and local Mothership SQLite databases; posts summary to Discord health channel`)
         .option(`--dry-run`, `Report databases that would be vacuumed without running VACUUM`, false)
         .action(async ({ dryRun }: { dryRun: boolean }) => {
           logger().context({ cli: 'health:compact' })

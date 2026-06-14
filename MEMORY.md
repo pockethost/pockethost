@@ -27,7 +27,7 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 | `sftp` | SFTP file access (`ssh2`, port `PH_SFTP_PORT` default 2222). Ed25519 SSH key auth, virtual FS shared with FTPS |
 | `serve` | Local/dev stack: mothership + daemon + firewall + SFTP |
 | `pocketbase` | PocketBase binary download / version management |
-| `health` | Health checks |
+| `health` | Edge monitoring (`health check`): PM2, HTTP/TCP, disk/RAM/TLS; posts to `DISCORD_HEALTH_CHANNEL_URL` each run. `health compact`: nightly SQLite `VACUUM` on idle instance `data.db`/`logs.db` where `instances.autoVacuum` is enabled (skips running Docker mounts) and local Mothership DBs (brief PM2/docker stop window). `--dry-run` |
 | `mail` | Outbound mail helper |
 
 Root scripts: `pnpm dev:cli`, `pnpm dev:dashboard`, `pnpm prod:cli`.
