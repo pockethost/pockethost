@@ -52,6 +52,16 @@ const res = $http.send({ url: 'https://api.example.com', method: 'GET' })
 
 [pocketbase-node](https://www.npmjs.com/package/pocketbase-node) provides a subset of Node APIs compatible with JSVM. Prefer PocketBase-native APIs (`$app`, `$http`) first.
 
+## PocketHost mothership build boundary
+
+TypeScript handlers compile with **tsdown** into `pb_hooks/mothership.js` and run in Goja — not Node.
+
+- Shared hook logic lives in `packages/pockethost/src/common/` — must be **JSVM-safe**.
+- Import via `$common/<file>` subpaths (`"$common/*": ["../common/*"]` in mothership tsconfig). Avoid runtime `$common` barrel imports.
+- After hook changes: `pnpm --filter pockethost-mothership-app build` — **zero** `[UNRESOLVED_IMPORT]` warnings.
+
+See [.cursor/rules/mothership-hooks.mdc](../../../rules/mothership-hooks.mdc).
+
 ## PocketHost docs source
 
 Full write-up: `packages/dashboard/src/routes/(static)/docs/js/+page.md`
