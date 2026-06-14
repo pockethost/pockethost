@@ -1,4 +1,4 @@
-import { InstanceFields, Logger, PocketBase, assert, ensureInstanceDirectoryStructure } from '@'
+import { InstanceFields, Logger, PocketBase, UserId, assert, ensureInstanceDirectoryStructure } from '@'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
@@ -13,6 +13,7 @@ import {
   isAllowedInstanceRootDir,
   isAtInstanceRoot,
 } from './guards'
+import { VfsScope, instanceAllowedByScope } from './scope'
 
 const UNIX_SEP_REGEX = /\//g
 const WIN_SEP_REGEX = /\\/g
@@ -37,12 +38,36 @@ export class InstanceVfs {
   private _root: string
   client: PocketBase
   cwd: string
+  private scope?: VfsScope
 
-  constructor(client: PocketBase, logger: Logger) {
+  constructor(client: PocketBase, logger: Logger, scope?: VfsScope) {
     this.client = client
     this.log = logger.create(`InstanceVfs`)
     this.cwd = normalize(`/`.replace(WIN_SEP_REGEX, '/'))
     this._root = resolve(INSTANCES_ROOT() || process.cwd())
+    this.scope = scope
+  }
+
+  private assertInstanceAccess(instance: InstanceFields) {
+    if (!this.scope) {
+      return
+    }
+
+    if (!instanceAllowedByScope(this.scope, instance.id, instance.uid)) {
+      throw new Error(`${instance.subdomain} not found.`)
+    }
+  }
+
+  private async listAccessibleInstances(): Promise<InstanceFields[]> {
+    if (!this.scope) {
+      return this.client.collection(`instances`).getFullList<InstanceFields>()
+    }
+
+    const instances = await this.client.collection(`instances`).getFullList<InstanceFields>({
+      filter: `uid=${JSON.stringify(this.scope.userId)}`,
+    })
+
+    return instances.filter((instance) => instanceAllowedByScope(this.scope, instance.id, instance.uid))
   }
 
   get root() {
@@ -74,12 +99,16 @@ export class InstanceVfs {
     const instance = await (async () => {
       dbg(`checking validity`, { subdomain })
       if (!subdomain) return
+      const filter = this.scope
+        ? `subdomain=${JSON.stringify(subdomain)} && uid=${JSON.stringify(this.scope.userId)}`
+        : `subdomain=${JSON.stringify(subdomain)}`
       const instance = await this.client
         .collection(`instances`)
-        .getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
+        .getFirstListItem<InstanceFields>(filter)
       if (!instance) {
         throw new Error(`${subdomain} not found.`)
       }
+      this.assertInstanceAccess(instance)
       const instanceRootDir = restOfVirtualPath[0]
       if (instanceRootDir && POWERED_OFF_ONLY.includes(instanceRootDir) && instance.power) {
         throw new Error(`Instance must be powered off first`)
@@ -152,7 +181,7 @@ export class InstanceVfs {
     const { fsPath, instance, restOfVirtualPath } = await this.resolvePath(path)
 
     if (!instance) {
-      const instances = await this.client.collection(`instances`).getFullList<InstanceFields>()
+      const instances = await this.listAccessibleInstances()
       return instances.map((i) => ({
         isDirectory: true,
         mode: 0o755,

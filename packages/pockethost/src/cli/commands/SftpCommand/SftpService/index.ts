@@ -4,19 +4,25 @@ import {
   PH_SFTP_PORT,
   SingletonBaseConfig,
   asyncExitHook,
-  authenticateFileAccess,
   logger,
   mergeConfig,
   mkSingleton,
+  MothershipAdminClientService,
 } from '@'
 import ssh2 from 'ssh2'
 import { InstanceVfs } from '../../../../services/InstanceFileAccess/InstanceVfs'
+import { findSshKeyByPublicKey, verifySshPublicKeySignature } from '../../../../services/InstanceFileAccess/sshKeyAuth'
+import type { SshKeyAuthResult } from '../../../../services/InstanceFileAccess/sshKeyAuth'
 import { ensureHostKey } from './hostKey'
 import { attachSftpSession } from './SftpSession'
 
 export type SftpConfig = SingletonBaseConfig & { mothershipUrl: string }
 
-export const sftpService = mkSingleton((config: SftpConfig) => {
+type SftpClientState = {
+  auth?: SshKeyAuthResult
+}
+
+export const sftpService = mkSingleton(async (config: SftpConfig) => {
   const { mothershipUrl } = mergeConfig(
     {
       mothershipUrl: MOTHERSHIP_URL(),
@@ -26,6 +32,8 @@ export const sftpService = mkSingleton((config: SftpConfig) => {
   const _sftpServiceLogger = logger()
   const { dbg, info } = _sftpServiceLogger
 
+  const { client: adminClient } = await MothershipAdminClientService()
+
   const hostKey = ensureHostKey(PH_SFTP_HOST_KEY())
 
   const server = new ssh2.Server(
@@ -34,32 +42,57 @@ export const sftpService = mkSingleton((config: SftpConfig) => {
     },
     (client) => {
       let username = ``
+      const state: SftpClientState = {}
+
       client
         .on('authentication', (ctx) => {
-          if (ctx.method !== 'password') {
-            return ctx.reject(['password'])
+          if (ctx.method !== 'publickey') {
+            return ctx.reject(['publickey'])
           }
+
           username = ctx.username
-          authenticateFileAccess(mothershipUrl, ctx.username, ctx.password)
-            .then((pb) => {
-              ;(client as typeof client & { _pbClient?: typeof pb })._pbClient = pb
+          const pkCtx = ctx as ssh2.PublicKeyAuthContext
+
+          findSshKeyByPublicKey(adminClient, ctx.username, pkCtx.key.algo, pkCtx.key.data)
+            .then((result) => {
+              if (!result) {
+                return ctx.reject(['publickey'])
+              }
+
+              if (!pkCtx.signature) {
+                state.auth = result
+                return ctx.accept()
+              }
+
+              if (!pkCtx.blob || !verifySshPublicKeySignature(result.key.public_key, pkCtx.blob, pkCtx.signature, pkCtx.hashAlgo)) {
+                return ctx.reject(['publickey'])
+              }
+
+              state.auth = result
               ctx.accept()
             })
-            .catch(() => ctx.reject(['password']))
+            .catch(() => ctx.reject(['publickey']))
         })
         .on('ready', () => {
-          dbg(`Client authenticated`, { username })
+          dbg(`Client authenticated`, { username, keyId: state.auth?.key.id })
           client.on('session', (accept) => {
             const session = accept()
             session.on('sftp', (accept, reject) => {
-              const pb = (client as typeof client & { _pbClient?: Awaited<ReturnType<typeof authenticateFileAccess>> })
-                ._pbClient
-              if (!pb) {
+              const auth = state.auth
+              if (!auth) {
                 reject()
                 return
               }
+
               const sftp = accept()
-              const vfs = new InstanceVfs(pb, _sftpServiceLogger.child(username).context({ sftpSession: Date.now() }))
+              const vfs = new InstanceVfs(
+                adminClient,
+                _sftpServiceLogger.child(username).context({ sftpSession: Date.now() }),
+                {
+                  userId: auth.user.id,
+                  instanceIds: auth.instanceIds,
+                }
+              )
               attachSftpSession(sftp, vfs, _sftpServiceLogger.child(username))
             })
           })
