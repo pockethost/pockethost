@@ -106,7 +106,7 @@ Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-da
 
 ## Production / PM2
 
-Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`pnpm prod:cli …` per app). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
+Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`pnpm prod:cli …` per app). Operator runbook: `docs/production.md` (includes SFTP release order). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
 
 `setup.sh` installs and configures `pm2-logrotate` after global `pm2`:
 

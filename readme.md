@@ -27,7 +27,11 @@ With PocketHost, you can run **hundreds or even thousands of PocketBase instance
 
 ### `pockethost edge:syslog`
 
-### `pockethost edge:ftp`
+### `pockethost edge ftp`
+
+### `pockethost sftp`
+
+Ed25519 SSH key file access on port 2222 (see `/docs/ftp` on the dashboard).
 
 ## Other commands
 
