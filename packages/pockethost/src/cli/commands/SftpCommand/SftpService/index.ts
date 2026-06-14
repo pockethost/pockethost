@@ -78,6 +78,10 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
           dbg(`Client authenticated`, { username, keyId: state.auth?.key.id })
           client.on('session', (accept) => {
             const session = accept()
+            const endClient = () => client.end()
+            session.on('end', endClient)
+            session.on('close', endClient)
+            session.on('eof', endClient)
             session.on('sftp', (accept, reject) => {
               const auth = state.auth
               if (!auth) {
