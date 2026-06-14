@@ -10,8 +10,9 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
+| Customer CLI | `packages/phio` | **Submodule** ([pockethost/phio](https://github.com/pockethost/phio)) — separate Changesets release (`bunx phio`). FTPS deploy via `@samkirkland/ftp-deploy`; not in pnpm workspace. See `.cursor/skills/phio/SKILL.md`. |
 
-Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
+Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`. (`phio` excluded — Bun submodule.)
 
 **Instance image publish** (after Dockerfile changes): `cd packages/pockethost-instance && pnpm build && pnpm push`. Tags: `0.0.1` + `latest`. Spawn path: `DOCKER_INSTANCE_IMAGE_NAME` in `constants.ts`.
 
@@ -63,7 +64,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `MothershipAdminClientService` — admin PB client + instance mixin
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
-- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope)
+- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action). SFTP relative paths use `InstanceVfs.cwd` (updated on REALPATH to directories), matching FTPS CWD semantics for deploy delete/upload.
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 
