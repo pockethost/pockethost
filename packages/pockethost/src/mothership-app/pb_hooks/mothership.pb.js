@@ -88,6 +88,15 @@ routerAdd("POST", "/api/sns", (c) => {
 });
 
 //#endregion
+//#region src/lib/handlers/sshKeys/hooks.ts
+onRecordBeforeCreateRequest((e) => {
+	return require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e);
+}, "ssh_keys");
+onRecordBeforeUpdateRequest((e) => {
+	return require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e);
+}, "ssh_keys");
+
+//#endregion
 //#region src/lib/handlers/stats/hooks.ts
 routerAdd("GET", "/api/stats", (c) => {
 	return require(`${__hooks}/mothership`).HandleStatsRequest(c);

@@ -22,6 +22,7 @@
     "@sveltejs/kit": "^2.22.2",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/js-md5": "^0.8.0",
     "autoprefixer": "^10.4.21",
     "highlight.js": "^11.11.1",
     "mdsvex": "^0.12.6",
@@ -36,5 +37,9 @@
     "unist-util-visit": "^5.0.0",
     "vite": "^6.3.5",
     "wrangler": "^4.25.0"
+  },
+  "dependencies": {
+    "@noble/hashes": "^2.2.0",
+    "js-md5": "^0.8.3"
   }
 }

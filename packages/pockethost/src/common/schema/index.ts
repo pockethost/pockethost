@@ -1,6 +1,7 @@
 export * from './Instance'
 export * from './InstanceLog'
 export * from './Rest'
+export * from './SshKey'
 export * from './types'
 export * from './User'
 export * from './util'

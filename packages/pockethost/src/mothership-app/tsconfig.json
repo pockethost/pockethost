@@ -10,6 +10,7 @@
     "baseUrl": ".",
     "paths": {
       "$common": ["../common/index.ts"],
+      "$common/*": ["../common/*"],
       "$util/*": ["src/lib/util/*"]
     }
   },

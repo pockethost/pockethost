@@ -15,6 +15,11 @@ module.exports = {
       cron_restart: '0 0 * * *',
     },
     {
+      name: `edge-sftp`,
+      script: 'pnpm prod:cli sftp serve',
+      cron_restart: '0 0 * * *',
+    },
+    {
       name: `mothership`,
       script: 'pnpm prod:cli mothership serve',
     },

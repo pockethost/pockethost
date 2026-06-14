@@ -12,6 +12,7 @@
   import PromoBanner from './PromoBanner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
   import { cloudLogo } from '$lib/brand'
+  import a11yDark from 'svelte-highlight/styles/seti-ui'
 
   const currentYear = new Date().getFullYear()
 
@@ -21,6 +22,10 @@
 </script>
 
 <Meta />
+
+<svelte:head>
+  {@html a11yDark}
+</svelte:head>
 
 <div class="bg-[#111111]">
   <MothershipStatus />
@@ -34,60 +39,51 @@
     <slot />
   </div>
 
-  <footer class="text-white px-4 md:px-20 py-10 text-sm relative z-1">
-    <div class=" flex justify-between items-center">
-      <div class="">
-        <a href="/" rel="noreferrer">
-          <img src={cloudLogo} alt="Pockethost Logo" class="h-28 md:h-36 w-auto" />
-        </a>
-        <div class="flex items-center gap-4 md:gap-6">
-          <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank">
-            <wa-icon name="github" family="brands"></wa-icon>
+  <footer class="text-white px-4 md:px-20 pt-6 pb-8 text-sm relative z-1 border-t border-neutral-700">
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        <div class="flex items-center gap-5">
+          <a href="/" rel="noreferrer">
+            <img src={cloudLogo} alt="Pockethost Logo" class="h-12 w-auto" />
           </a>
-          <a href="https://www.producthunt.com/products/pockethost" rel="noreferrer" target="_blank">
-            <wa-icon name="product-hunt" family="brands"></wa-icon>
-          </a>
-          <a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank">
-            <wa-icon name="discord" family="brands"></wa-icon>
-          </a>
-          <a href="https://www.youtube.com/@pocketba5ed" rel="noreferrer" target="_blank">
-            <wa-icon name="youtube" family="brands"></wa-icon>
-          </a>
-        </div>
-      </div>
-      <div class="flex-1 flex justify-around md:justify-start md:space-x-32 md:ml-32">
-        <div>
-          <h3 class="font-semibold mb-3">Explore</h3>
-          <ul class="space-y-1">
-            <li><a href="/docs" class="hover:underline">Docs</a></li>
-            <li><a href="/blog" class="hover:underline">Blog</a></li>
-            <li><a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank" class="hover:underline">GitHub</a></li>
-          </ul>
+          <div class="flex items-center gap-4 text-neutral-400">
+            <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank" class="hover:text-white">
+              <wa-icon name="github" family="brands"></wa-icon>
+            </a>
+            <a href="https://www.producthunt.com/products/pockethost" rel="noreferrer" target="_blank" class="hover:text-white">
+              <wa-icon name="product-hunt" family="brands"></wa-icon>
+            </a>
+            <a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank" class="hover:text-white">
+              <wa-icon name="discord" family="brands"></wa-icon>
+            </a>
+            <a href="https://www.youtube.com/@pocketba5ed" rel="noreferrer" target="_blank" class="hover:text-white">
+              <wa-icon name="youtube" family="brands"></wa-icon>
+            </a>
+          </div>
         </div>
 
-        <div>
-          <h3 class="font-semibold mb-3">Contact</h3>
-          <ul class="space-y-1">
-            <li><a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank" class="hover:underline">Discord</a></li>
-            <li><a href="/support" class="hover:underline">Support</a></li>
-            <li><a href="https://status.pockethost.io/" class="hover:underline">Status</a></li>
-          </ul>
+        <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-neutral-300">
+          <a href="/docs" class="hover:text-white hover:underline">Docs</a>
+          <a href="/blog" class="hover:text-white hover:underline">Blog</a>
+          <a href="https://github.com/pockethost/pockethost" rel="noreferrer" target="_blank" class="hover:text-white hover:underline">GitHub</a>
+          <span class="hidden sm:inline text-neutral-600" aria-hidden="true">·</span>
+          <a href="https://discord.gg/nVTxCMEcGT" rel="noreferrer" target="_blank" class="hover:text-white hover:underline">Discord</a>
+          <a href="/support" class="hover:text-white hover:underline">Support</a>
+          <a href="https://status.pockethost.io/" class="hover:text-white hover:underline">Status</a>
+        </nav>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-neutral-500">
+        <div class="flex flex-wrap gap-x-4 gap-y-1">
+          <a href="/privacy" class="hover:text-neutral-300 hover:underline">Privacy</a>
+          <a href="/terms" class="hover:text-neutral-300 hover:underline">Terms</a>
+          <a href="https://status.pockethost.io/" rel="noreferrer" target="_blank" class="hover:text-neutral-300 hover:underline">System Status</a>
         </div>
-      </div>
-    </div>
-
-    <div
-      class="mt-10 border-t border-neutral-700 pt-4 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-6"
-    >
-      <div class="flex space-x-4">
-        <a href="/privacy" class="hover:underline">Privacy</a>
-        <a href="/terms" class="hover:underline">Terms</a>
-        <a href="https://status.pockethost.io/" rel="noreferrer" target="_blank" class="hover:underline">System Status</a>
-      </div>
-
-      <div class="flex flex-col text-xs gap-1 text-center md:text-right">
-        <div>&copy; <span id="year">{currentYear}</span> - PocketHost</div>
-        <div>Proudly hacking open source in Reno, NV ❤️</div>
+        <div class="sm:text-right">
+          <span>&copy; <span id="year">{currentYear}</span> PocketHost</span>
+          <span class="mx-2 text-neutral-700" aria-hidden="true">·</span>
+          <span>Proudly hacking open source in Reno, NV ❤️</span>
+        </div>
       </div>
     </div>
   </footer>

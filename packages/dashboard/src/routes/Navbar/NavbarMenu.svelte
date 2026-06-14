@@ -48,10 +48,10 @@
       <wa-button href="/about" appearance="plain" class="hidden lg:inline-flex">About</wa-button>
     </UserLoggedOut>
     <UserLoggedIn>
-      <wa-dropdown placement="bottom-end" class="ml-2">
-        <wa-button slot="trigger" appearance="plain" class="h-full flex items-center p-0">
-          <Avatar />
-        </wa-button>
+      <wa-dropdown placement="bottom-end" class="nav-user-menu ml-1">
+        <button slot="trigger" type="button" class="nav-user-menu-trigger" aria-label="Account menu">
+          <Avatar size={32} />
+        </button>
         <wa-dropdown-item>
           <a href="/account">Settings</a>
         </wa-dropdown-item>
@@ -65,3 +65,32 @@
     </UserLoggedOut>
   </nav>
 {/if}
+
+<style>
+  :global(wa-dropdown.nav-user-menu) {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+  }
+
+  .nav-user-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    line-height: 0;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
+
+  .nav-user-menu-trigger:focus-visible {
+    outline: 2px solid rgb(30 184 84 / 0.8);
+    outline-offset: 2px;
+  }
+</style>

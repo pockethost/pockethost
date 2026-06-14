@@ -16,9 +16,9 @@ PocketBase has a simple backup and restore feature available directly from the a
 
 However, if your instance becomes unresponsive or the admin interface is inaccessible, you may need to use alternative methods for backing up and restoring.
 
-## Backup and Restore via FTP
+## Backup and Restore via SFTP
 
-If the admin panel’s backup and restore feature is unavailable or your instance is unresponsive, you can manually back up your data via [FTP](/docs/ftp). This allows you to access all PocketBase files, including the database and uploads, so you can create manual backups and restore them if necessary.
+If the admin panel’s backup and restore feature is unavailable or your instance is unresponsive, you can manually back up your data via [SFTP](/docs/ftp). This allows you to access all PocketBase files, including the database and uploads, so you can create manual backups and restore them if necessary.
 
 ## S3 and Scheduled Backups
 
@@ -28,7 +28,7 @@ Automating your backups is a recommended practice, especially as your instance g
 
 - **S3 backups**: Backing up to S3 (or another external storage solution) is highly recommended. Using S3 allows you to conserve your PocketHost storage space for critical resources such as your database and logs, which cannot be stored elsewhere. Files such as uploads and backups, on the other hand, can easily live on S3.
 
-- **FTP access to backups**: Note that backups stored in S3 are **not** accessible via FTP. You will need to manage these backups directly through S3 or your chosen storage provider.
+- **SFTP access to backups**: Note that backups stored in S3 are **not** accessible via SFTP. You will need to manage these backups directly through S3 or your chosen storage provider.
 
 ## Best Practices
 
@@ -37,6 +37,6 @@ To ensure your data is always secure:
 1. **Regularly back up** your instance using the admin panel or automated methods like S3.
 2. **Use external storage** (e.g., S3) for backups and file uploads to avoid consuming valuable PocketHost storage space.
 3. If automating backups, ensure your instance is awake and running during scheduled backup intervals.
-4. Keep in mind that **manual FTP backups** are available if your instance becomes inaccessible via the admin panel.
+4. Keep in mind that **manual SFTP backups** are available if your instance becomes inaccessible via the admin panel.
 
 By following these practices, you can maintain a reliable backup strategy and ensure your data is safe.

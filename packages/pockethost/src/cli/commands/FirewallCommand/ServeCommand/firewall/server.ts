@@ -15,7 +15,7 @@ import cors from 'cors'
 import express, { ErrorRequestHandler } from 'express'
 import 'express-async-errors'
 import enforce from 'express-sslify'
-import fs from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
@@ -36,16 +36,18 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   const DEV_ROUTES = {
     [`mail.${APEX_DOMAIN()}`]: `http://localhost:${1080}`,
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
+    [`app.${APEX_DOMAIN()}`]: `http://localhost:${5174}`,
     [`${APEX_DOMAIN()}`]: `http://localhost:${5174}`,
   }
   const hostnameRoutes = IS_DEV() ? DEV_ROUTES : PROD_ROUTES
+  const tlsReady = existsSync(SSL_KEY()) && existsSync(SSL_CERT())
 
   // Create Express app
   const app = express()
 
   app.options('*', cors()) // include before other routes
   app.use(cors())
-  if (!IS_DEV()) {
+  if (!IS_DEV() || tlsReady) {
     app.use(enforce.HTTPS())
   }
 
@@ -115,13 +117,17 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     error(err)
   })
   httpServer.listen(80, () => {
-    dbg(IS_DEV() ? 'HTTP server listening on 80' : 'SSL redirect server listening on 80')
+    dbg(tlsReady ? 'HTTP redirect server listening on 80' : 'HTTP server listening on 80')
   })
 
-  if (!IS_DEV()) {
+  if (!tlsReady && !IS_DEV()) {
+    throw new Error(`TLS cert missing: ${SSL_CERT()}`)
+  }
+
+  if (tlsReady) {
     const httpsOptions = {
-      key: fs.readFileSync(SSL_KEY()),
-      cert: fs.readFileSync(SSL_CERT()),
+      key: readFileSync(SSL_KEY()),
+      cert: readFileSync(SSL_CERT()),
     }
 
     const httpsServer = https.createServer(httpsOptions, app)
@@ -132,5 +138,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     httpsServer.listen(443, () => {
       dbg('HTTPS server running on port 443')
     })
+  } else if (IS_DEV()) {
+    dbg('HTTPS skipped — run pnpm dev:cli serve to generate dev TLS certs')
   }
 }

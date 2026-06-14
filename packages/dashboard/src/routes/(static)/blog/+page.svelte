@@ -2,6 +2,7 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/sftp-file-access': 'Jun 13, 2026',
     '/blog/pocketbase-sqlite-vacuum': 'Jun 13, 2026',
     '/blog/runtime-status-sync': 'Jun 13, 2026',
     '/blog/node-24-leaner-runtime': 'Jun 12, 2026',
@@ -20,6 +21,8 @@
   }
 
   const postDescriptions: Record<string, string> = {
+    '/blog/sftp-file-access':
+      'SFTP replaces FTPS for instance files. Ed25519 SSH keys, GitHub-style registration, and docs for Mac, Windows, Linux, and popular clients.',
     '/blog/pocketbase-sqlite-vacuum':
       'PocketBase log retention deletes rows but SQLite keeps the disk. Our Mothership logs.db was 6.5 GB for ~1,800 records — vacuum fixed it in seconds.',
     '/blog/runtime-status-sync':

@@ -201,9 +201,28 @@ const log = mkLog('main')
 
 - User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
 - Instance templates: `packages/pockethost/src/instance-app/v22/` (≤ v0.22) and `v23/` (≥ v0.23) — compare `_ph_admin_sync.pb.js` for a side-by-side API diff.
-- Mothership hooks (≤ v0.22-style API): `packages/pockethost/src/mothership-app/pb_hooks/`
+- Mothership hooks (≤ v0.22-style API): `packages/pockethost/src/mothership-app/pb_hooks/` — **source** is `src/lib/handlers/`; see [.cursor/rules/mothership-hooks.mdc](../../rules/mothership-hooks.mdc)
 - Typings: `instance-app/v22/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
 - PocketHost sandbox may restrict `$os` — avoid OS-level calls.
+
+## Mothership hook build boundary
+
+Handlers compile with **tsdown** into `pb_hooks/mothership.js` and run in **Goja**, not Node.
+
+1. Shared hook logic lives in `packages/pockethost/src/common/` — must be **JSVM-safe** (sync, no Node/browser APIs).
+2. Import via `$common/<file>` subpaths (tsconfig `"$common/*": ["../common/*"]`). Avoid runtime imports from the `$common` barrel.
+3. After build, confirm **no** `[UNRESOLVED_IMPORT]` warnings — unresolved imports break validation silently at runtime.
+
+```typescript
+// ✅ validateSshKey.ts — subpath bundles sshPublicKey.ts only
+import { parseSshEd25519PublicKey } from '$common/sshPublicKey'
+
+// ❌ tsdown won't resolve without tsconfig path
+import { parseSshEd25519PublicKey } from 'pockethost/common'
+
+// ❌ pulls unrelated common modules into pb_hooks
+import { parseSshEd25519PublicKey } from '$common'
+```
 
 ## Examples
 
