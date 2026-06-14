@@ -1,6 +1,5 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
-  import UserHasRole from '$components/guards/UserHasRole.svelte'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
   import Avatar from './Avatar.svelte'
@@ -20,9 +19,6 @@
     <UserLoggedIn>
       <wa-button href="/dashboard" appearance="plain" class="justify-start">Dashboard</wa-button>
     </UserLoggedIn>
-    <UserHasRole role="stats">
-      <wa-button href="/stats" appearance="plain" class="justify-start">Stats</wa-button>
-    </UserHasRole>
     <wa-button href="/pricing" appearance="plain" class="justify-start">Pricing</wa-button>
     <wa-button href="/blog" appearance="plain" class="justify-start">Blog</wa-button>
     <wa-button href="/docs" appearance="plain" class="justify-start">Docs</wa-button>
@@ -38,9 +34,6 @@
     <UserLoggedIn>
       <wa-button href="/dashboard" appearance="plain" class="hidden lg:inline-flex">Dashboard</wa-button>
     </UserLoggedIn>
-    <UserHasRole role="stats">
-      <wa-button href="/stats" appearance="plain" class="hidden lg:inline-flex">Stats</wa-button>
-    </UserHasRole>
     <wa-button href="/pricing" appearance="plain" class="hidden lg:inline-flex">Pricing</wa-button>
     <wa-button href="/blog" appearance="plain" class="hidden lg:inline-flex">Blog</wa-button>
     <wa-button href="/docs" appearance="plain" class="hidden lg:inline-flex">Docs</wa-button>

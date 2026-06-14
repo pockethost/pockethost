@@ -36,35 +36,6 @@ export const globalInstancesStore = writable<{
   [_: InstanceId]: InstanceFields
 }>({})
 export const globalInstancesStoreReady = writable(false)
-export const stats = writable<{
-  total_flounder_subscribers: number
-}>({
-  total_flounder_subscribers: 0,
-})
-
-const checkStats = () => {
-  client()
-    .client.send(`/api/stats`, {})
-    .then((res) => {
-      stats.set(res)
-      isMothershipReachable.set(true)
-      // setTimeout(checkStats, 1000 * 60 * 5)
-    })
-    .catch(() => {
-      // isMothershipReachable.set(false)
-      // setTimeout(checkStats, 1000)
-    })
-}
-
-const continuouslyCheckMothershipReachability = () => {
-  setInterval(() => {
-    client()
-      .client.send(`/api/health`, {})
-      .then((res) => {
-        isMothershipReachable.set(true)
-      })
-  }, 5000)
-}
 
 async function fetchVersions(): Promise<string[]> {
   const { versions } = await client().client.send<{ versions: string[] }>(`/api/versions`, {})
@@ -85,8 +56,6 @@ export const init = () => {
   }
   periodicallyFetchVersions()
   const { onAuthChange } = client()
-
-  checkStats()
 
   onAuthChange((authStoreProps) => {
     const isLoggedIn = authStoreProps.isValid
