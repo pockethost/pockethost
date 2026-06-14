@@ -2,6 +2,7 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/auto-vacuum': 'Jun 13, 2026',
     '/blog/sftp-file-access': 'Jun 13, 2026',
     '/blog/pocketbase-sqlite-vacuum': 'Jun 13, 2026',
     '/blog/runtime-status-sync': 'Jun 13, 2026',

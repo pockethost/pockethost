@@ -1,5 +1,11 @@
 export const toc = [
   {
+    title: 'Auto Vacuum for Idle Instances',
+    path: '/blog/auto-vacuum',
+    description:
+      'Nightly SQLite VACUUM on hibernated instances. On by default, toggle per instance, and skip running containers until they sleep.',
+  },
+  {
     title: 'SFTP File Access',
     path: '/blog/sftp-file-access',
     description:
