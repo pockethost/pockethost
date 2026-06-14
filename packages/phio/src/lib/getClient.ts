@@ -2,9 +2,32 @@ import PocketBase from 'pocketbase'
 import { runTasks } from './../lib/Task'
 import { config } from './config'
 import { PHIO_MOTHERSHIP_URL, PHIO_PASSWORD, PHIO_USERNAME } from './constants'
+import { ensureDeployKey } from './deployKey'
 import { ensureLoggedIn } from './ensureLoggedIn'
 
 let client: PocketBase | undefined
+
+export type AuthStatus =
+  | { state: 'logged_out' }
+  | { state: 'session_expired'; email: string }
+  | { state: 'authenticated'; email: string; client: PocketBase }
+
+export const resolveAuthStatus = async (): Promise<AuthStatus> => {
+  const savedEmail = config('email')
+  const client = await getClient()
+
+  if (client.authStore.isValid) {
+    const email = (client.authStore.record?.email as string | undefined) || savedEmail || ''
+    return { state: 'authenticated', email, client }
+  }
+
+  if (savedEmail) {
+    return { state: 'session_expired', email: savedEmail }
+  }
+
+  return { state: 'logged_out' }
+}
+
 export const getClient = async () => {
   if (client) {
     return client
@@ -33,8 +56,12 @@ export const getClient = async () => {
       }
       config('pb_auth', client.authStore.exportToCookie())
     })
-    await client.collection(`users`).authRefresh()
-    config(`pb_auth`, client.authStore.exportToCookie())
+    try {
+      await client.collection(`users`).authRefresh()
+      config(`pb_auth`, client.authStore.exportToCookie())
+    } catch {
+      client.authStore.clear()
+    }
   }
   return client
 }
@@ -72,5 +99,6 @@ const unsafeLogin = async (username: string, password: string) => {
 export const login = async (username: string, password: string) => {
   const client = await getClient()
   await unsafeLogin(username, password)
+  await ensureDeployKey(client)
   return client.authStore
 }

@@ -16,15 +16,26 @@ Long-term: may rename `packages/pockethost` → `pockethost-server` and publish 
 
 | Command | Purpose |
 |---------|---------|
-| `phio login` / `logout` / `whoami` | Mothership auth (email + password → cookie in `~/.config/phio/config.json`) |
+| `phio login` / `logout` / `info` (`whoami`) | Mothership auth; `info` shows config + deploy key (syncs key when logged in) |
 | `phio list` | List instances |
 | `phio link <instance>` | Save default instance to `package.json` (`pockethost.instanceName`) or `pockethost.json` |
 | `phio dev [instance]` | Chokidar watch → FTPS sync on change |
 | `phio deploy [instance]` | One-shot FTPS sync |
 | `phio logs [instance]` | SSE tail via `https://{subdomain}.pockethost.io/logs` |
-| `phio info` | Instance metadata |
 
 Env overrides: `PHIO_USERNAME`, `PHIO_PASSWORD`, `PHIO_INSTANCE_NAME`, `PHIO_MOTHERSHIP_URL`, `PHIO_HOME`.
+
+## Deploy key (SFTP prep)
+
+On `phio login`, `phio info` / `whoami`, and before each `dev`/`deploy` sync, `ensureDeployKey()` (`src/lib/deployKey.ts`):
+
+1. Generates or loads an Ed25519 keypair under `PHIO_HOME` (default `~/.config/phio/`):
+   - `phio_deploy_ed25519` (private, PEM PKCS8)
+   - `phio_deploy_ed25519.pub` (public, OpenSSH line)
+2. Verifies Account → Keys has a key labeled **`Phio`** whose public key matches the local `.pub`.
+3. Creates the remote `ssh_keys` record on first run (`all_instances: true`).
+
+Mismatch (remote `Phio` key ≠ local `.pub`) throws with a link to `/account/keys`. Delete local key files to regenerate.
 
 ## Deploy path (FTPS)
 

@@ -19,7 +19,7 @@ pnpm dev:phio -- deploy [instance]
 ```bash
 phio login
 phio logout
-phio whoami
+phio info   # alias: phio whoami
 ```
 
 **List instances**

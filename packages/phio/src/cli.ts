@@ -9,7 +9,6 @@ import { ListCommand } from './commands/ListCommand'
 import { LoginCommand } from './commands/LoginCommand'
 import { LogoutCommand } from './commands/LogoutCommand'
 import { LogsCommand } from './commands/LogsCommand'
-import { WhoAmICommand } from './commands/WhoAmICommand'
 
 program
   .name(`PocketHost CLI`)
@@ -18,7 +17,6 @@ program
   .addCommand(LoginCommand())
   .addCommand(LogsCommand())
   .addCommand(DevCommand())
-  .addCommand(WhoAmICommand())
   .addCommand(ListCommand())
   .addCommand(LinkCommand())
   .addCommand(DeployCommand())

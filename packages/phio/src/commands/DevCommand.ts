@@ -5,6 +5,7 @@ import Bottleneck from 'bottleneck'
 import { watch } from 'chokidar'
 import { Command } from 'commander'
 import multimatch from 'multimatch'
+import { ensureDeployKey } from '../lib/deployKey'
 import { ensureLoggedIn } from '../lib/ensureLoggedIn'
 import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
 import { savedInstanceName } from './../lib/defaultInstanceId'
@@ -104,6 +105,7 @@ export async function deployMyCode(
 ) {
   await ensureLoggedIn()
   const client = await getClient()
+  await ensureDeployKey(client)
   console.log(`🚚 Deploy started for ${instanceName}`)
   const args: IFtpDeployArguments = {
     server: 'ftp.pockethost.io',
