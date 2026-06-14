@@ -37,6 +37,12 @@ export const _PH_DISABLE_INSTANCE_WEBHOOKS = _PH_ENABLE_INSTANCE_WEBHOOKS
   : env.get('PH_DISABLE_INSTANCE_WEBHOOKS')
       .default(_IS_DEV ? 'true' : 'false')
       .asBool()
+export const _PH_ENABLE_FIREWALL_RATE_LIMIT = env.get('PH_ENABLE_FIREWALL_RATE_LIMIT').asBool()
+export const _PH_DISABLE_FIREWALL_RATE_LIMIT = _PH_ENABLE_FIREWALL_RATE_LIMIT
+  ? false
+  : env.get('PH_DISABLE_FIREWALL_RATE_LIMIT')
+      .default(_IS_DEV ? 'true' : 'false')
+      .asBool()
 export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env.get('APEX_DOMAIN').default('pockethost.lvh.me').asString()
 export const _HTTP_PROTOCOL = env.get('HTTP_PROTOCOL').default(_IS_DEV ? 'http:' : 'https:').asString()
@@ -85,6 +91,7 @@ export const createSettings = () => ({
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
   PH_DISABLE_INSTANCE_WEBHOOKS: mkBoolean(_PH_DISABLE_INSTANCE_WEBHOOKS),
+  PH_DISABLE_FIREWALL_RATE_LIMIT: mkBoolean(_PH_DISABLE_FIREWALL_RATE_LIMIT),
   TRACE: mkBoolean(false),
 
   PH_FTP_PORT: mkNumber(21),
@@ -183,6 +190,7 @@ export const DATA_ROOT = (...paths: string[]) => join(settings().DATA_ROOT, ...p
 export const NODE_ENV = () => settings().NODE_ENV
 export const IS_DEV = () => settings().IS_DEV
 export const PH_DISABLE_INSTANCE_WEBHOOKS = () => settings().PH_DISABLE_INSTANCE_WEBHOOKS
+export const PH_DISABLE_FIREWALL_RATE_LIMIT = () => settings().PH_DISABLE_FIREWALL_RATE_LIMIT
 export const TRACE = () => settings().TRACE
 
 export const PH_FTP_PORT = () => settings().PH_FTP_PORT
@@ -273,6 +281,7 @@ export const logConstants = () => {
     NODE_ENV,
     IS_DEV,
     PH_DISABLE_INSTANCE_WEBHOOKS,
+    PH_DISABLE_FIREWALL_RATE_LIMIT,
     TRACE,
     PH_FTP_PORT,
     SSL_KEY,

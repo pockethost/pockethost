@@ -6,6 +6,7 @@ import {
   Logger,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
+  PH_DISABLE_FIREWALL_RATE_LIMIT,
   PH_USER_PROXY_IPS,
   SSL_CERT,
   SSL_KEY,
@@ -87,7 +88,11 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   // Use the IP blocker middleware
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
-  app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
+  if (PH_DISABLE_FIREWALL_RATE_LIMIT()) {
+    info(`Firewall rate limiting disabled (PH_DISABLE_FIREWALL_RATE_LIMIT)`)
+  } else {
+    app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
+  }
 
   Object.entries(hostnameRoutes).forEach(([host, target]) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
