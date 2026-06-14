@@ -10,6 +10,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'phio 0.4: Deploy Over SFTP',
+    path: '/blog/phio-sftp-deploy',
+    description:
+      'phio dev and deploy now sync on SFTP port 2222 with an auto-provisioned deploy key. Project linking moves to .phioconfig.',
+    date: 'Jun 14, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Account Access Keys: Scoped SFTP Access',
     path: '/blog/account-access-keys',
     description:
