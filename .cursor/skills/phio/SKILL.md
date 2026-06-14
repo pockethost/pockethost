@@ -40,7 +40,7 @@ See [`.cursor/rules/phio.mdc`](../../rules/phio.mdc). Blog posts are optional an
 On `phio login`, `phio info` / `whoami`, and before each `dev`/`deploy` sync, `ensureDeployKey()` (`src/lib/deployKey.ts`):
 
 1. Generates or loads an Ed25519 keypair under `PHIO_HOME` (default `~/.config/phio/`):
-   - `phio_deploy_ed25519` (private, PEM PKCS8)
+   - `phio_deploy_ed25519` (private, OpenSSH format; legacy PKCS#8 is migrated on use)
    - `phio_deploy_ed25519.pub` (public, OpenSSH line)
 2. Verifies Account → Keys has a key labeled **`Phio`** whose public key matches the local `.pub`.
 3. Creates the remote `ssh_keys` record on first run (`all_instances: true`).

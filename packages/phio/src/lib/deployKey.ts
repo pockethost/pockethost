@@ -3,6 +3,7 @@ import { generateKeyPairSync, type KeyObject } from 'crypto'
 import type PocketBase from 'pocketbase'
 import { PHIO_HOME } from './constants'
 import { fingerprintForPublicKey, parseSshEd25519PublicKey } from './sshPublicKey'
+import { isPkcs8PrivateKey, pkcs8Ed25519ToOpenSshPrivateKeyPem } from '../../vendor/ftp-deploy/sshPrivateKey'
 
 const SSH_KEYS_COLLECTION = 'ssh_keys'
 export const DEPLOY_KEY_LABEL = 'Phio'
@@ -34,10 +35,29 @@ const spkiToOpenSshPublicKey = (publicKey: KeyObject, comment = 'phio') => {
   return `ssh-ed25519 ${wire.toString('base64')} ${comment}`
 }
 
+const writeOpenSshPrivateKey = (privateKeyPath: string, privateKey: KeyObject) => {
+  const privateKeyPem = privateKey.export({ format: 'pem', type: 'pkcs8' }).toString()
+  writeFileSync(privateKeyPath, pkcs8Ed25519ToOpenSshPrivateKeyPem(privateKeyPem), { mode: 0o600 })
+}
+
+const migratePkcs8PrivateKeyIfNeeded = (privateKeyPath: string) => {
+  const pem = readFileSync(privateKeyPath, 'utf8')
+  if (!isPkcs8PrivateKey(pem)) {
+    return
+  }
+  writeFileSync(privateKeyPath, pkcs8Ed25519ToOpenSshPrivateKeyPem(pem), { mode: 0o600 })
+  try {
+    chmodSync(privateKeyPath, 0o600)
+  } catch {
+    // Windows may ignore mode bits
+  }
+}
+
 const ensureLocalKeyPair = () => {
   const { privateKeyPath, publicKeyPath } = getDeployKeyPaths()
 
   if (existsSync(privateKeyPath) && existsSync(publicKeyPath)) {
+    migratePkcs8PrivateKeyIfNeeded(privateKeyPath)
     return {
       privateKeyPath,
       publicKeyPath,
@@ -47,9 +67,7 @@ const ensureLocalKeyPair = () => {
 
   const { publicKey, privateKey } = generateKeyPairSync('ed25519')
   const publicKeyLine = spkiToOpenSshPublicKey(publicKey)
-  const privateKeyPem = privateKey.export({ format: 'pem', type: 'pkcs8' }).toString()
-
-  writeFileSync(privateKeyPath, privateKeyPem, { mode: 0o600 })
+  writeOpenSshPrivateKey(privateKeyPath, privateKey)
   writeFileSync(publicKeyPath, `${publicKeyLine}\n`, { mode: 0o644 })
   try {
     chmodSync(privateKeyPath, 0o600)

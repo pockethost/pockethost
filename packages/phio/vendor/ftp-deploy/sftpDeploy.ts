@@ -7,6 +7,7 @@ import prettyBytes from "pretty-bytes";
 import { prettyError } from "./errorHandling";
 import { ensureSftpDir, SFTPSyncProvider } from "./sftpSyncProvider";
 import { getLocalFiles } from "./localFiles";
+import { readPrivateKeyForSsh2 } from "./sshPrivateKey";
 
 async function downloadFileList(client: SftpClient, logger: ILogger, path: string): Promise<IFileList> {
     const tempFileNameHack = ".ftp-deploy-sync-server-state-buffer-file---delete.json";
@@ -34,7 +35,7 @@ async function connect(client: SftpClient, args: IFtpDeployArgumentsWithDefaults
         throw new Error(`SFTP deploy requires "private-key-path"`);
     }
 
-    const privateKey = fs.readFileSync(args["private-key-path"], "utf8");
+    const privateKey = readPrivateKeyForSsh2(args["private-key-path"]);
 
     try {
         await client.connect({
