@@ -1,5 +1,9 @@
 export const toc = [
   {
+    title: 'SFTP File Access',
+    path: '/blog/sftp-file-access',
+  },
+  {
     title: 'Your logs.db Might Be Gigabytes of Empty Space',
     path: '/blog/pocketbase-sqlite-vacuum',
   },
