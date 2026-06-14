@@ -66,23 +66,48 @@ jobs:
           HEAD_SHORT=$(git rev-parse --short HEAD)
           HEAD_SUBJECT=$(git log -1 --format='%s')
           REPO="${{ github.repository }}"
+          MAX_TRIGGER_COMMITS=5
+          MAX_SUBJECT_LEN=72
 
           TRIGGER_SUMMARY=""
           HEAD_IS_TRIGGER=false
+          shown=0
           for line in "${TRIGGER_LINES[@]}"; do
             full_sha="${line%%|*}"
             rest="${line#*|}"
             short_sha="${rest%%|*}"
             subject="${rest#*|}"
+            if [ "$full_sha" = "$HEAD_FULL" ]; then
+              HEAD_IS_TRIGGER=true
+            fi
+            shown=$((shown + 1))
+            if [ "$shown" -gt "$MAX_TRIGGER_COMMITS" ]; then
+              continue
+            fi
+            if [ "${#subject}" -gt "$MAX_SUBJECT_LEN" ]; then
+              subject="${subject:0:$((MAX_SUBJECT_LEN - 1))}…"
+            fi
             link="[${short_sha}](https://github.com/${REPO}/commit/${full_sha}) \`${subject}\`"
             if [ -n "$TRIGGER_SUMMARY" ]; then
               TRIGGER_SUMMARY="${TRIGGER_SUMMARY}, "
             fi
             TRIGGER_SUMMARY="${TRIGGER_SUMMARY}${link}"
-            if [ "$full_sha" = "$HEAD_FULL" ]; then
-              HEAD_IS_TRIGGER=true
-            fi
           done
+
+          remaining=$((${#TRIGGER_LINES[@]} - MAX_TRIGGER_COMMITS))
+          if [ "$remaining" -gt 0 ]; then
+            if [ "${{ github.event_name }}" = "pull_request_target" ]; then
+              COMPARE_URL="https://github.com/${REPO}/pull/${{ github.event.pull_request.number }}/commits"
+            elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+              COMPARE_URL="https://github.com/${REPO}/commit/${HEAD_FULL}"
+            else
+              COMPARE_URL="https://github.com/${REPO}/compare/${{ github.event.before }}...${HEAD_FULL}"
+            fi
+            if [ -n "$TRIGGER_SUMMARY" ]; then
+              TRIGGER_SUMMARY="${TRIGGER_SUMMARY}, "
+            fi
+            TRIGGER_SUMMARY="${TRIGGER_SUMMARY}and ${remaining} more ([compare](${COMPARE_URL}))"
+          fi
 
           if [ ${#TRIGGER_LINES[@]} -eq 0 ]; then
             TRIGGER_SUMMARY="(path filter matched but no commits found in push range)"
@@ -92,7 +117,9 @@ jobs:
           echo "head_subject<<EOF" >> "$GITHUB_OUTPUT"
           echo "$HEAD_SUBJECT" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
-          echo "trigger_summary=${TRIGGER_SUMMARY}" >> "$GITHUB_OUTPUT"
+          echo "trigger_summary<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$TRIGGER_SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
           echo "head_is_trigger=${HEAD_IS_TRIGGER}" >> "$GITHUB_OUTPUT"
           echo "trigger_count=${#TRIGGER_LINES[@]}" >> "$GITHUB_OUTPUT"
 
@@ -133,16 +160,53 @@ jobs:
             ✅ Permalink: ${{ steps.deployment.outputs.deployment-url }}`
             })
 
+      - name: Build Discord message
+        id: discord
+        env:
+          HEAD_SHORT: ${{ steps.trigger.outputs.head_short }}
+          HEAD_SUBJECT: ${{ steps.trigger.outputs.head_subject }}
+          HEAD_IS_TRIGGER: ${{ steps.trigger.outputs.head_is_trigger }}
+          TRIGGER_COUNT: ${{ steps.trigger.outputs.trigger_count }}
+          TRIGGER_SUMMARY: ${{ steps.trigger.outputs.trigger_summary }}
+          DEPLOY_URL: ${{ steps.deployment.outputs.deployment-url }}
+          PREVIEW_URL: ${{ steps.deployment.outputs.pages-deployment-alias-url }}
+        run: |
+          set -euo pipefail
+
+          truncate_discord() {
+            local msg="$1"
+            if [ "${#msg}" -le 2000 ]; then
+              printf '%s' "$msg"
+              return
+            fi
+            printf '%s' "${msg:0:1997}..."
+          }
+
+          trigger_line=""
+          if [ "$HEAD_IS_TRIGGER" != "true" ] || [ "$TRIGGER_COUNT" != "1" ]; then
+            trigger_line=$'\n'"Dashboard changes in push: ${TRIGGER_SUMMARY}"
+          fi
+
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" = "${{ env.MAIN_BRANCH }}" ]; then
+            MESSAGE="**DASHBOARD LIVE** https://pockethost.io ([permalink](${DEPLOY_URL})) by ${{ github.actor }} on [${{ github.repository }}@${{ env.BRANCH_NAME }}](${{ env.GITHUB_LINK }})
+          Deployed @ [${HEAD_SHORT}](${{ env.COMMIT_URL }}) \`${HEAD_SUBJECT}\`${trigger_line}"
+          else
+            MESSAGE="**DASHBOARD PREVIEW** ${PREVIEW_URL} by ${{ github.actor }} on [${{ github.repository }}@${{ env.BRANCH_NAME }}](${{ env.GITHUB_LINK }})
+          Deployed @ [${HEAD_SHORT}](${{ env.COMMIT_URL }}) \`${HEAD_SUBJECT}\`${trigger_line}"
+          fi
+
+          MESSAGE=$(truncate_discord "$MESSAGE")
+          echo "message<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$MESSAGE" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Discord feature branch notification
         if: github.event_name == 'pull_request_target' || (github.event_name == 'push' && github.ref_name != env.MAIN_BRANCH)
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: |-
-            **DASHBOARD PREVIEW** ${{ steps.deployment.outputs.pages-deployment-alias-url }} by ${{ github.actor }} on [${{ github.repository }}@${{ env.BRANCH_NAME }}](${{ env.GITHUB_LINK }})
-            Deployed @ [${{ steps.trigger.outputs.head_short }}](${{ env.COMMIT_URL }}) `${{ steps.trigger.outputs.head_subject }}`
-            ${{ (steps.trigger.outputs.head_is_trigger != 'true' || steps.trigger.outputs.trigger_count != '1') && format('Dashboard changes in push: {0}', steps.trigger.outputs.trigger_summary) || '' }}
+          args: ${{ steps.discord.outputs.message }}
 
       - name: Discord live branch notification
         if: github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH
@@ -150,7 +214,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: |-
-            **DASHBOARD LIVE** https://pockethost.io ([permalink](${{ steps.deployment.outputs.deployment-url }})) by ${{ github.actor }} on [${{ github.repository }}@${{ env.BRANCH_NAME }}](${{ env.GITHUB_LINK }})
-            Deployed @ [${{ steps.trigger.outputs.head_short }}](${{ env.COMMIT_URL }}) `${{ steps.trigger.outputs.head_subject }}`
-            ${{ (steps.trigger.outputs.head_is_trigger != 'true' || steps.trigger.outputs.trigger_count != '1') && format('Dashboard changes in push: {0}', steps.trigger.outputs.trigger_summary) || '' }}
+          args: ${{ steps.discord.outputs.message }}
