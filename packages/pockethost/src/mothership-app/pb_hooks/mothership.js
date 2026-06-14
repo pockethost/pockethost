@@ -388,8 +388,7 @@ const AfterCreate_notify_discord = (e) => {
 //#endregion
 //#region src/lib/handlers/instance/model/BeforeCreate_autoVacuum.ts
 const BeforeCreate_autoVacuum = (e) => {
-	const record = e.model;
-	record.set("autoVacuum", true);
+	e.record.set("autoVacuum", true);
 };
 
 //#endregion
@@ -3178,18 +3177,15 @@ const validateSshKeyRecord = (record, authId) => {
 	const allInstances = record.getBool("all_instances");
 	const instanceIds = record.getStringSlice("instances") || [];
 	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
-	if (!allInstances) {
-		const dao = $app.dao();
-		for (const instanceId of instanceIds) {
-			const instance = dao.findRecordById("instances", instanceId);
-			if (instance.getString("uid") !== authId) {
-				log({
-					instanceId,
-					authId,
-					uid: instance.getString("uid")
-				});
-				throw new BadRequestError("One or more selected instances are not owned by you.");
-			}
+	if (!allInstances) for (const instanceId of instanceIds) {
+		const instance = $app.findRecordById("instances", instanceId);
+		if (instance.getString("uid") !== authId) {
+			log({
+				instanceId,
+				authId,
+				uid: instance.getString("uid")
+			});
+			throw new BadRequestError("One or more selected instances are not owned by you.");
 		}
 	}
 	if (allInstances) record.set("instances", []);
@@ -3197,7 +3193,7 @@ const validateSshKeyRecord = (record, authId) => {
 const BeforeCreate_ssh_keys = (e) => {
 	const record = e.record;
 	if (!record) throw new BadRequestError("Missing record.");
-	const authRecord = e.httpContext.get("authRecord");
+	const authRecord = e.auth;
 	if (!authRecord) throw new BadRequestError("Authentication required.");
 	record.set("user", authRecord.id);
 	validateSshKeyRecord(record, authRecord.id);
@@ -3205,7 +3201,7 @@ const BeforeCreate_ssh_keys = (e) => {
 const BeforeUpdate_ssh_keys = (e) => {
 	const record = e.record;
 	if (!record) throw new BadRequestError("Missing record.");
-	const authRecord = e.httpContext.get("authRecord");
+	const authRecord = e.auth;
 	if (!authRecord) throw new BadRequestError("Authentication required.");
 	if (record.getString("user") !== authRecord.id) throw new ForbiddenError("You can only update your own SSH keys.");
 	validateSshKeyRecord(record, authRecord.id);
@@ -3214,8 +3210,9 @@ const BeforeUpdate_ssh_keys = (e) => {
 //#endregion
 //#region src/lib/handlers/stats/api/HandleStatsRequest.ts
 const HandleStatsRequest = (e) => {
-	const total_flounder_subscribers = $app.countRecords(`users`, $dbx.exp(`subscription = 'flounder' && verified = 1`));
-	return e.json(200, { total_flounder_subscribers });
+	const result = new DynamicModel({ total_flounder_subscribers: 0 });
+	$app.db().select("total_flounder_subscribers").from("stats").one(result);
+	return e.json(200, result);
 };
 
 //#endregion

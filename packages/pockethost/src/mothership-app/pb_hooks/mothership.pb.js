@@ -13,8 +13,9 @@ routerAdd("POST", "/api/instances/runtime/reset", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(e);
 }, $apis.requireSuperuserAuth());
 /** Default autoVacuum to true (PocketBase bool zero-default is false) */
-onModelBeforeCreate((e) => {
-	return require(`${__hooks}/mothership`).BeforeCreate_autoVacuum(e);
+onRecordCreate((e) => {
+	require(`${__hooks}/mothership`).BeforeCreate_autoVacuum(e);
+	e.next();
 }, "instances");
 /** Validate instance version */
 onRecordUpdate((e) => {
@@ -101,11 +102,13 @@ routerAdd("POST", "/api/sns", (e) => {
 
 //#endregion
 //#region src/lib/handlers/sshKeys/hooks.ts
-onRecordBeforeCreateRequest((e) => {
-	return require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e);
+onRecordCreateRequest((e) => {
+	require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e);
+	e.next();
 }, "ssh_keys");
-onRecordBeforeUpdateRequest((e) => {
-	return require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e);
+onRecordUpdateRequest((e) => {
+	require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e);
+	e.next();
 }, "ssh_keys");
 
 //#endregion

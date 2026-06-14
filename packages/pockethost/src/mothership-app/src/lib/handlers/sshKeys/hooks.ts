@@ -1,7 +1,9 @@
-onRecordBeforeCreateRequest((e) => {
-  return require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e)
+onRecordCreateRequest((e) => {
+  require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e)
+  e.next()
 }, 'ssh_keys')
 
-onRecordBeforeUpdateRequest((e) => {
-  return require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e)
+onRecordUpdateRequest((e) => {
+  require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e)
+  e.next()
 }, 'ssh_keys')

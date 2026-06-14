@@ -37,7 +37,10 @@ v0.39 uses the same post-v0.23 JSVM. Do not mix ≤ v0.22 and ≥ v0.23 APIs in 
 | `$apis.requireAdminAuth()` | `$apis.requireSuperuserAuth()` |
 | `$apis.requireRecordAuth()` | `$apis.requireAuth()` |
 | `onAfterBootstrap` | `onBootstrap` + `e.next()` before work |
+| `onModelBeforeCreate` | `onRecordCreate` + `e.next()` |
 | `onModelBeforeUpdate` | `onRecordUpdate` + `e.next()` |
+| `onRecordBeforeCreateRequest` | `onRecordCreateRequest` + `e.next()` |
+| `onRecordBeforeUpdateRequest` | `onRecordUpdateRequest` + `e.next()` |
 | `onModelAfterCreate` | `onRecordAfterCreateSuccess` + `e.next()` |
 | `RecordUpsertForm.submit()` | `record.set(...)` + `$app.save(record)` |
 | `SettingsUpsertForm` | `$app.settings()` + mutate + `$app.save(settings)` |

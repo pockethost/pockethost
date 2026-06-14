@@ -88,7 +88,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 
 Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). **Mothership** pinned separately via `MOTHERSHIP_SEMVER` (`0.39.*`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
 
-**Mothership v0.39 production cutover:** (1) backup `pb_data`; (2) run `packages/pockethost/scripts/mothership-v039-preupgrade.sql` against `data.db` (drops custom SQL views that block embedded v0.23 migration); (3) deploy 0.39 binary + new hooks + snapshot migrations; (4) restart edge. Rollback: restore backup + 0.22 binary + prior hooks/migrations.
+**Mothership v0.39 production cutover:** (1) backup `pb_data`; (2) run `packages/pockethost/scripts/mothership-v039-preupgrade.sql` against `data.db` (drops custom SQL views that block embedded v0.23 migration); (3) deploy 0.39 binary + new hooks + snapshot migrations; (4) `migrate up` applies `1781606400_restored_sql_views.js` (restores `stats`, `verified_users`, etc.); (5) restart edge. Rollback: restore backup + 0.22 binary + prior hooks/migrations.
 
 ## Dev workflow
 

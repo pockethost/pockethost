@@ -14,4 +14,6 @@ export PH_HOME=$(pwd)/.pockethost
 
 sqlite3 "$PH_HOME/data/mothership/pb_data/data.db" < packages/pockethost/scripts/mothership-v039-preupgrade.sql
 
+pnpm --filter pockethost-mothership-app build
+
 pnpm dev:cli serve
