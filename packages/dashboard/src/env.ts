@@ -64,7 +64,14 @@ export const INSTANCE_ADMIN_URL = (instance: InstanceFields) => {
 
 export const FTP_HOST = `ftp.${PUBLIC_APEX_DOMAIN}`
 
-/** One-shot lftp connect + list. Replace YOUR_PASSWORD with your PocketHost password. */
+export const SFTP_PORT = 2222
+
+/** Example sftp connect. Replace path with your private key file. */
+export const SFTP_COMMAND = (email: string) => {
+  return `sftp -i ~/.ssh/pockethost_ed25519 -P ${SFTP_PORT} ${email}@${FTP_HOST}`
+}
+
+/** @deprecated FTPS — use SFTP_COMMAND */
 export const LFTP_COMMAND = (email: string) => {
   return `lftp -c 'set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; open -u "${email}","YOUR_PASSWORD" ftp://${FTP_HOST}:21; ls; quit'`
 }

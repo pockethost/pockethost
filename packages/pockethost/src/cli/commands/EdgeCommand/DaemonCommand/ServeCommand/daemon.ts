@@ -8,6 +8,7 @@ import {
   MothershipAdminClientService,
   PocketbaseService,
   discordAlert,
+  isSystemError,
   instanceService,
   proxyService,
   realtimeLog,
@@ -82,7 +83,9 @@ export async function daemon({ logger }: DaemonOptions) {
   })
 
   const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
-    discordAlert(err)
+    if (isSystemError(err)) {
+      discordAlert(err)
+    }
     res.status(500).send(err.toString())
   }
   ;(await proxyService()).use(errorHandler)

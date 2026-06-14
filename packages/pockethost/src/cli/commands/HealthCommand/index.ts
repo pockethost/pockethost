@@ -9,7 +9,7 @@ export const HealthCommand = () => {
   const cmd = new Command(`health`)
     .addCommand(
       new Command(`check`)
-        .description(`Perform a health check on the PocketHost system`)
+        .description(`Run edge health checks and post status to Discord`)
         .action(async (options: Options) => {
           logger().context({ cli: 'health:check' })
           const { dbg, error, info, warn } = logger()
@@ -20,13 +20,14 @@ export const HealthCommand = () => {
     )
     .addCommand(
       new Command(`compact`)
-        .description(`Compact SQLite databases by removing old SHM and WAL files`)
-        .action(async (options: Options) => {
+        .description(`VACUUM idle instance and local Mothership SQLite databases; posts summary to Discord health channel`)
+        .option(`--dry-run`, `Report databases that would be vacuumed without running VACUUM`, false)
+        .action(async ({ dryRun }: { dryRun: boolean }) => {
           logger().context({ cli: 'health:compact' })
-          const { dbg, error, info, warn } = logger()
+          const { info } = logger()
           info(`Starting`)
           const { compact } = await import(`./compact`)
-          await compact()
+          await compact({ dryRun })
         })
     )
     .action(() => {

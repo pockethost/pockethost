@@ -1,3 +1,5 @@
+export * from './ensureDevTlsCerts'
+export * from './InstanceFileAccess'
 export * from './PocketBaseBinaryService'
 export * from './InstanceLoggerService'
 export * from './InstanceService'

@@ -2,6 +2,9 @@
   import { toc } from './toc'
 
   const postDates: Record<string, string> = {
+    '/blog/auto-vacuum': 'Jun 13, 2026',
+    '/blog/sftp-file-access': 'Jun 13, 2026',
+    '/blog/pocketbase-sqlite-vacuum': 'Jun 13, 2026',
     '/blog/runtime-status-sync': 'Jun 13, 2026',
     '/blog/node-24-leaner-runtime': 'Jun 12, 2026',
     '/blog/instance-power-status': 'Jun 12, 2026',
@@ -17,38 +20,7 @@
     '/blog/hard-paywall': 'Jan 6, 2025',
     '/blog/announcing-pocker': 'Dec 20, 2024',
   }
-
-  const postDescriptions: Record<string, string> = {
-    '/blog/runtime-status-sync':
-      'Dashboard instance status stays honest across Mothership and edge restarts — one mirror sync handshake instead of stale guesses.',
-    '/blog/node-24-leaner-runtime':
-      'We dropped 100+ lockfile packages by moving to Node 24 natives. Same hosting behavior, lighter stack, and deliberate prep for a future Bun soak.',
-    '/blog/instance-power-status':
-      'Power off now stops your container for real. The dashboard shows Running vs Sleeping, and destructive actions wait for shutdown.',
-    '/blog/web-awesome-migration':
-      'The dashboard now runs on Web Awesome — cleaner components, readable docs, and a simpler frontend stack.',
-    '/blog/pocketbase-version-sync':
-      'PocketBase versions now sync directly from GitHub — no Gobot middleman, faster updates, no token required.',
-    '/blog/pockethost-2-3-0-release':
-      'Our biggest release yet! Introducing webhooks, automated custom domains, hard paywall, and major infrastructure improvements.',
-    '/blog/webhooks-launch':
-      'Automate your PocketBase workflows with our new webhooks feature - more reliable than cron jobs.',
-    '/blog/mothership-mirror-service':
-      'Enhanced infrastructure for better data synchronization and dashboard performance.',
-    '/blog/custom-domains-automation':
-      'Fully automated custom domain setup with Cloudflare integration and SSL certificates.',
-    '/blog/kingdom': 'Follow along as we build a realtime multiplayer game using PocketBase.',
-    '/blog/hard-paywall-is-live': 'The hard paywall is now active for new users, with existing users grandfathered in.',
-    '/blog/announcing-dev-channel': 'Our new YouTube channel for PocketBase tutorials and ecosystem content.',
-    '/blog/hard-paywall': "Why we're moving to a hard paywall model and what it means for the community.",
-    '/blog/announcing-pocker': 'Introducing our custom container solution for global PocketBase hosting.',
-  }
 </script>
-
-<svelte:head>
-  <title>Blog - PocketHost</title>
-  <meta name="description" content="Stay updated with the latest PocketHost features, tutorials, and community news." />
-</svelte:head>
 
 <div class="mx-auto px-4 md:px-20 z-10 relative">
   <div class="py-16 text-center">
@@ -76,9 +48,9 @@
                 {item.title}
               </h2>
 
-              {#if postDescriptions[item.path]}
+              {#if item.description}
                 <p class="text-white/70 text-sm mb-4 line-clamp-3">
-                  {postDescriptions[item.path]}
+                  {item.description}
                 </p>
               {/if}
 

@@ -12,6 +12,10 @@ routerAdd("DELETE", "/api/instance/{id}", (e) => {
 routerAdd("POST", "/api/instances/runtime/reset", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(e);
 }, $apis.requireSuperuserAuth());
+/** Default autoVacuum to true (PocketBase bool zero-default is false) */
+onModelBeforeCreate((e) => {
+	return require(`${__hooks}/mothership`).BeforeCreate_autoVacuum(e);
+}, "instances");
 /** Validate instance version */
 onRecordUpdate((e) => {
 	require(`${__hooks}/mothership`).BeforeUpdate_version(e);
@@ -94,6 +98,15 @@ routerAdd("POST", "/api/signup", (e) => {
 routerAdd("POST", "/api/sns", (e) => {
 	return require(`${__hooks}/mothership`).HandleSesError(e);
 });
+
+//#endregion
+//#region src/lib/handlers/sshKeys/hooks.ts
+onRecordBeforeCreateRequest((e) => {
+	return require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e);
+}, "ssh_keys");
+onRecordBeforeUpdateRequest((e) => {
+	return require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e);
+}, "ssh_keys");
 
 //#endregion
 //#region src/lib/handlers/stats/hooks.ts

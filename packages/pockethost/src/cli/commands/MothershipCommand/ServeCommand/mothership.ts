@@ -21,8 +21,10 @@ import {
   MOTHERSHIP_CONTAINER_NAME,
   MOTHERSHIP_SEMVER,
   MOTHERSHIP_URL,
+  PH_CONTAINER_STOP_TIMEOUT_SEC,
   PocketBaseBinaryService,
   spawnPocketBaseContainer,
+  rmNamedContainerSync,
   TEST_EMAIL,
   tryFetch,
 } from '@'
@@ -96,14 +98,21 @@ export async function mothership({ logger }: MothershipConfig) {
       ],
       env,
       port,
+      autoRemove: true,
       name: MOTHERSHIP_CONTAINER_NAME,
       onStdout: (chunk) => logLines(chunk.split('\n'), info),
       onStderr: (chunk) => logLines(chunk.split('\n'), error),
       onExit: (code) => error(`Pocketbase exited with code ${code}`),
     })
+    process.on('SIGINT', () => {
+      rmNamedContainerSync(MOTHERSHIP_CONTAINER_NAME)
+    })
+    exitHook(() => {
+      rmNamedContainerSync(MOTHERSHIP_CONTAINER_NAME)
+    })
     asyncExitHook(async () => {
       await container.kill()
-    })
+    }, (PH_CONTAINER_STOP_TIMEOUT_SEC() + 2) * 1000)
   } else {
     pb.run(
       MOTHERSHIP_SEMVER(),

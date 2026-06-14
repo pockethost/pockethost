@@ -1,5 +1,6 @@
-import { DOCKER_INSTANCE_IMAGE_NAME, mkContainerHomePath } from '@'
+import { DOCKER_INSTANCE_IMAGE_NAME, mkContainerHomePath, PH_CONTAINER_STOP_TIMEOUT_SEC } from '@'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
+import { execFileSync, spawn } from 'node:child_process'
 import { PassThrough } from 'node:stream'
 
 export type PocketBaseContainerSpawnConfig = {
@@ -13,6 +14,14 @@ export type PocketBaseContainerSpawnConfig = {
   onStdout?: (chunk: string) => void
   onStderr?: (chunk: string) => void
   onExit?: (code: number) => void
+}
+
+export const rmNamedContainerSync = (containerName: string) => {
+  try {
+    execFileSync('docker', ['rm', '-f', containerName], { stdio: 'ignore' })
+  } catch {
+    // best effort on exit
+  }
 }
 
 export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConfig) => {
@@ -33,15 +42,36 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
   const pocketbasePath = mkContainerHomePath('pocketbase')
   const stdout = new PassThrough()
   const stderr = new PassThrough()
+  const stopTimeoutSec = PH_CONTAINER_STOP_TIMEOUT_SEC()
 
   stdout.on('data', (data) => onStdout?.(data.toString()))
   stderr.on('data', (data) => onStderr?.(data.toString()))
 
+  const spawnParentExitWatchdog = (nodePid: number, expectedPpid: number, containerName: string) => {
+    spawn(
+      'sh',
+      [
+        '-c',
+        'while kill -0 "$1" 2>/dev/null; do current=$(ps -o ppid= -p "$1" 2>/dev/null | tr -d " "); if [ "$current" != "$2" ]; then docker rm -f "$3" 2>/dev/null; exit 0; fi; sleep 0.25; done; docker rm -f "$3" 2>/dev/null',
+        'ph-docker-watch',
+        String(nodePid),
+        String(expectedPpid),
+        containerName,
+      ],
+      { detached: true, stdio: 'ignore' }
+    ).unref()
+  }
+
   const stopContainer = async (target: Container) => {
     try {
-      await target.stop({ signal: 'SIGINT' })
+      await target.remove({ force: true })
     } catch {
-      await target.stop({ signal: 'SIGKILL' }).catch(() => undefined)
+      try {
+        await target.stop({ signal: 'SIGINT', t: stopTimeoutSec })
+      } catch {
+        await target.kill().catch(() => undefined)
+      }
+      await target.remove({ force: true }).catch(() => undefined)
     }
   }
 
@@ -51,8 +81,9 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
       const info = await existing.inspect()
       if (info.State.Running) {
         await stopContainer(existing)
+      } else {
+        await existing.remove({ force: true })
       }
-      await existing.remove({ force: true })
     } catch {
       // no existing container
     }
@@ -105,6 +136,10 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
     emitter.once('start', resolve)
     emitter.once('error', reject)
   })
+
+  if (name) {
+    spawnParentExitWatchdog(process.pid, process.ppid, name)
+  }
 
   return {
     kill: async () => {

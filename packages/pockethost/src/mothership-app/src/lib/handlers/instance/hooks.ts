@@ -30,6 +30,11 @@ routerAdd(
   },
   $apis.requireSuperuserAuth()
 )
+/** Default autoVacuum to true (PocketBase bool zero-default is false) */
+onModelBeforeCreate((e) => {
+  return require(`${__hooks}/mothership`).BeforeCreate_autoVacuum(e)
+}, 'instances')
+
 /** Validate instance version */
 onRecordUpdate((e) => {
   require(`${__hooks}/mothership`).BeforeUpdate_version(e)

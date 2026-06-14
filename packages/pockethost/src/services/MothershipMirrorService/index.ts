@@ -1,6 +1,7 @@
 import {
   createEvent,
   EDGE_APEX_DOMAIN,
+  ensureInstanceDirectoryStructure,
   InstanceFields,
   InstanceId,
   InstanceStatus,
@@ -33,7 +34,8 @@ export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
 }
 
 export const MothershipMirrorService = mkSingleton(async (config: MothershipMirrorServiceConfig) => {
-  const { dbg, error } = (config.logger ?? LoggerService()).create(`MothershipMirrorService`)
+  const logger = (config.logger ?? LoggerService()).create(`MothershipMirrorService`)
+  const { dbg, error } = logger
 
   const [onInstanceUpserted, fireInstanceUpserted] = createEvent<InstanceFields>()
   const [onInstanceDeleted, fireInstanceDeleted] = createEvent<InstanceId>()
@@ -71,6 +73,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     if (record.cname) {
       mirror.instancesByCname[record.cname] = record
     }
+    ensureInstanceDirectoryStructure(record.id, logger)
   }
 
   const deleteInstance = (id: InstanceId) => {

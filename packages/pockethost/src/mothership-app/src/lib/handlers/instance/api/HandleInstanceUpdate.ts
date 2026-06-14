@@ -72,6 +72,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       secrets: null,
       webhooks: null,
       syncAdmin: null,
+      autoVacuum: null,
       dev: null,
       cname: null,
     },
@@ -84,6 +85,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       secrets: StringKvLookup | null
       webhooks: InstanceWebhookCollection | null
       syncAdmin: boolean | null
+      autoVacuum: boolean | null
       dev: boolean | null
       cname: string | null
     }
@@ -97,7 +99,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
 
   const id = e.request.pathValue('id')
   const {
-    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname },
+    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname },
   } = data
 
   log(
@@ -110,6 +112,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       secrets,
       webhooks,
       syncAdmin,
+      autoVacuum,
       dev,
       cname,
     })
@@ -148,6 +151,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
     secrets,
     webhooks,
     syncAdmin,
+    autoVacuum,
     dev,
     cname,
   })

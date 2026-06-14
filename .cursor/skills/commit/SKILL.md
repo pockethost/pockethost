@@ -29,16 +29,35 @@ Parse `/commit` or a plain **commit** request the same way.
 - Avoid `git commit --amend` unless all amend rules in user instructions are met
 - NEVER commit unless the user asked (this skill satisfies that)
 
+## Backlog cull
+
+Before staging and committing, reconcile [backlog.md](backlog.md) against repo history. The backlog often drifts out of sync with what has actually shipped.
+
+1. Read **Backlog** and **Icebox** for rows that look done, duplicated, or stale (e.g. `Done (branch)`, `Partially done`, old blockers).
+2. Cross-check against history:
+   - `git log --oneline -30` (from step 1; extend with `--grep` if needed)
+   - `git log --grep='<keyword>' --oneline` for specific item titles when unclear
+   - This session's diff and commits about to land
+3. **Cull:**
+   - Move finished items to **Done** with date + commit or PR link
+   - Delete duplicate rows
+   - Update stale Notes (branch-only "done" now on main, partial work completed, blockers cleared)
+   - Drop superseded rows or move abandoned spikes to **Icebox** with a short note
+4. Stage `backlog.md` with the related feature/fix commit when the cull is tied to that work. Otherwise use a standalone `chore: cull backlog` commit.
+
+Spot-check obvious matches — do not block on a full audit. If nothing needs updating, skip.
+
 ## Procedure
 
 1. In parallel, run:
    - `git status`
    - `git diff` (staged and unstaged)
-   - `git log --oneline -8`
-2. Map each changed file to **this conversation**. Leave everything else unstaged.
-3. Draft one or more commit messages (subject **under 50 characters**).
-4. Stage only the scoped files (or hunks), then commit each logical group sequentially.
-5. Run `git status` after the last commit to verify success.
+   - `git log --oneline -30`
+2. **Backlog cull** (see above).
+3. Map each changed file to **this conversation**. Leave everything else unstaged.
+4. Draft one or more commit messages (subject **under 50 characters**).
+5. Stage only the scoped files (or hunks), then commit each logical group sequentially.
+6. Run `git status` after the last commit to verify success.
 
 ## Message format
 

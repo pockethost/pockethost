@@ -80,6 +80,7 @@ export const HandleSignupConfirm = (e: core.RequestEvent) => {
       instance.set('status', 'idle')
       instance.set('power', true)
       instance.set('syncAdmin', true)
+      instance.set('autoVacuum', true)
       instance.set('dev', true)
       instance.set('version', version)
       txApp.save(instance)

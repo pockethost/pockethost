@@ -16,9 +16,11 @@ import {
   asyncExitHook,
   mkContainerHomePath,
   mkInstanceUrl,
+  isSystemError,
   mkSingleton,
   now,
   proxyService,
+  userError,
   stringify,
   tryFetch,
 } from '@'
@@ -163,7 +165,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       const instanceAppVersion = (() => {
         const [major, minor] = instance.version.split('.').map(Number)
         if (!minor) {
-          throw new Error(`Invalid version: ${instance.version}`)
+          throw userError(`Invalid version: ${instance.version}`)
         }
         if (minor <= 22) return `v22`
         return `v23`
@@ -230,8 +232,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       await tryFetch(`${internalUrl}/api/health`, {
         preflight: async () => {
           const current = await mirror.getInstance(id)
-          if (current && !current.power) throw new Error(`Instance powered off during startup`)
-          if (stopped()) throw new Error(`Container stopped ${id}`)
+          if (current && !current.power) throw userError(`Instance powered off during startup`)
+          if (stopped()) throw userError(`Container stopped ${id}`)
           return started()
         },
         logger: systemInstanceLogger,
@@ -321,10 +323,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         */
     dbg(`Checking for suspension`)
     if (owner.suspension) {
-      throw new Error(owner.suspension)
+      throw userError(owner.suspension)
     }
     if (instance.suspension) {
-      throw new Error(instance.suspension)
+      throw userError(instance.suspension)
     }
 
     /*
@@ -332,7 +334,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         */
     dbg(`Checking for active instances`)
     if (owner.subscription_quantity === 0) {
-      throw new Error(`Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>`)
+      throw userError(`Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>`)
     }
 
     /*
@@ -340,7 +342,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         */
     dbg(`Checking for power`)
     if (!instance.power) {
-      throw new Error(`This instance is powered off. See ${DOC_URL(`power`)} for more information.`)
+      throw userError(`This instance is powered off. See ${DOC_URL(`power`)} for more information.`)
     }
 
     /*
@@ -348,7 +350,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         */
     dbg(`Checking for verified account`)
     if (!owner.verified) {
-      throw new Error(`Log in at ${APP_URL()} to verify your account.`)
+      throw userError(`Log in at ${APP_URL()} to verify your account.`)
     }
 
     const start = now()
@@ -360,7 +362,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
         delete instanceApis[instance.id]
 
-        throw new Error(
+        if (isSystemError(e)) {
+          throw e
+        }
+
+        throw userError(
           `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`
         )
       })

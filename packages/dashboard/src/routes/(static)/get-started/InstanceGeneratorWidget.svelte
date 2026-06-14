@@ -19,14 +19,22 @@
 
 <wa-card class="w-[100%] lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
   {#if isSignUpView}
-    <div in:slide={{ delay: 400 }} out:slide>
+    {#if login}
       <RegisterForm bind:isSignUpView />
-    </div>
+    {:else}
+      <div in:slide={{ delay: 400 }} out:slide>
+        <RegisterForm bind:isSignUpView />
+      </div>
+    {/if}
   {/if}
 
   {#if !isSignUpView}
-    <div in:slide={{ delay: 400 }} out:slide>
+    {#if login}
       <LoginForm bind:isSignUpView />
-    </div>
+    {:else}
+      <div in:slide={{ delay: 400 }} out:slide>
+        <LoginForm bind:isSignUpView />
+      </div>
+    {/if}
   {/if}
 </wa-card>

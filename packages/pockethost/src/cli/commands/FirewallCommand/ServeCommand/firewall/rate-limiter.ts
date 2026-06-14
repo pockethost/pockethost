@@ -85,6 +85,9 @@ const API_WEIGHT_NUM = WEIGHT_DEN
 const isPocketBaseFilesPath = (path: string): boolean =>
   path === '/api/files' || path.startsWith('/api/files/')
 
+const isHealthProbePath = (path: string): boolean =>
+  path === '/api/firewall/health' || path === '/_api/daemon/health'
+
 /** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
 const toMicroPointLimit = (cfg: { points: number; duration: number }) => ({
   points: cfg.points * WEIGHT_DEN,
@@ -144,6 +147,11 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
   )
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (isHealthProbePath(req.path)) {
+      next()
+      return
+    }
+
     const connectingIp = getConnectingIp(req)
     const endClientIp = getClientIp(req)
     const hostname = req.hostname

@@ -31,6 +31,18 @@ export const _DATA_ROOT = env.get('DATA_ROOT').default(join(_PH_HOME, `data`)).a
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
+export const _PH_ENABLE_INSTANCE_WEBHOOKS = env.get('PH_ENABLE_INSTANCE_WEBHOOKS').asBool()
+export const _PH_DISABLE_INSTANCE_WEBHOOKS = _PH_ENABLE_INSTANCE_WEBHOOKS
+  ? false
+  : env.get('PH_DISABLE_INSTANCE_WEBHOOKS')
+      .default(_IS_DEV ? 'true' : 'false')
+      .asBool()
+export const _PH_ENABLE_FIREWALL_RATE_LIMIT = env.get('PH_ENABLE_FIREWALL_RATE_LIMIT').asBool()
+export const _PH_DISABLE_FIREWALL_RATE_LIMIT = _PH_ENABLE_FIREWALL_RATE_LIMIT
+  ? false
+  : env.get('PH_DISABLE_FIREWALL_RATE_LIMIT')
+      .default(_IS_DEV ? 'true' : 'false')
+      .asBool()
 export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env.get('APEX_DOMAIN').default('pockethost.lvh.me').asString()
 export const _HTTP_PROTOCOL = env.get('HTTP_PROTOCOL').default(_IS_DEV ? 'http:' : 'https:').asString()
@@ -78,6 +90,8 @@ export const createSettings = () => ({
   DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
+  PH_DISABLE_INSTANCE_WEBHOOKS: mkBoolean(_PH_DISABLE_INSTANCE_WEBHOOKS),
+  PH_DISABLE_FIREWALL_RATE_LIMIT: mkBoolean(_PH_DISABLE_FIREWALL_RATE_LIMIT),
   TRACE: mkBoolean(false),
 
   PH_FTP_PORT: mkNumber(21),
@@ -86,6 +100,9 @@ export const createSettings = () => ({
   PH_FTP_PASV_IP: mkString(_IS_DEV ? `127.0.0.1` : `0.0.0.0`),
   PH_FTP_PASV_PORT_MIN: mkNumber(10000),
   PH_FTP_PASV_PORT_MAX: mkNumber(20000),
+
+  PH_SFTP_PORT: mkNumber(2222),
+  PH_SFTP_HOST_KEY: mkPath(join(_PH_HOME, 'ssh', 'host_key'), { required: false }),
 
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
@@ -172,6 +189,8 @@ export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
 export const DATA_ROOT = (...paths: string[]) => join(settings().DATA_ROOT, ...paths)
 export const NODE_ENV = () => settings().NODE_ENV
 export const IS_DEV = () => settings().IS_DEV
+export const PH_DISABLE_INSTANCE_WEBHOOKS = () => settings().PH_DISABLE_INSTANCE_WEBHOOKS
+export const PH_DISABLE_FIREWALL_RATE_LIMIT = () => settings().PH_DISABLE_FIREWALL_RATE_LIMIT
 export const TRACE = () => settings().TRACE
 
 export const PH_FTP_PORT = () => settings().PH_FTP_PORT
@@ -180,6 +199,9 @@ export const SSL_CERT = () => settings().SSL_CERT
 export const PH_FTP_PASV_IP = () => settings().PH_FTP_PASV_IP
 export const PH_FTP_PASV_PORT_MIN = () => settings().PH_FTP_PASV_PORT_MIN
 export const PH_FTP_PASV_PORT_MAX = () => settings().PH_FTP_PASV_PORT_MAX
+
+export const PH_SFTP_PORT = () => settings().PH_SFTP_PORT
+export const PH_SFTP_HOST_KEY = () => settings().PH_SFTP_HOST_KEY
 
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 
@@ -258,6 +280,8 @@ export const logConstants = () => {
     DATA_ROOT,
     NODE_ENV,
     IS_DEV,
+    PH_DISABLE_INSTANCE_WEBHOOKS,
+    PH_DISABLE_FIREWALL_RATE_LIMIT,
     TRACE,
     PH_FTP_PORT,
     SSL_KEY,
@@ -265,6 +289,8 @@ export const logConstants = () => {
     PH_FTP_PASV_IP,
     PH_FTP_PASV_PORT_MIN,
     PH_FTP_PASV_PORT_MAX,
+    PH_SFTP_PORT,
+    PH_SFTP_HOST_KEY,
     EDGE_APEX_DOMAIN,
     INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(`<version>`),
     DISCORD_HEALTH_CHANNEL_URL,

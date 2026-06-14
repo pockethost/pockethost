@@ -69,6 +69,7 @@ const HandleInstanceCreate = (e) => {
 	record.set("version", version);
 	record.set("dev", true);
 	record.set("syncAdmin", true);
+	record.set("autoVacuum", true);
 	$app.save(record);
 	return e.json(200, { instance: record });
 };
@@ -150,6 +151,7 @@ const HandleInstanceUpdate = (e) => {
 			secrets: null,
 			webhooks: null,
 			syncAdmin: null,
+			autoVacuum: null,
 			dev: null,
 			cname: null
 		}
@@ -158,7 +160,7 @@ const HandleInstanceUpdate = (e) => {
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const id = e.request.pathValue("id");
-	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, dev, cname } } = data;
+	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname } } = data;
 	log(`vars`, JSON.stringify({
 		id,
 		subdomain,
@@ -167,6 +169,7 @@ const HandleInstanceUpdate = (e) => {
 		secrets,
 		webhooks,
 		syncAdmin,
+		autoVacuum,
 		dev,
 		cname
 	}));
@@ -190,6 +193,7 @@ const HandleInstanceUpdate = (e) => {
 		secrets,
 		webhooks,
 		syncAdmin,
+		autoVacuum,
 		dev,
 		cname
 	});
@@ -374,6 +378,13 @@ const AfterCreate_notify_discord = (e) => {
 	} catch (e$1) {
 		audit(`ERROR`, `Instance creation discord notify failed with ${e$1}`);
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/instance/model/BeforeCreate_autoVacuum.ts
+const BeforeCreate_autoVacuum = (e) => {
+	const record = e.model;
+	record.set("autoVacuum", true);
 };
 
 //#endregion
@@ -2974,6 +2985,7 @@ const HandleSignupConfirm = (e) => {
 			instance.set("status", "idle");
 			instance.set("power", true);
 			instance.set("syncAdmin", true);
+			instance.set("autoVacuum", true);
 			instance.set("dev", true);
 			instance.set("version", version);
 			txApp.save(instance);
@@ -3071,6 +3083,130 @@ const HandleSesError = (e) => {
 };
 
 //#endregion
+//#region ../common/sshPublicKey.ts
+/** JSVM-safe ssh-ed25519 public key parsing. Safe for pb_hooks (Goja) and Node/browser consumers. */
+const ED25519_ALGO = "ssh-ed25519";
+const ED25519_WIRE_KEY_LEN = 32;
+const ED25519_WIRE_LEN = 19 + ED25519_WIRE_KEY_LEN;
+const readUint32BE = (bytes, offset) => {
+	if (offset + 4 > bytes.length) throw new Error("Invalid public key encoding.");
+	return (bytes[offset] << 24 | bytes[offset + 1] << 16 | bytes[offset + 2] << 8 | bytes[offset + 3]) >>> 0;
+};
+const readSshString = (bytes, offset) => {
+	const length = readUint32BE(bytes, offset);
+	offset += 4;
+	if (length < 0 || offset + length > bytes.length) throw new Error("Invalid public key encoding.");
+	const value = bytes.slice(offset, offset + length);
+	return {
+		value,
+		nextOffset: offset + length
+	};
+};
+const bytesToAscii = (bytes) => {
+	let out = "";
+	for (let i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]);
+	return out;
+};
+const decodeBase64 = (value) => {
+	const normalized = value.replace(/[\s\r\n]+/g, "");
+	if (!normalized || normalized.length % 4 === 1 || !/^[A-Za-z0-9+/]+=*$/.test(normalized)) throw new Error("Public key base64 is invalid.");
+	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	const bytes = [];
+	let buffer = 0;
+	let bits = 0;
+	for (const char of normalized.replace(/=+$/, "")) {
+		const index = alphabet.indexOf(char);
+		if (index === -1) throw new Error("Public key base64 is invalid.");
+		buffer = buffer << 6 | index;
+		bits += 6;
+		if (bits >= 8) {
+			bits -= 8;
+			bytes.push(buffer >> bits & 255);
+		}
+	}
+	return new Uint8Array(bytes);
+};
+const validateWire = (wire) => {
+	if (wire.length !== ED25519_WIRE_LEN) throw new Error("Invalid Ed25519 public key length.");
+	let offset = 0;
+	const algo = readSshString(wire, offset);
+	offset = algo.nextOffset;
+	if (bytesToAscii(algo.value) !== ED25519_ALGO) throw new Error("Public key algorithm must be ssh-ed25519.");
+	const key = readSshString(wire, offset);
+	if (key.value.length !== ED25519_WIRE_KEY_LEN) throw new Error("Invalid Ed25519 public key length.");
+	if (key.nextOffset !== wire.length) throw new Error("Invalid public key encoding.");
+};
+const parseSshEd25519PublicKey = (input) => {
+	const trimmed = input.trim();
+	if (!trimmed) throw new Error("Public key is required.");
+	const lines = trimmed.split(/\r?\n/).map((line$1) => line$1.trim()).filter(Boolean);
+	if (lines.length > 1) throw new Error("Paste a single public key line only.");
+	const line = lines[0] ?? "";
+	const parts = line.split(/\s+/).filter(Boolean);
+	if (parts.length < 2) throw new Error("Public key must look like: ssh-ed25519 AAAA… comment");
+	const algo = parts[0];
+	const keyData = parts[1];
+	if (algo !== ED25519_ALGO) throw new Error("Only ssh-ed25519 public keys are supported.");
+	const wire = decodeBase64(keyData);
+	validateWire(wire);
+	const comment = parts.slice(2).join(" ");
+	const normalized = comment ? `${ED25519_ALGO} ${keyData} ${comment}` : `${ED25519_ALGO} ${keyData}`;
+	return {
+		normalized,
+		wire
+	};
+};
+
+//#endregion
+//#region src/lib/handlers/sshKeys/model/validateSshKey.ts
+const validateSshKeyRecord = (record, authId) => {
+	const log = mkLog(`ssh-keys`);
+	let parsed;
+	try {
+		parsed = parseSshEd25519PublicKey(record.getString("public_key"));
+	} catch (error$1) {
+		throw new BadRequestError(`${error$1}`);
+	}
+	record.set("public_key", parsed.normalized);
+	const fingerprint = record.getString("fingerprint").trim();
+	if (!fingerprint.startsWith("SHA256:")) throw new BadRequestError("Invalid fingerprint.");
+	const allInstances = record.getBool("all_instances");
+	const instanceIds = record.getStringSlice("instances") || [];
+	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
+	if (!allInstances) {
+		const dao = $app.dao();
+		for (const instanceId of instanceIds) {
+			const instance = dao.findRecordById("instances", instanceId);
+			if (instance.getString("uid") !== authId) {
+				log({
+					instanceId,
+					authId,
+					uid: instance.getString("uid")
+				});
+				throw new BadRequestError("One or more selected instances are not owned by you.");
+			}
+		}
+	}
+	if (allInstances) record.set("instances", []);
+};
+const BeforeCreate_ssh_keys = (e) => {
+	const record = e.record;
+	if (!record) throw new BadRequestError("Missing record.");
+	const authRecord = e.httpContext.get("authRecord");
+	if (!authRecord) throw new BadRequestError("Authentication required.");
+	record.set("user", authRecord.id);
+	validateSshKeyRecord(record, authRecord.id);
+};
+const BeforeUpdate_ssh_keys = (e) => {
+	const record = e.record;
+	if (!record) throw new BadRequestError("Missing record.");
+	const authRecord = e.httpContext.get("authRecord");
+	if (!authRecord) throw new BadRequestError("Authentication required.");
+	if (record.getString("user") !== authRecord.id) throw new ForbiddenError("You can only update your own SSH keys.");
+	validateSshKeyRecord(record, authRecord.id);
+};
+
+//#endregion
 //#region src/lib/handlers/stats/api/HandleStatsRequest.ts
 const HandleStatsRequest = (e) => {
 	const total_flounder_subscribers = $app.countRecords(`users`, $dbx.exp(`subscription = 'flounder' && verified = 1`));
@@ -3103,7 +3239,10 @@ const HandleVersionsRequest = (e) => {
 
 //#endregion
 exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
+exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
+exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
+exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;

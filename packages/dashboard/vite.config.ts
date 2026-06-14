@@ -14,7 +14,9 @@ const config: UserConfig = {
     strictPort: true,
     host: 'pockethost.lvh.me',
     hmr: {
-      clientPort: 5174,
+      protocol: 'wss',
+      host: 'pockethost.lvh.me',
+      clientPort: 443,
     },
   },
 }

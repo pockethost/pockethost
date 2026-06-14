@@ -218,7 +218,7 @@ export const freshenPocketbaseVersions = async () => {
   await PocketBaseBinaryService().freshen()
 }
 
-export { spawnPocketBaseContainer } from './dockerSpawn'
+export { rmNamedContainerSync, spawnPocketBaseContainer } from './dockerSpawn'
 
 export const syncCachedVersionsToMothership = async () => {
   const { info, warn } = LoggerService().create('syncCachedVersionsToMothership')

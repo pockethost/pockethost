@@ -61,8 +61,12 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **Scheduled / reliable automatic backups** | Med | M–L | **Follow up:** Discord `wesochuck` (Wes Osborn) — asked whether webhooks in the PocketHost UI should trigger PB backups; confirmed manual backup is best for now. **Problem:** low-traffic instances hibernate; PB cron and webhook→JSVM backup scripts both require a warm container, so scheduled backups are unreliable today. **Options to spike:** platform cron that wakes instance → runs backup → hibernates; mothership/edge-initiated backup without full PB runtime; dashboard schedule UX. Frequent customer ask. |
+| **Dashboard full instance backup (download)** | Med | M–L | On-demand archive of the entire instance data folder (`.tgz`) from the dashboard — sqlite, hooks, uploads, logs, config. **Problem:** corrupt DB or unbootable instance bricks recovery via PB admin backup/export; SFTP may be unreachable too. Edge tarballs volume while hibernated (no warm PB required), mothership returns a time-limited download URL. Disaster-recovery escape hatch; distinct from **Scheduled / reliable automatic backups** (PB cron) and PB Settings → Backups. |
+| **Dashboard vacuum now** | Med | M | On-demand SQLite `VACUUM` from dashboard: mothership enqueues job → edge force-stops warm instance → compact `data.db`/`logs.db` → report bytes reclaimed. Reuses `health compact` / `vacuumSqliteFile` but must stop running Docker mounts (nightly auto-vacuum skips them). Needs mothership→edge job channel (instance fields or collection + mirror listener), drain in-flight requests, mutex vs nightly sweep, disk-budget errors in UI. Brief downtime expected. Distinct from nightly **Auto Vacuum** (idle-only). |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
-| **SFTP instead of FTPS** | Med | M | Docs/FAQ already say "SFTP"; UI says FTPS (`instances/.../ftp`). Evaluate `ftp-srv` fork vs OpenSSH/sftp subsystem. Support SSH authorized keys (user-supplied pubkey) in addition to or instead of password? Credential UX + dashboard key management. |
+| **FTPS login welcome banner** | Low | S | On FTPS connect, show a 220/welcome message: SFTP is the recommended path (host, port, `/docs/ftp`), FTPS is deprecated with target sunset date TBD. `ftp-srv` greeting hook or equivalent. Pairs with **FTPS sunset comms**. |
+| **FTPS sunset comms** | Low | S–M | Blog (`/blog/sftp-file-access`) + `/docs/ftp` deprecation copy shipped. Remaining: dashboard notice, email to active FTPS users, explicit sunset date. Then schedule **Remove FTPS**. |
+| **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** SFTP shipped + **FTPS sunset comms** grace period elapsed. |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
@@ -70,14 +74,18 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **phio ↔ pockethost merge / rename** | Med | L–XL | Submodule `packages/phio` is the customer CLI (`bunx phio`); server package is `pockethost`. Options: merge phio into monorepo; or rename server → `pockethost-server` and publish CLI as `pockethost`. Until then: VFS/FTPS changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
+| **phio SFTP migration** | Med | M | phio `dev`/`deploy` still use FTPS + `__auth__` cookie. Migrate to SFTP + SSH keys before **Remove FTPS**. |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
-| **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. |
+| **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** phio submodule covers deploy/dev/logs; full SDK + dashboard parity still open. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
 
 ### Dashboard & docs UX
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Stats role: view any instance by direct link** | Low | S | `isStatsRole` users open `/app/instances/:id` for support (logs, overview). Needs PB `viewRule` or `GET /api/instance/:id`, layout fallback fetch, `RealtimeLog` bypass. Read-only for non-owned instances; hide secrets/danger zone. |
+| **Account email change (verified swap)** | Med | M | Dashboard + mothership: save pending new email, send verification link, swap to primary only after confirm — never write an unverified address to auth `email`. **Today:** a naive email update leaves the account unverified → login and instance access break until support. Lemon Squeezy customer email may need sync on confirm. Customers can update email without locking themselves out or taking instances down. |
 | **Revisit v0.22→v0.23 version boundary UX** | Low | S | Dashboard version picker filters minors across the v22/v23 line (`instances/.../version/+page.svelte`); warns manual migration both directions. Re-evaluate: in-place v22→v23 upgrade should work on PocketHost (JSVM hook rewrites are a separate concern); rollbacks were never supported. May drop the hard boundary and simplify picker + `/docs/versions`. |
 | **Dashboard layout rethink** | Low | L | App shell, nav, spacing, and information hierarchy across dashboard routes — reduce clutter, improve mobile/desktop parity. |
 | **Instance UI rethink** | Low | L | Instance detail sidebar, settings grouping, power/status affordances, and destructive-action flows (delete, version change). Builds on `instancePower.ts` shutting-down states. |
@@ -88,6 +96,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
 | **GDPR compliance** | Med | L–XL | Privacy policy + cookie consent, lawful-basis/subprocessor documentation, data retention policies, account data export and erasure (instances, mothership records, Lemon Squeezy billing flows). EU customers and businesses can use PocketHost with clear data rights and regulatory coverage. |
+| **GDPR delete account** | Med | M–L | Self-service account erasure: confirm + email verification, cancel Lemon Squeezy subscription, delete all instances (edge cleanup + mothership records), SSH keys, and auth user. Grace period optional. Subset of **GDPR compliance**; unblocks EU users exercising right to erasure without support tickets. |
 
 ### Codebase health & CI
 
@@ -138,7 +147,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 ### Dependency diet (keep vs replace)
 
 - **Keep (core):** `dockerode`, `semver`, `rate-limiter-flexible`, `ip-cidr`, `ftp-srv` fork, `pocketbase`, `@microsoft/fetch-event-source` fork, `commander`, `cron`, `Bottleneck`, `http-proxy`/`http-proxy-middleware`, `better-sqlite3` (sendmail), `node-os-utils` (health).
-- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **SFTP** lands).
+- **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **FTPS sunset comms** grace period, then **Remove FTPS**).
 - **Hoist/dedupe (minor):** `tsx` (root + pockethost), `wrangler` (root + dashboard) — no functional change.
 
 ### Pricing migration (Flounder + lifetime)
@@ -205,13 +214,16 @@ Last-chance Flounder blast ──► Pricing redo — Flounder sunset (lifetime 
 Halt lifetime edition sales ──► Pricing redo (policy; ship after comms)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 GDPR compliance ──► account data export/deletion UX; privacy policy + subprocessors docs; Lemon Squeezy data flows
+GDPR delete account ──► GDPR compliance (erasure); edge cleanup for all instances; LS subscription cancel
+Account email change (verified swap) ──► Lemon Squeezy lifecycle (customer email sync on confirm)
 Mothership build hygiene + CI gates ──► decouple mothership (clean deploy boundary)
 Decouple mothership ──► multi-region Fly edges (independent edge/mothership rollouts)
 Ecosystem agent skills ──► layered skills (core PB → jsvm/js-sdk → pockethost/pocketpages overlays)
 Ecosystem agent skills ──► agent skills npm + Cursor plugin (Icebox)
 Realtime reconnect resync ──► removes verify polling; fixes stale instances/auth after SSE gap
 SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limits)
-SFTP ──► docs already claim SFTP; FTPS UI is misleading today
+FTPS login welcome banner ──► FTPS sunset comms (point legacy users at SFTP)
+FTPS sunset comms ──► Remove FTPS (grace period)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
@@ -234,6 +246,8 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-13 | **SFTP (ssh2) alongside FTPS** — merge `sftp` (d4b45de5): `ssh2` on `PH_SFTP_PORT`, Ed25519 key auth, Account → Keys UI, scoped `InstanceVfs`; release runbook `docs/production.md` |
+| 2026-06-13 | **SFTP prod init fix** — standalone `sftp serve` initializes `MothershipAdminClientService` so `edge-sftp` binds port 2222 |
 | 2026-06-12 | **Remove @s-libs/micro-dash** — natives in ~22 files (pockethost, dashboard, mothership-app); dropped dep from lockfile; `pb_hooks/mothership.js` −37 lines |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
@@ -248,7 +262,9 @@ _Completed items with date + link to PR/release._
 | 2026-06-13 | **Mothership PocketBase v0.39** — JSVM v0.23+ hook port, `_superusers` admin auth, snapshot migrations, preupgrade SQL for legacy views; `MOTHERSHIP_SEMVER=0.39.*`, npm `pocketbase` ^0.26 |
 | 2026-06-13 | **Runtime status sync protocol (Phase 1)** — `POST /api/mirror` (`resetIdle` + live reconcile), `saveRecord` loops for dashboard SSE, `PB_CONNECT` edge sync |
 | 2026-06-13 | **Edge-owned instance delete** — mothership `HandleInstanceDelete` drops PB record only (idle gate); `edge cleanup` + PM2 `edge-cleanup` (daily); admin `getInstances()` → rimraf orphans under `INSTANCES_ROOT`; `--dry-run`; removed `HandleInstanceDataPaths` (`53671ae7`–`13b77d45`) |
+| 2026-06-13 | **Nightly SQLite vacuum sweep** — `health compact` VACUUMs idle instance `data.db`/`logs.db` (skips running Docker mounts) + local Mothership DBs (brief PM2/docker stop); per-instance `autoVacuum` toggle (dashboard Danger Zone + `/docs/auto-vacuum`); disk budget guard; `--dry-run`; blog `/blog/pocketbase-sqlite-vacuum` updated |
 | 2026-06-13 | **Dashboard highlight + color deps** — dropped `prismjs` + twilight CSS (instance layout already used `CodeSample`/svelte-highlight); fixed Tableau10 palette in `secrets/stores.ts`; removed `d3-scale` + `d3-scale-chromatic` |
+| 2026-06-13 | **VFS deploy sync state at instance root** — allow `.ftp-deploy-sync-state.json` for phio + FTP-Deploy-Action (`132cf51d`) |
 
 ---
 

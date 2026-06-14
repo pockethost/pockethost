@@ -1,9 +1,16 @@
-import { canFetch, LoggerService, MOTHERSHIP_URL, neverendingPromise, syncCachedVersionsToMothership } from '@'
+import {
+  canFetch,
+  ensureDevTlsCerts,
+  LoggerService,
+  MOTHERSHIP_URL,
+  neverendingPromise,
+  syncCachedVersionsToMothership,
+} from '@'
 import { Command } from 'commander'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
-import { ftp } from '../EdgeCommand/FtpCommand/ServeCommand/ftp'
 import { firewall } from '../FirewallCommand/ServeCommand/firewall/server'
 import { mothership } from '../MothershipCommand/ServeCommand/mothership'
+import { sftp } from '../SftpCommand/ServeCommand/sftp'
 
 export const ServeCommand = () => {
   const cmd = new Command(`serve`).description(`Run the entire PocketHost stack`).action(async () => {
@@ -11,6 +18,7 @@ export const ServeCommand = () => {
     const { dbg, info } = logger
     info(`Starting`)
 
+    await ensureDevTlsCerts(logger)
     const healthUrl = MOTHERSHIP_URL(`/api/health`)
     if (await canFetch(healthUrl)) {
       info(`Mothership already reachable, skipping launch`)
@@ -24,8 +32,8 @@ export const ServeCommand = () => {
     dbg(`Daemon ready`)
     await firewall({ logger })
     dbg(`Firewall ready`)
-    await ftp({ logger })
-    dbg(`FTP ready`)
+    await sftp()
+    dbg(`SFTP ready`)
     await neverendingPromise(logger)
   })
   return cmd

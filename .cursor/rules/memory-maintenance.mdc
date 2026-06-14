@@ -24,7 +24,7 @@ Update MEMORY.md in the **same commit/PR** when you change anything in the table
 | CLI surface | `pockethost` subcommands (`mothership`, `firewall`, `edge`, `serve`, `pocketbase`, `health`, `mail`) |
 | Runtime roles | Mothership (control plane), edge daemon (instance spawner), firewall (reverse proxy + rate limits) |
 | Instance model | `Instance` schema, Docker lifecycle, port pool, volume paths under `DATA_ROOT` |
-| Mothership app | `pb_hooks`, `pb_migrations`, handler APIs under `mothership-app/src/lib/handlers` |
+| Mothership app | `pb_hooks`, `pb_migrations`, handler APIs under `mothership-app/src/lib/handlers`; JSVM boundary in `.cursor/rules/mothership-hooks.mdc` |
 | Settings / env | `PH_*`, `MOTHERSHIP_*`, `APEX_DOMAIN`, `constants.ts` / `createSettings()` |
 | Dashboard | SvelteKit routes, docs under `packages/dashboard/src/routes`, Wrangler deploy |
 | PocketBase versions | `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_POCKETBASE_ROOT`, `settings.pocketbase_versions`, `pocketbase update` flow |

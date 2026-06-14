@@ -1,0 +1,50 @@
+---
+description: Mothership PocketBase hooks compile to Goja JSVM — import and API boundaries
+globs:
+  - packages/pockethost/src/mothership-app/**/*
+alwaysApply: false
+---
+
+# Mothership hooks → JSVM boundary
+
+Source: `packages/pockethost/src/mothership-app/src/lib/handlers/` and `src/hooks/`.
+Output: `pb_hooks/mothership.js` via `pnpm --filter pockethost-mothership-app build` (tsdown).
+
+Hooks run in **PocketBase Goja JSVM**, not Node. tsdown targets Node for bundling only.
+
+## Imports
+
+| OK | Not OK |
+|----|--------|
+| `$common/*` → `packages/pockethost/src/common/*` (must be JSVM-safe; tsconfig path required) | `$common` barrel for runtime imports (pulls unrelated Node code) |
+| `$util/*` under `mothership-app/src/lib/util/` | CLI services, dashboard, npm packages with Node/browser APIs |
+| Relative imports within `mothership-app/` | Type-only `$common` imports are fine (erased at compile) |
+| PocketBase globals (`$app`, `$security`, …) | Node `crypto`, `fs`, `async`/`await` in bundled code |
+
+**Rule:** Shared logic used by hooks and CLI/dashboard lives in `common/`. Code imported into hooks must be **Goja-safe** (sync, no Node/browser APIs). Prefer `$common/<file>` subpath imports over the `$common` barrel.
+
+Add new subpaths to `mothership-app/tsconfig.json` `"$common/*"` (already mapped to `../common/*`).
+
+## JSVM-safe common code
+
+When `common/` modules are bundled into `pb_hooks`:
+
+- Synchronous only
+- No `async`/`await`, Promises, timers
+- No Node or browser-only APIs (`atob`, `fetch`, `crypto` module)
+- No deps that pull in BigInt-heavy crypto (e.g. `@noble/*`) unless verified in Goja
+- Prefer manual byte/base64 parsing over platform helpers
+
+Read `.cursor/skills/pocketbase-jsvm/constraints.md` before adding hook-facing common helpers.
+
+## After every hook change
+
+1. `pnpm --filter pockethost-mothership-app build`
+2. **Zero** `[UNRESOLVED_IMPORT]` warnings in build output
+3. `pnpm check:mothership-hooks` before commit (CI enforces fresh `pb_hooks/`)
+
+If build warns `Module not found, treating it as an external dependency`, the hook will **fail silently at runtime** in JSVM. Fix tsconfig paths or import path before shipping.
+
+## Do not edit by hand
+
+`pb_hooks/mothership.js` and `mothership.pb.js` are generated. Edit TypeScript under `src/lib/handlers/` only.

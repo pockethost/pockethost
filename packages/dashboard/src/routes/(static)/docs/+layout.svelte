@@ -108,8 +108,9 @@
         <DocLink path="dev-mode" title="Dev Mode" />
         <DocLink path="secrets" title="Secrets" />
         <DocLink path="webhooks" title="Webhooks" />
-        <DocLink path="ftp" title="FTP Access" />
+        <DocLink path="ftp" title="SFTP File Access" />
         <DocLink path="admin-sync" title="Admin Sync" />
+        <DocLink path="auto-vacuum" title="Auto Vacuum" />
         <DocLink path="js" title="Extending via JS" />
 
         <div class="text-sm font-semibold text-white/60 uppercase tracking-wide pt-4 pb-1">Programming Guide</div>

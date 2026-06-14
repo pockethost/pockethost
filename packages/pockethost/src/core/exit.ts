@@ -1,7 +1,7 @@
 import { Logger } from '@'
 import exitHook, { asyncExitHook as _, gracefulExit as __ } from 'exit-hook'
 
-export const asyncExitHook = (cb: () => Promise<any>) => _(cb, { wait: 5000 })
+export const asyncExitHook = (cb: () => Promise<any>, wait = 5000) => _(cb, { wait })
 
 export const gracefulExit = async (signal?: number) => {
   __(signal)

@@ -40,7 +40,7 @@ Data is backed up daily by us. You can also back up your data anytime using SFTP
 
 Yes, your data on pockethost.io is as secure as it would be on your own server—potentially more so, given that our infrastructure is rigorously tested. Access to the pockethost.io infrastructure is secured via SSH with RSA-2048 encryption.
 
-While the data volume is not encrypted at the OS level (see [#143](https://github.com/benallfree/pockethost/issues/143) for details), the VPS itself is encrypted by Digital Ocean. You can always back up and download your data via SFTP using your pockethost.io credentials.
+While the data volume is not encrypted at the OS level (see [#143](https://github.com/benallfree/pockethost/issues/143) for details), the VPS itself is encrypted by Digital Ocean. You can always back up and download your data via [SFTP](/docs/ftp) using an SSH key registered in your account.
 
 ### Can I import data into PocketHost?
 

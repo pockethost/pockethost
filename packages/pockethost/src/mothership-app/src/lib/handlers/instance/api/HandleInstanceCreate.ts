@@ -42,6 +42,7 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
   record.set('version', version)
   record.set('dev', true)
   record.set('syncAdmin', true)
+  record.set('autoVacuum', true)
 
   $app.save(record)
 

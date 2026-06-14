@@ -31,7 +31,7 @@
       </a>
     </div>
   </div>
-  <div class="flex-none">
+  <div class="flex-none flex items-center py-2">
     <NavbarMenu />
   </div>
 </div>

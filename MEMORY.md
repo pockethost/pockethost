@@ -10,8 +10,9 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
+| Customer CLI | `packages/phio` | **Submodule** ([pockethost/phio](https://github.com/pockethost/phio)) — separate Changesets release (`bunx phio`). FTPS deploy via `@samkirkland/ftp-deploy`; not in pnpm workspace. See `.cursor/skills/phio/SKILL.md`. |
 
-Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
+Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`. (`phio` excluded — Bun submodule.)
 
 **Instance image publish** (after Dockerfile changes): `cd packages/pockethost-instance && pnpm build && pnpm push`. Tags: `0.0.1` + `latest`. Spawn path: `DOCKER_INSTANCE_IMAGE_NAME` in `constants.ts`.
 
@@ -23,10 +24,11 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 |---------|---------|
 | `mothership` | Control-plane PocketBase (users, instances, billing hooks) |
 | `firewall` | Reverse proxy, vhost routing, rate limiting |
-| `edge` | Edge node: daemon (instance spawner), `cleanup` (orphan data), FTP, syslog |
-| `serve` | Local/dev full stack: mothership (if needed), edge daemon, firewall, FTP |
+| `edge` | Edge node: daemon (instance spawner), `cleanup` (orphan data), FTPS (`edge ftp`), syslog |
+| `sftp` | SFTP file access (`ssh2`, port `PH_SFTP_PORT` default 2222). Ed25519 SSH key auth, virtual FS shared with FTPS |
+| `serve` | Local/dev stack: mothership + daemon + firewall + SFTP |
 | `pocketbase` | PocketBase binary download / version management |
-| `health` | Health checks |
+| `health` | Edge monitoring (`health check`): PM2, HTTP/TCP, disk/RAM/TLS; posts to `DISCORD_HEALTH_CHANNEL_URL` each run. `health compact`: nightly SQLite `VACUUM` on idle instance `data.db`/`logs.db` where `instances.autoVacuum` is enabled (skips running Docker mounts) and local Mothership DBs (brief PM2/docker stop window). `--dry-run` |
 | `mail` | Outbound mail helper |
 
 Root scripts: `pnpm dev:cli`, `pnpm dev:dashboard`, `pnpm prod:cli`.
@@ -38,8 +40,8 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks`. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.
-- **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`).
+- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.
+- **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`). Express error handler posts to `DISCORD_ALERT_CHANNEL_URL` only for `systemError` (Docker/host failures). `userError` covers unpaid, suspended, JSVM/app exit, etc. SFTP (`classifySftpError`) treats handshake/protocol/client misconfig as `userError` (debug log only).
 - **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`.
 
 ## Key paths & settings
@@ -51,7 +53,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 
-Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `PH_CONTAINER_STOP_TIMEOUT_SEC` (SIGINT stop timeout before SIGKILL), `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`), `DOCKER_INSTANCE_IMAGE_NAME` (default `benallfree/pockethost-instance` → `:latest`; prod edge nodes are `linux/amd64` — pin a semver tag if `:latest` is wrong arch).
+Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `PH_USER_PROXY_IPS`, `PH_MAX_CONCURRENT_DOCKER_LAUNCHES`, `PH_CONTAINER_STOP_TIMEOUT_SEC` (SIGINT stop timeout before SIGKILL), `HTTP_PROTOCOL` (defaults `http:` when `NODE_ENV=development`), `DOCKER_INSTANCE_IMAGE_NAME` (default `benallfree/pockethost-instance` → `:latest`; prod edge nodes are `linux/amd64` — pin a semver tag if `:latest` is wrong arch), `PH_SFTP_PORT` (default 2222), `PH_SFTP_HOST_KEY` (Ed25519 host key under `$PH_HOME/ssh/`, auto-generated), `PH_DISABLE_INSTANCE_WEBHOOKS` (defaults `true` in dev — edge `CronService` skips scheduled instance webhooks; override with `PH_ENABLE_INSTANCE_WEBHOOKS=1`), `PH_DISABLE_FIREWALL_RATE_LIMIT` (defaults `true` in dev — firewall skips rate limit middleware; override with `PH_ENABLE_FIREWALL_RATE_LIMIT=1`).
 
 ## Services (factory pattern)
 
@@ -62,6 +64,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `MothershipAdminClientService` — admin PB client via `_superusers` collection auth (npm `pocketbase` ≥0.26)
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
+- `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action).
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 
@@ -95,9 +98,11 @@ pnpm install               # root
 cp .env-template .env      # if present; configure PH_HOME, apex domain, mothership creds
 pnpm live-sync             # optional — rsync prod mothership pb_data → .pockethost/data/mothership/pb_data; set DATA_ROOT
 pnpm dev:mothership-hooks  # terminal 1 — tsdown --watch when editing mothership handlers
-pnpm dev:cli               # terminal 2 — CLI / mothership / edge / firewall
-pnpm dev:dashboard         # dashboard dev server
+pnpm dev:cli serve         # terminal 2 — mothership + edge + firewall (80/443) + SFTP
+pnpm dev:dashboard         # terminal 3 — Vite :5174, browse via https://pockethost.lvh.me
 ```
+
+Dev TLS: `serve` runs `ensureDevTlsCerts` (devcert → `$PH_HOME/ssl/tls.{key,cert}`). Firewall terminates HTTPS on 443 in dev when certs exist. Use HTTPS URLs, not `:5174` direct (insecure context). `lvh.me` → 127.0.0.1; ports 80/443 may need sudo locally.
 
 After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 
@@ -105,7 +110,7 @@ Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-da
 
 ## Production / PM2
 
-Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`pnpm prod:cli …` per app). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
+Prod processes are defined in `ecosystem.config.cjs` and run via PM2 (`pnpm prod:cli …` per app). Operator runbook: `docs/production.md` (includes SFTP release order). Logs land in `~/.pm2/logs/` and can grow unbounded without rotation — `edge-daemon` and `firewall` are especially chatty.
 
 `setup.sh` installs and configures `pm2-logrotate` after global `pm2`:
 
