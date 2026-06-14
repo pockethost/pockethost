@@ -10,6 +10,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Pre-Staging the Mothership v0.39 Cutover',
+    path: '/blog/mothership-v039-prestage',
+    description:
+      'Two-phase upgrade: dual admin auth and dependency bumps on main first, zero lockfile changes on the v39 branch, SQL views dropped early. Cutover day flips Mothership only.',
+    date: 'Jun 14, 2026',
+    author: 'capn',
+  },
+  {
     title: 'phio 0.4: Deploy Over SFTP',
     path: '/blog/phio-sftp-deploy',
     description:
