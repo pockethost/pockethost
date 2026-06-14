@@ -86,6 +86,4 @@ If you run log retention at `maxDays: 1`, the bloat accumulates quietly. A quick
 
 ### What we are doing about it
 
-PocketHost already runs a daily `health-compact` PM2 job, but today it only touches instance SQLite sidecars under `instances/*/pb_data/`. It does **not** vacuum Mothership `logs.db` or `data.db`. That is on us to fix.
-
-Until we wire that up, treat this post as the runbook. If you vacuumed yours and freed a silly amount of space, I'd love to hear the before/after numbers on [Discord](https://discord.gg/nVTxCMEcGT).
+PocketHost runs a daily `health-compact` PM2 job (`pockethost health compact`). It `VACUUM`s idle instance `data.db` and `logs.db` under `instances/*/pb_data/` when **Auto Vacuum** is enabled for that instance (dashboard: Danger Zone → Auto Vacuum, on by default). Running instances are skipped until hibernated. When Mothership data lives on the same host, the job briefly stops Mothership to vacuum its databases too. Use `--dry-run` to preview.
