@@ -32,7 +32,8 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
   const _sftpServiceLogger = logger()
   const { dbg, info } = _sftpServiceLogger
 
-  const { client: adminClient } = await MothershipAdminClientService()
+  const { client: adminApi } = await MothershipAdminClientService()
+  const adminClient = adminApi.client
 
   const hostKey = ensureHostKey(PH_SFTP_HOST_KEY())
 
