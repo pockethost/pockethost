@@ -9,13 +9,15 @@ import {
   MOTHERSHIP_PORT,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
+  getRunningInstanceIds,
   logger,
   stringify,
 } from '@'
 import Bottleneck from 'bottleneck'
 import { execFileSync, execSync } from 'child_process'
 import { existsSync, globSync, statSync, statfsSync } from 'fs'
-import { basename, dirname, join, resolve } from 'path'
+import { basename, dirname, join } from 'path'
+import { assertVacuumClientReady, lockInstance, unlockInstance } from './edgeVacuumClient'
 
 const INSTANCE_DB_NAMES = [`data`, `logs`] as const
 
@@ -102,37 +104,6 @@ export const vacuumSqliteFile = async (dbPath: string): Promise<VacuumResult> =>
   execFileSync(`sqlite3`, [dbPath, `PRAGMA wal_checkpoint(TRUNCATE); VACUUM;`], { encoding: `utf8`, stdio: `pipe` })
 
   return { path: dbPath, beforeBytes, afterBytes: fileSizeBytes(dbPath) }
-}
-
-export const getRunningInstanceIds = (): Set<string> => {
-  const instancesRoot = resolve(INSTANCES_ROOT())
-  const ids = new Set<string>()
-
-  try {
-    const containerIds = execSync(`docker ps -q`, { encoding: `utf8`, stdio: [`pipe`, `pipe`, `ignore`] })
-      .trim()
-      .split(`\n`)
-      .filter(Boolean)
-
-    for (const containerId of containerIds) {
-      const mountsJson = execSync(`docker inspect -f '{{json .Mounts}}' ${containerId}`, {
-        encoding: `utf8`,
-        stdio: [`pipe`, `pipe`, `ignore`],
-      })
-      const mounts = JSON.parse(mountsJson) as Array<{ Source?: string }>
-      for (const mount of mounts) {
-        const source = mount.Source
-        if (!source?.startsWith(instancesRoot)) continue
-        const rel = source.slice(instancesRoot.length).replace(/^\//, ``)
-        const instanceId = rel.split(`/`)[0]
-        if (instanceId) ids.add(instanceId)
-      }
-    }
-  } catch {
-    // docker unavailable or no running containers
-  }
-
-  return ids
 }
 
 type FleetVacuumStats = {
@@ -234,10 +205,37 @@ const logVacuumResult = (result: VacuumResult, dryRun: boolean) => {
     return
   }
 
-  info(`Vacuumed ${formatBytes(result.beforeBytes)} → ${formatBytes(result.afterBytes)} (reclaimed ${formatBytes(reclaimed)})`)
+  info(
+    `Vacuumed ${formatBytes(result.beforeBytes)} → ${formatBytes(result.afterBytes)} (reclaimed ${formatBytes(reclaimed)})`
+  )
 }
 
-export const vacuumIdleInstanceDbs = async ({ dryRun = false } = {}) => {
+const groupDbPathsByInstance = (dbPaths: Array<{ instanceId: string; dbPath: string }>) => {
+  const byInstance = new Map<string, string[]>()
+  for (const { instanceId, dbPath } of dbPaths) {
+    const paths = byInstance.get(instanceId) ?? []
+    paths.push(dbPath)
+    byInstance.set(instanceId, paths)
+  }
+  return byInstance
+}
+
+const instanceLatestMtimeMs = (dbPaths: string[]): number =>
+  dbPaths.reduce((latest, dbPath) => {
+    if (!existsSync(dbPath)) return latest
+    return Math.max(latest, statSync(dbPath).mtimeMs)
+  }, 0)
+
+const passesHoursBackFilter = (dbPaths: string[], hoursBack?: number): boolean => {
+  if (hoursBack == null) return true
+  const cutoff = Date.now() - hoursBack * 3_600_000
+  return instanceLatestMtimeMs(dbPaths) >= cutoff
+}
+
+export const vacuumIdleInstanceDbs = async ({
+  dryRun = false,
+  hoursBack,
+}: { dryRun?: boolean; hoursBack?: number } = {}) => {
   const { info, warn } = logger().create(`vacuumIdleInstanceDbs`)
   const fleet = await fetchFleetVacuumStats()
   if (!fleet) {
@@ -245,43 +243,79 @@ export const vacuumIdleInstanceDbs = async ({ dryRun = false } = {}) => {
     return { results: [], fleet: null }
   }
 
-  const { fleetIds, autoVacuumIds } = fleet
-  const runningIds = getRunningInstanceIds()
-  const dbPaths = listInstanceDbPaths()
+  if (!dryRun) {
+    const ready = await assertVacuumClientReady()
+    if (!ready.ok) {
+      warn(`Skipping instance vacuum sweep: ${ready.reason}`)
+      return { results: [], fleet }
+    }
+  }
 
-  info(`Found ${dbPaths.length} instance database file(s); ${runningIds.size} instance(s) running in Docker`)
+  const { fleetIds, autoVacuumIds } = fleet
+  const dbPaths = listInstanceDbPaths()
+  const byInstance = groupDbPathsByInstance(dbPaths)
+
+  info(`Found ${byInstance.size} instance(s) with database files`)
 
   const results: VacuumResult[] = []
 
-  for (const { instanceId, dbPath } of dbPaths) {
+  for (const [instanceId, instanceDbPaths] of byInstance) {
     if (!fleetIds.has(instanceId)) {
-      warn(`Skipping ${dbPath}: no mothership record for ${instanceId}`)
+      warn(`Skipping ${instanceId}: no mothership record`)
       continue
     }
 
     if (!autoVacuumIds.has(instanceId)) {
-      warn(`Skipping ${dbPath}: auto vacuum disabled for instance ${instanceId}`)
+      warn(`Skipping ${instanceId}: auto vacuum disabled`)
       continue
     }
 
-    if (runningIds.has(instanceId)) {
-      warn(`Skipping ${dbPath}: instance ${instanceId} is running`)
+    if (!passesHoursBackFilter(instanceDbPaths, hoursBack)) {
+      warn(`Skipping ${instanceId}: db mtime outside --hours-back window`)
       continue
     }
 
     if (dryRun) {
-      const result = { path: dbPath, instanceId, beforeBytes: fileSizeBytes(dbPath), afterBytes: fileSizeBytes(dbPath) }
-      logVacuumResult(result, true)
-      results.push(result)
+      for (const dbPath of instanceDbPaths) {
+        const result = {
+          path: dbPath,
+          instanceId,
+          beforeBytes: fileSizeBytes(dbPath),
+          afterBytes: fileSizeBytes(dbPath),
+        }
+        logVacuumResult(result, true)
+        results.push(result)
+      }
+      continue
+    }
+
+    const lock = await lockInstance(instanceId)
+    if (!lock.granted) {
+      warn(`Skipping ${instanceId}: lock denied (${lock.reason})`)
       continue
     }
 
     try {
-      const result = { ...(await vacuumSqliteFile(dbPath)), instanceId }
-      logVacuumResult(result, false)
-      results.push(result)
-    } catch (e) {
-      warn(`Failed to vacuum ${dbPath}: ${formatExecError(e)}`)
+      if (getRunningInstanceIds().has(instanceId)) {
+        warn(`Skipping ${instanceId}: docker container appeared after lock grant`)
+        continue
+      }
+
+      for (const dbPath of instanceDbPaths) {
+        try {
+          const result = { ...(await vacuumSqliteFile(dbPath)), instanceId }
+          logVacuumResult(result, false)
+          results.push(result)
+        } catch (e) {
+          warn(`Failed to vacuum ${dbPath}: ${formatExecError(e)}`)
+        }
+      }
+    } finally {
+      try {
+        await unlockInstance(instanceId, lock.token)
+      } catch (e) {
+        warn(`Failed to release vacuum lock for ${instanceId}`, e)
+      }
     }
   }
 
@@ -458,11 +492,13 @@ export const postVacuumSummaryToDiscord = async (summary: VacuumSummary) => {
   info(`Posted vacuum summary to Discord`)
 }
 
-export const vacuumAll = async ({ dryRun = false } = {}) => {
+export const vacuumAll = async ({ dryRun = false, hoursBack }: { dryRun?: boolean; hoursBack?: number } = {}) => {
   const { info } = logger().create(`vacuumAll`)
-  info(`Starting SQLite vacuum sweep${dryRun ? ` (dry run)` : ``}`)
+  info(
+    `Starting SQLite vacuum sweep${dryRun ? ` (dry run)` : ``}${hoursBack != null ? ` (--hours-back=${hoursBack})` : ``}`
+  )
 
-  const { results: instanceResults, fleet } = await vacuumIdleInstanceDbs({ dryRun })
+  const { results: instanceResults, fleet } = await vacuumIdleInstanceDbs({ dryRun, hoursBack })
   const mothershipResults = await vacuumMothershipDbs({ dryRun })
   const summary = buildVacuumSummary({ fleet, instanceResults, mothershipResults, dryRun })
 
