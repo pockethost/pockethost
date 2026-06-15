@@ -46,10 +46,7 @@
   $: instanceKeys = sshKeysForInstance(keys, $instance.id)
 
   const handleKeySaved = async () => {
-    successMessage =
-      instanceKeys.length === 0
-        ? 'SSH key saved. You can connect below.'
-        : 'SSH key saved.'
+    successMessage = instanceKeys.length === 0 ? 'SSH key saved. You can connect below.' : 'SSH key saved.'
     showAddForm = false
     await loadKeys()
   }
@@ -70,18 +67,12 @@
     </div>
   </FeatureTab>
 {:else}
-  <FeatureTab
-    title="SFTP File Access"
-    documentation="/docs/ftp"
-    bind:errorMessage
-    {successMessage}
-    successFlash
-  >
+  <FeatureTab title="SFTP File Access" documentation="/docs/ftp" bind:errorMessage {successMessage} successFlash>
     <svelte:fragment slot="summary">
       {#if instanceKeys.length === 0}
         <p>
-          No SSH key on your account can access <strong>{$instance.subdomain}</strong> yet. Generate a key on your
-          machine, add one with access to this instance, then connect from the command below.
+          No SSH key on your account can access <strong>{$instance.subdomain}</strong> yet. Generate a key on your machine,
+          add one with access to this instance, then connect from the command below.
         </p>
       {:else}
         <p>
@@ -179,9 +170,7 @@
         on:saved={handleKeySaved}
       />
       <div class="mt-3 mb-8">
-        <wa-button variant="neutral" appearance="plain" onclick={() => (showAddForm = false)}>
-          Cancel
-        </wa-button>
+        <wa-button variant="neutral" appearance="plain" onclick={() => (showAddForm = false)}> Cancel </wa-button>
       </div>
     {:else}
       <div class="mb-8">

@@ -96,8 +96,7 @@
     <p>
       We recommend you <strong>do a full backup</strong>
       before making a change. We support the latest patch of
-      <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of
-      PocketBase.
+      <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase.
     </p>
   {/snippet}
 

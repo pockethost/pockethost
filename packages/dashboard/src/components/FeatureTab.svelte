@@ -35,9 +35,7 @@
     children,
   }: Props = $props()
 
-  const showAlerts = $derived(
-    !!errorMessage || !!successMessage || !!powerOffAction || !!powerOffMessage || !!alerts
-  )
+  const showAlerts = $derived(!!errorMessage || !!successMessage || !!powerOffAction || !!powerOffMessage || !!alerts)
 </script>
 
 <header class="dashboard-page-header">

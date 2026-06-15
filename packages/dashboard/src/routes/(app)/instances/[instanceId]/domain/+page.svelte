@@ -166,7 +166,8 @@
       {/if}
     </div>
 
-    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button>
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button
+    >
   </form>
 
   <svelte:fragment slot="reference">

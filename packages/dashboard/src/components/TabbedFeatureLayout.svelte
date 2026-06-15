@@ -14,16 +14,7 @@
     children?: Snippet
   }
 
-  let {
-    title,
-    mobileTitle = title,
-    sections = [],
-    mobileHeader,
-    header,
-    toolbar,
-    alerts,
-    children,
-  }: Props = $props()
+  let { title, mobileTitle = title, sections = [], mobileHeader, header, toolbar, alerts, children }: Props = $props()
 
   let sidebarOpen = $state(false)
 

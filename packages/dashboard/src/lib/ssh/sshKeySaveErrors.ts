@@ -1,6 +1,6 @@
 import { client } from '$src/pocketbase-client'
-import type { RecordId, SshKeyFields } from 'pockethost/common'
 import { ClientResponseError } from 'pocketbase'
+import type { RecordId, SshKeyFields } from 'pockethost/common'
 import { sshKeyAccessesInstance } from './instanceAccess'
 
 export const findDuplicateKey = (keys: SshKeyFields[], fingerprint: string) =>
@@ -13,8 +13,7 @@ export const isSshKeyUniqueViolation = (error: unknown) => {
   return Object.values(fields).some((field) => field?.code === 'validation_not_unique')
 }
 
-export const duplicateKeyMessage = (key: SshKeyFields) =>
-  `This public key is already saved as "${key.label}".`
+export const duplicateKeyMessage = (key: SshKeyFields) => `This public key is already saved as "${key.label}".`
 
 export const formatSshKeySaveError = (error: unknown, duplicateKey?: SshKeyFields) => {
   if (duplicateKey) return duplicateKeyMessage(duplicateKey)
