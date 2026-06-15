@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { DISCORD_URL } from '$src/env'
+  import { DISCORD_URL } from '$lib/appEnv'
   import Check from './Check.svelte'
 
   export let name = 'Plan Name'

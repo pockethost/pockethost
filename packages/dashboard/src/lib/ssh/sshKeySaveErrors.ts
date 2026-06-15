@@ -8,7 +8,7 @@ export const findDuplicateKey = (keys: SshKeyFields[], fingerprint: string) =>
 
 export const isSshKeyUniqueViolation = (error: unknown) => {
   if (!(error instanceof ClientResponseError)) return false
-  const fields = error.data?.data as Record<string, { code?: string } | undefined> | undefined
+  const fields = (error.data?.data ?? undefined) as Record<string, { code?: string } | undefined> | undefined
   if (!fields) return false
   return Object.values(fields).some((field) => field?.code === 'validation_not_unique')
 }

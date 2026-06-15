@@ -1,4 +1,4 @@
-import { PUBLIC_DEBUG } from '$src/env'
+import { PUBLIC_DEBUG } from '$lib/appEnv'
 import { client } from '$src/pocketbase-client'
 import {
   ConsoleLogger,

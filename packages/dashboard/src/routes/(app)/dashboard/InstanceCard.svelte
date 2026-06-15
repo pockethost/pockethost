@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { INSTANCE_ADMIN_URL } from '$src/env'
+  import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'

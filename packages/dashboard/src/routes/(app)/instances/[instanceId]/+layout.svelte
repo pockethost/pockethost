@@ -3,7 +3,7 @@
   import AlertBar from '$components/AlertBar.svelte'
   import TabbedFeatureLayout from '$components/TabbedFeatureLayout.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
-  import { INSTANCE_ADMIN_URL } from '$src/env'
+  import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
   import { globalInstancesStore } from '$util/stores'
   import { assert } from 'pockethost/common'

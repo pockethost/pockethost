@@ -1,5 +1,5 @@
 <script>
-  import { DISCORD_URL } from '$src/env'
+  import { DISCORD_URL } from '$lib/appEnv'
 </script>
 
 <div class="container mx-auto py-8 px-4 md:px-20">

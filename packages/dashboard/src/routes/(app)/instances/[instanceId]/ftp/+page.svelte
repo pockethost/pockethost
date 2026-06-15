@@ -4,7 +4,7 @@
   import SshKeyAddForm from '$components/SshKeyAddForm.svelte'
   import { sshKeysForInstance } from '$lib/ssh/instanceAccess'
   import { sshKeyScopeLabel } from '$lib/ssh/sshKeyScopeLabel'
-  import { FTP_HOST, SFTP_COMMAND, SFTP_PORT } from '$src/env'
+  import { FTP_HOST, SFTP_COMMAND, SFTP_PORT } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
   import { SSH_KEY_COLLECTION, type SshKeyFields } from 'pockethost/common'

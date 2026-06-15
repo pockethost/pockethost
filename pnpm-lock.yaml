@@ -67,12 +67,18 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.1
         version: 4.3.1(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0))
+      '@types/node':
+        specifier: ^24.13.2
+        version: 24.13.2
       highlight.js:
         specifier: 11.11.1
         version: 11.11.1
       mdsvex:
         specifier: ^0.12.7
         version: 0.12.7(svelte@5.56.3)
+      pocketbase:
+        specifier: ^0.27.0
+        version: 0.27.0
       pockethost:
         specifier: workspace:^
         version: link:../pockethost
