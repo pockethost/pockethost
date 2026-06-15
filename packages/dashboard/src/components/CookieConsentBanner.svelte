@@ -27,7 +27,7 @@
     aria-label="Cookie consent"
     transition:slide={{ duration: 200 }}
   >
-    <wa-callout variant="neutral" class="wa-callout-padded border border-white/10">
+    <wa-callout variant="neutral" class="wa-callout-padded wa-callout-subtle-border">
       <wa-icon slot="icon" name="shield-halved"></wa-icon>
       <div class="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm leading-snug text-white/90">

@@ -9,7 +9,7 @@
 <div class="px-4 md:px-20 relative z-10 max-w-content mx-auto">
   <UserLoggedIn>
     {#if maxInstances === 0}
-      <wa-callout variant="warning" class="py-2 mt-2">
+      <wa-callout variant="warning" class="wa-callout-padded py-2 mt-2">
         <span class="flex-1 text-sm flex text-white text-start items-center justify-start gap-4">
           Instances will not run until you upgrade.
         </span>

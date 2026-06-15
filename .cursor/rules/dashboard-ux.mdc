@@ -19,7 +19,7 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 ## Styling
 
 - Web Awesome (`wa-*`) + overrides in `src/lib/webawesome-overrides.css`. Do not put Tailwind border/bg/padding on `wa-*` hosts (see MEMORY.md Dashboard).
-- Reuse existing patterns: `AlertBar`, `wa-callout-*`, `wa-card-*`, grid form layouts.
+- Reuse existing patterns: `TabbedFeatureLayout`, `FeatureTab` (alias `DashboardPage`), `QuickReference`, `AlertBar`, `wa-callout-*`, `wa-card-*`, grid form layouts.
 - Prefer compact rows and aligned controls over stacked prose blocks.
 - Error hints: one short line near the field, not a tutorial.
 
@@ -28,6 +28,7 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 - Full reference tables inline in forms (e.g. cron field legend on the same view as the picker)
 - Duplicate docs content that already lives under `(static)/docs/`
 - Multiple `wa-callout` blocks before the user can do anything
+- Putting `PowerOffRequired` or API errors in `cta` instead of `FeatureTab` alerts / `powerOffAction`
 - Adding explanatory `<h3>` + paragraph when the page title or breadcrumb already sets context
 
 ## Docs vs app

@@ -1,4 +1,5 @@
 <script lang="ts">
+  /** @deprecated Use FeatureTab instead */
   export let documentation: string = ''
 </script>
 

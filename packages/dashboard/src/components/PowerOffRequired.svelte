@@ -1,7 +1,7 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
+  import { instance } from '$src/routes/(app)/instances/[instanceId]/store'
   import { isInstanceShuttingDown } from '$util/instancePower'
-  import { instance } from './store'
 
   interface Props {
     action?: string

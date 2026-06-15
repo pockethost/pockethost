@@ -1,10 +1,8 @@
 <script lang="ts">
-  import CardHeader from '$components/cards/CardHeader.svelte'
+  import FeatureTab from '$components/FeatureTab.svelte'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import VersionPicker from './VersionPicker.svelte'
-  import AlertBar from '$components/AlertBar.svelte'
-  import PowerOffRequired from '../PowerOffRequired.svelte'
   import { versions } from '$src/util/stores'
   import { isInstanceFullyOff } from '$util/instancePower'
 
@@ -29,20 +27,15 @@
     return `Are you sure you want to change the version to ${to}?`
   }
 
-  // Create a copy of the version
   let selectedVersion = version
   $: {
     selectedVersion = version
   }
 
-  // Controls the disabled state of the button
   let isButtonDisabled = false
-
-  // Controls visibility of an error message
   let errorMessage = ''
   let successMessage = ''
 
-  // Update the version number
   const handleSave = async (e: Event) => {
     e.preventDefault()
 
@@ -50,8 +43,6 @@
 
     errorMessage = ''
     successMessage = ''
-
-    // Disable the button to prevent double submissions
     isButtonDisabled = true
 
     const confirmVersionChange = confirm(confirmVersionChangeMessage(version, selectedVersion))
@@ -77,37 +68,43 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/versions`}>Version Change</CardHeader>
+<FeatureTab
+  title="Version Change"
+  documentation="/docs/versions"
+  powerOffAction="change the version"
+  bind:errorMessage
+  {successMessage}
+  successFlash
+>
+  <svelte:fragment slot="alerts">
+    {#if minorVersion(version) <= 22}
+      <wa-callout variant="warning" class="wa-callout-padded mb-4">
+        <wa-icon slot="icon" name="triangle-exclamation"></wa-icon>
+        <p>
+          PocketBase <strong>v0.23+</strong> changes the JSVM API. Custom <code>pb_hooks</code> written for v0.22 or
+          earlier may need updates before you upgrade.
+          <a href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0" class="text-primary"
+            >Review the v0.23 release notes</a
+          >.
+        </p>
+      </wa-callout>
+    {/if}
+  </svelte:fragment>
 
-<PowerOffRequired action="change the version" />
-
-<div class="mb-8">
-  We recommend you <strong>do a full backup</strong>
-  before making a change. We support the latest patch of
-  <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase.
-</div>
-
-{#if minorVersion(version) <= 22}
-  <wa-callout variant="warning" class="mb-8">
-    <wa-icon slot="icon" name="triangle-exclamation"></wa-icon>
+  <svelte:fragment slot="summary">
     <p>
-      Upgrading to <strong>v0.23+</strong> applies PocketBase's JSVM API changes on your existing data.
-      <a href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0" class="text-primary"
-        >Review the v0.23 migration notes</a
-      >
-      if you use custom <code>pb_hooks</code>.
+      We recommend you <strong>do a full backup</strong>
+      before making a change. We support the latest patch of
+      <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of
+      PocketBase.
     </p>
-  </wa-callout>
-{/if}
+  </svelte:fragment>
 
-<AlertBar message={successMessage} type="success" flash />
-<AlertBar message={errorMessage} type="error" />
-
-<form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
-  <VersionPicker bind:selectedVersion versions={$versions} disabled={!isFullyOff} />
-
-  <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
-</form>
+  <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
+    <VersionPicker bind:selectedVersion versions={$versions} disabled={!isFullyOff} />
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
+  </form>
+</FeatureTab>
 
 <style>
   .change-version-form-container-query {

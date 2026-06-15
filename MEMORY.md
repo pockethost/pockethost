@@ -76,6 +76,21 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - **UX direction:** App routes (`(app)/`) should be task-first with progressive disclosure. The UI is text-heavy today. Prefer presets, short field hints, and collapsible help over inline reference walls. Rule: `.cursor/rules/dashboard-ux.mdc`. Browser QA: `.cursor/skills/dashboard-browser-qa/SKILL.md`.
 - **Browser QA:** Cursor IDE browser MCP works. Login: `.secret/pockethost-io-login` (L1 email, L2 password). Use `https://pockethost.lvh.me` with `dev:dashboard` + `dev:cli serve` running.
 - UI: `wa-*` web components; icons via `<wa-icon>` (Font Awesome Free)
+- WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`)
+## App page layout
+
+Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: shell title, sidebar nav, mobile drawer, optional `header` / `toolbar` / `alerts` slots, then child route content.
+
+Each tab route uses **`FeatureTab.svelte`** (`DashboardPage.svelte` is a deprecated alias) in this order:
+
+1. Title + docs link
+2. Alerts region — `errorMessage`, `successMessage`, `powerOffAction` / `powerOffMessage` (auto `PowerOffRequired`), plus `alerts` slot for tab-specific warnings
+3. `summary` slot — short feature summary (plain prose)
+4. `cta` slot — optional banners (empty states, contextual prompts)
+5. Default / `feature` slot — primary UI (forms, toggles, lists)
+6. `reference` slot — optional `QuickReference` at the bottom
+
+Nav config: `lib/dashboard/featureTabTypes.ts`. `CardHeader` is deprecated.
 - Bootstrap: `src/lib/webawesome.ts` imported from root `+layout.svelte`
 - Theme: `wa-dark wa-theme-default` on `<html>`; brand green via `--wa-color-brand: #1eb854`
 - Layout: solid `#111111` background (BlurBg removed); content caps `max-w-content` / `max-w-prose` / `max-w-form`
