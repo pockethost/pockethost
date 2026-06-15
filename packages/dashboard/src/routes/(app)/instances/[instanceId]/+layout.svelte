@@ -5,7 +5,7 @@
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
-  import { globalInstancesStore } from '$util/stores'
+  import { globalInstancesStore, patchGlobalInstance } from '$util/stores'
   import { assert } from 'pockethost/common'
   import { instance } from './store'
   import { client } from '$src/pocketbase-client'
@@ -31,11 +31,12 @@
   const { updateInstance } = client()
 
   const handlePowerChange = (id: InstanceId) => (isChecked: boolean) => {
-    const power = isChecked
+    patchGlobalInstance(id, { power: isChecked })
 
-    updateInstance({ id, fields: { power } })
+    updateInstance({ id, fields: { power: isChecked } })
       .then(() => 'saved')
       .catch((error) => {
+        patchGlobalInstance(id, { power: !isChecked })
         error.data.message || error.message
       })
   }

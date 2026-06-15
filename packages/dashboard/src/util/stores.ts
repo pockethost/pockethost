@@ -37,6 +37,14 @@ export const globalInstancesStore = writable<{
 }>({})
 export const globalInstancesStoreReady = writable(false)
 
+export const patchGlobalInstance = (id: InstanceId, fields: Partial<InstanceFields>) => {
+  globalInstancesStore.update((instances) => {
+    const current = instances[id]
+    if (!current) return instances
+    return { ...instances, [id]: { ...current, ...fields } }
+  })
+}
+
 async function fetchVersions(): Promise<string[]> {
   const { versions } = await client().client.send<{ versions: string[] }>(`/api/versions`, {})
 
@@ -109,10 +117,10 @@ export const init = () => {
         .client.collection('instances')
         .subscribe<InstanceFields>('*', (data) => {
           console.log('Instance subscribe update', data)
-          globalInstancesStore.update((instances) => {
-            instances[data.record.id] = data.record
-            return instances
-          })
+          globalInstancesStore.update((instances) => ({
+            ...instances,
+            [data.record.id]: data.record,
+          }))
         })
         .then((u) => {
           unsubInstanceWatch = u

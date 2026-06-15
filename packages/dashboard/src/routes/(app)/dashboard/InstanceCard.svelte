@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
+  import { patchGlobalInstance } from '$util/stores'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { isInstanceShuttingDown } from '$util/instancePower'
@@ -14,7 +15,11 @@
   const { updateInstance } = client()
 
   const handlePowerChange = (power: boolean) => {
-    updateInstance({ id: instance.id, fields: { power } })
+    patchGlobalInstance(instance.id, { power })
+
+    updateInstance({ id: instance.id, fields: { power } }).catch(() => {
+      patchGlobalInstance(instance.id, { power: !power })
+    })
   }
 
   const openAdmin = (e: Event) => {
