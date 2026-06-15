@@ -57,6 +57,8 @@ Spot-check obvious matches — do not block on a full audit. If nothing needs up
 3. Map each changed file to **this conversation**. Leave everything else unstaged.
 4. Draft one or more commit messages (subject **under 50 characters**).
 5. Stage only the scoped files (or hunks), then commit each logical group sequentially.
+   - Pre-commit runs **lint-staged** (Prettier on staged `*.{ts,js,cjs,svelte,json}`). If formatting changes land, include them in the same commit (re-stage after the hook runs, or run `pnpm lint:fix` on touched paths before staging).
+   - Do not use `--no-verify` unless the user explicitly asked to skip hooks.
 6. Run `git status` after the last commit to verify success.
 
 ## Message format
