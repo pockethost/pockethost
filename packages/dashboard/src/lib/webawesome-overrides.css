@@ -1,13 +1,51 @@
 /* Web Awesome + Tailwind 4 layering fixes (unlayered).
  *
- * WA CSS loads in @layer components (app.css). TW utilities sit above that layer on
- * light-DOM nodes, but two gaps remain:
+ * WA CSS is imported in webawesome.ts before this file. TW utilities sit above WA's
+ * internal @layers on light-DOM nodes, but two gaps remain:
  *   1) Tailwind classes on wa-* hosts (border, bg, p-*, shadow) lose to WA resets.
  *   2) Utilities never cross shadow DOM — internal surfaces need ::part() rules here.
  *
  * Pattern: default dark-theme surfaces in this file; use ph-/wa- helper classes on
  * hosts when a component needs a variant. Do not rely on TW utilities on wa-* tags.
  */
+
+/* Unlayered nav links — wa-button plain text is black on our dark header after TW4 layering. */
+.site-nav-link {
+  display: none;
+  align-items: center;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  color: rgb(255 255 255 / 0.78);
+  text-decoration: none;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+@media (min-width: 768px) {
+  .site-nav-link {
+    display: inline-flex;
+  }
+}
+
+.site-nav-link:hover {
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.08);
+}
+
+.site-nav-link--menu {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.site-nav-link--login {
+  display: inline-flex;
+  color: rgb(255 255 255 / 0.9);
+}
 
 /* ---- wa-card slotted content ---- */
 wa-card {
@@ -17,6 +55,7 @@ wa-card {
   background-color: rgb(17 17 17 / 0.8);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
   overflow: hidden;
+  color: rgb(255 255 255 / 0.88);
 }
 
 wa-card.wa-card-flat {
