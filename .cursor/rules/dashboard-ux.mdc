@@ -1,0 +1,40 @@
+---
+description: Dashboard UX and styling simplicity — intuitive flows over text walls
+globs: packages/dashboard/**
+alwaysApply: false
+---
+
+# Dashboard UX
+
+The dashboard is **text-heavy today** and hard to scan. Default to **simple, intuitive flows** over inline documentation.
+
+## Principles
+
+1. **Task-first** — Lead with the action (form, picker, button). Help text is secondary.
+2. **Progressive disclosure** — Presets and defaults first. Reference tables, cron syntax, and long explanations go behind expand/collapse, a link to docs, or a separate docs page.
+3. **One primary path** — Avoid presenting equal-weight options that force reading. Guide the happy path. Advanced/custom modes are explicit opt-in.
+4. **Less visible chrome** — Fewer headings, callouts, and paragraphs on screen at once. If a section needs a paragraph of context, consider whether the control label + placeholder is enough.
+5. **Verify in browser** — Use [.cursor/skills/dashboard-browser-qa/SKILL.md](../skills/dashboard-browser-qa/SKILL.md). Credentials: `.secret/pockethost-io-login`. Base URL: `https://pockethost.lvh.me`.
+
+## Styling
+
+- Web Awesome (`wa-*`) + overrides in `src/lib/webawesome-overrides.css`. Do not put Tailwind border/bg/padding on `wa-*` hosts (see MEMORY.md Dashboard).
+- Reuse existing patterns: `AlertBar`, `wa-callout-*`, `wa-card-*`, grid form layouts.
+- Prefer compact rows and aligned controls over stacked prose blocks.
+- Error hints: one short line near the field, not a tutorial.
+
+## Anti-patterns
+
+- Full reference tables inline in forms (e.g. cron field legend on the same view as the picker)
+- Duplicate docs content that already lives under `(static)/docs/`
+- Multiple `wa-callout` blocks before the user can do anything
+- Adding explanatory `<h3>` + paragraph when the page title or breadcrumb already sets context
+
+## Docs vs app
+
+| `(static)/docs`, blog, prose | `(app)/` authenticated UI |
+|------------------------------|---------------------------|
+| Longer explanations OK | Minimal copy, maximum clarity |
+| Tables and examples welcome | Pickers, presets, validation messages |
+
+When improving a flow, ask: *What can the user do in under 10 seconds without reading a wall of text?*
