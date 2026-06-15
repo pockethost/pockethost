@@ -52,17 +52,19 @@
         {instance.cname ? instance.cname : instance.subdomain}
       </span>
 
-      <div class="flex flex-wrap gap-1">
+      <div class="flex flex-nowrap items-center gap-1 min-w-0">
         <a
           href={INSTANCE_ADMIN_URL(instance)}
           target="_blank"
           onclick={openAdmin}
-          class="pr-2 py-0.5 rounded-full text-xs hover:underline font-medium flex gap-2 items-center"
+          class="shrink-0 pr-2 py-0.5 rounded-full text-xs hover:underline font-medium flex gap-2 items-center"
           title="Open Admin"
         >
           <img src="/images/pocketbase-logo.svg" alt="PocketBase Logo" class="w-4 h-4" /> Admin
         </a>
-        <p class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30">
+        <p
+          class="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30"
+        >
           <span>v{instance.version}</span>
         </p>
       </div>
@@ -71,7 +73,7 @@
       </div>
     </div>
 
-    <div class="flex flex-shrink-0 self-center" onclick={(e) => e.stopPropagation()}>
+    <div class="flex flex-shrink-0 self-center min-w-[10.5rem] justify-end" onclick={(e) => e.stopPropagation()}>
       <Toggle
         checked={instance.power}
         loading={isShuttingDown}
