@@ -2,7 +2,7 @@
   import { cloudLogo as logo } from '$lib/brand'
 
   export let hideLogoText = false
-  export let className = ""
+  export let className = ''
 </script>
 
 <div class="flex items-center justify-center gap-4 {className}">

@@ -13,7 +13,7 @@
 
 <div class="m-10 inline-block">
   <wa-card class="w-96 {active ? 'bg-neutral' : 'bg-neutral-800'} shadow-xl">
-    <div class="p-6">
+    <div class="wa-card-body">
       <h2 class="text-xl font-bold mb-4">
         {name}
       </h2>

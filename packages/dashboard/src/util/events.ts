@@ -5,7 +5,7 @@ export const createGenericSyncEvent = <TPayload>(): [
   (payload: TPayload) => void,
 ] => {
   let i = 0
-  const callbacks: any = {}
+  const callbacks: Record<number, (payload: TPayload) => void> = {}
   const onEvent = (cb: (payload: TPayload) => void) => {
     const id = i++
     callbacks[id] = cb

@@ -21,7 +21,7 @@
         href={author.url}
         target="_blank"
         rel="noopener noreferrer"
-        class="font-medium text-white/80 hover:text-primary dark:hover:text-secondary"
+        class="font-medium text-white/80 hover:text-primary"
       >
         {author.handle}
       </a>

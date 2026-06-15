@@ -25,18 +25,7 @@ export const rmNamedContainerSync = (containerName: string) => {
 }
 
 export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConfig) => {
-  const {
-    binPath,
-    args,
-    binds,
-    env = {},
-    port,
-    autoRemove = false,
-    name,
-    onStdout,
-    onStderr,
-    onExit,
-  } = cfg
+  const { binPath, args, binds, env = {}, port, autoRemove = false, name, onStdout, onStderr, onExit } = cfg
 
   const docker = new Docker()
   const pocketbasePath = mkContainerHomePath('pocketbase')

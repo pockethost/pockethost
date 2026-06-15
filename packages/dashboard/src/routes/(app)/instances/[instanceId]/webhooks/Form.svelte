@@ -113,7 +113,7 @@
           id="webhook-api-endpoint"
           type="text"
           value={apiEndpoint}
-          oninput={(e) => (apiEndpoint = e.currentTarget.value)}
+          oninput={(e: Event) => (apiEndpoint = (e.currentTarget as HTMLInputElement).value)}
           placeholder="/api/webhooks/my-endpoint"
           class={!isApiEndpointValid && apiEndpoint.length > 0 ? 'border-error' : ''}
         ></wa-input>
@@ -131,7 +131,7 @@
           id="webhook-schedule"
           type="text"
           value={cronValue}
-          oninput={(e) => (cronValue = e.currentTarget.value)}
+          oninput={(e: Event) => (cronValue = (e.currentTarget as HTMLInputElement).value)}
           placeholder="Schedule (UTC time)"
           class={!isCronValueValid && cronValue.length > 0 ? 'border-error' : ''}
         ></wa-input>
@@ -181,7 +181,10 @@
           <tr>
             <td><code>Day of Month</code></td>
             <td>1-31</td>
-            <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>W</code></td>
+            <td
+              ><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code>
+              <code>W</code></td
+            >
           </tr>
           <tr>
             <td><code>Month</code></td>
@@ -191,7 +194,10 @@
           <tr>
             <td><code>Day of Week</code></td>
             <td>0-6 or SUN-SAT</td>
-            <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>#</code></td>
+            <td
+              ><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code>
+              <code>#</code></td
+            >
           </tr>
         </tbody>
       </table>

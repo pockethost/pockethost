@@ -10,7 +10,7 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
-| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). SFTP deploy via vendored Kirkland sync (`vendor/ftp-deploy/`, `ssh2-sftp-client`). Instance link in project `.phioconfig` (migrates legacy `package.json` / `pockethost.json`). Resolves project root by scanning up for `.phioconfig`, else nearest `package.json` (skips the phio CLI package). Auto-provisions Ed25519 deploy key labeled `Phio`. Docs: `/docs/phio`. pnpm workspace package; Node 24 + tsx like `pockethost`. See `.cursor/skills/phio/SKILL.md`. |
+| Customer CLI | `packages/phio` | Customer CLI (`phio` bin). SFTP deploy via vendored Kirkland sync (`vendor/ftp-deploy/`, `ssh2-sftp-client`). Instance link in project `.phioconfig` (migrates legacy `package.json` / `pockethost.json`). Resolves project root by scanning up for `.phioconfig`, else nearest `package.json` (skips the phio CLI package). Auto-provisions Ed25519 deploy key labeled `Phio`. Docs: `/docs/phio`. pnpm workspace package; Node >=18 + tsx. See `.cursor/skills/phio/SKILL.md`. |
 
 Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
 
@@ -106,6 +106,8 @@ Dev TLS: `serve` runs `ensureDevTlsCerts` (devcert → `$PH_HOME/ssl/tls.{key,ce
 
 After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 
+**Tests:** `pnpm test` (Vitest, root) — pockethost + phio unit tests. CI `quality` job runs lint, `check:types`, tests, and dashboard build.
+
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 
 ## Production / PM2
@@ -126,4 +128,4 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`) — pending dual-auth CLI + prod mothership reload. Cutover has no preupgrade SQL step.
+- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`). CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip.

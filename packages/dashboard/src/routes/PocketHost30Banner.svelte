@@ -9,9 +9,7 @@
       <p class="min-w-0 flex-1 text-sm leading-snug text-white/90">
         <span class="font-medium">PocketHost 3.0 is coming.</span>
         SFTP replaces FTPS, Flounder lifetime goes away, and pricing is changing.
-        <a href={INFO_PATH} class="text-primary hover:text-secondary underline underline-offset-2">
-          Get ready
-        </a>
+        <a href={INFO_PATH} class="text-primary hover:text-secondary underline underline-offset-2"> Get ready </a>
       </p>
     </div>
   </div>

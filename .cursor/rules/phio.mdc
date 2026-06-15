@@ -18,7 +18,7 @@ Before landing changes to file access, VFS guards, SFTP key auth, or instance pa
 2. Confirm `phio deploy` / `dev` still work (especially instance-root writes like `.ftp-deploy-sync-state.json`).
 3. Legacy FTPS (`edge ftp`) changes do not affect phio unless FTPS protocol is re-enabled in phio.
 
-phio is a pnpm workspace package (Node 24 + tsx), same as `pockethost`.
+phio is a pnpm workspace package (Node >=18 + tsx). The hosting stack (`pockethost`) requires Node 24.
 
 # phio feature documentation
 

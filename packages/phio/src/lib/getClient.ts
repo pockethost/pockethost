@@ -17,7 +17,8 @@ export const resolveAuthStatus = async (): Promise<AuthStatus> => {
   const client = await getClient()
 
   if (client.authStore.isValid) {
-    const email = (client.authStore.record?.email as string | undefined) || savedEmail || ''
+    const email =
+      (client.authStore.record?.email as string | undefined) || savedEmail || ''
     return { state: 'authenticated', email, client }
   }
 

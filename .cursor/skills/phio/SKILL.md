@@ -8,7 +8,7 @@ description: >-
 
 # phio — PocketHost customer CLI
 
-`packages/phio/` is the **customer CLI** in this monorepo. pnpm workspace package; Node 24 + tsx (same pattern as `pockethost`). Run via `pnpm --filter phio dev -- …` or `pnpm exec phio …`.
+`packages/phio/` is the **customer CLI** in this monorepo. pnpm workspace package; Node >=18 + tsx. Run via `pnpm --filter phio dev -- …` or `pnpm exec phio …`.
 
 Long-term: may rename `packages/pockethost` → `pockethost-server` and publish CLI as `pockethost`. Until then, treat phio as the **compatibility contract** for customer deploy tooling.
 

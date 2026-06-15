@@ -1,3 +1,3 @@
-import microsoftFetchEventSource from '@microsoft/fetch-event-source'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 
-export const { fetchEventSource } = microsoftFetchEventSource
+export { fetchEventSource }

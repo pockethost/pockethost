@@ -3,20 +3,22 @@ export type PhErrorKind = 'user' | 'system'
 export type PhError = Error & { phErrorKind?: PhErrorKind }
 
 export const userError = (message: string | Error): PhError => {
-  const err = message instanceof Error ? message : new Error(message)
+  const err = (message instanceof Error ? message : new Error(message)) as PhError
   err.phErrorKind = 'user'
   return err
 }
 
 export const systemError = (message: string | Error): PhError => {
-  const err = message instanceof Error ? message : new Error(message)
+  const err = (message instanceof Error ? message : new Error(message)) as PhError
   err.phErrorKind = 'system'
   return err
 }
 
-export const isUserError = (err: unknown): err is PhError => err instanceof Error && err.phErrorKind === 'user'
+export const isUserError = (err: unknown): err is PhError =>
+  err instanceof Error && (err as PhError).phErrorKind === 'user'
 
-export const isSystemError = (err: unknown): err is PhError => err instanceof Error && err.phErrorKind === 'system'
+export const isSystemError = (err: unknown): err is PhError =>
+  err instanceof Error && (err as PhError).phErrorKind === 'system'
 
 const DOCKER_RUN_EXIT_CODES = new Set([125, 126, 127])
 
@@ -30,7 +32,7 @@ export const isSftpClientError = (err: unknown): boolean => {
 }
 
 export const classifySftpError = (err: unknown): PhError => {
-  if (err instanceof Error && err.phErrorKind) return err
+  if (err instanceof Error && (err as PhError).phErrorKind) return err as PhError
   if (isSftpClientError(err)) return userError(err instanceof Error ? err : new Error(`${err}`))
   return systemError(err instanceof Error ? err : new Error(`${err}`))
 }

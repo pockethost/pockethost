@@ -1,4 +1,11 @@
-import { IS_DEV, Logger, MOTHERSHIP_DATA_ROOT, MOTHERSHIP_MIGRATIONS_DIR, MOTHERSHIP_SEMVER, PocketBaseBinaryService } from '@'
+import {
+  IS_DEV,
+  Logger,
+  MOTHERSHIP_DATA_ROOT,
+  MOTHERSHIP_MIGRATIONS_DIR,
+  MOTHERSHIP_SEMVER,
+  PocketBaseBinaryService,
+} from '@'
 
 export type SchemaOptions = {
   logger: Logger

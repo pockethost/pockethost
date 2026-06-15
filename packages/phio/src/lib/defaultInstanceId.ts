@@ -13,7 +13,10 @@ const readPhioConfig = (): PhioConfig | null => {
 }
 
 const writePhioConfig = (instanceName: string) => {
-  writeFileSync(PHIO_CONFIG_FILE, JSON.stringify({ instanceName }, null, 2) + '\n')
+  writeFileSync(
+    PHIO_CONFIG_FILE,
+    JSON.stringify({ instanceName }, null, 2) + '\n'
+  )
 }
 
 const migrateLegacyPackageJson = (): string | null => {
@@ -48,7 +51,9 @@ const migrateLegacyPockethostJson = (): string | null => {
 
   writePhioConfig(instanceName)
   unlinkSync('pockethost.json')
-  console.log(`Migrated instance link from pockethost.json to ${PHIO_CONFIG_FILE}`)
+  console.log(
+    `Migrated instance link from pockethost.json to ${PHIO_CONFIG_FILE}`
+  )
   return instanceName
 }
 

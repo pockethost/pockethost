@@ -22,7 +22,7 @@ _Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothe
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. **Runtime status Phase 1 done** (delete, power-off, resolve decoupling done). Legacy SQL views dropped on 0.22 (`1781606600_dropped_sql_views`) — no cutover-day preupgrade SQL. |
+| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. **Pre-stage on `main`:** dual-auth CLI + deps refresh shipped 2026-06-14. Legacy SQL views dropped on 0.22 — no cutover-day preupgrade SQL. |
 | **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting after v0.39 cutover using PB v0.39 view collections and/or admin plugin pages — not legacy SQL views. Replaces dropped `stats`, `verified_users`, etc. Operators get browseable metrics without blocking embedded migrator. Depends on **Mothership PocketBase v0.39**. |
 | **Remove mothership-boot idle reset** | Low | S | **Keep for now** — `HandleInstancesResetIdle` forces all instances `idle` on mothership boot (assume idle until edge speaks up). Edge `POST /api/mirror` live reconcile restores warm rows on reconnect. Brief idle flash on mothership-only restart is acceptable. Remove only after Phase 2 lease or container witness (Icebox). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
@@ -75,7 +75,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **phio ↔ pockethost merge / rename** | Med | M–L | **Partial (2026-06-13):** phio in monorepo (`packages/phio`, pnpm + Node 24); Kirkland sync vendored at `vendor/ftp-deploy/`. Remaining: rename server → `pockethost-server`, publish CLI as `pockethost`, npm release from monorepo. VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
+| **phio ↔ pockethost merge / rename** | Med | M–L | **Partial (2026-06-13):** phio in monorepo (`packages/phio`, pnpm); Kirkland sync vendored at `vendor/ftp-deploy/` (SFTP-only since 1.0.0). Remaining: rename server → `pockethost-server`, publish CLI as `pockethost`, npm release from monorepo. VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
 | **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** `packages/phio` covers deploy/dev/logs; full SDK + dashboard parity still open. |
 | **PocketBase ecosystem agent skills** | Low | M | Shared skills for external devs: `pocketbase`, `pocketbase-jsvm`, `pocketbase-js-sdk`, `pockethost`, `pocketpages`. Extract vendor-neutral content from `.cursor/skills/` into a dedicated repo or npm package; product overlays separate. Distribution: `llms.txt` catalog, curl one-liners, `skill-indexer` / install script, optional Cursor GitHub Remote Rule. PocketHost monorepo consumes via submodule or postinstall sync (keep internal-only skills — commit, blog, LS — local). Scaffold: `npm create pocketpages` drops `.cursor/skills/pocketpages/`. |
@@ -98,15 +98,12 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 
 ### Codebase health & CI
 
-_Maintenance backlog from codebase review (Jun 2026). Top pick: CI gates — dashboard has deploy CI; the hosting stack has none._
-
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Inline Express middleware deps** | Low | S | Replace `express-sslify`, `cors`, `vhost`, `express-async-errors`, `exit-hook` with small local helpers in firewall + `ProxyService`. Fewer transitive deps on edge nodes. Node 24 natives + dead-deps diet shipped 2026-06-12 (see Done). |
+| **Expand test coverage** | Low | M | Vitest 4 + CI `quality` job shipped 2026-06-14 (29 cases). Next: daemon API supertests, env-paths, firewall route tests from spike list. |
 | **Dashboard mothership disconnect UX** | Low | S–M | **Low priority** — refresh fixes stale state today. Reconnect path partially helped: `POST /api/mirror` live reconcile uses mothership `saveRecord` loop → dashboard SSE gets status updates. Remaining: detect SSE disconnect, reconnect banner, full `resyncAppState` on reconnect; remove verify poll. |
-| **CI quality gates (hosting stack)** | Low | M | Extend `ci.yaml` (today: mothership-hooks freshness only): root Prettier, `pockethost check:types`, mothership-app `tsdown` build, dashboard `svelte-check`, `pnpm test` once suite exists. `publish-dashboard.yaml` still build-only. Prevents shipping broken mothership/edge/firewall changes — customers get reliable hosting. |
-| **Test suite bootstrap** | Low | M | **Zero automated tests** — no `*.test.ts`, no test runner, no CI test job. Code review gap: version selection, instance spawn bucketing, and firewall rules are untested pure logic. Add Vitest (root or `packages/pockethost`), `pnpm test`, first cases: `maxSatisfyingVersion`, `InstanceService` v22/v23 bucketing, `rate-limiter.ts`. Wire into CI gates. Catches regressions before they hit hosted instances. |
 | **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
+| **Audit forked npm deps** | Low | M | `ftp-srv`, `@microsoft/fetch-event-source` (dashboard + phio), patched `tail`. Confirm still needed vs upstream; document pin SHA. |
 
 ---
 
@@ -176,7 +173,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | Runtime status | `HandleInstancesResetIdle` vs edge daemon; no lease on crash | Done (Phase 1) — `POST /api/mirror` sync, `saveRecord` idle/live loops, Phase 2 lease deferred |
 | Request policy | `InstanceService` edge proxy | Done — removed unused `HandleInstanceResolve`; edge mirror owns request gating |
 
-Decoupling done: **power off** (`InstanceService` mirror + dashboard UX), **instance delete FS** (`HandleInstanceDelete` record-only + PM2 `edge cleanup`), **request policy** (removed `HandleInstanceResolve`; edge proxy only).
+Decoupling done: **power off**, **instance delete FS**, **request policy**, **runtime status Phase 1**, **deps refresh + dual-auth pre-stage** (2026-06-14).
 
 ### Dependencies between items
 
@@ -188,9 +185,7 @@ Runtime status owned by edge ──► Dashboard mothership disconnect UX (compl
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
-Mothership build hygiene ──► CI gates (fresh handler bundle check)
-CI gates ──► test suite bootstrap (Vitest + `pnpm test` in CI)
-Test suite bootstrap ──► expand coverage (handlers, semver edge cases, spawn helpers)
+Expand test coverage ──► handler/semver/spawn regression tests
 Pricing redo ──► plan-tier hibernate intervals (Starter 1 min / Pro 1 hr)
 Pricing redo ──► plan-tier rate limits (Starter vs Pro firewall ceilings)
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
@@ -223,10 +218,10 @@ Enforced storage quotas ──► pricing clarity + honest plan limits
 Enforced storage quotas ──► S3-default / S3 metering (file upload vector)
 PocketHost CLI & SDK ──► watch mode replaces manual FTP for dev sync (pairs with SFTP)
 Node 24 upgrade ──► Dependency diet — Node 24 natives (done)
-Remove micro-dash ──► smaller mothership hook bundle (done 2026-06-12)
 PH_* env consolidation ──► env-var/env-paths (loadEnvFile in constants.ts)
 Dependency diet (overall) ──► fewer deps to validate on Bun soak
 Replace tail + patch ──► Bun icebox unblock (patched tail today)
+Audit forked npm deps ──► Remove FTPS / fetch-event-source fork cleanup
 ```
 
 ---
@@ -237,10 +232,17 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-14 | **Dependency diet (phase 2)** — phio 1.0.0 SFTP-only vendor; inline `cors`/`vhost`/`express-sslify`/`exit-hook`/`json-stringify-safe`; dashboard drop postcss/sass/highlight.js/js-md5; lockfile −82 pkgs |
+| 2026-06-14 | **Phased dependency upgrades** — Express 5, dockerode 5, rate-limiter-flexible 11, Tailwind 4, Vite 8, TS 6, pocketbase JS SDK 0.27, type-fest 5, vitest 4; hand-rolled cookie consent; Express 5 firewall routes; drop `express-async-errors` |
+| 2026-06-14 | **Dual admin auth (v0.39 pre-stage)** — `adminAuth.ts`: SDK `_superusers` with legacy `/api/admins` fallback for PB 0.22 mothership |
+| 2026-06-14 | **Test suite + CI quality gates** — Vitest 4, 29 cases, `.github/workflows/ci.yaml` quality job |
+| 2026-06-14 | **PocketHost 3.0 prep notice** — site-wide banner, `/3.0` info page (SFTP, Flounder sunset, pricing for new signups), prose layout typography |
+| 2026-06-14 | **phio SFTP deploy + docs** — `dev`/`deploy` on SFTP :2222, auto-provision `Phio` deploy key, `.phioconfig` project linking, `/docs/phio` |
+| 2026-06-14 | **phio sftp command** — interactive SFTP via system client (`--print`), `/docs/phio` + README |
 | 2026-06-13 | **v0.22→v0.23 version picker UX** — dropped hard minor filter in dashboard version picker; in-place cross-boundary upgrades allowed; v22 callout + confirm dialog for JSVM/custom-hook caution |
 | 2026-06-13 | **SFTP (ssh2) alongside FTPS** — merge `sftp` (d4b45de5): `ssh2` on `PH_SFTP_PORT`, Ed25519 key auth, Account → Keys UI, scoped `InstanceVfs`; release runbook `docs/production.md` |
 | 2026-06-13 | **SFTP prod init fix** — standalone `sftp serve` initializes `MothershipAdminClientService` so `edge-sftp` binds port 2222 |
-| 2026-06-12 | **Remove @s-libs/micro-dash** — natives in ~22 files (pockethost, dashboard, mothership-app); dropped dep from lockfile; `pb_hooks/mothership.js` −37 lines |
+| 2026-06-12 | **Remove @s-libs/micro-dash** — mothership-app, dashboard, pockethost; phio local `debounce` (2026-06-14); `pb_hooks/mothership.js` −37 lines |
 | 2026-06-12 | **Node 24 upgrade** — `.nvmrc` (`lts/krypton`), CI workflows on Node 24 + node24-native actions, instance Dockerfile `node:24-alpine`, tsdown `node24`, root `engines.node >=24`; rebuild+push `benallfree/pockethost-instance:latest` after deploy |
 | 2026-06-12 | **Remove Pocker from pricing features** — dropped Early Access / Pocker promo from `pricing/features.ts`; pricing reflects Docker-based hosting |
 | 2026-06-12 | **Retire duplicate resolve gating** — removed unused `HandleInstanceResolve` + `GET /api/instance/resolve`; edge `InstanceService` owns request policy |
@@ -259,9 +261,6 @@ _Completed items with date + link to PR/release._
 | 2026-06-13 | **VFS deploy sync state at instance root** — allow `.ftp-deploy-sync-state.json` for phio + FTP-Deploy-Action (`132cf51d`) |
 | 2026-06-13 | **SFTP relative paths for deploy** — `SftpSession` uses `InstanceVfs.cwd` (REALPATH on dirs); fixes ftp-deploy stale-file deletes (`pb_public/assets/*`) (`ec3bd82c`) |
 | 2026-06-13 | **FTPS login welcome banner** — `ftp-srv` `greeting` on connect: SFTP host/port, `/docs/ftp`, deprecation + grace-period notice |
-| 2026-06-14 | **PocketHost 3.0 prep notice** — site-wide banner, `/3.0` info page (SFTP, Flounder sunset, pricing for new signups), prose layout typography |
-| 2026-06-14 | **phio SFTP deploy + docs** — `dev`/`deploy` on SFTP :2222, auto-provision `Phio` deploy key, `.phioconfig` project linking, `/docs/phio` |
-| 2026-06-14 | **phio sftp command** — interactive SFTP via system client (`--print`), `/docs/phio` + README |
 
 ---
 

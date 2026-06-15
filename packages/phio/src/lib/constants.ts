@@ -1,16 +1,14 @@
 import envPaths from 'env-paths'
 import env from 'env-var'
-import fse from 'fs-extra'
+import { mkdirSync } from 'fs'
 import { join } from 'path'
-
-const { ensureDirSync } = fse
 
 export const PHIO_HOME = (...paths: string[]) =>
   join(
     env.get('PHIO_HOME').default(envPaths(`phio`).config).asString(),
     ...paths
   )
-ensureDirSync(PHIO_HOME())
+mkdirSync(PHIO_HOME(), { recursive: true })
 
 export const PHIO_MOTHERSHIP_URL = (...paths: string[]) => {
   const url = new URL(

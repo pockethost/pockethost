@@ -45,36 +45,32 @@
   <title>Reset Your Password - PocketHost</title>
 </svelte:head>
 
-<div class="w-full flex items-center justify-center px-4 md:px-16 h-[70vh]">
-  <wa-card class="w-[100%] lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
-    <div class="p-6">
-      <h2 class="text-xl font-bold mb-4">New Password</h2>
+<div class="w-full flex items-center justify-center px-4 md:px-16 py-10 md:py-16">
+  <div class="auth-card w-full max-w-md">
+    <form class="auth-form" onsubmit={handleSubmit}>
+      <h2 class="auth-form-title">New Password</h2>
 
-      <form onsubmit={handleSubmit}>
-        <div class="w-full mb-4">
-          <label class="block mb-1" for="password">New Password</label>
-          <wa-input
-            type="password"
-            id="password"
-            value={password}
-            oninput={(e) => (password = e.currentTarget.value)}
-            required
-            autocomplete="new-password"
-            class="w-full"
-          ></wa-input>
-        </div>
+      <div class="auth-field-group">
+        <label class="auth-label" for="password">New Password</label>
+        <wa-input
+          type="password"
+          id="password"
+          value={password}
+          oninput={(e: Event) => (password = (e.currentTarget as HTMLInputElement).value)}
+          required
+          autocomplete="new-password"
+          class="w-full"
+        ></wa-input>
+      </div>
 
-        {#each formErrors as error}
-          <AlertBar message={error} type="error" />
-        {/each}
+      {#each formErrors as error}
+        <AlertBar message={error} type="error" />
+      {/each}
 
-        <div class="mt-4 flex justify-end">
-          <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
-            Save
-            <wa-icon slot="end" name="arrow-right"></wa-icon>
-          </wa-button>
-        </div>
-      </form>
-    </div>
-  </wa-card>
+      <button type="submit" class="auth-submit" disabled={isFormButtonDisabled}>
+        Save
+        <wa-icon name="arrow-right"></wa-icon>
+      </button>
+    </form>
+  </div>
 </div>

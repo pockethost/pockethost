@@ -1,7 +1,6 @@
 import adapter from '@sveltejs/adapter-static'
 import { mdsvex } from 'mdsvex'
-import { sveltePreprocess } from 'svelte-preprocess'
-import { remarkRouteImages, rehypeRouteImages } from './src/lib/remarkRouteImages.js'
+import { rehypeRouteImages, remarkRouteImages } from './src/lib/remarkRouteImages.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -12,7 +11,6 @@ const config = {
       remarkPlugins: [remarkRouteImages],
       rehypePlugins: [rehypeRouteImages],
     }),
-    sveltePreprocess(),
   ],
   kit: {
     adapter: adapter({
@@ -24,8 +22,8 @@ const config = {
       $src: './src',
     },
     prerender: {
-      crawl: true, // crawls links to prerender other pages
-      entries: ['*'], // specify routes to prerender
+      crawl: true,
+      entries: ['*'],
       handleMissingId: 'warn',
     },
   },

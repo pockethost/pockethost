@@ -5,7 +5,7 @@
 </script>
 
 <wa-card class="max-w-sm bg-[#111111]/80 border border-white/10 shadow-md">
-  <div class="p-6">
+  <div class="wa-card-body">
     <h2 class="text-xl font-bold mb-2">Paywall!</h2>
     <p>Oof. You hit a paywall because you are out of instances.</p>
     <div class="w-full mt-6">

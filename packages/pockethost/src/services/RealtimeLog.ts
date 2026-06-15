@@ -1,12 +1,12 @@
 import { text } from 'node:stream/consumers'
-import { JsonifiableObject } from 'type-fest/source/jsonifiable'
+import type { JsonObject } from 'type-fest'
 import { InstanceFields, LoggerService, mkSingleton, PocketBase, SingletonBaseConfig, stringify } from '..'
 import { InstanceLogReader } from './InstanceLoggerService'
 import { proxyService } from './ProxyService'
 
 export type RealtimeLogConfig = SingletonBaseConfig & {}
 
-const mkEvent = (name: string, data: JsonifiableObject) => {
+const mkEvent = (name: string, data: JsonObject) => {
   return `event: ${name}\ndata: ${stringify(data)}\n\n`
 }
 

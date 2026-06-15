@@ -17,7 +17,7 @@
 <wa-select
   class="w-full"
   value={selectedVersion}
-  oninput={(e) => {
+  oninput={(e: Event) => {
     selectedVersion = (e.target as HTMLSelectElement).value
     handleSelect(e)
   }}

@@ -13,9 +13,7 @@ const readUint32BE = (bytes: Uint8Array, offset: number) => {
   if (offset + 4 > bytes.length) {
     throw new Error('Invalid public key encoding.')
   }
-  return (
-    ((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0
-  )
+  return ((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0
 }
 
 const readSshString = (bytes: Uint8Array, offset: number) => {
@@ -90,7 +88,10 @@ export const parseSshEd25519PublicKey = (input: string): ParsedSshEd25519PublicK
     throw new Error('Public key is required.')
   }
 
-  const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
   if (lines.length > 1) {
     throw new Error('Paste a single public key line only.')
   }

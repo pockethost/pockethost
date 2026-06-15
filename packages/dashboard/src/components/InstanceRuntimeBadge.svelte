@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    getInstanceRuntimeState,
-    runtimeStateLabel,
-    type InstanceRuntimeState,
-  } from '$util/instancePower'
+  import { getInstanceRuntimeState, runtimeStateLabel, type InstanceRuntimeState } from '$util/instancePower'
   import type { InstanceFields } from 'pockethost/common'
 
   interface Props {
@@ -30,8 +26,7 @@
     {#if state === 'running'}
       <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
     {:else if state === 'starting'}
-      <span
-        class="inline-block w-3 h-3 border border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin"
+      <span class="inline-block w-3 h-3 border border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin"
       ></span>
     {:else if state === 'sleeping'}
       <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>

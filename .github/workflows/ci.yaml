@@ -6,6 +6,43 @@ on:
   pull_request:
 
 jobs:
+  quality:
+    name: Lint, types, and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prettier
+        run: pnpm lint
+
+      - name: pockethost types
+        run: pnpm --filter pockethost check:types
+
+      - name: phio types
+        run: pnpm --filter phio check:types
+
+      - name: dashboard types
+        run: pnpm --filter @pockethost/dashboard check:types
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Dashboard build
+        run: pnpm --filter @pockethost/dashboard build
+
   mothership-hooks:
     name: Mothership hooks freshness
     runs-on: ubuntu-latest

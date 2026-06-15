@@ -134,54 +134,54 @@
 
 <PowerOffRequired action="change the custom domain" />
 
-  <div class="mb-8">Use a custom domain (CNAME) with your PocketHost instance.</div>
-  {#if cname && regex.test(formCname.trim())}
-    <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
-    <div class="mb-4">
-      <CodeSample code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`} language={dns} />
-    </div>
+<div class="mb-8">Use a custom domain (CNAME) with your PocketHost instance.</div>
+{#if cname && regex.test(formCname.trim())}
+  <div class="mb-8">Go to your DNS provider and add a CNAME entry.</div>
+  <div class="mb-4">
+    <CodeSample code={`${formCname} CNAME ${INSTANCE_BARE_HOST($instance)}`} language={dns} />
+  </div>
+{/if}
+
+<AlertBar message={errorMessage} type="error" />
+
+{#if cnameToCheck}
+  {#if domainHealthy}
+    <AlertBar message={`Your custom domain name is active.`} type="success" />
+  {:else if domainHealthy === false}
+    <AlertBar
+      message={`We are having trouble checking the health of your custom domain name. Check your CNAME settings and try again.`}
+      type="warning"
+    />
+  {:else if domainHealthy === null}
+    <AlertBar message={`Checking health of your custom domain name...`} type="info" />
   {/if}
+{/if}
 
-  <AlertBar message={errorMessage} type="error" />
-
-  {#if cnameToCheck}
-    {#if domainHealthy}
-      <AlertBar message={`Your custom domain name is active.`} type="success" />
-    {:else if domainHealthy === false}
-      <AlertBar
-        message={`We are having trouble checking the health of your custom domain name. Check your CNAME settings and try again.`}
-        type="warning"
-      />
-    {:else if domainHealthy === null}
-      <AlertBar message={`Checking health of your custom domain name...`} type="info" />
+<form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
+  <div class="relative flex-1">
+    <wa-input
+      title="Only valid domain name patterns are allowed"
+      type="text"
+      value={formCname}
+      oninput={(e: Event) => (formCname = (e.currentTarget as HTMLInputElement).value)}
+      class="w-full pr-10"
+      disabled={!isFullyOff}
+    ></wa-input>
+    {#if cnameToCheck}
+      <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+        {#if domainHealthy === true}
+          <span class="text-green-500 text-lg">✓</span>
+        {:else if domainHealthy === false}
+          <span class="text-red-500 text-lg">✗</span>
+        {:else if domainHealthy === null}
+          <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+        {/if}
+      </div>
     {/if}
-  {/if}
+  </div>
 
-  <form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
-    <div class="relative flex-1">
-      <wa-input
-        title="Only valid domain name patterns are allowed"
-        type="text"
-        value={formCname}
-        oninput={(e) => (formCname = e.currentTarget.value)}
-        class="w-full pr-10"
-        disabled={!isFullyOff}
-      ></wa-input>
-      {#if cnameToCheck}
-        <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-          {#if domainHealthy === true}
-            <span class="text-green-500 text-lg">✓</span>
-          {:else if domainHealthy === false}
-            <span class="text-red-500 text-lg">✗</span>
-          {:else if domainHealthy === null}
-            <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-          {/if}
-        </div>
-      {/if}
-    </div>
-
-    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button>
-  </form>
+  <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button>
+</form>
 
 <style>
   .rename-instance-form-container-query {

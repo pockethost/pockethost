@@ -38,7 +38,7 @@
 <ErrorMessage message={errorMessage} />
 
 <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
-  <div class="p-6 md:p-8">
+  <div class="wa-card-body wa-card-body--lg">
     <Toggle checked={!!syncAdmin} onChange={handleChange} disabled={!isFullyOff} loading={isShuttingDown} />
   </div>
 </wa-card>

@@ -7,11 +7,6 @@
   <title>Home - PocketHost</title>
 </svelte:head>
 
-<div>
-  <div class="py-6 md:py-12">
-    <div class="w-full flex items-center justify-center px-4 md:px-16">
-      <!-- <Logo /> -->
-      <InstanceGeneratorWidget />
-    </div>
-  </div>
+<div class="w-full flex items-center justify-center px-4 md:px-16 py-10 md:py-16">
+  <InstanceGeneratorWidget />
 </div>

@@ -1,9 +1,10 @@
 import { input, password } from '@inquirer/prompts'
 import { Command } from 'commander'
-import * as EmailValidator from 'email-validator'
 import { config } from '../lib/config'
 import { PHIO_USERNAME } from '../lib/constants'
 import { login } from './../lib/getClient'
+
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
 export const loginWithUserInput = async () => {
   if (PHIO_USERNAME()) {
@@ -17,7 +18,7 @@ export const loginWithUserInput = async () => {
       message: 'Enter your pockethost.io email address',
       default: config('email'),
       validate: (input: string) => {
-        if (!EmailValidator.validate(input)) {
+        if (!isValidEmail(input)) {
           return 'Invalid email address'
         }
         return true

@@ -1,5 +1,3 @@
-import type { BlogAuthor } from '$lib/blog/authors'
-
 export type BlogTocEntry = {
   title: string
   path: string
@@ -9,6 +7,14 @@ export type BlogTocEntry = {
 }
 
 export const toc: BlogTocEntry[] = [
+  {
+    title: 'Pre-v0.39 Platform Refresh: Tests, CI, and Dependency Upgrades',
+    path: '/blog/pre-39-platform-deps-refresh',
+    description:
+      'Before Mothership v0.39 cutover: Vitest suite, CI gates, phased deps refresh, PocketBase SDK 0.27, dual admin auth for 0.22 Mothership.',
+    date: 'Jun 14, 2026',
+    author: 'capn',
+  },
   {
     title: 'Pre-Staging the Mothership v0.39 Cutover',
     path: '/blog/mothership-v039-prestage',
@@ -140,7 +146,8 @@ export const toc: BlogTocEntry[] = [
   {
     title: 'Direct PocketBase Version Sync',
     path: '/blog/pocketbase-version-sync',
-    description: 'PocketBase versions now sync directly from GitHub. No Gobot middleman, faster updates, no token required.',
+    description:
+      'PocketBase versions now sync directly from GitHub. No Gobot middleman, faster updates, no token required.',
     date: 'Jun 12, 2026',
     author: 'capn',
   },

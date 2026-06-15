@@ -28,9 +28,7 @@
     loading = true
     errorMessage = ''
     try {
-      keys = await client()
-        .client.collection(SSH_KEY_COLLECTION)
-        .getFullList<SshKeyFields>({ sort: '-created' })
+      keys = await client().client.collection(SSH_KEY_COLLECTION).getFullList<SshKeyFields>({ sort: '-created' })
     } catch (error) {
       errorMessage = `${error}`
     } finally {
@@ -83,20 +81,25 @@
     }
 
     try {
-      await client().client.collection(SSH_KEY_COLLECTION).create({
-        label: label.trim(),
-        public_key: publicKey,
-        fingerprint,
-        all_instances: allInstances,
-        instances: allInstances ? [] : selectedInstanceIds,
-        user: $userStore?.id,
-      })
+      await client()
+        .client.collection(SSH_KEY_COLLECTION)
+        .create({
+          label: label.trim(),
+          public_key: publicKey,
+          fingerprint,
+          all_instances: allInstances,
+          instances: allInstances ? [] : selectedInstanceIds,
+          user: $userStore?.id,
+        })
 
       successMessage = 'SSH key saved.'
       resetForm()
       await loadKeys()
     } catch (error) {
-      errorMessage = client().parseError(error as Error).join(' ') || `${error}`
+      errorMessage =
+        client()
+          .parseError(error as Error)
+          .join(' ') || `${error}`
     }
   }
 
@@ -167,7 +170,9 @@
             <span class="font-semibold text-white">{key.label}</span>
             <wa-badge variant="neutral" pill>{scopeLabel(key)}</wa-badge>
           </div>
-          <p class="font-mono text-xs text-white/45 truncate" title={key.fingerprint}>{shortFingerprint(key.fingerprint)}</p>
+          <p class="font-mono text-xs text-white/45 truncate" title={key.fingerprint}>
+            {shortFingerprint(key.fingerprint)}
+          </p>
         </div>
         <wa-button
           variant="danger"
@@ -185,17 +190,17 @@
 {/if}
 
 <wa-card class="border border-white/10 bg-[#111111]/60 overflow-hidden">
-  <div class="px-5 py-4 border-b border-white/10 bg-white/[0.02]">
+  <div class="wa-card-header">
     <h3 class="text-base font-semibold text-white">Add SSH key</h3>
   </div>
 
-  <div class="p-5 md:p-6 space-y-6">
+  <div class="wa-card-section wa-card-section--lg wa-stack-lg">
     <div class="field">
       <label class="field-label" for="ssh-key-label">Title</label>
       <wa-input
         id="ssh-key-label"
         value={label}
-        oninput={(e) => (label = e.currentTarget.value)}
+        oninput={(e: Event) => (label = (e.currentTarget as HTMLInputElement).value)}
         placeholder="MacBook, GitHub Actions, …"
       ></wa-input>
     </div>

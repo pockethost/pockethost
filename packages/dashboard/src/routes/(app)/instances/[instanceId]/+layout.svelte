@@ -165,14 +165,18 @@
           </a>
           <a
             href={`${base}/secrets`}
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('secrets'))}"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(
+              sectionActive('secrets')
+            )}"
           >
             <wa-icon name="lock" class="text-base opacity-70"></wa-icon>
             Secrets
           </a>
           <a
             href={`${base}/webhooks`}
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('webhooks'))}"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(
+              sectionActive('webhooks')
+            )}"
           >
             <wa-icon name="clock" class="text-base opacity-70"></wa-icon>
             Webhooks
@@ -208,7 +212,9 @@
         <nav class="flex flex-col gap-1 text-sm font-medium">
           <a
             href={`${base}/version`}
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('version'))}"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(
+              sectionActive('version')
+            )}"
           >
             <wa-icon name="code-branch" class="text-base opacity-70"></wa-icon>
             Version
@@ -222,14 +228,18 @@
           </a>
           <a
             href={`${base}/admin-sync`}
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('admin-sync'))}"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(
+              sectionActive('admin-sync')
+            )}"
           >
             <wa-icon name="arrows-rotate" class="text-base opacity-70"></wa-icon>
             Admin Sync
           </a>
           <a
             href={`${base}/auto-vacuum`}
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(sectionActive('auto-vacuum'))}"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors {navClass(
+              sectionActive('auto-vacuum')
+            )}"
           >
             <wa-icon name="broom" class="text-base opacity-70"></wa-icon>
             Auto Vacuum

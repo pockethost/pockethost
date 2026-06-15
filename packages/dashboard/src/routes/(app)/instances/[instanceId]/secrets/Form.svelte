@@ -75,7 +75,7 @@
           id="secret-key"
           type="text"
           value={secretKey}
-          oninput={(e) => (secretKey = e.currentTarget.value)}
+          oninput={(e: Event) => (secretKey = (e.currentTarget as HTMLInputElement).value)}
           placeholder="Key"
           class={!isKeyValid && secretKey.length > 0 ? 'border-error' : ''}
         ></wa-input>
@@ -93,7 +93,7 @@
           id="secret-value"
           type="text"
           value={secretValue}
-          oninput={(e) => (secretValue = e.currentTarget.value)}
+          oninput={(e: Event) => (secretValue = (e.currentTarget as HTMLInputElement).value)}
           placeholder="Value"
         ></wa-input>
       </div>

@@ -1,35 +1,17 @@
 import express from 'express'
 import IPCIDR from 'ip-cidr'
-import { isIPv4, isIPv6 } from 'node:net'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { Logger } from 'src/common'
-
-const toProxyCidrString = (entry: string): string => {
-  if (entry.includes('/')) return entry
-  if (isIPv4(entry)) return `${entry}/32`
-  if (isIPv6(entry)) return `${entry}/128`
-  return entry
-}
-
-const getConnectingIp = (req: express.Request): string | undefined => {
-  // Check Cloudflare headers
-  const cf = req.headers['cf-connecting-ip'] || req.headers['true-client-ip']
-  if (cf) return Array.isArray(cf) ? cf[0] : cf
-
-  // Check X-Forwarded-For
-  const xff = req.headers['x-forwarded-for']
-  const xffStr = Array.isArray(xff) ? xff.join(',') : xff
-  if (typeof xffStr === 'string') {
-    const ip = xffStr.split(',')?.[0]?.trim()
-    if (ip) return ip
-  }
-
-  // Check X-Real-IP
-  const xri = req.headers['x-real-ip']
-  if (xri) return Array.isArray(xri) ? xri[0] : xri
-
-  return req.ip || req.socket?.remoteAddress
-}
+import {
+  API_WEIGHT_NUM,
+  FILES_WEIGHT_NUM,
+  getConnectingIp,
+  isHealthProbePath,
+  isPocketBaseFilesPath,
+  toMicroPointLimit,
+  toProxyCidrString,
+  WEIGHT_DEN,
+} from './rateLimiterPure'
 
 const headerContains = (header: string | string[] | undefined, token: string): boolean => {
   if (!header) return false
@@ -53,8 +35,7 @@ const hostForensics = (req: express.Request) => {
   const rawHost = req.get('host')
   const forwardedHost = req.get('x-forwarded-host')
   const fromXfh = forwardedHost?.split(',')[0]?.trim().split(':')[0]?.toLowerCase()
-  const xForwardedHostConflicts =
-    fromXfh && req.hostname && fromXfh !== req.hostname.toLowerCase() ? true : undefined
+  const xForwardedHostConflicts = fromXfh && req.hostname && fromXfh !== req.hostname.toLowerCase() ? true : undefined
 
   return {
     hostname: req.hostname,
@@ -78,25 +59,8 @@ const LIMITS = {
 } as const
 
 /** Larger denominator → cheaper file routes vs API (FILES_WEIGHT_NUM / WEIGHT_DEN). */
-const WEIGHT_DEN = 10
-const FILES_WEIGHT_NUM = 1
-const API_WEIGHT_NUM = WEIGHT_DEN
-
-const isPocketBaseFilesPath = (path: string): boolean =>
-  path === '/api/files' || path.startsWith('/api/files/')
-
-const isHealthProbePath = (path: string): boolean =>
-  path === '/api/firewall/health' ||
-  path === '/_api/daemon/health' ||
-  path.startsWith('/_api/daemon/vacuum')
 
 /** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
-const toMicroPointLimit = (cfg: { points: number; duration: number }) => ({
-  points: cfg.points * WEIGHT_DEN,
-  duration: cfg.duration,
-})
-
-// Middleware factory to create a rate limiting middleware
 export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps: string[] = []) => {
   const rateLimiterLogger = logger.create(`RateLimiter`)
   const { dbg, warn } = rateLimiterLogger
@@ -144,9 +108,7 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
   const untrustedHostnameConcurrentLimiter = new RateLimiterMemory(
     toMicroPointLimit(LIMITS.untrustedHostnameConcurrent)
   )
-  const trustedHostnameConcurrentLimiter = new RateLimiterMemory(
-    toMicroPointLimit(LIMITS.trustedHostnameConcurrent)
-  )
+  const trustedHostnameConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedHostnameConcurrent))
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (isHealthProbePath(req.path)) {
@@ -315,7 +277,10 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     const hostnameConcurrentCfg = trustedClient ? LIMITS.trustedHostnameConcurrent : LIMITS.untrustedHostnameConcurrent
     const hostnameConcurrentKey = hostname
     try {
-      const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(hostnameConcurrentKey, consumeWeight)
+      const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(
+        hostnameConcurrentKey,
+        consumeWeight
+      )
       dbg(
         `${trustedClient ? 'Trusted' : 'Untrusted'} hostname concurrent request accepted. Key: ${hostnameConcurrentKey}. Points remaining: ${hostnameConcurrentResult.remainingPoints}${
           trustedClient ? ' (trusted)' : ''

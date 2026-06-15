@@ -16,7 +16,11 @@ const readUint32BE = (bytes: Uint8Array, offset: number) => {
     throw new Error('Invalid public key encoding.')
   }
   return (
-    ((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0
+    ((bytes[offset]! << 24) |
+      (bytes[offset + 1]! << 16) |
+      (bytes[offset + 2]! << 8) |
+      bytes[offset + 3]!) >>>
+    0
   )
 }
 
@@ -40,11 +44,16 @@ const bytesToAscii = (bytes: Uint8Array) => {
 
 const decodeBase64 = (value: string) => {
   const normalized = value.replace(/[\s\r\n]+/g, '')
-  if (!normalized || normalized.length % 4 === 1 || !/^[A-Za-z0-9+/]+=*$/.test(normalized)) {
+  if (
+    !normalized ||
+    normalized.length % 4 === 1 ||
+    !/^[A-Za-z0-9+/]+=*$/.test(normalized)
+  ) {
     throw new Error('Public key base64 is invalid.')
   }
 
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  const alphabet =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   const bytes: number[] = []
   let buffer = 0
   let bits = 0
@@ -86,7 +95,9 @@ const validateWire = (wire: Uint8Array) => {
   }
 }
 
-export const parseSshEd25519PublicKey = (input: string): ParsedSshEd25519PublicKey => {
+export const parseSshEd25519PublicKey = (
+  input: string
+): ParsedSshEd25519PublicKey => {
   const trimmed = input.trim()
   if (!trimmed) {
     throw new Error('Public key is required.')
@@ -116,13 +127,18 @@ export const parseSshEd25519PublicKey = (input: string): ParsedSshEd25519PublicK
   validateWire(wire)
 
   const comment = parts.slice(2).join(' ')
-  const normalized = comment ? `${ED25519_ALGO} ${keyData} ${comment}` : `${ED25519_ALGO} ${keyData}`
+  const normalized = comment
+    ? `${ED25519_ALGO} ${keyData} ${comment}`
+    : `${ED25519_ALGO} ${keyData}`
 
   return { normalized, wire }
 }
 
 export const fingerprintForPublicKey = (publicKeyLine: string): string => {
   const { wire } = parseSshEd25519PublicKey(publicKeyLine)
-  const hash = createHash('sha256').update(wire).digest('base64').replace(/=+$/, '')
+  const hash = createHash('sha256')
+    .update(wire)
+    .digest('base64')
+    .replace(/=+$/, '')
   return `SHA256:${hash}`
 }

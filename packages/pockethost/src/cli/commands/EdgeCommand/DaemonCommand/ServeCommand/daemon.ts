@@ -13,7 +13,6 @@ import {
   proxyService,
   realtimeLog,
   tryFetch,
-  VacuumLockService,
 } from '@'
 import Dockerode from 'dockerode'
 import { ErrorRequestHandler } from 'express'
@@ -86,7 +85,6 @@ export async function daemon({ logger }: DaemonOptions) {
     instanceApiTimeoutMs: 5000,
     logger,
   })
-  await VacuumLockService({ logger })
 
   const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
     if (isSystemError(err)) {
