@@ -38,10 +38,7 @@
   {/if}
 
   {#if title}
-    <meta
-      property="og:image"
-      content={'https://cdn.cheto.app/og/joioes1x8zagn0v?name=' + encodeURIComponent(title)}
-    />
+    <meta property="og:image" content={'https://cdn.cheto.app/og/joioes1x8zagn0v?name=' + encodeURIComponent(title)} />
   {/if}
 
   <meta name="twitter:card" content="summary_large_image" />
@@ -52,10 +49,7 @@
   {/if}
 
   {#if title}
-    <meta
-      name="twitter:image"
-      content={'https://cdn.cheto.app/og/joioes1x8zagn0v?name=' + encodeURIComponent(title)}
-    />
+    <meta name="twitter:image" content={'https://cdn.cheto.app/og/joioes1x8zagn0v?name=' + encodeURIComponent(title)} />
   {/if}
 </svelte:head>
 
@@ -75,7 +69,7 @@
     {/if}
 
     <div
-      class="flex flex-col min-w-24 fixed md:sticky overflow-y-scroll top-0 left-0 h-screen bg-[#111111] md:bg-transparent px-4 md:px-0 pb-10 md:pb-0 z-50 transform transition-transform duration-300"
+      class="flex w-[300px] shrink-0 flex-col fixed md:sticky overflow-y-auto top-0 left-0 md:top-8 md:h-[calc(100vh-4rem)] h-screen bg-[#111111] md:bg-transparent px-4 md:px-0 pb-10 md:pb-0 z-50 transform transition-transform duration-300"
       class:-translate-x-full={!sidebarOpen && windowWidth < 768}
       onclick={closeSidebar}
       role="presentation"

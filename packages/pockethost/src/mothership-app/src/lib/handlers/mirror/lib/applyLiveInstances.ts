@@ -3,7 +3,7 @@ type LiveInstance = {
   status?: string
 }
 
-/** saveRecord per row (not bulk SQL) so dashboard SSE clients get status updates. */
+/** SaveRecord per row (not bulk SQL) so dashboard SSE clients get status updates. */
 export const applyLiveInstances = (dao: core.Dao, liveInstances: LiveInstance[]) => {
   let updated = 0
 

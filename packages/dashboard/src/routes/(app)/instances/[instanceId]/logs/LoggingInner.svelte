@@ -5,7 +5,6 @@
   import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'
-  import CardHeader from '$src/components/cards/CardHeader.svelte'
 
   $: ({ id } = $instance)
 
@@ -75,21 +74,26 @@
 </script>
 
 <div>
-  <CardHeader>Logs</CardHeader>
-
-  <div class="mb-4">
-    Instance logs appear here in realtime, including <code>console.log</code> from JavaScript hooks.
-  </div>
-
-  <dialog id="loggingFullscreenModal" class="backdrop-blur bg-neutral-800 rounded-lg border border-white/10 p-6 max-w-[90vw] h-[90vh]">
+  <dialog
+    id="loggingFullscreenModal"
+    class="backdrop-blur bg-neutral-800 rounded-lg border border-white/10 p-6 max-w-[90vw] h-[90vh]"
+  >
     <div class="relative max-w-[90vw] h-[90vh]">
-      <wa-button class="absolute top-4 right-4" variant="neutral" size="small" onclick={() => (autoScroll = !autoScroll)}>
+      <wa-button
+        class="absolute top-4 right-4"
+        variant="neutral"
+        size="small"
+        onclick={() => (autoScroll = !autoScroll)}
+      >
         AutoScroll
         <wa-icon slot="end" name={autoScroll ? 'arrow-down' : 'xmark'}></wa-icon>
       </wa-button>
       <h3 class="font-bold text-lg pb-4">Instance Logging</h3>
 
-      <div class="h-[70vh] overflow-y-scroll flex flex-col font-mono bg-black/40 rounded p-2" bind:this={logElementPopup}>
+      <div
+        class="h-[70vh] overflow-y-scroll flex flex-col font-mono bg-black/40 rounded p-2"
+        bind:this={logElementPopup}
+      >
         {#each $logs as log}
           <div class="px-4 text-[16px] flex align-center" data-prefix=">">
             <div>

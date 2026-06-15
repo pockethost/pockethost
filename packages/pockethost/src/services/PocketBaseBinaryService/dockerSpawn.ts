@@ -1,4 +1,4 @@
-import { DOCKER_INSTANCE_IMAGE_NAME, mkContainerHomePath, PH_CONTAINER_STOP_TIMEOUT_SEC } from '@'
+import { DOCKER_INSTANCE_IMAGE_NAME, isDockerContainerNotFound, mkContainerHomePath, PH_CONTAINER_STOP_TIMEOUT_SEC } from '@'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { execFileSync, spawn } from 'node:child_process'
 import { PassThrough } from 'node:stream'
@@ -25,18 +25,7 @@ export const rmNamedContainerSync = (containerName: string) => {
 }
 
 export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConfig) => {
-  const {
-    binPath,
-    args,
-    binds,
-    env = {},
-    port,
-    autoRemove = false,
-    name,
-    onStdout,
-    onStderr,
-    onExit,
-  } = cfg
+  const { binPath, args, binds, env = {}, port, autoRemove = false, name, onStdout, onStderr, onExit } = cfg
 
   const docker = new Docker()
   const pocketbasePath = mkContainerHomePath('pocketbase')
@@ -65,13 +54,19 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
   const stopContainer = async (target: Container) => {
     try {
       await target.remove({ force: true })
-    } catch {
+    } catch (e) {
+      if (isDockerContainerNotFound(e)) return
       try {
         await target.stop({ signal: 'SIGINT', t: stopTimeoutSec })
-      } catch {
-        await target.kill().catch(() => undefined)
+      } catch (stopErr) {
+        if (isDockerContainerNotFound(stopErr)) return
+        await target.kill().catch((killErr) => {
+          if (!isDockerContainerNotFound(killErr)) throw killErr
+        })
       }
-      await target.remove({ force: true }).catch(() => undefined)
+      await target.remove({ force: true }).catch((removeErr) => {
+        if (!isDockerContainerNotFound(removeErr)) throw removeErr
+      })
     }
   }
 

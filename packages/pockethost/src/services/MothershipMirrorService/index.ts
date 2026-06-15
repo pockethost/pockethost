@@ -113,7 +113,11 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   const syncMirror = async (options: MirrorSyncOptions = {}) => {
     const { instances = [], resetIdle = false } = options
     dbg(`syncMirror`, { live: instances.length, resetIdle })
-    const { users, instances: mirrorInstances, updated } = await client.send<MirrorSyncResponse>(`/api/mirror`, {
+    const {
+      users,
+      instances: mirrorInstances,
+      updated,
+    } = await client.send<MirrorSyncResponse>(`/api/mirror`, {
       method: `POST`,
       body: { instances, resetIdle },
     })

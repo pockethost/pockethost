@@ -1,27 +1,28 @@
 import {
   APEX_DOMAIN,
-  InstanceLogWriter,
-  Logger,
-  LoggerService,
-  PocketBaseBinaryService,
-  SingletonBaseConfig,
   asyncExitHook,
   createCleanupManager,
+  DOCKER_INSTANCE_IMAGE_NAME,
+  InstanceLogWriter,
   isPlatformDockerFailure,
+  Logger,
+  LoggerService,
   mkContainerHomePath,
-  systemError,
-  userError,
   mkInstanceDataPath,
   mkInternalUrl,
   mkSingleton,
   PH_CONTAINER_LAUNCH_WARN_MS,
   PH_CONTAINER_STOP_TIMEOUT_SEC,
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
-  DOCKER_INSTANCE_IMAGE_NAME,
+  PocketBaseBinaryService,
+  SingletonBaseConfig,
+  systemError,
+  userError,
+  isDockerContainerNotFound,
 } from '@'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
-import { existsSync, globSync } from 'fs'
+import { existsSync } from 'fs'
 import { PassThrough } from 'node:stream'
 import { gte } from 'semver'
 import { EventEmitter } from 'stream'
@@ -200,9 +201,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
               const stopErr = new Error(
                 `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
               )
-              reject(
-                isPlatformDockerFailure(castStatusCode, err) ? systemError(stopErr) : userError(stopErr)
-              )
+              reject(isPlatformDockerFailure(castStatusCode, err) ? systemError(stopErr) : userError(stopErr))
             } else {
               emitter.emit(Events.Exit, 0)
             }
@@ -238,20 +237,27 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             resolve({
               on: emitter.on.bind(emitter),
               kill: () =>
-                dockerContainer
-                  .stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() })
-                  .catch((e) => {
-                    error(e)
-                    return dockerContainer.kill().catch(error)
-                  }),
+                dockerContainer.stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() }).catch((e) => {
+                  if (isDockerContainerNotFound(e)) return
+                  error(e)
+                  return dockerContainer.kill().catch((killErr) => {
+                    if (!isDockerContainerNotFound(killErr)) error(killErr)
+                  })
+                }),
               portBinding,
             })
           } catch (e) {
+            if (isDockerContainerNotFound(e)) {
+              reject(userError(`${instanceId} container exited during startup`))
+              return
+            }
             error(`Failed to get port binding: ${e}`)
             try {
               await dockerContainer.stop()
             } catch (stopError) {
-              error(`Failed to stop container after port binding error: ${stopError}`)
+              if (!isDockerContainerNotFound(stopError)) {
+                error(`Failed to stop container after port binding error: ${stopError}`)
+              }
             }
             reject(e)
           }
@@ -262,9 +268,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
       throw systemError(e instanceof Error ? e : new Error(String(e)))
     })
 
-    const exitCode = new Promise<number>(async (resolveExit) => {
+    let removeExitHook: (() => void) | undefined
+
+    const exitCode = new Promise<number>((resolveExit) => {
       container.on(Events.Exit, (code) => {
-        unsub()
+        removeExitHook?.()
         resolveExit(code)
       })
     })
@@ -277,10 +285,6 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
     const url = mkInternalUrl(container.portBinding)
     logger.breadcrumb(url)
-    dbg(`Making exit hook for ${url}`)
-    const unsub = asyncExitHook(async () => {
-      await api.kill()
-    })
 
     const api: PocketbaseProcess = {
       url,
@@ -298,6 +302,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
         await container.kill()
       },
     }
+
+    dbg(`Making exit hook for ${url}`)
+    removeExitHook = asyncExitHook(async () => {
+      await api.kill()
+    })
 
     return api
   }

@@ -86,7 +86,7 @@
       <wa-input
         type="text"
         value={$instanceNameField}
-        oninput={(e) => instanceNameField.set(e.currentTarget.value)}
+        oninput={(e: Event) => instanceNameField.set((e.currentTarget as HTMLInputElement).value)}
         class="w-full"
       ></wa-input>
 

@@ -1,11 +1,11 @@
 import {
   _MOTHERSHIP_APP_ROOT,
   APP_URL,
+  asyncExitHook,
   DISCORD_ALERT_CHANNEL_URL,
   DISCORD_HEALTH_CHANNEL_URL,
   DISCORD_STREAM_CHANNEL_URL,
   DISCORD_TEST_CHANNEL_URL,
-  asyncExitHook,
   exitHook,
   IS_DEV,
   Logger,
@@ -14,17 +14,17 @@ import {
   MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
   MOTHERSHIP_CLOUDFLARE_API_TOKEN,
   MOTHERSHIP_CLOUDFLARE_ZONE_ID,
+  MOTHERSHIP_CONTAINER_NAME,
   MOTHERSHIP_DATA_ROOT,
   MOTHERSHIP_HOOKS_DIR,
   MOTHERSHIP_MIGRATIONS_DIR,
   MOTHERSHIP_PORT,
-  MOTHERSHIP_CONTAINER_NAME,
   MOTHERSHIP_SEMVER,
   MOTHERSHIP_URL,
   PH_CONTAINER_STOP_TIMEOUT_SEC,
   PocketBaseBinaryService,
-  spawnPocketBaseContainer,
   rmNamedContainerSync,
+  spawnPocketBaseContainer,
   TEST_EMAIL,
   tryFetch,
 } from '@'
@@ -39,18 +39,20 @@ export async function mothership({ logger }: MothershipConfig) {
 
   /** Launch central database */
   info(`Serving`)
-  const env = {
-    LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
-    DISCORD_TEST_CHANNEL_URL: DISCORD_TEST_CHANNEL_URL(),
-    DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),
-    DISCORD_HEALTH_CHANNEL_URL: DISCORD_HEALTH_CHANNEL_URL(),
-    DISCORD_ALERT_CHANNEL_URL: DISCORD_ALERT_CHANNEL_URL(),
-    TEST_EMAIL: TEST_EMAIL(),
-    APP_URL: APP_URL(),
-    MOTHERSHIP_CLOUDFLARE_API_TOKEN: MOTHERSHIP_CLOUDFLARE_API_TOKEN(),
-    MOTHERSHIP_CLOUDFLARE_ZONE_ID: MOTHERSHIP_CLOUDFLARE_ZONE_ID(),
-    MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID: MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID(),
-  }
+  const env = Object.fromEntries(
+    Object.entries({
+      LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
+      DISCORD_TEST_CHANNEL_URL: DISCORD_TEST_CHANNEL_URL(),
+      DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),
+      DISCORD_HEALTH_CHANNEL_URL: DISCORD_HEALTH_CHANNEL_URL(),
+      DISCORD_ALERT_CHANNEL_URL: DISCORD_ALERT_CHANNEL_URL(),
+      TEST_EMAIL: TEST_EMAIL(),
+      APP_URL: APP_URL(),
+      MOTHERSHIP_CLOUDFLARE_API_TOKEN: MOTHERSHIP_CLOUDFLARE_API_TOKEN(),
+      MOTHERSHIP_CLOUDFLARE_ZONE_ID: MOTHERSHIP_CLOUDFLARE_ZONE_ID(),
+      MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID: MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID(),
+    }).filter((entry): entry is [string, string] => entry[1] != null && entry[1] !== '')
+  )
   dbg({ env })
 
   const pb = PocketBaseBinaryService()
@@ -110,9 +112,12 @@ export async function mothership({ logger }: MothershipConfig) {
     exitHook(() => {
       rmNamedContainerSync(MOTHERSHIP_CONTAINER_NAME)
     })
-    asyncExitHook(async () => {
-      await container.kill()
-    }, (PH_CONTAINER_STOP_TIMEOUT_SEC() + 2) * 1000)
+    asyncExitHook(
+      async () => {
+        await container.kill()
+      },
+      (PH_CONTAINER_STOP_TIMEOUT_SEC() + 2) * 1000
+    )
   } else {
     pb.run(
       MOTHERSHIP_SEMVER(),

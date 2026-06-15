@@ -2,9 +2,10 @@ import Bottleneck from 'bottleneck'
 import { execSync } from 'child_process'
 import { X509Certificate } from 'crypto'
 import { existsSync, readFileSync } from 'fs'
+import { statfs } from 'fs/promises'
 import net from 'net'
-import { default as osu } from 'node-os-utils'
-import { freemem } from 'os'
+import { OSUtils } from 'node-os-utils'
+import { cpus, freemem } from 'os'
 import {
   DAEMON_PORT,
   DISCORD_HEALTH_CHANNEL_URL,
@@ -78,8 +79,13 @@ const splitIntoChunks = (lines: string[], maxChars = 2000): string[] => {
   return chunks
 }
 
+const freeDiskGb = async (mount: string) => {
+  const stats = await statfs(mount)
+  return (Number(stats.bfree) * Number(stats.bsize)) / 1024 ** 3
+}
+
 export const checkHealth = async () => {
-  const { cpu, drive } = osu
+  const osutils = new OSUtils()
   const { dbg, info } = LoggerService().create(`edge-health.ts`)
 
   info(`Starting`)
@@ -100,17 +106,17 @@ export const checkHealth = async () => {
     priority: 7,
   })
 
-  const rootDisk = await drive.info(`/`)
+  const rootFreeGb = await freeDiskGb(`/`)
   push({
     name: `free storage /`,
-    ok: rootDisk.freeGb >= MIN_FREE_DISK_ROOT_GB,
-    detail: `${rootDisk.freeGb}GB (min ${MIN_FREE_DISK_ROOT_GB}GB)`,
+    ok: rootFreeGb >= MIN_FREE_DISK_ROOT_GB,
+    detail: `${rootFreeGb.toFixed(2)}GB (min ${MIN_FREE_DISK_ROOT_GB}GB)`,
     priority: 6,
   })
 
   let dataDiskFreeGb: number | undefined
   try {
-    dataDiskFreeGb = (await drive.info(`/mnt/sfo_data`)).freeGb
+    dataDiskFreeGb = await freeDiskGb(`/mnt/sfo_data`)
     push({
       name: `free storage /mnt/sfo_data`,
       ok: dataDiskFreeGb >= MIN_FREE_DISK_DATA_GB,
@@ -261,13 +267,15 @@ export const checkHealth = async () => {
   }
 
   const failures = findings.filter((f) => !f.ok)
+  const cpuUsageResult = await osutils.cpu.usage()
+  const cpuUsage = cpuUsageResult.success ? cpuUsageResult.data : NaN
   const meta = [
     `===================`,
     `${new Date()}`,
-    `CPUs: ${cpu.count()}`,
-    `CPU Usage: ${await cpu.usage()}%`,
+    `CPUs: ${cpus().length}`,
+    `CPU Usage: ${cpuUsage}%`,
     `Free RAM: ${freeRamGb.toFixed(2)}GB`,
-    `Free Storage /: ${rootDisk.freeGb}GB`,
+    `Free Storage /: ${rootFreeGb.toFixed(2)}GB`,
     ...(dataDiskFreeGb !== undefined ? [`Free Storage /mnt/sfo_data: ${dataDiskFreeGb}GB`] : []),
     `Open files: ${openFilesRaw.trim()}`,
     `Containers: ${containerCount}`,

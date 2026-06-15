@@ -19,5 +19,5 @@ export const authors: Record<string, BlogAuthor> = {
 export const defaultAuthorId = 'capn'
 
 export function getAuthor(id = defaultAuthorId): BlogAuthor {
-  return authors[id] ?? authors[defaultAuthorId]
+  return authors[id] ?? authors[defaultAuthorId]!
 }

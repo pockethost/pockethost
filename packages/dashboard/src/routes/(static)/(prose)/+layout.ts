@@ -3,8 +3,7 @@ import type { LayoutLoad } from './$types'
 const pages: Record<string, { title: string; description: string }> = {
   '3.0': {
     title: 'PocketHost 3.0',
-    description:
-      'What is changing in PocketHost 3.0: SFTP, Flounder sunset, pricing, and how to get ready.',
+    description: 'What is changing in PocketHost 3.0: SFTP, Flounder sunset, pricing, and how to get ready.',
   },
   about: {
     title: 'About PocketHost',

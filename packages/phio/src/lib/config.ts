@@ -1,7 +1,11 @@
-import fse from 'fs-extra'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { PHIO_HOME } from './constants'
 
-const { readJSONSync, writeJSONSync } = fse
+const readJSONSync = <T>(path: string): T =>
+  JSON.parse(readFileSync(path, 'utf8')) as T
+const writeJSONSync = (path: string, data: unknown) =>
+  writeFileSync(path, JSON.stringify(data), 'utf8')
+
 export type Config = {
   email: string
   pb_auth: string
@@ -11,20 +15,16 @@ export function config<T extends keyof Config>(
   v?: Config[T]
 ): Config[T] | undefined {
   const configPath = PHIO_HOME('config.json')
-  // console.log({ configPath })
   const config = (() => {
     try {
-      // console.log(`Reading config`, configPath)
-      return readJSONSync(configPath) as Partial<Config>
+      return readJSONSync<Partial<Config>>(configPath)
     } catch (e) {
-      // console.warn(`${e}`)
       return {}
     }
   })()
   try {
     if (v !== undefined) {
       config[k] = v
-      // console.log(`Writing config`, config, configPath)
       writeJSONSync(configPath, config)
       return v
     }

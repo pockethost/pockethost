@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "lib": ["ES2021.String"],
     "allowJs": true,
     "checkJs": true,
@@ -21,5 +22,5 @@
     }
   },
   "include": ["**/*.ts"],
-  "exclude": ["./src/mothership-app/**/*", "./src/instance-app/**/*"]
+  "exclude": ["./src/mothership-app/**/*", "./src/instance-app/**/*", "**/*.test.ts"]
 }

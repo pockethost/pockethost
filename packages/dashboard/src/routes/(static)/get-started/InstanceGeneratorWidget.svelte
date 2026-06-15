@@ -17,7 +17,7 @@
   })
 </script>
 
-<wa-card class="w-[100%] lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
+<div class="auth-card w-full max-w-md">
   {#if isSignUpView}
     {#if login}
       <RegisterForm bind:isSignUpView />
@@ -37,4 +37,4 @@
       </div>
     {/if}
   {/if}
-</wa-card>
+</div>

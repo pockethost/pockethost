@@ -1,4 +1,4 @@
-import { debounce } from '@s-libs/micro-dash'
+import { debounce } from '../lib/debounce'
 import { deploy, excludeDefaults } from '../../vendor/ftp-deploy/module.js'
 import type { IFtpDeployArguments } from '../../vendor/ftp-deploy/types.js'
 import Bottleneck from 'bottleneck'
@@ -11,18 +11,14 @@ import { PHIO_SFTP_HOST, PHIO_SFTP_PORT } from '../lib/sftpConnection'
 import { ensureLoggedIn } from '../lib/ensureLoggedIn'
 import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
 import { savedInstanceName } from './../lib/defaultInstanceId'
+import {
+  DEFAULT_EXCLUDES,
+  DEFAULT_INCLUDES,
+  mergeDeployExcludes,
+  shouldSyncFile,
+} from '../lib/deployIncludes'
 
-export const DEFAULT_INCLUDES = [
-  `pb_*`,
-  'pb_*/**/*',
-  `package.json`,
-  `bun.lockb`,
-  `bun.lock`,
-  `patches`,
-  `patches/**/*`,
-]
-
-export const DEFAULT_EXCLUDES = [`pb_data`, `pb_data/**/*`]
+export { DEFAULT_EXCLUDES, DEFAULT_INCLUDES }
 
 export type DeployOptions = {
   include: string[]
@@ -72,18 +68,7 @@ export const watchAndDeploy = async (
     persistent: true,
     ignored: (file) => {
       if (file === '.') return false
-      const isIncluded = multimatch([file], include).length > 0
-      const isExcluded = multimatch([file], exclude).length > 0
-      const isIgnored = !isIncluded || isExcluded
-      // console.log({
-      //   file,
-      //   include,
-      //   isIncluded,
-      //   exclude,
-      //   isExcluded,
-      //   isIgnored,
-      // })
-      return isIgnored
+      return !shouldSyncFile(file, include, exclude, multimatch)
     },
   })
   console.log(
@@ -122,7 +107,7 @@ export async function deployMyCode(
     'private-key-path': privateKeyPath,
     'server-dir': `${instanceName}/`,
     include,
-    exclude: [...excludeDefaults, ...exclude],
+    exclude: mergeDeployExcludes(excludeDefaults, exclude),
     'log-level': verbose ? 'verbose' : 'minimal',
   }
 

@@ -30,6 +30,7 @@ import { globSync } from 'fs'
 import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipMirrorService'
+import { instanceAppVersionFromPbVersion } from './instanceAppVersion'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -169,12 +170,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
       /** Create spawn config */
       const instanceAppVersion = (() => {
-        const [major, minor] = instance.version.split('.').map(Number)
-        if (!minor) {
+        try {
+          return instanceAppVersionFromPbVersion(instance.version)
+        } catch {
           throw userError(`Invalid version: ${instance.version}`)
         }
-        if (minor <= 22) return `v22`
-        return `v23`
       })()
       const spawnArgs: SpawnConfig = {
         subdomain: instance.subdomain,

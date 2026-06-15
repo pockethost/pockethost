@@ -40,7 +40,7 @@
 </script>
 
 {#if message && !isHidden}
-  <wa-callout variant={variantMap[type]} class="mb-4 {additionalClasses}">
+  <wa-callout variant={variantMap[type]} class="wa-callout-padded mb-4 {additionalClasses}">
     <wa-icon slot="icon" name={iconMap[type]}></wa-icon>
     <span>{@html message}</span>
   </wa-callout>

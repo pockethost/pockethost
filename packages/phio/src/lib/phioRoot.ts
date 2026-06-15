@@ -4,7 +4,11 @@ import { dirname, join, relative } from 'path'
 import { fileURLToPath } from 'url'
 import { PHIO_CONFIG_FILE } from './constants'
 
-const phioPackageRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
+const phioPackageRoot = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..'
+)
 
 const isInsidePhioCliPackage = (dir: string): boolean => {
   const rel = relative(phioPackageRoot, dir)
@@ -18,7 +22,10 @@ const resolveStartDir = (startDir: string): string => {
   return startDir
 }
 
-const walkUp = (startDir: string, predicate: (dir: string) => boolean): string | null => {
+const walkUp = (
+  startDir: string,
+  predicate: (dir: string) => boolean
+): string | null => {
   let dir = startDir
   while (true) {
     if (predicate(dir)) {

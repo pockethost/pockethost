@@ -1,4 +1,4 @@
-Mothership has run PocketBase v0.22 for years. PocketHost 3.0 moves the control plane to **v0.39**. That is not a dependency bump. It is a different JSVM, different admin auth, and a database migration you cannot casually undo.
+Mothership has run PocketBase v0.22 for years. The next upgrade moves the control plane to **v0.39**. That is not a dependency bump. It is a different JSVM, different admin auth, and a database migration you cannot casually undo. It is also not the PocketHost 3.0 launch. More product work may ship after v0.39 lands and before we flip the public 3.0 boundary.
 
 I am not going to flip production in one scary deploy. We are **pre-staging** the hosting stack first so cutover day is mostly a Mothership swap. Your instances should keep serving through the prep work.
 
@@ -18,7 +18,7 @@ PocketBase JS SDK `^0.26` routes `client.admins` through `_superusers`. That end
 
 The fix is a small **dual-auth helper** on `main`: try `_superusers` first, fall back to legacy `/api/admins/auth-with-password` on 404. One module, wired through every admin login path.
 
-We also bump the `pocketbase` npm package to `^0.26` on **`main` only**. Then we deploy the CLI to every hosting node (Mothership host and all edge nodes) and **soak for at least a day** while Mothership is still on 0.22.
+We also bump the `pocketbase` npm package to `^0.26` on **`main` only**. The [pre-v0.39 platform refresh](/blog/pre-39-platform-deps-refresh) covers the rest of that dependency work. Then we deploy the CLI to every hosting node (Mothership host and all edge nodes) and **soak for at least a day** while Mothership is still on 0.22.
 
 Pass criteria are boring and good: mirror reconnects, instances spawn, SFTP works, health checks stay green, no admin auth retry loops in the logs.
 

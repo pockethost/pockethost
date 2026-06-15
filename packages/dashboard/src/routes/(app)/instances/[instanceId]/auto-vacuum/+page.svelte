@@ -1,10 +1,9 @@
 <script lang="ts">
-  import CardHeader from '$components/cards/CardHeader.svelte'
+  import FeatureTab from '$components/FeatureTab.svelte'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import ErrorMessage from '../settings/ErrorMessage.svelte'
   import Toggle from '../Toggle.svelte'
-  import PowerOffRequired from '../PowerOffRequired.svelte'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   const { updateInstance } = client()
@@ -26,26 +25,19 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/auto-vacuum`}>Auto Vacuum</CardHeader>
+<FeatureTab title="Auto Vacuum" documentation="/docs/auto-vacuum" powerOffAction="change Auto Vacuum" {errorMessage}>
+  <svelte:fragment slot="summary">
+    <p>
+      Auto Vacuum reclaims disk space from your instance SQLite databases during PocketHost's nightly maintenance sweep.
+      PocketHost only runs compaction when your instance is idle (hibernated), not while it is actively serving traffic.
+      If a request wakes your instance during vacuum, you may see up to about 5 seconds of downtime while the database
+      finishes compacting.
+    </p>
+  </svelte:fragment>
 
-<p class="text-white/70 text-sm mb-6 leading-relaxed">
-  Auto Vacuum reclaims disk space from your instance SQLite databases during PocketHost's nightly maintenance sweep.
-  PocketHost only runs compaction when your instance is idle (hibernated), not while it is actively serving traffic.
-  If a request wakes your instance during vacuum, you may see up to about 5 seconds of downtime while the database
-  finishes compacting.
-</p>
-
-<PowerOffRequired action="change Auto Vacuum" />
-
-<ErrorMessage message={errorMessage} />
-
-<wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
-  <div class="p-6 md:p-8">
-    <Toggle
-      checked={autoVacuum ?? true}
-      onChange={handleChange}
-      disabled={!isFullyOff}
-      loading={isShuttingDown}
-    />
-  </div>
-</wa-card>
+  <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
+    <div class="wa-card-body wa-card-body--lg">
+      <Toggle checked={autoVacuum ?? true} onChange={handleChange} disabled={!isFullyOff} loading={isShuttingDown} />
+    </div>
+  </wa-card>
+</FeatureTab>

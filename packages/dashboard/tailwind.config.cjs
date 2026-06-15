@@ -13,6 +13,9 @@ module.exports = {
         primary: '#1eb854',
         secondary: '#1db990',
         light: '#3a37ca',
+        error: '#ef4444',
+        success: '#1eb854',
+        warning: '#fbbf24',
       },
       maxWidth: {
         content: '72rem',

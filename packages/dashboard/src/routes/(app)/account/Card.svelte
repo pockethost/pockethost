@@ -12,20 +12,20 @@
 </script>
 
 <div class="m-10 inline-block">
-  <wa-card class="w-96 {active ? 'bg-neutral' : 'bg-neutral-800'} shadow-xl">
-    <div class="p-6">
+  <wa-card class="w-96 {active ? 'wa-card-active' : 'wa-card-muted'} shadow-xl">
+    <div class="wa-card-body">
       <h2 class="text-xl font-bold mb-4">
         {name}
       </h2>
       {#if startLimit > 0}
         {#if limit > 0}
           {#if limit != startLimit}
-            <div class="text-center text-accent text-2xl">
+            <div class="text-center text-primary text-2xl">
               <span class="line-through">{startLimit}</span>
               <span class="text-error">{limit} remaining</span>
             </div>
           {:else}
-            <div class="text-center text-accent text-2xl">
+            <div class="text-center text-primary text-2xl">
               {limit} remaining
             </div>
           {/if}
@@ -44,7 +44,7 @@
       <div class="mt-10">
         {#if active}
           <div class="text-success text-center text-2xl">This is your current plan.</div>
-          <p class="mt-10 text-neutral-content">
+          <p class="mt-10 text-white/70">
             To change to a different plan, contact <a class="text-primary" href={`"${DISCORD_URL}"`}
               ><code>.noaxis</code> on Discord</a
             >

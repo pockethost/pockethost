@@ -1,17 +1,12 @@
-import {
-  LoggerService,
-  mkSingleton,
-  PH_ALLOWED_POCKETBASE_SEMVER,
-  PH_POCKETBASE_ROOT,
-  SingletonBaseConfig,
-} from '@'
-import { chmodSync, createWriteStream, existsSync, globSync, readdirSync, rmSync } from 'fs'
-import { mkdir } from 'fs/promises'
-import { join } from 'path'
+import { LoggerService, mkSingleton, PH_ALLOWED_POCKETBASE_SEMVER, PH_POCKETBASE_ROOT, SingletonBaseConfig } from '@'
+import { chmodSync, existsSync, readdirSync, rmSync } from 'fs'
+import { mkdir, writeFile } from 'fs/promises'
 import { spawn, type ChildProcess } from 'node:child_process'
-import { compare, maxSatisfying, valid } from 'semver'
-import { extractPocketBaseZip } from './extractZip'
+import { join } from 'path'
+import { compare, valid } from 'semver'
 import { spawnPocketBaseContainer } from './dockerSpawn'
+import { extractPocketBaseZip } from './extractZip'
+import { maxSatisfyingVersionFromList } from './maxSatisfyingVersion'
 import { mkAssetName, mkAssetSuffix, mkBinaryName, mkContainerPlatform, needsContainerRuntime } from './platform'
 import { fetchPocketBaseReleases, findReleaseAsset, latestPerMinor } from './releases'
 import { mkVersionCatalog, mkVersionCatalogFromPatches, syncMothershipVersions } from './syncMothershipVersions'
@@ -43,10 +38,7 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
 
   const versions = () => listCachedVersions()
 
-  const maxSatisfyingVersion = (range: string) => {
-    const match = maxSatisfying(versions(), range, { includePrerelease: false })
-    return match ?? null
-  }
+  const maxSatisfyingVersion = (range: string) => maxSatisfyingVersionFromList(versions(), range)
 
   const resolveVersion = (range: string) => {
     const resolved = maxSatisfyingVersion(range)
@@ -86,18 +78,7 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
     if (!res.ok) {
       throw new Error(`Download failed for PocketBase ${version} (${res.status})`)
     }
-    const body = res.body
-    if (!body) {
-      throw new Error(`Download failed for PocketBase ${version} (empty body)`)
-    }
-
-    await new Promise<void>((resolve, reject) => {
-      const out = createWriteStream(zipPath)
-      body.pipe(out)
-      out.on('finish', () => resolve())
-      out.on('error', reject)
-      body.on('error', reject)
-    })
+    await writeFile(zipPath, Buffer.from(await res.arrayBuffer()))
 
     await mkdir(versionDir, { recursive: true })
     await extractPocketBaseZip(zipPath, versionDir, binaryName)

@@ -256,7 +256,10 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
         return sftp.status(reqid, STATUS_CODE.FAILURE)
       }
       if (state.type === 'dir') {
-        return sftp.attrs(reqid, entryToAttrs({ name: '.', isDirectory: true, mode: 0o755, size: 0, mtime: Date.now() }))
+        return sftp.attrs(
+          reqid,
+          entryToAttrs({ name: '.', isDirectory: true, mode: 0o755, size: 0, mtime: Date.now() })
+        )
       }
       stat(state.fsPath)
         .then((fileStat) =>

@@ -27,7 +27,7 @@
 
 <UserLoggedIn>
   {#if !$isUserVerified}
-    <wa-callout variant="brand" class="p-4">
+    <wa-callout variant="brand" class="wa-callout-padded">
       <wa-icon slot="icon" name="envelope"></wa-icon>
       <div class="flex flex-col md:flex-row justify-between gap-4 w-full">
         <div class="flex gap-4 items-center text-start">
@@ -41,7 +41,14 @@
               Sent!
             </wa-button>
           {:else}
-            <wa-button type="button" variant="neutral" size="small" appearance="outline" class="w-full" onclick={handleClick}>
+            <wa-button
+              type="button"
+              variant="neutral"
+              size="small"
+              appearance="outline"
+              class="w-full"
+              onclick={handleClick}
+            >
               Resend Email
             </wa-button>
           {/if}

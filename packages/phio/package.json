@@ -1,6 +1,6 @@
 {
   "name": "phio",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "A CLI tool to manage your PocketHost instances",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
     "phio": "src/cli.ts"
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=18"
   },
   "scripts": {
     "check:types": "tsc --noEmit",
@@ -40,34 +40,27 @@
     "README.md"
   ],
   "dependencies": {
-    "@inquirer/prompts": "^7.3.2",
+    "@inquirer/prompts": "^8.5.2",
     "@microsoft/fetch-event-source": "github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0",
-    "@s-libs/micro-dash": "^18.0.0",
-    "basic-ftp": "^5.0.5",
     "bottleneck": "^2.19.5",
-    "chokidar": "^4.0.3",
-    "commander": "^13.1.0",
-    "email-validator": "^2.0.4",
-    "env-paths": "^3.0.0",
+    "chokidar": "^5.0.0",
+    "commander": "^15.0.0",
+    "env-paths": "^4.0.0",
     "env-var": "^7.5.0",
-    "event-stream": "^4.0.1",
-    "fs-extra": "^11.3.0",
-    "glob": "^11.0.0",
-    "lodash": "^4.17.21",
-    "multimatch": "^7.0.0",
-    "ora": "^8.2.0",
-    "pocketbase": "^0.25.1",
-    "pretty-bytes": "^5.6.0",
-    "pretty-ms": "^7.0.1",
+    "glob": "^13.0.6",
+    "multimatch": "^8.0.0",
+    "ora": "^9.4.0",
+    "pocketbase": "^0.27.0",
+    "pretty-bytes": "^7.1.0",
+    "pretty-ms": "^9.3.0",
     "ssh2-sftp-client": "^12.1.1",
-    "tsx": "^4.19.3",
-    "yargs": "^17.7.1"
+    "tsx": "^4.22.4"
   },
   "devDependencies": {
-    "@types/fs-extra": "^11.0.4",
-    "@types/node": "^24.0.0",
+    "@types/node": "^20.0.0",
     "@types/ssh2-sftp-client": "^9.0.6",
-    "typescript": "^5.7.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   },
   "prettier": {
     "semi": false,

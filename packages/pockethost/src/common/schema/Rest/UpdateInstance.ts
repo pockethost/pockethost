@@ -1,10 +1,13 @@
-import { JSONSchemaType } from 'ajv'
-import { InstanceFields, InstanceId } from '..'
+import type { JSONSchemaType } from 'ajv'
+import type { InstanceFields, InstanceId } from '..'
 
 export type UpdateInstancePayload = {
   id: InstanceId
   fields: Partial<
-    Pick<InstanceFields, 'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'autoVacuum' | 'version' | 'dev' | 'cname'>
+    Pick<
+      InstanceFields,
+      'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'autoVacuum' | 'version' | 'dev' | 'cname'
+    >
   >
 }
 
@@ -48,6 +51,22 @@ export const UpdateInstancePayloadSchema: JSONSchemaType<UpdateInstancePayload> 
             properties: {
               endpoint: { type: 'string' },
               value: { type: 'string' },
+              lastFired: {
+                type: 'object',
+                nullable: true,
+                properties: {
+                  timestamp: { type: 'number' },
+                  response: {
+                    type: 'object',
+                    properties: {
+                      status: { type: 'number' },
+                      body: { type: 'string' },
+                    },
+                    required: ['status', 'body'],
+                  },
+                },
+                required: ['timestamp', 'response'],
+              },
             },
             required: ['endpoint', 'value'],
           },

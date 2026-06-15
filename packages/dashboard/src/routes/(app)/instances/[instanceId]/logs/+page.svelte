@@ -1,9 +1,8 @@
 <script lang="ts">
   import { assertExists } from 'pockethost/common'
+  import FeatureTab from '$components/FeatureTab.svelte'
   import { instance } from '../store'
   import LoggingInner from './LoggingInner.svelte'
-
-  $: ({ status, version, id } = $instance)
 
   assertExists($instance, `Expected instance here`)
   const { subdomain } = $instance
@@ -13,4 +12,12 @@
   <title>{subdomain} logging - PocketHost</title>
 </svelte:head>
 
-<LoggingInner />
+<FeatureTab title="Logs" documentation="/docs/logs">
+  <svelte:fragment slot="summary">
+    <p>
+      Instance logs appear here in realtime, including <code>console.log</code> from JavaScript hooks.
+    </p>
+  </svelte:fragment>
+
+  <LoggingInner />
+</FeatureTab>

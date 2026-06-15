@@ -65,9 +65,7 @@
               onclick={() => toggleExpanded(item.endpoint)}
               title="Click to view response details"
             >
-              <wa-icon
-                slot="start"
-                name={expandedWebhooks.has(item.endpoint) ? 'chevron-down' : 'chevron-right'}
+              <wa-icon slot="start" name={expandedWebhooks.has(item.endpoint) ? 'chevron-down' : 'chevron-right'}
               ></wa-icon>
               <span class="font-mono font-bold">{item.lastFired.response.status}</span>
             </wa-button>

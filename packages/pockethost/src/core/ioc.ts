@@ -1,5 +1,5 @@
 import { InstanceFields, InstanceId, ioc, Settings, UserFields } from '@'
-import { LogEntry } from 'winston'
+import type { LogEntry } from 'src/services/InstanceLoggerService'
 
 export type MothershipProvider = {
   getAllInstances(): Promise<InstanceFields[]>

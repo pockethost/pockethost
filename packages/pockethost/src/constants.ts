@@ -38,18 +38,23 @@ export const _IS_DEV = process.env.NODE_ENV === 'development'
 export const _PH_ENABLE_INSTANCE_WEBHOOKS = env.get('PH_ENABLE_INSTANCE_WEBHOOKS').asBool()
 export const _PH_DISABLE_INSTANCE_WEBHOOKS = _PH_ENABLE_INSTANCE_WEBHOOKS
   ? false
-  : env.get('PH_DISABLE_INSTANCE_WEBHOOKS')
+  : env
+      .get('PH_DISABLE_INSTANCE_WEBHOOKS')
       .default(_IS_DEV ? 'true' : 'false')
       .asBool()
 export const _PH_ENABLE_FIREWALL_RATE_LIMIT = env.get('PH_ENABLE_FIREWALL_RATE_LIMIT').asBool()
 export const _PH_DISABLE_FIREWALL_RATE_LIMIT = _PH_ENABLE_FIREWALL_RATE_LIMIT
   ? false
-  : env.get('PH_DISABLE_FIREWALL_RATE_LIMIT')
+  : env
+      .get('PH_DISABLE_FIREWALL_RATE_LIMIT')
       .default(_IS_DEV ? 'true' : 'false')
       .asBool()
 export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env.get('APEX_DOMAIN').default('pockethost.lvh.me').asString()
-export const _HTTP_PROTOCOL = env.get('HTTP_PROTOCOL').default(_IS_DEV ? 'http:' : 'https:').asString()
+export const _HTTP_PROTOCOL = env
+  .get('HTTP_PROTOCOL')
+  .default(_IS_DEV ? 'http:' : 'https:')
+  .asString()
 export const _MOTHERSHIP_NAME = env.get('MOTHERSHIP_NAME').default('pockethost-central').asString()
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>

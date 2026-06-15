@@ -1,5 +1,13 @@
 # phio
 
+## 1.0.0
+
+### Major Changes
+
+- SFTP-only deploy vendor: dropped legacy FTPS/FTP codepath and `basic-ftp` dependency
+- Node `>=18` (hosting stack still requires Node 24)
+- Dropped `fs-extra` and `email-validator`; leaner install
+
 ## 0.4.0
 
 ### Minor Changes

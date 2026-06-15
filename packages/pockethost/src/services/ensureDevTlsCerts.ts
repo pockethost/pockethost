@@ -1,6 +1,6 @@
 import { APEX_DOMAIN, IS_DEV, Logger, MOTHERSHIP_NAME, PH_HOME } from '@'
-import devcert, { removeDomain, uninstall } from 'devcert'
 import { X509Certificate } from 'crypto'
+import devcert, { removeDomain, uninstall } from 'devcert'
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'

@@ -34,4 +34,5 @@ export const mkAssetSuffix = (platform: PocketBasePlatform) => `${platform.os}_$
 export const mkAssetName = (version: string, platform: PocketBasePlatform) =>
   `pocketbase_${version}_${mkAssetSuffix(platform)}.zip`
 
-export const mkBinaryName = (platform: PocketBasePlatform) => (platform.os === 'windows' ? 'pocketbase.exe' : 'pocketbase')
+export const mkBinaryName = (platform: PocketBasePlatform) =>
+  platform.os === 'windows' ? 'pocketbase.exe' : 'pocketbase'

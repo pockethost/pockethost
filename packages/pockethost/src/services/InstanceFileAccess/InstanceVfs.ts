@@ -1,12 +1,12 @@
-import { InstanceFields, Logger, PocketBase, UserId, assert, ensureInstanceDirectoryStructure } from '@'
+import { InstanceFields, Logger, PocketBase, assert, ensureInstanceDirectoryStructure } from '@'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
 import { checkBun } from './bunSideEffects'
 import * as fsAsync from './fs-async'
 import {
-  POWERED_OFF_ONLY,
   INSTANCE_ROOT_DIR_NAMES,
+  POWERED_OFF_ONLY,
   assertNotInstanceRootDelete,
   assertNotInstanceRootMkdir,
   assertNotInstanceRootMutation,
@@ -102,9 +102,7 @@ export class InstanceVfs {
       const filter = this.scope
         ? `subdomain=${JSON.stringify(subdomain)} && uid=${JSON.stringify(this.scope.userId)}`
         : `subdomain=${JSON.stringify(subdomain)}`
-      const instance = await this.client
-        .collection(`instances`)
-        .getFirstListItem<InstanceFields>(filter)
+      const instance = await this.client.collection(`instances`).getFirstListItem<InstanceFields>(filter)
       if (!instance) {
         throw new Error(`${subdomain} not found.`)
       }

@@ -16,8 +16,9 @@ allowBuilds:
   protobufjs: true
   sharp: true
   ssh2: true
-  svelte-preprocess: true
+  svelte-preprocess: set this to true or false
   workerd: true
 
 minimumReleaseAgeExclude:
   - better-sqlite3@12.10.1
+  - '@sveltejs/kit@2.65.1'

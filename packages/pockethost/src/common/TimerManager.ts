@@ -12,7 +12,7 @@ export type TimeManager = ReturnType<typeof createTimerManager>
 export const createTimerManager = (config?: Partial<TimeManagerConfig>) => {
   const { dbg, error } = LoggerService().create(`timerManager`)
   let i = 0
-  const cleanups: any = {}
+  const cleanups: Record<number, TimerCanceler> = {}
   let isShutDown = false
 
   const add = (cb: TimerCallback, ms: UnixTimestampMs) => {

@@ -33,48 +33,40 @@
   <title>Password Reset - PocketHost</title>
 </svelte:head>
 
-<div class="w-full flex items-center justify-center px-4 md:px-16 h-[70vh]">
-  <wa-card class="w-[100%] lg:w-4/12 bg-[#111111]/80 border border-white/10 shadow-md overflow-hidden">
-    <div class="p-6">
-      {#if userShouldCheckTheirEmail}
-        <div class="text-center">
-          <h2 class="mb-4">Check Your Email</h2>
-          <p>
-            A verification link has been sent to <br /><strong>{email}</strong>
-          </p>
+<div class="w-full flex items-center justify-center px-4 md:px-16 py-10 md:py-16">
+  <div class="auth-card w-full max-w-md">
+    {#if userShouldCheckTheirEmail}
+      <div class="auth-form text-center">
+        <h2 class="auth-form-title">Check Your Email</h2>
+        <p class="text-white/80">
+          A verification link has been sent to <br /><strong class="text-white">{email}</strong>
+        </p>
+      </div>
+    {:else}
+      <form class="auth-form" onsubmit={handleSubmit}>
+        <h2 class="auth-form-title">Password Reset</h2>
 
-          <div class="display-1">
-            <i class="bi bi-envelope-check"></i>
-          </div>
+        <div class="auth-field-group">
+          <label class="auth-label" for="email">Email address</label>
+          <wa-input
+            type="email"
+            id="email"
+            placeholder="name@example.com"
+            value={email}
+            oninput={(e: Event) => (email = (e.currentTarget as HTMLInputElement).value)}
+            required
+            autocomplete="email"
+            class="w-full"
+          ></wa-input>
         </div>
-      {:else}
-        <h2 class="text-xl font-bold mb-4">Password Reset</h2>
 
-        <form onsubmit={handleSubmit}>
-          <div class="w-full mb-4">
-            <label class="block mb-1" for="email">Email address</label>
-            <wa-input
-              type="email"
-              id="email"
-              placeholder="name@example.com"
-              value={email}
-              oninput={(e) => (email = e.currentTarget.value)}
-              required
-              autocomplete="email"
-              class="w-full"
-            ></wa-input>
-          </div>
+        <AlertBar message={formError} type="error" />
 
-          <AlertBar message={formError} type="error" />
-
-          <div class="mt-6 flex justify-end">
-            <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
-              Reset Password
-              <wa-icon slot="end" name="arrow-right"></wa-icon>
-            </wa-button>
-          </div>
-        </form>
-      {/if}
-    </div>
-  </wa-card>
+        <button type="submit" class="auth-submit" disabled={isFormButtonDisabled}>
+          Reset Password
+          <wa-icon name="arrow-right"></wa-icon>
+        </button>
+      </form>
+    {/if}
+  </div>
 </div>

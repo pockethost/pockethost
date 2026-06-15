@@ -19,6 +19,8 @@
 </div>
 
 <style>
+  @reference '../../../app.css';
+
   :global(.prose h1) {
     @apply text-3xl md:text-4xl font-bold mb-6 mt-0;
   }
@@ -52,8 +54,13 @@
     @apply font-medium underline underline-offset-2 decoration-primary/40 hover:decoration-primary;
   }
 
-  :global(.prose code) {
+  :global(.prose :not(pre) > code) {
     @apply bg-neutral-800 px-1.5 py-0.5 rounded text-sm;
+  }
+
+  :global(.prose pre code) {
+    @apply bg-transparent p-0 rounded-none text-sm;
+    display: block;
   }
 
   :global(.prose blockquote) {

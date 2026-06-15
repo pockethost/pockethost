@@ -1,7 +1,7 @@
-import { createHash } from 'crypto'
-import { SSH_KEY_COLLECTION, SshKeyFields, UserFields } from '@'
-import ssh2 from 'ssh2'
 import type { PocketBase } from '@'
+import { SSH_KEY_COLLECTION, SshKeyFields, UserFields } from '@'
+import { createHash } from 'crypto'
+import ssh2 from 'ssh2'
 
 export type SshKeyAuthResult = {
   user: UserFields
@@ -43,7 +43,7 @@ export async function findSshKeyByPublicKey(
       continue
     }
 
-    if (parsed.type !== 'ssh-ed25519') {
+    if (parsed instanceof Error || parsed.type !== 'ssh-ed25519') {
       continue
     }
 
@@ -66,5 +66,6 @@ export function verifySshPublicKeySignature(
   hashAlgo?: string
 ): boolean {
   const parsed = ssh2.utils.parseKey(publicKeyLine)
+  if (parsed instanceof Error) return false
   return parsed.verify(blob, signature, hashAlgo)
 }

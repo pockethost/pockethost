@@ -9,7 +9,11 @@ export type SftpConnection = {
   remoteDir: string
 }
 
-export const buildSftpTarget = ({ username, host, remoteDir }: SftpConnection) => {
+export const buildSftpTarget = ({
+  username,
+  host,
+  remoteDir,
+}: SftpConnection) => {
   const userHost = `${username}@${host}`
   return remoteDir ? `${userHost}:${remoteDir}` : userHost
 }
@@ -29,5 +33,7 @@ const shellQuote = (value: string) => {
   return `'${value.replace(/'/g, `'\\''`)}'`
 }
 
-export const formatSftpCommand = (connection: SftpConnection, sftpBin = 'sftp') =>
-  [sftpBin, ...buildSftpArgs(connection).map(shellQuote)].join(' ')
+export const formatSftpCommand = (
+  connection: SftpConnection,
+  sftpBin = 'sftp'
+) => [sftpBin, ...buildSftpArgs(connection).map(shellQuote)].join(' ')

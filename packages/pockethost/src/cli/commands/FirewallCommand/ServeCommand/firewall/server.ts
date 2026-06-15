@@ -1,6 +1,8 @@
 import {
   APEX_DOMAIN,
+  corsMiddleware,
   DAEMON_PORT,
+  enforceHttps,
   IPCIDR_LIST,
   IS_DEV,
   Logger,
@@ -12,10 +14,7 @@ import {
   SSL_KEY,
 } from '@'
 import { exec } from 'child_process'
-import cors from 'cors'
 import express, { ErrorRequestHandler } from 'express'
-import 'express-async-errors'
-import enforce from 'express-sslify'
 import { existsSync, readFileSync } from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
@@ -46,10 +45,10 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   // Create Express app
   const app = express()
 
-  app.options('*', cors()) // include before other routes
-  app.use(cors())
+  app.options('/{*path}', corsMiddleware)
+  app.use(corsMiddleware)
   if (!IS_DEV() || tlsReady) {
-    app.use(enforce.HTTPS())
+    app.use(enforceHttps)
   }
 
   app.get(`/api/firewall/health`, (req, res, next) => {
@@ -98,11 +97,11 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
   })
 
-  // Fall-through
+  // Fall-through to edge daemon
   const handler = createProxyMiddleware({
     target: `http://localhost:${DAEMON_PORT()}`,
   })
-  app.all(`*`, (req, res, next) => {
+  app.use((req, res, next) => {
     const method = req.method
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
 
