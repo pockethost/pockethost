@@ -10,6 +10,7 @@
   import PocketHost30Banner from './PocketHost30Banner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
   import { cloudLogo } from '$lib/brand'
+  import { proseCodeBlocks } from '$lib/proseCodeBlocks'
   import a11yDark from 'svelte-highlight/styles/seti-ui'
 
   const currentYear = new Date().getFullYear()
@@ -34,7 +35,7 @@
   <div class="px-4 md:px-20">
     <VerifyAccountBar />
   </div>
-  <div class="w-full">
+  <div class="w-full" use:proseCodeBlocks>
     <slot />
   </div>
 

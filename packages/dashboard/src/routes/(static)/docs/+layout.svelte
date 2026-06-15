@@ -2,7 +2,6 @@
   const sidebarWidth = '300px'
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import DocLink from './DocLink.svelte'
-  import { proseCodeBlocks } from '$lib/proseCodeBlocks'
   import { onMount } from 'svelte'
   export let data
 
@@ -124,7 +123,7 @@
       </nav>
     </div>
 
-    <div class="docs-content prose max-w-prose w-full min-w-0 text-white/90" use:proseCodeBlocks>
+    <div class="docs-content prose max-w-prose w-full min-w-0 text-white/90">
       <slot />
     </div>
   </div>
