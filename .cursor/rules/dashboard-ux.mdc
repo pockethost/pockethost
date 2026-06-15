@@ -19,7 +19,7 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 ## Styling
 
 - Web Awesome (`wa-*`) + overrides in `src/lib/webawesome-overrides.css`. Do not put Tailwind border/bg/padding on `wa-*` hosts (see MEMORY.md Dashboard).
-- Reuse existing patterns: `TabbedFeatureLayout`, `FeatureTab` (alias `DashboardPage`), `QuickReference`, `AlertBar`, `wa-callout-*`, `wa-card-*`, grid form layouts.
+- Reuse existing patterns: `TabbedFeatureLayout`, `FeatureTab`, `QuickReference`, `AlertBar`, `wa-callout-*`, `wa-card-*`, grid form layouts.
 - Prefer compact rows and aligned controls over stacked prose blocks.
 - Error hints: one short line near the field, not a tutorial.
 

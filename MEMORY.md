@@ -81,7 +81,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 
 Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: shell title, sidebar nav, mobile drawer, optional `header` / `toolbar` / `alerts` slots, then child route content.
 
-Each tab route uses **`FeatureTab.svelte`** (`DashboardPage.svelte` is a deprecated alias) in this order:
+Each tab route uses **`FeatureTab.svelte`** in this order:
 
 1. Title + docs link
 2. Alerts region — `errorMessage`, `successMessage`, `powerOffAction` / `powerOffMessage` (auto `PowerOffRequired`), plus `alerts` slot for tab-specific warnings

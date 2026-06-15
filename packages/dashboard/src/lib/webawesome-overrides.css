@@ -344,6 +344,10 @@ wa-callout.wa-callout-reference .wa-callout-reference-command {
   margin-top: 2rem;
 }
 
+.dashboard-page-alerts {
+  margin-bottom: 1.5rem;
+}
+
 .dashboard-page-reference:not(:has(*)) {
   display: none;
 }
