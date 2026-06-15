@@ -321,12 +321,64 @@ wa-card {
   background-color: rgb(38 38 38);
   padding: 0.125rem 0.375rem;
   font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 
 .prose :where(pre):not(:where([class~='not-prose'] *)),
 .docs-content :where(pre):not(:where([class~='not-prose'] *)) {
   overflow-x: auto;
   border-radius: 0.5rem;
+}
+
+/* Figtree * reset wins otherwise — keep prose code monospace */
+.prose :where(pre),
+.prose :where(pre code),
+.prose :where(pre code) :where(span),
+.docs-content :where(pre),
+.docs-content :where(pre code),
+.docs-content :where(pre code) :where(span) {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+
+.prose-code-block {
+  position: relative;
+}
+
+.prose-code-block-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.375rem;
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.55);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 150ms ease,
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.prose-code-block:hover .prose-code-block-copy,
+.prose-code-block:focus-within .prose-code-block-copy {
+  opacity: 1;
+}
+
+.prose-code-block-copy:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.14);
+}
+
+.prose-code-block-copy--copied {
+  color: #1eb854;
 }
 
 .prose :where(pre code):not(:where([class~='not-prose'] *)),
@@ -337,7 +389,6 @@ wa-card {
   border-radius: 0;
   font-size: 0.875rem;
   line-height: 1.625;
-  color: rgb(255 255 255 / 0.9);
 }
 
 .prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {

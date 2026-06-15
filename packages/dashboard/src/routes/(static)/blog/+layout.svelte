@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import BlogAuthor from '$components/BlogAuthor.svelte'
+  import { proseCodeBlocks } from '$lib/proseCodeBlocks'
 
   export let data
 
@@ -58,6 +59,7 @@
       {/if}
       <article
         class="prose prose-lg max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-primary hover:prose-a:text-secondary prose-strong:text-white prose-code:text-primary prose-pre:bg-neutral-800 prose-blockquote:border-l-primary"
+        use:proseCodeBlocks
       >
         <slot />
       </article>

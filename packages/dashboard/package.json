@@ -22,6 +22,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.1",
+    "highlight.js": "11.11.1",
     "mdsvex": "^0.12.7",
     "pockethost": "workspace:^",
     "svelte": "^5.56.3",
