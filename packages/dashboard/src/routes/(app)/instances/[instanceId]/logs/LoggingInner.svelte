@@ -5,7 +5,6 @@
   import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'
-  import CardHeader from '$src/components/cards/CardHeader.svelte'
 
   $: ({ id } = $instance)
 
@@ -75,12 +74,6 @@
 </script>
 
 <div>
-  <CardHeader>Logs</CardHeader>
-
-  <div class="mb-4">
-    Instance logs appear here in realtime, including <code>console.log</code> from JavaScript hooks.
-  </div>
-
   <dialog
     id="loggingFullscreenModal"
     class="backdrop-blur bg-neutral-800 rounded-lg border border-white/10 p-6 max-w-[90vw] h-[90vh]"

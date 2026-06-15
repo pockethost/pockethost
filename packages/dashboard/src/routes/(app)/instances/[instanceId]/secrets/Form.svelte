@@ -77,7 +77,7 @@
           value={secretKey}
           oninput={(e: Event) => (secretKey = (e.currentTarget as HTMLInputElement).value)}
           placeholder="Key"
-          class={!isKeyValid && secretKey.length > 0 ? 'border-error' : ''}
+          class={!isKeyValid && secretKey.length > 0 ? 'wa-input-error' : ''}
         ></wa-input>
         {#if !isKeyValid && secretKey.length > 0}
           <div class="mt-1">

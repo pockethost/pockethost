@@ -21,7 +21,9 @@
   line-height: 1.25rem;
   color: rgb(255 255 255 / 0.78);
   text-decoration: none;
-  transition: color 150ms ease, background-color 150ms ease;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
 }
 
 @media (min-width: 768px) {
@@ -76,7 +78,9 @@ wa-card {
   height: 100%;
   color: inherit;
   text-decoration: none;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .blog-card-link:hover {
@@ -93,7 +97,9 @@ wa-card {
   background-color: rgb(17 17 17 / 0.55);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
   overflow: hidden;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .blog-card-link:hover .blog-card {
@@ -321,12 +327,63 @@ wa-card {
   background-color: rgb(38 38 38);
   padding: 0.125rem 0.375rem;
   font-size: 0.875em;
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 
 .prose :where(pre):not(:where([class~='not-prose'] *)),
 .docs-content :where(pre):not(:where([class~='not-prose'] *)) {
   overflow-x: auto;
   border-radius: 0.5rem;
+}
+
+/* Figtree * reset wins otherwise — keep prose code monospace */
+.prose :where(pre),
+.prose :where(pre code),
+.prose :where(pre code) :where(span),
+.docs-content :where(pre),
+.docs-content :where(pre code),
+.docs-content :where(pre code) :where(span) {
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+
+.prose-code-block {
+  position: relative;
+}
+
+.prose-code-block > pre {
+  padding-right: 2.75rem;
+}
+
+.prose-code-block-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.375rem;
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(255 255 255 / 0.55);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.prose-code-block-copy:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.14);
+}
+
+.prose-code-block-copy--copied {
+  color: #1eb854;
 }
 
 .prose :where(pre code):not(:where([class~='not-prose'] *)),
@@ -337,7 +394,6 @@ wa-card {
   border-radius: 0;
   font-size: 0.875rem;
   line-height: 1.625;
-  color: rgb(255 255 255 / 0.9);
 }
 
 .prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
@@ -396,16 +452,15 @@ pre {
 }
 
 .content {
-      position: relative;
-      z-index: 1;
-      color: white;
-      font-size: 3rem;
-      font-weight: bold;
-      text-shadow: 0 0 10px rgba(255,255,255,0.3);
-    }
+  position: relative;
+  z-index: 1;
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
 
-
-     .wiggle:hover {
+.wiggle:hover {
   -webkit-animation-name: wiggle;
   -ms-animation-name: wiggle;
   -ms-animation-duration: 400ms;
@@ -417,29 +472,58 @@ pre {
 }
 
 @-webkit-keyframes wiggle {
-  0% {-webkit-transform: rotate(2deg);}
-  25% {-webkit-transform: rotate(-2deg);}
-  50% {-webkit-transform: rotate(4deg);}
-  75% {-webkit-transform: rotate(-3deg);}
-  100% {-webkit-transform: rotate(0deg);}
+  0% {
+    -webkit-transform: rotate(2deg);
+  }
+  25% {
+    -webkit-transform: rotate(-2deg);
+  }
+  50% {
+    -webkit-transform: rotate(4deg);
+  }
+  75% {
+    -webkit-transform: rotate(-3deg);
+  }
+  100% {
+    -webkit-transform: rotate(0deg);
+  }
 }
 
 @-ms-keyframes wiggle {
-   0% {-ms-transform: rotate(2deg);}
-  25% {-ms-transform: rotate(-2deg);}
-  50% {-ms-transform: rotate(4deg);}
-  75% {-ms-transform: rotate(-3deg);}
-  100% {-ms-transform: rotate(0deg);}
+  0% {
+    -ms-transform: rotate(2deg);
+  }
+  25% {
+    -ms-transform: rotate(-2deg);
+  }
+  50% {
+    -ms-transform: rotate(4deg);
+  }
+  75% {
+    -ms-transform: rotate(-3deg);
+  }
+  100% {
+    -ms-transform: rotate(0deg);
+  }
 }
 
 @keyframes wiggle {
- 0% {transform: rotate(2deg);}
-  25% {transform: rotate(-2deg);}
-  50% {transform: rotate(4deg);}
-  75% {transform: rotate(-3deg);}
-  100% {transform: rotate(0deg);}
+  0% {
+    transform: rotate(2deg);
+  }
+  25% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
-
 
 .fade-up {
   opacity: 0;
@@ -453,7 +537,6 @@ pre {
     transform: translateY(0);
   }
 }
-
 
 .fade-in {
   opacity: 0;

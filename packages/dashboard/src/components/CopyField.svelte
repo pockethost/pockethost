@@ -6,6 +6,7 @@
   export let text: string
   export let language: LanguageType<'typescript' | 'bash' | 'dns' | 'plaintext'> | undefined = undefined
   export let className = ''
+  export let embedded = false
 
   let isCopied = false
 
@@ -17,7 +18,7 @@
   }
 </script>
 
-<div class="copy-field {className}">
+<div class="copy-field {className}" class:copy-field-embedded={embedded}>
   <div class="copy-field-content">
     {#if language}
       <Highlight {language} code={text} />
@@ -44,6 +45,12 @@
     background: rgb(0 0 0 / 0.35);
   }
 
+  .copy-field-embedded {
+    padding: 0.625rem 0.75rem;
+    border: 1px solid rgb(255 255 255 / 0.06);
+    background: rgb(0 0 0 / 0.22);
+  }
+
   .copy-field-content {
     flex: 1;
     min-width: 0;
@@ -61,6 +68,13 @@
     color: rgb(255 255 255 / 0.7);
     white-space: pre;
     overflow-x: auto;
+  }
+
+  .copy-field-content :global(pre),
+  .copy-field-content :global(pre code),
+  .copy-field-content :global(pre code.hljs),
+  .copy-field-content :global(pre code.hljs span) {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
   }
 
   .copy-field-content :global(pre) {

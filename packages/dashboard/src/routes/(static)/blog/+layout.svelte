@@ -1,7 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import BlogAuthor from '$components/BlogAuthor.svelte'
-
   export let data
 
   $: isIndexPage = $page.url.pathname === '/blog'

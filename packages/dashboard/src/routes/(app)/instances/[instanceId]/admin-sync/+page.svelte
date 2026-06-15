@@ -1,10 +1,8 @@
 <script lang="ts">
-  import CardHeader from '$components/cards/CardHeader.svelte'
+  import FeatureTab from '$components/FeatureTab.svelte'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
-  import ErrorMessage from '../settings/ErrorMessage.svelte'
   import Toggle from '../Toggle.svelte'
-  import PowerOffRequired from '../PowerOffRequired.svelte'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   const { updateInstance } = client()
@@ -26,19 +24,17 @@
   }
 </script>
 
-<CardHeader documentation={`/docs/admin-sync`}>Admin Sync</CardHeader>
+<FeatureTab title="Admin Sync" documentation="/docs/admin-sync" powerOffAction="change Admin Sync" {errorMessage}>
+  <svelte:fragment slot="summary">
+    <p>
+      Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
+      pockethost.io account.
+    </p>
+  </svelte:fragment>
 
-<p class="text-white/70 text-sm mb-6 leading-relaxed">
-  Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
-  pockethost.io account.
-</p>
-
-<PowerOffRequired action="change Admin Sync" />
-
-<ErrorMessage message={errorMessage} />
-
-<wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
-  <div class="wa-card-body wa-card-body--lg">
-    <Toggle checked={!!syncAdmin} onChange={handleChange} disabled={!isFullyOff} loading={isShuttingDown} />
-  </div>
-</wa-card>
+  <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
+    <div class="wa-card-body wa-card-body--lg">
+      <Toggle checked={!!syncAdmin} onChange={handleChange} disabled={!isFullyOff} loading={isShuttingDown} />
+    </div>
+  </wa-card>
+</FeatureTab>

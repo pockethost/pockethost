@@ -37,6 +37,12 @@ export const classifySftpError = (err: unknown): PhError => {
   return systemError(err instanceof Error ? err : new Error(`${err}`))
 }
 
+/** Container already removed (AutoRemove, prior stop, or race). */
+export const isDockerContainerNotFound = (err: unknown): boolean => {
+  const msg = err instanceof Error ? err.message : `${err}`
+  return /\(HTTP code 404\).*no such container|no such container:/i.test(msg)
+}
+
 /** Docker daemon / host resource failures. App exit codes (e.g. JSVM) are user-side. */
 export const isPlatformDockerFailure = (statusCode: number, err?: unknown): boolean => {
   if (DOCKER_RUN_EXIT_CODES.has(statusCode)) return true

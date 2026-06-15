@@ -1,4 +1,5 @@
 <script lang="ts">
+  import FeatureTab from '$components/FeatureTab.svelte'
   import { PLAN_NAMES } from 'pockethost/common'
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
   import { userStore, userSubscriptionType } from '$util/stores'
@@ -8,9 +9,8 @@
   <title>Account - PocketHost</title>
 </svelte:head>
 
-<h2 class="account-page-title">Account</h2>
-
-<div class="account-card">
+<FeatureTab title="Account">
+  <div class="account-card">
   <div class="account-card-body">
     <div class="account-profile-row">
       <div class="account-profile">
@@ -62,3 +62,4 @@
     </div>
   </div>
 </div>
+</FeatureTab>

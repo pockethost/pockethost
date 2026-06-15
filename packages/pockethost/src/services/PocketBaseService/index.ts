@@ -18,6 +18,7 @@ import {
   SingletonBaseConfig,
   systemError,
   userError,
+  isDockerContainerNotFound,
 } from '@'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
@@ -237,17 +238,26 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
               on: emitter.on.bind(emitter),
               kill: () =>
                 dockerContainer.stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() }).catch((e) => {
+                  if (isDockerContainerNotFound(e)) return
                   error(e)
-                  return dockerContainer.kill().catch(error)
+                  return dockerContainer.kill().catch((killErr) => {
+                    if (!isDockerContainerNotFound(killErr)) error(killErr)
+                  })
                 }),
               portBinding,
             })
           } catch (e) {
+            if (isDockerContainerNotFound(e)) {
+              reject(userError(`${instanceId} container exited during startup`))
+              return
+            }
             error(`Failed to get port binding: ${e}`)
             try {
               await dockerContainer.stop()
             } catch (stopError) {
-              error(`Failed to stop container after port binding error: ${stopError}`)
+              if (!isDockerContainerNotFound(stopError)) {
+                error(`Failed to stop container after port binding error: ${stopError}`)
+              }
             }
             reject(e)
           }
