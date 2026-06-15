@@ -69,29 +69,29 @@
 <PowerOffRequired action="rename this instance" />
 
 <p class="text-white/70 text-sm mb-6 leading-relaxed">
-    Renaming your instance will cause it to become <strong class="text-error">inaccessible</strong> by the old instance name.
-    You also may not be able to change it back if someone else choose it.
-  </p>
+  Renaming your instance will cause it to become <strong class="text-error">inaccessible</strong> by the old instance name.
+  You also may not be able to change it back if someone else choose it.
+</p>
 
-  <AlertBar message={successMessage} type="success" flash />
-  <AlertBar message={errorMessage} type="error" />
+<AlertBar message={successMessage} type="success" flash />
+<AlertBar message={errorMessage} type="error" />
 
-  <form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
-    <div class="field flex-1">
-      <label class="field-label" for="rename-subdomain">Instance name</label>
-      <wa-input
-        id="rename-subdomain"
-        title="Only letters and dashes are allowed"
-        type="text"
-        value={formSubdomain}
-        oninput={(e) => (formSubdomain = e.currentTarget.value)}
-        class="w-full"
-        disabled={!isFullyOff}
-      ></wa-input>
-    </div>
+<form class="flex rename-instance-form-container-query gap-4" onsubmit={onRename}>
+  <div class="field flex-1">
+    <label class="field-label" for="rename-subdomain">Instance name</label>
+    <wa-input
+      id="rename-subdomain"
+      title="Only letters and dashes are allowed"
+      type="text"
+      value={formSubdomain}
+      oninput={(e: Event) => (formSubdomain = (e.currentTarget as HTMLInputElement).value)}
+      class="w-full"
+      disabled={!isFullyOff}
+    ></wa-input>
+  </div>
 
-    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Rename Instance</wa-button>
-  </form>
+  <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Rename Instance</wa-button>
+</form>
 
 <style>
   .field {
@@ -109,12 +109,12 @@
   }
 
   .rename-instance-form-container-query {
-      flex-direction: column;
-    }
+    flex-direction: column;
+  }
 
-    @container (min-width: 400px) {
-      .rename-instance-form-container-query {
-        flex-direction: row;
-      }
+  @container (min-width: 400px) {
+    .rename-instance-form-container-query {
+      flex-direction: row;
     }
+  }
 </style>

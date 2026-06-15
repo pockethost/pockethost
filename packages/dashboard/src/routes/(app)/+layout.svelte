@@ -13,7 +13,14 @@
         <span class="flex-1 text-sm flex text-white text-start items-center justify-start gap-4">
           Instances will not run until you upgrade.
         </span>
-        <wa-button slot="actions" href="/access" variant="neutral" size="small" appearance="outline" aria-label="Upgrade">
+        <wa-button
+          slot="actions"
+          href="/access"
+          variant="neutral"
+          size="small"
+          appearance="outline"
+          aria-label="Upgrade"
+        >
           Upgrade
         </wa-button>
       </wa-callout>
@@ -22,9 +29,7 @@
   </UserLoggedIn>
   <UserLoggedOut>
     <div class="flex flex-col items-center justify-center py-16 md:py-24 text-center">
-      <div
-        class="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5"
-      >
+      <div class="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5">
         <wa-icon name="lock" class="text-xl text-neutral-400"></wa-icon>
       </div>
       <h2 class="mb-2 text-lg font-semibold text-white">Sign in required</h2>

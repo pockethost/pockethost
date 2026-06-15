@@ -4,12 +4,12 @@
   import SignupBox from './SignupBox.svelte'
 </script>
 
-<div class="max-w-7xl mx-auto px-4 pt-12 text-center relative">
-  <h2 class="text-4xl font-bold text-white">Affordable Hosting</h2>
-  <p class="text-xl text-gray-300 mt-2">Premium Performance</p>
+<div class="pricing-page-header">
+  <h2 class="pricing-page-title">Affordable Hosting</h2>
+  <p class="pricing-page-subtitle">Premium Performance</p>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 pt-10">
+<div class="pricing-page-grid">
   <SignupBox
     price="$5 / month"
     priceDetail="per instance"
@@ -59,7 +59,7 @@
 </div>
 
 <div class="flex flex-col items-center gap-10 mb-20 px-4">
-  <h2 class="text-4xl font-semibold text-center text-gray-900 dark:text-white">Powerful Features</h2>
+  <h2 class="text-4xl font-semibold text-center text-white">Powerful Features</h2>
   <Features />
 </div>
 

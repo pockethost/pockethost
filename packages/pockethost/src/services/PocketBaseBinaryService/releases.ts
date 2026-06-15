@@ -12,10 +12,9 @@ export const fetchPocketBaseReleases = async (): Promise<GhRelease[]> => {
   let page = 1
 
   while (true) {
-    const res = await fetch(
-      `https://api.github.com/repos/pocketbase/pocketbase/releases?per_page=100&page=${page}`,
-      { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'pockethost' } }
-    )
+    const res = await fetch(`https://api.github.com/repos/pocketbase/pocketbase/releases?per_page=100&page=${page}`, {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'pockethost' },
+    })
     if (!res.ok) {
       throw new Error(`GitHub releases API failed (${res.status})`)
     }

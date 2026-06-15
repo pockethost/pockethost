@@ -1,0 +1,215 @@
+/* Unlayered pricing cards — WA reset zeroes Tailwind padding/margin inside components. */
+
+.pricing-page-header {
+  position: relative;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: 3rem 1rem 0;
+  text-align: center;
+}
+
+.pricing-page-title {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pricing-page-subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1.25rem;
+  color: rgb(209 213 219);
+}
+
+.pricing-page-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 2.5rem 1rem 0;
+}
+
+@media (min-width: 768px) {
+  .pricing-page-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+}
+
+.pricing-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+  cursor: pointer;
+  border-radius: 1rem;
+  border: 1px solid rgb(38 38 38);
+  background-color: rgb(0 0 0 / 0.6);
+  padding: 2rem;
+  color: #fff;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.4);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.pricing-plan:hover {
+  transform: translateY(-0.5rem);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.5);
+}
+
+.pricing-plan--featured {
+  border-color: #facc15;
+  box-shadow:
+    0 0 0 1px rgb(250 204 21 / 0.35),
+    0 12px 36px rgb(0 0 0 / 0.45);
+}
+
+.pricing-plan--featured:hover {
+  box-shadow:
+    0 0 0 1px rgb(250 204 21 / 0.5),
+    0 20px 48px rgb(0 0 0 / 0.55);
+}
+
+.pricing-plan-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background-color: #facc15;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #000;
+}
+
+.pricing-plan-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.pricing-plan-title {
+  margin: 0;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.pricing-plan-lead {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgb(209 213 219);
+}
+
+.pricing-plan-features {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pricing-plan-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.pricing-plan-feature-icon--ok {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  color: #4ade80;
+}
+
+.pricing-plan-feature-icon--no {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+.pricing-plan-feature--struck {
+  color: rgb(107 114 128);
+  text-decoration: line-through;
+}
+
+.pricing-plan-price-block {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.pricing-plan-price {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pricing-plan-price-detail {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+}
+
+.pricing-plan-cta-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.pricing-plan-cta {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  background-color: rgb(38 38 38);
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.pricing-plan-cta:hover {
+  background-color: rgb(64 64 64);
+  border-color: rgb(255 255 255 / 0.35);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+  color: #fff;
+}
+
+.pricing-plan-cta--featured {
+  border-color: #eab308;
+  background-color: #facc15;
+  color: #000;
+  box-shadow: 0 4px 16px rgb(250 204 21 / 0.35);
+}
+
+.pricing-plan-cta--featured:hover {
+  background-color: #fde047;
+  border-color: #fde047;
+  color: #000;
+  box-shadow: 0 6px 20px rgb(250 204 21 / 0.45);
+}
+
+.pricing-plan-cta.wiggle:hover {
+  animation: wiggle 400ms ease-in-out 1;
+}

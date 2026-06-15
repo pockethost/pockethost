@@ -1,5 +1,5 @@
-import { parseSshEd25519PublicKey } from 'pockethost/common'
 import { sha256 } from '@noble/hashes/sha2.js'
+import { parseSshEd25519PublicKey } from 'pockethost/common'
 
 function base64Encode(bytes: Uint8Array): string {
   let binary = ''

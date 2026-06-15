@@ -23,7 +23,7 @@
 <h2 class="text-xl font-bold text-white mb-6">Overview</h2>
 
 <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">
-  <div class="p-6 md:p-8 space-y-8">
+  <div class="wa-card-body wa-card-body--lg wa-stack-lg">
     <div>
       <p class="text-xs font-medium uppercase tracking-wide text-white/50 mb-2">PocketBase URL</p>
       <CodeSample code={url} language={plaintext} />

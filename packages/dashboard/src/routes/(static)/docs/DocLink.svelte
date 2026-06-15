@@ -9,7 +9,9 @@
 
 <a
   href={`/docs/${path}`}
-  class="block w-48 px-2 py-1 rounded-md text-white hover:bg-white/10 {isActive ? 'bg-secondary/20' : ''}"
+  class="block px-2 py-1 rounded-md text-white/80 no-underline hover:text-white hover:bg-white/10 {isActive
+    ? 'bg-secondary/20 text-white'
+    : ''}"
 >
   {title}
 </a>

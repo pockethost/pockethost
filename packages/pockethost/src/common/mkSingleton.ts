@@ -1,4 +1,4 @@
-import { Logger } from './Logger'
+import type { Logger } from './Logger'
 
 export type SingletonApi = Object
 

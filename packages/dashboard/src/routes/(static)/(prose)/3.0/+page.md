@@ -47,7 +47,7 @@ We will post the new tier details on the [blog](/blog) before they go live for n
 
 ## PocketBase v0.39 on the control plane
 
-PocketHost 3.0 includes a **mothership PocketBase v0.39** upgrade. That unlocks newer control-plane APIs and keeps us aligned with current PocketBase releases. Instance version selection on your projects is a separate concern. We will communicate anything that affects your instances.
+PocketHost 3.0 builds on a **mothership PocketBase v0.39** control plane. That upgrade may land before the public 3.0 launch. It unlocks newer control-plane APIs and keeps us aligned with current PocketBase releases. Instance version selection on your projects is a separate concern. We will communicate anything that affects your instances.
 
 ## What to do now
 

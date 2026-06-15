@@ -6,7 +6,7 @@
     "check:fresh": "tsdown && git diff --exit-code -- pb_hooks/"
   },
   "devDependencies": {
-    "tsdown": "^0.12.9",
-    "type-fest": "^4.6.0"
+    "tsdown": "^0.22.2",
+    "type-fest": "^5.7.0"
   }
 }

@@ -1,6 +1,5 @@
-import cors from 'cors'
+import { corsMiddleware } from '@'
 import express, { Request, Response } from 'express'
-import 'express-async-errors'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
 import { DAEMON_PORT, Logger, LoggerService, SingletonBaseConfig, asyncExitHook, mkSingleton, seqid } from '..'
@@ -87,7 +86,7 @@ export const proxyService = mkSingleton(
 
     const server = express()
 
-    server.use(cors())
+    server.use(corsMiddleware)
 
     const apiRouter = express.Router()
 

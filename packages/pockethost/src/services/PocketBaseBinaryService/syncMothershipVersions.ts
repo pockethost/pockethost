@@ -4,6 +4,7 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
   PocketBase,
+  adminAuthWithPassword,
 } from '@'
 import type { SemVer } from 'semver'
 
@@ -49,7 +50,7 @@ export const syncMothershipVersions = async (versions: PocketbaseVersionEntry[])
 
   try {
     const client = new PocketBase(mothershipUrl)
-    await client.collection(`_superusers`).authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
+    await adminAuthWithPassword(client, MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
     const value: PocketbaseVersionsValue = {
       versions,

@@ -1,5 +1,6 @@
-import { visit } from 'unist-util-visit'
+// @ts-nocheck
 import path from 'node:path'
+import { visit } from 'unist-util-visit'
 
 function routeUrlBase(filePath) {
   const routesMarker = `${path.sep}routes${path.sep}`

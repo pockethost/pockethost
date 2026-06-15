@@ -41,7 +41,14 @@
               Sent!
             </wa-button>
           {:else}
-            <wa-button type="button" variant="neutral" size="small" appearance="outline" class="w-full" onclick={handleClick}>
+            <wa-button
+              type="button"
+              variant="neutral"
+              size="small"
+              appearance="outline"
+              class="w-full"
+              onclick={handleClick}
+            >
               Resend Email
             </wa-button>
           {/if}

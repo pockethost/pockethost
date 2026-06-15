@@ -1,7 +1,7 @@
 import { browser } from '$app/environment'
+import { fetchEventSource } from '$lib/fetchEventSource'
 import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
-import { fetchEventSource } from '@microsoft/fetch-event-source'
 import {
   type AuthModel,
   BaseAuthStore,
@@ -153,9 +153,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const parseError = (e: Error): string[] => {
     if (!(e instanceof ClientResponseError)) return [`${e}`]
     if (e.data.message && Object.keys(e.data.data).length === 0) return [e.data.message]
-    return Object.values(e.data.data)
-      .map((v) => (v ? v.message : undefined))
-      .filter((v) => !!v)
+    return Object.values(e.data.data as Record<string, { message?: string } | undefined>)
+      .map((v) => v?.message)
+      .filter((v): v is string => !!v)
   }
 
   const resendVerificationEmail = async () => {

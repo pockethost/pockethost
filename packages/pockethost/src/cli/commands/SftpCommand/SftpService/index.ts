@@ -1,20 +1,20 @@
 import {
-  MOTHERSHIP_URL,
-  PH_SFTP_HOST_KEY,
-  PH_SFTP_PORT,
-  SingletonBaseConfig,
   asyncExitHook,
   classifySftpError,
   isUserError,
   logger,
   mergeConfig,
   mkSingleton,
+  MOTHERSHIP_URL,
   MothershipAdminClientService,
+  PH_SFTP_HOST_KEY,
+  PH_SFTP_PORT,
+  SingletonBaseConfig,
 } from '@'
 import ssh2 from 'ssh2'
 import { InstanceVfs } from '../../../../services/InstanceFileAccess/InstanceVfs'
-import { findSshKeyByPublicKey, verifySshPublicKeySignature } from '../../../../services/InstanceFileAccess/sshKeyAuth'
 import type { SshKeyAuthResult } from '../../../../services/InstanceFileAccess/sshKeyAuth'
+import { findSshKeyByPublicKey, verifySshPublicKeySignature } from '../../../../services/InstanceFileAccess/sshKeyAuth'
 import { ensureHostKey } from './hostKey'
 import { attachSftpSession } from './SftpSession'
 
@@ -80,7 +80,10 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
                 return ctx.accept()
               }
 
-              if (!pkCtx.blob || !verifySshPublicKeySignature(result.key.public_key, pkCtx.blob, pkCtx.signature, pkCtx.hashAlgo)) {
+              if (
+                !pkCtx.blob ||
+                !verifySshPublicKeySignature(result.key.public_key, pkCtx.blob, pkCtx.signature, pkCtx.hashAlgo)
+              ) {
                 return ctx.reject(['publickey'])
               }
 
@@ -123,7 +126,7 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
     }
   )
 
-  server.on('error', (err) => {
+  server.on('error', (err: Error) => {
     logSftpError(err)
   })
 

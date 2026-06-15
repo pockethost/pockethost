@@ -37,10 +37,10 @@
   }
 </script>
 
-<form class="p-10 pb-5 flex flex-col gap-2" method="post" autocomplete="on" onsubmit={handleSubmit}>
-  <h2 class="font-bold text-white mb-3 text-center text-2xl">Log In</h2>
+<form class="auth-form" method="post" autocomplete="on" onsubmit={handleSubmit}>
+  <h2 class="auth-form-title">Log In</h2>
 
-  <div>
+  <div class="auth-field-group">
     <label class="auth-label" for="email">Email</label>
     <input
       type="email"
@@ -54,14 +54,14 @@
     />
   </div>
 
-  <div class="mb-3">
+  <div class="auth-field-group">
     <label class="auth-label" for="password">Password</label>
-    <div class="relative">
+    <div class="auth-field-wrap">
       <input
         type={showPassword ? 'text' : 'password'}
         id="password"
         name="password"
-        class="auth-field pr-10"
+        class="auth-field auth-field--password"
         placeholder="Password"
         autocomplete="current-password"
         bind:value={password}
@@ -70,7 +70,7 @@
       {#if password.length > 0}
         <button
           type="button"
-          class="absolute inset-y-0 right-3 flex items-center text-gray-500"
+          class="auth-field-toggle"
           onclick={() => (showPassword = !showPassword)}
           tabindex="-1"
           aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -80,65 +80,24 @@
       {/if}
     </div>
 
-    <div class="w-full text-end mt-1">
-      <a href="login/password-reset" class="text-sm underline-offset-2 text-secondary text-primary">
-        Forgot Password?
-      </a>
+    <div class="auth-link-row">
+      <a href="/login/password-reset" class="auth-link">Forgot Password?</a>
     </div>
   </div>
 
   <AlertBar message={formError} type="error" />
 
-  <div class="w-full">
-    <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
-      {#if isButtonLoading}
-        <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-      {:else}
-        Log In
-        <wa-icon slot="end" name="arrow-right"></wa-icon>
-      {/if}
-    </wa-button>
-  </div>
+  <button type="submit" class="auth-submit" disabled={isFormButtonDisabled || isButtonLoading}>
+    {#if isButtonLoading}
+      <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+    {:else}
+      Log In
+      <wa-icon name="arrow-right"></wa-icon>
+    {/if}
+  </button>
 </form>
-<wa-divider class="my-0 text-white"></wa-divider>
 
-<div class="p-4 text-sm text-center">
-  <div class="mb-2">
-    Don't have an account?
-    <button type="button" class="text-primary ml-1 dark:text-secondary" onclick={handleRegisterClick}>
-      Create A New Account
-    </button>
-  </div>
+<div class="auth-footer">
+  Don't have an account?
+  <button type="button" class="auth-footer-button" onclick={handleRegisterClick}>Create A New Account</button>
 </div>
-
-<style>
-  .auth-label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(255 255 255 / 0.9);
-  }
-
-  .auth-field {
-    width: 100%;
-    height: 2.5rem;
-    padding: 0 0.75rem;
-    border-radius: var(--wa-border-radius-m, 0.375rem);
-    border: 1px solid rgb(255 255 255 / 0.15);
-    background-color: rgb(17 17 17 / 0.7);
-    color: #fff;
-    font-size: 1rem;
-    line-height: 1.5;
-  }
-
-  .auth-field::placeholder {
-    color: rgb(255 255 255 / 0.4);
-  }
-
-  .auth-field:focus {
-    outline: none;
-    border-color: var(--wa-color-focus, #3b82f6);
-    box-shadow: 0 0 0 2px color-mix(in oklab, var(--wa-color-focus, #3b82f6) 40%, transparent);
-  }
-</style>

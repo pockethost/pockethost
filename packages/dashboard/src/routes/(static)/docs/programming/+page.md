@@ -8,10 +8,7 @@ PocketBase is not just a simple backend solution—it offers powerful capabiliti
 
 ## A Growing Ecosystem
 
-The **PocketBase ecosystem** is expanding rapidly, making it easier to enhance your applications in a modular and scalable way. Two key projects that contribute to this growing ecosystem are:
-
-- **[pocodex.dev](https://pocodex.dev)**: A plugin ecosystem that allows developers to share, discover, and integrate plugins into their PocketBase instances. Whether you need additional authentication features, API extensions, or other custom functionality, Pocodex provides a hub for PocketBase developers to contribute and utilize plugins.
-- **[pocketpages.dev](https://pocketpages.dev)**: A platform for building classic server-side rendered (SSR) pages with PocketBase. By leveraging PocketBase’s **JSVM** and the Goja engine, developers can serve SSR content, delivering a seamless experience for static or dynamic web pages directly from PocketBase.
+The **PocketBase ecosystem** is expanding rapidly, making it easier to enhance your applications in a modular and scalable way. A key project in this space is **[pocketpages.dev](https://pocketpages.dev)**: a platform for building classic server-side rendered (SSR) pages with PocketBase. By leveraging PocketBase’s **JSVM** and the Goja engine, developers can serve SSR content, delivering a seamless experience for static or dynamic web pages directly from PocketBase.
 
 ## Extending PocketBase with JSVM
 
@@ -22,7 +19,7 @@ PocketBase’s **JSVM** makes it possible to run custom JavaScript code directly
 - **Custom API Routes**: Use the JSVM to define and execute custom routes that go beyond the default PocketBase APIs. This enables more sophisticated data manipulation, custom validation, and complex business logic.
 - **Hooks and Triggers**: Integrate **JavaScript hooks** into your application to trigger actions in response to database changes, such as sending notifications when records are updated or applying complex validation before data is written.
 
-- **Plugin Support via Pocodex**: With **Pocodex**, developers can extend PocketBase's capabilities even further, utilizing existing plugins or contributing their own. The JSVM allows for plugins to be developed using JavaScript, making it easier to create reusable code modules for PocketBase.
+- **Reusable Modules**: Package custom logic as JavaScript modules in `pb_hooks` and share patterns across instances. The JSVM makes it straightforward to build reusable server-side code for PocketBase.
 
 ## Hosting Static and SSR Content
 

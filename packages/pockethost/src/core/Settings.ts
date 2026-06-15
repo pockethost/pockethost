@@ -1,4 +1,4 @@
-import { mkSingleton, parseBoolean } from '@'
+import { LoggerService, mkSingleton, parseBoolean, SingletonBaseConfig } from '@'
 import { existsSync, mkdirSync } from 'fs'
 
 export type SettingsCaster<TValue, TConfig = {}> = {
@@ -98,7 +98,7 @@ type Config<T> = {
 }
 
 export const SettingsService = <T extends Object>(config: Config<T>) => {
-  const singleton = mkSingleton<Config<T>, T>((config) => {
+  const singleton = mkSingleton((_cfg: SingletonBaseConfig) => {
     const lookup: Partial<T> = {}
 
     for (const key in config) {
@@ -114,5 +114,5 @@ export const SettingsService = <T extends Object>(config: Config<T>) => {
     return lookup as T
   })
 
-  return singleton(config)
+  return singleton({ logger: LoggerService() })
 }

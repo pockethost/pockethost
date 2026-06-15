@@ -49,11 +49,11 @@ export const createCleanupManager = (slug?: string) => {
     _shutdownP = _cleanupFuncs
       .reduce((c, v) => c.then(() => v()), Promise.resolve())
       .catch((e) => {
-      error(
-        `Cleanup functions are failing. This should never happen, check all cleanup functions to make sure they are trapping their exceptions.`
-      )
-      throw e
-    })
+        error(
+          `Cleanup functions are failing. This should never happen, check all cleanup functions to make sure they are trapping their exceptions.`
+        )
+        throw e
+      })
 
     return _shutdownP
   }

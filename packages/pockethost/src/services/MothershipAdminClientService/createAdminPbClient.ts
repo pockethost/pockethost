@@ -6,8 +6,9 @@ import {
   PocketBase,
   RestCommands,
   RestMethods,
+  adminAuthWithPassword,
+  createFirstAdmin as createFirstAdminRecord,
   createRestHelper,
-  stringify,
 } from '@'
 import { MixinContext } from '.'
 import { createInstanceMixin } from './InstanceMIxin'
@@ -23,18 +24,9 @@ export const createAdminPbClient = (url: string, logger: Logger) => {
   const client = new PocketBase(url)
   client.autoCancellation(false)
 
-  const adminAuthViaEmail = (email: string, password: string) =>
-    client.collection(`_superusers`).authWithPassword(email, password)
+  const adminAuthViaEmail = (email: string, password: string) => adminAuthWithPassword(client, email, password)
 
-  const createFirstAdmin = (email: string, password: string) =>
-    client
-      .collection(`_superusers`)
-      .create({ email, password, passwordConfirm: password })
-      .catch((res) => {
-        console.log({ email, password })
-        console.log(stringify(res, null, 2))
-        return res
-      })
+  const createFirstAdmin = (email: string, password: string) => createFirstAdminRecord(client, email, password)
 
   const context: MixinContext = { client, logger: _clientLogger }
   const instanceApi = createInstanceMixin(context)

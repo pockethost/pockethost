@@ -1,4 +1,4 @@
-import Ajv, { JSONSchemaType } from 'ajv'
+import Ajv, { type JSONSchemaType } from 'ajv'
 import type { JsonObject } from 'type-fest'
 import { LoggerService, PocketBase, RestCommands, RestMethods } from '..'
 

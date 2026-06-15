@@ -37,9 +37,14 @@ const resolveRemoteDir = async (instanceName?: string) => {
   }
 }
 
-export const openSftpSession = async (instanceName?: string, printOnly = false) => {
+export const openSftpSession = async (
+  instanceName?: string,
+  printOnly = false
+) => {
   if (!instanceName && !savedInstanceName()) {
-    console.log(`No linked instance in ${PHIO_CONFIG_FILE}. Opening SFTP at instance root.`)
+    console.log(
+      `No linked instance in ${PHIO_CONFIG_FILE}. Opening SFTP at instance root.`
+    )
   }
 
   await ensureLoggedIn()
@@ -67,7 +72,9 @@ export const openSftpSession = async (instanceName?: string, printOnly = false) 
 
   const sftpBin = findSftpExecutable()
   if (!sftpBin) {
-    console.error(`Could not find 'sftp' on PATH. Install OpenSSH client tools, then run:`)
+    console.error(
+      `Could not find 'sftp' on PATH. Install OpenSSH client tools, then run:`
+    )
     console.error('')
     console.error(commandLine)
     console.error('')

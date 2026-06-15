@@ -1,3 +1,4 @@
+Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
 //#region src/lib/util/Logger.ts
 const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
@@ -30,8 +31,7 @@ const parsePocketbaseVersionsValue = (raw) => {
 };
 const readPocketbaseVersions = () => {
 	try {
-		const record = $app.findFirstRecordByData("settings", "name", POCKETBASE_VERSIONS_SETTING);
-		const value = parsePocketbaseVersionsValue(record.getString("value"));
+		const value = parsePocketbaseVersionsValue($app.findFirstRecordByData("settings", "name", POCKETBASE_VERSIONS_SETTING).getString("value"));
 		if (!value?.versions?.length) return [];
 		return value.versions;
 	} catch {
@@ -125,8 +125,8 @@ const callCloudflareAPI = (endpoint, method, body, log) => {
 		const response = $http.send(config);
 		if (log) log(`Cloudflare API response:`, response);
 		return response;
-	} catch (error$1) {
-		if (log) log(`Cloudflare API error:`, error$1);
+	} catch (error) {
+		if (log) log(`Cloudflare API error:`, error);
 		return null;
 	}
 };
@@ -183,12 +183,10 @@ const HandleInstanceUpdate = (e) => {
 	const cnameChanged = newCname !== null && oldCname !== newCname;
 	if (cnameChanged && newCname.length > 0) {
 		log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`);
-		const createResponse = createCloudflareCustomHostname(newCname, log);
-		if (createResponse) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
+		if (createCloudflareCustomHostname(newCname, log)) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
 	}
 	const recordAutoVacuum = record.getBool("autoVacuum");
-	const advancedFieldChanging = subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncAdmin !== null && syncAdmin !== record.getBool("syncAdmin") || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged;
-	if (advancedFieldChanging) {
+	if (subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncAdmin !== null && syncAdmin !== record.getBool("syncAdmin") || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged) {
 		if (record.getBool("power") || record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be powered off first.`);
 	}
 	const sanitized = removeEmptyKeys({
@@ -242,8 +240,7 @@ const HandleMigrateCnamesToDomains = (_e) => {
 	const log = mkLog(`bootstrap:migrate-cnames`);
 	log(`Starting cname to domains migration`);
 	try {
-		const domainsCollection = $app.findCollectionByNameOrId("domains");
-		if (!domainsCollection) {
+		if (!$app.findCollectionByNameOrId("domains")) {
 			log(`Domains collection not found, skipping migration`);
 			return;
 		}
@@ -268,8 +265,8 @@ const HandleMigrateCnamesToDomains = (_e) => {
 					domainExists = true;
 				} catch (e) {}
 				if (!domainExists) {
-					const domainsCollection$1 = $app.findCollectionByNameOrId("domains");
-					const domainRecord = new Record(domainsCollection$1);
+					const domainsCollection = $app.findCollectionByNameOrId("domains");
+					const domainRecord = new Record(domainsCollection);
 					domainRecord.set("instance", instanceId);
 					domainRecord.set("domain", cname);
 					domainRecord.set("active", instance.getBool("cname_active"));
@@ -277,8 +274,8 @@ const HandleMigrateCnamesToDomains = (_e) => {
 					log(`Created domain record for ${cname}`);
 					cnameMigrated++;
 				}
-			} catch (error$1) {
-				log(`Failed to migrate cname for instance ${instance.id}:`, error$1);
+			} catch (error) {
+				log(`Failed to migrate cname for instance ${instance.id}:`, error);
 			}
 		});
 		log(`Phase 1 complete: migrated ${cnameMigrated} cnames to domains collection`);
@@ -308,13 +305,13 @@ const HandleMigrateCnamesToDomains = (_e) => {
 					log(`Updated instance ${instanceId}: added ${missingIds.length} domain IDs to domains array`);
 					instancesUpdated++;
 				}
-			} catch (error$1) {
-				log(`Failed to update domains array for instance ${instanceId}:`, error$1);
+			} catch (error) {
+				log(`Failed to update domains array for instance ${instanceId}:`, error);
 			}
 		});
 		log(`Phase 2 complete: updated domains arrays for ${instancesUpdated} instances`);
-	} catch (error$1) {
-		log(`Error migrating cnames: ${error$1}`);
+	} catch (error) {
+		log(`Error migrating cnames: ${error}`);
 	}
 };
 
@@ -331,12 +328,11 @@ const HandleMigrateInstanceVersions = (_e) => {
 		const newVersion = (() => {
 			if (v.startsWith(`~`)) {
 				const [major, minor] = v.slice(1).split(".");
-				const newVersion$1 = [
+				return [
 					major,
 					minor,
 					"*"
 				].join(".");
-				return newVersion$1;
 			} else if (v === `^0` || v === `0` || v === "1") return versions[0];
 			return v;
 		})();
@@ -365,8 +361,7 @@ const mkAudit = (log, app) => {
 //#endregion
 //#region src/lib/handlers/instance/model/AfterCreate_notify_discord.ts
 const AfterCreate_notify_discord = (e) => {
-	const log = mkLog(`instances:create:discord:notify`);
-	const audit = mkAudit(log, $app);
+	const audit = mkAudit(mkLog(`instances:create:discord:notify`), $app);
 	const record = e.record;
 	if (!record) return;
 	const webhookUrl = process.env.DISCORD_STREAM_CHANNEL_URL;
@@ -380,8 +375,8 @@ const AfterCreate_notify_discord = (e) => {
 			headers: { "content-type": "application/json" },
 			timeout: 5
 		});
-	} catch (e$1) {
-		audit(`ERROR`, `Instance creation discord notify failed with ${e$1}`);
+	} catch (e) {
+		audit(`ERROR`, `Instance creation discord notify failed with ${e}`);
 	}
 };
 
@@ -401,15 +396,14 @@ const BeforeUpdate_cname = (e) => {
 	const newCname = record.get("cname").trim();
 	if (newCname.length > 0) {
 		const result = new DynamicModel({ id: "" });
-		const inUse = (() => {
+		if ((() => {
 			try {
 				$app.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result);
-			} catch (e$1) {
+			} catch (e) {
 				return false;
 			}
 			return true;
-		})();
-		if (inUse) {
+		})()) {
 			const msg = `[ERROR] [${id}] Custom domain ${newCname} already in use.`;
 			log(`${msg}`);
 			throw new BadRequestError(msg);
@@ -521,12 +515,12 @@ const HandleLemonSqueezySale = (e) => {
 		const userRec = (() => {
 			try {
 				return $app.findFirstRecordByData("users", "id", context.user_id);
-			} catch (e$1) {
+			} catch (e) {
 				throw new Error(`User ${context.user_id} not found`);
 			}
 		})();
 		log(`user record ok`, userRec);
-		const event_name_map = {
+		const event_handler = {
 			order_created: () => {
 				signup_finalizer();
 			},
@@ -539,11 +533,10 @@ const HandleLemonSqueezySale = (e) => {
 			subscription_payment_refunded: () => {
 				signup_canceller();
 			}
-		};
-		const event_handler = event_name_map[context.event_name];
+		}[context.event_name];
 		if (!event_handler) throw new Error(`Unsupported event: ${context.event_name}`);
 		else log(`event handler ok`, event_handler);
-		const product_handler_map = {
+		const product_handler = {
 			[FOUNDER_ANNUAL_PV_ID]: () => {
 				userRec.set(`subscription`, `founder`);
 				userRec.set(`subscription_interval`, `year`);
@@ -589,8 +582,7 @@ const HandleLemonSqueezySale = (e) => {
 				userRec.set(`subscription_interval`, `life`);
 				userRec.set(`subscription_quantity`, 250);
 			}
-		};
-		const product_handler = product_handler_map[pv_id];
+		}[pv_id];
 		if (!product_handler) throw new Error(`No product handler for ${pv_id}`);
 		else log(`product handler ok`, pv_id);
 		const signup_finalizer = () => {
@@ -649,13 +641,12 @@ const HandleMailSend = (e) => {
 			name: $app.settings().meta.senderName
 		},
 		to: [{ address: to }],
-		bcc: [process.env.TEST_EMAIL].filter((e$1) => !!e$1).map((e$1) => ({ address: e$1 })),
+		bcc: [process.env.TEST_EMAIL].filter((e) => !!e).map((e) => ({ address: e })),
 		subject,
 		html: body
 	});
 	$app.newMailClient().send(email);
-	const msg = `Sent to ${to}`;
-	log(msg);
+	log(`Sent to ${to}`);
 	return e.json(200, { status: "ok" });
 };
 
@@ -691,11 +682,9 @@ const HandleMetaUpdateAtBoot = (_e) => {
 //#region src/lib/handlers/mirror/lib/buildMirrorDump.ts
 const exportRecord = (record) => record.publicExport();
 const buildMirrorDump = (app) => {
-	const users = app.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord);
-	const instances = app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportRecord);
 	return {
-		users,
-		instances
+		users: app.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord),
+		instances: app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportRecord)
 	};
 };
 
@@ -799,8 +788,7 @@ const mkNotificationProcessor = (log, app, test = false) => (notificationRec) =>
 					timeout: 5
 				};
 				log(`sending discord message`, params);
-				const res = $http.send(params);
-				log(`discord sent`, res);
+				log(`discord sent`, $http.send(params));
 			}
 			break;
 		default: throw new Error(`Unsupported channel: ${channel}`);
@@ -839,11 +827,10 @@ const HandleProcessNotification = (e) => {
 	log({ notificationRec });
 	try {
 		$app.expandRecord(notificationRec, ["message_template"]);
-		const messageTemplateRec = notificationRec.expandedOne(`message_template`);
-		if (!messageTemplateRec) throw new Error(`Missing message template`);
+		if (!notificationRec.expandedOne(`message_template`)) throw new Error(`Missing message template`);
 		processNotification(notificationRec);
-	} catch (e$1) {
-		audit(`ERROR`, `${e$1}`, { notification: notificationRec.id });
+	} catch (e) {
+		audit(`ERROR`, `${e}`, { notification: notificationRec.id });
 	}
 };
 
@@ -868,8 +855,8 @@ const HandleUserWelcomeMessage = (e) => {
 		const uid = newModel.id;
 		notify(`email`, `welcome`, uid);
 		newModel.set(`welcome`, new DateTime());
-	} catch (e$1) {
-		audit(`ERROR`, `${e$1}`, { user: newModel.id });
+	} catch (e) {
+		audit(`ERROR`, `${e}`, { user: newModel.id });
 	}
 };
 
@@ -2853,7 +2840,7 @@ const wordList = [
 const shortestWordSize = wordList.reduce((shortestWord, currentWord) => currentWord.length < shortestWord.length ? currentWord : shortestWord).length;
 const longestWordSize = wordList.reduce((longestWord, currentWord) => currentWord.length > longestWord.length ? currentWord : longestWord).length;
 function generate(options) {
-	const { minLength, maxLength,...rest } = options || {};
+	const { minLength, maxLength, ...rest } = options || {};
 	function word() {
 		let min = typeof minLength !== "number" ? shortestWordSize : limitWordSize(minLength);
 		const max = typeof maxLength !== "number" ? longestWordSize : limitWordSize(maxLength);
@@ -2875,8 +2862,7 @@ function generate(options) {
 		return wordSize;
 	}
 	function randInt(lessThan) {
-		const r = Math.random();
-		return Math.floor(r * lessThan);
+		return Math.floor(Math.random() * lessThan);
 	}
 	if (options === void 0) return word();
 	if (typeof options === "number") options = { exactly: options };
@@ -2886,7 +2872,7 @@ function generate(options) {
 		options.max = options.exactly;
 	}
 	if (typeof options.wordsPerString !== "number") options.wordsPerString = 1;
-	if (typeof options.formatter !== "function") options.formatter = (word$1) => word$1;
+	if (typeof options.formatter !== "function") options.formatter = (word) => word;
 	if (typeof options.separator !== "string") options.separator = " ";
 	const total = options.min + randInt(options.max + 1 - options.min);
 	let results = [];
@@ -2934,8 +2920,7 @@ const suggestUniqueAuthRecordUsername = (collection, baseUsername) => {
 	let username = baseUsername;
 	for (let i = 0; i < 10; i++) {
 		try {
-			const total = $app.countRecords(collection, $dbx.exp("LOWER([[username]])={:username}", { username: username.toLowerCase() }));
-			if (total === 0) break;
+			if ($app.countRecords(collection, $dbx.exp("LOWER([[username]])={:username}", { username: username.toLowerCase() })) === 0) break;
 		} catch {}
 		username = baseUsername + $security.randomStringWithAlphabet(3 + i, "123456789");
 	}
@@ -2945,10 +2930,9 @@ const HandleSignupConfirm = (e) => {
 	const parsed = (() => {
 		const rawBody = readerToString(e.request.body);
 		try {
-			const parsed$1 = JSON.parse(rawBody);
-			return parsed$1;
-		} catch (e$1) {
-			throw new BadRequestError(`Error parsing payload. You call this JSON? ${rawBody}`, e$1);
+			return JSON.parse(rawBody);
+		} catch (e) {
+			throw new BadRequestError(`Error parsing payload. You call this JSON? ${rawBody}`, e);
 		}
 	})();
 	const email = parsed.email?.trim().toLowerCase();
@@ -2958,15 +2942,14 @@ const HandleSignupConfirm = (e) => {
 	if (!email) throw error(`email`, "required", "Email is required");
 	if (!password) throw error(`password`, `required`, "Password is required");
 	if (!desiredInstanceName) throw error(`instanceName`, `required`, `Instance name is required`);
-	const userExists = (() => {
+	if ((() => {
 		try {
 			$app.findFirstRecordByData("users", "email", email);
 			return true;
 		} catch {
 			return false;
 		}
-	})();
-	if (userExists) throw error(`email`, `exists`, `That user account already exists. Try a password reset.`);
+	})()) throw error(`email`, `exists`, `That user account already exists. Try a password reset.`);
 	$app.runInTransaction((txApp) => {
 		const usersCollection = $app.findCollectionByNameOrId("users");
 		const instanceCollection = $app.findCollectionByNameOrId("instances");
@@ -2979,8 +2962,8 @@ const HandleSignupConfirm = (e) => {
 			user.set("subscription_quantity", 0);
 			user.setPassword(password);
 			txApp.save(user);
-		} catch (e$1) {
-			throw error(`email`, `fail`, `Could not create user: ${e$1}`);
+		} catch (e) {
+			throw error(`email`, `fail`, `Could not create user: ${e}`);
 		}
 		try {
 			const instance = new Record(instanceCollection);
@@ -2993,9 +2976,9 @@ const HandleSignupConfirm = (e) => {
 			instance.set("dev", true);
 			instance.set("version", version);
 			txApp.save(instance);
-		} catch (e$1) {
-			if (`${e$1}`.match(/ UNIQUE /)) throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`);
-			throw error(`instanceName`, `fail`, `Could not create instance: ${e$1}`);
+		} catch (e) {
+			if (`${e}`.match(/ UNIQUE /)) throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`);
+			throw error(`instanceName`, `fail`, `Could not create instance: ${e}`);
 		}
 		$mails.sendRecordVerification($app, user);
 	});
@@ -3029,8 +3012,8 @@ const HandleSesError = (e) => {
 			user.setVerified(false);
 			$app.save(user);
 			audit("PBOUNCE", `User ${emailAddress} has been disabled`, extra);
-		} catch (e$1) {
-			audit("PBOUNCE_ERR", `${e$1}`, extra);
+		} catch (e) {
+			audit("PBOUNCE_ERR", `${e}`, extra);
 		}
 	};
 	const raw = readerToString(e.request.body);
@@ -3076,7 +3059,7 @@ const HandleSesError = (e) => {
 						emailAddress,
 						user: user.id
 					});
-				} catch (e$1) {
+				} catch (e) {
 					audit("COMPLAINT_ERR", `${emailAddress} is not in the system.`, { emailAddress });
 				}
 			});
@@ -3091,7 +3074,7 @@ const HandleSesError = (e) => {
 /** JSVM-safe ssh-ed25519 public key parsing. Safe for pb_hooks (Goja) and Node/browser consumers. */
 const ED25519_ALGO = "ssh-ed25519";
 const ED25519_WIRE_KEY_LEN = 32;
-const ED25519_WIRE_LEN = 19 + ED25519_WIRE_KEY_LEN;
+const ED25519_WIRE_LEN = 51;
 const readUint32BE = (bytes, offset) => {
 	if (offset + 4 > bytes.length) throw new Error("Invalid public key encoding.");
 	return (bytes[offset] << 24 | bytes[offset + 1] << 16 | bytes[offset + 2] << 8 | bytes[offset + 3]) >>> 0;
@@ -3100,9 +3083,8 @@ const readSshString = (bytes, offset) => {
 	const length = readUint32BE(bytes, offset);
 	offset += 4;
 	if (length < 0 || offset + length > bytes.length) throw new Error("Invalid public key encoding.");
-	const value = bytes.slice(offset, offset + length);
 	return {
-		value,
+		value: bytes.slice(offset, offset + length),
 		nextOffset: offset + length
 	};
 };
@@ -3143,10 +3125,9 @@ const validateWire = (wire) => {
 const parseSshEd25519PublicKey = (input) => {
 	const trimmed = input.trim();
 	if (!trimmed) throw new Error("Public key is required.");
-	const lines = trimmed.split(/\r?\n/).map((line$1) => line$1.trim()).filter(Boolean);
+	const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 	if (lines.length > 1) throw new Error("Paste a single public key line only.");
-	const line = lines[0] ?? "";
-	const parts = line.split(/\s+/).filter(Boolean);
+	const parts = (lines[0] ?? "").split(/\s+/).filter(Boolean);
 	if (parts.length < 2) throw new Error("Public key must look like: ssh-ed25519 AAAA… comment");
 	const algo = parts[0];
 	const keyData = parts[1];
@@ -3154,9 +3135,8 @@ const parseSshEd25519PublicKey = (input) => {
 	const wire = decodeBase64(keyData);
 	validateWire(wire);
 	const comment = parts.slice(2).join(" ");
-	const normalized = comment ? `${ED25519_ALGO} ${keyData} ${comment}` : `${ED25519_ALGO} ${keyData}`;
 	return {
-		normalized,
+		normalized: comment ? `${ED25519_ALGO} ${keyData} ${comment}` : `${ED25519_ALGO} ${keyData}`,
 		wire
 	};
 };
@@ -3168,12 +3148,11 @@ const validateSshKeyRecord = (record, authId) => {
 	let parsed;
 	try {
 		parsed = parseSshEd25519PublicKey(record.getString("public_key"));
-	} catch (error$1) {
-		throw new BadRequestError(`${error$1}`);
+	} catch (error) {
+		throw new BadRequestError(`${error}`);
 	}
 	record.set("public_key", parsed.normalized);
-	const fingerprint = record.getString("fingerprint").trim();
-	if (!fingerprint.startsWith("SHA256:")) throw new BadRequestError("Invalid fingerprint.");
+	if (!record.getString("fingerprint").trim().startsWith("SHA256:")) throw new BadRequestError("Invalid fingerprint.");
 	const allInstances = record.getBool("all_instances");
 	const instanceIds = record.getStringSlice("instances") || [];
 	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
@@ -3208,17 +3187,9 @@ const BeforeUpdate_ssh_keys = (e) => {
 };
 
 //#endregion
-//#region src/lib/handlers/stats/api/HandleStatsRequest.ts
-const HandleStatsRequest = (e) => {
-	const result = new DynamicModel({ total_flounder_subscribers: 0 });
-	$app.db().select("total_flounder_subscribers").from("stats").one(result);
-	return e.json(200, result);
-};
-
-//#endregion
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (e) => {
-	const log = mkLog(`user-token`);
+	mkLog(`user-token`);
 	const id = e.request.pathValue("id");
 	if (!id) throw new BadRequestError(`User ID is required.`);
 	const rec = $app.findRecordById("users", id);
@@ -3263,7 +3234,6 @@ exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;
 exports.HandleSignupCheck = HandleSignupCheck;
 exports.HandleSignupConfirm = HandleSignupConfirm;
-exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;

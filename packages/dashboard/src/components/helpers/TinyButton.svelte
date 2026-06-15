@@ -16,12 +16,6 @@
   } as const
 </script>
 
-<wa-button
-  variant={variantMap[style]}
-  size="small"
-  class={className}
-  {disabled}
-  onclick={click}
->
+<wa-button variant={variantMap[style]} size="small" class={className} {disabled} onclick={click}>
   <slot />
 </wa-button>

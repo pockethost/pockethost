@@ -98,20 +98,18 @@
   </div>
 {:else}
   <div in:slide={{ delay: 400 }} out:slide>
-    <form class="p-10 px-5 md:px-10 pb-5 flex flex-col" onsubmit={handleSubmit}>
-      <h2 class="font-bold text-white mb-6 text-center text-2xl">Create your first Instance, fast.</h2>
+    <form class="auth-form" onsubmit={handleSubmit}>
+      <h2 class="auth-form-title">Create your first Instance, fast.</h2>
 
-      <div>
-        <label class="block mb-1" for="instance">
-          <span>Instance Name</span>
-        </label>
+      <div class="auth-field-group">
+        <label class="auth-label" for="instance">Instance Name</label>
 
-        <div class="flex gap-1">
+        <div class="flex gap-2">
           <wa-input
             type="text"
             placeholder="instance-name"
             value={$instanceNameField}
-            oninput={(e) => instanceNameField.set(e.currentTarget.value)}
+            oninput={(e: Event) => instanceNameField.set((e.currentTarget as HTMLInputElement).value)}
             id="instance"
             class="w-full"
           ></wa-input>
@@ -121,7 +119,7 @@
           </wa-button>
         </div>
 
-        <div style="font-size: 15px; padding: 5px">
+        <div class="text-sm text-white/70">
           {#if $instanceNameField === ''}
             <span class="text-error">Please enter an instance name</span>
           {:else if $instanceInfo.fetching}
@@ -133,12 +131,9 @@
           {/if}
         </div>
       </div>
-      <wa-divider class="my-2 text-white"></wa-divider>
 
-      <div>
-        <label class="block mb-1" for="email">
-          <span>Email</span>
-        </label>
+      <div class="auth-field-group">
+        <label class="auth-label" for="email">Email</label>
 
         <wa-input
           type="email"
@@ -146,23 +141,21 @@
           placeholder="name@example.com"
           autocomplete="email"
           value={email}
-          oninput={(e) => (email = e.currentTarget.value)}
+          oninput={(e: Event) => (email = (e.currentTarget as HTMLInputElement).value)}
           required
           class="w-full"
         ></wa-input>
       </div>
 
-      <div class="mb-6">
-        <label class="block mb-1" for="password">
-          <span>Password</span>
-        </label>
+      <div class="auth-field-group">
+        <label class="auth-label" for="password">Password</label>
         <wa-input
           type="password"
           id="password"
           placeholder="Password"
           autocomplete="new-password"
           value={password}
-          oninput={(e) => (password = e.currentTarget.value)}
+          oninput={(e: Event) => (password = (e.currentTarget as HTMLInputElement).value)}
           required
           class="w-full"
         ></wa-input>
@@ -170,17 +163,15 @@
 
       <AlertBar message={formError} type="error" />
 
-      <div class="w-full">
-        <wa-button type="submit" variant="brand" class="w-full" disabled={isFormButtonDisabled}>
-          Create
-          <wa-icon slot="end" name="arrow-right"></wa-icon>
-        </wa-button>
-      </div>
+      <button type="submit" class="auth-submit" disabled={isFormButtonDisabled}>
+        Create
+        <wa-icon name="arrow-right"></wa-icon>
+      </button>
     </form>
 
-    <div class="p-4 text-sm border-t border-white/10 text-center">
+    <div class="auth-footer">
       Already have an account?
-      <button type="button" class="text-primary ml-1 dark:text-secondary" onclick={handleLoginClick}>Log in</button>
+      <button type="button" class="auth-footer-button" onclick={handleLoginClick}>Log in</button>
     </div>
   </div>
 {/if}

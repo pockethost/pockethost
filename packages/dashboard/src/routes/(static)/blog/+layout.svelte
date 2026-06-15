@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from '$app/stores'
-  import { cloudLogo } from '$lib/brand'
   import BlogAuthor from '$components/BlogAuthor.svelte'
 
   export let data
@@ -8,9 +7,7 @@
   $: isIndexPage = $page.url.pathname === '/blog'
   $: ({ title, pageTitle, description, ogType } = data.meta || {})
   $: ({ author, date } = data)
-  $: ogImage = title
-    ? `https://cdn.cheto.app/og/joioes1x8zagn0v?name=${encodeURIComponent(title)}`
-    : undefined
+  $: ogImage = title ? `https://cdn.cheto.app/og/joioes1x8zagn0v?name=${encodeURIComponent(title)}` : undefined
 </script>
 
 <svelte:head>
@@ -40,32 +37,27 @@
 
 <div class="min-h-screen">
   {#if !isIndexPage}
-    <div class="sticky top-0 z-10 px-4 md:px-20">
-      <div class="w-full mx-auto h-32 py-4">
-        <div class="flex items-center gap-4 mb-4">
-          <wa-button href="/blog" variant="neutral" size="small" appearance="plain">
-            <wa-icon slot="start" name="arrow-left"></wa-icon>
-            Back to Blog
-          </wa-button>
-        </div>
+    <div class="sticky top-0 z-10 bg-[#111111]/90 backdrop-blur-sm border-b border-white/10">
+      <div class="max-w-4xl mx-auto px-4 md:px-8 py-4">
+        <a href="/blog" class="blog-back-link">
+          <wa-icon name="arrow-left"></wa-icon>
+          Back to Blog
+        </a>
       </div>
     </div>
 
-    <div class="w-full mx-auto px-4 h-24 md:h-32 flex items-center justify-center relative mb-8">
-      <img
-        src={cloudLogo}
-        class="w-full blur-xl h-full scale-y-[2.5] object-fill absolute top-0 left-0 z-0"
-        alt=""
-      />
-      <h2 class="text-3xl md:text-5xl max-w-3xl text-center font-bold z-10">{title}</h2>
+    <div class="max-w-4xl mx-auto px-4 md:px-8 pt-10 pb-4 text-center">
+      <h1 class="text-3xl md:text-5xl font-bold text-white leading-tight">{title}</h1>
     </div>
 
-    <div class="max-w-4xl mx-auto px-4 py-8 z-10 relative">
+    <div class="max-w-4xl mx-auto px-4 md:px-8 py-8 z-10 relative">
       {#if author}
-        <BlogAuthor {author} {date} />
+        <div class="flex justify-center">
+          <BlogAuthor {author} {date} />
+        </div>
       {/if}
       <article
-        class="prose prose-lg max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-primary dark:prose-a:text-secondary hover:prose-a:text-primary-focus prose-strong:text-white prose-code:text-primary dark:prose-code:text-secondary prose-pre:bg-neutral-800 prose-blockquote:border-l-primary"
+        class="prose prose-lg max-w-none prose-headings:text-white prose-p:text-white/80 prose-a:text-primary hover:prose-a:text-secondary prose-strong:text-white prose-code:text-primary prose-pre:bg-neutral-800 prose-blockquote:border-l-primary"
       >
         <slot />
       </article>
@@ -75,8 +67,10 @@
           <div class="text-sm text-white/60">
             <p>
               Have questions?
-              <a href="https://discord.gg/nVTxCMEcGT" target="_blank" class="text-primary dark:text-secondary hover:underline"
-                >Join our Discord</a
+              <a
+                href="https://discord.gg/nVTxCMEcGT"
+                target="_blank"
+                class="text-primary hover:text-secondary hover:underline">Join our Discord</a
               >
             </p>
           </div>
@@ -89,6 +83,8 @@
 </div>
 
 <style>
+  @reference '../../../app.css';
+
   :global(.prose h1) {
     @apply text-3xl md:text-4xl font-bold mb-6 mt-0;
   }
@@ -117,8 +113,13 @@
     @apply font-medium underline-offset-2 decoration-2 hover:decoration-primary/60;
   }
 
-  :global(.prose code) {
+  :global(.prose :not(pre) > code) {
     @apply bg-neutral-800 px-2 py-1 rounded text-sm;
+  }
+
+  :global(.prose pre code) {
+    @apply bg-transparent p-0 rounded-none text-sm;
+    display: block;
   }
 
   :global(.prose blockquote) {

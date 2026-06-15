@@ -8,7 +8,6 @@
   $: {
     const { id, webhooks } = $instance
     items.clear()
-
     ;(webhooks ?? []).forEach((hook) => {
       items.upsert(hook)
     })

@@ -1,6 +1,6 @@
 <script>
   import { APP_URL } from '$src/env'
-  import {page} from '$app/state'
+  import { page } from '$app/state'
 
   const baseUrl = APP_URL()
   const imageUrl = `${baseUrl}newPoster.png`
@@ -9,7 +9,7 @@
 
 <svelte:head>
   <link rel="manifest" href="/manifest.json" />
-  
+
   <!-- Facebook Meta Tags -->
   {#if !page.url.pathname.includes('/docs') && !page.url.pathname.includes('/blog')}
     <meta name="description" content={tagline} />

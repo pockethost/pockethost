@@ -1,5 +1,3 @@
-import { dirname, join, resolve } from 'path'
-import { existsSync, globSync, readdirSync, rmSync, statSync } from 'fs'
 import {
   INSTANCES_ROOT,
   LoggerService,
@@ -10,6 +8,8 @@ import {
   logger,
   mkInstanceDataPath,
 } from '@'
+import { existsSync, globSync, readdirSync, rmSync, statSync } from 'fs'
+import { dirname, join, resolve } from 'path'
 
 export const findInstanceDataDirs = (): string[] => {
   const instancesRoot = resolve(INSTANCES_ROOT())
@@ -85,7 +85,9 @@ export const cleanupOrphanInstanceData = async ({ dryRun = false } = {}) => {
     info(`No orphan instance data directories to remove`)
   } else if (dryRun) {
     orphanBytes = orphanDirs.reduce((total, dir) => total + dirSizeBytes(dir), 0)
-    info(`Dry run: would remove ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`)
+    info(
+      `Dry run: would remove ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`
+    )
     for (const dir of orphanDirs) {
       info(`  would remove: ${dir}`)
     }

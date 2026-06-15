@@ -25,22 +25,32 @@
   const displayOffText = $derived(loading ? 'Stopping...' : offText)
   const isDisabled = $derived(disabled || loading)
 
-  const handleChange = (e: Event) => {
-    if (isDisabled) {
-      e.preventDefault()
-      return
-    }
-    const target = e.target as HTMLInputElement
-    onChange(target.checked)
+  const toggle = () => {
+    if (isDisabled) return
+    onChange(!checked)
   }
 </script>
 
-<div class="flex items-center gap-2 w-fit" class:opacity-60={isDisabled}>
-  <span class="text-sm md:text-lg font-bold flex items-center gap-2 {checked ? onClass : displayOffClass}">
+<div class="ph-power-toggle-wrap" class:ph-power-toggle-wrap--disabled={isDisabled}>
+  <span class="ph-power-toggle-label {checked ? onClass : displayOffClass}">
     {checked ? onText : displayOffText}
     {#if loading}
-      <span class="inline-block w-4 h-4 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin"></span>
+      <span class="ph-power-toggle-spinner" aria-hidden="true"></span>
     {/if}
   </span>
-  <wa-switch {checked} disabled={isDisabled} onchange={handleChange}></wa-switch>
+
+  <button
+    type="button"
+    role="switch"
+    class="ph-power-toggle"
+    class:ph-power-toggle--on={checked}
+    aria-checked={checked}
+    aria-label={checked ? onText : displayOffText}
+    disabled={isDisabled}
+    onclick={toggle}
+  >
+    <span class="ph-power-toggle-track">
+      <span class="ph-power-toggle-thumb"></span>
+    </span>
+  </button>
 </div>

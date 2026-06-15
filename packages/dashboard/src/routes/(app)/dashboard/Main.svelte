@@ -19,9 +19,7 @@
       <wa-button
         href={instanceCount >= maxInstances ? '#' : '/instances/new'}
         variant="brand"
-        class="my-3 {instanceCount >= maxInstances
-          ? 'pointer-events-none opacity-60'
-          : ''}"
+        class="my-3 {instanceCount >= maxInstances ? 'pointer-events-none opacity-60' : ''}"
       >
         <wa-icon slot="start" name="plus"></wa-icon>
         New Instance
@@ -50,11 +48,7 @@
                 {instanceCount}/{maxInstances}
               {/if}
             </div>
-            <wa-progress-bar
-              class="mt-2 w-full"
-              value={instanceCount}
-              max={maxInstances}
-            ></wa-progress-bar>
+            <wa-progress-bar class="mt-2 w-full" value={instanceCount} max={maxInstances}></wa-progress-bar>
           </div>
           {#if instanceCount >= maxInstances}
             <wa-button href="/support" variant="brand" size="small" class="mt-2 w-full text-xs">

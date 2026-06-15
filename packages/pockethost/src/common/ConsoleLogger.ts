@@ -1,4 +1,4 @@
-import { LogLevelName, Logger, LoggerConfig, isLevelGte } from './Logger'
+import { LogLevelName, isLevelGte, type Logger, type LoggerConfig } from './Logger'
 
 const CONSOLE_METHODS = {
   [LogLevelName.Trace]: console.trace,

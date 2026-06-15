@@ -17,8 +17,7 @@
     {
       icon: 'lock',
       title: 'Auth',
-      description:
-        'Email and oAuth authentication options work out of the box. Send transactional email to your users from our verified domain and your custom address.',
+      description: 'Email and oAuth authentication options work out of the box for your app users.',
     },
     {
       icon: 'cloud',
@@ -27,21 +26,22 @@
         'Run your own custom code on PocketHost with our cloud functions. Use the JS Client to call your functions from your frontend.',
     },
     {
-      icon: 'envelope',
-      title: 'Email',
-      description: 'Send transactional email to your users from our verified domain and your custom address.',
+      icon: 'link',
+      title: 'Custom Domain',
+      description:
+        'Point your own domain at your PocketHost instance. SSL provisioning and verification are handled automatically.',
     },
     {
       icon: 'download',
       title: 'Self-host',
       description:
-        "When you're ready to take your project in-house, we have you covered. You can export your entire PocketHost environment along with a Dockerfile to run it.",
+        "When you're ready to take your project in-house, download your full instance via SFTP and run PocketBase on your own hardware.",
     },
     {
       icon: 'bolt',
       title: 'Zero Config',
       description:
-        'With PocketHost, batteries are included. You get a database, outgoing email, SSL, authentication, cloud functions, and high concurrency all in one stop.',
+        'With PocketHost, batteries are included. You get a database, SSL, authentication, cloud functions, SFTP access, and high concurrency all in one stop.',
     },
   ]
 
@@ -113,22 +113,22 @@
 
   <section class="lg:px-8">
     <div class="max-w-6xl mx-auto">
-      <div class="bg-[#111111]/50 border border-white/20 rounded-2xl p-12 backdrop-blur-xl fade-in">
+      <div class="bg-[#111111]/50 border border-white/20 rounded-2xl p-12 backdrop-blur-xl fade-in text-white">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div>
-            <div class="text-3xl md:text-4xl font-light mb-2">30s</div>
+            <div class="text-3xl md:text-4xl font-light mb-2 text-white">30s</div>
             <div class="text-white/60 text-sm font-light">Setup Time</div>
           </div>
           <div>
-            <div class="text-3xl md:text-4xl font-light mb-2">99.964%</div>
+            <div class="text-3xl md:text-4xl font-light mb-2 text-white">99.964%</div>
             <div class="text-white/60 text-sm font-light">Uptime</div>
           </div>
           <div>
-            <div class="text-3xl md:text-4xl font-light mb-2">10K+</div>
+            <div class="text-3xl md:text-4xl font-light mb-2 text-white">10K+</div>
             <div class="text-white/60 text-sm font-light">Developers</div>
           </div>
           <div>
-            <div class="text-3xl md:text-4xl font-light mb-2 flex items-center justify-center gap-2">
+            <div class="text-3xl md:text-4xl font-light mb-2 flex items-center justify-center gap-2 text-white">
               {formatter.format(Number($stars.toFixed(0)))}
               <wa-icon name="star" class="w-5 h-5 text-yellow-400"></wa-icon>
             </div>
@@ -139,25 +139,25 @@
     </div>
   </section>
 
-  <section class="py-24 lg:px-8">
+  <section class="py-24 lg:px-8 text-white">
     <div class="text-center mb-10 md:mb-20">
-      <h2 class="text-4xl md:text-5xl font-light mb-6 tracking-tight">
+      <h2 class="text-4xl md:text-5xl font-light mb-6 tracking-tight text-white">
         Everything you need to <span class="font-medium">build</span>
       </h2>
     </div>
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
       {#each features as feature}
-        <div class="group">
+        <div class="group h-full">
           <div
-            class="bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 hover:border-white/20 transition-all duration-500"
+            class="h-full bg-white/5 border border-white/10 rounded-xl p-8 hover:bg-white/10 hover:border-white/20 transition-all duration-500"
           >
             <div class="flex items-center gap-4 mb-4">
               <div
                 class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-primary/50 transition-all duration-500"
               >
-                <wa-icon name={feature.icon} class="w-5 h-5"></wa-icon>
+                <wa-icon name={feature.icon} class="w-5 h-5 text-white"></wa-icon>
               </div>
-              <h3 class="text-lg font-medium">{feature.title}</h3>
+              <h3 class="text-lg font-medium text-white">{feature.title}</h3>
             </div>
             <p class="text-white/60 leading-relaxed font-light text-sm">{feature.description}</p>
           </div>

@@ -2,8 +2,14 @@ import { chmodSync, existsSync, readFileSync, writeFileSync } from 'fs'
 import { generateKeyPairSync, type KeyObject } from 'crypto'
 import type PocketBase from 'pocketbase'
 import { PHIO_HOME } from './constants'
-import { fingerprintForPublicKey, parseSshEd25519PublicKey } from './sshPublicKey'
-import { isPkcs8PrivateKey, pkcs8Ed25519ToOpenSshPrivateKeyPem } from '../../vendor/ftp-deploy/sshPrivateKey'
+import {
+  fingerprintForPublicKey,
+  parseSshEd25519PublicKey,
+} from './sshPublicKey'
+import {
+  isPkcs8PrivateKey,
+  pkcs8Ed25519ToOpenSshPrivateKeyPem,
+} from '../../vendor/ftp-deploy/sshPrivateKey'
 
 const SSH_KEYS_COLLECTION = 'ssh_keys'
 export const DEPLOY_KEY_LABEL = 'Phio'
@@ -31,13 +37,25 @@ const writeSshString = (value: Buffer | string) => {
 const spkiToOpenSshPublicKey = (publicKey: KeyObject, comment = 'phio') => {
   const der = publicKey.export({ format: 'der', type: 'spki' })
   const raw = der.subarray(der.length - 32)
-  const wire = Buffer.concat([writeSshString('ssh-ed25519'), writeSshString(raw)])
+  const wire = Buffer.concat([
+    writeSshString('ssh-ed25519'),
+    writeSshString(raw),
+  ])
   return `ssh-ed25519 ${wire.toString('base64')} ${comment}`
 }
 
-const writeOpenSshPrivateKey = (privateKeyPath: string, privateKey: KeyObject) => {
-  const privateKeyPem = privateKey.export({ format: 'pem', type: 'pkcs8' }).toString()
-  writeFileSync(privateKeyPath, pkcs8Ed25519ToOpenSshPrivateKeyPem(privateKeyPem), { mode: 0o600 })
+const writeOpenSshPrivateKey = (
+  privateKeyPath: string,
+  privateKey: KeyObject
+) => {
+  const privateKeyPem = privateKey
+    .export({ format: 'pem', type: 'pkcs8' })
+    .toString()
+  writeFileSync(
+    privateKeyPath,
+    pkcs8Ed25519ToOpenSshPrivateKeyPem(privateKeyPem),
+    { mode: 0o600 }
+  )
 }
 
 const migratePkcs8PrivateKeyIfNeeded = (privateKeyPath: string) => {
@@ -45,7 +63,9 @@ const migratePkcs8PrivateKeyIfNeeded = (privateKeyPath: string) => {
   if (!isPkcs8PrivateKey(pem)) {
     return
   }
-  writeFileSync(privateKeyPath, pkcs8Ed25519ToOpenSshPrivateKeyPem(pem), { mode: 0o600 })
+  writeFileSync(privateKeyPath, pkcs8Ed25519ToOpenSshPrivateKeyPem(pem), {
+    mode: 0o600,
+  })
   try {
     chmodSync(privateKeyPath, 0o600)
   } catch {
@@ -88,7 +108,11 @@ const publicKeysMatch = (localPublicKey: string, remotePublicKey: string) => {
   return local.normalized === remote.normalized
 }
 
-export type DeployKeyRemoteStatus = 'not_checked' | 'missing' | 'registered' | 'mismatch'
+export type DeployKeyRemoteStatus =
+  | 'not_checked'
+  | 'missing'
+  | 'registered'
+  | 'mismatch'
 
 export type DeployKeyStatus = {
   local: 'missing' | 'present'
@@ -116,7 +140,9 @@ const readLocalDeployKey = () => {
 }
 
 /** Read-only deploy key status. Does not generate keys or register remotely. */
-export const getDeployKeyStatus = async (client?: PocketBase): Promise<DeployKeyStatus> => {
+export const getDeployKeyStatus = async (
+  client?: PocketBase
+): Promise<DeployKeyStatus> => {
   const localKey = readLocalDeployKey()
   if (localKey.local === 'missing') {
     return {
@@ -127,15 +153,21 @@ export const getDeployKeyStatus = async (client?: PocketBase): Promise<DeployKey
     }
   }
 
-  let remote: DeployKeyRemoteStatus = client?.authStore.isValid ? 'missing' : 'not_checked'
+  let remote: DeployKeyRemoteStatus = client?.authStore.isValid
+    ? 'missing'
+    : 'not_checked'
   if (client?.authStore.isValid) {
     const userId = client.authStore.record?.id
     if (userId) {
       try {
-        const remoteKey = await client.collection(SSH_KEYS_COLLECTION).getFirstListItem(
-          `user=${JSON.stringify(userId)} && label=${JSON.stringify(DEPLOY_KEY_LABEL)}`
-        )
-        remote = publicKeysMatch(localKey.publicKey, remoteKey.public_key) ? 'registered' : 'mismatch'
+        const remoteKey = await client
+          .collection(SSH_KEYS_COLLECTION)
+          .getFirstListItem(
+            `user=${JSON.stringify(userId)} && label=${JSON.stringify(DEPLOY_KEY_LABEL)}`
+          )
+        remote = publicKeysMatch(localKey.publicKey, remoteKey.public_key)
+          ? 'registered'
+          : 'mismatch'
       } catch {
         remote = 'missing'
       }
@@ -180,9 +212,11 @@ export const ensureDeployKey = async (client: PocketBase) => {
 
   let remoteKey: { id: string; public_key: string } | undefined
   try {
-    remoteKey = await client.collection(SSH_KEYS_COLLECTION).getFirstListItem(
-      `user=${JSON.stringify(userId)} && label=${JSON.stringify(DEPLOY_KEY_LABEL)}`
-    )
+    remoteKey = await client
+      .collection(SSH_KEYS_COLLECTION)
+      .getFirstListItem(
+        `user=${JSON.stringify(userId)} && label=${JSON.stringify(DEPLOY_KEY_LABEL)}`
+      )
   } catch {
     remoteKey = undefined
   }
@@ -194,7 +228,12 @@ export const ensureDeployKey = async (client: PocketBase) => {
           `Update it at https://pockethost.io/account/keys or delete ${PUBLIC_KEY_FILE} to regenerate locally.`
       )
     }
-    return { privateKeyPath, publicKeyPath, publicKey: parsed.normalized, fingerprint }
+    return {
+      privateKeyPath,
+      publicKeyPath,
+      publicKey: parsed.normalized,
+      fingerprint,
+    }
   }
 
   try {
@@ -206,7 +245,9 @@ export const ensureDeployKey = async (client: PocketBase) => {
       instances: [],
       user: userId,
     })
-    console.log(`Registered SFTP deploy key "${DEPLOY_KEY_LABEL}" under Account → Keys`)
+    console.log(
+      `Registered SFTP deploy key "${DEPLOY_KEY_LABEL}" under Account → Keys`
+    )
   } catch (error) {
     const message = `${error}`
     if (message.includes('fingerprint') || message.includes('unique')) {
@@ -218,5 +259,10 @@ export const ensureDeployKey = async (client: PocketBase) => {
     throw error
   }
 
-  return { privateKeyPath, publicKeyPath, publicKey: parsed.normalized, fingerprint }
+  return {
+    privateKeyPath,
+    publicKeyPath,
+    publicKey: parsed.normalized,
+    fingerprint,
+  }
 }

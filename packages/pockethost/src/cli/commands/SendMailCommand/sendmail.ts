@@ -1,4 +1,4 @@
-import { PocketBase, UserFields, logger } from '@'
+import { PocketBase, UserFields, adminAuthWithPassword, logger } from '@'
 import Database from 'better-sqlite3'
 import Bottleneck from 'bottleneck'
 import { Command, InvalidArgumentError } from 'commander'
@@ -47,7 +47,7 @@ export const SendMailCommand = () =>
       info(MOTHERSHIP_URL())
 
       const client = new PocketBase(MOTHERSHIP_URL())
-      await client.collection(`_superusers`).authWithPassword(MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
+      await adminAuthWithPassword(client, MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
 
       const message = await client.collection(`campaign_messages`).getOne(messageId, { expand: 'campaign' })
       const { campaign } = message.expand || {}
@@ -58,7 +58,7 @@ export const SendMailCommand = () =>
       }
       await Promise.all(
         Object.entries(campaign.vars).map(async ([k, sql]) => {
-          const result = db.prepare(sql).get() as { value: string }
+          const result = db.prepare(String(sql)).get() as { value: string }
           vars[k.toLocaleLowerCase()] = result.value
         })
       )

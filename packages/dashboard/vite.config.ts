@@ -1,12 +1,10 @@
 import { sveltekit } from '@sveltejs/kit/vite'
+import tailwindcss from '@tailwindcss/vite'
 import type { UserConfig } from 'vite'
 
 const isProd = process.env.NODE_ENV === 'production'
 const config: UserConfig = {
-  plugins: [sveltekit()],
-  optimizeDeps: {
-    include: ['highlight.js', 'highlight.js/lib/core'],
-  },
+  plugins: [tailwindcss(), sveltekit()],
   envPrefix: 'PUBLIC_',
   envDir: isProd ? '.' : undefined,
   server: {

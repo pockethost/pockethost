@@ -31,7 +31,7 @@
 
 <div class="min-h-screen flex items-center justify-center">
   <wa-card class="w-96 bg-zinc-900 mx-auto shadow-xl overflow-hidden">
-    <div class="p-6 text-center">
+    <div class="wa-card-body text-center">
       <h2 class="mb-4">Confirming Your Account</h2>
 
       {#if formError}
@@ -42,7 +42,10 @@
           </wa-callout>
         </div>
       {:else}
-        <div class="inline-block w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" role="status">
+        <div
+          class="inline-block w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"
+          role="status"
+        >
           <span class="sr-only">Loading...</span>
         </div>
       {/if}

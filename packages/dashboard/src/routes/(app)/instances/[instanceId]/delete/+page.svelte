@@ -60,7 +60,7 @@
 </p>
 
 <wa-card class="border border-error/25 bg-[#111111]/80 shadow-lg overflow-hidden">
-  <div class="p-6 md:p-8 space-y-6">
+  <div class="wa-card-body wa-card-body--lg wa-stack-lg">
     <div>
       <p class="text-xs font-medium uppercase tracking-wide text-white/50 mb-3">What will be deleted</p>
       <ul class="space-y-2">

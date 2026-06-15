@@ -8,10 +8,14 @@ const writeSshString = (value: Buffer | string) => {
   return Buffer.concat([len, buf])
 }
 
-export const isPkcs8PrivateKey = (pem: string) => /-----BEGIN PRIVATE KEY-----/.test(pem)
+export const isPkcs8PrivateKey = (pem: string) =>
+  /-----BEGIN PRIVATE KEY-----/.test(pem)
 
 /** ssh2 only accepts OpenSSH / legacy PEM formats, not PKCS#8 Ed25519. */
-export const pkcs8Ed25519ToOpenSshPrivateKeyPem = (pem: string, comment = 'phio') => {
+export const pkcs8Ed25519ToOpenSshPrivateKeyPem = (
+  pem: string,
+  comment = 'phio'
+) => {
   const key = createPrivateKey(pem)
   if (key.asymmetricKeyType !== 'ed25519') {
     throw new Error('Deploy key must be Ed25519')
@@ -20,7 +24,10 @@ export const pkcs8Ed25519ToOpenSshPrivateKeyPem = (pem: string, comment = 'phio'
   const jwk = key.export({ format: 'jwk' }) as { d: string; x: string }
   const seed = Buffer.from(jwk.d, 'base64url')
   const pub = Buffer.from(jwk.x, 'base64url')
-  const pubWire = Buffer.concat([writeSshString('ssh-ed25519'), writeSshString(pub)])
+  const pubWire = Buffer.concat([
+    writeSshString('ssh-ed25519'),
+    writeSshString(pub),
+  ])
 
   const check = randomBytes(4)
   const privPlain = Buffer.concat([

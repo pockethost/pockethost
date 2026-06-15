@@ -2,7 +2,7 @@ import type { UserId } from '@'
 
 export type VfsScope = {
   userId: UserId
-  /** null = all instances owned by the user */
+  /** Null = all instances owned by the user */
   instanceIds: string[] | null
 }
 

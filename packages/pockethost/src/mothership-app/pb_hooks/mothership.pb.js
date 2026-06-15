@@ -112,12 +112,6 @@ onRecordUpdateRequest((e) => {
 }, "ssh_keys");
 
 //#endregion
-//#region src/lib/handlers/stats/hooks.ts
-routerAdd("GET", "/api/stats", (e) => {
-	return require(`${__hooks}/mothership`).HandleStatsRequest(e);
-});
-
-//#endregion
 //#region src/lib/handlers/user/hooks.ts
 routerAdd("GET", "/api/userToken/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTokenRequest(e);

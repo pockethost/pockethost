@@ -1,5 +1,3 @@
-import type { BlogAuthor } from '$lib/blog/authors'
-
 export type BlogTocEntry = {
   title: string
   path: string
@@ -14,6 +12,22 @@ export const toc: BlogTocEntry[] = [
     path: '/blog/mothership-pocketbase-v039',
     description:
       'The control plane finally crossed the v0.22 → v0.23 JSVM cutover. One-way door, smaller SQLite files, and a babysit-and-fix rollout as long as instances keep running.',
+    date: 'Jun 14, 2026',
+    author: 'capn',
+  },
+  {
+    title: 'Pre-v0.39 Platform Refresh: Tests, CI, and Dependency Upgrades',
+    path: '/blog/pre-39-platform-deps-refresh',
+    description:
+      'Before Mothership v0.39 cutover: Vitest suite, CI gates, phased deps refresh, PocketBase SDK 0.27, dual admin auth for 0.22 Mothership.',
+    date: 'Jun 14, 2026',
+    author: 'capn',
+  },
+  {
+    title: 'Pre-Staging the Mothership v0.39 Cutover',
+    path: '/blog/mothership-v039-prestage',
+    description:
+      'Two-phase upgrade: dual admin auth and dependency bumps on main first, zero lockfile changes on the v39 branch, SQL views dropped early. Cutover day flips Mothership only.',
     date: 'Jun 14, 2026',
     author: 'capn',
   },
@@ -140,7 +154,8 @@ export const toc: BlogTocEntry[] = [
   {
     title: 'Direct PocketBase Version Sync',
     path: '/blog/pocketbase-version-sync',
-    description: 'PocketBase versions now sync directly from GitHub. No Gobot middleman, faster updates, no token required.',
+    description:
+      'PocketBase versions now sync directly from GitHub. No Gobot middleman, faster updates, no token required.',
     date: 'Jun 12, 2026',
     author: 'capn',
   },

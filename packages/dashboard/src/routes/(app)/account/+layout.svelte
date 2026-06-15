@@ -14,11 +14,14 @@
   $: pathname = $page.url.pathname
   $: isAccountActive = pathname === '/account' || pathname === '/account/'
   $: isKeysActive = pathname.startsWith('/account/keys')
-  $: activeClass = (active: boolean) => (active ? 'bg-white/10 text-white' : 'text-white/70 hover:text-white hover:bg-white/5')
+  $: activeClass = (active: boolean) =>
+    active ? 'bg-white/10 text-white' : 'text-white/70 hover:text-white hover:bg-white/5'
 </script>
 
 <div class="max-w-4xl mx-auto py-4 md:py-8">
-  <div class="flex md:hidden items-center sticky top-0 gap-3 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md py-3 mb-4 border-b border-white/10 z-40 -mx-4 px-4">
+  <div
+    class="flex md:hidden items-center sticky top-0 gap-3 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md py-3 mb-4 border-b border-white/10 z-40 -mx-4 px-4"
+  >
     <button type="button" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle settings menu">
       <wa-icon name="bars"></wa-icon>
     </button>

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
-  import UserHasRole from '$components/guards/UserHasRole.svelte'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
   import Avatar from './Avatar.svelte'
@@ -15,37 +14,31 @@
 </script>
 
 {#if isCollapsed}
-  <div class="flex flex-col gap-1 bg-[#111111] rounded-lg z-[100] mt-3 w-52 p-2 shadow-xl">
-    <wa-button href="/" appearance="plain" class="justify-start">Home</wa-button>
+  <div class="flex flex-col gap-1 rounded-lg bg-[#111111] p-2 shadow-xl w-52 z-[100] mt-3">
+    <a href="/" class="site-nav-link site-nav-link--menu">Home</a>
     <UserLoggedIn>
-      <wa-button href="/dashboard" appearance="plain" class="justify-start">Dashboard</wa-button>
+      <a href="/dashboard" class="site-nav-link site-nav-link--menu">Dashboard</a>
     </UserLoggedIn>
-    <UserHasRole role="stats">
-      <wa-button href="/stats" appearance="plain" class="justify-start">Stats</wa-button>
-    </UserHasRole>
-    <wa-button href="/pricing" appearance="plain" class="justify-start">Pricing</wa-button>
-    <wa-button href="/blog" appearance="plain" class="justify-start">Blog</wa-button>
-    <wa-button href="/docs" appearance="plain" class="justify-start">Docs</wa-button>
+    <a href="/pricing" class="site-nav-link site-nav-link--menu">Pricing</a>
+    <a href="/blog" class="site-nav-link site-nav-link--menu">Blog</a>
+    <a href="/docs" class="site-nav-link site-nav-link--menu">Docs</a>
     <UserLoggedOut>
-      <wa-button href="/about" appearance="plain" class="justify-start">About</wa-button>
+      <a href="/about" class="site-nav-link site-nav-link--menu">About</a>
     </UserLoggedOut>
     <UserLoggedOut>
-      <wa-button href="/login" appearance="plain" class="justify-start">Login</wa-button>
+      <a href="/login" class="site-nav-link site-nav-link--menu">Login</a>
     </UserLoggedOut>
   </div>
 {:else}
-  <nav class="flex items-center gap-1">
+  <nav class="site-nav flex items-center gap-1">
     <UserLoggedIn>
-      <wa-button href="/dashboard" appearance="plain" class="hidden lg:inline-flex">Dashboard</wa-button>
+      <a href="/dashboard" class="site-nav-link">Dashboard</a>
     </UserLoggedIn>
-    <UserHasRole role="stats">
-      <wa-button href="/stats" appearance="plain" class="hidden lg:inline-flex">Stats</wa-button>
-    </UserHasRole>
-    <wa-button href="/pricing" appearance="plain" class="hidden lg:inline-flex">Pricing</wa-button>
-    <wa-button href="/blog" appearance="plain" class="hidden lg:inline-flex">Blog</wa-button>
-    <wa-button href="/docs" appearance="plain" class="hidden lg:inline-flex">Docs</wa-button>
+    <a href="/pricing" class="site-nav-link">Pricing</a>
+    <a href="/blog" class="site-nav-link">Blog</a>
+    <a href="/docs" class="site-nav-link">Docs</a>
     <UserLoggedOut>
-      <wa-button href="/about" appearance="plain" class="hidden lg:inline-flex">About</wa-button>
+      <a href="/about" class="site-nav-link">About</a>
     </UserLoggedOut>
     <UserLoggedIn>
       <wa-dropdown placement="bottom-end" class="nav-user-menu ml-1">
@@ -61,7 +54,7 @@
       </wa-dropdown>
     </UserLoggedIn>
     <UserLoggedOut>
-      <wa-button href="/login" appearance="plain">Login</wa-button>
+      <a href="/login" class="site-nav-link site-nav-link--login">Login</a>
     </UserLoggedOut>
   </nav>
 {/if}

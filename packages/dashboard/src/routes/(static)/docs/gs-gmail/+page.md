@@ -56,7 +56,7 @@ Once again, Cloudflare makes it easy and automatic. Otherwise, this may involve 
 
 ## Adding a Catch-All Email
 
-I set up a catch-all email so that any email sent to `<anything>@pocodex.dev` is routed to `ben@pocodex.dev` if the specific email address doesn’t exist. This is optional, but you might want to consider what happens to unrecognized email addresses in your setup.
+I set up a catch-all email so that any email sent to `<anything>@yourdomain.com` is routed to `admin@yourdomain.com` if the specific email address doesn’t exist. This is optional, but you might want to consider what happens to unrecognized email addresses in your setup.
 
 [This Google help article](https://apps.google.com/supportwidget/articlehome) covers it, but here it is below too:
 
@@ -64,7 +64,7 @@ I like to go to [Default Routing](https://admin.google.com/ac/apps/gmail/default
 
 ![](2024-09-08-19-21-45.png)
 
-Use a regex to match the entire domain like `@pocodex\.dev$`. I also like to prepend `[CATCHALL] - ` to the subject so I know that it wasn't sent to my "real" address.
+Use a regex to match the entire domain like `@yourdomain\.com$`. I also like to prepend `[CATCHALL] - ` to the subject so I know that it wasn't sent to my "real" address.
 
 ![](2024-09-08-19-25-59.png)
 

@@ -1,5 +1,10 @@
 import { Command } from 'commander'
-import { DEPLOY_KEY_LABEL, ensureDeployKey, formatDeployKeyRemoteStatus, getDeployKeyStatus } from '../lib/deployKey'
+import {
+  DEPLOY_KEY_LABEL,
+  ensureDeployKey,
+  formatDeployKeyRemoteStatus,
+  getDeployKeyStatus,
+} from '../lib/deployKey'
 import { PHIO_HOME } from '../lib/constants'
 import { savedInstanceName } from '../lib/defaultInstanceId'
 import { resolveAuthStatus } from '../lib/getClient'
@@ -22,7 +27,9 @@ export const showInfo = async () => {
   console.log(`Deploy key private: ${status.privateKeyPath}`)
   console.log(`Deploy key public: ${status.publicKeyPath}`)
   console.log(`Deploy key fingerprint: ${status.fingerprint}`)
-  console.log(`Deploy key remote: ${formatDeployKeyRemoteStatus(status.remote)}`)
+  console.log(
+    `Deploy key remote: ${formatDeployKeyRemoteStatus(status.remote)}`
+  )
 }
 
 export const InfoCommand = () => {

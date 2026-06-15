@@ -3,7 +3,7 @@
 </script>
 
 <div
-  class="relative w-full max-w-md bg-white dark:bg-neutral text-gray-900 dark:text-white rounded-2xl shadow-lg overflow-hidden transition hover:scale-[1.02]"
+  class="relative w-full max-w-md bg-neutral-900 text-white rounded-2xl shadow-lg overflow-hidden transition hover:scale-[1.02] border border-white/10"
 >
   <div class="absolute top-0 left-0 bg-primary text-white text-xl p-2 rounded-br-2xl">
     <wa-icon name="check"></wa-icon>

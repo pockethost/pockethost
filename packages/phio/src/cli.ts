@@ -31,16 +31,22 @@ program
 // Add error handling
 program.exitOverride()
 
-program.parseAsync(process.argv).catch((err: NodeJS.ErrnoException & { code?: string }) => {
-  if (err.code === 'commander.helpDisplayed' || err.code === 'commander.help' || err.code === 'commander.version') {
-    process.exit(0)
-  }
-  if (err.code === 'commander.unknownCommand') {
-    console.error('Error: Unknown command')
-  } else if (err.code === 'commander.missingArgument') {
-    console.error('Error: Missing required argument')
-  } else {
-    console.error('Error:', err.message)
-  }
-  process.exit(1)
-})
+program
+  .parseAsync(process.argv)
+  .catch((err: NodeJS.ErrnoException & { code?: string }) => {
+    if (
+      err.code === 'commander.helpDisplayed' ||
+      err.code === 'commander.help' ||
+      err.code === 'commander.version'
+    ) {
+      process.exit(0)
+    }
+    if (err.code === 'commander.unknownCommand') {
+      console.error('Error: Unknown command')
+    } else if (err.code === 'commander.missingArgument') {
+      console.error('Error: Missing required argument')
+    } else {
+      console.error('Error:', err.message)
+    }
+    process.exit(1)
+  })

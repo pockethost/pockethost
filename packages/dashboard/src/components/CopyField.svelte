@@ -33,7 +33,7 @@
   </Clipboard>
 </div>
 
-<style lang="scss">
+<style>
   .copy-field {
     display: flex;
     align-items: flex-start;
