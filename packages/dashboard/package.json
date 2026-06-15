@@ -7,7 +7,7 @@
     "check:types": "svelte-check",
     "preview": "npx http-server@latest ./build -P \"http://localhost:8080?\"",
     "dev": "node scripts/sync-route-images.js && vite dev",
-    "build": "node scripts/sync-route-images.js && NODE_ENV/production vite build",
+    "build": "node scripts/sync-route-images.js && NODE_ENV=production vite build",
     "deploy": "wrangler pages deploy ./build",
     "lint": "prettier --check .",
     "format": "prettier --write .",
