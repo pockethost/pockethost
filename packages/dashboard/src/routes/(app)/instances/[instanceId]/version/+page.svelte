@@ -8,6 +8,7 @@
 
   $: ({ id, version } = $instance)
   $: isFullyOff = isInstanceFullyOff($instance)
+  $: showV23Notice = minorVersion(version) <= 22
 
   const minorVersion = (v: string) => Number(v.split('.')[1] ?? 0)
 
@@ -76,8 +77,8 @@
   {successMessage}
   successFlash
 >
-  <svelte:fragment slot="alerts">
-    {#if minorVersion(version) <= 22}
+  {#snippet alerts()}
+    {#if showV23Notice}
       <wa-callout variant="warning" class="wa-callout-padded mb-4">
         <wa-icon slot="icon" name="triangle-exclamation"></wa-icon>
         <p>
@@ -89,16 +90,16 @@
         </p>
       </wa-callout>
     {/if}
-  </svelte:fragment>
+  {/snippet}
 
-  <svelte:fragment slot="summary">
+  {#snippet summary()}
     <p>
       We recommend you <strong>do a full backup</strong>
       before making a change. We support the latest patch of
       <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of
       PocketBase.
     </p>
-  </svelte:fragment>
+  {/snippet}
 
   <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
     <VersionPicker bind:selectedVersion versions={$versions} disabled={!isFullyOff} />
