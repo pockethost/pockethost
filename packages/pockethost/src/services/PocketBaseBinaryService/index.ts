@@ -1,8 +1,7 @@
 import { LoggerService, mkSingleton, PH_ALLOWED_POCKETBASE_SEMVER, PH_POCKETBASE_ROOT, SingletonBaseConfig } from '@'
-import { chmodSync, createWriteStream, existsSync, readdirSync, rmSync } from 'fs'
-import { mkdir } from 'fs/promises'
+import { chmodSync, existsSync, readdirSync, rmSync } from 'fs'
+import { mkdir, writeFile } from 'fs/promises'
 import { spawn, type ChildProcess } from 'node:child_process'
-import { Readable } from 'node:stream'
 import { join } from 'path'
 import { compare, valid } from 'semver'
 import { spawnPocketBaseContainer } from './dockerSpawn'
@@ -79,19 +78,7 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
     if (!res.ok) {
       throw new Error(`Download failed for PocketBase ${version} (${res.status})`)
     }
-    const body = res.body
-    if (!body) {
-      throw new Error(`Download failed for PocketBase ${version} (empty body)`)
-    }
-
-    await new Promise<void>((resolve, reject) => {
-      const out = createWriteStream(zipPath)
-      const nodeBody = Readable.fromWeb(body)
-      nodeBody.pipe(out)
-      out.on('finish', () => resolve())
-      out.on('error', reject)
-      nodeBody.on('error', reject)
-    })
+    await writeFile(zipPath, Buffer.from(await res.arrayBuffer()))
 
     await mkdir(versionDir, { recursive: true })
     await extractPocketBaseZip(zipPath, versionDir, binaryName)
