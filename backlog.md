@@ -51,8 +51,10 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **Halt lifetime edition sales** | Low | S | Stop selling lifetime tiers once comms are out. Policy: **no new lifetime purchases for rest of 2026** (possibly never again). Decouple from full pricing redo if needed. |
 | **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). Today: sale webhook + hardcoded `store.pockethost.io` checkout URLs; account page defers quantity changes to support. Customers self-serve plan changes without support tickets. |
 | **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
-| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder/lifetime tiers; grandfather existing subscribers. New structure (draft): **Starter ~$19.99/mo** (~25 instances, **1 min hibernate**), **Pro ~$49.99/mo** (~250 instances, **1 hr hibernate**). **Blocked by:** pre-announce email, community post, pricing-page update, last-chance blast, halt lifetime sales. |
-| **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror: **Starter 1 min**, **Pro 1 hr** (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Mothership sets TTL from plan; update limits/marketing docs. Pro keeps instances warm longer (cron, PB jobs); Starter hibernates faster to save platform resources. |
+| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder/lifetime tiers; grandfather existing subscribers. New structure (draft): **Free** (1 concurrent, 1 GB primary volume, unmetered file storage), **Pro $19.99/mo** (5 concurrent, 50 GB), **Agency $49.99/mo** (50 concurrent, 200 GB). Total instance count **unlimited** on paid tiers; plan limit is **concurrent warm instances** + primary volume (sqlite + hooks/static on edge block storage). **Blocked by:** pre-announce email, community post, pricing-page update, last-chance blast, halt lifetime sales. |
+| **Concurrent instance limits (plan tier)** | Med | M | Enforce max **warm/running** instances per subscription; idle/hibernated instances do not count. **Free:** 1 concurrent. **Pro:** 5 concurrent. **Agency:** 50 concurrent. Mothership gate on power-on/spawn; edge mirror rejects over-cap warm set; dashboard shows concurrent usage vs limit. Distinct from legacy `subscription_quantity` instance cap. Depends on **Pricing redo** + **Lemon Squeezy subscription lifecycle**. |
+| **Plan-tier primary volume quotas** | Med | M | Hard cap on edge primary volume per plan (sqlite + hooks/static): **Free 1 GB**, **Pro 50 GB**, **Agency 200 GB**. PB file uploads on S3 or unmetered fair-use path excluded from primary meter (Free: unmetered file storage). Dashboard surfacing + edge warn/reject on exceed. Pairs with **Enforced storage quotas**; prerequisite for honest **Pricing clarity**. |
+| **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Draft: shorter TTL on Free, longer on Pro/Agency so concurrent cap is the main warm-instance knob. Mothership sets TTL from plan; update limits/marketing docs. |
 | **Plan-tier rate limits** | Med | M | Subscription tier → firewall limits per instance hostname (today global `LIMITS` in `rate-limiter.ts`: trusted/untrusted IP + hostname hourly + concurrent). Mothership resolves plan on instance; edge/firewall applies tier-specific points (e.g. Starter lower hostname ceiling, Pro higher). Distinct from **User-controlled rate limiting** (customer knobs). Pro gets headroom for production traffic; Starter stays fair on shared firewall. |
 | **Enforced storage quotas** | Med | L | Migrate from fair-use to hard limits: sqlite DB size, FTP upload usage, PB file storage (volume or S3-metered). Dashboard surfacing + mothership schema + edge reject/warn. Prerequisite for honest **Pricing clarity**; vectors: sqlite size, FTPS/SFTP uploads, PB file uploads. |
 | **Pricing clarity** | Low | M | Explicit limits on storage, bandwidth, rate limits on marketing + dashboard. Tie to firewall/instance quotas + **Enforced storage quotas**. |
@@ -151,7 +153,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 ### Pricing migration (Flounder + lifetime)
 
 - Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, edge `instance.idleTtl` / `DAEMON_PB_IDLE_TTL`.
-- **Draft plan limits:** Starter — ~25 instances, **1 min hibernate**; Pro — ~250 instances, **1 hr hibernate**.
+- **Draft plan limits:** total instances **unlimited** (paid); cap is **concurrent warm** + **primary volume** (sqlite + hooks/static). **Free:** 1 concurrent, 1 GB primary, unmetered file storage. **Pro ($19.99/mo):** 5 concurrent, 50 GB. **Agency ($49.99/mo):** 50 concurrent, 200 GB.
 - **Comms sequence (blockers):** (1) pre-announce email to all users — stay or leave; (2) Reddit/community post; (3) update public pricing page; (4) last-chance Flounder blast to existing users; (5) halt new lifetime sales (rest of 2026, maybe permanent); (6) retire tiers with grandfather + grace period.
 
 ### Runtime status (Jun 2026)
@@ -186,8 +188,12 @@ Mothership↔edge decoupling (runtime status) ──► Decouple mothership (pac
 Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
 Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
 Expand test coverage ──► handler/semver/spawn regression tests
-Pricing redo ──► plan-tier hibernate intervals (Starter 1 min / Pro 1 hr)
-Pricing redo ──► plan-tier rate limits (Starter vs Pro firewall ceilings)
+Pricing redo ──► concurrent instance limits (warm cap per tier)
+Pricing redo ──► plan-tier primary volume quotas (1 / 50 / 200 GB)
+Pricing redo ──► plan-tier hibernate intervals (TTL per tier)
+Pricing redo ──► plan-tier rate limits (Free vs Pro vs Agency firewall ceilings)
+Concurrent instance limits ──► dashboard concurrent usage UI + spawn/power gate
+Plan-tier primary volume quotas ──► enforced storage quotas + pricing clarity
 Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Plan-tier hibernate ──► limits docs + pricing/marketing copy
 Scheduled automatic backups ──► plan-tier hibernate or platform wake; idle blocks PB cron + webhook backup
