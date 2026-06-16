@@ -9,6 +9,13 @@
  * hosts when a component needs a variant. Do not rely on TW utilities on wa-* tags.
  */
 
+/* WA default theme underlines every <a> with a dotted line — disable site-wide; use Tailwind underline where needed. */
+:root,
+.wa-theme-default {
+  --wa-link-decoration-default: none;
+  --wa-link-decoration-hover: none;
+}
+
 /* Unlayered nav links — wa-button plain text is black on our dark header after TW4 layering. */
 .site-nav-link {
   display: none;
