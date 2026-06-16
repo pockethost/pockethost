@@ -9,11 +9,16 @@
 @import './lib/pricingCard.css';
 
 :root {
+  /* wa-brand-green on <html> sets the full brand-* scale; keep PocketHost green as the base token. */
   --wa-color-brand: #1eb854;
   --wa-color-brand-on: #ffffff;
   --wa-color-success: #1eb854;
   --wa-color-warning: #fbbf24;
   --wa-color-danger: #ef4444;
+}
+
+.wa-dark {
+  --wa-color-text-link: #1eb854;
 }
 
 /* Dark site defaults — keep in @layer base so Tailwind text-* utilities still win. */
