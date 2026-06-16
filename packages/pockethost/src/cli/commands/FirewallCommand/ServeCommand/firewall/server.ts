@@ -9,6 +9,7 @@ import {
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   PH_DISABLE_FIREWALL_RATE_LIMIT,
+  PH_FIREWALL_DAEMON_GRACE_MS,
   PH_USER_PROXY_IPS,
   SSL_CERT,
   SSL_KEY,
@@ -21,6 +22,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
+import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
 import { createRateLimiterMiddleware } from './rate-limiter'
 
 export type FirewallOptions = {
@@ -28,7 +30,7 @@ export type FirewallOptions = {
 }
 
 export const firewall = async ({ logger }: FirewallOptions) => {
-  const { dbg, error, info } = logger.create(`firewall`)
+  const { dbg, info, error } = logger.create(`firewall`)
 
   const PROD_ROUTES = {
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
@@ -70,9 +72,10 @@ export const firewall = async ({ logger }: FirewallOptions) => {
       return
     }
 
+    const { error: logError } = logger.create(`firewall`)
     exec('pm2 restart edge-daemon', (err, stdout, stderr) => {
       if (err) {
-        error(err)
+        logError(err)
         res.status(500).json({ error: 'pm2 reset failed', code: 500 })
         res.end()
         return
@@ -93,26 +96,42 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
   }
 
+  const graceMs = PH_FIREWALL_DAEMON_GRACE_MS()
+  if (graceMs > 0) {
+    info(`Firewall daemon grace enabled: ${graceMs}ms (PH_FIREWALL_DAEMON_GRACE_MS)`)
+  }
+
   Object.entries(hostnameRoutes).forEach(([host, target]) => {
     app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
   })
 
-  // Fall-through to edge daemon
+  const daemonTarget = `http://localhost:${DAEMON_PORT()}`
+  const daemonProxyErrorHandler = createDaemonProxyErrorHandler(logger)
   const handler = createProxyMiddleware({
-    target: `http://localhost:${DAEMON_PORT()}`,
+    target: daemonTarget,
+    on: {
+      error: (err, req, res) => {
+        daemonProxyErrorHandler(err, req, res as express.Response, () => undefined)
+      },
+    },
   })
+
+  app.use(createDaemonGraceMiddleware(logger))
   app.use((req, res, next) => {
     const method = req.method
     const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
 
-    dbg(`${method} ${fullUrl} -> ${`http://localhost:${DAEMON_PORT()}`}`)
+    dbg(`${method} ${fullUrl} -> ${daemonTarget}`)
 
     handler(req, res, next)
   })
 
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    error(err)
-    res.status(500).send(err.toString())
+    if (res.headersSent) {
+      next(err)
+      return
+    }
+    daemonProxyErrorHandler(err, req, res, next)
   }
   app.use(errorHandler)
 

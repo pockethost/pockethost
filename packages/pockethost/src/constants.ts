@@ -35,6 +35,10 @@ export const _DATA_ROOT = env.get('DATA_ROOT').default(join(_PH_HOME, `data`)).a
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
+export const _PH_FIREWALL_DAEMON_GRACE_MS = Number(env.get('PH_FIREWALL_DAEMON_GRACE_MS').default('60000').asString())
+export const _PH_FIREWALL_DAEMON_GRACE_RETRY_MS = Number(
+  env.get('PH_FIREWALL_DAEMON_GRACE_RETRY_MS').default('500').asString()
+)
 export const _PH_ENABLE_INSTANCE_WEBHOOKS = env.get('PH_ENABLE_INSTANCE_WEBHOOKS').asBool()
 export const _PH_DISABLE_INSTANCE_WEBHOOKS = _PH_ENABLE_INSTANCE_WEBHOOKS
   ? false
@@ -83,6 +87,8 @@ export const createSettings = () => ({
   PH_CONTAINER_LAUNCH_WARN_MS: mkNumber(200),
   PH_CONTAINER_STOP_TIMEOUT_SEC: mkNumber(5),
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES: mkNumber(5),
+  PH_FIREWALL_DAEMON_GRACE_MS: mkNumber(_PH_FIREWALL_DAEMON_GRACE_MS),
+  PH_FIREWALL_DAEMON_GRACE_RETRY_MS: mkNumber(_PH_FIREWALL_DAEMON_GRACE_RETRY_MS),
 
   MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
   MOTHERSHIP_ADMIN_USERNAME: mkString(),
@@ -175,6 +181,8 @@ export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
 export const PH_CONTAINER_STOP_TIMEOUT_SEC = () => settings().PH_CONTAINER_STOP_TIMEOUT_SEC
 export const PH_MAX_CONCURRENT_DOCKER_LAUNCHES = () => settings().PH_MAX_CONCURRENT_DOCKER_LAUNCHES
+export const PH_FIREWALL_DAEMON_GRACE_MS = () => settings().PH_FIREWALL_DAEMON_GRACE_MS
+export const PH_FIREWALL_DAEMON_GRACE_RETRY_MS = () => settings().PH_FIREWALL_DAEMON_GRACE_RETRY_MS
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
   [
@@ -313,6 +321,8 @@ export const logConstants = () => {
     DOCKER_INSTANCE_IMAGE_NAME,
     PH_POCKETBASE_ROOT,
     PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
+    PH_FIREWALL_DAEMON_GRACE_MS,
+    PH_FIREWALL_DAEMON_GRACE_RETRY_MS,
     MOTHERSHIP_DATA_DB,
     INSTANCES_ROOT,
     PH_MOTHERSHIP_MIRROR_PORT,
