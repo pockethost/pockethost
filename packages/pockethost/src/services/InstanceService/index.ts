@@ -394,7 +394,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const endRequest = api.startRequest()
     res.on('close', endRequest)
     if (req.closed) {
-      error(`Request already closed. ${res.locals.requestId}`)
+      dbg(`Request already closed. ${res.locals.requestId}`)
     }
 
     dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
