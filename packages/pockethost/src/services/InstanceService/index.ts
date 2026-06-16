@@ -371,9 +371,15 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     }
 
     if (vacuumLocks.isLocked(instance.id)) {
-      throw userError(
-        `This instance is temporarily unavailable due to database maintenance. Please try again in a few minutes.`
-      )
+      dbg(`Waiting for vacuum lock on ${instance.id}`)
+      const unlocked = await vacuumLocks.waitUntilUnlocked(instance.id, {
+        isAborted: () => req.aborted || res.writableEnded || res.headersSent,
+      })
+      if (!unlocked) {
+        throw userError(
+          `This instance is temporarily unavailable due to database maintenance. Please try again in a few minutes.`
+        )
+      }
     }
 
     const start = now()

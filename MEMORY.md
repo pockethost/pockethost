@@ -65,7 +65,7 @@ Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pocketh
 - `MothershipAdminClientService` — admin PB client + instance mixin
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
-- `VacuumLockService` — edge-owned per-instance vacuum locks (`/_api/daemon/vacuum/lock|unlock`, `PH_SECRET` auth, 30min TTL). `InstanceService` registers `isLive` and blocks spawns while locked.
+- `VacuumLockService` — edge-owned per-instance vacuum locks (`/_api/daemon/vacuum/lock|unlock`, `PH_SECRET` auth, 30min TTL). Sets mothership `status=vacuuming` on lock grant, `idle` on unlock/TTL. `InstanceService` waits up to `PH_DAEMON_VACUUM_WAIT_MS` (default 30s, retry 50ms) instead of failing immediately.
 - `InstanceFileAccess` — shared virtual FS for FTPS/SFTP (`InstanceVfs`, `authenticateFileAccess` for FTPS, `sshKeyAuth` + scoped VFS for SFTP). Mothership `ssh_keys` collection (Ed25519, all-or-specific instance scope). Instance root allows only standard dirs + deploy sync file `.ftp-deploy-sync-state.json` (phio / FTP-Deploy-Action). SFTP relative paths use `InstanceVfs.cwd` (updated on REALPATH to directories), matching FTPS CWD semantics for deploy delete/upload.
 
 Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
@@ -99,7 +99,7 @@ Nav config: `lib/dashboard/featureTabTypes.ts`. `CardHeader` is deprecated.
 - Layout: solid `#111111` background (BlurBg removed); content caps `max-w-content` / `max-w-prose` / `max-w-form`
 - Images: plain `<img>` + Vite imports (no `@sveltejs/enhanced-img`); co-located doc/blog assets synced to `static/generated/` via `scripts/sync-route-images.js` on `dev`/`build` (gitignored; markdown refs use `/generated/...`)
 - App routes: `packages/dashboard/src/routes/`
-- Instance power UX: `src/util/instancePower.ts` — `isInstanceShuttingDown` (`!power && status≠idle`), `isInstanceFullyOff` (`!power && idle`); gates Advanced settings (version, domain, admin sync, auto vacuum, dev mode, rename, delete) via `PowerOffRequired.svelte`
+- Instance power UX: `src/util/instancePower.ts` — `isInstanceShuttingDown` (`!power && status≠idle`), `isInstanceFullyOff` (`!power && idle`); runtime badge includes `vacuuming` (`Maintaining`); gates Advanced settings (version, domain, admin sync, auto vacuum, dev mode, rename, delete) via `PowerOffRequired.svelte`
 - CLI runs with `node --experimental-eventsource --import tsx` (Node 24 native `EventSource` for PocketBase mirror SSE)
 - User docs: `(static)/docs/**` as `+page.md`
 - Blog: `(static)/blog/**`
