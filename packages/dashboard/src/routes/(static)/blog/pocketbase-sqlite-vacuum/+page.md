@@ -84,4 +84,4 @@ If you run log retention at `maxDays: 1`, the bloat accumulates quietly. A quick
 
 ### What we are doing about it
 
-We shipped **[Auto Vacuum](/blog/auto-vacuum)** for hosted instances: a nightly `health-compact` job that `VACUUM`s idle instance databases when the feature is enabled (on by default). See that post and **[Auto Vacuum docs](/docs/auto-vacuum)** for dashboard toggles, downtime expectations, and self-host commands.
+We shipped **[Auto Vacuum](/blog/auto-vacuum)** for hosted instances: a nightly `edge-vacuum` job that `VACUUM`s idle instance databases when the feature is enabled (on by default). See that post and **[Auto Vacuum docs](/docs/auto-vacuum)** for dashboard toggles, downtime expectations, and self-host commands.

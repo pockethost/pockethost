@@ -6,7 +6,7 @@ Full details are in **[Auto Vacuum](/docs/auto-vacuum)**.
 
 ### When it runs
 
-The edge runs `pockethost health compact` once a day via PM2 (`health-compact`). For each instance with Auto Vacuum enabled, we compact both SQLite files **only while the instance is idle** (hibernated). Running containers are skipped until traffic stops and the instance sleeps.
+The edge runs `pockethost edge vacuum` once a day via PM2 (`edge-vacuum`). For each instance with Auto Vacuum enabled, we compact both SQLite files **only while the instance is idle** (hibernated). Running containers are skipped until traffic stops and the instance sleeps.
 
 If a request wakes your instance while vacuum is in progress, you may see **up to about 5 seconds** of downtime while the database finishes. We schedule this for idle windows on purpose.
 
@@ -19,8 +19,8 @@ Open any instance and scroll to **Danger Zone → Auto Vacuum**. Flip the switch
 Same command, same behavior:
 
 ```bash
-pockethost health compact --dry-run   # preview what would run
-pockethost health compact             # run the sweep
+pockethost edge vacuum --dry-run   # preview what would run
+pockethost edge vacuum             # run the sweep
 ```
 
 When Mothership data lives on the same host, the job briefly stops Mothership to vacuum its `data.db` and `logs.db` too. Idle instance mounts are skipped if Docker still has the volume open.

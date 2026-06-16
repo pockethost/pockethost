@@ -1,6 +1,6 @@
 ---
 name: Edge vacuum locks
-overview: Add edge-owned per-instance vacuum locks via `/_api/daemon/vacuum/*`, gate spawns in InstanceService, and refactor `health compact` to acquire/release locks through edge (abort if edge is down). Include `--hours-back` mtime filtering and wire nightly PM2 to `--hours-back=24`.
+overview: Add edge-owned per-instance vacuum locks via `/_api/daemon/vacuum/*`, gate spawns in InstanceService, and refactor `edge vacuum` to acquire/release locks through edge (abort if edge is down). Include `--hours-back` mtime filtering and wire nightly PM2 to `--hours-back=24`.
 todos:
   - id: vacuum-lock-service
     content: 'Create VacuumLockService: in-memory locks, TTL sweeper, PH_SECRET auth, POST lock/unlock routes on /_api/daemon/vacuum'
@@ -18,7 +18,7 @@ todos:
     content: 'Refactor vacuumIdleInstanceDbs: per-instance lock try/finally, group dbs by instance, abort if edge down'
     status: pending
   - id: hours-back
-    content: Add --hours-back CLI option + mtime filter; set ecosystem health-compact to --hours-back=24
+    content: Add --hours-back CLI option + mtime filter; set ecosystem edge-vacuum to --hours-back=24
     status: pending
   - id: docs-memory
     content: Update MEMORY.md, auto-vacuum docs, backlog.md; exempt vacuum paths in rate-limiter
@@ -124,7 +124,7 @@ This closes the spawn path edge owns.
 
 **[`--hours-back`](packages/pockethost/src/cli/commands/HealthCommand/index.ts):**
 
-- Add `.option('--hours-back <hours>', 'Only vacuum instances with db mtime within N hours')` to `health compact`
+- Add `.option('--hours-back <hours>', 'Only vacuum instances with db mtime within N hours')` to `edge vacuum`
 - Pass through `compact` → `vacuumAll` → `vacuumIdleInstanceDbs`
 - Filter: include instance if `max(mtime(data.db), mtime(logs.db)) >= now - hours * 3600_000`
 - Omit flag = full sweep (current behavior)
@@ -133,8 +133,8 @@ This closes the spawn path edge owns.
 
 ## 4. Ops + docs
 
-- [`ecosystem.config.cjs`](ecosystem.config.cjs): `health-compact` script → `pnpm prod:cli health compact --hours-back=24`
-- [`MEMORY.md`](MEMORY.md): update `health compact` row (edge lock API, `--hours-back`, spawn gate)
+- [`ecosystem.config.cjs`](ecosystem.config.cjs): `edge-vacuum` script → `pnpm prod:cli edge vacuum --hours-back=24`
+- [`MEMORY.md`](MEMORY.md): update `edge vacuum` row (edge lock API, `--hours-back`, spawn gate)
 - [`packages/dashboard/src/routes/(static)/docs/auto-vacuum/+page.md`](<packages/dashboard/src/routes/(static)/docs/auto-vacuum/+page.md>): note brief maintenance if request hits a locked instance during sweep
 - [`backlog.md`](backlog.md): add Backlog row for shipped work (move to Done on merge)
 

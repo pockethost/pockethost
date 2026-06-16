@@ -8,12 +8,12 @@ We fixed that. The first production sweep **reclaimed about 300 GB**, nearly **h
 
 **Delete is now Mothership-first.** When you remove an instance, the control plane drops the PocketBase record (with the usual idle gate). The edge no longer tries to rimraf during that request.
 
-**Cleanup runs on the edge.** A new `pockethost edge cleanup` command compares local `pb_data` directories against the live instance list from Mothership. Anything on disk without a matching record is an orphan. PM2 runs it daily as `edge-cleanup`.
+**Purge runs on the edge.** `pockethost edge purge-orphans` compares local `pb_data` directories against the live instance list from Mothership. Anything on disk without a matching record is an orphan. PM2 runs it daily as `edge-purge-orphans`.
 
 Self-hosters can preview with:
 
 ```bash
-pockethost edge cleanup --dry-run
+pockethost edge purge-orphans --dry-run
 ```
 
 ### Why this matters for you

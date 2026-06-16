@@ -24,11 +24,11 @@ Entry: `packages/pockethost/src/cli/index.ts` (tsx). IOC bootstraps logger + env
 |---------|---------|
 | `mothership` | Control-plane PocketBase (users, instances, billing hooks) |
 | `firewall` | Reverse proxy, vhost routing, rate limiting |
-| `edge` | Edge node: daemon (instance spawner), `cleanup` (orphan data), FTPS (`edge ftp`), syslog |
+| `edge` | Edge node: daemon (instance spawner), `purge-orphans` (orphan data), `vacuum` (SQLite VACUUM), FTPS (`edge ftp`), syslog |
 | `sftp` | SFTP file access (`ssh2`, port `PH_SFTP_PORT` default 2222). Ed25519 SSH key auth, virtual FS shared with FTPS |
 | `serve` | Local/dev stack: mothership + daemon + firewall + SFTP |
 | `pocketbase` | PocketBase binary download / version management |
-| `health` | Edge monitoring (`health check`): PM2, HTTP/TCP, disk/RAM/TLS; posts to `DISCORD_HEALTH_CHANNEL_URL` each run. `health compact`: nightly SQLite `VACUUM` on idle instance `data.db`/`logs.db` where `instances.autoVacuum` is enabled. Acquires per-instance locks via edge `POST /_api/daemon/vacuum/lock` (blocks spawns while locked). `--hours-back` limits sweep to recently touched DBs (PM2 nightly uses 24h). Local Mothership DBs vacuumed after instance sweep (brief PM2 stop window). Aborts instance sweep if edge is down. `--dry-run` |
+| `health` | Edge monitoring (`health check`): PM2, HTTP/TCP, disk/RAM/TLS; posts to `DISCORD_HEALTH_CHANNEL_URL` each run |
 | `mail` | Outbound mail helper |
 
 Root scripts: `pnpm dev:cli`, `pnpm dev:dashboard`, `pnpm prod:cli`.
@@ -49,7 +49,8 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 - Settings factory: `packages/pockethost/src/constants.ts` → `createSettings()`.
 - Data root: `PH_HOME` (default `env-paths('pockethost').data`) / `DATA_ROOT`.
 - Layout under `DATA_ROOT`: `mothership/` (control-plane PB data), `instances/<instanceId>/` (customer instance dirs). Helpers: `MOTHERSHIP_DATA_ROOT`, `INSTANCES_ROOT`, `mkInstanceDataPath`. `MOTHERSHIP_NAME` is hostname only — not a filesystem path.
-- Instance delete: mothership `DELETE /api/instance/:id` removes the PB record only (after power-off + idle). Edge `edge cleanup` (PM2 `edge-cleanup`, daily): admin `getInstances()` → instance IDs, then rimraf orphaned dirs under `DATA_ROOT/instances/`. `--dry-run` reports orphans without removing.
+- Instance delete: mothership `DELETE /api/instance/:id` removes the PB record only (after power-off + idle). Edge `edge purge-orphans` (PM2 `edge-purge-orphans`, daily): admin `getInstances()` → instance IDs, then rimraf orphaned dirs under `DATA_ROOT/instances/`. `--dry-run` reports orphans without removing.
+- Edge vacuum: `edge vacuum` (PM2 `edge-vacuum`, daily): SQLite `VACUUM` on idle instance `data.db`/`logs.db` where `instances.autoVacuum` is enabled. Acquires per-instance locks via `POST /_api/daemon/vacuum/lock` (blocks spawns while locked). `--hours-back` limits sweep to recently touched DBs (PM2 nightly uses 24h). Local Mothership DBs vacuumed after instance sweep (brief PM2 stop window). Aborts instance sweep if edge is down. `--dry-run`. Posts summary to `DISCORD_HEALTH_CHANNEL_URL`.
 - Instance apps: `instance-app/` (per-PB-version typed defs); mothership app: `mothership-app/`.
 - Env loaded from `.env` at project root and `PH_PROJECT_ROOT('.env')`.
 
