@@ -10,6 +10,7 @@ import {
   InstanceLogWriter,
   InstanceStatus,
   isSystemError,
+  isUserError,
   LoggerService,
   mkContainerHomePath,
   mkInstanceUrl,
@@ -286,7 +287,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
       return api
     } catch (e) {
-      error(`Error spawning: ${e}`)
+      if (isUserError(e)) {
+        dbg(`Spawn failed: ${e}`)
+      } else {
+        error(`Error spawning: ${e}`)
+      }
       userInstanceLogger.error(`Error spawning: ${e}`)
       shutdownManager.forEach((fn) => fn())
       throw e
@@ -376,7 +381,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       instanceApis[instance.id] = createInstanceApi(instance).catch((e) => {
         const end = now()
         const duration = end - start
-        warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+        if (isUserError(e)) {
+          dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
+        } else {
+          warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+        }
 
         delete instanceApis[instance.id]
 
