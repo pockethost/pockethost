@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   assertNotInstanceRootDelete,
+  assertNotInstanceRootMkdir,
   assertNotInstanceRootMutation,
   INSTANCE_ROOT_ALLOWED_FILE_NAMES,
   isAllowedInstanceRootFile,
@@ -30,5 +31,14 @@ describe('InstanceFileAccess guards', () => {
   it('detects instance root path', () => {
     expect(isAtInstanceRoot([], instance)).toBe(true)
     expect(isAtInstanceRoot(['pb_hooks'], instance)).toBe(false)
+  })
+
+  it('allows mkdir on standard instance root folders', () => {
+    expect(() => assertNotInstanceRootMkdir(['pb_public'], instance)).not.toThrow()
+    expect(() => assertNotInstanceRootMkdir(['pb_hooks'], instance)).not.toThrow()
+  })
+
+  it('blocks mkdir for custom top-level folders', () => {
+    expect(() => assertNotInstanceRootMkdir(['custom'], instance)).toThrow('Cannot create directories')
   })
 })

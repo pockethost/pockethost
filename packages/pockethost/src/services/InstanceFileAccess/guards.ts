@@ -65,7 +65,7 @@ export function assertNotInstanceRootMutation(restOfVirtualPath: string[], insta
 }
 
 export function assertNotInstanceRootMkdir(restOfVirtualPath: string[], instance?: { id: string }) {
-  if (instance && restOfVirtualPath.length === 1) {
+  if (instance && restOfVirtualPath.length === 1 && !isAllowedInstanceRootDir(restOfVirtualPath[0]!)) {
     throw new Error(`Cannot create directories at the instance root.`)
   }
 }
