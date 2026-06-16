@@ -165,9 +165,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   }
 
   const getAuthStoreProps = (): AuthStoreProps => {
-    const { isAdmin, model, token, isValid } = client.authStore
+    const { isSuperuser, model, token, isValid } = client.authStore
 
-    if (isAdmin) throw new Error(`Admin models not supported`)
+    if (isSuperuser) throw new Error(`Superuser models not supported`)
     if (model && !model.email) throw new Error(`Expected model to be a user here`)
     return {
       token,
@@ -211,9 +211,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
      * auth accordingly.
      */
     const unsub = onAuthChange((authStore) => {
-      const { model, isAdmin } = authStore
+      const { model, isSuperuser } = authStore
       if (!model) return
-      if (isAdmin) return
+      if (isSuperuser) return
       if (model.verified) {
         unsub()
         return
