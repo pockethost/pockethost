@@ -34,14 +34,14 @@ module.exports = {
       script: 'pnpm prod:cli health check',
     },
     {
-      name: `health-compact`,
+      name: `edge-vacuum`,
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
-      script: 'pnpm prod:cli health compact --hours-back=24',
+      script: 'pnpm prod:cli edge vacuum --hours-back=24',
     },
     {
-      name: `edge-cleanup`,
+      name: `edge-purge-orphans`,
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
-      script: 'pnpm prod:cli edge cleanup',
+      script: 'pnpm prod:cli edge purge-orphans',
     },
   ],
 }

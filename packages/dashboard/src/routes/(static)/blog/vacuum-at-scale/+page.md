@@ -6,7 +6,7 @@ Here is how we solved it.
 
 ### The race we had
 
-The nightly job (`pockethost health compact`) used to check `docker ps` once per sweep. The edge daemon keeps live instances in memory too, including containers in **Starting** state. A one-shot Docker snapshot and the spawn loop did not share a lock.
+The nightly job (`pockethost edge vacuum`) used to check `docker ps` once per sweep. The edge daemon keeps live instances in memory too, including containers in **Starting** state. A one-shot Docker snapshot and the spawn loop did not share a lock.
 
 Result: theoretical TOCTOU windows where compact and spawn could overlap on the same instance.
 
@@ -42,8 +42,8 @@ You get the same user-facing behavior: idle instances compact overnight, running
 Same commands as before. Locks activate automatically when the edge daemon is running:
 
 ```bash
-pockethost health compact --dry-run
-pockethost health compact --hours-back=24
+pockethost edge vacuum --dry-run
+pockethost edge vacuum --hours-back=24
 ```
 
 If you run compact on a machine without the edge daemon, behavior falls back to the Docker mount check only.

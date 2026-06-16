@@ -19,7 +19,7 @@ Auto Vacuum skips running containers on purpose. Vacuum Now does the opposite: i
 
 Some of you run heavy log retention or bulk deletes during the day. Waiting for hibernate is fine for steady-state bloat. It is not fine when you are debugging disk usage at 2 PM and `logs.db` is still 4 GB after the admin UI says "500 rows."
 
-Vacuum Now reuses the same `health compact` machinery and [edge vacuum locks](/blog/vacuum-at-scale) as the nightly sweep. The difference is intent: you asked, we drain in-flight requests, take the lock, compact, report bytes reclaimed, and hand control back.
+Vacuum Now reuses the same `edge vacuum` machinery and [edge vacuum locks](/blog/vacuum-at-scale) as the nightly sweep. The difference is intent: you asked, we drain in-flight requests, take the lock, compact, report bytes reclaimed, and hand control back.
 
 ### What to expect in the dashboard
 
@@ -29,7 +29,7 @@ If the edge cannot grant a lock or disk budget is too tight, you get a clear err
 
 ### Already self-hosting?
 
-You can compact a specific idle instance today with `pockethost health compact`. Vacuum Now is the hosted UX for "I need this while the instance is running" without SSHing in.
+You can compact a specific idle instance today with `pockethost edge vacuum`. Vacuum Now is the hosted UX for "I need this while the instance is running" without SSHing in.
 
 We will announce here when the dashboard button is live.
 

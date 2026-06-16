@@ -309,6 +309,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
     const { dbg, warn, error } = logger
 
+    if (req.path === `/logs` || req.path.startsWith(`/logs/`)) {
+      next()
+      return
+    }
+
     const { host, proxy } = res.locals
 
     const instance = await mirror.getInstanceByHost(host)

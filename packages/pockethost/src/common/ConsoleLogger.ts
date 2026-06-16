@@ -11,6 +11,9 @@ const CONSOLE_METHODS = {
 }
 
 function formatArg(arg: any): any {
+  if (arg instanceof Error) {
+    return arg.stack ?? arg.message
+  }
   if (typeof arg === 'object' && arg !== null) {
     try {
       return JSON.stringify(arg, null, 2)
