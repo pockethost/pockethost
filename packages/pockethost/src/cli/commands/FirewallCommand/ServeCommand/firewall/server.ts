@@ -15,7 +15,7 @@ import {
   SSL_KEY,
 } from '@'
 import { exec } from 'child_process'
-import express, { ErrorRequestHandler } from 'express'
+import express, { ErrorRequestHandler, Request, Response } from 'express'
 import { existsSync, readFileSync } from 'fs'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
@@ -107,11 +107,12 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   const daemonTarget = `http://localhost:${DAEMON_PORT()}`
   const daemonProxyErrorHandler = createDaemonProxyErrorHandler(logger)
-  const handler = createProxyMiddleware({
+  const handler = createProxyMiddleware<Request, Response>({
     target: daemonTarget,
     on: {
       error: (err, req, res) => {
-        daemonProxyErrorHandler(err, req, res as express.Response, () => undefined)
+        if (!('status' in res)) return
+        daemonProxyErrorHandler(err, req, res, () => undefined)
       },
     },
   })
