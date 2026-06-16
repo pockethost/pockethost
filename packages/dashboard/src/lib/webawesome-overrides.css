@@ -50,6 +50,9 @@
 /* ---- wa-card slotted content ---- */
 wa-card {
   display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   border-radius: 0.75rem;
   border: 1px solid rgb(255 255 255 / 0.1);
   background-color: rgb(17 17 17 / 0.8);

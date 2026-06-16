@@ -79,16 +79,18 @@
 </script>
 
 <Card>
-  <form onsubmit={handleSubmit}>
+  <form class="wa-card-body" onsubmit={handleSubmit}>
     <CardHeader>Choose a name for your PocketBase instance.</CardHeader>
 
     <div class="flex rename-instance-form-container-query gap-2">
-      <wa-input
-        type="text"
-        value={$instanceNameField}
-        oninput={(e: Event) => instanceNameField.set((e.currentTarget as HTMLInputElement).value)}
-        class="w-full"
-      ></wa-input>
+      <div class="min-w-0 flex-1">
+        <wa-input
+          type="text"
+          value={$instanceNameField}
+          oninput={(e: Event) => instanceNameField.set((e.currentTarget as HTMLInputElement).value)}
+          class="w-full"
+        ></wa-input>
+      </div>
 
       <wa-button
         type="button"
@@ -101,7 +103,7 @@
       </wa-button>
     </div>
 
-    <div style="font-size: 15px;" class="p-2 mb-4">
+    <div style="font-size: 15px;" class="mb-4">
       {#if $instanceInfo.fetching}
         Verifying...
       {:else if $instanceInfo.available}

@@ -8,6 +8,8 @@
   let { block = false, height = '', marginBottom = 'mb-4' }: Props = $props()
 </script>
 
-<wa-card class="w-full md:w-96 {block ? 'block' : ''} {height} {marginBottom}" style="container-type: inline-size">
-  <slot />
-</wa-card>
+<div class="w-full min-w-0 md:w-96 {block ? 'block' : ''} {height} {marginBottom}" style="container-type: inline-size">
+  <wa-card class="w-full">
+    <slot />
+  </wa-card>
+</div>
