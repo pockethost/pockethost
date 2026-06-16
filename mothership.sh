@@ -12,6 +12,8 @@ rm -rf $MOTHERSHIP_ROOT/pb_data
 
 export PH_HOME=$(pwd)/.pockethost
 
+pnpm i
+
 pnpm --filter pockethost-mothership-app build
 
 pnpm dev:cli serve
