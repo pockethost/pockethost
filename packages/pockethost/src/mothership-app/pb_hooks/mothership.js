@@ -3183,6 +3183,47 @@ const BeforeUpdate_ssh_keys = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/stats/lib/refreshPublicStats.ts
+const mkPublicStatsPath = () => `${$app.dataDir()}/stats.json`;
+const refreshPublicStats = () => {
+	const log = mkLog("refreshPublicStats");
+	const db = $app.dao().db();
+	const users = new DynamicModel({ total: 0 });
+	db.newQuery("SELECT COUNT(*) as total FROM users").one(users);
+	const instances = new DynamicModel({ total: 0 });
+	db.newQuery("SELECT COUNT(*) as total FROM instances").one(instances);
+	const stats = {
+		updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+		developers: users.total,
+		instances: instances.total
+	};
+	$os.writeFile(mkPublicStatsPath(), JSON.stringify(stats), 420);
+	log(`Wrote stats.json`, stats);
+	return stats;
+};
+
+//#endregion
+//#region src/lib/handlers/stats/api/HandleStatsRequest.ts
+/** Public aggregate platform stats (hourly cron + on-demand refresh). */
+const HandleStatsRequest = (c) => {
+	const readStats = () => {
+		const raw = $os.readFile(mkPublicStatsPath());
+		return JSON.parse(typeof raw === "string" ? raw : String(raw));
+	};
+	try {
+		return c.json(200, readStats());
+	} catch {
+		return c.json(200, refreshPublicStats());
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/stats/boot/HandleStatsRefreshAtBoot.ts
+const HandleStatsRefreshAtBoot = (_e) => {
+	refreshPublicStats();
+};
+
+//#endregion
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (c) => {
 	const dao = $app.dao();
@@ -3231,6 +3272,10 @@ exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;
 exports.HandleSignupCheck = HandleSignupCheck;
 exports.HandleSignupConfirm = HandleSignupConfirm;
+exports.HandleStatsRefreshAtBoot = HandleStatsRefreshAtBoot;
+exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
+exports.mkPublicStatsPath = mkPublicStatsPath;
+exports.refreshPublicStats = refreshPublicStats;
