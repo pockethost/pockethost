@@ -60,6 +60,7 @@ Spot-check obvious matches — do not block on a full audit. If nothing needs up
    - Pre-commit runs **lint-staged** (Prettier on staged `*.{ts,js,cjs,svelte,json}`). If formatting changes land, include them in the same commit (re-stage after the hook runs, or run `pnpm lint:fix` on touched paths before staging).
    - Do not use `--no-verify` unless the user explicitly asked to skip hooks.
 6. Run `git status` after the last commit to verify success.
+7. If the user will **push** or open a **PR** next, run `pnpm check:push` per [check-push/SKILL.md](../check-push/SKILL.md) and fix failures before suggesting `git push`.
 
 ## Message format
 

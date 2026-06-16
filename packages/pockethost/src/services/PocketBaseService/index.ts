@@ -106,7 +106,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
     // Add timing for container startup
     const containerStartTime = Date.now()
-    info(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
+    dbg(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
 
     const container = await new Promise<{
       on: EventEmitter['on']
@@ -197,13 +197,17 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             */
             if ((StatusCode > 0 && StatusCode !== 137) || err) {
               const castStatusCode = StatusCode || 999
-              iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
-              error(`${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`)
+              const stopMsg = `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
+              const platformFailure = isPlatformDockerFailure(castStatusCode, err)
+              if (platformFailure) {
+                iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
+                error(stopMsg)
+              } else {
+                dbg(stopMsg)
+              }
               emitter.emit(Events.Exit, castStatusCode)
-              const stopErr = new Error(
-                `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
-              )
-              reject(isPlatformDockerFailure(castStatusCode, err) ? systemError(stopErr) : userError(stopErr))
+              const stopErr = new Error(stopMsg)
+              reject(platformFailure ? systemError(stopErr) : userError(stopErr))
             } else {
               emitter.emit(Events.Exit, 0)
             }
@@ -213,7 +217,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
           const containerReadyTime = Date.now()
           const startupDuration = containerReadyTime - containerStartTime
 
-          info(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
+          dbg(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
           info(`[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`)
           if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
             warn(`Container ${instanceId} launch took ${startupDuration}ms`)
@@ -265,7 +269,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
           }
         })
     }).catch((e) => {
-      error(`Error starting container: ${e}`)
+      if (isUserError(e)) {
+        dbg(`Error starting container: ${e}`)
+      } else {
+        error(`Error starting container: ${e}`)
+      }
       cm.shutdown()
       if (isUserError(e) || isSystemError(e)) {
         throw e

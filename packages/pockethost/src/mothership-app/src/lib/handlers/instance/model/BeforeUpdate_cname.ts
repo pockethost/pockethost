@@ -28,6 +28,5 @@ export const BeforeUpdate_cname = (e: core.RecordUpdateEvent) => {
       log(`${msg}`)
       throw new BadRequestError(msg)
     }
-    log(`CNAME validation passed for: "${newCname}"`)
   }
 }

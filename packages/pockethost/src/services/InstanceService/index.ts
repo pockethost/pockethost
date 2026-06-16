@@ -10,6 +10,7 @@ import {
   InstanceLogWriter,
   InstanceStatus,
   isSystemError,
+  isUserError,
   LoggerService,
   mkContainerHomePath,
   mkInstanceUrl,
@@ -135,8 +136,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         .then(() => {
           dbg(`Updated instance fields`, fields)
         })
-        .catch((e) => {
-          error(`Error updating instance fields for ${id}`, { fields, e })
+        .catch(() => {
+          warn(
+            `Could not update instance fields for ${id}; status will catch up if still running when mothership returns (mothership boot resets all instances to idle)`
+          )
         })
     })
     const updateInstanceStatus = (id: InstanceId, status: InstanceStatus) => updateInstance(id, { status })
@@ -284,7 +287,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
       return api
     } catch (e) {
-      error(`Error spawning: ${e}`)
+      if (isUserError(e)) {
+        dbg(`Spawn failed: ${e}`)
+      } else {
+        error(`Error spawning: ${e}`)
+      }
       userInstanceLogger.error(`Error spawning: ${e}`)
       shutdownManager.forEach((fn) => fn())
       throw e
@@ -374,7 +381,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       instanceApis[instance.id] = createInstanceApi(instance).catch((e) => {
         const end = now()
         const duration = end - start
-        warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+        if (isUserError(e)) {
+          dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
+        } else {
+          warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+        }
 
         delete instanceApis[instance.id]
 
@@ -392,7 +403,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const endRequest = api.startRequest()
     res.on('close', endRequest)
     if (req.closed) {
-      error(`Request already closed. ${res.locals.requestId}`)
+      dbg(`Request already closed. ${res.locals.requestId}`)
     }
 
     dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)

@@ -1,6 +1,7 @@
 import {
   InstanceFields,
   InstanceId,
+  InstanceLogWriter,
   LoggerService,
   mkInstanceUrl,
   mkSingleton,
@@ -18,7 +19,7 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
   const mirror = await MothershipMirrorService()
   const logger = (config.logger ?? LoggerService()).create(`CronService`)
   // logger.setLevel(LogLevelName.Debug)
-  const { dbg, error, info, warn } = logger
+  const { dbg, error, info } = logger
   info(`Starting`)
 
   if (PH_DISABLE_INSTANCE_WEBHOOKS()) {
@@ -53,6 +54,7 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
     dbg(`Instance has ${instance.webhooks?.length} webhooks`)
     dbg(`Instance has ${jobs.get(instance.id)?.size} jobs`)
     dbg(`Creating new jobs for instance ${instance.id}`)
+    const userInstanceLogger = InstanceLogWriter(instance.id, `exec`, logger)
     webhooks.forEach((webhook) => {
       if (!webhook.value) return
       dbg(`Creating new job for webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
@@ -77,9 +79,9 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
                 },
               }
 
-              // Optionally log non-2xx responses
               if (!response.ok) {
-                warn(`Webhook ${url} returned status ${response.status}: ${body}`)
+                dbg(`Webhook ${url} returned status ${response.status}: ${body}`)
+                userInstanceLogger.error(`Webhook ${webhook.endpoint} returned HTTP ${response.status}: ${body}`)
               }
             } catch (e) {
               // This catch block only handles network errors (connection failed, etc.)
