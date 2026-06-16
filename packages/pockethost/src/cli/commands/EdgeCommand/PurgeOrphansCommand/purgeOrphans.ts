@@ -53,8 +53,8 @@ const fetchInstanceIds = async (): Promise<string[]> => {
   return instances.map((instance) => instance.id)
 }
 
-export const cleanupOrphanInstanceData = async ({ dryRun = false } = {}) => {
-  const { dbg, info, warn } = logger().create('cleanupOrphanInstanceData')
+export const purgeOrphanInstanceData = async ({ dryRun = false } = {}) => {
+  const { dbg, info, warn } = logger().create('purgeOrphanInstanceData')
   const instancesRoot = resolve(INSTANCES_ROOT())
   const instanceIds = await fetchInstanceIds()
   const validPaths = new Set(instanceIds.map((id) => resolve(mkInstanceDataPath(id))))
