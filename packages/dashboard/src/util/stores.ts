@@ -37,6 +37,13 @@ export const globalInstancesStore = writable<{
 }>({})
 export const globalInstancesStoreReady = writable(false)
 
+export const upsertGlobalInstance = (instance: InstanceFields) => {
+  globalInstancesStore.update((instances) => ({
+    ...instances,
+    [instance.id]: instance,
+  }))
+}
+
 export const patchGlobalInstance = (id: InstanceId, fields: Partial<InstanceFields>) => {
   globalInstancesStore.update((instances) => {
     const current = instances[id]
@@ -117,10 +124,14 @@ export const init = () => {
         .client.collection('instances')
         .subscribe<InstanceFields>('*', (data) => {
           console.log('Instance subscribe update', data)
-          globalInstancesStore.update((instances) => ({
-            ...instances,
-            [data.record.id]: data.record,
-          }))
+          if (data.action === 'delete') {
+            globalInstancesStore.update((instances) => {
+              const { [data.record.id]: _, ...rest } = instances
+              return rest
+            })
+            return
+          }
+          upsertGlobalInstance(data.record)
         })
         .then((u) => {
           unsubInstanceWatch = u

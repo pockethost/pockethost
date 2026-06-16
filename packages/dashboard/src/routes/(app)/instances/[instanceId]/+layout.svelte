@@ -5,7 +5,7 @@
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
-  import { globalInstancesStore, patchGlobalInstance } from '$util/stores'
+  import { globalInstancesStore, patchGlobalInstance, upsertGlobalInstance } from '$util/stores'
   import { assert } from 'pockethost/common'
   import { instance } from './store'
   import { client } from '$src/pocketbase-client'
@@ -14,14 +14,48 @@
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   let isReady = false
+  let isLoading = false
+  let isMissing = false
+  let resolvedInstanceId: InstanceId | undefined
+
+  const loadInstance = async (instanceId: InstanceId) => {
+    isLoading = true
+    isMissing = false
+
+    try {
+      const fetched = await client().getInstanceById(instanceId)
+      if (resolvedInstanceId !== instanceId) return
+      if (fetched) {
+        upsertGlobalInstance(fetched)
+      } else {
+        isMissing = true
+        isLoading = false
+      }
+    } catch {
+      if (resolvedInstanceId === instanceId) {
+        isMissing = true
+        isLoading = false
+      }
+    }
+  }
+
   $: {
     const { instanceId } = $page.params
     assert(instanceId)
-    const _instance = $globalInstancesStore[instanceId]
+    const id = instanceId as InstanceId
+    const _instance = $globalInstancesStore[id]
     if (_instance) {
       instance.set(_instance)
+      isReady = true
+      isLoading = false
+      isMissing = false
+      resolvedInstanceId = id
+    } else if (resolvedInstanceId !== id) {
+      resolvedInstanceId = id
+      isReady = false
+      isMissing = false
+      void loadInstance(id)
     }
-    isReady = !!_instance
   }
 
   $: ({ id } = $instance || {})
@@ -184,6 +218,8 @@
       <slot />
     {/key}
   </TabbedFeatureLayout>
-{:else}
+{:else if isLoading}
+  <div class="max-w-4xl mx-auto py-4 md:py-8 text-white/70">Loading instance...</div>
+{:else if isMissing}
   <div class="max-w-4xl mx-auto py-4 md:py-8 text-white/70">Instance not found</div>
 {/if}
