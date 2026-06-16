@@ -18,6 +18,7 @@ import {
 } from '@'
 import { readFileSync } from 'fs'
 import { FtpSrv } from 'ftp-srv'
+import { createBunyanLoggerShim } from './bunyanLoggerShim'
 import { PhFs } from './PhFs'
 
 export type FtpConfig = SingletonBaseConfig & { mothershipUrl: string }
@@ -59,7 +60,7 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     url: 'ftp://0.0.0.0:' + PH_FTP_PORT(),
     anonymous: false,
     greeting: mkFtpsGreeting(),
-    log: _ftpServiceLogger,
+    log: createBunyanLoggerShim(_ftpServiceLogger),
     tls,
     // pockethost/ftp-srv fork accepts a callback; upstream types only declare string
     pasv_url: resolvePasvUrl,
