@@ -1,30 +1,26 @@
-export type InstanceListSortOptions = 'subdomain' | 'created' | 'power'
 export type InstanceListSortDirection = 'asc' | 'desc'
-export type InstanceListFilterPower = 'all' | 'on' | 'off'
+export type InstanceListViewMode = 'list' | 'grid'
 
 export type InstanceListPrefs = {
-  sortBy: InstanceListSortOptions
-  sortDirection: InstanceListSortDirection
-  filterPower: InstanceListFilterPower
   searchQuery: string
+  sortDirection: InstanceListSortDirection
+  viewMode: InstanceListViewMode
 }
 
 export const DEFAULT_INSTANCE_LIST_PREFS: InstanceListPrefs = {
-  sortBy: 'power',
-  sortDirection: 'asc',
-  filterPower: 'all',
   searchQuery: '',
+  sortDirection: 'asc',
+  viewMode: 'list',
 }
 
 const STORAGE_KEY = 'ph.dashboard.instanceList'
 
 const DEFAULTS = DEFAULT_INSTANCE_LIST_PREFS
 
-const SORT_OPTIONS = new Set<InstanceListSortOptions>(['subdomain', 'created', 'power'])
 const SORT_DIRECTIONS = new Set<InstanceListSortDirection>(['asc', 'desc'])
-const FILTER_POWER = new Set<InstanceListFilterPower>(['all', 'on', 'off'])
+const VIEW_MODES = new Set<InstanceListViewMode>(['list', 'grid'])
 
-const URL_KEYS = ['sort', 'by', 'f', 'q'] as const
+const URL_KEYS = ['sort', 'q', 'view'] as const
 
 export const instanceListPrefsHasUrlParams = (searchParams: URLSearchParams) =>
   URL_KEYS.some((key) => searchParams.has(key))
@@ -40,31 +36,26 @@ const parseStored = (raw: string | null): Partial<InstanceListPrefs> | null => {
 }
 
 const sanitize = (stored: Partial<InstanceListPrefs>): InstanceListPrefs => ({
-  sortBy: stored.sortBy && SORT_OPTIONS.has(stored.sortBy) ? stored.sortBy : DEFAULTS.sortBy,
+  searchQuery: typeof stored.searchQuery === 'string' ? stored.searchQuery : DEFAULTS.searchQuery,
   sortDirection:
     stored.sortDirection && SORT_DIRECTIONS.has(stored.sortDirection) ? stored.sortDirection : DEFAULTS.sortDirection,
-  filterPower: stored.filterPower && FILTER_POWER.has(stored.filterPower) ? stored.filterPower : DEFAULTS.filterPower,
-  searchQuery: typeof stored.searchQuery === 'string' ? stored.searchQuery : DEFAULTS.searchQuery,
+  viewMode: stored.viewMode && VIEW_MODES.has(stored.viewMode) ? stored.viewMode : DEFAULTS.viewMode,
 })
 
 export const loadInstanceListPrefsFromUrl = (searchParams: URLSearchParams): InstanceListPrefs => {
   const fromUrl: Partial<InstanceListPrefs> = {}
   const sort = searchParams.get('sort')
-  const by = searchParams.get('by')
-  const f = searchParams.get('f')
   const q = searchParams.get('q')
+  const view = searchParams.get('view')
 
   if (sort && SORT_DIRECTIONS.has(sort as InstanceListSortDirection)) {
     fromUrl.sortDirection = sort as InstanceListSortDirection
   }
-  if (by && SORT_OPTIONS.has(by as InstanceListSortOptions)) {
-    fromUrl.sortBy = by as InstanceListSortOptions
-  }
-  if (f && FILTER_POWER.has(f as InstanceListFilterPower)) {
-    fromUrl.filterPower = f as InstanceListFilterPower
-  }
   if (q !== null) {
     fromUrl.searchQuery = q
+  }
+  if (view && VIEW_MODES.has(view as InstanceListViewMode)) {
+    fromUrl.viewMode = view as InstanceListViewMode
   }
 
   return { ...DEFAULTS, ...fromUrl }
@@ -79,3 +70,27 @@ export const saveInstanceListPrefs = (prefs: InstanceListPrefs) => {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
 }
+
+const FAVORITES_STORAGE_KEY = 'ph.dashboard.instanceFavorites'
+
+const sanitizeFavoriteIds = (raw: unknown): string[] => {
+  if (!Array.isArray(raw)) return []
+  return raw.filter((id): id is string => typeof id === 'string')
+}
+
+export const loadInstanceFavoritesFromStorage = (): string[] => {
+  if (typeof localStorage === 'undefined') return []
+  try {
+    return sanitizeFavoriteIds(JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) ?? '[]'))
+  } catch {
+    return []
+  }
+}
+
+export const saveInstanceFavorites = (ids: string[]) => {
+  if (typeof localStorage === 'undefined') return
+  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(ids))
+}
+
+export const toggleInstanceFavorite = (ids: string[], id: string): string[] =>
+  ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
