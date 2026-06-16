@@ -1,13 +1,16 @@
-import { LoggerService } from '@'
+import { Logger } from '@'
 import { MOTHERSHIP_URL, tryFetch } from '../../../../..'
 import { ftpService } from '../FtpService'
 
-export async function ftp() {
-  const logger = LoggerService().create(`cli:edge:ftp:serve`)
-  const { info } = logger
+export type FtpOptions = {
+  logger: Logger
+}
+
+export async function ftp({ logger }: FtpOptions) {
+  const { info } = logger.create(`ftp`)
   info(`Starting`)
 
-  await tryFetch(MOTHERSHIP_URL(`/api/health`), {})
+  await tryFetch(MOTHERSHIP_URL(`/api/health`), { logger })
 
   await ftpService({
     mothershipUrl: MOTHERSHIP_URL(),

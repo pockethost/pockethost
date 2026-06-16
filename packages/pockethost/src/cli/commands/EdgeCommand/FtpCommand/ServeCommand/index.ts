@@ -11,7 +11,7 @@ export const ServeCommand = () => {
     const logger = LoggerService().create(`cli:edge:ftp:serve`)
     const { info } = logger
     info(`Starting`)
-    await ftp()
+    await ftp({ logger })
     await neverendingPromise(logger)
   })
   return cmd
