@@ -1,68 +1,69 @@
 <script lang="ts">
-  import { globalInstancesStore, userSubscriptionType, userStore } from '$util/stores'
+  import { globalInstancesStore, userStore } from '$util/stores'
   import InstanceList from './InstanceList.svelte'
-  import { SubscriptionType } from 'pockethost/common'
 
-  $: maxInstances = $userStore?.subscription_quantity || 0
   $: instanceCount = Object.values($globalInstancesStore).length
+  $: canCreate = ($userStore?.subscription_quantity ?? 0) > 0
 </script>
 
 <svelte:head>
   <title>Dashboard - PocketHost</title>
 </svelte:head>
 
-<div class="flex flex-row items-center justify-between mt-6 mb-4 md:mb-6 gap-4">
-  <h2 class="text-2xl md:text-4xl text-white font-bold capitalize">Dashboard</h2>
-
-  <div class="group">
-    <div class="h-full relative">
-      <wa-button
-        href={instanceCount >= maxInstances ? '#' : '/instances/new'}
-        variant="brand"
-        class="my-3 {instanceCount >= maxInstances ? 'pointer-events-none opacity-60' : ''}"
-      >
-        <wa-icon slot="start" name="plus"></wa-icon>
-        New Instance
-      </wa-button>
-      <div
-        class="hidden group-hover:block absolute top-full right-0 bg-[#111111]/80 border border-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg w-64 z-20 {instanceCount >=
-          maxInstances && 'border-red-400'}"
-      >
-        {#if maxInstances > 0}
-          {#if instanceCount > maxInstances}
-            <p class="text-center text-sm text-error">You have exceeded your instance limit.</p>
-          {/if}
-          <div class="flex flex-col items-center justify-center">
-            {#if instanceCount <= maxInstances}
-              <div class="text-sm opacity-6.0">Instances</div>
-            {/if}
-
-            <div class="text-2xl font-bold">
-              {#if $userSubscriptionType === SubscriptionType.Founder}
-                {instanceCount}/<a
-                  href="https://discord.com/channels/1128192380500193370/1128192380500193373/1296340516044017718"
-                  class="text-primary"
-                  target="_blank">{maxInstances}</a
-                >
-              {:else}
-                {instanceCount}/{maxInstances}
-              {/if}
-            </div>
-            <wa-progress-bar class="mt-2 w-full" value={instanceCount} max={maxInstances}></wa-progress-bar>
-          </div>
-          {#if instanceCount >= maxInstances}
-            <wa-button href="/support" variant="brand" size="small" class="mt-2 w-full text-xs">
-              Increase your limit
-            </wa-button>
-          {/if}
-        {:else}
-          <div class="text-sm opacity-6.0">You need to upgrade before creating more Instances</div>
-
-          <wa-button href="/access" variant="brand" size="small" class="mt-2 w-full text-xs">Upgrade!</wa-button>
-        {/if}
-      </div>
-    </div>
+<header class="dashboard-head">
+  <div>
+    <h1 class="dashboard-title">Dashboard</h1>
+    <p class="dashboard-subtitle">
+      {#if instanceCount === 0}
+        Create a PocketBase instance to get started.
+      {:else}
+        {instanceCount} instance{instanceCount === 1 ? '' : 's'}. Plans will be limited by storage, not instance count.
+      {/if}
+    </p>
   </div>
-</div>
+
+  {#if canCreate}
+    <wa-button href="/instances/new" variant="brand" class="dashboard-new-btn">
+      <wa-icon slot="start" name="plus"></wa-icon>
+      New instance
+    </wa-button>
+  {/if}
+</header>
 
 <InstanceList />
+
+<style>
+  .dashboard-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .dashboard-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-title {
+      font-size: 1.875rem;
+    }
+  }
+
+  .dashboard-subtitle {
+    margin: 0.35rem 0 0;
+    max-width: 36rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  .dashboard-new-btn {
+    flex-shrink: 0;
+  }
+</style>

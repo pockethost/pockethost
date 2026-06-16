@@ -79,7 +79,9 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`). `wa-card` `:host` sets `--spacing` for WA padding; TW4 `mb-*`/`p-*` use the same token — reset `--spacing: 0.25rem` on `.wa-card-body` / `.wa-card-section` / `.wa-card-header` so slotted Tailwind spacing is not inflated inside cards.
 ## App page layout
 
-Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: shell title, sidebar nav, mobile drawer, optional `header` / `toolbar` / `alerts` slots, then child route content.
+`/dashboard` is the home for instances: searchable list/table (default) with optional card grid. No app-level sidebar.
+
+Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: section sidebar, mobile drawer, optional `header` / `toolbar` / `alerts` slots. Instance routes pass `width="wide"` and `backHref="/dashboard"`.
 
 Each tab route uses **`FeatureTab.svelte`** in this order:
 

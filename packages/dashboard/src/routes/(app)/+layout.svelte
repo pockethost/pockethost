@@ -6,7 +6,7 @@
   $: maxInstances = $userStore?.subscription_quantity
 </script>
 
-<div class="px-4 md:px-20 relative z-10 max-w-content mx-auto">
+<div class="px-4 md:px-20 relative z-10 max-w-content mx-auto pt-6 md:pt-10">
   <UserLoggedIn>
     {#if maxInstances === 0}
       <wa-callout variant="warning" class="wa-callout-padded py-2 mt-2">
