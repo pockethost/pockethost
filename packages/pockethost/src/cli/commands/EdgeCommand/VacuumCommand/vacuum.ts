@@ -236,7 +236,7 @@ export const vacuumIdleInstanceDbs = async ({
   dryRun = false,
   hoursBack,
 }: { dryRun?: boolean; hoursBack?: number } = {}) => {
-  const { info, warn } = logger().create(`vacuumIdleInstanceDbs`)
+  const { info, warn, debug } = logger().create(`vacuumIdleInstanceDbs`)
   const fleet = await fetchFleetVacuumStats()
   if (!fleet) {
     warn(`Skipping instance vacuum sweep: mothership unavailable`)
@@ -271,7 +271,7 @@ export const vacuumIdleInstanceDbs = async ({
     }
 
     if (!passesHoursBackFilter(instanceDbPaths, hoursBack)) {
-      warn(`Skipping ${instanceId}: db mtime outside --hours-back window`)
+      debug(`Skipping ${instanceId}: db mtime outside --hours-back window`)
       continue
     }
 
