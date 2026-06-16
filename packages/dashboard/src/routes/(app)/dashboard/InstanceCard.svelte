@@ -3,12 +3,15 @@
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
   import { patchGlobalInstance } from '$util/stores'
+  import InstanceFavoriteButton from '$components/InstanceFavoriteButton.svelte'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { isInstanceShuttingDown } from '$util/instancePower'
   import type { InstanceFields } from 'pockethost/common'
 
   export let instance: InstanceFields
+  export let isFavorite = false
+  export let onToggleFavorite: () => void = () => {}
 
   $: isShuttingDown = isInstanceShuttingDown(instance)
 
@@ -48,9 +51,14 @@
 >
   <div class="w-full flex flex-row items-center justify-between gap-4 p-4 min-h-[5.5rem]">
     <div class="flex flex-col items-start gap-2 flex-1 min-w-0 relative">
-      <span class="text-xl text-start font-semibold truncate w-full">
-        {instance.cname ? instance.cname : instance.subdomain}
-      </span>
+      <div class="flex items-center gap-1.5 w-full min-w-0">
+        <div onclick={(e) => e.stopPropagation()}>
+          <InstanceFavoriteButton {isFavorite} onToggle={onToggleFavorite} />
+        </div>
+        <span class="text-xl text-start font-semibold truncate flex-1 min-w-0">
+          {instance.cname ? instance.cname : instance.subdomain}
+        </span>
+      </div>
 
       <div class="flex flex-nowrap items-center gap-1 min-w-0">
         <a

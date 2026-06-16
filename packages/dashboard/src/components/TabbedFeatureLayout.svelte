@@ -6,9 +6,13 @@
     title: string
     mobileTitle?: string
     sections?: FeatureTabNavSection[]
+    /** `narrow` = form-focused pages; `wide` = instance settings */
+    width?: 'narrow' | 'wide'
+    backHref?: string
+    backLabel?: string
   }
 
-  let { title, mobileTitle = title, sections = [] }: Props = $props()
+  let { title, mobileTitle = title, sections = [], width = 'narrow', backHref, backLabel = 'All' }: Props = $props()
 
   let sidebarOpen = $state(false)
 
@@ -20,11 +24,17 @@
   }
 </script>
 
-<div class="max-w-4xl mx-auto py-4 md:py-8">
+<div class="tabbed-feature-layout mx-auto py-4 md:py-6" class:tabbed-feature-layout--wide={width === 'wide'}>
   <div
-    class="flex md:hidden items-center sticky top-0 gap-3 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md py-3 mb-4 border-b border-white/10 z-40 -mx-4 px-4 justify-between"
+    class="tabbed-feature-mobile-bar flex items-center sticky top-0 gap-3 from-[#111111] to-[#111111]/40 bg-gradient-to-b shadow-md py-3 mb-4 border-b border-white/10 z-40 -mx-4 px-4 justify-between"
   >
     <div class="flex items-center gap-3 min-w-0">
+      {#if backHref}
+        <wa-button href={backHref} variant="neutral" size="small" appearance="outline" class="tabbed-feature-back-btn">
+          <wa-icon slot="start" name="arrow-left"></wa-icon>
+          {backLabel}
+        </wa-button>
+      {/if}
       <button type="button" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle menu">
         <wa-icon name="bars"></wa-icon>
       </button>
@@ -40,6 +50,19 @@
       </div>
     {/if}
   </div>
+
+  {#if backHref}
+    <wa-button
+      href={backHref}
+      variant="neutral"
+      size="small"
+      appearance="outline"
+      class="tabbed-feature-back-btn tabbed-feature-back-btn--desktop"
+    >
+      <wa-icon slot="start" name="arrow-left"></wa-icon>
+      {backLabel}
+    </wa-button>
+  {/if}
 
   <div class="hidden md:flex flex-row items-start justify-between gap-4 mb-6 md:mb-8">
     {#if $$slots.header}
@@ -68,14 +91,28 @@
 
   <div class="flex gap-6 md:gap-8 flex-col md:flex-row relative">
     <aside
-      class="flex flex-col w-52 md:w-44 shrink-0 fixed md:relative top-0 left-0 h-full md:h-auto bg-[#111111] md:bg-transparent px-4 md:px-0 z-50 transition-transform duration-300 -translate-x-full md:translate-x-0 pt-4 md:pt-0 overflow-y-auto md:overflow-visible"
-      class:translate-x-0={sidebarOpen}
+      class="tabbed-feature-sidebar flex flex-col w-52 md:w-44 shrink-0 fixed md:relative top-0 left-0 h-full md:h-auto bg-[#111111] md:bg-transparent px-4 md:px-0 z-50 pt-4 md:pt-0 overflow-y-auto md:overflow-visible"
+      class:tabbed-feature-sidebar--open={sidebarOpen}
       onclick={handleCloseSidebar}
       role="presentation"
     >
       <div class="md:hidden flex items-center pb-4 mb-2 border-b border-white/10">
         <Logo />
       </div>
+
+      {#if backHref}
+        <wa-button
+          href={backHref}
+          variant="neutral"
+          size="small"
+          appearance="plain"
+          class="tabbed-feature-back-btn tabbed-feature-back-btn--sidebar"
+          onclick={() => (sidebarOpen = false)}
+        >
+          <wa-icon slot="start" name="arrow-left"></wa-icon>
+          {backLabel}
+        </wa-button>
+      {/if}
 
       {#each sections as section (section.title ?? section.items.map((item) => item.href).join(','))}
         {#if section.title}
@@ -110,8 +147,61 @@
       {/each}
     </aside>
 
-    <div class="flex-1 min-w-0 max-w-2xl">
+    <div class="flex-1 min-w-0" class:max-w-2xl={width === 'narrow'}>
       <slot />
     </div>
   </div>
 </div>
+
+<style>
+  .tabbed-feature-layout {
+    max-width: 56rem;
+  }
+
+  .tabbed-feature-layout--wide {
+    max-width: none;
+  }
+
+  .tabbed-feature-sidebar {
+    transform: translateX(-100%);
+    transition: transform 300ms ease;
+  }
+
+  @media (min-width: 768px) {
+    .tabbed-feature-sidebar {
+      transform: none;
+      transition: none;
+    }
+  }
+
+  .tabbed-feature-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .tabbed-feature-mobile-bar {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    .tabbed-feature-mobile-bar {
+      display: none !important;
+    }
+  }
+
+  .tabbed-feature-back-btn--desktop {
+    display: none;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .tabbed-feature-back-btn--desktop {
+      display: inline-flex;
+    }
+  }
+
+  .tabbed-feature-back-btn--sidebar {
+    width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+  }
+</style>

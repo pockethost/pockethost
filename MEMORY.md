@@ -40,7 +40,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.
+- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. Public aggregate stats: `GET /stats.json` (cached in `pb_data/stats.json`, refreshed on boot + hourly cron).
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`). Express error handler posts to `DISCORD_ALERT_CHANNEL_URL` only for `systemError` (Docker/host failures). `userError` covers unpaid, suspended, JSVM/app exit, etc. SFTP (`classifySftpError`) treats handshake/protocol/client misconfig as `userError` (debug log only).
 - **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`.
 
@@ -79,7 +79,9 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`). `wa-card` `:host` sets `--spacing` for WA padding; TW4 `mb-*`/`p-*` use the same token — reset `--spacing: 0.25rem` on `.wa-card-body` / `.wa-card-section` / `.wa-card-header` so slotted Tailwind spacing is not inflated inside cards.
 ## App page layout
 
-Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: shell title, sidebar nav, mobile drawer, optional `header` / `toolbar` / `alerts` slots, then child route content.
+`/dashboard` is the home for instances: searchable list/table (default) with optional card grid. No app-level sidebar.
+
+Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: section sidebar, mobile drawer, optional `header` / `toolbar` / `alerts` slots. Instance routes pass `width="wide"` and `backHref="/dashboard"`.
 
 Each tab route uses **`FeatureTab.svelte`** in this order:
 
@@ -152,4 +154,4 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`). CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. Full hook/migration work lives on `v39-mothership` branch until cutover.
+- **v0.39 mothership port (`v39-mothership`):** PB 0.39.*** hooks on v0.23+ JSVM; `pb_migrations/` = v0.39 snapshot. Public counts via `GET /stats.json` cron cache. Cutover: soak, merge to main, flip `MOTHERSHIP_SEMVER` in prod. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.

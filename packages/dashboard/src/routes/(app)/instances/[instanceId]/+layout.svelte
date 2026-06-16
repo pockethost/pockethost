@@ -155,7 +155,14 @@
 </svelte:head>
 
 {#if isReady}
-  <TabbedFeatureLayout title={$instance.subdomain} mobileTitle={$instance.subdomain} {sections}>
+  <TabbedFeatureLayout
+    title={$instance.subdomain}
+    mobileTitle={$instance.subdomain}
+    {sections}
+    width="wide"
+    backHref="/dashboard"
+    backLabel="All"
+  >
     <svelte:fragment slot="mobileHeader">
       <h1 class="text-lg font-bold text-white min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
         <span class="truncate">{$instance.subdomain}</span>

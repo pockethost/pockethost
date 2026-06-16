@@ -97,6 +97,29 @@ const HandleInstanceDelete = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/instance/bootstrap/resetInstancesIdle.ts
+const resetInstancesIdle = (app) => {
+	const records = app.findRecordsByFilter(`instances`, `status != 'idle'`).filter((r) => !!r);
+	let reset = 0;
+	for (const record of records) {
+		record.set(`status`, `idle`);
+		app.save(record);
+		reset++;
+	}
+	return reset;
+};
+
+//#endregion
+//#region src/lib/handlers/instance/api/HandleInstancesRuntimeReset.ts
+const HandleInstancesRuntimeReset = (e) => {
+	const reset = resetInstancesIdle($app);
+	return e.json(200, {
+		ok: true,
+		reset
+	});
+};
+
+//#endregion
 //#region src/lib/util/removeEmptyKeys.ts
 const removeEmptyKeys = (obj) => Object.fromEntries(Object.entries(obj).filter(([, value]) => value != null));
 
@@ -203,29 +226,6 @@ const HandleInstanceUpdate = (e) => {
 	for (const [key, value] of Object.entries(sanitized)) record.set(key, value);
 	$app.save(record);
 	return e.json(200, { status: "ok" });
-};
-
-//#endregion
-//#region src/lib/handlers/instance/bootstrap/resetInstancesIdle.ts
-const resetInstancesIdle = (app) => {
-	const records = app.findRecordsByFilter(`instances`, `status != 'idle'`).filter((r) => !!r);
-	let reset = 0;
-	for (const record of records) {
-		record.set(`status`, `idle`);
-		app.save(record);
-		reset++;
-	}
-	return reset;
-};
-
-//#endregion
-//#region src/lib/handlers/instance/api/HandleInstancesRuntimeReset.ts
-const HandleInstancesRuntimeReset = (e) => {
-	const reset = resetInstancesIdle($app);
-	return e.json(200, {
-		ok: true,
-		reset
-	});
 };
 
 //#endregion
@@ -696,7 +696,7 @@ const HandleMirrorData = (e) => {
 
 //#endregion
 //#region src/lib/handlers/mirror/lib/applyLiveInstances.ts
-/** save per row (not bulk SQL) so dashboard SSE clients get status updates. */
+/** Save per row (not bulk SQL) so dashboard SSE clients get status updates. */
 const applyLiveInstances = (app, liveInstances) => {
 	let updated = 0;
 	for (const live of liveInstances) {
@@ -3187,6 +3187,47 @@ const BeforeUpdate_ssh_keys = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/stats/lib/refreshPublicStats.ts
+const mkPublicStatsPath = () => `${$app.dataDir()}/stats.json`;
+const refreshPublicStats = () => {
+	const log = mkLog("refreshPublicStats");
+	const db = $app.db();
+	const users = new DynamicModel({ total: 0 });
+	db.newQuery("SELECT COUNT(*) as total FROM users").one(users);
+	const instances = new DynamicModel({ total: 0 });
+	db.newQuery("SELECT COUNT(*) as total FROM instances").one(instances);
+	const stats = {
+		updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+		developers: users.total,
+		instances: instances.total
+	};
+	$os.writeFile(mkPublicStatsPath(), JSON.stringify(stats), 420);
+	log(`Wrote stats.json`, stats);
+	return stats;
+};
+
+//#endregion
+//#region src/lib/handlers/stats/api/HandleStatsRequest.ts
+/** Public aggregate platform stats (hourly cron + on-demand refresh). */
+const HandleStatsRequest = (e) => {
+	const readStats = () => {
+		const raw = $os.readFile(mkPublicStatsPath());
+		return JSON.parse(typeof raw === "string" ? raw : String(raw));
+	};
+	try {
+		return e.json(200, readStats());
+	} catch {
+		return e.json(200, refreshPublicStats());
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/stats/boot/HandleStatsRefreshAtBoot.ts
+const HandleStatsRefreshAtBoot = (_e) => {
+	refreshPublicStats();
+};
+
+//#endregion
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (e) => {
 	mkLog(`user-token`);
@@ -3234,6 +3275,10 @@ exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;
 exports.HandleSignupCheck = HandleSignupCheck;
 exports.HandleSignupConfirm = HandleSignupConfirm;
+exports.HandleStatsRefreshAtBoot = HandleStatsRefreshAtBoot;
+exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
+exports.mkPublicStatsPath = mkPublicStatsPath;
+exports.refreshPublicStats = refreshPublicStats;
