@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { globalInstancesStore } from '$util/stores'
+  import { globalInstancesStore, globalInstancesStoreReady } from '$util/stores'
   import {
     DEFAULT_INSTANCE_LIST_PREFS,
     instanceListPrefsHasUrlParams,
@@ -16,6 +16,7 @@
   import InstanceCard from './InstanceCard.svelte'
   import InstanceTableRow from './InstanceTableRow.svelte'
   import { page } from '$app/state'
+  import { browser } from '$app/environment'
   import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
 
@@ -26,12 +27,10 @@
   let searchQuery = initialPrefs.searchQuery
   let sortDirection: InstanceListSortDirection = initialPrefs.sortDirection
   let viewMode: InstanceListViewMode = initialPrefs.viewMode
-  let favoriteIds: string[] = []
+  let favoriteIds: string[] = browser ? loadInstanceFavoritesFromStorage() : []
   let syncReady = instanceListPrefsHasUrlParams(page.url.searchParams)
 
   onMount(() => {
-    favoriteIds = loadInstanceFavoritesFromStorage()
-
     if (!syncReady) {
       const stored = loadInstanceListPrefsFromStorage()
       searchQuery = stored.searchQuery
@@ -43,7 +42,7 @@
 
   $: validInstanceIds = new Set(Object.keys($globalInstancesStore))
 
-  $: if (favoriteIds.some((id) => !validInstanceIds.has(id))) {
+  $: if ($globalInstancesStoreReady && favoriteIds.some((id) => !validInstanceIds.has(id))) {
     favoriteIds = favoriteIds.filter((id) => validInstanceIds.has(id))
     saveInstanceFavorites(favoriteIds)
   }
@@ -71,13 +70,10 @@
     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'
   }
 
-  const sortByName = (a: InstanceFields, b: InstanceFields) => {
-    const multiplier = sortDirection === 'asc' ? 1 : -1
-    return (
-      (a.cname || a.subdomain).localeCompare(b.cname || b.subdomain, undefined, { sensitivity: 'base' }) * multiplier
-    )
-  }
+  const compareInstanceNames = (a: InstanceFields, b: InstanceFields, multiplier: number) =>
+    (a.cname || a.subdomain).localeCompare(b.cname || b.subdomain, undefined, { sensitivity: 'base' }) * multiplier
 
+  $: sortMultiplier = sortDirection === 'asc' ? 1 : -1
   $: favoriteSet = new Set(favoriteIds)
 
   $: filteredInstances = Object.values($globalInstancesStore)
@@ -89,7 +85,7 @@
       const aFav = favoriteSet.has(a.id)
       const bFav = favoriteSet.has(b.id)
       if (aFav !== bFav) return aFav ? -1 : 1
-      return sortByName(a, b)
+      return compareInstanceNames(a, b, sortMultiplier)
     })
 </script>
 
