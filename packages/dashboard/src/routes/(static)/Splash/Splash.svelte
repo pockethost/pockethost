@@ -45,34 +45,35 @@
     },
   ]
 
-  const parseStars = (value: string) => {
-    if (typeof value === 'string') {
-      value = value.toLowerCase().replace(',', '')
-      if (value.endsWith('k')) {
-        return Math.round(parseFloat(value) * 1000)
-      }
-      if (value.endsWith('m')) {
-        return Math.round(parseFloat(value) * 1_000_000)
-      }
-      return parseInt(value, 10)
-    }
-    return value
-  }
-
   const stars = tweened(0, { duration: 1500, easing: cubicOut })
+  const uptime = tweened(99.964, { duration: 1500, easing: cubicOut })
   const formatter = new Intl.NumberFormat()
 
-  onMount(async () => {
-    try {
-      const res = await fetch('https://img.shields.io/github/stars/pockethost/pockethost.json')
-      if (!res.ok) throw new Error('Failed to fetch data')
-      const data = await res.json()
-
-      const starCount = parseStars(data.value)
-      stars.set(starCount)
-    } catch (error) {
-      console.error(error)
+  const fetchStars = async () => {
+    const res = await fetch('https://api.github.com/repos/pockethost/pockethost')
+    if (!res.ok) throw new Error('Failed to fetch GitHub stars')
+    const data = await res.json()
+    if (typeof data.stargazers_count === 'number' && Number.isFinite(data.stargazers_count)) {
+      stars.set(data.stargazers_count)
     }
+  }
+
+  const fetchUptime = async () => {
+    const res = await fetch('https://status.pockethost.io/index.json')
+    if (!res.ok) throw new Error('Failed to fetch status page')
+    const data = await res.json()
+    const availabilities = (data.included ?? [])
+      .filter((item: { type: string }) => item.type === 'status_page_resource')
+      .map((item: { attributes?: { availability?: number } }) => item.attributes?.availability)
+      .filter((value: unknown): value is number => typeof value === 'number' && value > 0)
+
+    if (availabilities.length === 0) return
+
+    uptime.set(Math.min(...availabilities) * 100)
+  }
+
+  onMount(async () => {
+    await Promise.allSettled([fetchStars(), fetchUptime()])
   })
 </script>
 
@@ -120,7 +121,7 @@
             <div class="text-white/60 text-sm font-light">Setup Time</div>
           </div>
           <div>
-            <div class="text-3xl md:text-4xl font-light mb-2 text-white">99.964%</div>
+            <div class="text-3xl md:text-4xl font-light mb-2 text-white">{$uptime.toFixed(3)}%</div>
             <div class="text-white/60 text-sm font-light">Uptime</div>
           </div>
           <div>
