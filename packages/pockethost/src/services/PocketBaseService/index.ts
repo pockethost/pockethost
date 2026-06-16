@@ -106,7 +106,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
     // Add timing for container startup
     const containerStartTime = Date.now()
-    info(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
+    dbg(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
 
     const container = await new Promise<{
       on: EventEmitter['on']
@@ -213,7 +213,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
           const containerReadyTime = Date.now()
           const startupDuration = containerReadyTime - containerStartTime
 
-          info(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
+          dbg(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
           info(`[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`)
           if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
             warn(`Container ${instanceId} launch took ${startupDuration}ms`)

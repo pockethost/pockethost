@@ -412,7 +412,6 @@ const BeforeUpdate_cname = (e) => {
 			log(`${msg}`);
 			throw new BadRequestError(msg);
 		}
-		log(`CNAME validation passed for: "${newCname}"`);
 	}
 };
 
