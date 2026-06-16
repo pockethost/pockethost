@@ -1,5 +1,6 @@
 <script lang="ts">
   import { userStore, isUserLoggedIn } from '$util/stores'
+  import { FLOUNDER_CHECKOUT_VARIANT_ID, lemonsqueezyCheckoutUrl } from '$util/lemonsqueezy'
 
   export let selected: boolean = false
   export let buttonText: string = 'Subscribe Now'
@@ -10,9 +11,10 @@
   export let cta: string
   export let features: string[]
 
-  $: checkoutUrl = $isUserLoggedIn
-    ? `https://store.pockethost.io/buy/d4b2d062-429c-49b4-9cdc-853aaeb17e20?checkout[custom][user_id]=${$userStore?.id}&checkout[email]=${$userStore?.email}`
-    : null
+  $: checkoutUrl =
+    $isUserLoggedIn && $userStore?.id && $userStore?.email
+      ? lemonsqueezyCheckoutUrl(FLOUNDER_CHECKOUT_VARIANT_ID, $userStore.id, $userStore.email)
+      : null
 </script>
 
 <div class="pricing-plan {selected ? 'pricing-plan--featured' : ''}">
