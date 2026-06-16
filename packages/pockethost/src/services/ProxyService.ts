@@ -21,6 +21,14 @@ export type ProxyMiddleware = (
 export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
 }
+
+let instanceTrafficReady = false
+
+export const setInstanceTrafficReady = (ready = true) => {
+  instanceTrafficReady = ready
+}
+
+export const isInstanceTrafficReady = () => instanceTrafficReady
 export const proxyService = mkSingleton(
   async (config: ProxyServiceConfig): Promise<{ use: ReturnType<typeof express>['use'] }> => {
     const _proxyLogger = LoggerService().create('ProxyService')
@@ -90,9 +98,12 @@ export const proxyService = mkSingleton(
 
     const apiRouter = express.Router()
 
-    apiRouter.get('/health', (req, res, next) => {
+    apiRouter.get('/health', (req, res) => {
+      if (!instanceTrafficReady) {
+        res.status(503).json({ status: 'starting' })
+        return
+      }
       res.json({ status: 'ok' })
-      res.end
     })
 
     server.use('/_api/daemon', apiRouter)

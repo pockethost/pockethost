@@ -1,15 +1,19 @@
-import {
-  canFetch,
-  DAEMON_PORT,
-  Logger,
-  mkInternalUrl,
-  PH_FIREWALL_DAEMON_GRACE_MS,
-  PH_FIREWALL_DAEMON_GRACE_RETRY_MS,
-} from '@'
+import { DAEMON_PORT, Logger, mkInternalUrl, PH_FIREWALL_DAEMON_GRACE_MS, PH_FIREWALL_DAEMON_GRACE_RETRY_MS } from '@'
 import type { ErrorRequestHandler, RequestHandler, Response } from 'express'
 import { isHealthProbePath } from './rateLimiterPure'
 
 const daemonHealthUrl = () => `${mkInternalUrl(DAEMON_PORT())}/_api/daemon/health`
+
+const isDaemonReady = async (url: string, timeoutMs: number) => {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })
+    if (!res.ok) return false
+    const body = (await res.json()) as { status?: string }
+    return body.status === 'ok'
+  } catch {
+    return false
+  }
+}
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
@@ -48,7 +52,7 @@ export const createDaemonGraceMiddleware = (logger: Logger): RequestHandler => {
       const remaining = deadline - Date.now()
       if (remaining <= 0) break
 
-      if (await canFetch(daemonHealthUrl(), Math.min(retryMs, remaining))) {
+      if (await isDaemonReady(daemonHealthUrl(), Math.min(retryMs, remaining))) {
         next()
         return
       }

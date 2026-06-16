@@ -41,8 +41,8 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 ```
 
 - **Mothership**: PocketBase app at `mothership-app/` — `pb_migrations/`, TS handlers in `src/lib/handlers/`. **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Public aggregate stats: `GET /stats.json` (cached in `pb_data/stats.json`, refreshed on boot + hourly cron).
-- **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`). Express error handler posts to `DISCORD_ALERT_CHANNEL_URL` only for `systemError` (Docker/host failures). `userError` covers unpaid, suspended, JSVM/app exit, etc. SFTP (`classifySftpError`) treats handshake/protocol/client misconfig as `userError` (debug log only).
-- **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`. **Daemon grace:** polls `/_api/daemon/health` before proxying instance traffic; holds up to `PH_FIREWALL_DAEMON_GRACE_MS` (default 60s), retry `PH_FIREWALL_DAEMON_GRACE_RETRY_MS` (default 500ms). Health probe paths bypass grace. Returns 503 + `Retry-After` when exhausted. Set grace to `0` to disable.
+- **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`). Instance containers named by instance ID (`instanceContainerName`) and preserved across daemon restarts (reattach on boot, reconcile against mirror `power`/version; daemon SIGTERM detaches without stopping Docker). Express error handler posts to `DISCORD_ALERT_CHANNEL_URL` only for `systemError` (Docker/host failures). `userError` covers unpaid, suspended, JSVM/app exit, etc. SFTP (`classifySftpError`) treats handshake/protocol/client misconfig as `userError` (debug log only).
+- **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`. **Daemon grace:** polls `/_api/daemon/health` (requires `{ status: 'ok' }`, 503 while edge reconciles preserved containers) before proxying instance traffic; holds up to `PH_FIREWALL_DAEMON_GRACE_MS` (default 60s), retry `PH_FIREWALL_DAEMON_GRACE_RETRY_MS` (default 500ms). Health probe paths bypass grace. Returns 503 + `Retry-After` when exhausted. Set grace to `0` to disable.
 
 ## Key paths & settings
 
@@ -61,7 +61,7 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pockethost/src/services/`:
 
 - `PocketBaseService` — instance PB process management
-- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising
+- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising
 - `MothershipAdminClientService` — admin PB client + instance mixin
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
