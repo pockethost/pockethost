@@ -76,7 +76,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - **UX direction:** App routes (`(app)/`) should be task-first with progressive disclosure. The UI is text-heavy today. Prefer presets, short field hints, and collapsible help over inline reference walls. Rule: `.cursor/rules/dashboard-ux.mdc`. Browser QA: `.cursor/skills/dashboard-browser-qa/SKILL.md`.
 - **Browser QA:** Cursor IDE browser MCP works. Login: `.secret/pockethost-io-login` (L1 email, L2 password). Use `https://pockethost.lvh.me` with `dev:dashboard` + `dev:cli serve` running.
 - UI: `wa-*` web components; icons via `<wa-icon>` (Font Awesome Free)
-- WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`)
+- WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`). `wa-card` `:host` sets `--spacing` for WA padding; TW4 `mb-*`/`p-*` use the same token — reset `--spacing: 0.25rem` on `.wa-card-body` / `.wa-card-section` / `.wa-card-header` so slotted Tailwind spacing is not inflated inside cards.
 ## App page layout
 
 Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: shell title, sidebar nav, mobile drawer, optional `header` / `toolbar` / `alerts` slots, then child route content.

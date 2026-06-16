@@ -87,6 +87,13 @@ wa-card.wa-card-muted {
   background-color: rgb(23 23 23);
 }
 
+/* WA :host sets --spacing for internal padding; TW4 mb-* / p-* use the same token (0.25rem base). Reset on slotted wrappers so utilities inside cards stay correct. */
+.wa-card-body,
+.wa-card-section,
+.wa-card-header {
+  --spacing: 0.25rem;
+}
+
 .wa-card-body {
   padding: 1.5rem;
 }
