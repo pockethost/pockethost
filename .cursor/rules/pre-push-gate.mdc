@@ -1,0 +1,39 @@
+---
+description: Pre-push hook runs check:push — run before push or PR-ready
+alwaysApply: true
+---
+
+# Pre-push gate
+
+`.husky/pre-push` runs **`pnpm check:push`** (same as CI quality minus dashboard build):
+
+1. `pnpm lint` — Prettier on `*.{ts,js,cjs,svelte,json}`
+2. `pnpm --filter pockethost check:types` — `tsc --noEmit`
+3. `pnpm --filter phio check:types` — `tsc --noEmit`
+4. `pnpm --filter @pockethost/dashboard check:types` — `svelte-check`
+5. `pnpm test` — `vitest run`
+
+`git push` **fails** if any step fails. Do not tell the user to push until this passes.
+
+## When agents must run it
+
+- User asks to **push**, open a **PR**, or says work is **ready to merge**
+- Substantive code change is **done** and the next step is commit/push (run after edits, before or right after commit)
+- Pre-push hook failed in chat — fix and re-run
+
+## When to skip
+
+- Mid-edit exploration, question-only turns, or the user explicitly asked to skip hooks
+
+## Quick fixes
+
+| Failure | Fix |
+|---------|-----|
+| Prettier | `pnpm lint:fix` (or format only touched paths) |
+| `pockethost` / `phio` types | fix reported files, re-run that package's `check:types` |
+| `dashboard` types | fix Svelte/TS issues, re-run dashboard `check:types` |
+| Vitest | fix test or implementation, re-run `pnpm test` |
+
+Full workflow: [`.cursor/skills/check-push/SKILL.md`](../skills/check-push/SKILL.md).
+
+After dashboard route/build changes, also run `pnpm check:ci` (adds dashboard `build`) before merge — CI runs that.
