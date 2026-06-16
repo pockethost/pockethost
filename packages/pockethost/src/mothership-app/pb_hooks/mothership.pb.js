@@ -101,6 +101,18 @@ onRecordBeforeUpdateRequest((e) => {
 }, "ssh_keys");
 
 //#endregion
+//#region src/lib/handlers/stats/hooks.ts
+routerAdd("GET", "/stats.json", (c) => {
+	return require(`${__hooks}/mothership`).HandleStatsRequest(c);
+});
+onAfterBootstrap((e) => {
+	return require(`${__hooks}/mothership`).HandleStatsRefreshAtBoot(e);
+});
+cronAdd("public-stats", "0 * * * *", () => {
+	require(`${__hooks}/mothership`).refreshPublicStats();
+});
+
+//#endregion
 //#region src/lib/handlers/user/hooks.ts
 routerAdd("GET", "/api/userToken/:id", (c) => {
 	return require(`${__hooks}/mothership`).HandleUserTokenRequest(c);
