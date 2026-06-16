@@ -133,8 +133,8 @@ export function InstanceLogReader(instanceId: string, target: string, logger: Lo
     tail: (linesBack: number, data: (line: LogEntry) => void): UnsubFunc => {
       const logFile = mkInstanceDataPath(instanceId, `logs`, `${target}.log`)
 
-      let tid: any
-      let unsub: any
+      let tid: ReturnType<typeof setTimeout> | undefined
+      let unsub: UnsubFunc | undefined
       const check = () => {
         try {
           const tail = new Tail(logFile, { nLines: linesBack })
@@ -168,7 +168,7 @@ export function InstanceLogReader(instanceId: string, target: string, logger: Lo
 
       return () => {
         clearTimeout(tid)
-        unsub()
+        unsub?.()
       }
     },
   }

@@ -6,6 +6,8 @@ import {
   InstanceLogWriter,
   isDockerContainerNotFound,
   isPlatformDockerFailure,
+  isSystemError,
+  isUserError,
   Logger,
   LoggerService,
   mkContainerHomePath,
@@ -265,6 +267,9 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     }).catch((e) => {
       error(`Error starting container: ${e}`)
       cm.shutdown()
+      if (isUserError(e) || isSystemError(e)) {
+        throw e
+      }
       throw systemError(e instanceof Error ? e : new Error(String(e)))
     })
 
