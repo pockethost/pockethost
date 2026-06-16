@@ -135,8 +135,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         .then(() => {
           dbg(`Updated instance fields`, fields)
         })
-        .catch((e) => {
-          error(`Error updating instance fields for ${id}`, { fields, e })
+        .catch(() => {
+          warn(
+            `Could not update instance fields for ${id}; status will catch up if still running when mothership returns (mothership boot resets all instances to idle)`
+          )
         })
     })
     const updateInstanceStatus = (id: InstanceId, status: InstanceStatus) => updateInstance(id, { status })
