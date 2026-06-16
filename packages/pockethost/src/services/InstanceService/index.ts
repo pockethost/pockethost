@@ -43,6 +43,8 @@ type InstanceApi = {
   internalUrl: string
   startRequest: () => () => void
   shutdown: () => void
+  isLowering: () => boolean
+  whenLowered: () => Promise<void>
 }
 
 export type InstanceServiceConfig = SingletonBaseConfig & {
@@ -61,6 +63,16 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const mirror = await MothershipMirrorService()
 
   const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
+  const gatewayPending: { [_: InstanceId]: number } = {}
+
+  const bumpGatewayPending = (id: InstanceId) => {
+    gatewayPending[id] = (gatewayPending[id] ?? 0) + 1
+    return () => {
+      gatewayPending[id] = Math.max(0, (gatewayPending[id] ?? 1) - 1)
+    }
+  }
+
+  const getGatewayPending = (id: InstanceId) => gatewayPending[id] ?? 0
 
   const vacuumLocks = await VacuumLockService(config)
   vacuumLocks.registerIsLive((id) => Boolean(instanceApis[id]))
@@ -155,7 +167,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         return
       }
       shutdownInProgress = true
-      dbg(`Shutting down`)
+      dbg(`Shutting down (lowering drawbridge)`)
+      delete instanceApis[id]
       for (let i = shutdownManager.length - 1; i >= 0; i--) {
         const fn = shutdownManager[i]
         if (typeof fn === 'function') fn()
@@ -218,11 +231,12 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       const childProcess = await pbService.spawn(spawnArgs)
 
       const { exitCode, stopped, started, url: internalUrl } = childProcess
+      const whenLowered = exitCode.then(() => undefined)
       exitCode.then((code) => {
         dbg(`Instance exited with code ${code}`)
-        dbg(`Shutting down: There are now ${Object.values(instanceApis).length} still in API cache`)
-        shutdown()
-        delete instanceApis[id]
+        if (!shutdownInProgress) {
+          shutdown()
+        }
       })
 
       shutdownManager.push(() => {
@@ -252,8 +266,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       const idleTtl = instance.idleTtl || DAEMON_PB_IDLE_TTL()
       const idleTid = setInterval(() => {
         const lastRequestAge = now() - lastRequest
-        dbg(`idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`)
-        if (openRequestCount === 0 && lastRequestAge > idleTtl) {
+        dbg(
+          `idle check: ${openRequestCount} open requests, ${getGatewayPending(id)} gateway pending, ${lastRequestAge}ms since last request`
+        )
+        if (openRequestCount === 0 && getGatewayPending(id) === 0 && lastRequestAge > idleTtl) {
           dbg(`idle for ${idleTtl}, shutting down`)
           userInstanceLogger.info(
             `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`
@@ -280,6 +296,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
           }
         },
         shutdown,
+        isLowering: () => shutdownInProgress,
+        whenLowered: () => whenLowered,
       }
 
       dbg(`${internalUrl} is running`)
@@ -311,6 +329,47 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       error(`Error shutting down ${instanceId} on delete`, { e })
     })
   })
+
+  const mkInstanceApiPromise = (instance: InstanceFields, requestId: string) => {
+    const start = now()
+    return createInstanceApi(instance).catch((e) => {
+      const duration = now() - start
+      if (isUserError(e)) {
+        dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
+      } else {
+        warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+      }
+
+      delete instanceApis[instance.id]
+
+      if (isSystemError(e)) {
+        throw e
+      }
+
+      throw userError(
+        `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${requestId}]`
+      )
+    })
+  }
+
+  const ensureInstanceApi = async (instance: InstanceFields, requestId: string): Promise<InstanceApi> => {
+    while (true) {
+      if (!instanceApis[instance.id]) {
+        instanceApis[instance.id] = mkInstanceApiPromise(instance, requestId)
+      }
+
+      const api = await instanceApis[instance.id]!
+
+      if (!api.isLowering()) {
+        return api
+      }
+
+      dbg(`Instance ${instance.id} is lowering, waiting before raising (${requestId})`)
+      await api.whenLowered()
+      delete instanceApis[instance.id]
+    }
+  }
+
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
 
@@ -382,39 +441,28 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       }
     }
 
-    const start = now()
-    if (!instanceApis[instance.id]) {
-      instanceApis[instance.id] = createInstanceApi(instance).catch((e) => {
-        const end = now()
-        const duration = end - start
-        if (isUserError(e)) {
-          dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
-        } else {
-          warn(`Container ${instance.id} failed to launch in ${duration}ms`)
-        }
+    const releaseGatewayPending = bumpGatewayPending(instance.id)
 
-        delete instanceApis[instance.id]
+    try {
+      const api = await ensureInstanceApi(instance, res.locals.requestId)
 
-        if (isSystemError(e)) {
-          throw e
-        }
+      const endRequest = api.startRequest()
+      const onClose = () => {
+        endRequest()
+        releaseGatewayPending()
+      }
+      res.on('close', onClose)
+      if (req.closed) {
+        dbg(`Request already closed. ${res.locals.requestId}`)
+      }
 
-        throw userError(
-          `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`
-        )
-      })
+      dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
+
+      proxy.web(req, res, { target: api.internalUrl })
+    } catch (e) {
+      releaseGatewayPending()
+      throw e
     }
-    const api = await instanceApis[instance.id]!
-
-    const endRequest = api.startRequest()
-    res.on('close', endRequest)
-    if (req.closed) {
-      dbg(`Request already closed. ${res.locals.requestId}`)
-    }
-
-    dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
-
-    proxy.web(req, res, { target: api.internalUrl })
   })
 
   asyncExitHook(async () => {
