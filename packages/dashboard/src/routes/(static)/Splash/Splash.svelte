@@ -2,6 +2,7 @@
   import AuthStateGuard from '$components/guards/AuthStateGuard.svelte'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
+  import { PUBLIC_MOTHERSHIP_URL } from '$lib/appEnv'
   import { onMount } from 'svelte'
   import PrimaryButton from './PrimaryButton.svelte'
   import { tweened } from 'svelte/motion'
@@ -47,7 +48,15 @@
 
   const stars = tweened(0, { duration: 1500, easing: cubicOut })
   const uptime = tweened(99.964, { duration: 1500, easing: cubicOut })
+  const developers = tweened(10_000, { duration: 1500, easing: cubicOut })
+  const instances = tweened(5_000, { duration: 1500, easing: cubicOut })
   const formatter = new Intl.NumberFormat()
+
+  const formatCompact = (value: number) => {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+    if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+    return formatter.format(value)
+  }
 
   const fetchStars = async () => {
     const res = await fetch('https://api.github.com/repos/pockethost/pockethost')
@@ -72,8 +81,20 @@
     uptime.set(Math.min(...availabilities) * 100)
   }
 
+  const fetchStats = async () => {
+    const res = await fetch(`${PUBLIC_MOTHERSHIP_URL}/stats.json`)
+    if (!res.ok) throw new Error('Failed to fetch platform stats')
+    const data = await res.json()
+    if (typeof data.developers === 'number' && Number.isFinite(data.developers)) {
+      developers.set(data.developers)
+    }
+    if (typeof data.instances === 'number' && Number.isFinite(data.instances)) {
+      instances.set(data.instances)
+    }
+  }
+
   onMount(async () => {
-    await Promise.allSettled([fetchStars(), fetchUptime()])
+    await Promise.allSettled([fetchStars(), fetchUptime(), fetchStats()])
   })
 </script>
 
@@ -115,7 +136,7 @@
   <section class="lg:px-8">
     <div class="max-w-6xl mx-auto">
       <div class="bg-[#111111]/50 border border-white/20 rounded-2xl p-12 backdrop-blur-xl fade-in text-white">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 text-center">
           <div>
             <div class="text-3xl md:text-4xl font-light mb-2 text-white">30s</div>
             <div class="text-white/60 text-sm font-light">Setup Time</div>
@@ -125,8 +146,12 @@
             <div class="text-white/60 text-sm font-light">Uptime</div>
           </div>
           <div>
-            <div class="text-3xl md:text-4xl font-light mb-2 text-white">10K+</div>
+            <div class="text-3xl md:text-4xl font-light mb-2 text-white">{formatCompact($developers)}</div>
             <div class="text-white/60 text-sm font-light">Developers</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-light mb-2 text-white">{formatCompact($instances)}</div>
+            <div class="text-white/60 text-sm font-light">Instances</div>
           </div>
           <div>
             <div class="text-3xl md:text-4xl font-light mb-2 flex items-center justify-center gap-2 text-white">
