@@ -77,7 +77,7 @@
   {successMessage}
   successFlash
 >
-  {#snippet alerts()}
+  <svelte:fragment slot="alerts">
     {#if showV23Notice}
       <wa-callout variant="warning" class="wa-callout-padded mb-4">
         <wa-icon slot="icon" name="triangle-exclamation"></wa-icon>
@@ -90,16 +90,15 @@
         </p>
       </wa-callout>
     {/if}
-  {/snippet}
+  </svelte:fragment>
 
-  {#snippet summary()}
+  <svelte:fragment slot="summary">
     <p>
       We recommend you <strong>do a full backup</strong>
       before making a change. We support the latest patch of
-      <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of
-      PocketBase.
+      <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase.
     </p>
-  {/snippet}
+  </svelte:fragment>
 
   <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
     <VersionPicker bind:selectedVersion versions={$versions} disabled={!isFullyOff} />

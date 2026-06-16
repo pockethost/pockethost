@@ -1,28 +1,40 @@
 <script lang="ts">
   import { globalInstancesStore } from '$util/stores'
+  import {
+    DEFAULT_INSTANCE_LIST_PREFS,
+    instanceListPrefsHasUrlParams,
+    loadInstanceListPrefsFromStorage,
+    loadInstanceListPrefsFromUrl,
+    saveInstanceListPrefs,
+    type InstanceListFilterPower,
+    type InstanceListSortDirection,
+    type InstanceListSortOptions,
+  } from '$util/instanceListPrefs'
   import { type InstanceFields } from 'pockethost/common'
   import InstanceCard from './InstanceCard.svelte'
   import { page } from '$app/state'
   import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
 
-  type SortOptions = 'subdomain' | 'created' | 'power'
-  type SortDirection = 'asc' | 'desc'
+  const initialPrefs = instanceListPrefsHasUrlParams(page.url.searchParams)
+    ? loadInstanceListPrefsFromUrl(page.url.searchParams)
+    : DEFAULT_INSTANCE_LIST_PREFS
 
-  let sortBy: SortOptions = 'power'
-  let searchQuery = ''
-  let filterPower: 'all' | 'on' | 'off' = 'all'
-  let sortDirection: SortDirection = 'asc'
+  let sortBy: InstanceListSortOptions = initialPrefs.sortBy
+  let searchQuery = initialPrefs.searchQuery
+  let filterPower: InstanceListFilterPower = initialPrefs.filterPower
+  let sortDirection: InstanceListSortDirection = initialPrefs.sortDirection
+  let syncReady = instanceListPrefsHasUrlParams(page.url.searchParams)
 
-  const updateStateFromUrl = () => {
-    const params = page.url.searchParams
-    sortDirection = (params.get('sort') as SortDirection) || 'asc'
-    sortBy = (params.get('by') as SortOptions) || 'power'
-    filterPower = (params.get('f') as 'all' | 'on' | 'off') || 'all'
-    searchQuery = params.get('q') || ''
-  }
   onMount(() => {
-    updateStateFromUrl()
+    if (!syncReady) {
+      const stored = loadInstanceListPrefsFromStorage()
+      sortBy = stored.sortBy
+      searchQuery = stored.searchQuery
+      filterPower = stored.filterPower
+      sortDirection = stored.sortDirection
+      syncReady = true
+    }
   })
 
   const updateUrl = () => {
@@ -34,11 +46,12 @@
     goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true })
   }
 
-  $: if (sortBy || sortDirection || searchQuery || filterPower) {
+  $: if (syncReady) {
+    saveInstanceListPrefs({ sortBy, sortDirection, filterPower, searchQuery })
     updateUrl()
   }
 
-  const sortFn = (type: SortOptions, direction: SortDirection) => {
+  const sortFn = (type: InstanceListSortOptions, direction: InstanceListSortDirection) => {
     const multiplier = direction === 'asc' ? 1 : -1
     switch (type) {
       case 'subdomain':

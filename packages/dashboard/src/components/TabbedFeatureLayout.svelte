@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte'
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import { featureTabNavClass, type FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
 
@@ -7,23 +6,9 @@
     title: string
     mobileTitle?: string
     sections?: FeatureTabNavSection[]
-    mobileHeader?: Snippet
-    header?: Snippet
-    toolbar?: Snippet
-    alerts?: Snippet
-    children?: Snippet
   }
 
-  let {
-    title,
-    mobileTitle = title,
-    sections = [],
-    mobileHeader,
-    header,
-    toolbar,
-    alerts,
-    children,
-  }: Props = $props()
+  let { title, mobileTitle = title, sections = [] }: Props = $props()
 
   let sidebarOpen = $state(false)
 
@@ -43,33 +28,33 @@
       <button type="button" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle menu">
         <wa-icon name="bars"></wa-icon>
       </button>
-      {#if mobileHeader}
-        {@render mobileHeader()}
+      {#if $$slots.mobileHeader}
+        <slot name="mobileHeader" />
       {:else}
         <h1 class="text-lg font-bold text-white truncate">{mobileTitle}</h1>
       {/if}
     </div>
-    {#if toolbar}
+    {#if $$slots.toolbar}
       <div class="flex-shrink-0">
-        {@render toolbar()}
+        <slot name="toolbar" />
       </div>
     {/if}
   </div>
 
   <div class="hidden md:flex flex-row items-start justify-between gap-4 mb-6 md:mb-8">
-    {#if header}
-      {@render header()}
+    {#if $$slots.header}
+      <slot name="header" />
     {:else}
       <h1 class="text-2xl md:text-3xl font-bold text-white">{title}</h1>
     {/if}
-    {#if toolbar}
-      {@render toolbar()}
+    {#if $$slots.toolbar}
+      <slot name="toolbar" />
     {/if}
   </div>
 
-  {#if alerts}
+  {#if $$slots.alerts}
     <div class="mb-4 md:mb-6">
-      {@render alerts()}
+      <slot name="alerts" />
     </div>
   {/if}
 
@@ -126,9 +111,7 @@
     </aside>
 
     <div class="flex-1 min-w-0 max-w-2xl">
-      {#if children}
-        {@render children()}
-      {/if}
+      <slot />
     </div>
   </div>
 </div>

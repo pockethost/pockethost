@@ -3,7 +3,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import FeatureTab from '$components/FeatureTab.svelte'
   import QuickReference from '$components/QuickReference.svelte'
-  import { INSTANCE_BARE_HOST } from '$src/env'
+  import { INSTANCE_BARE_HOST } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
   import { isUserPaid } from '$util/stores'
   import { dns } from 'svelte-highlight/languages'
@@ -166,7 +166,8 @@
       {/if}
     </div>
 
-    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button>
+    <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Update Custom Domain</wa-button
+    >
   </form>
 
   <svelte:fragment slot="reference">

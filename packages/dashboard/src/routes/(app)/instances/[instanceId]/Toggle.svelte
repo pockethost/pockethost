@@ -27,7 +27,9 @@
 
   const toggle = () => {
     if (isDisabled) return
-    onChange(!checked)
+    const next = !checked
+    checked = next
+    onChange(next)
   }
 </script>
 

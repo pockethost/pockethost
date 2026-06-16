@@ -1,5 +1,5 @@
 <script>
-  import { APP_URL } from '$src/env'
+  import { APP_URL } from '$lib/appEnv'
   import { page } from '$app/state'
 
   const baseUrl = APP_URL()

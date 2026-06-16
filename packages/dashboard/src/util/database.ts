@@ -1,5 +1,6 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase-client'
+import { upsertGlobalInstance } from '$util/stores'
 
 export type FormErrorHandler = (value: string) => void
 
@@ -29,6 +30,7 @@ export const handleCreateNewInstance = async (instanceName: string, setError?: F
       subdomain: instanceName,
     })
 
+    upsertGlobalInstance(record.instance)
     await goto(`/instances/${record.instance.id}`)
   } catch (error: any) {
     handleFormError(error, setError)

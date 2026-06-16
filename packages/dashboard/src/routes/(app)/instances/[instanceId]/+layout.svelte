@@ -2,10 +2,11 @@
   import { page } from '$app/stores'
   import AlertBar from '$components/AlertBar.svelte'
   import TabbedFeatureLayout from '$components/TabbedFeatureLayout.svelte'
+  import InstanceDevModeBadge from '$components/InstanceDevModeBadge.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
-  import { INSTANCE_ADMIN_URL } from '$src/env'
+  import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
-  import { globalInstancesStore } from '$util/stores'
+  import { globalInstancesStore, patchGlobalInstance, upsertGlobalInstance } from '$util/stores'
   import { assert } from 'pockethost/common'
   import { instance } from './store'
   import { client } from '$src/pocketbase-client'
@@ -14,14 +15,48 @@
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
   let isReady = false
+  let isLoading = false
+  let isMissing = false
+  let resolvedInstanceId: InstanceId | undefined
+
+  const loadInstance = async (instanceId: InstanceId) => {
+    isLoading = true
+    isMissing = false
+
+    try {
+      const fetched = await client().getInstanceById(instanceId)
+      if (resolvedInstanceId !== instanceId) return
+      if (fetched) {
+        upsertGlobalInstance(fetched)
+      } else {
+        isMissing = true
+        isLoading = false
+      }
+    } catch {
+      if (resolvedInstanceId === instanceId) {
+        isMissing = true
+        isLoading = false
+      }
+    }
+  }
+
   $: {
     const { instanceId } = $page.params
     assert(instanceId)
-    const _instance = $globalInstancesStore[instanceId]
+    const id = instanceId as InstanceId
+    const _instance = $globalInstancesStore[id]
     if (_instance) {
       instance.set(_instance)
+      isReady = true
+      isLoading = false
+      isMissing = false
+      resolvedInstanceId = id
+    } else if (resolvedInstanceId !== id) {
+      resolvedInstanceId = id
+      isReady = false
+      isMissing = false
+      void loadInstance(id)
     }
-    isReady = !!_instance
   }
 
   $: ({ id } = $instance || {})
@@ -31,11 +66,12 @@
   const { updateInstance } = client()
 
   const handlePowerChange = (id: InstanceId) => (isChecked: boolean) => {
-    const power = isChecked
+    patchGlobalInstance(id, { power: isChecked })
 
-    updateInstance({ id, fields: { power } })
+    updateInstance({ id, fields: { power: isChecked } })
       .then(() => 'saved')
       .catch((error) => {
+        patchGlobalInstance(id, { power: !isChecked })
         error.data.message || error.message
       })
   }
@@ -125,40 +161,28 @@
         <span class="truncate">{$instance.subdomain}</span>
         <InstanceRuntimeBadge instance={$instance} />
         {#if $instance.dev}
-          <a
-            href={`/instances/${$instance.id}/dev`}
-            class="text-warning animate-pulse text-xl flex-shrink-0"
-            title="Dev Mode Active (SLOW)"
-          >
-            🚧
-          </a>
+          <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
         {/if}
       </h1>
     </svelte:fragment>
 
     <svelte:fragment slot="header">
       <div>
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h1 class="text-2xl md:text-3xl font-bold text-white break-words">{$instance.subdomain}</h1>
-          <div class="flex items-center gap-2">
+        <h1 class="text-2xl md:text-3xl font-bold text-white break-words flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span>{$instance.subdomain}</span>
+          <span class="inline-flex flex-wrap items-center gap-2 font-normal">
             <a
               href={`/instances/${$instance.id}/version`}
-              class="text-xs font-medium text-white/60 border border-white/10 bg-white/5 px-2.5 py-1 rounded-full hover:border-white/20 hover:text-white/80 transition-colors"
+              class="inline-flex items-center h-6 px-2 rounded-full text-xs font-medium leading-none text-white/60 border border-white/10 bg-white/5 hover:border-white/20 hover:text-white/80 transition-colors shrink-0"
             >
               v{$instance.version}
             </a>
             <InstanceRuntimeBadge instance={$instance} />
             {#if $instance.dev}
-              <a
-                href={`/instances/${$instance.id}/dev`}
-                class="text-warning animate-pulse text-xl"
-                title="Dev Mode Active (SLOW)"
-              >
-                🚧
-              </a>
+              <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
             {/if}
-          </div>
-        </div>
+          </span>
+        </h1>
       </div>
     </svelte:fragment>
 
@@ -183,6 +207,8 @@
       <slot />
     {/key}
   </TabbedFeatureLayout>
-{:else}
+{:else if isLoading}
+  <div class="max-w-4xl mx-auto py-4 md:py-8 text-white/70">Loading instance...</div>
+{:else if isMissing}
   <div class="max-w-4xl mx-auto py-4 md:py-8 text-white/70">Instance not found</div>
 {/if}

@@ -1,0 +1,2 @@
+# Lint, types, and tests — same as CI quality job minus dashboard build (slow; CI still runs it).
+pnpm check:push

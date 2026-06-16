@@ -109,7 +109,7 @@
   }
 
   :global(.prose a) {
-    @apply font-medium underline-offset-2 decoration-2 hover:decoration-primary/60;
+    @apply font-medium underline underline-offset-2 decoration-2 hover:decoration-primary/60;
   }
 
   :global(.prose :not(pre) > code) {

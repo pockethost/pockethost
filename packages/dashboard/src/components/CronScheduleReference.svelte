@@ -29,7 +29,8 @@
       <tr>
         <td><code>Day of Month</code></td>
         <td>1-31</td>
-        <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>W</code></td>
+        <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>W</code></td
+        >
       </tr>
       <tr>
         <td><code>Month</code></td>
@@ -39,7 +40,8 @@
       <tr>
         <td><code>Day of Week</code></td>
         <td>0-6 or SUN-SAT</td>
-        <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>#</code></td>
+        <td><code>,</code> <code>-</code> <code>*</code> <code>/</code> <code>?</code> <code>L</code> <code>#</code></td
+        >
       </tr>
     </tbody>
   </table>

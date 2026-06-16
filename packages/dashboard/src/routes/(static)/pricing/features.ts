@@ -1,4 +1,4 @@
-import { DISCORD_URL } from '$src/env'
+import { DISCORD_URL } from '$lib/appEnv'
 import regions from './regions.png'
 
 export const features = [

@@ -4,7 +4,7 @@
 
   export let code: string
   export let language: LanguageType<'typescript' | 'bash' | 'dns' | 'plaintext'> = typescript
-  export let className = 'mb-4'
+  export let className = ''
   export let embedded = false
 </script>
 

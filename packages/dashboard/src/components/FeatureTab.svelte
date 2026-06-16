@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte'
   import AlertBar from '$components/AlertBar.svelte'
   import PowerOffRequired from '$components/PowerOffRequired.svelte'
 
@@ -11,12 +10,6 @@
     successFlash?: boolean
     powerOffAction?: string
     powerOffMessage?: string
-    alerts?: Snippet
-    summary?: Snippet
-    cta?: Snippet
-    feature?: Snippet
-    reference?: Snippet
-    children?: Snippet
   }
 
   let {
@@ -27,16 +20,10 @@
     successFlash = false,
     powerOffAction = '',
     powerOffMessage = '',
-    alerts,
-    summary,
-    cta,
-    feature,
-    reference,
-    children,
   }: Props = $props()
 
   const showAlerts = $derived(
-    !!errorMessage || !!successMessage || !!powerOffAction || !!powerOffMessage || !!alerts
+    !!errorMessage || !!successMessage || !!powerOffAction || !!powerOffMessage || !!$$slots.alerts
   )
 </script>
 
@@ -57,36 +44,32 @@
     {#if powerOffAction || powerOffMessage}
       <PowerOffRequired action={powerOffAction || undefined} poweredOffMessage={powerOffMessage || undefined} />
     {/if}
-    {#if alerts}
-      {@render alerts()}
-    {/if}
+    <slot name="alerts" />
   </div>
 {/if}
 
-{#if summary}
+{#if $$slots.summary}
   <div class="dashboard-page-summary">
-    {@render summary()}
+    <slot name="summary" />
   </div>
 {/if}
 
-{#if cta}
+{#if $$slots.cta}
   <div class="dashboard-page-cta">
-    {@render cta()}
+    <slot name="cta" />
   </div>
 {/if}
 
-{#if feature || children}
+{#if $$slots.feature || $$slots.default}
   <div class="dashboard-page-feature">
-    {#if feature}
-      {@render feature()}
-    {:else if children}
-      {@render children()}
-    {/if}
+    <slot name="feature">
+      <slot />
+    </slot>
   </div>
 {/if}
 
-{#if reference}
+{#if $$slots.reference}
   <div class="dashboard-page-reference">
-    {@render reference()}
+    <slot name="reference" />
   </div>
 {/if}

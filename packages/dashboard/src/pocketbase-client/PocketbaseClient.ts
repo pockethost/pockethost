@@ -1,6 +1,6 @@
 import { browser } from '$app/environment'
+import { INSTANCE_URL } from '$lib/appEnv'
 import { fetchEventSource } from '$lib/fetchEventSource'
-import { INSTANCE_URL } from '$src/env'
 import { createGenericSyncEvent } from '$util/events'
 import {
   type AuthModel,

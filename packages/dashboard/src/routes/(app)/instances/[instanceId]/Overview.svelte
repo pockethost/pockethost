@@ -2,7 +2,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import { plaintext } from 'svelte-highlight/languages'
 
-  import { INSTANCE_URL } from '$src/env'
+  import { INSTANCE_URL } from '$lib/appEnv'
 
   import { instance } from './store'
 

@@ -1,7 +1,13 @@
 import hljs from 'highlight.js'
 import { escapeSvelte } from 'mdsvex'
 
-/** @type {import('mdsvex').Highlighter} */
+/**
+ * @param {string} code
+ * @param {string | undefined} lang
+ * @param {unknown} _meta
+ * @param {string | undefined} _filename
+ * @param {boolean} [optimise]
+ */
 export async function mdsvexHighlight(code, lang, _meta, _filename, optimise = true) {
   const normalisedLang = lang?.toLowerCase() ?? ''
   const language = normalisedLang && hljs.getLanguage(normalisedLang) ? normalisedLang : undefined

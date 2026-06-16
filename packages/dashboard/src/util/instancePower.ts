@@ -6,12 +6,10 @@ export const isInstanceShuttingDown = (instance: Pick<InstanceFields, 'power' | 
 export const isInstanceFullyOff = (instance: Pick<InstanceFields, 'power' | 'status'>) =>
   !instance.power && instance.status === InstanceStatus.Idle
 
-export type InstanceRuntimeState = 'running' | 'sleeping' | 'starting' | 'failed'
+export type InstanceRuntimeState = 'running' | 'sleeping' | 'starting' | 'failed' | 'off'
 
-export const getInstanceRuntimeState = (
-  instance: Pick<InstanceFields, 'power' | 'status'>
-): InstanceRuntimeState | null => {
-  if (!instance.power || isInstanceShuttingDown(instance)) return null
+export const getInstanceRuntimeState = (instance: Pick<InstanceFields, 'power' | 'status'>): InstanceRuntimeState => {
+  if (!instance.power) return 'off'
 
   switch (instance.status) {
     case InstanceStatus.Running:
@@ -31,4 +29,5 @@ export const runtimeStateLabel: Record<InstanceRuntimeState, string> = {
   sleeping: 'Sleeping',
   starting: 'Starting',
   failed: 'Failed',
+  off: 'Off',
 }

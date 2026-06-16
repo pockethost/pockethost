@@ -54,13 +54,7 @@
   }
 </script>
 
-<FeatureTab
-  title="SFTP SSH Keys"
-  documentation="/docs/ftp"
-  bind:errorMessage
-  {successMessage}
-  successFlash
->
+<FeatureTab title="SFTP SSH Keys" documentation="/docs/ftp" bind:errorMessage {successMessage} successFlash>
   <svelte:fragment slot="summary">
     <p>
       SFTP uses Ed25519 keys only. Username is your PocketHost email. Generate a key on your machine, then add it here.
@@ -128,9 +122,7 @@
         on:saved={handleKeySaved}
       />
       <div class="mt-3">
-        <wa-button variant="neutral" appearance="plain" onclick={() => (showCreateForm = false)}>
-          Cancel
-        </wa-button>
+        <wa-button variant="neutral" appearance="plain" onclick={() => (showCreateForm = false)}> Cancel </wa-button>
       </div>
     {:else}
       <wa-button variant="brand" onclick={() => (showCreateForm = true)}>

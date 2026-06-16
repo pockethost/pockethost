@@ -4,6 +4,7 @@ import {
   createCleanupManager,
   DOCKER_INSTANCE_IMAGE_NAME,
   InstanceLogWriter,
+  isDockerContainerNotFound,
   isPlatformDockerFailure,
   Logger,
   LoggerService,
@@ -18,7 +19,6 @@ import {
   SingletonBaseConfig,
   systemError,
   userError,
-  isDockerContainerNotFound,
 } from '@'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'

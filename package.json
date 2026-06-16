@@ -8,6 +8,8 @@
   "scripts": {
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
+    "check:push": "pnpm lint && pnpm --filter pockethost check:types && pnpm --filter phio check:types && pnpm --filter @pockethost/dashboard check:types && pnpm test",
+    "check:ci": "pnpm check:push && pnpm --filter @pockethost/dashboard build",
     "dev:cli": "cd packages/pockethost && pnpm dev",
     "dev:phio": "node --import tsx packages/phio/src/cli.ts",
     "dev:mothership-hooks": "pnpm --filter pockethost-mothership-app dev",
@@ -18,13 +20,16 @@
     "mail": "tsx ./packages/pockethost/src/cli/sendmail.ts",
     "live-sync": "bash packages/pockethost/scripts/live-sync.sh",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "husky"
   },
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "prettier": "^3.8.4",
     "prettier-plugin-jsdoc": "^1.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
@@ -33,5 +38,8 @@
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   },
-  "packageManager": "pnpm@11.6.0"
+  "packageManager": "pnpm@11.6.0",
+  "lint-staged": {
+    "*.{ts,js,cjs,svelte,json}": "prettier --write"
+  }
 }

@@ -76,7 +76,7 @@ SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free ti
 - **UX direction:** App routes (`(app)/`) should be task-first with progressive disclosure. The UI is text-heavy today. Prefer presets, short field hints, and collapsible help over inline reference walls. Rule: `.cursor/rules/dashboard-ux.mdc`. Browser QA: `.cursor/skills/dashboard-browser-qa/SKILL.md`.
 - **Browser QA:** Cursor IDE browser MCP works. Login: `.secret/pockethost-io-login` (L1 email, L2 password). Use `https://pockethost.lvh.me` with `dev:dashboard` + `dev:cli serve` running.
 - UI: `wa-*` web components; icons via `<wa-icon>` (Font Awesome Free)
-- WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`)
+- WA + TW4: do not put Tailwind utilities on `wa-*` hosts for border/bg/padding/width — use unlayered rules in `src/lib/webawesome-overrides.css` (`::part()` for shadow internals; helpers: `wa-card-danger`, `wa-card-active`, `wa-card-muted`, `wa-callout-*`, `wa-button.w-full` / `.flex-1`). `wa-card` `:host` sets `--spacing` for WA padding; TW4 `mb-*`/`p-*` use the same token — reset `--spacing: 0.25rem` on `.wa-card-body` / `.wa-card-section` / `.wa-card-header` so slotted Tailwind spacing is not inflated inside cards.
 ## App page layout
 
 Tabbed areas (instance settings, account settings) use **`TabbedFeatureLayout.svelte`**: shell title, sidebar nav, mobile drawer, optional `header` / `toolbar` / `alerts` slots, then child route content.
@@ -129,6 +129,8 @@ Dev TLS: `serve` runs `ensureDevTlsCerts` (devcert → `$PH_HOME/ssl/tls.{key,ce
 After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm check:mothership-hooks`).
 
 **Tests:** `pnpm test` (Vitest, root) — pockethost + phio unit tests. CI `quality` job runs lint, `check:types`, tests, and dashboard build.
+
+**Git hooks (husky):** `pnpm install` runs `prepare` → installs hooks. Pre-commit: `lint-staged` (Prettier on staged `*.{ts,js,cjs,svelte,json}`). Pre-push: `pnpm check:push` (lint + types + tests). Full CI parity locally: `pnpm check:ci` (adds dashboard build). Skip hooks only when intentional: `git commit --no-verify` / `git push --no-verify`.
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 

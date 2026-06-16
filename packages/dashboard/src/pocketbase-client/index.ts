@@ -1,4 +1,4 @@
-import { PUBLIC_MOTHERSHIP_URL } from '$src/env'
+import { PUBLIC_MOTHERSHIP_URL } from '$lib/appEnv'
 import { createPocketbaseClient, type PocketbaseClient } from './PocketbaseClient'
 
 export const client = (() => {

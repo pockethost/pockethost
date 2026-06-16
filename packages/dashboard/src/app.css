@@ -4,56 +4,21 @@
 @plugin '@tailwindcss/typography';
 @source '../src/**/*.{svelte,js,ts,md}';
 
-/* Web Awesome ships unlayered global `a { color: … }` rules. Load it below Tailwind utilities. */
-@import '@awesome.me/webawesome/dist/styles/webawesome.css' layer(components);
+/* Web Awesome CSS + overrides load from src/lib/webawesome.ts so Vite bundles nested @imports. */
 @import './lib/authForm.css';
 @import './lib/pricingCard.css';
-@import './lib/webawesome-overrides.css';
-
-/* Unlayered nav links — wa-button plain text is black on our dark header after TW4 layering. */
-.site-nav-link {
-  display: none;
-  align-items: center;
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.625rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25rem;
-  color: rgb(255 255 255 / 0.78);
-  text-decoration: none;
-  transition:
-    color 150ms ease,
-    background-color 150ms ease;
-}
-
-@media (min-width: 768px) {
-  .site-nav-link {
-    display: inline-flex;
-  }
-}
-
-.site-nav-link:hover {
-  color: #fff;
-  background-color: rgb(255 255 255 / 0.08);
-}
-
-.site-nav-link--menu {
-  display: flex;
-  width: 100%;
-  justify-content: flex-start;
-}
-
-.site-nav-link--login {
-  display: inline-flex;
-  color: rgb(255 255 255 / 0.9);
-}
 
 :root {
+  /* wa-brand-green on <html> sets the full brand-* scale; keep PocketHost green as the base token. */
   --wa-color-brand: #1eb854;
   --wa-color-brand-on: #ffffff;
   --wa-color-success: #1eb854;
   --wa-color-warning: #fbbf24;
   --wa-color-danger: #ef4444;
+}
+
+.wa-dark {
+  --wa-color-text-link: #1eb854;
 }
 
 /* Dark site defaults — keep in @layer base so Tailwind text-* utilities still win. */
@@ -66,11 +31,6 @@
     background-color: #111111;
     color: rgb(255 255 255 / 0.88);
   }
-}
-
-/* WA host color is in components layer — needs unlayered to beat it. */
-wa-card {
-  color: rgb(255 255 255 / 0.88);
 }
 
 .blog-card-link {
