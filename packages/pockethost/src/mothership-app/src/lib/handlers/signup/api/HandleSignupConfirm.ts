@@ -62,7 +62,10 @@ export const HandleSignupConfirm = (e: core.RequestEvent) => {
 
     const user = new Record(usersCollection)
     try {
-      const username = suggestUniqueAuthRecordUsername('users', 'user' + $security.randomStringWithAlphabet(5, '123456789'))
+      const username = suggestUniqueAuthRecordUsername(
+        'users',
+        'user' + $security.randomStringWithAlphabet(5, '123456789')
+      )
       user.set('username', username)
       user.set('email', email)
       user.set('subscription', 'free')

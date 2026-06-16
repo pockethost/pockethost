@@ -3,7 +3,7 @@ type LiveInstance = {
   status?: string
 }
 
-/** save per row (not bulk SQL) so dashboard SSE clients get status updates. */
+/** Save per row (not bulk SQL) so dashboard SSE clients get status updates. */
 export const applyLiveInstances = (app: core.App, liveInstances: LiveInstance[]) => {
   let updated = 0
 
