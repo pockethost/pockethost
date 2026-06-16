@@ -2,6 +2,7 @@
   import { page } from '$app/stores'
   import AlertBar from '$components/AlertBar.svelte'
   import TabbedFeatureLayout from '$components/TabbedFeatureLayout.svelte'
+  import InstanceDevModeBadge from '$components/InstanceDevModeBadge.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
@@ -160,40 +161,28 @@
         <span class="truncate">{$instance.subdomain}</span>
         <InstanceRuntimeBadge instance={$instance} />
         {#if $instance.dev}
-          <a
-            href={`/instances/${$instance.id}/dev`}
-            class="text-warning animate-pulse text-xl flex-shrink-0"
-            title="Dev Mode Active (SLOW)"
-          >
-            🚧
-          </a>
+          <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
         {/if}
       </h1>
     </svelte:fragment>
 
     <svelte:fragment slot="header">
       <div>
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h1 class="text-2xl md:text-3xl font-bold text-white break-words">{$instance.subdomain}</h1>
-          <div class="flex items-center gap-2">
+        <h1 class="text-2xl md:text-3xl font-bold text-white break-words flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span>{$instance.subdomain}</span>
+          <span class="inline-flex flex-wrap items-center gap-2 font-normal">
             <a
               href={`/instances/${$instance.id}/version`}
-              class="text-xs font-medium text-white/60 border border-white/10 bg-white/5 px-2.5 py-1 rounded-full hover:border-white/20 hover:text-white/80 transition-colors"
+              class="inline-flex items-center h-6 px-2 rounded-full text-xs font-medium leading-none text-white/60 border border-white/10 bg-white/5 hover:border-white/20 hover:text-white/80 transition-colors shrink-0"
             >
               v{$instance.version}
             </a>
             <InstanceRuntimeBadge instance={$instance} />
             {#if $instance.dev}
-              <a
-                href={`/instances/${$instance.id}/dev`}
-                class="text-warning animate-pulse text-xl"
-                title="Dev Mode Active (SLOW)"
-              >
-                🚧
-              </a>
+              <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
             {/if}
-          </div>
-        </div>
+          </span>
+        </h1>
       </div>
     </svelte:fragment>
 
