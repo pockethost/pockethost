@@ -61,10 +61,11 @@ export const ftpService = mkSingleton((config: FtpConfig) => {
     greeting: mkFtpsGreeting(),
     log: _ftpServiceLogger,
     tls,
+    // pockethost/ftp-srv fork accepts a callback; upstream types only declare string
     pasv_url: resolvePasvUrl,
     pasv_max: PH_FTP_PASV_PORT_MAX(),
     pasv_min: PH_FTP_PASV_PORT_MIN(),
-  })
+  } as unknown as ConstructorParameters<typeof FtpSrv>[0])
 
   ftpServer.on('login', async ({ connection, username, password }, resolve, reject) => {
     dbg(`Got a connection with credentials ${username}:${password}`)
