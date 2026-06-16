@@ -105,7 +105,7 @@ Nav config: `lib/dashboard/featureTabTypes.ts`. `CardHeader` is deprecated.
 
 Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). **Mothership** pinned separately via `MOTHERSHIP_SEMVER` (`0.39.*`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
 
-**Mothership v0.39 production cutover:** (1) backup `pb_data`; (2) run `packages/pockethost/scripts/mothership-v039-preupgrade.sql` against `data.db` (drops custom SQL views that block embedded v0.23 migration); (3) deploy 0.39 binary + new hooks + snapshot migrations; (4) `migrate up` applies `1781606400_restored_sql_views.js` (restores `stats`, `verified_users`, etc.); (5) restart edge. Rollback: restore backup + 0.22 binary + prior hooks/migrations.
+**Mothership v0.39 production cutover:** (1) backup `pb_data`; (2) deploy 0.39 binary + new hooks + snapshot migrations (views already dropped on 0.22 via `1781606600_dropped_sql_views`); (3) `migrate up` applies `1781606400_restored_sql_views.js` (restores `stats`, `verified_users`, etc.); (4) restart edge. Rollback: restore backup + 0.22 binary + prior hooks/migrations.
 
 ## Dev workflow
 
@@ -152,4 +152,4 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`). CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip.
+- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`). CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. Full hook/migration work lives on `v39-mothership` branch until cutover.
