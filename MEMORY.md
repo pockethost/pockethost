@@ -149,4 +149,4 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`). CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip.
+- **v0.39 pre-stage:** stats API removed; legacy SQL views dropped (`1781606600_dropped_sql_views`). CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. Full hook/migration work lives on `v39-mothership` branch until cutover.
