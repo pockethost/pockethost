@@ -1,5 +1,134 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
+//#region src/lib/handlers/adminPlugins/platformStats.ts
+const LIVE_PLATFORM_TOPIC = "mothership/live/platform";
+const LIVE_PLATFORM_STORE_KEY = "phLivePlatformCounts";
+const INSTANCE_STATUS_KEYS = [
+	"running",
+	"starting",
+	"porting",
+	"vacuuming",
+	"idle",
+	"failed"
+];
+const normalizeInstanceStatus = (raw) => {
+	const status = (raw || "").trim();
+	if (!status) return null;
+	if (INSTANCE_STATUS_KEYS.includes(status)) return status;
+	return null;
+};
+const emptyStatusCounts = () => {
+	const counts = {};
+	for (const key of INSTANCE_STATUS_KEYS) counts[key] = 0;
+	return counts;
+};
+const countInstanceStatus = (key) => {
+	return $app.countRecords("instances", $dbx.exp(`status = {:status}`, { status: key }));
+};
+const getLivePlatformStats = () => {
+	const stats = $app.store().get(LIVE_PLATFORM_STORE_KEY);
+	if (!stats?.statusCounts) return null;
+	return stats;
+};
+const recountLivePlatformStats = () => {
+	const statusCounts = emptyStatusCounts();
+	for (const key of INSTANCE_STATUS_KEYS) statusCounts[key] = countInstanceStatus(key);
+	const stats = {
+		statusCounts,
+		totalUsers: $app.countRecords("users"),
+		updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+	};
+	$app.store().set(LIVE_PLATFORM_STORE_KEY, stats);
+	return stats;
+};
+const applyStatusDelta = (delta) => {
+	$app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old) => {
+		const stats = old || {
+			statusCounts: emptyStatusCounts(),
+			totalUsers: 0,
+			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+		};
+		for (const key of Object.keys(delta)) {
+			const next = (stats.statusCounts[key] || 0) + delta[key];
+			stats.statusCounts[key] = next < 0 ? 0 : next;
+		}
+		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+		return stats;
+	});
+};
+const applyUserDelta = (delta) => {
+	$app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old) => {
+		const stats = old || {
+			statusCounts: emptyStatusCounts(),
+			totalUsers: 0,
+			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+		};
+		const next = stats.totalUsers + delta;
+		stats.totalUsers = next < 0 ? 0 : next;
+		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+		return stats;
+	});
+};
+const broadcastLivePlatformStats = () => {
+	const stats = getLivePlatformStats();
+	if (!stats) return;
+	const message = new SubscriptionMessage({
+		name: LIVE_PLATFORM_TOPIC,
+		data: JSON.stringify(stats)
+	});
+	const clients = $app.subscriptionsBroker().clients();
+	for (const clientId in clients) if (clients[clientId].hasSubscription("mothership/live/platform")) clients[clientId].send(message);
+};
+const sendLivePlatformStatsToClient = (client) => {
+	const stats = getLivePlatformStats();
+	if (!stats) return;
+	client.send(new SubscriptionMessage({
+		name: LIVE_PLATFORM_TOPIC,
+		data: JSON.stringify(stats)
+	}));
+};
+const bumpStatus = (from, to) => {
+	const delta = {};
+	if (from) delta[from] = (delta[from] || 0) - 1;
+	if (to) delta[to] = (delta[to] || 0) + 1;
+	if (!Object.keys(delta).length) return;
+	applyStatusDelta(delta);
+	broadcastLivePlatformStats();
+};
+const initLivePlatformStatsAtBoot = () => {
+	recountLivePlatformStats();
+};
+const HandleLivePlatformRefresh = (e) => {
+	const stats = recountLivePlatformStats();
+	broadcastLivePlatformStats();
+	return e.json(200, stats);
+};
+const handleLivePlatformInstanceCreate = (e) => {
+	const status = normalizeInstanceStatus(e.record.getString("status"));
+	if (!status) return;
+	bumpStatus(null, status);
+};
+const handleLivePlatformInstanceUpdate = (e) => {
+	const next = normalizeInstanceStatus(e.record.getString("status"));
+	const prev = normalizeInstanceStatus(e.record.original().getString("status"));
+	if (next === prev) return;
+	bumpStatus(prev, next);
+};
+const handleLivePlatformInstanceDelete = (e) => {
+	const status = normalizeInstanceStatus(e.record.getString("status"));
+	if (!status) return;
+	bumpStatus(status, null);
+};
+const handleLivePlatformUserCreate = (_e) => {
+	applyUserDelta(1);
+	broadcastLivePlatformStats();
+};
+const handleLivePlatformUserDelete = (_e) => {
+	applyUserDelta(-1);
+	broadcastLivePlatformStats();
+};
+
+//#endregion
 //#region src/lib/handlers/edge/api/HandleEdgeHeartbeat.ts
 const HandleEdgeHeartbeat = (e) => {
 	const { body } = e.requestInfo();
@@ -3313,6 +3442,7 @@ exports.HandleInstanceUpdate = HandleInstanceUpdate;
 exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
 exports.HandleInstancesRuntimeReset = HandleInstancesRuntimeReset;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
+exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
 exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
@@ -3329,6 +3459,18 @@ exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
+exports.LIVE_PLATFORM_TOPIC = LIVE_PLATFORM_TOPIC;
+exports.broadcastLivePlatformStats = broadcastLivePlatformStats;
+exports.getLivePlatformStats = getLivePlatformStats;
+exports.handleLivePlatformInstanceCreate = handleLivePlatformInstanceCreate;
+exports.handleLivePlatformInstanceDelete = handleLivePlatformInstanceDelete;
+exports.handleLivePlatformInstanceUpdate = handleLivePlatformInstanceUpdate;
+exports.handleLivePlatformUserCreate = handleLivePlatformUserCreate;
+exports.handleLivePlatformUserDelete = handleLivePlatformUserDelete;
+exports.initLivePlatformStatsAtBoot = initLivePlatformStatsAtBoot;
 exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
+exports.normalizeInstanceStatus = normalizeInstanceStatus;
+exports.recountLivePlatformStats = recountLivePlatformStats;
 exports.refreshPublicStats = refreshPublicStats;
+exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;

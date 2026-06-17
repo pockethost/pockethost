@@ -1,5 +1,17 @@
 /* Live edges — extension styles using PocketBase admin theme tokens */
 
+.page-live-edges .page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--smSpacing);
+}
+
+.page-live-edges .live-refresh-btn {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .page-live-edges .page-content {
   max-width: 1200px;
 }
@@ -18,14 +30,31 @@
   gap: var(--smSpacing);
 }
 
-.live-stat .live-bars {
+.live-spark-wrap {
   margin-top: 8px;
+  line-height: 0;
+}
+
+.live-spark-wrap .live-spark-chart {
+  margin-top: 0;
 }
 
 .live-section-heading {
   margin: 0 0 var(--smSpacing);
   font-size: var(--baseFontSize);
   font-weight: 600;
+}
+
+.live-section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--smSpacing);
+  margin-bottom: var(--smSpacing);
+}
+
+.live-platform-panel .live-refresh-btn {
+  flex-shrink: 0;
 }
 
 .live-divider {
@@ -89,10 +118,12 @@
   color: var(--dangerTxtColor);
 }
 
-.live-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--smSpacing);
+.live-edge-stats-grid {
+  margin-top: var(--smSpacing);
+}
+
+.live-edge-stats-grid .live-stat {
+  min-width: 0;
 }
 
 .live-stat {
@@ -131,12 +162,6 @@
   letter-spacing: 0.05em;
 }
 
-.live-spark-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--smSpacing);
-}
-
 .live-spark {
   border: 1px solid var(--surfaceAlt2Color);
   border-radius: var(--borderRadius);
@@ -144,33 +169,80 @@
   padding: 10px 12px;
 }
 
-.live-bars {
+.live-spark-chart {
+  display: block;
+  width: 100%;
+  height: 40px;
+  overflow: visible;
+}
+
+.live-spark-empty {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 42px;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
   margin-top: 8px;
+  border: 1px dashed var(--surfaceAlt3Color);
+  border-radius: var(--borderRadius);
 }
 
-.live-bar {
-  flex: 1 1 0;
-  min-width: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--accentColor);
-  opacity: 0.85;
+.live-spark-empty .live-meta {
+  margin: 0;
+  font-size: 11px;
 }
 
-.live-bar.ok {
-  background: var(--successColor);
+.live-spark-fill {
+  stroke: none;
 }
 
-.live-bar.err {
-  background: var(--dangerColor);
+.live-spark-stroke {
+  fill: none;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
 }
 
-.live-bar.empty {
-  opacity: 0.15;
-  height: 2px !important;
+.live-spark-default .live-spark-fill {
+  fill: var(--accentColor);
+  opacity: 0.35;
+}
+
+.live-spark-default .live-spark-stroke {
+  stroke: var(--accentColor);
+  opacity: 0.9;
+}
+
+.live-spark-ok .live-spark-fill {
+  fill: var(--successColor);
+  opacity: 0.35;
+}
+
+.live-spark-ok .live-spark-stroke {
+  stroke: var(--successColor);
+  opacity: 0.95;
+}
+
+.live-spark-warn .live-spark-fill {
+  fill: var(--warningColor);
+  opacity: 0.35;
+}
+
+.live-spark-warn .live-spark-stroke {
+  stroke: var(--warningColor);
+  opacity: 0.95;
+}
+
+.live-spark-err .live-spark-fill {
+  fill: var(--dangerColor);
+  opacity: 0.35;
+}
+
+.live-spark-err .live-spark-stroke {
+  stroke: var(--dangerColor);
+  opacity: 0.95;
+}
+
+.live-spark .live-spark-chart {
+  margin-top: 4px;
 }
 
 .live-table-wrap {
