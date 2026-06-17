@@ -95,13 +95,28 @@ app.modals.open(modal)
 ```js
 app.toasts.success('Saved')
 
-app.modals.openRecordUpsert(/* … */)
+const col = app.store.collections.find((c) => c.name === 'mail_campaigns')
+app.modals.openRecordUpsert(col, recordId, {
+  onsave: (record, isNew) => { /* refresh plugin store */ },
+})
+app.modals.openRecordUpsert(col, { name: '', vars: {} }) // new record
+
 app.modals.openRecordsPicker(/* … */)
 app.components.codeBlock(/* … */)
 app.components.pageSidebar(/* … */)
 ```
 
-Inspect `app.modals`, `app.components`, `app.toasts` in DevTools for signatures on your version.
+**`openRecordUpsert(collection, recordOrDraft, options)`** (PB 0.39):
+
+| Arg | Notes |
+|-----|-------|
+| `collection` | Object from `app.store.collections` — **not** a string |
+| `recordOrDraft` | Record id string, draft object for new rows, or `null` |
+| `options.onsave` | `(record, isNew) => void` after successful save |
+
+Use this for Edit/New in plugins instead of hash links. See [examples.md §8](examples.md) and mailer `main.js`.
+
+Inspect `app.modals` in DevTools for `onafterclose`, `ondelete`, etc.
 
 ## Collection extensions
 
@@ -200,6 +215,31 @@ const rows = await app.pb.collection('users').getList(1, 50, {
 
 For custom server routes, use `app.pb.send()` (same as npm SDK).
 
+## Navigate to native collection UI
+
+To leave the plugin and open the built-in records table (not the upsert modal):
+
+```js
+function openCollectionRecords(collectionName, { filter, sort, recordId } = {}) {
+  const col = app.store.collections.find((c) => c.name === collectionName)
+  if (!col) return
+
+  // Required — without this, #/collections defaults to collections[0] (often users)
+  app.store.activeCollection = col
+
+  const params = new URLSearchParams({ collectionId: col.id })
+  if (sort) params.set('sort', sort)
+  if (filter) params.set('filter', filter)
+  if (recordId) params.set('recordId', recordId)
+
+  window.location.hash = `#/collections?${params.toString()}`
+}
+```
+
+**Wrong:** `#/collections/{id}/records/{recordId}` (path segments — router ignores, lands on wrong collection).
+
+**Edit in modal:** use `openRecordUpsert` instead of hash navigation when you want the upsert overlay without leaving `#/mailer`.
+
 ## Realtime / SSE
 
 Admin live data uses the SDK over **Server-Sent Events**:
@@ -222,6 +262,8 @@ Full pattern (auth gate, `SubscriptionMessage`, incremental hooks, `$autoCancel`
 | `oncreate` never runs | Imperative mount after render ([shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md)) |
 | Sparklines/maps re-render too often | Narrow store ticks; update widget layer directly |
 | Map tiles blocked | Check CSP `img-src` — mothership allows OSM, not Carto |
+| Async fetch completes but UI stuck on "Loading…" | State must be `store({ … })`, not plain `{}`. Wrap dynamic children in `() => …` |
+| Edit link opens wrong collection (e.g. users) | Use `app.modals.openRecordUpsert(col, id)` for edit modal, or set `app.store.activeCollection` before `#/collections?collectionId=…` |
 
 ## CSP
 

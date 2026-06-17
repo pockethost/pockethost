@@ -115,6 +115,8 @@ Open the mothership/instance admin UI, sign in as superuser, click the new heade
 - [ ] Server hook calls `e.next()` in `onServe`
 - [ ] Client code uses `app.pb` (superuser SDK) for data, not raw tokens in source
 - [ ] Event handlers use **`onclick`** (lowercase), not `onClick`
+- [ ] Async UI state uses **`store()`** + arrow children `() => …`, not plain objects
+- [ ] Edit/New record actions use **`app.modals.openRecordUpsert(collection, …)`** with collection object from `app.store.collections`
 - [ ] Third-party widgets (maps, charts) use **imperative mount** — not Shablon lifecycle hooks
 - [ ] Realtime: collection subscribe and/or custom topics gated to superuser on server
 - [ ] Treat APIs as unstable until PocketBase Stage 2 docs ship

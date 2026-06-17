@@ -29,6 +29,30 @@ const platform = store({ loading: true, chartTick: 0, edgeChartTick: 0 })
 - **Scope ticks narrowly.** Bumping `data.chartTick` on every edge heartbeat re-renders the whole `#/live` tree including map panels. Prefer `platform.edgeChartTick` read only by platform sparklines, not edge panels.
 - Module-level state (`historyByEdgeId`, Leaflet map instances) is **not** reactive. Bump a tick field when Shablon must redraw SVG/sparklines, or update the third-party layer directly (preferred for maps).
 
+## Plain objects do not re-render (critical)
+
+```js
+// ❌ Broken — "Loading…" forever after fetch
+const state = { loading: true, rows: [] }
+async function load() {
+  state.rows = await app.pb.collection('mail_campaigns').getFullList()
+  state.loading = false // UI never updates
+}
+
+// ✅ Correct
+const state = store({ loading: true, rows: [] })
+return t.div(null, () => (state.loading ? 'Loading…' : renderTable(state.rows)))
+```
+
+Rules:
+
+1. **`store({ … })`** for any field updated after async work or user actions.
+2. **Arrow child functions** `() => …` that **read** store fields inside route return trees.
+3. **Persist page state** at module scope (`let mailerListPage = null`) so route re-entry does not reset stores or re-fetch endlessly.
+4. Assigning to `store` fields (`state.loading = false`) triggers re-render. Mutating nested objects without reassignment may not.
+
+Reference: `pb_admin_ext/mailer/main.js` (list + run pages), `pb_admin_ext/live/main.js` (SSE dashboards).
+
 ## Imperative widget mount pattern (Leaflet)
 
 Reference: `pb_admin_ext/live/main.js`.

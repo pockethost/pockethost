@@ -47,7 +47,7 @@ Production mothership PM2 app serves from the deployed `mothership-app/` tree. E
 1. PocketBase **view collections** (replaces legacy SQL views that blocked v0.39 migrator)
 2. Admin plugin page(s) under `pb_admin_ext/operator-stats/` for charts/tables
 
-**Mothership mailer admin plugin** — bulk campaign editor under `pb_admin_ext/mailer/`: compose HTML, filter audience (`campaigns.usersQuery`), preview counts, queue via `campaigns` / `campaign_messages` / `notifications`. Unblocks pre/post 3.0 email blasts from superuser UI.
+**Mothership mailer admin plugin** — bulk campaigns under `pb_admin_ext/mailer/`: native CRUD for `mail_campaigns` / `mail_messages`; run console with test/sample/play/pause, safety mode, sent log, open/click analytics. Audience = campaign `usersQuery` SQL. APIs under `/api/admin/mailer/*` plus public `/api/mail/open|click`.
 
 Legacy SQL views (`stats`, `verified_users`, …) were restored temporarily via `1781606400_restored_sql_views.js` but long-term direction is view collections + admin UI, not raw SQL views.
 

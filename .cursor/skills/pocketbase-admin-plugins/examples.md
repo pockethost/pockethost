@@ -143,6 +143,42 @@ Mothership reference: `pb_admin_ext/live/` + `src/lib/handlers/adminPlugins/`.
 
 See [realtime-and-sse.md](realtime-and-sse.md) for the full server/client contract.
 
+## 8. Native record editor (campaign / message CRUD)
+
+Use the built-in upsert modal — includes TinyMCE for `editor` fields.
+
+**`pb_admin_ext/mailer/main.js` pattern:**
+
+```js
+function getCollection(name) {
+  return app.store.collections.find((c) => c.name === name || c.id === name)
+}
+
+function openRecordEditor(collectionName, recordId, onsave) {
+  const col = getCollection(collectionName)
+  if (!col) return
+  app.modals.openRecordUpsert(col, recordId, onsave ? { onsave } : {})
+}
+
+function openNewRecordEditor(collectionName, draft, onsave) {
+  const col = getCollection(collectionName)
+  if (!col) return
+  app.modals.openRecordUpsert(col, draft || null, onsave ? { onsave } : {})
+}
+
+// Edit button — opens modal, no navigation
+t.button({
+  type: 'button',
+  className: 'btn btn-hint btn-sm',
+  onclick: () => openRecordEditor('mail_campaigns', campaign.id, () => loadList()),
+}, 'Edit')
+
+// New record
+openNewRecordEditor('mail_campaigns', { name: '', usersQuery: '…', vars: {} }, () => loadList())
+```
+
+Do **not** use `<a href="#/collections/…">` for edit — path-style URLs fail; query-only navigation without `app.store.activeCollection` often lands on the wrong collection.
+
 ## Anti-patterns
 
 - Putting client `main.js` logic in `pb_hooks` — Goja is ES5-only, no DOM.
