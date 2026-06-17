@@ -1,4 +1,5 @@
 import type { Logger } from '@'
+import { isExpectedVfsClientError } from '../../../../services/InstanceFileAccess/errors'
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Error)
@@ -76,6 +77,11 @@ export const createBunyanLoggerShim = (base: Logger): BunyanLikeLogger => {
       log.warn(normalizeBunyanArgs(args))
     },
     error(...args) {
+      const err = args.find((arg): arg is Error => arg instanceof Error)
+      if (err && isExpectedVfsClientError(err)) {
+        log.debug(`client rejected: ${err.message}`)
+        return
+      }
       log.error(normalizeBunyanArgs(args))
     },
   })

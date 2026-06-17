@@ -2,6 +2,7 @@ import { InstanceFields, Logger } from '@'
 import { open, stat } from 'fs/promises'
 import ssh2 from 'ssh2'
 import { checkBun } from '../../../../services/InstanceFileAccess'
+import { isExpectedVfsClientError } from '../../../../services/InstanceFileAccess/errors'
 import { InstanceVfs, VfsEntry } from '../../../../services/InstanceFileAccess/InstanceVfs'
 
 type SFTPWrapper = ssh2.SFTPWrapper
@@ -55,10 +56,10 @@ const formatLongname = (entry: VfsEntry) => {
 }
 
 const statusForError = (err: unknown) => {
-  const message = err instanceof Error ? err.message : `${err}`
-  if (message.includes('powered off') || message.includes('not allowed') || message.includes('Cannot ')) {
+  if (isExpectedVfsClientError(err)) {
     return STATUS_CODE.PERMISSION_DENIED
   }
+  const message = err instanceof Error ? err.message : `${err}`
   if (message.includes('not found') || message.includes('no such file')) return STATUS_CODE.NO_SUCH_FILE
   return STATUS_CODE.FAILURE
 }

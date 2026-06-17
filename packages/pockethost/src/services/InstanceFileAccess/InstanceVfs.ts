@@ -1,8 +1,9 @@
-import { InstanceFields, Logger, PocketBase, assert, ensureInstanceDirectoryStructure } from '@'
+import { InstanceFields, Logger, PocketBase, ensureInstanceDirectoryStructure } from '@'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
 import { checkBun } from './bunSideEffects'
+import { assertInstanceContext } from './errors'
 import * as fsAsync from './fs-async'
 import {
   INSTANCE_ROOT_DIR_NAMES,
@@ -264,7 +265,7 @@ export class InstanceVfs {
     dbg(`write`)
 
     const { fsPath, clientPath, instance, restOfVirtualPath } = await this.resolvePath(fileName)
-    assert(instance, `Instance expected here`)
+    assertInstanceContext(instance)
     this.assertMutablePath(restOfVirtualPath, instance, 'write')
 
     const { append, start } = options || {}
@@ -317,7 +318,7 @@ export class InstanceVfs {
     dbg(`delete`)
 
     const { fsPath, instance, restOfVirtualPath } = await this.resolvePath(path)
-    assert(instance, `Instance expected here`)
+    assertInstanceContext(instance)
     this.assertMutablePath(restOfVirtualPath, instance, 'delete')
 
     const stat = await fsAsync.stat(fsPath)
@@ -332,7 +333,7 @@ export class InstanceVfs {
     dbg(`mkdir`)
 
     const { fsPath, instance, restOfVirtualPath } = await this.resolvePath(path)
-    assert(instance, `Instance expected here`)
+    assertInstanceContext(instance)
     this.assertMutablePath(restOfVirtualPath, instance, 'mkdir')
 
     return fsAsync.mkdir(fsPath, { recursive: true }).then(() => fsPath)
@@ -345,7 +346,7 @@ export class InstanceVfs {
     const { fsPath: fromPath, instance, restOfVirtualPath: fromRest } = await this.resolvePath(from)
     const { fsPath: toPath, restOfVirtualPath: toRest } = await this.resolvePath(to)
 
-    assert(instance, `Instance expected here`)
+    assertInstanceContext(instance)
     this.assertMutablePath(fromRest, instance, 'rename')
     this.assertMutablePath(toRest, instance, 'rename')
 
