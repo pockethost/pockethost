@@ -124,14 +124,14 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     const trustedClient = cfImageService || userProxy
     const trustReason = cfImageService ? 'cf-image' : userProxy ? 'user-proxy' : 'none'
 
-    const { dbg, warn, info } = rateLimiterLogger
+    const { dbg, warn } = rateLimiterLogger
       .create(hostname)
       .breadcrumb(connectingIp || `unknown`)
       .breadcrumb(endClientIp || `unknown`)
     const logRateLimitExceeded = trustedClient ? warn : dbg
 
     if (trustedClient) {
-      info(`Trusted client detected (reason=${trustReason})`, req.headers)
+      dbg(`Trusted client detected (reason=${trustReason})`, req.headers)
     }
 
     dbg(`\n`)
