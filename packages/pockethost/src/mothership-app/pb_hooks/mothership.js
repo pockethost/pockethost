@@ -204,9 +204,17 @@ const bumpStatus = (from, to) => {
 const initLivePlatformStatsAtBoot = () => {
 	recountLivePlatformStats();
 };
-const HandleLivePlatformRefresh = (e) => {
+/** Full DB recount + SSE broadcast. Safety net for incremental drift (mirror bulk reset, missed hooks). */
+const refreshAndBroadcastLivePlatformStats = () => {
 	const stats = recountLivePlatformStats();
 	broadcastLivePlatformStats();
+	return stats;
+};
+const handleLivePlatformStatsCron = () => {
+	refreshAndBroadcastLivePlatformStats();
+};
+const HandleLivePlatformRefresh = (e) => {
+	const stats = refreshAndBroadcastLivePlatformStats();
 	refreshAndBroadcastLiveViewStats();
 	return e.json(200, stats);
 };
@@ -408,6 +416,7 @@ const resetInstancesIdle = (app) => {
 //#region src/lib/handlers/instance/api/HandleInstancesRuntimeReset.ts
 const HandleInstancesRuntimeReset = (e) => {
 	const reset = resetInstancesIdle($app);
+	refreshAndBroadcastLivePlatformStats();
 	return e.json(200, {
 		ok: true,
 		reset
@@ -527,6 +536,7 @@ const HandleInstanceUpdate = (e) => {
 //#region src/lib/handlers/instance/bootstrap/HandleInstancesResetIdle.ts
 const HandleInstancesResetIdle = (_e) => {
 	resetInstancesIdle($app);
+	recountLivePlatformStats();
 };
 
 //#endregion
@@ -1020,6 +1030,7 @@ const HandleMirrorSync = (e) => {
 	if (body.resetIdle) resetInstancesIdle($app);
 	const liveInstances = Array.isArray(body.instances) ? body.instances : [];
 	const updated = applyLiveInstances($app, liveInstances);
+	if (body.resetIdle || updated > 0) refreshAndBroadcastLivePlatformStats();
 	return e.json(200, {
 		...buildMirrorDump($app),
 		updated
@@ -3585,6 +3596,7 @@ exports.getLiveViewStats = getLiveViewStats;
 exports.handleLivePlatformInstanceCreate = handleLivePlatformInstanceCreate;
 exports.handleLivePlatformInstanceDelete = handleLivePlatformInstanceDelete;
 exports.handleLivePlatformInstanceUpdate = handleLivePlatformInstanceUpdate;
+exports.handleLivePlatformStatsCron = handleLivePlatformStatsCron;
 exports.handleLivePlatformUserCreate = handleLivePlatformUserCreate;
 exports.handleLivePlatformUserDelete = handleLivePlatformUserDelete;
 exports.handleLivePlatformUserUpdate = handleLivePlatformUserUpdate;
@@ -3595,6 +3607,7 @@ exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.normalizeInstanceStatus = normalizeInstanceStatus;
 exports.recountLivePlatformStats = recountLivePlatformStats;
+exports.refreshAndBroadcastLivePlatformStats = refreshAndBroadcastLivePlatformStats;
 exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;
 exports.refreshLiveViewStats = refreshLiveViewStats;
 exports.refreshPublicStats = refreshPublicStats;

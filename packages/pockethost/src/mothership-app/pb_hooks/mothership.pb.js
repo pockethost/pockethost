@@ -9,14 +9,15 @@ $app.onServe().bindFunc((e) => {
 });
 onBootstrap((e) => {
 	e.next();
-	require(`${__hooks}/mothership`).initLivePlatformStatsAtBoot();
 	require(`${__hooks}/mothership`).initLiveViewStatsAtBoot();
 });
 routerAdd("POST", "/api/admin/live/platform/refresh", (e) => {
 	return require(`${__hooks}/mothership`).HandleLivePlatformRefresh(e);
 }, $apis.requireSuperuserAuth());
 cronAdd("live-view-stats", "* * * * *", () => {
-	require(`${__hooks}/mothership`).handleLiveViewStatsCron();
+	const mothership = require(`${__hooks}/mothership`);
+	mothership.handleLiveViewStatsCron();
+	mothership.handleLivePlatformStatsCron();
 });
 onRealtimeSubscribeRequest((e) => {
 	const mothership = require(`${__hooks}/mothership`);

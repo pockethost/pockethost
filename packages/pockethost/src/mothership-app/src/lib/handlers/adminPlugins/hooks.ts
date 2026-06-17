@@ -8,7 +8,6 @@ $app.onServe().bindFunc((e) => {
 
 onBootstrap((e) => {
   e.next()
-  require(`${__hooks}/mothership`).initLivePlatformStatsAtBoot()
   require(`${__hooks}/mothership`).initLiveViewStatsAtBoot()
 })
 
@@ -22,7 +21,9 @@ routerAdd(
 )
 
 cronAdd('live-view-stats', '* * * * *', () => {
-  require(`${__hooks}/mothership`).handleLiveViewStatsCron()
+  const mothership = require(`${__hooks}/mothership`)
+  mothership.handleLiveViewStatsCron()
+  mothership.handleLivePlatformStatsCron()
 })
 
 onRealtimeSubscribeRequest((e) => {

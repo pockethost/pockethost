@@ -164,9 +164,19 @@ export const initLivePlatformStatsAtBoot = () => {
   recountLivePlatformStats()
 }
 
-export const HandleLivePlatformRefresh = (e: core.RequestEvent) => {
+/** Full DB recount + SSE broadcast. Safety net for incremental drift (mirror bulk reset, missed hooks). */
+export const refreshAndBroadcastLivePlatformStats = () => {
   const stats = recountLivePlatformStats()
   broadcastLivePlatformStats()
+  return stats
+}
+
+export const handleLivePlatformStatsCron = () => {
+  refreshAndBroadcastLivePlatformStats()
+}
+
+export const HandleLivePlatformRefresh = (e: core.RequestEvent) => {
+  const stats = refreshAndBroadcastLivePlatformStats()
   refreshAndBroadcastLiveViewStats()
   return e.json(200, stats)
 }
