@@ -1,3 +1,5 @@
+export * from './EdgeHeartbeatService'
+export * from './EdgeTrafficStats'
 export * from './ensureDevTlsCerts'
 export * from './InstanceFileAccess'
 export * from './InstanceLoggerService'

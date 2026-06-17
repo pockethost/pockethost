@@ -1,6 +1,7 @@
 import envPaths from 'env-paths'
 import { default as env } from 'env-var'
 import { existsSync } from 'fs'
+import { hostname } from 'os'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import {
@@ -126,6 +127,13 @@ export const createSettings = () => ({
   PH_SFTP_HOST_KEY: mkPath(join(_PH_HOME, 'ssh', 'host_key'), { required: false }),
 
   EDGE_APEX_DOMAIN: mkString(_APEX_DOMAIN),
+  PH_EDGE_ID: mkString(
+    env
+      .get('PH_EDGE_ID')
+      .default(hostname() || 'local')
+      .asString()
+  ),
+  PH_EDGE_HEARTBEAT_MS: mkNumber(10_000),
 
   INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
 
@@ -229,6 +237,8 @@ export const PH_SFTP_PORT = () => settings().PH_SFTP_PORT
 export const PH_SFTP_HOST_KEY = () => settings().PH_SFTP_HOST_KEY
 
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
+export const PH_EDGE_ID = () => settings().PH_EDGE_ID
+export const PH_EDGE_HEARTBEAT_MS = () => settings().PH_EDGE_HEARTBEAT_MS
 
 export const INSTANCE_APP_ROOT = (version: string, ...paths: string[]) =>
   join(settings().INSTANCE_APP_ROOT, version, ...paths)
@@ -317,6 +327,8 @@ export const logConstants = () => {
     PH_SFTP_PORT,
     PH_SFTP_HOST_KEY,
     EDGE_APEX_DOMAIN,
+    PH_EDGE_ID,
+    PH_EDGE_HEARTBEAT_MS,
     INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(`<version>`),
     DISCORD_HEALTH_CHANNEL_URL,
     DISCORD_ALERT_CHANNEL_URL,

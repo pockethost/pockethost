@@ -1,5 +1,54 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
+//#region src/lib/handlers/edge/api/HandleEdgeHeartbeat.ts
+const HandleEdgeHeartbeat = (e) => {
+	const { body } = e.requestInfo();
+	const edgeId = body?.edge_id;
+	if (!edgeId || typeof edgeId !== "string") throw new BadRequestError("edge_id is required");
+	const stats = body?.stats ?? {};
+	let record;
+	try {
+		record = $app.findFirstRecordByData("edges", "edge_id", edgeId);
+	} catch {
+		const collection = $app.findCollectionByNameOrId("edges");
+		record = new Record(collection);
+		record.set("edge_id", edgeId);
+		record.set("label", typeof body?.label === "string" ? body.label : edgeId);
+	}
+	record.set("last_seen", (/* @__PURE__ */ new Date()).toISOString());
+	record.set("status", "online");
+	record.set("stats", stats);
+	$app.save(record);
+	return e.json(200, {
+		ok: true,
+		id: record.id
+	});
+};
+
+//#endregion
+//#region src/lib/handlers/edge/cron/markStaleEdges.ts
+const STALE_MS = 3e4;
+const OFFLINE_MS = 6e4;
+const markStaleEdges = () => {
+	const now = Date.now();
+	const records = $app.findRecordsByFilter("edges", "1=1").filter((r) => !!r);
+	for (const record of records) {
+		const lastSeenRaw = record.get("last_seen");
+		if (!lastSeenRaw) continue;
+		const lastSeen = new Date(String(lastSeenRaw)).getTime();
+		if (Number.isNaN(lastSeen)) continue;
+		const age = now - lastSeen;
+		let status = "online";
+		if (age > OFFLINE_MS) status = "offline";
+		else if (age > STALE_MS) status = "stale";
+		if (record.get("status") !== status) {
+			record.set("status", status);
+			$app.save(record);
+		}
+	}
+};
+
+//#endregion
 //#region src/lib/util/Logger.ts
 const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
 	if (typeof p === "object") return JSON.stringify(p, null, 2);
@@ -3257,6 +3306,7 @@ exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
+exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
 exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;
@@ -3279,5 +3329,6 @@ exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
+exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.refreshPublicStats = refreshPublicStats;

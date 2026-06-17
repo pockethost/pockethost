@@ -2,7 +2,17 @@ import { corsMiddleware } from '@'
 import express, { Request, Response } from 'express'
 import { default as Server, default as httpProxy } from 'http-proxy'
 import { AsyncReturnType } from 'type-fest'
-import { DAEMON_PORT, Logger, LoggerService, SingletonBaseConfig, asyncExitHook, mkSingleton, seqid } from '..'
+import {
+  DAEMON_PORT,
+  EdgeTrafficStatsSnapshot,
+  Logger,
+  LoggerService,
+  SingletonBaseConfig,
+  asyncExitHook,
+  mkSingleton,
+  registerEdgeTrafficStatsController,
+  seqid,
+} from '..'
 
 export type ProxyServiceApi = AsyncReturnType<typeof proxyService>
 
@@ -45,28 +55,28 @@ export const proxyService = mkSingleton(
         countries: new Map<string, number>(),
       }
 
-      setInterval(() => {
-        const top10Ips = Array.from(metrics.ips.entries())
+      const topEntries = (map: Map<string, number>, limit = 10) =>
+        Array.from(map.entries())
           .sort(([, a], [, b]) => b - a)
-          .slice(0, 10)
-        const topHosts = Array.from(metrics.hosts.entries())
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 10)
-        const top10Countries = Array.from(metrics.countries.entries())
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 10)
-        console.log({
-          ...metrics,
-          ips: top10Ips,
-          hosts: topHosts,
-          countries: top10Countries,
-        })
+          .slice(0, limit)
+
+      const snapshot = (): EdgeTrafficStatsSnapshot => ({
+        requests: metrics.requests,
+        errors: metrics.errors,
+        hosts: topEntries(metrics.hosts),
+        ips: topEntries(metrics.ips),
+        countries: topEntries(metrics.countries),
+      })
+
+      const flush = () => {
         metrics.requests = 0
         metrics.errors = 0
         metrics.ips.clear()
         metrics.hosts.clear()
         metrics.countries.clear()
-      }, 10000)
+      }
+
+      registerEdgeTrafficStatsController({ snapshot, flush })
 
       return {
         addRequest: () => {

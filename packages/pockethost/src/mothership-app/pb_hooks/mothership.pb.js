@@ -1,4 +1,23 @@
 
+//#region src/lib/handlers/adminPlugins/hooks.ts
+$app.onServe().bindFunc((e) => {
+	e.uiExtensions.push({
+		name: "live",
+		fs: $os.dirFS(`${__hooks}/../pb_admin_ext/live`)
+	});
+	e.next();
+});
+
+//#endregion
+//#region src/lib/handlers/edge/hooks.ts
+routerAdd("POST", "/api/edge/heartbeat", (e) => {
+	return require(`${__hooks}/mothership`).HandleEdgeHeartbeat(e);
+}, $apis.requireSuperuserAuth());
+cronAdd("edges-stale", "* * * * *", () => {
+	require(`${__hooks}/mothership`).markStaleEdges();
+});
+
+//#endregion
 //#region src/lib/handlers/instance/hooks.ts
 routerAdd("PUT", "/api/instance/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceUpdate(e);

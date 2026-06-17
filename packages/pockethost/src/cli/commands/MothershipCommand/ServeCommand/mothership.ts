@@ -97,6 +97,7 @@ export async function mothership({ logger }: MothershipConfig) {
         `${MOTHERSHIP_HOOKS_DIR()}:${hooksDir}:ro`,
         `${MOTHERSHIP_MIGRATIONS_DIR()}:${migrationsDir}:ro`,
         `${_MOTHERSHIP_APP_ROOT('pb_public')}:${publicDir}:ro`,
+        `${_MOTHERSHIP_APP_ROOT('pb_admin_ext')}:${mkContainerHomePath('pb_admin_ext')}:ro`,
       ],
       env,
       port,

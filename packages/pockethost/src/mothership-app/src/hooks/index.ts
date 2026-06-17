@@ -1,3 +1,5 @@
+import '../lib/handlers/adminPlugins/hooks'
+import '../lib/handlers/edge/hooks'
 import '../lib/handlers/instance/hooks'
 import '../lib/handlers/lemon/hooks'
 import '../lib/handlers/mail/hooks'

@@ -1,3 +1,4 @@
+export * from './edge'
 export * from './instance'
 export * from './lemon'
 export * from './mail'
