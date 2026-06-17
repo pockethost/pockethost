@@ -19,10 +19,12 @@ import {
   PH_CONTAINER_STOP_TIMEOUT_SEC,
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
   PocketBaseBinaryService,
+  removeNamedContainer,
   SingletonBaseConfig,
   stopInstanceContainer,
   systemError,
   userError,
+  withDockerContainerConflictRetry,
 } from '@'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
@@ -68,19 +70,6 @@ type ContainerRuntime = {
   on: EventEmitter['on']
   kill: () => Promise<void>
   portBinding: number
-}
-
-const removeExistingContainer = async (docker: Docker, name: string) => {
-  try {
-    const existing = docker.getContainer(name)
-    const info = await existing.inspect()
-    if (info.State.Running) {
-      await existing.stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() })
-    }
-    await existing.remove({ force: true })
-  } catch (e) {
-    if (!isDockerContainerNotFound(e)) throw e
-  }
 }
 
 const mkContainerKill = (dockerContainer: Container, logger: Logger) => () =>
@@ -301,81 +290,90 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
       logger.dbg(`Spawning ${instanceId}`, { createOptions })
 
-      void (async () => {
-        await removeExistingContainer(docker, containerName)
-        const emitter = docker
-          .run(DOCKER_INSTANCE_IMAGE_NAME(), [''], [stdout, stderr], createOptions, (err, data) => {
-            state.stopped = true
-            stderr.removeAllListeners(`data`)
-            stdout.removeAllListeners(`data`)
-            const StatusCode = (() => {
-              if (!data?.StatusCode) return 0
-              return parseInt(data.StatusCode, 10)
-            })()
-            dbg({ err, data })
-            if ((StatusCode > 0 && StatusCode !== 137) || err) {
-              const castStatusCode = StatusCode || 999
-              const stopMsg = `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
-              const platformFailure = isPlatformDockerFailure(castStatusCode, err)
-              if (platformFailure) {
-                iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
-                error(stopMsg)
-              } else {
-                dbg(stopMsg)
-              }
-              emitter.emit(ContainerEvents.Exit, castStatusCode)
-              const stopErr = new Error(stopMsg)
-              reject(platformFailure ? systemError(stopErr) : userError(stopErr))
-            } else {
-              emitter.emit(ContainerEvents.Exit, 0)
-            }
-          })
-          .on('start', async (dockerContainer: Container) => {
-            const containerReadyTime = Date.now()
-            const startupDuration = containerReadyTime - containerStartTime
+      void withDockerContainerConflictRetry(
+        () =>
+          new Promise<ContainerRuntime>((resolveRun, rejectRun) => {
+            void (async () => {
+              await removeNamedContainer(docker, containerName, PH_CONTAINER_STOP_TIMEOUT_SEC())
+              const emitter = docker
+                .run(DOCKER_INSTANCE_IMAGE_NAME(), [''], [stdout, stderr], createOptions, (err, data) => {
+                  state.stopped = true
+                  stderr.removeAllListeners(`data`)
+                  stdout.removeAllListeners(`data`)
+                  const StatusCode = (() => {
+                    if (!data?.StatusCode) return 0
+                    return parseInt(data.StatusCode, 10)
+                  })()
+                  dbg({ err, data })
+                  if ((StatusCode > 0 && StatusCode !== 137) || err) {
+                    const castStatusCode = StatusCode || 999
+                    const stopMsg = `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
+                    const platformFailure = isPlatformDockerFailure(castStatusCode, err)
+                    if (platformFailure) {
+                      iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
+                      error(stopMsg)
+                    } else {
+                      dbg(stopMsg)
+                    }
+                    emitter.emit(ContainerEvents.Exit, castStatusCode)
+                    const stopErr = new Error(stopMsg)
+                    rejectRun(platformFailure ? systemError(stopErr) : userError(stopErr))
+                  } else {
+                    emitter.emit(ContainerEvents.Exit, 0)
+                  }
+                })
+                .on('start', async (dockerContainer: Container) => {
+                  const containerReadyTime = Date.now()
+                  const startupDuration = containerReadyTime - containerStartTime
 
-            dbg(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
-            info(
-              `[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`
-            )
-            if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
-              warn(`Container ${instanceId} launch took ${startupDuration}ms`)
-            }
+                  dbg(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
+                  info(
+                    `[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`
+                  )
+                  if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
+                    warn(`Container ${instanceId} launch took ${startupDuration}ms`)
+                  }
 
-            state.started = true
+                  state.started = true
 
-            try {
-              const portBinding = await (async () => {
-                const containerInfo = await dockerContainer.inspect()
-                const binding = getContainerPortBinding(containerInfo)
-                if (!binding) {
-                  throw systemError('Could not get port binding from container')
-                }
-                return binding
-              })()
+                  try {
+                    const portBinding = await (async () => {
+                      const containerInfo = await dockerContainer.inspect()
+                      const binding = getContainerPortBinding(containerInfo)
+                      if (!binding) {
+                        throw systemError('Could not get port binding from container')
+                      }
+                      return binding
+                    })()
 
-              resolve({
-                on: emitter.on.bind(emitter),
-                kill: mkContainerKill(dockerContainer, logger),
-                portBinding,
-              })
-            } catch (e) {
-              if (isDockerContainerNotFound(e)) {
-                reject(userError(`${instanceId} container exited during startup`))
-                return
-              }
-              error(`Failed to get port binding: ${e}`)
-              try {
-                await dockerContainer.stop()
-              } catch (stopError) {
-                if (!isDockerContainerNotFound(stopError)) {
-                  error(`Failed to stop container after port binding error: ${stopError}`)
-                }
-              }
-              reject(e)
-            }
-          })
-      })().catch(reject)
+                    resolveRun({
+                      on: emitter.on.bind(emitter),
+                      kill: mkContainerKill(dockerContainer, logger),
+                      portBinding,
+                    })
+                  } catch (e) {
+                    if (isDockerContainerNotFound(e)) {
+                      rejectRun(userError(`${instanceId} container exited during startup`))
+                      return
+                    }
+                    error(`Failed to get port binding: ${e}`)
+                    try {
+                      await dockerContainer.stop()
+                    } catch (stopError) {
+                      if (!isDockerContainerNotFound(stopError)) {
+                        error(`Failed to stop container after port binding error: ${stopError}`)
+                      }
+                    }
+                    rejectRun(e)
+                  }
+                })
+                .once('error', rejectRun)
+            })().catch(rejectRun)
+          }),
+        { docker, name: containerName }
+      )
+        .then(resolve)
+        .catch(reject)
     }).catch((e) => {
       if (isUserError(e)) {
         dbg(`Error starting container: ${e}`)

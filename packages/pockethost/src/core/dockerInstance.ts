@@ -1,6 +1,11 @@
 import Docker, { ContainerInspectInfo } from 'dockerode'
 import { DOCKER_INSTANCE_IMAGE_NAME } from '../constants'
-import { isDockerContainerNotFound } from './phError'
+import { isDockerContainerConflict, isDockerContainerNotFound, systemError } from './phError'
+
+const DOCKER_CONTAINER_REMOVAL_WAIT_MS = 5000
+const DOCKER_CONTAINER_REMOVAL_POLL_MS = 100
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 export const instanceContainerName = (instanceId: string) => instanceId
 
@@ -67,4 +72,66 @@ export const stopInstanceContainer = async (instanceId: string, stopTimeoutSec: 
       if (!isDockerContainerNotFound(killErr)) throw killErr
     })
   })
+}
+
+export const waitUntilNamedContainerRemoved = async (
+  docker: Docker,
+  name: string,
+  timeoutMs = DOCKER_CONTAINER_REMOVAL_WAIT_MS
+): Promise<void> => {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    try {
+      await docker.getContainer(name).inspect()
+      await sleep(Math.min(DOCKER_CONTAINER_REMOVAL_POLL_MS, deadline - Date.now()))
+    } catch (e) {
+      if (isDockerContainerNotFound(e)) return
+      throw e
+    }
+  }
+  throw systemError(`Timed out waiting for Docker to remove container ${name}`)
+}
+
+export const removeNamedContainer = async (docker: Docker, name: string, stopTimeoutSec: number): Promise<void> => {
+  const container = docker.getContainer(name)
+  try {
+    const info = await container.inspect()
+    if (info.State.Running) {
+      await container.stop({ signal: 'SIGINT', t: stopTimeoutSec }).catch((e) => {
+        if (isDockerContainerNotFound(e) || isDockerContainerConflict(e)) return
+        throw e
+      })
+    }
+    await container.remove({ force: true })
+  } catch (e) {
+    if (isDockerContainerNotFound(e)) return
+    if (isDockerContainerConflict(e)) {
+      await waitUntilNamedContainerRemoved(docker, name)
+      return
+    }
+    throw e
+  }
+}
+
+export const withDockerContainerConflictRetry = async <T>(
+  fn: () => Promise<T>,
+  waitOpts: { docker: Docker; name: string; timeoutMs?: number }
+): Promise<T> => {
+  const timeoutMs = waitOpts.timeoutMs ?? DOCKER_CONTAINER_REMOVAL_WAIT_MS
+  const deadline = Date.now() + timeoutMs
+  let lastErr: unknown
+
+  while (true) {
+    try {
+      return await fn()
+    } catch (e) {
+      lastErr = e
+      if (!isDockerContainerConflict(e)) throw e
+      const remaining = deadline - Date.now()
+      if (remaining <= 0) break
+      await waitUntilNamedContainerRemoved(waitOpts.docker, waitOpts.name, remaining)
+    }
+  }
+
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr))
 }
