@@ -1,5 +1,5 @@
 import type { Logger } from '@'
-import { isExpectedVfsClientError } from '../../../../services/InstanceFileAccess/errors'
+import { isExpectedVfsClientError } from '../../../../../services/InstanceFileAccess/errors'
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v) && !(v instanceof Error)
