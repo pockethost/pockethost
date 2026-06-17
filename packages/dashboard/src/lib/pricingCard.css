@@ -21,6 +21,49 @@
   color: rgb(209 213 219);
 }
 
+.pricing-flounder-countdown {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin: 1.5rem auto 0;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(251 146 60 / 0.35);
+  background: linear-gradient(135deg, rgb(251 146 60 / 0.12), rgb(250 204 21 / 0.08));
+  text-align: left;
+}
+
+.pricing-flounder-countdown-icon {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  color: #fb923c;
+  font-size: 1rem;
+}
+
+.pricing-flounder-countdown-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: rgb(254 243 199);
+}
+
+.pricing-flounder-countdown-emphasis {
+  font-weight: 700;
+  color: #fde047;
+}
+
+.pricing-flounder-countdown-link {
+  margin-left: 0.25rem;
+  color: #facc15;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pricing-flounder-countdown-link:hover {
+  color: #fde047;
+}
+
 .pricing-page-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -84,6 +127,12 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: #000;
+  white-space: nowrap;
+}
+
+.pricing-plan-badge--urgent {
+  background-color: #fb923c;
   color: #000;
 }
 

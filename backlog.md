@@ -1,6 +1,6 @@
 # PocketHost — backlog
 
-Living backlog for product and platform work. Not a substitute for [MEMORY.md](MEMORY.md) (architecture); this is _what we might build_.
+Living backlog for product and platform work. Not a substitute for [MEMORY.md](MEMORY.md) (architecture); this is _what we might build_. **3.0 launch plan:** [ROADMAP.md](ROADMAP.md).
 
 **Sections:** [Backlog](#backlog) → [Icebox](#icebox) → [Done](#done)
 
@@ -22,13 +22,14 @@ _Mothership on PocketBase v0.39 since 2026-06-16 (one-way cutover; no v0.22 roll
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **InstanceService batch status updates** | Low | S | **Partially done** — reconnect reconcile moved to `POST /api/mirror` (live IDs → mothership `saveRecord` loop). Remaining: per-spawn/shutdown status writes in `InstanceService`; v0.39 batch record APIs may collapse further. |
-| **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting using PB v0.39 view collections and/or admin plugin pages — not legacy SQL views. Replaces dropped `stats`, `verified_users`, etc. Operators get browseable metrics without blocking embedded migrator. **Partial (2026-06-17):** Live admin plugin streams `stats` rollups via `mothership/live/view-stats` SSE + Leaflet edge traffic maps. Remaining: full view rebuild, webhooks, mail gaps. |
+| **InstanceService batch status updates** | Low | S | **Mostly done** — boot uses single `POST /api/mirror` dump (`33798411`); reconnect reconcile via `saveRecord` loop. Remaining: collapse per-spawn/shutdown status writes in `InstanceService` if v0.39 batch APIs help. |
+| **Mothership mailer admin plugin** | Low | M | **Pre** ([ROADMAP.md](ROADMAP.md)): PB admin plugin (`pb_admin_ext/mailer/`) — bulk mail editor in superuser dashboard. Compose subject/HTML body, audience filter (`campaigns.usersQuery` or view collections), recipient preview + count, queue send via existing `campaigns` / `campaign_messages` / `notifications` pipeline + `$app.newMailClient()`. Operators run pre-announce, reminder, grace-window, and FTPS sunset emails without SQL or one-off scripts. Pairs with **Mothership operator stats** for live audience sizes. Skill: `.cursor/skills/pocketbase-admin-plugins/pockethost.md`. |
+| **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting using PB v0.39 view collections — not legacy SQL views. **Partial (2026-06-17):** Live admin plugin (platform counts SSE, edge traffic sparklines, Leaflet maps), hourly `GET /stats.json`. Remaining: full view rebuild; retire dependency on `1781606400_restored_sql_views.js`. |
 | **Remove mothership-boot idle reset** | Low | S | **Keep for now** — `HandleInstancesResetIdle` forces all instances `idle` on mothership boot (assume idle until edge speaks up). Edge `POST /api/mirror` live reconcile restores warm rows on reconnect. Brief idle flash on mothership-only restart is acceptable. Remove only after Phase 2 lease or container witness (Icebox). |
 | **Post-daemon-restart spawn throttle** | Low | S | Cold-start instances (not reattached on boot) can spike concurrently after daemon restart. Today `PH_MAX_CONCURRENT_DOCKER_LAUNCHES=5` (Bottleneck). Consider defaulting cap to CPU count or a tuned fleet value so large cold-start bursts do not thrash disk/CPU. Distinct from firewall grace (absorbs daemon bind window only). Warm containers are preserved across daemon SIGTERM (2026-06-17). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
 | **Decouple mothership (package split)** | Med | L | Split control-plane PB app from hosting CLI package: own build/deploy lifecycle, fewer edge/firewall coupling points. Depends on **runtime status** (instance FS/delete and resolve decoupling done). Customers get faster mothership fixes without redeploying the whole stack. |
-| **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. |
+| **Multi-region Fly edges** | Med | XL | Deploy edge daemons in all Fly regions; each zone serves local traffic or forwards over internal VPN to the node that owns the instance. Lower global TTFB and regional failover. Needs `instances.edge` routing + mirror filter.
 
 #### Storage & volumes
 
@@ -36,23 +37,23 @@ _Cost and backup efficiency — shrink what lives on edge block storage._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **S3-default file storage (sqlite-only volumes)** | Med | M–L | Today PB backups include file uploads unless the user configures S3; host volume holds uploads + sqlite. Default or require S3 for `_pb_files_` so the instance volume is sqlite (+ hooks) only — smaller disks, faster backups, cleaner tiering. Customers get leaner backups; platform pays less for block storage. Prerequisite for **Rclone tiered instance data cache**. |
+| **S3-default file storage (sqlite-only volumes)** | Med | M–L | **Post-launch ([ROADMAP.md](ROADMAP.md) storage track).** Today PB backups include file uploads unless the user configures S3; host volume holds uploads + sqlite. Default or require S3/R2 for `_pb_files_` so the instance volume is sqlite (+ hooks) only — smaller disks, faster backups, cleaner tiering. Two parts: (1) **default new** `_pb_files_` to R2; (2) **one-time backfill** of existing instances' file uploads off the main volume to free it for actual data. Customers get leaner backups; platform pays less for block storage. Not on Jul 1 critical path (disk headroom today). Prerequisite for **S3 redirect** + **Rclone tiered instance data cache**. |
 | **S3 redirect for file downloads** | Med | M | When PB file uploads live on S3, firewall/edge should not proxy bytes through the origin — return a redirect (302/307) to a presigned S3 URL instead. Saves edge egress bandwidth; customers get direct CDN/S3 delivery. Spike: detect S3-backed `/api/files/...` vs local, signing TTL, auth/CORS, rate-limiter interaction (`isPocketBaseFilesPath`). Pairs with **S3-default file storage**; ships independently when users configure S3 in PB admin. |
 | **Rclone tiered instance data cache** | Med–High | XL | Hot cache on edge for active instances; idle/cold data on cheaper remote storage via rclone (or similar). Goal: avoid provisioning 1–2 TB per node when most instances are largely idle. Spike: mount semantics, sync latency on wake, consistency on hibernate/delete. Lowers platform storage cost; pairs with sqlite-only volumes + hibernate economics. |
 
 ### Billing & pricing
 
-_Pricing/lifetime sunset sequence: pre-announce email + community post → update public pricing page → last-chance Flounder blast → retire lifetime sales and tiers._
+_Pricing/lifetime sunset: [ROADMAP.md](ROADMAP.md). **Live Jul 1** = merge `launch/3.0`. All launch work **done by Jun 30**._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Pricing change pre-announcement email** | Low | S–M | **Before** pricing update or lifetime sunset: email all users that changes are coming, what to expect, and that they can stay or leave. **Blocker** for **Pricing redo — Flounder sunset** and pulling lifetime support. |
-| **Pricing change community post** | Low | S | Reddit (and similar) heads-up aligned with pre-announce email — same story, public channel. **Partial (2026-06-14):** blog `/blog/flounder-lifetime-sunset` (July 1 sales end, 30-day grace). **Remaining:** Reddit post, align with email. **Blocker** for pricing redo. |
-| **Last-chance Flounder blast** | Low | S–M | **After** public pricing page is updated: one email to existing users — final Flounder/lifetime offer or migration nudge before tier removal. Runs between pricing-page ship and lifetime pull. |
-| **Halt lifetime edition sales** | Low | S | Stop selling lifetime tiers once comms are out. Policy: **no new lifetime purchases for rest of 2026** (possibly never again). Decouple from full pricing redo if needed. |
-| **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). Today: sale webhook + hardcoded `store.pockethost.io` checkout URLs; account page defers quantity changes to support. Customers self-serve plan changes without support tickets. |
-| **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout` — no redirect to off-site store page. Depends on lifecycle fix. Checkout stays on pockethost.io; smoother signup and upgrades. |
-| **Pricing redo — Flounder sunset** | Med | L | Retire Flounder/lifetime tiers; grandfather existing subscribers. New structure (draft): **Free** (1 powered-on, 1 GB primary volume, unmetered file storage), **Pro $19.99/mo** (5 powered-on, 50 GB), **Agency $49.99/mo** (50 powered-on, 200 GB). Total instance count **unlimited** on paid tiers; plan limit is **powered-on instances** (`power=true`, sleeping counts) + primary volume (sqlite + hooks/static on edge block storage). **Blocked by:** pre-announce email, community post, pricing-page update, last-chance blast, halt lifetime sales. |
+| **Pricing change pre-announcement email** | Low | S–M | **Pre** ([ROADMAP.md](ROADMAP.md)): all users — 3.0, Flounder ends July 1, grandfathering. **Do before** forum/Reddit. Send via **Mothership mailer admin plugin** (or interim manual send). |
+| **Pricing change community post** | Low | S | **Pre:** Reddit r/pocketbase (+ r/selfhosted only if value-first). **Partial:** Flounder blog (2026-06-14). **Also pre:** PocketBase community forum announcement. |
+| **Last-chance Flounder blast** | Low | S–M | **Post 3.0:** email accounts in **July 1–31 grace window** (registered before July 1). Send via **Mothership mailer admin plugin**. Not the same as pre-launch urgency blitz. |
+| **Halt lifetime edition sales** | Low | S | **At 3.0 launch:** stop selling lifetime tiers. Policy: **no new lifetime purchases for rest of 2026** (possibly never again). **July 1, 2026** sales-end deadline. |
+| **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). **Pre-launch by Jun 26** ([ROADMAP.md](ROADMAP.md)) — not Jul 1 day-of. Blocks in-dashboard checkout + new tier signups. |
+| **In-dashboard Lemon Squeezy checkout** | Low | M | Lemon.js overlay or server `createCheckout`. **`launch/3.0`**, live Jul 1 ([ROADMAP.md](ROADMAP.md)). Depends on **Lemon Squeezy lifecycle** on `main` (Jun 26). |
+| **Pricing redo — Flounder sunset** | Med | L | **Jul 1 launch** ([ROADMAP.md](ROADMAP.md)): pricing page + Flounder halt for new signups; grandfather existing. LS lifecycle on `main` (Jun 26); checkout + pricing UI on `launch/3.0`. Draft tiers: Free 1/1 GB · Pro $19.99 5/50 GB · Agency $49.99 50/200 GB. |
 | **Powered-on instance limits (plan tier)** | Med | M | Enforce max **powered-on** instances per subscription (`power=true`; powered-off do not count; sleeping/hibernated still count). **Free:** 1 powered-on. **Pro:** 5 powered-on. **Agency:** 50 powered-on. Mothership gate on power-on; edge mirror rejects over-cap powered set; dashboard shows powered-on usage vs limit. Distinct from legacy `subscription_quantity` instance cap. Depends on **Pricing redo** + **Lemon Squeezy subscription lifecycle**. |
 | **Plan-tier primary volume quotas** | Med | M | Hard cap on edge primary volume per plan (sqlite + hooks/static): **Free 1 GB**, **Pro 50 GB**, **Agency 200 GB**. PB file uploads on S3 or unmetered fair-use path excluded from primary meter (Free: unmetered file storage). Dashboard surfacing + edge warn/reject on exceed. Pairs with **Enforced storage quotas**; prerequisite for honest **Pricing clarity**. |
 | **Plan-tier hibernate intervals** | Low | S–M | Wire subscription tier → idle TTL on spawn/mirror (today global `DAEMON_PB_IDLE_TTL` = 5s; per-instance `idleTtl` already supported on edge). Draft: shorter TTL on Free, longer on Pro/Agency for wake latency vs platform cost (distinct from **powered-on** plan cap — sleeping instances still count). Mothership sets TTL from plan; update limits/marketing docs. |
@@ -69,7 +70,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **Dashboard full instance backup (download)** | Med | M–L | On-demand archive of the entire instance data folder (`.tgz`) from the dashboard — sqlite, hooks, uploads, logs, config. **Problem:** corrupt DB or unbootable instance bricks recovery via PB admin backup/export; SFTP may be unreachable too. Edge tarballs volume while hibernated (no warm PB required), mothership returns a time-limited download URL. Disaster-recovery escape hatch; distinct from **Scheduled / reliable automatic backups** (PB cron) and PB Settings → Backups. |
 | **Dashboard vacuum now** | Med | M | On-demand SQLite `VACUUM` from dashboard: mothership enqueues job → edge force-stops warm instance → compact `data.db`/`logs.db` → report bytes reclaimed. Reuses `edge vacuum` / `vacuumSqliteFile` but must stop running Docker mounts (nightly auto-vacuum skips them). Needs mothership→edge job channel (instance fields or collection + mirror listener), drain in-flight requests, mutex vs nightly sweep, disk-budget errors in UI. Brief downtime expected. Distinct from nightly **Auto Vacuum** (idle-only). |
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
-| **FTPS sunset comms** | Low | S–M | **Shipped:** blog posts, `/docs/ftp`, FTPS 220 greeting, site-wide **PocketHost 3.0** banner + `/3.0` info page (SFTP, Flounder, pricing preview), `/docs/phio`. **Remaining:** email to active FTPS users, explicit hard removal date. Then schedule **Remove FTPS**. |
+| **FTPS sunset comms** | Low | S–M | **Phase 1 shipped:** blog, `/docs/ftp`, 220 greeting, site banner, `/3.0`, `/docs/phio`, `/blog/graceful-edge-restarts`. **Post 3.0:** email active FTPS users + explicit hard removal date → then **Remove FTPS**. |
 | **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** **FTPS sunset comms** grace period elapsed (phio SFTP deploy shipped). |
 | **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
@@ -116,6 +117,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **Regional edge + instance location** | Med | L–XL | EU edge scoped for 3.0 then dropped — case not clear enough yet. When revisited: `instances.edge`, mirror filter, firewall routing, location at create. Pairs with **Multi-region Fly edges**. |
 | **Dockerize hosting node (`pockethost-server`)** | Med–High | L–XL | **Icebox — manual deploys first.** Replace git-pull + PM2 + host `.env` drift with one image (`packages/pockethost`), not dashboard/phio. **`PH_ROLE`:** `all` (dev default = packaged `serve`), `edge`, `mothership` (prod split). **Volume:** single `PH_HOME` mount (`data/`, `pocketbase/`, `ssl/`, `ssh/`). **PB binaries:** bake highest patch per minor (`latestPerMinor` / `downloadAll` at build) + runtime `freshen`. **Health:** split `health check` / `edge vacuum` by role (drop PM2 assumptions, fix hardcoded paths like `/mnt/sfo_data`). **Instances:** stay one container per tenant via dockerode — not in-process. **SFTP:** per edge; shared host key on volume for LB. **Multi-edge:** needs `instances.edge` (or region), mirror filter, routing — orthogonal but enabled by reproducible nodes; pairs with **Multi-region Fly edges**. **Runtime portability (open):** host `docker.sock` works on VPS only; Fly image *is* the machine — likely **embedded dockerd or Podman** inside server container so spawn path is identical everywhere (nested runtime + volume for `/var/lib/docker` or podman store; pre-load `pockethost-instance` image). **Not decided yet** — run stack manually a few more times before picking DinD vs socket-mount vs Fly Machines API. Ties **phio ↔ rename** (`pockethost-server` image). Prerequisite for killing config-outage class. |
 | **Container runtime witness (SSE/lease from instance)** | Med | M–L | Optional Phase 2+ if edge heartbeat lease is not enough: instance container holds mothership connection (SSE or ping) with instance-scoped token; disconnect → idle. Splits ownership with edge; needs auth endpoint + instance image change. Icebox until **Runtime status Phase 2** evaluated in prod. |
 | **Runtime status heartbeat lease (Phase 2)** | Med | M | Edge renews `runtime_lease_expires_at` per warm instance; mothership cron expires stale leases → `idle` when edge dies without shutdown hook. Phase 1 sync protocol shipped 2026-06-13; undefined `status` during edge outage accepted until then. |
@@ -155,7 +157,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 - Code touchpoints: `User` subscription enum, Lemon Squeezy handlers, dashboard pricing/paywall, edge `instance.idleTtl` / `DAEMON_PB_IDLE_TTL`.
 - **Draft plan limits:** total instances **unlimited** (paid); cap is **powered-on instances** + **primary volume** (sqlite + hooks/static). **Free:** 1 powered-on, 1 GB primary, unmetered file storage. **Pro ($19.99/mo):** 5 powered-on, 50 GB. **Agency ($49.99/mo):** 50 powered-on, 200 GB.
-- **Comms sequence (blockers):** (1) pre-announce email to all users — stay or leave; (2) Reddit/community post; (3) update public pricing page; (4) last-chance Flounder blast to existing users; (5) halt new lifetime sales (rest of 2026, maybe permanent); (6) retire tiers with grandfather + grace period.
+- **Comms sequence:** [ROADMAP.md](ROADMAP.md). Work **done by** dates; **live Jul 1** = merge `launch/3.0` only.
 
 ### Runtime status (Jun 2026)
 
@@ -185,7 +187,10 @@ Runtime status Phase 2 (heartbeat lease) ──► stale `running` cleanup when 
 Remove mothership-boot idle reset ──► Runtime status Phase 2 or trusted edge reconcile on every mothership boot
 Runtime status owned by edge ──► Dashboard mothership disconnect UX (complementary; missed SSE while disconnected)
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
-Mothership operator stats ──► v0.39 cutover bugfix follow-up (views, webhooks, mail)
+Mothership mailer admin plugin ──► Pricing change pre-announcement email
+Mothership mailer admin plugin ──► Last-chance Flounder blast
+Mothership mailer admin plugin ──► FTPS sunset comms (post-launch email)
+Mothership operator stats ──► Mothership mailer admin plugin (audience preview counts)
 Expand test coverage ──► handler/semver/spawn regression tests
 Pricing redo ──► powered-on instance limits (per tier)
 Pricing redo ──► plan-tier primary volume quotas (1 / 50 / 200 GB)
@@ -197,11 +202,14 @@ Pricing redo ──► rate-limit / storage / bandwidth docs (same messaging)
 Plan-tier hibernate ──► limits docs + pricing/marketing copy
 Scheduled automatic backups ──► plan-tier hibernate or platform wake; idle blocks PB cron + webhook backup
 Plan-tier rate limits ──► pricing clarity + marketing copy (published req/hr limits)
-Pricing change pre-announcement email ──► Pricing redo — Flounder sunset
-Pricing change community post ──► Pricing redo — Flounder sunset
-Public pricing page update ──► Last-chance Flounder blast
-Last-chance Flounder blast ──► Pricing redo — Flounder sunset (lifetime tier pull)
-Halt lifetime edition sales ──► Pricing redo (policy; ship after comms)
+Pricing change pre-announcement email ──► 3.0 launch (Pricing redo)
+Pricing change community post ──► 3.0 launch (Pricing redo)
+Halt lifetime edition sales ──► 3.0 launch
+Public pricing page update ──► 3.0 launch (Pricing redo)
+Lemon Squeezy lifecycle ──► 3.0 launch (checkout + tier changes)
+3.0 launch ──► Last-chance Flounder blast (post)
+3.0 launch ──► FTPS sunset comms (post)
+FTPS sunset comms ──► Remove FTPS (grace elapsed)
 Lemon Squeezy lifecycle ──► in-dashboard checkout, annual billing, pricing redo
 GDPR compliance ──► account data export/deletion UX; privacy policy + subprocessors docs; Lemon Squeezy data flows
 GDPR delete account ──► GDPR compliance (erasure); edge purge-orphans for all instances; LS subscription cancel
@@ -237,6 +245,14 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-17 | **Concurrent instance vacuum sweep** — `PH_VACUUM_MAX_CONCURRENT` (default 10) parallelizes idle DB vacuums in `edge vacuum` |
+| 2026-06-16 | **Flounder countdown (pricing page)** — days-to-July-1 banner on `/pricing`, urgent card badge, hard-deadline copy; site banner shows days left |
+| 2026-06-17 | **Best-effort admin sync on spawn** — instance launches when mothership token fetch fails; admin creds from last successful sync |
+| 2026-06-17 | **Docker spawn 409 retry** — retry container create on name conflict |
+| 2026-06-17 | **Mothership Live admin plugin (maps + view stats)** — Leaflet edge traffic maps, `mothership/live/view-stats` SSE rollups |
+| 2026-06-16 | **Single mirror dump at boot** — one `POST /api/mirror` bootSync instead of per-instance chatter (`33798411`) |
+| 2026-06-16 | **Public stats.json** — hourly cron + boot refresh for marketing/live splash (`GET /stats.json`) |
+| 2026-06-16 | **Graceful edge restarts blog** — `/blog/graceful-edge-restarts` (firewall grace + preserve containers) |
 | 2026-06-16 | **Edge traffic stats → mothership** — `edges` collection, edge heartbeat every 10s, stale/offline cron, mothership **Live** admin plugin (platform status counts + edge traffic sparklines) |
 | 2026-06-17 | **Preserve instance containers on daemon restart** — instance-ID container names, boot reconcile/reattach, daemon SIGTERM detaches (no mass Docker stop), health gate until traffic ready |
 | 2026-06-17 | **Firewall daemon grace** — hold instance traffic up to `PH_FIREWALL_DAEMON_GRACE_MS` (default 60s) while edge daemon restarts; 503 + `Retry-After` on exhaustion; health probes bypass grace |

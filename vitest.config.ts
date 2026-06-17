@@ -5,7 +5,11 @@ const pockethostSrc = resolve(__dirname, 'packages/pockethost/src')
 
 export default defineConfig({
   test: {
-    include: ['packages/pockethost/src/**/*.test.ts', 'packages/phio/src/**/*.test.ts'],
+    include: [
+      'packages/pockethost/src/**/*.test.ts',
+      'packages/phio/src/**/*.test.ts',
+      'packages/dashboard/src/**/*.test.ts',
+    ],
     environment: 'node',
   },
   resolve: {

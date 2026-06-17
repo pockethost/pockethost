@@ -1,6 +1,6 @@
 # PocketHost — agent memory
 
-Living architecture reference for agents. Current state only; update in the same change set when you change any area below.
+Living architecture reference for agents. Current state only; update in the same change set when you change any area below. **3.0 launch sequencing:** [ROADMAP.md](ROADMAP.md). **Task backlog:** [backlog.md](backlog.md).
 
 ## Monorepo
 
@@ -40,7 +40,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. **Admin UI extensions** (experimental, PB ≥0.37): `$app.onServe()` → `uiExtensions` + client `main.js` / `window.app`; skill: `.cursor/skills/pocketbase-admin-plugins/`. Public aggregate stats: `GET /stats.json` (cached in `pb_data/stats.json`, refreshed on boot + hourly cron).
+- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. **Admin UI extensions** (experimental, PB ≥0.37): `$app.onServe()` → `uiExtensions` + client `main.js` / `window.app`; skill: `.cursor/skills/pocketbase-admin-plugins/`. **Live** plugin: platform counts + edge traffic SSE (`mothership/live/view-stats`), Leaflet maps. Public aggregate stats: `GET /stats.json` (cached in `pb_data/stats.json`, refreshed on boot + hourly cron).
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`). Pushes 10s traffic stats window to mothership `edges` collection via `POST /api/edge/heartbeat` (`PH_EDGE_ID`, default hostname). Instance containers named by instance ID (`instanceContainerName`) and preserved across daemon restarts (reattach on boot, reconcile against mirror `power`/version; daemon SIGTERM detaches without stopping Docker). Express error handler posts to `DISCORD_ALERT_CHANNEL_URL` only for `systemError` (Docker/host failures). `userError` covers unpaid, suspended, JSVM/app exit, etc. SFTP (`classifySftpError`) treats handshake/protocol/client misconfig as `userError` (debug log only).
 - **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`. **Daemon grace:** polls `/_api/daemon/health` (requires `{ status: 'ok' }`, 503 while edge reconciles preserved containers) before proxying instance traffic; holds up to `PH_FIREWALL_DAEMON_GRACE_MS` (default 60s), retry `PH_FIREWALL_DAEMON_GRACE_RETRY_MS` (default 500ms). Health probe paths bypass grace. Returns 503 + `Retry-After` when exhausted. Set grace to `0` to disable.
 
@@ -61,7 +61,7 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pockethost/src/services/`:
 
 - `PocketBaseService` — instance PB process management
-- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising; best-effort Admin Sync (spawn without `ADMIN_SYNC` if mothership token fetch fails)
+- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising; best-effort Admin Sync (spawn without `ADMIN_SYNC` if mothership token fetch fails); Docker create retries on 409 name conflict
 - `MothershipAdminClientService` — admin PB client via `_superusers` collection auth (npm `pocketbase` ≥0.26) + instance mixin
 - `MothershipMirrorService` — boot: one `POST /api/mirror` `bootSync` (`resetIdle` + live statuses → dump); reconcile uses per-container mothership lookups; `whenReady` gates `CronService`; SSE deltas; `PB_CONNECT` reconnect → `syncMirror` with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
@@ -155,4 +155,5 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
+- **PocketHost 3.0 launch:** platform foundation shipped (v0.39, SFTP/phio, edge restart reliability). Remaining = comms + billing/limits. See [ROADMAP.md](ROADMAP.md).
 - **Mothership v0.39 follow-up:** cutover shipped 2026-06-16. Fix forward on webhooks, stats views, mail, and edge cases as they surface. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.

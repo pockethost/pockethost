@@ -1,12 +1,32 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte'
   import Testimonials from '$src/components/Testimonials.svelte'
+  import { daysUntilFlounderSunset, flounderDaysLeftLabel, FLOUNDER_SALES_END_LABEL } from '$util/flounderSunset'
   import Features from './Features.svelte'
+  import FlounderCountdown from './FlounderCountdown.svelte'
   import SignupBox from './SignupBox.svelte'
+
+  let flounderDaysLeft = daysUntilFlounderSunset()
+
+  let interval: ReturnType<typeof setInterval> | undefined
+
+  onMount(() => {
+    interval = setInterval(() => {
+      flounderDaysLeft = daysUntilFlounderSunset()
+    }, 60_000)
+  })
+
+  onDestroy(() => {
+    if (interval) clearInterval(interval)
+  })
+
+  $: flounderBadge = flounderDaysLeft > 0 ? flounderDaysLeftLabel(flounderDaysLeft).toUpperCase() : undefined
 </script>
 
 <div class="pricing-page-header">
   <h2 class="pricing-page-title">Affordable Hosting</h2>
   <p class="pricing-page-subtitle">Premium Performance</p>
+  <FlounderCountdown />
 </div>
 
 <div class="pricing-page-grid">
@@ -36,7 +56,9 @@
     buttonText="Become a Flounder"
     price="$359 once"
     title="Flounder - Lifetime"
-    cta="The lifetime deal won't last long, so get it while you can!"
+    badgeText={flounderBadge}
+    badgeUrgent
+    cta="Pay once for lifetime Pro hosting. Sales end {FLOUNDER_SALES_END_LABEL}. No new buyers after that date."
     features={[
       'Everything in the Unlimited plan',
       'Lifetime access',
