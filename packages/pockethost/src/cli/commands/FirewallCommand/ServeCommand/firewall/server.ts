@@ -17,11 +17,13 @@ import {
 import { exec } from 'child_process'
 import express, { ErrorRequestHandler, Request, Response } from 'express'
 import { existsSync, readFileSync } from 'fs'
+import type { IncomingMessage } from 'http'
 import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
+import type { Socket } from 'net'
 import { createIpWhitelistMiddleware } from './cidr'
-import { createVhostProxyMiddleware } from './createVhostProxyMiddleware'
+import { createVhostProxyMiddleware, type VhostUpgradeHandler } from './createVhostProxyMiddleware'
 import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
 import { createRateLimiterMiddleware } from './rate-limiter'
 
@@ -101,9 +103,23 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     info(`Firewall daemon grace enabled: ${graceMs}ms (PH_FIREWALL_DAEMON_GRACE_MS)`)
   }
 
+  const vhostUpgradeHandlers: VhostUpgradeHandler[] = []
   Object.entries(hostnameRoutes).forEach(([host, target]) => {
-    app.use(createVhostProxyMiddleware(host, target, IS_DEV(), logger))
+    const { middleware, upgrade } = createVhostProxyMiddleware(host, target, IS_DEV(), logger)
+    app.use(middleware)
+    if (upgrade) {
+      vhostUpgradeHandlers.push(upgrade)
+    }
   })
+
+  const handleVhostUpgrade = (req: IncomingMessage, socket: Socket, head: Buffer) => {
+    for (const upgrade of vhostUpgradeHandlers) {
+      if (upgrade(req, socket, head)) {
+        return
+      }
+    }
+    socket.destroy()
+  }
 
   const daemonTarget = `http://localhost:${DAEMON_PORT()}`
   const daemonProxyErrorHandler = createDaemonProxyErrorHandler(logger)
@@ -140,6 +156,9 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   httpServer.on('error', (err) => {
     error(err)
   })
+  if (vhostUpgradeHandlers.length > 0) {
+    httpServer.on('upgrade', handleVhostUpgrade)
+  }
   httpServer.listen(80, () => {
     dbg(tlsReady ? 'HTTP redirect server listening on 80' : 'HTTP server listening on 80')
   })
@@ -158,6 +177,9 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     httpsServer.on('error', (err) => {
       error(err)
     })
+    if (vhostUpgradeHandlers.length > 0) {
+      httpsServer.on('upgrade', handleVhostUpgrade)
+    }
 
     httpsServer.listen(443, () => {
       dbg('HTTPS server running on port 443')
