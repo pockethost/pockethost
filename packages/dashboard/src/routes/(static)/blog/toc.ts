@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Mothership Live Dashboard (Admin UI Extensions)',
+    path: '/blog/mothership-live-admin-plugin',
+    description:
+      'First mothership admin plugin: fleet Live page. Empty /_/extensions.js was Cloudflare caching a pre-plugin response — bypass rule + init/realtime lessons from the 429 storm.',
+    date: 'Jun 17, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Graceful Edge Restarts (Fewer 500s During Maintenance)',
     path: '/blog/graceful-edge-restarts',
     description:

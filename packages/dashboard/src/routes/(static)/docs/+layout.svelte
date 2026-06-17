@@ -111,6 +111,7 @@
 
         <div class="text-sm font-semibold text-white/60 uppercase tracking-wide pt-4 pb-1">Programming Guide</div>
         <DocLink path="programming" title="Frontends and JS Hooks" />
+        <DocLink path="admin-extensions" title="Admin UI Extensions" />
         <DocLink path="server-side-pocketbase-antipattern" title="Server-Side PocketBase is an Anti-Pattern" />
 
         <div class="text-sm font-semibold text-white/60 uppercase tracking-wide pt-4 pb-1">Appendix</div>
