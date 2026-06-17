@@ -21,6 +21,36 @@ PocketBase serves `/_/extensions.js` (concatenated plugin entry) and `/_/extensi
 
 This is separate from JSVM hooks. Client `main.js` runs normal browser JavaScript. Hook registration runs in Goja.
 
+### How edges feed the Live page
+
+The platform counts at the top (running, idle, failed, users) are mothership aggregates. The **Edges** section is different. Each edge node reports its own traffic window into mothership, and the Live plugin renders it in realtime.
+
+**On the edge daemon**, `ProxyService` counts every proxied request: totals, errors, and top hosts, IPs, and countries (from `X-Forwarded-For` and `CF-IPCountry`). Counters live in memory for the current window only.
+
+Every **10 seconds** (`PH_EDGE_HEARTBEAT_MS`), `EdgeHeartbeatService` snapshots that window, flushes the counters, and `POST`s to mothership:
+
+```json
+{
+  "edge_id": "sfo",
+  "label": "sfo",
+  "stats": {
+    "requests": 117,
+    "errors": 0,
+    "hosts": [["myapp.pockethost.io", 25], ...],
+    "ips": [["203.0.113.1", 25], ...],
+    "countries": [["US", 40], ...]
+  }
+}
+```
+
+`edge_id` defaults to the host hostname (`PH_EDGE_ID`). One record per edge in the mothership `edges` collection.
+
+**On mothership**, `POST /api/edge/heartbeat` upserts that record: `last_seen`, `status: online`, and the `stats` JSON blob. A cron job runs every minute and downgrades edges with no heartbeat: **stale** after 30s, **offline** after 60s.
+
+**In the Live plugin**, edges are the small collection that belongs on realtime (unlike 22k instances). On page load it `getFullList`s `edges`, then `subscribe('*')`. Each heartbeat patch appends a point to in-browser history for the request/error sparklines and refreshes the top-hosts, top-IPs, and top-countries tables. The headline numbers are always the latest 10s window from the edge.
+
+![Edge panel — 10s request window, sparklines, top hosts and IPs](image.png)
+
 ### The bug that looked like a missing plugin
 
 Symptom: `/_/extensions.js` returned **200** with an **empty body**. No header link. No errors in mothership logs. The registration hook was in the bundle. `main.js` existed on disk. Local curl to `:8090` returned the full script.
