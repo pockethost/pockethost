@@ -37,6 +37,10 @@ When `common/` modules are bundled into `pb_hooks`:
 
 Read `.cursor/skills/pocketbase-jsvm/constraints.md` before adding hook-facing common helpers.
 
+## Live process watches hooks
+
+PocketBase watches hook JS on disk and **reloads the JSVM when files change without exiting the process**. Stop mothership before any operation that swaps hook files on a live tree (`git checkout`, partial deploy). Reload only after the full bundle is consistent on disk (see `v39.sh --forward`).
+
 ## After every hook change
 
 1. `pnpm --filter pockethost-mothership-app build`

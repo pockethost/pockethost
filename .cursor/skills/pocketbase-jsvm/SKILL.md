@@ -5,7 +5,8 @@ description: >-
   record hooks, cron jobs, and synchronous $app APIs. Use for *.pb.js files,
   pb_hooks, pb_migrations JS, or server-side PocketBase extensions — not the
   npm JS SDK. Always check target PocketBase version: v0.22 and v0.23+ use
-  different JSVM APIs and docs.
+  different JSVM APIs and docs. PocketBase watches pb_hooks JS on disk and
+  hot-reloads hooks inside the running process without exiting.
 ---
 
 # PocketBase JSVM
@@ -60,6 +61,16 @@ pb_hooks/
 ```js
 const config = require(`${__hooks}/config/config.js`)
 ```
+
+## Hook file hot reload (in-process)
+
+PocketBase **watches hook JS on disk** (`pb_hooks/*.pb.js` and files loaded via `require()`). When they change, it **reloads hook code inside the running process** — the PocketBase process does **not** exit. This is separate from PM2 or Docker restarts.
+
+Operational implications:
+
+- Do not `git checkout`, rsync, or deploy while PocketBase is running if the operation swaps hook files incrementally. A mid-checkout tree can be picked up and loaded as a torn mix of old and new code.
+- **Mothership:** stop before branch switches or bulk hook deploys (e.g. `v39.sh --forward` keeps mothership stopped until checkout and `pocketbase update` finish, then `pm2 reload`).
+- **Customer instances on PocketHost:** FTP/phio deploy restarts the instance container so hooks reload from a consistent tree — different mechanism, same “don’t run torn hooks” goal.
 
 ## Hook categories
 
