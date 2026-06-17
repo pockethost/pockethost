@@ -1,6 +1,6 @@
 import { corsMiddleware } from '@'
 import express, { Request, Response } from 'express'
-import { default as Server, default as httpProxy } from 'http-proxy'
+import { createProxyServer, type ProxyServer } from 'httpxy'
 import { AsyncReturnType } from 'type-fest'
 import {
   DAEMON_PORT,
@@ -22,7 +22,7 @@ export type ProxyMiddleware = (
   meta: {
     subdomain: string
     coreInternalUrl: string
-    proxy: Server
+    proxy: ProxyServer
     host: string
   },
   logger: Logger
@@ -97,9 +97,11 @@ export const proxyService = mkSingleton(
       }
     })()
 
-    const proxy = httpProxy.createProxyServer({})
+    const proxy = createProxyServer({})
     proxy.on('error', (err, req, res, target) => {
-      warn(`Proxy error ${err} on ${req.url} (${req.headers.host})`)
+      const url = req?.url ?? '<unknown>'
+      const host = req?.headers?.host ?? '<unknown>'
+      warn(`Proxy error ${err} on ${url} (${host})`)
     })
 
     const server = express()

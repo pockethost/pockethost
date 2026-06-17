@@ -503,7 +503,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
       dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
 
-      proxy.web(req, res, { target: api.internalUrl })
+      await proxy.web(req, res, { target: api.internalUrl })
     } catch (e) {
       releaseGatewayPending()
       throw e
