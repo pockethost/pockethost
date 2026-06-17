@@ -79,7 +79,6 @@ export const init = () => {
     userStore.set(isLoggedIn && user ? user : undefined)
     isAuthStateInitialized.set(true)
     isUserLoggedIn.set(isLoggedIn)
-    tryUserSubscribe(user?.id)
   })
 
   userStore.subscribe((user) => {
@@ -97,12 +96,38 @@ export const init = () => {
 
   /** Listen for instances */
   let unsubInstanceWatch: UnsubscribeFunc | undefined
+
+  const tryInstanceSubscribe = () => {
+    client()
+      .client.collection('instances')
+      .subscribe<InstanceFields>('*', (data) => {
+        console.log('Instance subscribe update', data)
+        if (data.action === 'delete') {
+          globalInstancesStore.update((instances) => {
+            const { [data.record.id]: _, ...rest } = instances
+            return rest
+          })
+          return
+        }
+        upsertGlobalInstance(data.record)
+      })
+      .then((u) => {
+        unsubInstanceWatch = u
+      })
+      .catch(() => {
+        console.error('Failed to subscribe to instances')
+        isMothershipReachable.set(false)
+        setTimeout(tryInstanceSubscribe, 1000)
+      })
+  }
+
   isUserLoggedIn.subscribe(async (isLoggedIn) => {
     console.log(`isUserLoggedIn.subscribe update`, { isLoggedIn })
     if (!isLoggedIn) {
       userStore.set(undefined)
       globalInstancesStore.set({})
       globalInstancesStoreReady.set(false)
+      tryUserSubscribe(undefined)
       unsubInstanceWatch?.()
         .then(() => {
           unsubInstanceWatch = undefined
@@ -110,39 +135,24 @@ export const init = () => {
         .catch(console.error)
       return
     }
+
+    const userId = client().getAuthStoreProps().model?.id
+    // Register instances/* before users/{id} so the first POST /api/realtime includes both.
+    tryInstanceSubscribe()
+    tryUserSubscribe(userId)
+
     const { getAllInstancesById } = client()
 
     console.log('Getting all instances by ID')
-    const instances = await getAllInstancesById()
-    console.log('Instances', instances)
-
-    globalInstancesStore.set(instances)
-    globalInstancesStoreReady.set(true)
-
-    const tryInstanceSubscribe = () => {
-      client()
-        .client.collection('instances')
-        .subscribe<InstanceFields>('*', (data) => {
-          console.log('Instance subscribe update', data)
-          if (data.action === 'delete') {
-            globalInstancesStore.update((instances) => {
-              const { [data.record.id]: _, ...rest } = instances
-              return rest
-            })
-            return
-          }
-          upsertGlobalInstance(data.record)
-        })
-        .then((u) => {
-          unsubInstanceWatch = u
-        })
-        .catch(() => {
-          console.error('Failed to subscribe to instances')
-          isMothershipReachable.set(false)
-          setTimeout(tryInstanceSubscribe, 1000)
-        })
+    try {
+      const instances = await getAllInstancesById()
+      console.log('Instances', instances)
+      globalInstancesStore.set(instances)
+    } catch (e) {
+      console.error('Failed to fetch instances', e)
+    } finally {
+      globalInstancesStoreReady.set(true)
     }
-    tryInstanceSubscribe()
   })
 }
 
