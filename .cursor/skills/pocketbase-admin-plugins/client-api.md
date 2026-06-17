@@ -200,9 +200,36 @@ const rows = await app.pb.collection('users').getList(1, 50, {
 
 For custom server routes, use `app.pb.send()` (same as npm SDK).
 
+## Realtime / SSE
+
+Admin live data uses the SDK over **Server-Sent Events**:
+
+```js
+// Collection mirror
+app.pb.collection('edges').subscribe('*', (e) => { /* e.record */ })
+
+// Custom operator topic (server pushes from pb_hooks)
+app.pb.realtime.subscribe('mothership/live/platform', (payload) => { /* … */ })
+```
+
+Full pattern (auth gate, `SubscriptionMessage`, incremental hooks, `$autoCancel`): [realtime-and-sse.md](realtime-and-sse.md).
+
+## Shablon gotchas
+
+| Gotcha | Fix |
+|--------|-----|
+| `onClick` does nothing | Use **`onclick`** |
+| `oncreate` never runs | Imperative mount after render ([shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md)) |
+| Sparklines/maps re-render too often | Narrow store ticks; update widget layer directly |
+| Map tiles blocked | Check CSP `img-src` — mothership allows OSM, not Carto |
+
 ## CSP
 
 `/_/` routes get a default Content-Security-Policy from PocketBase. Inline scripts in `main.js` are served as `/_/extensions.js` (script endpoint). External scripts/styles must be allowed by CSP or loaded from extension static paths under `/_/extensions/{name}/`.
+
+Typical admin `img-src` includes `https://tile.openstreetmap.org` only. Verify in DevTools → Network → response headers on `/_/` before using external map tile CDNs.
+
+Details: [shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md#csp-on-_-routes).
 
 ## Stage 2 expectations
 

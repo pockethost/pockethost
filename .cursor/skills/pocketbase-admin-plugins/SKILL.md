@@ -2,10 +2,11 @@
 name: pocketbase-admin-plugins
 description: >-
   Builds PocketBase superuser admin UI extensions (admin plugins) on PB ≥0.37:
-  ServeEvent.uiExtensions, client main.js, window.app SPA hooks, Shablon UI.
-  Use when extending the PocketBase admin dashboard, operator pages, custom
-  collection tabs/fields, or mothership post-v0.39 operator tooling — not for
-  pb_hooks server logic alone (see pocketbase-jsvm) or external SPAs.
+  ServeEvent.uiExtensions, client main.js, window.app SPA hooks, Shablon UI,
+  reactive stores, CSP, SSE/realtime topics. Use when extending the PocketBase
+  admin dashboard, operator pages, custom collection tabs/fields, live dashboards,
+  or mothership post-v0.39 operator tooling — not for pb_hooks server logic alone
+  (see pocketbase-jsvm) or external SPAs.
 ---
 
 # PocketBase Admin Plugins (UI Extensions)
@@ -51,6 +52,8 @@ Confirm target version before writing extension code. Customer instances must ru
 |------|-------|
 | Register extension dir, `onServe`, static FS | **pocketbase-admin-plugins** (this) + [server-registration.md](server-registration.md) |
 | Client pages, `window.app`, Shablon | **pocketbase-admin-plugins** + [client-api.md](client-api.md) |
+| Reactive UI, maps, CSP, imperative DOM | [shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md) |
+| SSE, custom topics, collection subscribe | [realtime-and-sse.md](realtime-and-sse.md) |
 | Custom API routes, record hooks, cron | **pocketbase-jsvm** |
 | External customer-facing dashboard | **pocketbase-js-sdk** + separate SPA |
 
@@ -111,6 +114,9 @@ Open the mothership/instance admin UI, sign in as superuser, click the new heade
 - [ ] Asset URLs in `main.js` use `/_/extensions/{name}/…` paths
 - [ ] Server hook calls `e.next()` in `onServe`
 - [ ] Client code uses `app.pb` (superuser SDK) for data, not raw tokens in source
+- [ ] Event handlers use **`onclick`** (lowercase), not `onClick`
+- [ ] Third-party widgets (maps, charts) use **imperative mount** — not Shablon lifecycle hooks
+- [ ] Realtime: collection subscribe and/or custom topics gated to superuser on server
 - [ ] Treat APIs as unstable until PocketBase Stage 2 docs ship
 
 ## Shablon vs plain JS
@@ -124,6 +130,8 @@ link.href = '/_/extensions/hello/style.css'
 document.head.appendChild(link)
 ```
 
+**Important:** Shablon is **not** Mithril. `oncreate` / `data-*` attrs / `ref` callbacks are unreliable for plugin routes. Use `id` + imperative DOM for maps and other third-party widgets. See [shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md).
+
 Explore live APIs: open admin UI → DevTools → `console.log(app)`.
 
 ## Security note
@@ -134,7 +142,9 @@ Extensions run with **full superuser privileges** in the browser and serve from 
 
 Mothership (0.39) and customer instances (≥0.37) differ in deploy path. See [pockethost.md](pockethost.md).
 
-Typical mothership use case (backlog): **operator stats** pages replacing legacy SQL views — view collections + admin plugin charts/tables.
+Typical mothership use case: **Live operator dashboard** (`pb_admin_ext/live/`) — platform SSE topics, edge collection subscribe, Leaflet heatmaps. See [realtime-and-sse.md](realtime-and-sse.md) and [shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md).
+
+Other use cases (backlog): operator stats pages replacing legacy SQL views — view collections + admin plugin charts/tables.
 
 ## Reference files
 
@@ -142,6 +152,8 @@ Typical mothership use case (backlog): **operator stats** pages replacing legacy
 |------|----------|
 | [server-registration.md](server-registration.md) | JSVM + Go registration, FS layout, routes |
 | [client-api.md](client-api.md) | `window.app` — routes, store, modals, field types, mount events |
+| [shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md) | Reactive stores, ticks, CSP, imperative DOM / Leaflet |
+| [realtime-and-sse.md](realtime-and-sse.md) | Collection subscribe, custom SSE topics, server broadcast |
 | [examples.md](examples.md) | Copy-paste patterns |
 | [pockethost.md](pockethost.md) | Mothership tsdown, phio/FTP deploy, dev workflow |
 

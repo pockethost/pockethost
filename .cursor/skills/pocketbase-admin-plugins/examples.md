@@ -133,9 +133,22 @@ import '../lib/handlers/adminPlugins/hooks'
 
 Run `pnpm --filter pockethost-mothership-app build`. Ship `pb_admin_ext/` separately on deploy.
 
+## 7. Live operator dashboard (realtime + maps)
+
+Mothership reference: `pb_admin_ext/live/` + `src/lib/handlers/adminPlugins/`.
+
+- **Collection SSE:** `edges.subscribe('*')` for heartbeat stats.
+- **Custom topics:** `mothership/live/platform`, `mothership/live/view-stats` — server `SubscriptionMessage` + `onRealtimeSubscribeRequest` superuser gate.
+- **Maps:** Leaflet mounted imperatively; OSM tiles (CSP); see [shablon-reactivity-and-dom.md](shablon-reactivity-and-dom.md).
+
+See [realtime-and-sse.md](realtime-and-sse.md) for the full server/client contract.
+
 ## Anti-patterns
 
 - Putting client `main.js` logic in `pb_hooks` — Goja is ES5-only, no DOM.
 - Using `$http.send` in `main.js` — that is server-side JSVM.
 - Hardcoding superuser tokens in extension JS — use `app.pb` session.
 - Expecting admin plugins on PB ≤0.36 instances.
+- Using `oncreate` / `data-*` for widget lifecycle — use imperative DOM mount.
+- Subscribing to custom realtime topics without server-side superuser check.
+- Bumping a route-level store tick on high-frequency timers — update imperative layers instead.
