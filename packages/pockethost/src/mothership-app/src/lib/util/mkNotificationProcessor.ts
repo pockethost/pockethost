@@ -1,12 +1,12 @@
 import { Logger, interpolateString } from './Logger'
 
 export const mkNotificationProcessor =
-  (log: Logger, dao: daos.Dao, test = false) =>
+  (log: Logger, app: core.App, test = false) =>
   (notificationRec: models.Record) => {
     log({ notificationRec })
 
     const channel = notificationRec.getString(`channel`)
-    dao.expandRecord(notificationRec, ['message_template', 'user'])
+    app.expandRecord(notificationRec, ['message_template', 'user'])
 
     const messageTemplateRec = notificationRec.expandedOne('message_template')
     if (!messageTemplateRec) {
@@ -69,6 +69,6 @@ export const mkNotificationProcessor =
     }
     if (!test) {
       notificationRec.set(`delivered`, new DateTime())
-      dao.saveRecord(notificationRec)
+      app.save(notificationRec)
     }
   }

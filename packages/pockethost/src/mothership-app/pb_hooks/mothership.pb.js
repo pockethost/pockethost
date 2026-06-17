@@ -1,112 +1,124 @@
 
 //#region src/lib/handlers/instance/hooks.ts
-routerAdd("PUT", "/api/instance/:id", (c) => {
-	return require(`${__hooks}/mothership`).HandleInstanceUpdate(c);
-}, $apis.requireRecordAuth());
-routerAdd("POST", "/api/instance", (c) => {
-	return require(`${__hooks}/mothership`).HandleInstanceCreate(c);
-}, $apis.requireRecordAuth());
-routerAdd("DELETE", "/api/instance/:id", (c) => {
-	return require(`${__hooks}/mothership`).HandleInstanceDelete(c);
-}, $apis.requireRecordAuth());
-routerAdd("POST", "/api/instances/runtime/reset", (c) => {
-	return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(c);
-}, $apis.requireAdminAuth());
+routerAdd("PUT", "/api/instance/{id}", (e) => {
+	return require(`${__hooks}/mothership`).HandleInstanceUpdate(e);
+}, $apis.requireAuth());
+routerAdd("POST", "/api/instance", (e) => {
+	return require(`${__hooks}/mothership`).HandleInstanceCreate(e);
+}, $apis.requireAuth());
+routerAdd("DELETE", "/api/instance/{id}", (e) => {
+	return require(`${__hooks}/mothership`).HandleInstanceDelete(e);
+}, $apis.requireAuth());
+routerAdd("POST", "/api/instances/runtime/reset", (e) => {
+	return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(e);
+}, $apis.requireSuperuserAuth());
 /** Default autoVacuum to true (PocketBase bool zero-default is false) */
-onModelBeforeCreate((e) => {
-	return require(`${__hooks}/mothership`).BeforeCreate_autoVacuum(e);
+onRecordCreate((e) => {
+	require(`${__hooks}/mothership`).BeforeCreate_autoVacuum(e);
+	e.next();
 }, "instances");
 /** Validate instance version */
-onModelBeforeUpdate((e) => {
-	return require(`${__hooks}/mothership`).BeforeUpdate_version(e);
+onRecordUpdate((e) => {
+	require(`${__hooks}/mothership`).BeforeUpdate_version(e);
+	e.next();
 }, "instances");
 /** Validate cname */
-onModelBeforeUpdate((e) => {
-	return require(`${__hooks}/mothership`).BeforeUpdate_cname(e);
+onRecordUpdate((e) => {
+	require(`${__hooks}/mothership`).BeforeUpdate_cname(e);
+	e.next();
 }, "instances");
 /** Notify discord on instance create */
-onAfterBootstrap((e) => {});
+onBootstrap((e) => {
+	e.next();
+});
 /** Reset instance status to idle on start */
-onAfterBootstrap((e) => {
+onBootstrap((e) => {
+	e.next();
 	return require(`${__hooks}/mothership`).HandleInstancesResetIdle(e);
 });
 
 //#endregion
 //#region src/lib/handlers/lemon/hooks.ts
-routerAdd("POST", "/api/ls", (c) => {
-	return require(`${__hooks}/mothership`).HandleLemonSqueezySale(c);
+routerAdd("POST", "/api/ls", (e) => {
+	return require(`${__hooks}/mothership`).HandleLemonSqueezySale(e);
 });
 
 //#endregion
 //#region src/lib/handlers/mail/hooks.ts
-routerAdd("POST", "/api/mail", (c) => {
-	return require(`${__hooks}/mothership`).HandleMailSend(c);
-}, $apis.requireAdminAuth());
+routerAdd("POST", "/api/mail", (e) => {
+	return require(`${__hooks}/mothership`).HandleMailSend(e);
+}, $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/meta/hooks.ts
-onAfterBootstrap((e) => {
-	return require(`${__hooks}/mothership`).HandleMetaUpdateAtBoot(e);
+onBootstrap((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).HandleMetaUpdateAtBoot(e);
 });
 
 //#endregion
 //#region src/lib/handlers/mirror/hooks.ts
-routerAdd("GET", "/api/mirror", (c) => {
-	return require(`${__hooks}/mothership`).HandleMirrorData(c);
-}, $apis.gzip(), $apis.requireAdminAuth());
-routerAdd("POST", "/api/mirror", (c) => {
-	return require(`${__hooks}/mothership`).HandleMirrorSync(c);
-}, $apis.gzip(), $apis.requireAdminAuth());
+routerAdd("GET", "/api/mirror", (e) => {
+	return require(`${__hooks}/mothership`).HandleMirrorData(e);
+}, $apis.gzip(), $apis.requireSuperuserAuth());
+routerAdd("POST", "/api/mirror", (e) => {
+	return require(`${__hooks}/mothership`).HandleMirrorSync(e);
+}, $apis.gzip(), $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/notify/hooks.ts
-routerAdd(`GET`, `api/process_single_notification`, (c) => {
-	return require(`${__hooks}/mothership`).HandleProcessSingleNotification(c);
+routerAdd(`GET`, `api/process_single_notification`, (e) => {
+	return require(`${__hooks}/mothership`).HandleProcessSingleNotification(e);
 });
-onModelAfterCreate((e) => {
-	return require(`${__hooks}/mothership`).HandleProcessNotification(e);
+onRecordAfterCreateSuccess((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).HandleProcessNotification(e);
 }, `notifications`);
-onModelBeforeUpdate((e) => {
-	return require(`${__hooks}/mothership`).HandleUserWelcomeMessage(e);
+onRecordUpdate((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).HandleUserWelcomeMessage(e);
 }, "users");
 
 //#endregion
 //#region src/lib/handlers/outpost/hooks.ts
-routerAdd("GET", "/api/unsubscribe", (c) => {
-	return require(`${__hooks}/mothership`).HandleOutpostUnsubscribe(c);
+routerAdd("GET", "/api/unsubscribe", (e) => {
+	return require(`${__hooks}/mothership`).HandleOutpostUnsubscribe(e);
 });
 
 //#endregion
 //#region src/lib/handlers/signup/hooks.ts
-routerAdd("GET", "/api/signup", (c) => {
-	return require(`${__hooks}/mothership`).HandleSignupCheck(c);
+routerAdd("GET", "/api/signup", (e) => {
+	return require(`${__hooks}/mothership`).HandleSignupCheck(e);
 });
-routerAdd("POST", "/api/signup", (c) => {
-	return require(`${__hooks}/mothership`).HandleSignupConfirm(c);
+routerAdd("POST", "/api/signup", (e) => {
+	return require(`${__hooks}/mothership`).HandleSignupConfirm(e);
 });
 
 //#endregion
 //#region src/lib/handlers/sns/hooks.ts
-routerAdd("POST", "/api/sns", (c) => {
-	return require(`${__hooks}/mothership`).HandleSesError(c);
+routerAdd("POST", "/api/sns", (e) => {
+	return require(`${__hooks}/mothership`).HandleSesError(e);
 });
 
 //#endregion
 //#region src/lib/handlers/sshKeys/hooks.ts
-onRecordBeforeCreateRequest((e) => {
-	return require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e);
+onRecordCreateRequest((e) => {
+	require(`${__hooks}/mothership`).BeforeCreate_ssh_keys(e);
+	e.next();
 }, "ssh_keys");
-onRecordBeforeUpdateRequest((e) => {
-	return require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e);
+onRecordUpdateRequest((e) => {
+	require(`${__hooks}/mothership`).BeforeUpdate_ssh_keys(e);
+	e.next();
 }, "ssh_keys");
 
 //#endregion
 //#region src/lib/handlers/stats/hooks.ts
-routerAdd("GET", "/stats.json", (c) => {
-	return require(`${__hooks}/mothership`).HandleStatsRequest(c);
+routerAdd("GET", "/stats.json", (e) => {
+	return require(`${__hooks}/mothership`).HandleStatsRequest(e);
 });
-onAfterBootstrap((e) => {
-	return require(`${__hooks}/mothership`).HandleStatsRefreshAtBoot(e);
+onBootstrap((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).HandleStatsRefreshAtBoot(e);
 });
 cronAdd("public-stats", "0 * * * *", () => {
 	require(`${__hooks}/mothership`).refreshPublicStats();
@@ -114,15 +126,15 @@ cronAdd("public-stats", "0 * * * *", () => {
 
 //#endregion
 //#region src/lib/handlers/user/hooks.ts
-routerAdd("GET", "/api/userToken/:id", (c) => {
-	return require(`${__hooks}/mothership`).HandleUserTokenRequest(c);
-}, $apis.requireAdminAuth());
+routerAdd("GET", "/api/userToken/{id}", (e) => {
+	return require(`${__hooks}/mothership`).HandleUserTokenRequest(e);
+}, $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/versions/hooks.ts
 /** Return a list of available PocketBase versions */
-routerAdd("GET", "/api/versions", (c) => {
-	return require(`${__hooks}/mothership`).HandleVersionsRequest(c);
+routerAdd("GET", "/api/versions", (e) => {
+	return require(`${__hooks}/mothership`).HandleVersionsRequest(e);
 });
 
 //#endregion

@@ -105,7 +105,7 @@ export const createSettings = () => ({
   MOTHERSHIP_APP_DIR: mkPath(_MOTHERSHIP_APP_ROOT(`ph_app`), {
     required: false,
   }),
-  MOTHERSHIP_SEMVER: mkString('0.22.*'),
+  MOTHERSHIP_SEMVER: mkString('0.39.*'),
 
   INITIAL_PORT_POOL_SIZE: mkNumber(20),
   DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),

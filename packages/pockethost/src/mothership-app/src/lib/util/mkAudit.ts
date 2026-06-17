@@ -15,13 +15,13 @@ type AuditEvents =
 
 export const mkAudit = (
   log: Logger,
-  dao: daos.Dao
+  app: core.App
 ): ((event: AuditEvents, note: string, context?: { [_: string]: any }) => void) => {
   return (event, note, context) => {
     log(`top of audit`)
     log(`AUDIT:${event}: ${note}`, JSON.stringify({ context }, null, 2))
-    dao.saveRecord(
-      new Record(dao.findCollectionByNameOrId('audit'), {
+    app.save(
+      new Record(app.findCollectionByNameOrId('audit'), {
         event,
         note,
         context,

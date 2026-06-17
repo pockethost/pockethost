@@ -25,9 +25,8 @@ const validateSshKeyRecord = (record: models.Record, authId: string) => {
   }
 
   if (!allInstances) {
-    const dao = $app.dao()
     for (const instanceId of instanceIds) {
-      const instance = dao.findRecordById('instances', instanceId)
+      const instance = $app.findRecordById('instances', instanceId)
       if (instance.getString('uid') !== authId) {
         log({ instanceId, authId, uid: instance.getString('uid') })
         throw new BadRequestError('One or more selected instances are not owned by you.')
@@ -40,13 +39,13 @@ const validateSshKeyRecord = (record: models.Record, authId: string) => {
   }
 }
 
-export const BeforeCreate_ssh_keys = (e: core.RecordCreateEvent) => {
+export const BeforeCreate_ssh_keys = (e: core.RecordRequestEvent) => {
   const record = e.record
   if (!record) {
     throw new BadRequestError('Missing record.')
   }
 
-  const authRecord = e.httpContext.get('authRecord') as models.Record | undefined
+  const authRecord = e.auth
   if (!authRecord) {
     throw new BadRequestError('Authentication required.')
   }
@@ -55,13 +54,13 @@ export const BeforeCreate_ssh_keys = (e: core.RecordCreateEvent) => {
   validateSshKeyRecord(record, authRecord.id)
 }
 
-export const BeforeUpdate_ssh_keys = (e: core.RecordUpdateEvent) => {
+export const BeforeUpdate_ssh_keys = (e: core.RecordRequestEvent) => {
   const record = e.record
   if (!record) {
     throw new BadRequestError('Missing record.')
   }
 
-  const authRecord = e.httpContext.get('authRecord') as models.Record | undefined
+  const authRecord = e.auth
   if (!authRecord) {
     throw new BadRequestError('Authentication required.')
   }

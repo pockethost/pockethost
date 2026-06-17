@@ -1,11 +1,9 @@
 import { mkLog } from '$util/Logger'
 import { listVersions } from '$util/versions'
 
-export const HandleInstanceCreate = (c: echo.Context) => {
-  const dao = $app.dao()
-
+export const HandleInstanceCreate = (e: core.RequestEvent) => {
   const log = mkLog(`POST:instance`)
-  const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record
+  const authRecord = e.auth
   log(`authRecord`, JSON.stringify(authRecord))
 
   if (!authRecord) {
@@ -20,7 +18,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
 
   log(`before bind`)
 
-  c.bind(data)
+  e.bindBody(data)
 
   log(`after bind`)
 
@@ -35,9 +33,9 @@ export const HandleInstanceCreate = (c: echo.Context) => {
     throw new BadRequestError(`Subdomain is required when creating an instance.`)
   }
 
-  const collection = dao.findCollectionByNameOrId('instances')
+  const collection = $app.findCollectionByNameOrId('instances')
   const record = new Record(collection)
-  record.set('uid', authRecord.getId())
+  record.set('uid', authRecord.id)
   record.set('subdomain', subdomain)
   record.set('power', true)
   record.set('status', 'idle')
@@ -46,8 +44,7 @@ export const HandleInstanceCreate = (c: echo.Context) => {
   record.set('syncAdmin', true)
   record.set('autoVacuum', true)
 
-  const form = new RecordUpsertForm($app, record)
-  form.submit()
+  $app.save(record)
 
-  return c.json(200, { instance: record })
+  return e.json(200, { instance: record })
 }

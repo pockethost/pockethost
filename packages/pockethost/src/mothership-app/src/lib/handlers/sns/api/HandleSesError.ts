@@ -48,10 +48,9 @@ function isSnsNotificationComplaintPayload(
   return payload.notificationType === 'Complaint'
 }
 
-export const HandleSesError = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleSesError = (e: core.RequestEvent) => {
   const log = mkLog(`sns`)
-  const audit = mkAudit(log, dao)
+  const audit = mkAudit(log, $app)
 
   const processBounce = (emailAddress: string) => {
     log(`Processing ${emailAddress}`)
@@ -59,18 +58,18 @@ export const HandleSesError = (c: echo.Context) => {
       email: emailAddress,
     } as { email: string; user: string }
     try {
-      const user = dao.findFirstRecordByData('users', 'email', emailAddress)
+      const user = $app.findFirstRecordByData('users', 'email', emailAddress)
       log(`user is`, user)
-      extra.user = user.getId()
+      extra.user = user.id
       user.setVerified(false)
-      dao.saveRecord(user)
+      $app.save(user)
       audit('PBOUNCE', `User ${emailAddress} has been disabled`, extra)
     } catch (e) {
       audit('PBOUNCE_ERR', `${e}`, extra)
     }
   }
 
-  const raw = readerToString(c.request().body)
+  const raw = readerToString(e.request.body)
   const data = JSON.parse(raw) as SnsEvent
   log(JSON.stringify(data, null, 2))
 
@@ -78,7 +77,7 @@ export const HandleSesError = (c: echo.Context) => {
     const url = data.SubscribeURL
     log(url)
     $http.send({ url })
-    return c.json(200, { status: 'ok' })
+    return e.json(200, { status: 'ok' })
   }
 
   if (isSnsNotificationEvent(data)) {
@@ -111,13 +110,13 @@ export const HandleSesError = (c: echo.Context) => {
         const { emailAddress } = recipient
         log(`Processing ${emailAddress}`)
         try {
-          const user = $app.dao().findFirstRecordByData('users', 'email', emailAddress)
+          const user = $app.findFirstRecordByData('users', 'email', emailAddress)
           log(`user is`, user)
           user.set(`unsubscribe`, true)
-          dao.saveRecord(user)
+          $app.save(user)
           audit('COMPLAINT', `User ${emailAddress} has been unsubscribed`, {
             emailAddress,
-            user: user.getId(),
+            user: user.id,
           })
         } catch (e) {
           audit('COMPLAINT_ERR', `${emailAddress} is not in the system.`, {
@@ -135,5 +134,5 @@ export const HandleSesError = (c: echo.Context) => {
     raw,
   })
 
-  return c.json(200, { status: 'ok' })
+  return e.json(200, { status: 'ok' })
 }

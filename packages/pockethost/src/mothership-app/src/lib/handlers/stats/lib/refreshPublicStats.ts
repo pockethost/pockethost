@@ -10,8 +10,7 @@ export const mkPublicStatsPath = () => `${$app.dataDir()}/stats.json`
 
 export const refreshPublicStats = () => {
   const log = mkLog('refreshPublicStats')
-  const dao = $app.dao()
-  const db = dao.db()
+  const db = $app.db()
 
   const users = new DynamicModel({ total: 0 })
   db.newQuery('SELECT COUNT(*) as total FROM users').one(users)

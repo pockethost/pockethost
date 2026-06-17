@@ -1,3 +1,3 @@
-routerAdd('POST', '/api/sns', (c) => {
-  return require(`${__hooks}/mothership`).HandleSesError(c)
+routerAdd('POST', '/api/sns', (e) => {
+  return require(`${__hooks}/mothership`).HandleSesError(e)
 })

@@ -1,10 +1,9 @@
 import { mkLog } from '$util/Logger'
 
-export const HandleUserTokenRequest = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleUserTokenRequest = (e: core.RequestEvent) => {
   const log = mkLog(`user-token`)
 
-  const id = c.pathParam('id')
+  const id = e.request.pathValue('id')
 
   // log({ id })
 
@@ -12,11 +11,11 @@ export const HandleUserTokenRequest = (c: echo.Context) => {
     throw new BadRequestError(`User ID is required.`)
   }
 
-  const rec = dao.findRecordById('users', id)
+  const rec = $app.findRecordById('users', id)
   const tokenKey = rec.getString('tokenKey')
-  const passwordHash = rec.getString('passwordHash')
+  const passwordHash = rec.getString('password:hash')
   const email = rec.getString(`email`)
   // log({ email, passwordHash, tokenKey })
 
-  return c.json(200, { email, passwordHash, tokenKey })
+  return e.json(200, { email, passwordHash, tokenKey })
 }

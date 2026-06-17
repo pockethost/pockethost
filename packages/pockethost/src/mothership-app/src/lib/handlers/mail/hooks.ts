@@ -1,8 +1,8 @@
 routerAdd(
   'POST',
   '/api/mail',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleMailSend(c)
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleMailSend(e)
   },
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )

@@ -1,4 +1,4 @@
 /** Return a list of available PocketBase versions */
-routerAdd('GET', '/api/versions', (c) => {
-  return require(`${__hooks}/mothership`).HandleVersionsRequest(c)
+routerAdd('GET', '/api/versions', (e) => {
+  return require(`${__hooks}/mothership`).HandleVersionsRequest(e)
 })

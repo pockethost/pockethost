@@ -1,8 +1,8 @@
 routerAdd(
   'GET',
-  '/api/userToken/:id',
-  (c) => {
-    return require(`${__hooks}/mothership`).HandleUserTokenRequest(c)
+  '/api/userToken/{id}',
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleUserTokenRequest(e)
   },
-  $apis.requireAdminAuth()
+  $apis.requireSuperuserAuth()
 )

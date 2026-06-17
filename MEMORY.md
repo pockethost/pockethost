@@ -40,7 +40,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
                 ↘ mothership (metadata, auth, billing, instance records)
 ```
 
-- **Mothership**: PocketBase app at `mothership-app/` — `pb_migrations/`, TS handlers in `src/lib/handlers/`. **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Public aggregate stats: `GET /stats.json` (cached in `pb_data/stats.json`, refreshed on boot + hourly cron).
+- **Mothership**: PocketBase **0.39.*** (`MOTHERSHIP_SEMVER`) at `mothership-app/` — **v0.23+ JSVM** hooks (`$app.save`, `onBootstrap`, `RequestEvent` routes, `_superusers` auth). `pb_migrations/` = v0.39 collection snapshot (replaced 67 legacy migrations). **`pb_hooks/mothership.js` + `mothership.pb.js` are tsdown output** (source: `src/lib/`, `src/hooks/`); do not edit by hand. Regenerate: `pnpm --filter pockethost-mothership-app build` or `pnpm check:mothership-hooks` (build + fail if stale). Hook-facing shared code in `common/` must be JSVM-safe; handlers import `$common/<file>` subpaths (see `.cursor/rules/mothership-hooks.mdc`). Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. Public aggregate stats: `GET /stats.json` (cached in `pb_data/stats.json`, refreshed on boot + hourly cron).
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL (`DAEMON_PB_IDLE_TTL`). Instance containers named by instance ID (`instanceContainerName`) and preserved across daemon restarts (reattach on boot, reconcile against mirror `power`/version; daemon SIGTERM detaches without stopping Docker). Express error handler posts to `DISCORD_ALERT_CHANNEL_URL` only for `systemError` (Docker/host failures). `userError` covers unpaid, suspended, JSVM/app exit, etc. SFTP (`classifySftpError`) treats handshake/protocol/client misconfig as `userError` (debug log only).
 - **Firewall**: Express + `http-proxy-middleware`; trusted/untrusted rate limiters in `FirewallCommand/ServeCommand/firewall/`. **Daemon grace:** polls `/_api/daemon/health` (requires `{ status: 'ok' }`, 503 while edge reconciles preserved containers) before proxying instance traffic; holds up to `PH_FIREWALL_DAEMON_GRACE_MS` (default 60s), retry `PH_FIREWALL_DAEMON_GRACE_RETRY_MS` (default 500ms). Health probe paths bypass grace. Returns 503 + `Retry-After` when exhausted. Set grace to `0` to disable.
 
@@ -61,8 +61,8 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pockethost/src/services/`:
 
 - `PocketBaseService` — instance PB process management
-- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising; best-effort Admin Sync (spawn without `ADMIN_SYNC` if mothership token fetch fails)
-- `MothershipAdminClientService` — admin PB client + instance mixin
+- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising; best-effort Admin Sync (spawn without `ADMIN_SYNC` if mothership token fetch fails)
+- `MothershipAdminClientService` — admin PB client via `_superusers` collection auth (npm `pocketbase` ≥0.26) + instance mixin
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
 - `VacuumLockService` — edge-owned per-instance vacuum locks (`/_api/daemon/vacuum/lock|unlock`, `PH_SECRET` auth, 30min TTL). Sets mothership `status=vacuuming` on lock grant, `idle` on unlock/TTL. `InstanceService` waits up to `PH_DAEMON_VACUUM_WAIT_MS` (default 30s, retry 50ms) instead of failing immediately.
@@ -106,7 +106,9 @@ Nav config: `lib/dashboard/featureTabTypes.ts`. `CardHeader` is deprecated.
 
 ## PocketBase versions
 
-Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
+Supported range in settings (`PH_ALLOWED_POCKETBASE_SEMVER`). **Mothership** pinned separately via `MOTHERSHIP_SEMVER` (`0.39.*`). Binaries cached at `PH_HOME/pocketbase/<version>/<linux_arch>/pocketbase` (container platform: `linux_arm64` on Apple Silicon, `linux_amd64` on x64 — matches Docker). On macOS, mothership runs in Docker; on Linux edge nodes, native `pb.run`. Catalog in mothership `settings` `pocketbase_versions` (upserted by `pocketbase update` / `serve`).
+
+**Mothership v0.39 cutover (2026-06-16):** production control plane on PocketBase 0.39.* with v0.23+ JSVM hooks. Legacy 67 incremental migrations replaced by v0.39 collection snapshot; SQL views restored via `1781606400_restored_sql_views.js`. No v0.22 rollback path maintained — fix forward on main.
 
 ## Dev workflow
 
@@ -115,6 +117,7 @@ Requires **Node.js 24** (`.nvmrc`: `lts/krypton`; `nvm install` in `setup.sh`).
 ```bash
 pnpm install               # root
 cp .env-template .env      # if present; configure PH_HOME, apex domain, mothership creds
+pnpm live-sync             # optional — rsync prod mothership pb_data → .pockethost/data/mothership/pb_data; set DATA_ROOT
 pnpm dev:mothership-hooks  # terminal 1 — tsdown --watch when editing mothership handlers
 pnpm dev:cli serve         # terminal 2 — mothership + edge + firewall (80/443) + SFTP
 pnpm dev:dashboard         # terminal 3 — Vite :5174, browse via https://pockethost.lvh.me
@@ -152,4 +155,4 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **v0.39 pre-stage:** legacy SQL view stats dropped (`1781606600_dropped_sql_views`); public counts restored via `GET /stats.json` cron cache. CLI dual admin auth in `packages/pockethost/src/common/adminAuth.ts` (SDK `_superusers` → legacy `/api/admins` on 404). Cutover has no preupgrade SQL step. Soak on 0.22 Mothership before v0.39 flip. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`. Full hook/migration work lives on `v39-mothership` branch until cutover.
+- **Mothership v0.39 follow-up:** cutover shipped 2026-06-16. Fix forward on webhooks, stats views, mail, and edge cases as they surface. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.

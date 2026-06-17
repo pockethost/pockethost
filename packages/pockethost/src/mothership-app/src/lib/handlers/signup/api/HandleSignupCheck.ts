@@ -2,9 +2,9 @@ import { error } from '../error'
 import { isAvailable } from '../isAvailable'
 import { generate } from '../random-words'
 
-export const HandleSignupCheck = (c: echo.Context) => {
+export const HandleSignupCheck = (e: core.RequestEvent) => {
   const instanceName = (() => {
-    const name = c.queryParam('name').trim()
+    const name = (e.request.url.query().get('name') || '').trim()
     if (name) {
       if (name.match(/^[a-z][a-z0-9-]{2,39}$/) === null) {
         throw error(
@@ -29,5 +29,5 @@ export const HandleSignupCheck = (c: echo.Context) => {
       }
     }
   })()
-  return c.json(200, { instanceName })
+  return e.json(200, { instanceName })
 }

@@ -212,7 +212,7 @@ const log = mkLog('main')
 
 - User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
 - Instance templates: `packages/pockethost/src/instance-app/v22/` (≤ v0.22) and `v23/` (≥ v0.23) — compare `_ph_admin_sync.pb.js` for a side-by-side API diff.
-- Mothership hooks (0.22 today; v0.39 port guide in [v023-upgrade.md](v023-upgrade.md)): `packages/pockethost/src/mothership-app/pb_hooks/` — **source** is `src/lib/handlers/`; see [.cursor/rules/mothership-hooks.mdc](../../rules/mothership-hooks.mdc)
+- Mothership hooks (≥ v0.23 / v0.39): `packages/pockethost/src/mothership-app/pb_hooks/` — port guide in [v023-upgrade.md](v023-upgrade.md). **Source** is `src/lib/handlers/`; see [.cursor/rules/mothership-hooks.mdc](../../rules/mothership-hooks.mdc)
 - Typings: `instance-app/v22/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
 - PocketHost sandbox may restrict `$os` — avoid OS-level calls.
 

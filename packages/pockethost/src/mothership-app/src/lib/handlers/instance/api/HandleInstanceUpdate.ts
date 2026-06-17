@@ -58,8 +58,7 @@ const createCloudflareCustomHostname = (hostname: string, log: any) => {
   )
 }
 
-export const HandleInstanceUpdate = (c: echo.Context) => {
-  const dao = $app.dao()
+export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   const log = mkLog(`PUT:instance`)
 
   log(`TOP OF PUT`)
@@ -92,13 +91,13 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     }
   }
 
-  c.bind(data)
+  e.bindBody(data)
   log(`After bind`)
 
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const id = c.pathParam('id')
+  const id = e.request.pathValue('id')
   const {
     fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname },
   } = data
@@ -119,8 +118,8 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     })
   )
 
-  const record = dao.findRecordById('instances', id)
-  const authRecord = c.get('authRecord') as models.Record | undefined // empty if not authenticated as regular auth record
+  const record = $app.findRecordById('instances', id)
+  const authRecord = e.auth
   log(`authRecord`, JSON.stringify(authRecord))
 
   if (!authRecord) {
@@ -172,9 +171,10 @@ export const HandleInstanceUpdate = (c: echo.Context) => {
     cname,
   })
 
-  const form = new RecordUpsertForm($app, record)
-  form.loadData(sanitized)
-  form.submit()
+  for (const [key, value] of Object.entries(sanitized)) {
+    record.set(key, value)
+  }
+  $app.save(record)
 
-  return c.json(200, { status: 'ok' })
+  return e.json(200, { status: 'ok' })
 }

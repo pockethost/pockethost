@@ -1,9 +1,10 @@
-routerAdd('GET', '/stats.json', (c) => {
-  return require(`${__hooks}/mothership`).HandleStatsRequest(c)
+routerAdd('GET', '/stats.json', (e) => {
+  return require(`${__hooks}/mothership`).HandleStatsRequest(e)
 })
 
-onAfterBootstrap((e) => {
-  return require(`${__hooks}/mothership`).HandleStatsRefreshAtBoot(e)
+onBootstrap((e) => {
+  e.next()
+  require(`${__hooks}/mothership`).HandleStatsRefreshAtBoot(e)
 })
 
 cronAdd('public-stats', '0 * * * *', () => {

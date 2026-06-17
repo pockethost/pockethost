@@ -1,8 +1,8 @@
-routerAdd('GET', '/api/signup', (c) => {
-  return require(`${__hooks}/mothership`).HandleSignupCheck(c)
+routerAdd('GET', '/api/signup', (e) => {
+  return require(`${__hooks}/mothership`).HandleSignupCheck(e)
 })
 
 // https://pocketbase.io/docs/js-routing/#sending-request-to-custom-routes-using-the-sdks
-routerAdd('POST', '/api/signup', (c) => {
-  return require(`${__hooks}/mothership`).HandleSignupConfirm(c)
+routerAdd('POST', '/api/signup', (e) => {
+  return require(`${__hooks}/mothership`).HandleSignupConfirm(e)
 })

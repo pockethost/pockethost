@@ -18,12 +18,12 @@ _Sorted deps → feasibility → user benefit (top = suggest first). Re-rank whe
 
 #### Mothership ↔ edge decoupling
 
-_Prerequisite for v0.39 and for porting/decoupling the mothership package. Mothership = metadata + auth + billing; edge = containers, volumes, runtime status._
+_Mothership on PocketBase v0.39 since 2026-06-16 (one-way cutover; no v0.22 rollback). Remaining rows unlock package split and operator tooling. Mothership = metadata + auth + billing; edge = containers, volumes, runtime status._
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
-| **Mothership PocketBase v0.39** | Med | M | Upgrade control-plane PB; run migrations, retest hooks/handlers, instance-app typed defs, allowed semver range. **Pre-stage on `main`:** dual-auth CLI + deps refresh shipped 2026-06-14. Legacy SQL views dropped on 0.22 — no cutover-day preupgrade SQL. |
-| **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting after v0.39 cutover using PB v0.39 view collections and/or admin plugin pages — not legacy SQL views. Replaces dropped `stats`, `verified_users`, etc. Operators get browseable metrics without blocking embedded migrator. Depends on **Mothership PocketBase v0.39**. |
+| **InstanceService batch status updates** | Low | S | **Partially done** — reconnect reconcile moved to `POST /api/mirror` (live IDs → mothership `saveRecord` loop). Remaining: per-spawn/shutdown status writes in `InstanceService`; v0.39 batch record APIs may collapse further. |
+| **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting using PB v0.39 view collections and/or admin plugin pages — not legacy SQL views. Replaces dropped `stats`, `verified_users`, etc. Operators get browseable metrics without blocking embedded migrator. Follow-up bugfixes from cutover may surface gaps first. |
 | **Edge traffic stats → mothership** | Low | M | Today `ProxyService` logs 10s rolling metrics to edge stdout only: request/error counts, top hosts, IPs (incl. `x-forwarded-for`), and Cloudflare countries. Push aggregates to mothership on an interval (extend mirror/heartbeat or dedicated route). Mothership admin control panel: realtime per-edge fleet view. Prerequisite for **Multi-region Fly edges** ops visibility. |
 | **Remove mothership-boot idle reset** | Low | S | **Keep for now** — `HandleInstancesResetIdle` forces all instances `idle` on mothership boot (assume idle until edge speaks up). Edge `POST /api/mirror` live reconcile restores warm rows on reconnect. Brief idle flash on mothership-only restart is acceptable. Remove only after Phase 2 lease or container witness (Icebox). |
 | **Post-daemon-restart spawn throttle** | Low | S | Cold-start instances (not reattached on boot) can spike concurrently after daemon restart. Today `PH_MAX_CONCURRENT_DOCKER_LAUNCHES=5` (Bottleneck). Consider defaulting cap to CPU count or a tuned fleet value so large cold-start bursts do not thrash disk/CPU. Distinct from firewall grace (absorbs daemon bind window only). Warm containers are preserved across daemon SIGTERM (2026-06-17). |
@@ -72,7 +72,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | **SMTP / outgoing mail** | Med | L | e.g. `myinstance@pockethostmail.com`. Long-standing gap; needs provider (SES/CF Email/etc.), per-instance credentials, abuse controls, dashboard UX. |
 | **FTPS sunset comms** | Low | S–M | **Shipped:** blog posts, `/docs/ftp`, FTPS 220 greeting, site-wide **PocketHost 3.0** banner + `/3.0` info page (SFTP, Flounder, pricing preview), `/docs/phio`. **Remaining:** email to active FTPS users, explicit hard removal date. Then schedule **Remove FTPS**. |
 | **Remove FTPS** | Med | S | Drop `edge-ftp` PM2 app, `ftp-srv` fork dep, passive port firewall rules, FTPS docs/UI. **Blocked by:** **FTPS sunset comms** grace period elapsed (phio SFTP deploy shipped). |
-| **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. Depends on stable version catalog (post v0.39). |
+| **Custom PocketBase binaries** | High | L | Let users run their own PB build per instance (forks, patches, pre-release). Docs today say unsupported (`/docs/custom-binaries`). Needs upload/storage path, `PocketBaseBinaryService` + spawn integration, checksum/signing policy, Pro-tier gating, abuse review. |
 | **CORS / custom origin support** | High | L | Tricky: firewall vhost routing, PB `AllowedOrigins`, multi-tenant safety. Research spike before commit. |
 
 ### Developer experience
@@ -106,7 +106,7 @@ _Pricing/lifetime sunset sequence: pre-announce email + community post → updat
 | ---- | ---- | ------ | ----- |
 | **Expand test coverage** | Low | M | Vitest 4 + CI `quality` job shipped 2026-06-14 (29 cases). Next: daemon API supertests, env-paths, firewall route tests from spike list. |
 | **Dashboard mothership disconnect UX** | Low | S–M | **Low priority** — refresh fixes stale state today. Reconnect path partially helped: `POST /api/mirror` live reconcile uses mothership `saveRecord` loop → dashboard SSE gets status updates. Remaining: detect SSE disconnect, reconnect banner, full `resyncAppState` on reconnect; remove verify poll. |
-| **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
+| **PocketBase type stub dedup** | Low | M | Two ~16k-line `types.d.ts` files (mothership v0.39 + instance-app v22); PB version churn tax. Symlink or generate from one source when bumping allowed semver — faster PB upgrades for customers. |
 | **Audit forked npm deps** | Low | M | `ftp-srv`, `@microsoft/fetch-event-source` (dashboard + phio), patched `tail`. Confirm still needed vs upstream; document pin SHA. |
 
 ---
@@ -177,18 +177,16 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 | Runtime status | `HandleInstancesResetIdle` vs edge daemon; no lease on crash | Done (Phase 1) — `POST /api/mirror` sync, `saveRecord` idle/live loops, Phase 2 lease deferred |
 | Request policy | `InstanceService` edge proxy | Done — removed unused `HandleInstanceResolve`; edge mirror owns request gating |
 
-Decoupling done: **power off**, **instance delete FS**, **request policy**, **runtime status Phase 1**, **deps refresh + dual-auth pre-stage** (2026-06-14).
+Decoupling done: **power off**, **instance delete FS**, **request policy**, **runtime status Phase 1**, **Mothership PocketBase v0.39 cutover** (2026-06-16).
 
 ### Dependencies between items
 
 ```
-Runtime status on edge (Phase 1 sync) ──► v0.39 migration
 Runtime status Phase 2 (heartbeat lease) ──► stale `running` cleanup when edge dies without shutdown hook
 Remove mothership-boot idle reset ──► Runtime status Phase 2 or trusted edge reconcile on every mothership boot
 Runtime status owned by edge ──► Dashboard mothership disconnect UX (complementary; missed SSE while disconnected)
 Mothership↔edge decoupling (runtime status) ──► Decouple mothership (package split)
-Mothership v0.39 ──► custom binaries (version catalog + spawn path must be solid)
-Mothership v0.39 ──► type stub dedup (regenerate on PB bump)
+Mothership operator stats ──► v0.39 cutover bugfix follow-up (views, webhooks, mail)
 Expand test coverage ──► handler/semver/spawn regression tests
 Pricing redo ──► powered-on instance limits (per tier)
 Pricing redo ──► plan-tier primary volume quotas (1 / 50 / 200 GB)
@@ -263,6 +261,8 @@ _Completed items with date + link to PR/release._
 | 2026-06-12 | **Remove instance volume tier + rclone mount** — dropped `instances.volume`, `edge volume` (migrate/mount), `VOLUME_*` settings, PM2 `edge-volume`; instance data under `$DATA_ROOT/instances/<id>/` |
 | 2026-06-12 | **Remove instance region field** — dropped `instances.region`, create/signup/migrate handlers; PB migration `1781308900`; pricing reframed to Fly global ingress (not per-instance region) |
 | 2026-06-12 | **Remove mothership s3 collection** — dropped unused `instances.s3` relation + `s3` creds collection; users configure S3 in PB admin (`/docs/s3` unchanged) |
+| 2026-06-16 | **Mothership PocketBase v0.39 cutover** — JSVM v0.23+ hook port, `_superusers` auth, 67 legacy migrations → v0.39 snapshot, SQL views restored (`1781606400_restored_sql_views.js`), `MOTHERSHIP_SEMVER=0.39.*`, `mothership.sh`, blog `/blog/mothership-pocketbase-v039`. One-way prod cutover; v0.22 rollback path retired. |
+| 2026-06-14 | **Dual admin auth (v0.39 pre-stage)** — `adminAuth.ts`: SDK `_superusers` with legacy `/api/admins` fallback (pre-cutover only; mothership now v0.39-only) |
 | 2026-06-13 | **Runtime status sync protocol (Phase 1)** — `POST /api/mirror` (`resetIdle` + live reconcile), `saveRecord` loops for dashboard SSE, `PB_CONNECT` edge sync |
 | 2026-06-13 | **Edge-owned instance delete** — mothership `HandleInstanceDelete` drops PB record only (idle gate); `edge cleanup` + PM2 `edge-cleanup` (daily); admin `getInstances()` → rimraf orphans under `INSTANCES_ROOT`; `--dry-run`; removed `HandleInstanceDataPaths` (`53671ae7`–`13b77d45`) |
 | 2026-06-13 | **Edge vacuum locks + incremental compact** — `VacuumLockService` (`/_api/daemon/vacuum/lock|unlock`, `PH_SECRET`, 30min TTL); `InstanceService` spawn gate; `health compact --hours-back` (PM2 nightly 24h); abort instance sweep when edge down |
