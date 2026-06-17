@@ -215,18 +215,25 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
           logger: systemInstanceLogger,
         }
 
-        /** Add admin sync info if enabled */
+        /** Best-effort admin sync — spawn proceeds if mothership is unavailable */
         if (instance.syncAdmin) {
           const uid = instance.uid
           dbg(`Fetching token info for uid ${uid}`)
-          const { email, tokenKey, passwordHash } = await client.getUserTokenInfo({ id: uid })
-          dbg(`Token info is`, { email, tokenKey, passwordHash })
-          spawnArgs.env!.ADMIN_SYNC = stringify({
-            id: uid,
-            email,
-            tokenKey,
-            passwordHash,
-          })
+          try {
+            const { email, tokenKey, passwordHash } = await client.getUserTokenInfo({ id: uid })
+            dbg(`Token info is`, { email, tokenKey, passwordHash })
+            spawnArgs.env!.ADMIN_SYNC = stringify({
+              id: uid,
+              email,
+              tokenKey,
+              passwordHash,
+            })
+          } catch {
+            warn(`Could not fetch admin sync for ${id}; launching without ADMIN_SYNC (mothership may be unavailable)`)
+            userInstanceLogger.info(
+              `Admin Sync skipped this launch because the control plane was unavailable. If admin login fails, power off and launch again.`
+            )
+          }
         }
 
         childProcess = await pbService.spawn(spawnArgs)

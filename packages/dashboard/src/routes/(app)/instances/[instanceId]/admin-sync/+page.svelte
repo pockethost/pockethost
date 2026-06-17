@@ -30,6 +30,10 @@
       Admin Sync ensures that your instance always has an admin account that matches the login credentials of your
       pockethost.io account.
     </p>
+    <p class="text-white/60 text-sm mt-2">
+      For performance, the edge launches your instance even when the control plane is briefly unavailable. Admin Sync
+      may be skipped on that boot. If admin login fails afterward, power off and launch again.
+    </p>
   </svelte:fragment>
 
   <wa-card class="border border-white/10 bg-[#111111]/80 shadow-lg overflow-hidden">

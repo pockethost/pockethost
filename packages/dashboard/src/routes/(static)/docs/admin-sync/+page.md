@@ -16,6 +16,12 @@ If you update your pockethost.io credentials while an instance is running, the n
 
 By default, Admin Sync is enabled, ensuring that when an instance is created, it has an admin account matching your pockethost.io login. This security feature prevents unauthorized users from creating the initial admin account.
 
+## Control plane unavailable
+
+For performance, the edge launches your instance even when the PocketHost control plane (mothership) is briefly unavailable. Admin Sync may be skipped on that boot. Your instance keeps the admin credentials from its last successful sync.
+
+If admin login fails after such a launch, or you changed your pockethost.io password while the instance was off, [power down the instance](/docs/power) and launch it again once the control plane is healthy.
+
 ## Disabling Admin Sync
 
 ![](admin-sync-off.png)

@@ -61,7 +61,7 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 Singletons via `ioc()` / `mkSingleton`. Notable services under `packages/pockethost/src/services/`:
 
 - `PocketBaseService` — instance PB process management
-- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising
+- `InstanceService` — instance lifecycle; mirror listener shuts down running container when `power=false` or instance deleted; reconnect sync via `POST /api/mirror`; boot reconciles preserved Docker containers (stop orphans/power-off/version mismatch, adopt rest); drawbridge cache cleared when lowering starts (not on exit); gateway pending counts block idle during spawn/proxy; `ensureInstanceApi` waits out lowering before raising; best-effort Admin Sync (spawn without `ADMIN_SYNC` if mothership token fetch fails)
 - `MothershipAdminClientService` — admin PB client via `_superusers` collection auth (npm `pocketbase` ≥0.26) + instance mixin
 - `MothershipMirrorService` — `POST /api/mirror` sync (`resetIdle` + live instance statuses → dump); SSE deltas; `PB_CONNECT` reconnect → sync with warm `instanceApis`
 - `CronService`, `ProxyService`, `InstanceLoggerService`
