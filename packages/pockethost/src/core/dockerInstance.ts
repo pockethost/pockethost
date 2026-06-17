@@ -1,5 +1,5 @@
 import Docker, { ContainerInspectInfo } from 'dockerode'
-import { DOCKER_INSTANCE_IMAGE_NAME } from '../constants'
+import { DOCKER_INSTANCE_IMAGE_NAME, MOTHERSHIP_CONTAINER_NAME } from '../constants'
 import { isDockerContainerConflict, isDockerContainerNotFound, systemError } from './phError'
 
 const DOCKER_CONTAINER_REMOVAL_WAIT_MS = 5000
@@ -11,9 +11,12 @@ export const instanceContainerName = (instanceId: string) => instanceId
 
 const pocketbaseMountDestination = '/home/pockethost/pocketbase'
 
+export const isCustomerInstanceContainerName = (name: string) => name !== MOTHERSHIP_CONTAINER_NAME
+
 export const resolveInstanceIdFromInspect = (info: ContainerInspectInfo): string | undefined => {
   const name = info.Name?.replace(/^\//, '')
-  return name || undefined
+  if (!name || !isCustomerInstanceContainerName(name)) return undefined
+  return name
 }
 
 export const getContainerPortBinding = (info: ContainerInspectInfo): number | undefined => {
