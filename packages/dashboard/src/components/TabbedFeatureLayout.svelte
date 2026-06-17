@@ -1,6 +1,7 @@
 <script lang="ts">
   import Logo from '$src/routes/Navbar/Logo.svelte'
   import { featureTabNavClass, type FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
+  import type { Snippet } from 'svelte'
 
   interface Props {
     title: string
@@ -10,9 +11,26 @@
     width?: 'narrow' | 'wide'
     backHref?: string
     backLabel?: string
+    children?: Snippet
+    mobileHeader?: Snippet
+    toolbar?: Snippet
+    header?: Snippet
+    alerts?: Snippet
   }
 
-  let { title, mobileTitle = title, sections = [], width = 'narrow', backHref, backLabel = 'All' }: Props = $props()
+  let {
+    title,
+    mobileTitle = title,
+    sections = [],
+    width = 'narrow',
+    backHref,
+    backLabel = 'All',
+    children,
+    mobileHeader,
+    toolbar,
+    header,
+    alerts,
+  }: Props = $props()
 
   let sidebarOpen = $state(false)
 
@@ -38,15 +56,15 @@
       <button type="button" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle menu">
         <wa-icon name="bars"></wa-icon>
       </button>
-      {#if $$slots.mobileHeader}
-        <slot name="mobileHeader" />
+      {#if mobileHeader}
+        {@render mobileHeader()}
       {:else}
         <h1 class="text-lg font-bold text-white truncate">{mobileTitle}</h1>
       {/if}
     </div>
-    {#if $$slots.toolbar}
+    {#if toolbar}
       <div class="flex-shrink-0">
-        <slot name="toolbar" />
+        {@render toolbar()}
       </div>
     {/if}
   </div>
@@ -65,19 +83,19 @@
   {/if}
 
   <div class="hidden md:flex flex-row items-start justify-between gap-4 mb-6 md:mb-8">
-    {#if $$slots.header}
-      <slot name="header" />
+    {#if header}
+      {@render header()}
     {:else}
       <h1 class="text-2xl md:text-3xl font-bold text-white">{title}</h1>
     {/if}
-    {#if $$slots.toolbar}
-      <slot name="toolbar" />
+    {#if toolbar}
+      {@render toolbar()}
     {/if}
   </div>
 
-  {#if $$slots.alerts}
+  {#if alerts}
     <div class="mb-4 md:mb-6">
-      <slot name="alerts" />
+      {@render alerts()}
     </div>
   {/if}
 
@@ -148,7 +166,7 @@
     </aside>
 
     <div class="flex-1 min-w-0" class:max-w-2xl={width === 'narrow'}>
-      <slot />
+      {@render children?.()}
     </div>
   </div>
 </div>

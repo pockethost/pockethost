@@ -163,7 +163,7 @@
     backHref="/dashboard"
     backLabel="All"
   >
-    <svelte:fragment slot="mobileHeader">
+    {#snippet mobileHeader()}
       <h1 class="text-lg font-bold text-white min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
         <span class="truncate">{$instance.subdomain}</span>
         <InstanceRuntimeBadge instance={$instance} />
@@ -171,9 +171,9 @@
           <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
         {/if}
       </h1>
-    </svelte:fragment>
+    {/snippet}
 
-    <svelte:fragment slot="header">
+    {#snippet header()}
       <div>
         <h1 class="text-2xl md:text-3xl font-bold text-white break-words flex flex-wrap items-center gap-x-3 gap-y-2">
           <span>{$instance.subdomain}</span>
@@ -191,24 +191,24 @@
           </span>
         </h1>
       </div>
-    </svelte:fragment>
+    {/snippet}
 
-    <svelte:fragment slot="toolbar">
+    {#snippet toolbar()}
       <Toggle
         checked={$instance.power}
         loading={isShuttingDown}
         disabled={isShuttingDown}
         onChange={handlePowerChange($instance.id)}
       />
-    </svelte:fragment>
+    {/snippet}
 
-    <svelte:fragment slot="alerts">
+    {#snippet alerts()}
       {#if isShuttingDown}
         <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
       {:else if isFullyOff}
         <AlertBar message="This instance is turned off and will not respond to requests." type="warning" />
       {/if}
-    </svelte:fragment>
+    {/snippet}
 
     {#key pathname}
       <slot />
