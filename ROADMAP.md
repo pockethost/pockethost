@@ -27,7 +27,7 @@ Today ≈ **June 16**. **Do on** = the day you do the work (or send/post). **Liv
 | Do on | Live on | Branch | Task |
 | ----- | ------- | ------ | ---- |
 | — | — | — | ✅ v0.39 mothership, SFTP/phio, Flounder + FTPS phase-1 blogs, banner, `/3.0` draft |
-| **Jun 17** | **Jun 17** | `main` | Flounder countdown on `/pricing` + hard-deadline card copy |
+| ✅ **Jun 17** | **Jun 17** | `main` | Flounder countdown on `/pricing` + hard-deadline card copy |
 | **Jun 19** | **Jun 19** | `main` | Mailer admin plugin MVP (compose, audience, send) — superuser only |
 | **Jun 20** | **Jun 20** | `ops` | Pre-announce email, all users (3.0, Flounder ends Jul 1, grandfathering) |
 | **Jun 22** | **Jun 22** | `ops` | PocketBase community forum post |
@@ -84,4 +84,4 @@ Deferred: multi-region edges, GDPR, SMTP per instance, CLI/SDK parity, dockerize
 
 Update rows when shipped (✅ prefix, move detail to backlog **Done**).
 
-Last reviewed: **2026-06-16**.
+Last reviewed: **2026-06-16** (Flounder countdown shipped).

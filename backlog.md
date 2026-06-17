@@ -49,7 +49,6 @@ _Pricing/lifetime sunset: [ROADMAP.md](ROADMAP.md). **Live Jul 1** = merge `laun
 | ---- | ---- | ------ | ----- |
 | **Pricing change pre-announcement email** | Low | S–M | **Pre** ([ROADMAP.md](ROADMAP.md)): all users — 3.0, Flounder ends July 1, grandfathering. **Do before** forum/Reddit. Send via **Mothership mailer admin plugin** (or interim manual send). |
 | **Pricing change community post** | Low | S | **Pre:** Reddit r/pocketbase (+ r/selfhosted only if value-first). **Partial:** Flounder blog (2026-06-14). **Also pre:** PocketBase community forum announcement. |
-| **Flounder countdown (pricing page)** | Low | S | **Pre:** days-to-July-1 on `/pricing` (+ optional banner/`/3.0`). Hard deadline replaces vague Flounder card copy. |
 | **Last-chance Flounder blast** | Low | S–M | **Post 3.0:** email accounts in **July 1–31 grace window** (registered before July 1). Send via **Mothership mailer admin plugin**. Not the same as pre-launch urgency blitz. |
 | **Halt lifetime edition sales** | Low | S | **At 3.0 launch:** stop selling lifetime tiers. Policy: **no new lifetime purchases for rest of 2026** (possibly never again). **July 1, 2026** sales-end deadline. |
 | **Lemon Squeezy subscription lifecycle** | Med | L | Fix end-to-end subscribe, upgrade, downgrade, cancel (webhooks + LS API). **Pre-launch by Jun 26** ([ROADMAP.md](ROADMAP.md)) — not Jul 1 day-of. Blocks in-dashboard checkout + new tier signups. |
@@ -247,6 +246,7 @@ _Completed items with date + link to PR/release._
 | Date | Item |
 | ---- | ---- |
 | 2026-06-17 | **Concurrent instance vacuum sweep** — `PH_VACUUM_MAX_CONCURRENT` (default 10) parallelizes idle DB vacuums in `edge vacuum` |
+| 2026-06-16 | **Flounder countdown (pricing page)** — days-to-July-1 banner on `/pricing`, urgent card badge, hard-deadline copy; site banner shows days left |
 | 2026-06-17 | **Best-effort admin sync on spawn** — instance launches when mothership token fetch fails; admin creds from last successful sync |
 | 2026-06-17 | **Docker spawn 409 retry** — retry container create on name conflict |
 | 2026-06-17 | **Mothership Live admin plugin (maps + view stats)** — Leaflet edge traffic maps, `mothership/live/view-stats` SSE rollups |
