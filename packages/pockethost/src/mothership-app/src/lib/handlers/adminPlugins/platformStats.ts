@@ -1,3 +1,5 @@
+import { refreshAndBroadcastLiveViewStats } from './viewStats'
+
 export const LIVE_PLATFORM_TOPIC = 'mothership/live/platform'
 
 const LIVE_PLATFORM_STORE_KEY = 'phLivePlatformCounts'
@@ -7,6 +9,8 @@ const INSTANCE_STATUS_KEYS = ['running', 'starting', 'porting', 'vacuuming', 'id
 export type LivePlatformStats = {
   statusCounts: Record<string, number>
   totalUsers: number
+  verifiedUsers: number
+  unverifiedUsers: number
   updatedAt: string
 }
 
@@ -29,6 +33,14 @@ const countInstanceStatus = (key: string): number => {
   return $app.countRecords('instances', $dbx.exp(`status = {:status}`, { status: key }))
 }
 
+const countVerifiedUsers = (): number => {
+  return $app.countRecords('verified_users')
+}
+
+const countUnverifiedUsers = (): number => {
+  return $app.countRecords('unverified_users')
+}
+
 export const getLivePlatformStats = (): LivePlatformStats | null => {
   const stats = $app.store().get(LIVE_PLATFORM_STORE_KEY) as LivePlatformStats | null
   if (!stats?.statusCounts) return null
@@ -44,6 +56,8 @@ export const recountLivePlatformStats = (): LivePlatformStats => {
   const stats: LivePlatformStats = {
     statusCounts,
     totalUsers: $app.countRecords('users'),
+    verifiedUsers: countVerifiedUsers(),
+    unverifiedUsers: countUnverifiedUsers(),
     updatedAt: new Date().toISOString(),
   }
 
@@ -56,6 +70,8 @@ const applyStatusDelta = (delta: Record<string, number>) => {
     const stats = old || {
       statusCounts: emptyStatusCounts(),
       totalUsers: 0,
+      verifiedUsers: 0,
+      unverifiedUsers: 0,
       updatedAt: new Date().toISOString(),
     }
 
@@ -74,11 +90,32 @@ const applyUserDelta = (delta: number) => {
     const stats = old || {
       statusCounts: emptyStatusCounts(),
       totalUsers: 0,
+      verifiedUsers: 0,
+      unverifiedUsers: 0,
       updatedAt: new Date().toISOString(),
     }
 
     const next = stats.totalUsers + delta
     stats.totalUsers = next < 0 ? 0 : next
+    stats.updatedAt = new Date().toISOString()
+    return stats
+  })
+}
+
+const applyVerifiedDelta = (verifiedDelta: number, unverifiedDelta: number) => {
+  $app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old: LivePlatformStats | null) => {
+    const stats = old || {
+      statusCounts: emptyStatusCounts(),
+      totalUsers: 0,
+      verifiedUsers: 0,
+      unverifiedUsers: 0,
+      updatedAt: new Date().toISOString(),
+    }
+
+    const nextVerified = (stats.verifiedUsers || 0) + verifiedDelta
+    const nextUnverified = (stats.unverifiedUsers || 0) + unverifiedDelta
+    stats.verifiedUsers = nextVerified < 0 ? 0 : nextVerified
+    stats.unverifiedUsers = nextUnverified < 0 ? 0 : nextUnverified
     stats.updatedAt = new Date().toISOString()
     return stats
   })
@@ -130,6 +167,7 @@ export const initLivePlatformStatsAtBoot = () => {
 export const HandleLivePlatformRefresh = (e: core.RequestEvent) => {
   const stats = recountLivePlatformStats()
   broadcastLivePlatformStats()
+  refreshAndBroadcastLiveViewStats()
   return e.json(200, stats)
 }
 
@@ -152,12 +190,24 @@ export const handleLivePlatformInstanceDelete = (e: core.RecordEvent) => {
   bumpStatus(status, null)
 }
 
-export const handleLivePlatformUserCreate = (_e: core.RecordEvent) => {
+export const handleLivePlatformUserCreate = (e: core.RecordEvent) => {
   applyUserDelta(1)
+  const verified = e.record.getBool('verified')
+  applyVerifiedDelta(verified ? 1 : 0, verified ? 0 : 1)
   broadcastLivePlatformStats()
 }
 
-export const handleLivePlatformUserDelete = (_e: core.RecordEvent) => {
+export const handleLivePlatformUserDelete = (e: core.RecordEvent) => {
   applyUserDelta(-1)
+  const verified = e.record.getBool('verified')
+  applyVerifiedDelta(verified ? -1 : 0, verified ? 0 : -1)
+  broadcastLivePlatformStats()
+}
+
+export const handleLivePlatformUserUpdate = (e: core.RecordEvent) => {
+  const next = e.record.getBool('verified')
+  const prev = e.record.original().getBool('verified')
+  if (next === prev) return
+  applyVerifiedDelta(next ? 1 : -1, next ? -1 : 1)
   broadcastLivePlatformStats()
 }

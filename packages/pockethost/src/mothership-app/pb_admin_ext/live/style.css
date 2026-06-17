@@ -24,6 +24,16 @@
   margin-bottom: var(--spacing);
 }
 
+.live-viewstats-group + .live-viewstats-group {
+  margin-top: var(--smSpacing);
+  padding-top: var(--smSpacing);
+  border-top: 1px solid var(--surfaceAlt2Color);
+}
+
+.live-viewstats-panel .live-section-heading-row {
+  margin-bottom: var(--smSpacing);
+}
+
 .live-platform-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
@@ -118,14 +128,6 @@
   color: var(--dangerTxtColor);
 }
 
-.live-edge-stats-grid {
-  margin-top: var(--smSpacing);
-}
-
-.live-edge-stats-grid .live-stat {
-  min-width: 0;
-}
-
 .live-stat {
   border: 1px solid var(--surfaceAlt2Color);
   border-radius: var(--borderRadius);
@@ -151,6 +153,215 @@
 
 .live-stat-value.warn {
   color: var(--warningTxtColor);
+}
+
+.live-stat-value-split {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+  font-size: 1.1rem;
+}
+
+.live-stat-value-split .ok {
+  color: var(--successTxtColor);
+}
+
+.live-stat-value-split .warn {
+  color: var(--warningTxtColor);
+}
+
+.live-stat-sep {
+  color: var(--surfaceTxtHintColor);
+  font-weight: 400;
+}
+
+.live-stat-edge-traffic {
+  grid-column: span 2;
+}
+
+.live-stat-users {
+  grid-column: span 2;
+}
+
+.live-stat-intervals {
+  grid-column: span 2;
+}
+
+.live-stat-sublabel {
+  color: var(--surfaceTxtHintColor);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.live-interval-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.live-interval-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: calc(var(--borderRadius) - 2px);
+  background: var(--surfaceAlt1Color);
+}
+
+.live-interval-label {
+  color: var(--surfaceTxtHintColor);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.live-interval-value {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-viewstats-activity {
+  margin-top: var(--smSpacing);
+  padding-top: var(--smSpacing);
+  border-top: 1px solid var(--surfaceAlt2Color);
+}
+
+.live-interval-widgets {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.live-stat-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+  margin-top: 4px;
+  color: var(--surfaceTxtHintColor);
+  font-size: var(--smFontSize);
+}
+
+.live-stat-breakdown .ok {
+  color: var(--successTxtColor);
+}
+
+.live-growth-panel {
+  margin-top: var(--smSpacing);
+  border: 1px solid var(--surfaceAlt2Color);
+  border-radius: var(--borderRadius);
+  background: var(--surfaceColor);
+  padding: 12px;
+}
+
+.live-growth-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--smSpacing);
+  margin-bottom: 10px;
+}
+
+.live-growth-chart-wrap {
+  line-height: 0;
+}
+
+.live-growth-chart {
+  display: block;
+  width: 100%;
+  height: 88px;
+}
+
+.live-growth-grid {
+  fill: color-mix(in srgb, var(--accentColor) 6%, var(--surfaceAlt1Color));
+  stroke: none;
+}
+
+.live-growth-bar {
+  opacity: 0.88;
+}
+
+.live-growth-bar-users {
+  fill: var(--accentColor);
+}
+
+.live-growth-bar-instances {
+  fill: var(--successColor);
+}
+
+.live-growth-bar:hover {
+  opacity: 1;
+}
+
+.live-growth-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.live-growth-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--surfaceTxtHintColor);
+  font-size: 11px;
+}
+
+.live-growth-legend-item::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.live-growth-legend-users::before {
+  background: var(--accentColor);
+}
+
+.live-growth-legend-instances::before {
+  background: var(--successColor);
+}
+
+.live-growth-axis {
+  fill: var(--surfaceTxtHintColor);
+  font-size: 9px;
+  text-anchor: start;
+}
+
+.live-growth-axis-end {
+  text-anchor: end;
+}
+
+.live-spark-dual .live-spark-line-req {
+  fill: none;
+  stroke: var(--successColor);
+  stroke-width: 1.75;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.95;
+}
+
+.live-spark-dual .live-spark-line-err {
+  fill: none;
+  stroke-width: 1.75;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.95;
+}
+
+@media (max-width: 640px) {
+  .live-stat-edge-traffic,
+  .live-stat-users,
+  .live-stat-intervals {
+    grid-column: span 1;
+  }
+
+  .live-interval-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .live-section-title {
@@ -243,6 +454,105 @@
 
 .live-spark .live-spark-chart {
   margin-top: 4px;
+}
+
+.live-country-map {
+  border: 1px solid var(--surfaceAlt2Color);
+  border-radius: var(--borderRadius);
+  background: var(--surfaceColor);
+  padding: 10px 12px;
+  margin-top: var(--smSpacing);
+}
+
+.live-leaflet-host {
+  height: 240px;
+  border-radius: calc(var(--borderRadius) - 2px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accentColor) 12%, var(--surfaceAlt2Color));
+  background: #0a0e14;
+  z-index: 0;
+}
+
+.live-leaflet-host-error::after {
+  content: 'Map failed to load — check console';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--dangerTxtColor);
+  font-size: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.live-leaflet-host .leaflet-container {
+  height: 100%;
+  width: 100%;
+  font: inherit;
+  background: #0a0e14;
+}
+
+.live-leaflet-host .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.82) contrast(0.92) saturate(0.75);
+}
+
+.live-leaflet-host .leaflet-control-zoom a {
+  background: var(--surfaceAlt1Color);
+  color: var(--bodyColor);
+  border-color: var(--surfaceAlt2Color);
+}
+
+.live-leaflet-host .leaflet-control-zoom a:hover {
+  background: var(--surfaceAlt2Color);
+}
+
+.live-leaflet-host .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--surfaceColor) 82%, transparent);
+  color: var(--surfaceTxtHintColor);
+  font-size: 10px;
+}
+
+.live-leaflet-host .leaflet-control-attribution a {
+  color: var(--accentColor);
+}
+
+.live-country-bloom-layer {
+  pointer-events: none;
+}
+
+.live-country-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.live-country-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--surfaceAlt2Color);
+  background: var(--surfaceAlt1Color);
+  color: var(--surfaceTxtHintColor);
+  font-size: 11px;
+}
+
+.live-country-legend-chip strong {
+  color: var(--bodyColor);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-country-legend-empty {
+  font-style: italic;
+}
+
+.live-map-attrib {
+  color: var(--surfaceTxtHintColor);
+  font-size: 10px;
+  letter-spacing: 0.01em;
 }
 
 .live-table-wrap {

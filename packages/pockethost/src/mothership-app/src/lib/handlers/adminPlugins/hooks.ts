@@ -9,6 +9,7 @@ $app.onServe().bindFunc((e) => {
 onBootstrap((e) => {
   e.next()
   require(`${__hooks}/mothership`).initLivePlatformStatsAtBoot()
+  require(`${__hooks}/mothership`).initLiveViewStatsAtBoot()
 })
 
 routerAdd(
@@ -20,11 +21,17 @@ routerAdd(
   $apis.requireSuperuserAuth()
 )
 
+cronAdd('live-view-stats', '* * * * *', () => {
+  require(`${__hooks}/mothership`).handleLiveViewStatsCron()
+})
+
 onRealtimeSubscribeRequest((e) => {
-  const topic = require(`${__hooks}/mothership`).LIVE_PLATFORM_TOPIC
+  const mothership = require(`${__hooks}/mothership`)
+  const platformTopic = mothership.LIVE_PLATFORM_TOPIC
+  const viewStatsTopic = mothership.LIVE_VIEW_STATS_TOPIC
 
   for (const sub of e.subscriptions) {
-    if (sub === topic && !e.hasSuperuserAuth()) {
+    if ((sub === platformTopic || sub === viewStatsTopic) && !e.hasSuperuserAuth()) {
       throw new ForbiddenError('Superuser required for live platform stats')
     }
   }
@@ -32,8 +39,11 @@ onRealtimeSubscribeRequest((e) => {
   e.next()
 
   for (const sub of e.subscriptions) {
-    if (sub === topic) {
-      require(`${__hooks}/mothership`).sendLivePlatformStatsToClient(e.client)
+    if (sub === platformTopic) {
+      mothership.sendLivePlatformStatsToClient(e.client)
+    }
+    if (sub === viewStatsTopic) {
+      mothership.sendLiveViewStatsToClient(e.client)
     }
   }
 })
@@ -56,6 +66,11 @@ onRecordAfterDeleteSuccess((e) => {
 onRecordAfterCreateSuccess((e) => {
   e.next()
   require(`${__hooks}/mothership`).handleLivePlatformUserCreate(e)
+}, 'users')
+
+onRecordAfterUpdateSuccess((e) => {
+  e.next()
+  require(`${__hooks}/mothership`).handleLivePlatformUserUpdate(e)
 }, 'users')
 
 onRecordAfterDeleteSuccess((e) => {

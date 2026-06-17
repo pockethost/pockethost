@@ -1,5 +1,82 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
+//#region src/lib/handlers/adminPlugins/viewStats.ts
+const LIVE_VIEW_STATS_TOPIC = "mothership/live/view-stats";
+const LIVE_VIEW_STATS_STORE_KEY = "phLiveViewStats";
+const fieldInt = (record, name) => {
+	const value = record.get(name);
+	if (value == null || value === "") return 0;
+	const n = Number(value);
+	return Number.isFinite(n) ? n : 0;
+};
+const readStatsViewRecord = (record) => {
+	return {
+		totalUsers: fieldInt(record, "total_users"),
+		totalLegacySubscribers: fieldInt(record, "total_legacy_subscribers"),
+		totalFreeSubscribers: fieldInt(record, "total_free_subscribers"),
+		totalProSubscribers: fieldInt(record, "total_pro_subscribers"),
+		totalProMonthSubscribers: fieldInt(record, "total_pro_month_subscribers"),
+		totalProYearSubscribers: fieldInt(record, "total_pro_year_subscribers"),
+		totalFounderSubscribers: fieldInt(record, "total_founder_subscribers"),
+		totalFlounderSubscribers: fieldInt(record, "total_flounder_subscribers"),
+		newUsersLastHour: fieldInt(record, "new_users_last_hour"),
+		newUsersLast24Hours: fieldInt(record, "new_users_last_24_hours"),
+		newUsersLast7Days: fieldInt(record, "new_users_last_7_days"),
+		newUsersLast30Days: fieldInt(record, "new_users_last_30_days"),
+		totalInstances: fieldInt(record, "total_instances"),
+		totalInstancesLastHour: fieldInt(record, "total_instances_last_hour"),
+		totalInstancesLast24Hours: fieldInt(record, "total_instances_last_24_hours"),
+		totalInstancesLast7Days: fieldInt(record, "total_instances_last_7_days"),
+		totalInstancesLast30Days: fieldInt(record, "total_instances_last_30_days"),
+		newInstancesLastHour: fieldInt(record, "new_instances_last_hour"),
+		newInstancesLast24Hours: fieldInt(record, "new_instances_last_24_hours"),
+		newInstancesLast7Days: fieldInt(record, "new_instances_last_7_days"),
+		newInstancesLast30Days: fieldInt(record, "new_instances_last_30_days"),
+		updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+	};
+};
+const getLiveViewStats = () => {
+	return $app.store().get(LIVE_VIEW_STATS_STORE_KEY);
+};
+const refreshLiveViewStats = () => {
+	const record = $app.findFirstRecordByFilter("stats", "id != \"\"");
+	if (!record) return null;
+	const stats = readStatsViewRecord(record);
+	$app.store().set(LIVE_VIEW_STATS_STORE_KEY, stats);
+	return stats;
+};
+const broadcastLiveViewStats = () => {
+	const stats = getLiveViewStats();
+	if (!stats) return;
+	const message = new SubscriptionMessage({
+		name: LIVE_VIEW_STATS_TOPIC,
+		data: JSON.stringify(stats)
+	});
+	const clients = $app.subscriptionsBroker().clients();
+	for (const clientId in clients) if (clients[clientId].hasSubscription("mothership/live/view-stats")) clients[clientId].send(message);
+};
+const sendLiveViewStatsToClient = (client) => {
+	const stats = getLiveViewStats();
+	if (!stats) return;
+	client.send(new SubscriptionMessage({
+		name: LIVE_VIEW_STATS_TOPIC,
+		data: JSON.stringify(stats)
+	}));
+};
+const initLiveViewStatsAtBoot = () => {
+	refreshLiveViewStats();
+};
+const handleLiveViewStatsCron = () => {
+	if (!refreshLiveViewStats()) return;
+	broadcastLiveViewStats();
+};
+const refreshAndBroadcastLiveViewStats = () => {
+	if (!refreshLiveViewStats()) return null;
+	broadcastLiveViewStats();
+	return getLiveViewStats();
+};
+
+//#endregion
 //#region src/lib/handlers/adminPlugins/platformStats.ts
 const LIVE_PLATFORM_TOPIC = "mothership/live/platform";
 const LIVE_PLATFORM_STORE_KEY = "phLivePlatformCounts";
@@ -25,6 +102,12 @@ const emptyStatusCounts = () => {
 const countInstanceStatus = (key) => {
 	return $app.countRecords("instances", $dbx.exp(`status = {:status}`, { status: key }));
 };
+const countVerifiedUsers = () => {
+	return $app.countRecords("verified_users");
+};
+const countUnverifiedUsers = () => {
+	return $app.countRecords("unverified_users");
+};
 const getLivePlatformStats = () => {
 	const stats = $app.store().get(LIVE_PLATFORM_STORE_KEY);
 	if (!stats?.statusCounts) return null;
@@ -36,6 +119,8 @@ const recountLivePlatformStats = () => {
 	const stats = {
 		statusCounts,
 		totalUsers: $app.countRecords("users"),
+		verifiedUsers: countVerifiedUsers(),
+		unverifiedUsers: countUnverifiedUsers(),
 		updatedAt: (/* @__PURE__ */ new Date()).toISOString()
 	};
 	$app.store().set(LIVE_PLATFORM_STORE_KEY, stats);
@@ -46,6 +131,8 @@ const applyStatusDelta = (delta) => {
 		const stats = old || {
 			statusCounts: emptyStatusCounts(),
 			totalUsers: 0,
+			verifiedUsers: 0,
+			unverifiedUsers: 0,
 			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
 		};
 		for (const key of Object.keys(delta)) {
@@ -61,10 +148,29 @@ const applyUserDelta = (delta) => {
 		const stats = old || {
 			statusCounts: emptyStatusCounts(),
 			totalUsers: 0,
+			verifiedUsers: 0,
+			unverifiedUsers: 0,
 			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
 		};
 		const next = stats.totalUsers + delta;
 		stats.totalUsers = next < 0 ? 0 : next;
+		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+		return stats;
+	});
+};
+const applyVerifiedDelta = (verifiedDelta, unverifiedDelta) => {
+	$app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old) => {
+		const stats = old || {
+			statusCounts: emptyStatusCounts(),
+			totalUsers: 0,
+			verifiedUsers: 0,
+			unverifiedUsers: 0,
+			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+		};
+		const nextVerified = (stats.verifiedUsers || 0) + verifiedDelta;
+		const nextUnverified = (stats.unverifiedUsers || 0) + unverifiedDelta;
+		stats.verifiedUsers = nextVerified < 0 ? 0 : nextVerified;
+		stats.unverifiedUsers = nextUnverified < 0 ? 0 : nextUnverified;
 		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
 		return stats;
 	});
@@ -101,6 +207,7 @@ const initLivePlatformStatsAtBoot = () => {
 const HandleLivePlatformRefresh = (e) => {
 	const stats = recountLivePlatformStats();
 	broadcastLivePlatformStats();
+	refreshAndBroadcastLiveViewStats();
 	return e.json(200, stats);
 };
 const handleLivePlatformInstanceCreate = (e) => {
@@ -119,12 +226,22 @@ const handleLivePlatformInstanceDelete = (e) => {
 	if (!status) return;
 	bumpStatus(status, null);
 };
-const handleLivePlatformUserCreate = (_e) => {
+const handleLivePlatformUserCreate = (e) => {
 	applyUserDelta(1);
+	const verified = e.record.getBool("verified");
+	applyVerifiedDelta(verified ? 1 : 0, verified ? 0 : 1);
 	broadcastLivePlatformStats();
 };
-const handleLivePlatformUserDelete = (_e) => {
+const handleLivePlatformUserDelete = (e) => {
 	applyUserDelta(-1);
+	const verified = e.record.getBool("verified");
+	applyVerifiedDelta(verified ? -1 : 0, verified ? 0 : -1);
+	broadcastLivePlatformStats();
+};
+const handleLivePlatformUserUpdate = (e) => {
+	const next = e.record.getBool("verified");
+	if (next === e.record.original().getBool("verified")) return;
+	applyVerifiedDelta(next ? 1 : -1, next ? -1 : 1);
 	broadcastLivePlatformStats();
 };
 
@@ -3460,17 +3577,26 @@ exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
 exports.LIVE_PLATFORM_TOPIC = LIVE_PLATFORM_TOPIC;
+exports.LIVE_VIEW_STATS_TOPIC = LIVE_VIEW_STATS_TOPIC;
 exports.broadcastLivePlatformStats = broadcastLivePlatformStats;
+exports.broadcastLiveViewStats = broadcastLiveViewStats;
 exports.getLivePlatformStats = getLivePlatformStats;
+exports.getLiveViewStats = getLiveViewStats;
 exports.handleLivePlatformInstanceCreate = handleLivePlatformInstanceCreate;
 exports.handleLivePlatformInstanceDelete = handleLivePlatformInstanceDelete;
 exports.handleLivePlatformInstanceUpdate = handleLivePlatformInstanceUpdate;
 exports.handleLivePlatformUserCreate = handleLivePlatformUserCreate;
 exports.handleLivePlatformUserDelete = handleLivePlatformUserDelete;
+exports.handleLivePlatformUserUpdate = handleLivePlatformUserUpdate;
+exports.handleLiveViewStatsCron = handleLiveViewStatsCron;
 exports.initLivePlatformStatsAtBoot = initLivePlatformStatsAtBoot;
+exports.initLiveViewStatsAtBoot = initLiveViewStatsAtBoot;
 exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.normalizeInstanceStatus = normalizeInstanceStatus;
 exports.recountLivePlatformStats = recountLivePlatformStats;
+exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;
+exports.refreshLiveViewStats = refreshLiveViewStats;
 exports.refreshPublicStats = refreshPublicStats;
 exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;
+exports.sendLiveViewStatsToClient = sendLiveViewStatsToClient;
