@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Graceful Edge Restarts (Fewer 500s During Maintenance)',
+    path: '/blog/graceful-edge-restarts',
+    description:
+      'Firewall daemon grace holds instance traffic up to 60s while the edge restarts. Instance containers stay running and reattach on boot instead of cold-starting.',
+    date: 'Jun 17, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Mothership Is on PocketBase 0.39',
     path: '/blog/mothership-pocketbase-v039',
     description:
