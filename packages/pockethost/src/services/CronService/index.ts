@@ -118,6 +118,8 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
     removeJobsForInstanceId(instanceId)
   })
 
+  await mirror.whenReady
+
   dbg(`Upserting instances`)
   for (const instance of mirror.getInstances()) {
     upsertInstance(instance)

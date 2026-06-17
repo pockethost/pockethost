@@ -8,27 +8,22 @@ import {
   PocketbaseServiceApi,
   stopInstanceContainer,
 } from '@'
-import type { AsyncReturnType } from 'type-fest'
 import { listRunningInstanceContainers, type RunningInstanceContainer } from '../../core/dockerInstance'
-import { MothershipMirrorService } from '../MothershipMirrorService'
-
-type MothershipMirrorServiceApi = AsyncReturnType<typeof MothershipMirrorService>
 
 type ReconcilePreservedContainersConfig = {
-  mirror: MothershipMirrorServiceApi
+  getInstance: (instanceId: InstanceId) => Promise<InstanceFields | undefined>
   pbService: PocketbaseServiceApi
   adoptInstance: (instance: InstanceFields) => Promise<unknown>
   isAlreadyManaged: (instanceId: InstanceId) => boolean
   logger: Logger
 }
 
-const shouldStopContainer = async (
+const shouldStopContainer = (
   entry: RunningInstanceContainer,
-  mirror: MothershipMirrorServiceApi,
+  instance: InstanceFields | undefined,
   expectedBinPath: string | undefined
-): Promise<string | undefined> => {
-  const instance = await mirror.getInstance(entry.instanceId)
-  if (!instance) return 'orphan (not in mirror)'
+): string | undefined => {
+  if (!instance) return 'orphan (not in mothership)'
   if (!instance.power) return 'power off'
   if (expectedBinPath && !containerMatchesBinaryPath(entry.inspect, expectedBinPath)) {
     return 'version mismatch'
@@ -37,7 +32,7 @@ const shouldStopContainer = async (
 }
 
 export const reconcilePreservedContainers = async ({
-  mirror,
+  getInstance,
   pbService,
   adoptInstance,
   isAlreadyManaged,
@@ -65,7 +60,7 @@ export const reconcilePreservedContainers = async ({
   }
 
   for (const entry of running) {
-    const instance = await mirror.getInstance(entry.instanceId)
+    const instance = await getInstance(entry.instanceId)
     let expectedBinPath: string | undefined
     if (instance) {
       try {
@@ -76,7 +71,7 @@ export const reconcilePreservedContainers = async ({
       }
     }
 
-    const stopReason = await shouldStopContainer(entry, mirror, expectedBinPath)
+    const stopReason = shouldStopContainer(entry, instance, expectedBinPath)
     if (stopReason) {
       await stop(entry.instanceId, stopReason)
       continue

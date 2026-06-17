@@ -23,9 +23,12 @@ export type MirrorSyncOptions = {
   resetIdle?: boolean
 }
 
-export type MirrorSyncResponse = {
+export type MirrorDumpResponse = {
   users: UserFields[]
   instances: InstanceFields[]
+}
+
+export type MirrorSyncResponse = MirrorDumpResponse & {
   updated: number
 }
 
@@ -125,6 +128,29 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     dbg(`synced mirror: ${mirrorInstances.length} instances, ${users.length} users, ${updated} live`)
   }
 
+  let bootSyncDone = false
+  let resolveReady!: () => void
+  let rejectReady!: (reason: unknown) => void
+  const whenReady = new Promise<void>((resolve, reject) => {
+    resolveReady = resolve
+    rejectReady = reject
+  })
+
+  const bootSync = async (options: MirrorSyncOptions = {}) => {
+    if (bootSyncDone) {
+      return syncMirror(options)
+    }
+    bootSyncDone = true
+    try {
+      await syncMirror(options)
+      resolveReady()
+    } catch (e) {
+      bootSyncDone = false
+      rejectReady(e)
+      throw e
+    }
+  }
+
   let sseConnectedOnce = false
   client.realtime
     .subscribe(`PB_CONNECT`, () => {
@@ -171,8 +197,6 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     })
     .catch(error)
 
-  await syncMirror({ resetIdle: true, instances: [] }).catch(error)
-
   const api = {
     async getInstance(id: InstanceId) {
       return mirror.instancesById[id]
@@ -192,7 +216,9 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     onUserDeleted,
     onUserUpserted,
     onResynced,
+    bootSync,
     syncMirror,
+    whenReady,
     getInstances: () => Object.values(mirror.instancesById),
     getUsers: () => Object.values(mirror.users),
   }

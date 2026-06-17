@@ -395,8 +395,16 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     await Promise.all(Object.values(instanceApis).map(async (api) => (await api).detach()))
   })
 
+  const getMothershipInstance = async (instanceId: InstanceId): Promise<InstanceFields | undefined> => {
+    try {
+      return await client.getInstance(instanceId)
+    } catch {
+      return undefined
+    }
+  }
+
   await reconcilePreservedContainers({
-    mirror,
+    getInstance: getMothershipInstance,
     pbService,
     isAlreadyManaged: (instanceId) => Boolean(instanceApis[instanceId]),
     adoptInstance: async (instance) => {
@@ -406,7 +414,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     logger: instanceServiceLogger,
   })
 
-  await mirror.syncMirror({ resetIdle: true, instances: await getLiveInstances() })
+  await mirror.bootSync({ resetIdle: true, instances: await getLiveInstances() })
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
 

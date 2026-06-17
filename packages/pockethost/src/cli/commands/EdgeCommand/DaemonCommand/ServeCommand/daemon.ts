@@ -1,5 +1,6 @@
 import {
   discordAlert,
+  EdgeHeartbeatService,
   instanceService,
   isSystemError,
   Logger,
@@ -42,18 +43,21 @@ export async function daemon({ logger }: DaemonOptions) {
 
   await MothershipMirrorService({ client: client.client, logger })
 
-  await CronService({ logger })
-
   await proxyService({
     coreInternalUrl: MOTHERSHIP_URL(),
     logger,
   })
+
+  await EdgeHeartbeatService({ logger })
+
   await realtimeLog({ logger })
   await instanceService({
     instanceApiCheckIntervalMs: 50,
     instanceApiTimeoutMs: 5000,
     logger,
   })
+
+  await CronService({ logger })
 
   const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
     if (isSystemError(err)) {
