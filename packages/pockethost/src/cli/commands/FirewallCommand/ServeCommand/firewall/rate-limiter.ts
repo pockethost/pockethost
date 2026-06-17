@@ -128,6 +128,7 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       .create(hostname)
       .breadcrumb(connectingIp || `unknown`)
       .breadcrumb(endClientIp || `unknown`)
+    const logRateLimitExceeded = trustedClient ? warn : dbg
 
     if (trustedClient) {
       info(`Trusted client detected (reason=${trustReason})`, req.headers)
@@ -170,7 +171,7 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
         )
       } catch (rateLimiterRes: any) {
         const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
-        warn(
+        logRateLimitExceeded(
           `[1] ${trustedClient ? 'Trusted' : 'Untrusted'} IP rate limit exceeded. ` +
             `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
             `hostname=${hostname} trustReason=${trustReason} ` +
@@ -200,7 +201,7 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
         )
       } catch (rateLimiterRes: any) {
         const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
-        warn(
+        logRateLimitExceeded(
           `[2] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname rate limit exceeded. ` +
             `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
             `hostname=${hostname} trustReason=${trustReason} ` +
@@ -256,7 +257,7 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       } catch (rewardErr) {
         warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} IP concurrent limiter.`, rewardErr)
       }
-      warn(
+      logRateLimitExceeded(
         `[3] ${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent limit exceeded. ` +
           `key=${ipConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
           `hostname=${hostname} trustReason=${trustReason} ` +
@@ -297,7 +298,7 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       })
     } catch (rateLimiterRes: any) {
       await releaseConcurrentPoints()
-      warn(
+      logRateLimitExceeded(
         `[4] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname concurrent limit exceeded. ` +
           `key=${hostnameConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
           `hostname=${hostname} trustReason=${trustReason} ` +

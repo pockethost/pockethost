@@ -10,6 +10,7 @@ export enum InstanceStatus {
   Port = 'porting',
   Starting = 'starting',
   Running = 'running',
+  Vacuuming = 'vacuuming',
   Failed = 'failed',
 }
 

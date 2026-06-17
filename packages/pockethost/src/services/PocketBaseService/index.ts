@@ -1,8 +1,9 @@
 import {
   APEX_DOMAIN,
-  asyncExitHook,
   createCleanupManager,
   DOCKER_INSTANCE_IMAGE_NAME,
+  getContainerPortBinding,
+  instanceContainerName,
   InstanceLogWriter,
   isDockerContainerNotFound,
   isPlatformDockerFailure,
@@ -18,16 +19,19 @@ import {
   PH_CONTAINER_STOP_TIMEOUT_SEC,
   PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
   PocketBaseBinaryService,
+  removeNamedContainer,
   SingletonBaseConfig,
+  stopInstanceContainer,
   systemError,
   userError,
+  withDockerContainerConflictRetry,
 } from '@'
 import Bottleneck from 'bottleneck'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
+import { EventEmitter } from 'node:events'
 import { PassThrough } from 'node:stream'
 import { gte } from 'semver'
-import { EventEmitter } from 'stream'
 import { AsyncReturnType } from 'type-fest'
 
 export type Env = { [_: string]: string }
@@ -42,6 +46,10 @@ export type SpawnConfig = {
   dev?: boolean
   logger: Logger
 }
+export type AttachConfig = {
+  instanceId: string
+  logger: Logger
+}
 export type PocketbaseServiceApi = AsyncReturnType<typeof createPocketbaseService>
 
 export type PocketbaseServiceConfig = SingletonBaseConfig & {}
@@ -54,9 +62,73 @@ export type PocketbaseProcess = {
   started: () => boolean
 }
 
+enum ContainerEvents {
+  Exit = `exit`,
+}
+
+type ContainerRuntime = {
+  on: EventEmitter['on']
+  kill: () => Promise<void>
+  portBinding: number
+}
+
+const mkContainerKill = (dockerContainer: Container, logger: Logger) => () =>
+  dockerContainer.stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() }).catch((e) => {
+    if (isDockerContainerNotFound(e)) return
+    logger.error(e)
+    return dockerContainer.kill().catch((killErr) => {
+      if (!isDockerContainerNotFound(killErr)) logger.error(killErr)
+    })
+  })
+
+const mkPocketbaseProcess = (
+  container: ContainerRuntime,
+  instanceId: string,
+  iLogger: ReturnType<typeof InstanceLogWriter>,
+  logger: Logger,
+  cm: ReturnType<typeof createCleanupManager>,
+  state: { started: boolean; stopped: boolean; stopping: boolean }
+): PocketbaseProcess => {
+  const { dbg, warn, error } = logger
+
+  const exitCode = new Promise<number>((resolveExit) => {
+    container.on(ContainerEvents.Exit, (code) => {
+      resolveExit(typeof code === 'number' ? code : 0)
+    })
+  })
+
+  exitCode.then((code) => {
+    iLogger.info(`Process exited with code ${code}`)
+    dbg(`Instance exited with ${code}`)
+    cm.shutdown().catch(error)
+  })
+
+  const url = mkInternalUrl(container.portBinding)
+  logger.breadcrumb(url)
+
+  const api: PocketbaseProcess = {
+    url,
+    exitCode,
+    stopped: () => state.stopped,
+    started: () => state.started,
+    kill: async () => {
+      if (state.stopping) {
+        warn(`${instanceId} already stopping`)
+        return
+      }
+      state.stopping = true
+      dbg(`Killing`)
+      iLogger.info(`Stopping instance`)
+      await container.kill()
+    },
+  }
+
+  return api
+}
+
 export const createPocketbaseService = async (config: PocketbaseServiceConfig) => {
   const _serviceLogger = (config.logger ?? LoggerService()).create('PocketbaseService')
-  const { dbg, error, warn, abort } = _serviceLogger
+  const { dbg, error } = _serviceLogger
 
   const pb = PocketBaseBinaryService()
   const maxVersion = pb.versions()[0]
@@ -64,8 +136,68 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     throw new Error(`No max version found for PocketBase`)
   }
 
-  // Limit concurrent spawns to mitigate thundering herd issues
   const limiter = new Bottleneck({ maxConcurrent: PH_MAX_CONCURRENT_DOCKER_LAUNCHES() })
+
+  const _attach = async (cfg: AttachConfig) => {
+    const cm = createCleanupManager()
+    const logger = (cfg.logger ?? config.logger ?? LoggerService()).create('attach')
+    const { dbg, info, warn } = logger
+    const { instanceId } = cfg
+
+    logger.breadcrumb(instanceId)
+    const iLogger = InstanceLogWriter(instanceId, 'exec', logger)
+
+    const state = { started: false, stopped: false, stopping: false }
+    const emitter = new EventEmitter()
+    const docker = new Docker()
+    const dockerContainer = docker.getContainer(instanceContainerName(instanceId))
+
+    let containerInfo
+    try {
+      containerInfo = await dockerContainer.inspect()
+    } catch (e) {
+      if (isDockerContainerNotFound(e)) {
+        throw userError(`${instanceId} container not found`)
+      }
+      throw e
+    }
+
+    if (!containerInfo.State.Running) {
+      throw userError(`${instanceId} container is not running`)
+    }
+
+    const portBinding = getContainerPortBinding(containerInfo)
+    if (!portBinding) {
+      throw systemError(`Could not get port binding from preserved container ${instanceId}`)
+    }
+
+    state.started = true
+    info(`[${instanceId}] Reattached to preserved container on port ${portBinding}`)
+
+    dockerContainer
+      .wait()
+      .then((data) => {
+        state.stopped = true
+        emitter.emit(ContainerEvents.Exit, data.StatusCode ?? 0)
+      })
+      .catch((e) => {
+        if (!isDockerContainerNotFound(e)) error(e)
+        state.stopped = true
+        emitter.emit(ContainerEvents.Exit, 0)
+      })
+
+    const container: ContainerRuntime = {
+      on: emitter.on.bind(emitter),
+      kill: mkContainerKill(dockerContainer, logger),
+      portBinding,
+    }
+
+    return mkPocketbaseProcess(container, instanceId, iLogger, logger, cm, state)
+  }
+
+  const _stop = async (instanceId: string) => {
+    await stopInstanceContainer(instanceId, PH_CONTAINER_STOP_TIMEOUT_SEC())
+  }
 
   const _spawn = async (cfg: SpawnConfig) => {
     const cm = createCleanupManager()
@@ -86,7 +218,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     logger.breadcrumb(subdomain).breadcrumb(instanceId)
     const iLogger = InstanceLogWriter(instanceId, 'exec', logger)
 
-    const _version = version || maxVersion // If _version is blank, we use the max version available
+    const _version = version || maxVersion
     const realVersion = pb.maxSatisfyingVersion(_version)
     if (!realVersion) {
       throw userError(`No PocketBase version satisfying ${_version}`)
@@ -96,23 +228,11 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
       throw systemError(`PocketBase binary (${binPath}) not found. Contact pockethost.io.`)
     }
 
-    enum Events {
-      Exit = `exit`,
-    }
-
-    let started = false
-    let stopped = false
-    let stopping = false
-
-    // Add timing for container startup
+    const state = { started: false, stopped: false, stopping: false }
     const containerStartTime = Date.now()
     dbg(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
 
-    const container = await new Promise<{
-      on: EventEmitter['on']
-      kill: () => Promise<void>
-      portBinding: number
-    }>((resolve, reject) => {
+    const container = await new Promise<ContainerRuntime>((resolve, reject) => {
       const docker = new Docker()
       iLogger.info(`Starting instance`)
       stdout.on('data', (data) => {
@@ -132,6 +252,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
         Binds.push(...extraBinds)
       }
 
+      const containerName = instanceContainerName(instanceId)
       const createOptions: ContainerCreateOptions = {
         Image: DOCKER_INSTANCE_IMAGE_NAME(),
         Env: Object.entries({
@@ -139,7 +260,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
           DEV: dev && gte(realVersion, `0.20.1`),
           PH_APEX_DOMAIN: APEX_DOMAIN(),
         }).map(([k, v]) => `${k}=${v}`),
-        name: `${subdomain}-${+new Date()}`,
+        name: containerName,
         HostConfig: {
           Init: true,
           AutoRemove: true,
@@ -161,9 +282,6 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
         },
       }
 
-      createOptions.Cmd = ['node', `index.mjs`]
-      createOptions.WorkingDir = `/bootstrap`
-
       createOptions.Cmd = ['./pocketbase', `serve`, `--http`, `0.0.0.0:8090`]
       if (dev) {
         createOptions.Cmd.push(`--dev`)
@@ -172,102 +290,90 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
       logger.dbg(`Spawning ${instanceId}`, { createOptions })
 
-      const emitter = docker
-        .run(
-          DOCKER_INSTANCE_IMAGE_NAME(),
-          [''], // Supplied by createOptions
-          [stdout, stderr],
-          createOptions,
-          (err, data) => {
-            stopped = true
-            stderr.removeAllListeners(`data`)
-            stdout.removeAllListeners(`data`)
-            const StatusCode = (() => {
-              if (!data?.StatusCode) return 0
-              return parseInt(data.StatusCode, 10)
-            })()
-            dbg({ err, data })
-            // Filter out Docker status codes
-            /*
-            https://stackoverflow.com/questions/31297616/what-is-the-authoritative-list-of-docker-run-exit-codes
-            https://tldp.org/LDP/abs/html/exitcodes.html
-            https://docs.docker.com/engine/reference/run/#exit-status
-            125, 126, 127 - Docker
-            137 - SIGKILL (expected)
-            */
-            if ((StatusCode > 0 && StatusCode !== 137) || err) {
-              const castStatusCode = StatusCode || 999
-              const stopMsg = `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
-              const platformFailure = isPlatformDockerFailure(castStatusCode, err)
-              if (platformFailure) {
-                iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
-                error(stopMsg)
-              } else {
-                dbg(stopMsg)
-              }
-              emitter.emit(Events.Exit, castStatusCode)
-              const stopErr = new Error(stopMsg)
-              reject(platformFailure ? systemError(stopErr) : userError(stopErr))
-            } else {
-              emitter.emit(Events.Exit, 0)
-            }
-          }
-        )
-        .on('start', async (dockerContainer: Container) => {
-          const containerReadyTime = Date.now()
-          const startupDuration = containerReadyTime - containerStartTime
+      void withDockerContainerConflictRetry(
+        () =>
+          new Promise<ContainerRuntime>((resolveRun, rejectRun) => {
+            void (async () => {
+              await removeNamedContainer(docker, containerName, PH_CONTAINER_STOP_TIMEOUT_SEC())
+              const emitter = docker
+                .run(DOCKER_INSTANCE_IMAGE_NAME(), [''], [stdout, stderr], createOptions, (err, data) => {
+                  state.stopped = true
+                  stderr.removeAllListeners(`data`)
+                  stdout.removeAllListeners(`data`)
+                  const StatusCode = (() => {
+                    if (!data?.StatusCode) return 0
+                    return parseInt(data.StatusCode, 10)
+                  })()
+                  dbg({ err, data })
+                  if ((StatusCode > 0 && StatusCode !== 137) || err) {
+                    const castStatusCode = StatusCode || 999
+                    const stopMsg = `${instanceId} stopped unexpectedly with code ${castStatusCode} and error ${err}`
+                    const platformFailure = isPlatformDockerFailure(castStatusCode, err)
+                    if (platformFailure) {
+                      iLogger.error(`Unexpected stop with code ${castStatusCode} and error ${err}`)
+                      error(stopMsg)
+                    } else {
+                      dbg(stopMsg)
+                    }
+                    emitter.emit(ContainerEvents.Exit, castStatusCode)
+                    const stopErr = new Error(stopMsg)
+                    rejectRun(platformFailure ? systemError(stopErr) : userError(stopErr))
+                  } else {
+                    emitter.emit(ContainerEvents.Exit, 0)
+                  }
+                })
+                .on('start', async (dockerContainer: Container) => {
+                  const containerReadyTime = Date.now()
+                  const startupDuration = containerReadyTime - containerStartTime
 
-          dbg(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
-          info(`[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`)
-          if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
-            warn(`Container ${instanceId} launch took ${startupDuration}ms`)
-          }
+                  dbg(`[${instanceId}] Docker container started at ${new Date(containerReadyTime).toISOString()}`)
+                  info(
+                    `[${instanceId}] Container startup time: ${startupDuration}ms (${(startupDuration / 1000).toFixed(2)}s)`
+                  )
+                  if (startupDuration > PH_CONTAINER_LAUNCH_WARN_MS()) {
+                    warn(`Container ${instanceId} launch took ${startupDuration}ms`)
+                  }
 
-          dbg(`Got started container`, dockerContainer)
-          started = true
+                  state.started = true
 
-          try {
-            // Get container info to retrieve the assigned port
-            const containerInfo = await dockerContainer.inspect()
-            const ports = containerInfo.NetworkSettings?.Ports?.['8090/tcp']
+                  try {
+                    const portBinding = await (async () => {
+                      const containerInfo = await dockerContainer.inspect()
+                      const binding = getContainerPortBinding(containerInfo)
+                      if (!binding) {
+                        throw systemError('Could not get port binding from container')
+                      }
+                      return binding
+                    })()
 
-            if (!ports || !ports[0] || !ports[0].HostPort) {
-              throw systemError('Could not get port binding from container')
-            }
-
-            const portBinding = parseInt(ports[0].HostPort, 10)
-            if (isNaN(portBinding)) {
-              throw systemError(`Invalid port binding: ${ports[0].HostPort}`)
-            }
-
-            resolve({
-              on: emitter.on.bind(emitter),
-              kill: () =>
-                dockerContainer.stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() }).catch((e) => {
-                  if (isDockerContainerNotFound(e)) return
-                  error(e)
-                  return dockerContainer.kill().catch((killErr) => {
-                    if (!isDockerContainerNotFound(killErr)) error(killErr)
-                  })
-                }),
-              portBinding,
-            })
-          } catch (e) {
-            if (isDockerContainerNotFound(e)) {
-              reject(userError(`${instanceId} container exited during startup`))
-              return
-            }
-            error(`Failed to get port binding: ${e}`)
-            try {
-              await dockerContainer.stop()
-            } catch (stopError) {
-              if (!isDockerContainerNotFound(stopError)) {
-                error(`Failed to stop container after port binding error: ${stopError}`)
-              }
-            }
-            reject(e)
-          }
-        })
+                    resolveRun({
+                      on: emitter.on.bind(emitter),
+                      kill: mkContainerKill(dockerContainer, logger),
+                      portBinding,
+                    })
+                  } catch (e) {
+                    if (isDockerContainerNotFound(e)) {
+                      rejectRun(userError(`${instanceId} container exited during startup`))
+                      return
+                    }
+                    error(`Failed to get port binding: ${e}`)
+                    try {
+                      await dockerContainer.stop()
+                    } catch (stopError) {
+                      if (!isDockerContainerNotFound(stopError)) {
+                        error(`Failed to stop container after port binding error: ${stopError}`)
+                      }
+                    }
+                    rejectRun(e)
+                  }
+                })
+                .once('error', rejectRun)
+            })().catch(rejectRun)
+          }),
+        { docker, name: containerName }
+      )
+        .then(resolve)
+        .catch(reject)
     }).catch((e) => {
       if (isUserError(e)) {
         dbg(`Error starting container: ${e}`)
@@ -281,51 +387,13 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
       throw systemError(e instanceof Error ? e : new Error(String(e)))
     })
 
-    let removeExitHook: (() => void) | undefined
-
-    const exitCode = new Promise<number>((resolveExit) => {
-      container.on(Events.Exit, (code) => {
-        removeExitHook?.()
-        resolveExit(code)
-      })
-    })
-
-    exitCode.then((code) => {
-      iLogger.info(`Process exited with code ${code}`)
-      dbg(`Instance exited with ${code}`)
-      cm.shutdown().catch(error)
-    })
-
-    const url = mkInternalUrl(container.portBinding)
-    logger.breadcrumb(url)
-
-    const api: PocketbaseProcess = {
-      url,
-      exitCode,
-      stopped: () => stopped,
-      started: () => started,
-      kill: async () => {
-        if (stopping) {
-          warn(`${instanceId} already stopping`)
-          return
-        }
-        stopping = true
-        dbg(`Killing`)
-        iLogger.info(`Stopping instance`)
-        await container.kill()
-      },
-    }
-
-    dbg(`Making exit hook for ${url}`)
-    removeExitHook = asyncExitHook(async () => {
-      await api.kill()
-    })
-
-    return api
+    return mkPocketbaseProcess(container, instanceId, iLogger, logger, cm, state)
   }
 
   return {
     spawn: (cfg: SpawnConfig) => limiter.schedule(() => _spawn(cfg)),
+    attach: (cfg: AttachConfig) => limiter.schedule(() => _attach(cfg)),
+    stop: (instanceId: string) => limiter.schedule(() => _stop(instanceId)),
   }
 }
 

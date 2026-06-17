@@ -1,9 +1,19 @@
+import {
+  InstanceId,
+  InstanceStatus,
+  LoggerService,
+  mkSingleton,
+  MothershipAdminClientService,
+  PH_DAEMON_VACUUM_WAIT_MS,
+  PH_DAEMON_VACUUM_WAIT_RETRY_MS,
+  SingletonBaseConfig,
+} from '@'
 import { randomBytes } from 'crypto'
 import express from 'express'
 import { AsyncReturnType } from 'type-fest'
-import { LoggerService, mkSingleton, SingletonBaseConfig } from '../../common'
 import { getRunningInstanceIds } from '../../core/runningInstanceIds'
 import { proxyService } from '../ProxyService'
+import { waitUntilVacuumUnlocked } from './vacuumWait'
 
 const LOCK_TTL_MS = 30 * 60 * 1000
 const SWEEP_INTERVAL_MS = 60_000
@@ -25,6 +35,8 @@ type LockDenial = {
 
 const mkToken = () => randomBytes(16).toString(`hex`)
 
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 const requireSecret = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (!process.env.PH_SECRET || req.header(`x-pockethost-secret`) !== process.env.PH_SECRET) {
     res.status(401).json({ error: `unauthorized` })
@@ -35,10 +47,22 @@ const requireSecret = (req: express.Request, res: express.Response, next: expres
 
 export type VacuumLockServiceApi = AsyncReturnType<typeof VacuumLockService>
 export const VacuumLockService = mkSingleton(async (config: SingletonBaseConfig) => {
-  const { dbg, info } = (config.logger ?? LoggerService()).create(`VacuumLockService`)
+  const { dbg, info, warn } = (config.logger ?? LoggerService()).create(`VacuumLockService`)
 
   const locks = new Map<string, LockEntry>()
   let isLive: (id: string) => boolean = () => true
+
+  const { client } = await MothershipAdminClientService()
+  const syncInstanceStatus = (instanceId: InstanceId, status: InstanceStatus) => {
+    client
+      .updateInstance(instanceId, { status })
+      .then(() => {
+        dbg(`Set ${instanceId} status to ${status}`)
+      })
+      .catch((e: unknown) => {
+        warn(`Could not set ${instanceId} status to ${status}`, { e })
+      })
+  }
 
   info(`Initialized`)
   locks.clear()
@@ -48,6 +72,7 @@ export const VacuumLockService = mkSingleton(async (config: SingletonBaseConfig)
     for (const [instanceId, entry] of locks) {
       if (now - entry.acquiredAt > LOCK_TTL_MS) {
         locks.delete(instanceId)
+        syncInstanceStatus(instanceId, InstanceStatus.Idle)
         dbg(`TTL cleared stale lock for ${instanceId}`)
       }
     }
@@ -71,6 +96,7 @@ export const VacuumLockService = mkSingleton(async (config: SingletonBaseConfig)
 
     const token = mkToken()
     locks.set(instanceId, { token, acquiredAt: Date.now() })
+    syncInstanceStatus(instanceId, InstanceStatus.Vacuuming)
     dbg(`Granted lock for ${instanceId}`)
     return { instanceId, token }
   }
@@ -116,6 +142,7 @@ export const VacuumLockService = mkSingleton(async (config: SingletonBaseConfig)
       const entry = locks.get(instanceId)
       if (entry?.token === token) {
         locks.delete(instanceId)
+        syncInstanceStatus(instanceId, InstanceStatus.Idle)
         released.push(instanceId)
         dbg(`Released lock for ${instanceId}`)
       } else {
@@ -132,5 +159,16 @@ export const VacuumLockService = mkSingleton(async (config: SingletonBaseConfig)
       isLive = fn
     },
     isLocked: (instanceId: string) => locks.has(instanceId),
+    waitUntilUnlocked: (
+      instanceId: InstanceId,
+      options: { isAborted?: () => boolean; graceMs?: number; retryMs?: number } = {}
+    ) =>
+      waitUntilVacuumUnlocked({
+        isLocked: () => locks.has(instanceId),
+        sleep,
+        graceMs: options.graceMs ?? PH_DAEMON_VACUUM_WAIT_MS(),
+        retryMs: options.retryMs ?? PH_DAEMON_VACUUM_WAIT_RETRY_MS(),
+        isAborted: options.isAborted,
+      }),
   }
 })

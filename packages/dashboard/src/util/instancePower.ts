@@ -6,7 +6,7 @@ export const isInstanceShuttingDown = (instance: Pick<InstanceFields, 'power' | 
 export const isInstanceFullyOff = (instance: Pick<InstanceFields, 'power' | 'status'>) =>
   !instance.power && instance.status === InstanceStatus.Idle
 
-export type InstanceRuntimeState = 'running' | 'sleeping' | 'starting' | 'failed' | 'off'
+export type InstanceRuntimeState = 'running' | 'sleeping' | 'starting' | 'vacuuming' | 'failed' | 'off'
 
 export const getInstanceRuntimeState = (instance: Pick<InstanceFields, 'power' | 'status'>): InstanceRuntimeState => {
   if (!instance.power) return 'off'
@@ -17,6 +17,8 @@ export const getInstanceRuntimeState = (instance: Pick<InstanceFields, 'power' |
     case InstanceStatus.Starting:
     case InstanceStatus.Port:
       return 'starting'
+    case InstanceStatus.Vacuuming:
+      return 'vacuuming'
     case InstanceStatus.Failed:
       return 'failed'
     default:
@@ -28,6 +30,7 @@ export const runtimeStateLabel: Record<InstanceRuntimeState, string> = {
   running: 'Running',
   sleeping: 'Sleeping',
   starting: 'Starting',
+  vacuuming: 'Maintaining',
   failed: 'Failed',
   off: 'Off',
 }

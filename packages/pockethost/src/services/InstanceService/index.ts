@@ -19,6 +19,7 @@ import {
   now,
   PocketbaseService,
   proxyService,
+  setInstanceTrafficReady,
   SingletonBaseConfig,
   SpawnConfig,
   stringify,
@@ -32,6 +33,7 @@ import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipMirrorService'
 import { instanceAppVersionFromPbVersion } from './instanceAppVersion'
+import { reconcilePreservedContainers } from './reconcilePreservedContainers'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -43,6 +45,9 @@ type InstanceApi = {
   internalUrl: string
   startRequest: () => () => void
   shutdown: () => void
+  detach: () => void
+  isLowering: () => boolean
+  whenLowered: () => Promise<void>
 }
 
 export type InstanceServiceConfig = SingletonBaseConfig & {
@@ -61,6 +66,16 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const mirror = await MothershipMirrorService()
 
   const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
+  const gatewayPending: { [_: InstanceId]: number } = {}
+
+  const bumpGatewayPending = (id: InstanceId) => {
+    gatewayPending[id] = (gatewayPending[id] ?? 0) + 1
+    return () => {
+      gatewayPending[id] = Math.max(0, (gatewayPending[id] ?? 1) - 1)
+    }
+  }
+
+  const getGatewayPending = (id: InstanceId) => gatewayPending[id] ?? 0
 
   const vacuumLocks = await VacuumLockService(config)
   vacuumLocks.registerIsLive((id) => Boolean(instanceApis[id]))
@@ -106,21 +121,14 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       })
   })
 
-  const createInstanceApi = async (instance: InstanceFields): Promise<InstanceApi> => {
-    const shutdownManager: (() => void)[] = []
-
+  const createInstanceApi = async (instance: InstanceFields, preserved = false): Promise<InstanceApi> => {
     const { id, subdomain, version } = instance
     const systemInstanceLogger = instanceServiceLogger.create(subdomain).breadcrumb(id).breadcrumb(version)
     const { dbg, warn, error, info, trace } = systemInstanceLogger
     const userInstanceLogger = InstanceLogWriter(instance.id, `exec`, systemInstanceLogger)
 
-    shutdownManager.push(() => {
-      dbg(`Shutting down`)
-      userInstanceLogger.info(`Instance is shutting down.`)
-    }) // Keep deletion separate and tied to actual process exit
-
-    dbg(`Starting`)
-    userInstanceLogger.info(`Instance is starting.`)
+    dbg(preserved ? `Reattaching preserved container` : `Starting`)
+    userInstanceLogger.info(preserved ? `Instance reconnected after daemon restart.` : `Instance is starting.`)
 
     let _shutdownReason: Error | undefined
     let internalUrl: string | undefined
@@ -146,95 +154,111 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
     let openRequestCount = 0
     let lastRequest = now()
+    let idleTid: ReturnType<typeof setInterval> | undefined
+    let childProcess: Awaited<ReturnType<typeof pbService.spawn>> | undefined
 
-    // Create shutdown function that can be referenced early
     let shutdownInProgress = false
-    const shutdown = () => {
+    const lowerDrawbridge = () => {
       if (shutdownInProgress) {
         dbg(`Shutdown already in progress`)
-        return
+        return false
       }
       shutdownInProgress = true
-      dbg(`Shutting down`)
-      for (let i = shutdownManager.length - 1; i >= 0; i--) {
-        const fn = shutdownManager[i]
-        if (typeof fn === 'function') fn()
+      dbg(`Lowering drawbridge for ${id}`)
+      delete instanceApis[id]
+      if (idleTid) {
+        clearInterval(idleTid)
+        idleTid = undefined
       }
+      return true
     }
 
+    let shutdown: () => void
+    let detach: () => void
+
     try {
-      /** Mark the instance as starting */
-      dbg(`Starting instance`)
-      updateInstanceStatus(instance.id, InstanceStatus.Starting)
-      shutdownManager.push(async () => {
-        dbg(`Shutting down: set instance status: idle`)
-        updateInstanceStatus(id, InstanceStatus.Idle)
-      })
+      if (!preserved) {
+        /** Mark the instance as starting */
+        dbg(`Starting instance`)
+        updateInstanceStatus(instance.id, InstanceStatus.Starting)
+      }
 
-      /** Create spawn config */
-      const instanceAppVersion = (() => {
-        try {
-          return instanceAppVersionFromPbVersion(instance.version)
-        } catch {
-          throw userError(`Invalid version: ${instance.version}`)
+      if (preserved) {
+        childProcess = await pbService.attach({ instanceId: instance.id, logger: systemInstanceLogger })
+      } else {
+        /** Create spawn config */
+        const instanceAppVersion = (() => {
+          try {
+            return instanceAppVersionFromPbVersion(instance.version)
+          } catch {
+            throw userError(`Invalid version: ${instance.version}`)
+          }
+        })()
+        const spawnArgs: SpawnConfig = {
+          subdomain: instance.subdomain,
+          instanceId: instance.id,
+          dev: instance.dev,
+          extraBinds: [
+            globSync(join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js')).map(
+              (file) => `${file}:${mkContainerHomePath(`pb_migrations/${basename(file)}`)}:ro`
+            ),
+            globSync(join(INSTANCE_APP_HOOK_DIR(instanceAppVersion), '*.js')).map(
+              (file) => `${file}:${mkContainerHomePath(`pb_hooks/${basename(file)}`)}:ro`
+            ),
+          ].flat(),
+          env: {
+            ...instance.secrets,
+            PH_APP_NAME: instance.subdomain,
+            PH_INSTANCE_URL: mkInstanceUrl(instance),
+          },
+          version,
+          logger: systemInstanceLogger,
         }
-      })()
-      const spawnArgs: SpawnConfig = {
-        subdomain: instance.subdomain,
-        instanceId: instance.id,
-        dev: instance.dev,
-        extraBinds: [
-          globSync(join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js')).map(
-            (file) => `${file}:${mkContainerHomePath(`pb_migrations/${basename(file)}`)}:ro`
-          ),
-          globSync(join(INSTANCE_APP_HOOK_DIR(instanceAppVersion), '*.js')).map(
-            (file) => `${file}:${mkContainerHomePath(`pb_hooks/${basename(file)}`)}:ro`
-          ),
-        ].flat(),
-        env: {
-          ...instance.secrets,
-          PH_APP_NAME: instance.subdomain,
-          PH_INSTANCE_URL: mkInstanceUrl(instance),
-        },
-        version,
-        logger: systemInstanceLogger,
-      }
 
-      /** Add admin sync info if enabled */
-      if (instance.syncAdmin) {
-        const id = instance.uid
-        dbg(`Fetching token info for uid ${id}`)
-        const { email, tokenKey, passwordHash } = await client.getUserTokenInfo({ id })
-        dbg(`Token info is`, { email, tokenKey, passwordHash })
-        spawnArgs.env!.ADMIN_SYNC = stringify({
-          id,
-          email,
-          tokenKey,
-          passwordHash,
-        })
-      }
+        /** Add admin sync info if enabled */
+        if (instance.syncAdmin) {
+          const uid = instance.uid
+          dbg(`Fetching token info for uid ${uid}`)
+          const { email, tokenKey, passwordHash } = await client.getUserTokenInfo({ id: uid })
+          dbg(`Token info is`, { email, tokenKey, passwordHash })
+          spawnArgs.env!.ADMIN_SYNC = stringify({
+            id: uid,
+            email,
+            tokenKey,
+            passwordHash,
+          })
+        }
 
-      /** Spawn the child process */
-      const childProcess = await pbService.spawn(spawnArgs)
+        childProcess = await pbService.spawn(spawnArgs)
+      }
 
       const { exitCode, stopped, started, url: internalUrl } = childProcess
-      exitCode.then((code) => {
-        dbg(`Instance exited with code ${code}`)
-        dbg(`Shutting down: There are now ${Object.values(instanceApis).length} still in API cache`)
-        shutdown()
-        delete instanceApis[id]
-      })
 
-      shutdownManager.push(() => {
-        if (stopped()) {
-          dbg(`Instance already stopped`)
-          return
+      shutdown = () => {
+        if (!lowerDrawbridge()) return
+        dbg(`Shutting down instance ${id}`)
+        userInstanceLogger.info(`Instance is shutting down.`)
+        updateInstanceStatus(id, InstanceStatus.Idle)
+        if (!stopped()) {
+          dbg(`Stopping container ${id}`)
+          childProcess!.kill().catch((err) => {
+            error(`Error killing ${id}`, { err })
+          })
         }
-        dbg(`killing ${id}`)
-        childProcess.kill().catch((err) => {
-          error(`Error killing ${id}`, { err })
-        })
-        dbg(`killed ${id}`)
+      }
+
+      detach = () => {
+        if (!lowerDrawbridge()) return
+        dbg(`Detaching from ${id}, leaving Docker container running`)
+      }
+
+      const whenLowered = exitCode.then(() => undefined)
+      exitCode.then((code) => {
+        if (shutdownInProgress) return
+        dbg(`Instance exited unexpectedly with code ${code}`)
+        lowerDrawbridge()
+        userInstanceLogger.info(`Instance stopped.`)
+        updateInstanceStatus(id, InstanceStatus.Idle)
       })
 
       /** Health check */
@@ -250,10 +274,12 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
       /** Idle check */
       const idleTtl = instance.idleTtl || DAEMON_PB_IDLE_TTL()
-      const idleTid = setInterval(() => {
+      idleTid = setInterval(() => {
         const lastRequestAge = now() - lastRequest
-        dbg(`idle check: ${openRequestCount} open requests, ${lastRequestAge}ms since last request`)
-        if (openRequestCount === 0 && lastRequestAge > idleTtl) {
+        dbg(
+          `idle check: ${openRequestCount} open requests, ${getGatewayPending(id)} gateway pending, ${lastRequestAge}ms since last request`
+        )
+        if (openRequestCount === 0 && getGatewayPending(id) === 0 && lastRequestAge > idleTtl) {
           dbg(`idle for ${idleTtl}, shutting down`)
           userInstanceLogger.info(
             `Instance has been idle for ${DAEMON_PB_IDLE_TTL()}ms. Hibernating to conserve resources.`
@@ -265,7 +291,6 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         }
         return true
       }, 1000)
-      shutdownManager.push(() => clearInterval(idleTid))
 
       // Now assign the api object
       api = {
@@ -280,6 +305,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
           }
         },
         shutdown,
+        detach,
+        isLowering: () => shutdownInProgress,
+        whenLowered: () => whenLowered,
       }
 
       dbg(`${internalUrl} is running`)
@@ -293,7 +321,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         error(`Error spawning: ${e}`)
       }
       userInstanceLogger.error(`Error spawning: ${e}`)
-      shutdownManager.forEach((fn) => fn())
+      lowerDrawbridge()
+      updateInstanceStatus(id, InstanceStatus.Idle)
+      await childProcess?.kill().catch(() => {})
       throw e
     }
   }
@@ -311,6 +341,65 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       error(`Error shutting down ${instanceId} on delete`, { e })
     })
   })
+
+  const mkInstanceApiPromise = (instance: InstanceFields, requestId: string, preserved = false) => {
+    const start = now()
+    return createInstanceApi(instance, preserved).catch((e) => {
+      const duration = now() - start
+      if (isUserError(e)) {
+        dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
+      } else {
+        warn(`Container ${instance.id} failed to launch in ${duration}ms`)
+      }
+
+      delete instanceApis[instance.id]
+
+      if (isSystemError(e)) {
+        throw e
+      }
+
+      throw userError(
+        `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${requestId}]`
+      )
+    })
+  }
+
+  const ensureInstanceApi = async (instance: InstanceFields, requestId: string): Promise<InstanceApi> => {
+    while (true) {
+      if (!instanceApis[instance.id]) {
+        instanceApis[instance.id] = mkInstanceApiPromise(instance, requestId)
+      }
+
+      const api = await instanceApis[instance.id]!
+
+      if (!api.isLowering()) {
+        return api
+      }
+
+      dbg(`Instance ${instance.id} is lowering, waiting before raising (${requestId})`)
+      await api.whenLowered()
+      delete instanceApis[instance.id]
+    }
+  }
+
+  asyncExitHook(async () => {
+    setInstanceTrafficReady(false)
+    dbg(`Detaching instance manager, leaving Docker containers running`)
+    await Promise.all(Object.values(instanceApis).map(async (api) => (await api).detach()))
+  })
+
+  await reconcilePreservedContainers({
+    mirror,
+    pbService,
+    isAlreadyManaged: (instanceId) => Boolean(instanceApis[instanceId]),
+    adoptInstance: async (instance) => {
+      instanceApis[instance.id] = mkInstanceApiPromise(instance, 'boot', true)
+      await instanceApis[instance.id]
+    },
+    logger: instanceServiceLogger,
+  })
+
+  await mirror.syncMirror({ resetIdle: true, instances: await getLiveInstances() })
   ;(await proxyService()).use(async (req, res, next) => {
     const logger = (config.logger ?? LoggerService()).create(`InstanceRequest`)
 
@@ -371,51 +460,43 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     }
 
     if (vacuumLocks.isLocked(instance.id)) {
-      throw userError(
-        `This instance is temporarily unavailable due to database maintenance. Please try again in a few minutes.`
-      )
-    }
-
-    const start = now()
-    if (!instanceApis[instance.id]) {
-      instanceApis[instance.id] = createInstanceApi(instance).catch((e) => {
-        const end = now()
-        const duration = end - start
-        if (isUserError(e)) {
-          dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
-        } else {
-          warn(`Container ${instance.id} failed to launch in ${duration}ms`)
-        }
-
-        delete instanceApis[instance.id]
-
-        if (isSystemError(e)) {
-          throw e
-        }
-
-        throw userError(
-          `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${res.locals.requestId}]`
-        )
+      dbg(`Waiting for vacuum lock on ${instance.id}`)
+      const unlocked = await vacuumLocks.waitUntilUnlocked(instance.id, {
+        isAborted: () => req.aborted || res.writableEnded || res.headersSent,
       })
-    }
-    const api = await instanceApis[instance.id]!
-
-    const endRequest = api.startRequest()
-    res.on('close', endRequest)
-    if (req.closed) {
-      dbg(`Request already closed. ${res.locals.requestId}`)
+      if (!unlocked) {
+        throw userError(
+          `This instance is temporarily unavailable due to database maintenance. Please try again in a few minutes.`
+        )
+      }
     }
 
-    dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
+    const releaseGatewayPending = bumpGatewayPending(instance.id)
 
-    proxy.web(req, res, { target: api.internalUrl })
+    try {
+      const api = await ensureInstanceApi(instance, res.locals.requestId)
+
+      const endRequest = api.startRequest()
+      const onClose = () => {
+        endRequest()
+        releaseGatewayPending()
+      }
+      res.on('close', onClose)
+      if (req.closed) {
+        dbg(`Request already closed. ${res.locals.requestId}`)
+      }
+
+      dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
+
+      proxy.web(req, res, { target: api.internalUrl })
+    } catch (e) {
+      releaseGatewayPending()
+      throw e
+    }
   })
 
-  asyncExitHook(async () => {
-    dbg(`Shutting down instance manager`)
-    const p = Promise.all(Object.values(instanceApis).map(async (api) => (await api).shutdown()))
-    await p
-  })
+  setInstanceTrafficReady(true)
+  instanceServiceLogger.info(`Instance traffic ready`)
 
   return {}
 })

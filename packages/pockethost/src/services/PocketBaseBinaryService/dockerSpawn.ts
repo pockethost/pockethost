@@ -1,8 +1,11 @@
 import {
   DOCKER_INSTANCE_IMAGE_NAME,
+  isDockerContainerConflict,
   isDockerContainerNotFound,
   mkContainerHomePath,
   PH_CONTAINER_STOP_TIMEOUT_SEC,
+  removeNamedContainer,
+  withDockerContainerConflictRetry,
 } from '@'
 import Docker, { Container, ContainerCreateOptions } from 'dockerode'
 import { execFileSync, spawn } from 'node:child_process'
@@ -70,23 +73,14 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
         })
       }
       await target.remove({ force: true }).catch((removeErr) => {
-        if (!isDockerContainerNotFound(removeErr)) throw removeErr
+        if (isDockerContainerNotFound(removeErr) || isDockerContainerConflict(removeErr)) return
+        throw removeErr
       })
     }
   }
 
   if (name) {
-    try {
-      const existing = docker.getContainer(name)
-      const info = await existing.inspect()
-      if (info.State.Running) {
-        await stopContainer(existing)
-      } else {
-        await existing.remove({ force: true })
-      }
-    } catch {
-      // no existing container
-    }
+    await withDockerContainerConflictRetry(() => removeNamedContainer(docker, name, stopTimeoutSec), { docker, name })
   }
 
   const createOptions: ContainerCreateOptions = {
@@ -124,18 +118,22 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
     WorkingDir: mkContainerHomePath(),
   }
 
-  const emitter = docker.run(DOCKER_INSTANCE_IMAGE_NAME(), [''], [stdout, stderr], createOptions, (err, data) => {
-    if (err) {
-      onStderr?.(String(err))
-    }
-    const statusCode = data?.StatusCode ?? (err ? 1 : 0)
-    onExit?.(statusCode)
-  })
+  const runContainer = () => {
+    const emitter = docker.run(DOCKER_INSTANCE_IMAGE_NAME(), [''], [stdout, stderr], createOptions, (err, data) => {
+      if (err) {
+        onStderr?.(String(err))
+      }
+      const statusCode = data?.StatusCode ?? (err ? 1 : 0)
+      onExit?.(statusCode)
+    })
 
-  const container = await new Promise<Container>((resolve, reject) => {
-    emitter.once('start', resolve)
-    emitter.once('error', reject)
-  })
+    return new Promise<Container>((resolve, reject) => {
+      emitter.once('start', resolve)
+      emitter.once('error', reject)
+    })
+  }
+
+  const container = name ? await withDockerContainerConflictRetry(runContainer, { docker, name }) : await runContainer()
 
   if (name) {
     spawnParentExitWatchdog(process.pid, process.ppid, name)

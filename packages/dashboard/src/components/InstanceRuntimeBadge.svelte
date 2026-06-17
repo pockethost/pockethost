@@ -14,6 +14,7 @@
     running: 'bg-green-500/20 text-green-400 border-green-500/30',
     sleeping: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
     starting: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    vacuuming: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
     failed: 'bg-red-500/20 text-red-400 border-red-500/30',
     off: 'bg-white/5 text-white/45 border-white/10',
   }
@@ -29,6 +30,8 @@
     <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
   {:else if state === 'starting'}
     <span class="inline-block w-3 h-3 border border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin"></span>
+  {:else if state === 'vacuuming'}
+    <span class="inline-block w-3 h-3 border border-sky-500/30 border-t-sky-500 rounded-full animate-spin"></span>
   {:else if state === 'sleeping'}
     <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
   {:else if state === 'failed'}

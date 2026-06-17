@@ -43,6 +43,15 @@ export const isDockerContainerNotFound = (err: unknown): boolean => {
   return /\(HTTP code 404\).*no such container|no such container:/i.test(msg)
 }
 
+/** Transient Docker name/removal race (AutoRemove overlap, stop vs spawn). */
+export const isDockerContainerConflict = (err: unknown): boolean => {
+  const msg = err instanceof Error ? err.message : `${err}`
+  return (
+    /\(HTTP code 409\)/i.test(msg) &&
+    /removal of container.*is already in progress|container name.*is already in use|name is already in use/i.test(msg)
+  )
+}
+
 /** Docker daemon / host resource failures. App exit codes (e.g. JSVM) are user-side. */
 export const isPlatformDockerFailure = (statusCode: number, err?: unknown): boolean => {
   if (DOCKER_RUN_EXIT_CODES.has(statusCode)) return true
