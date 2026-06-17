@@ -7,6 +7,8 @@
   export let price: string
   export let priceDetail: string = ''
   export let bestDeal: boolean = false
+  export let badgeText: string | undefined = undefined
+  export let badgeUrgent: boolean = false
   export let title: string
   export let cta: string
   export let features: string[]
@@ -18,7 +20,9 @@
 </script>
 
 <div class="pricing-plan {selected ? 'pricing-plan--featured' : ''}">
-  {#if bestDeal}
+  {#if badgeText}
+    <div class="pricing-plan-badge" class:pricing-plan-badge--urgent={badgeUrgent}>{badgeText}</div>
+  {:else if bestDeal}
     <div class="pricing-plan-badge">HOT</div>
   {/if}
 
