@@ -9,6 +9,7 @@ import {
   MOTHERSHIP_PORT,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
+  PH_VACUUM_MAX_CONCURRENT,
   getRunningInstanceIds,
   logger,
   stringify,
@@ -232,6 +233,70 @@ const passesHoursBackFilter = (dbPaths: string[], hoursBack?: number): boolean =
   return instanceLatestMtimeMs(dbPaths) >= cutoff
 }
 
+type InstanceVacuumWork = {
+  instanceId: string
+  instanceDbPaths: string[]
+}
+
+const vacuumOneInstance = async ({
+  instanceId,
+  instanceDbPaths,
+  dryRun,
+  warn,
+}: {
+  instanceId: string
+  instanceDbPaths: string[]
+  dryRun: boolean
+  warn: ReturnType<ReturnType<typeof logger>['create']>['warn']
+}): Promise<VacuumResult[]> => {
+  const results: VacuumResult[] = []
+
+  if (dryRun) {
+    for (const dbPath of instanceDbPaths) {
+      const result = {
+        path: dbPath,
+        instanceId,
+        beforeBytes: fileSizeBytes(dbPath),
+        afterBytes: fileSizeBytes(dbPath),
+      }
+      logVacuumResult(result, true)
+      results.push(result)
+    }
+    return results
+  }
+
+  const lock = await lockInstance(instanceId)
+  if (!lock.granted) {
+    warn(`Skipping ${instanceId}: lock denied (${lock.reason})`)
+    return results
+  }
+
+  try {
+    if (getRunningInstanceIds().has(instanceId)) {
+      warn(`Skipping ${instanceId}: docker container appeared after lock grant`)
+      return results
+    }
+
+    for (const dbPath of instanceDbPaths) {
+      try {
+        const result = { ...(await vacuumSqliteFile(dbPath)), instanceId }
+        logVacuumResult(result, false)
+        results.push(result)
+      } catch (e) {
+        warn(`Failed to vacuum ${dbPath}: ${formatExecError(e)}`)
+      }
+    }
+  } finally {
+    try {
+      await unlockInstance(instanceId, lock.token)
+    } catch (e) {
+      warn(`Failed to release vacuum lock for ${instanceId}`, e)
+    }
+  }
+
+  return results
+}
+
 export const vacuumIdleInstanceDbs = async ({
   dryRun = false,
   hoursBack,
@@ -257,7 +322,7 @@ export const vacuumIdleInstanceDbs = async ({
 
   info(`Found ${byInstance.size} instance(s) with database files`)
 
-  const results: VacuumResult[] = []
+  const work: InstanceVacuumWork[] = []
 
   for (const [instanceId, instanceDbPaths] of byInstance) {
     if (!fleetIds.has(instanceId)) {
@@ -275,51 +340,20 @@ export const vacuumIdleInstanceDbs = async ({
       continue
     }
 
-    if (dryRun) {
-      for (const dbPath of instanceDbPaths) {
-        const result = {
-          path: dbPath,
-          instanceId,
-          beforeBytes: fileSizeBytes(dbPath),
-          afterBytes: fileSizeBytes(dbPath),
-        }
-        logVacuumResult(result, true)
-        results.push(result)
-      }
-      continue
-    }
-
-    const lock = await lockInstance(instanceId)
-    if (!lock.granted) {
-      warn(`Skipping ${instanceId}: lock denied (${lock.reason})`)
-      continue
-    }
-
-    try {
-      if (getRunningInstanceIds().has(instanceId)) {
-        warn(`Skipping ${instanceId}: docker container appeared after lock grant`)
-        continue
-      }
-
-      for (const dbPath of instanceDbPaths) {
-        try {
-          const result = { ...(await vacuumSqliteFile(dbPath)), instanceId }
-          logVacuumResult(result, false)
-          results.push(result)
-        } catch (e) {
-          warn(`Failed to vacuum ${dbPath}: ${formatExecError(e)}`)
-        }
-      }
-    } finally {
-      try {
-        await unlockInstance(instanceId, lock.token)
-      } catch (e) {
-        warn(`Failed to release vacuum lock for ${instanceId}`, e)
-      }
-    }
+    work.push({ instanceId, instanceDbPaths })
   }
 
-  return { results, fleet }
+  const maxConcurrent = PH_VACUUM_MAX_CONCURRENT()
+  info(`Vacuuming ${work.length} instance(s) with max concurrency ${maxConcurrent}`)
+
+  const limiter = new Bottleneck({ maxConcurrent })
+  const resultSets = await Promise.all(
+    work.map(({ instanceId, instanceDbPaths }) =>
+      limiter.schedule(() => vacuumOneInstance({ instanceId, instanceDbPaths, dryRun, warn }))
+    )
+  )
+
+  return { results: resultSets.flat(), fleet }
 }
 
 export const vacuumMothershipDbs = async ({ dryRun = false } = {}) => {
