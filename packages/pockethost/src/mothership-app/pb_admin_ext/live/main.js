@@ -18,8 +18,9 @@ const INSTANCE_STATUSES = [
 ]
 const historyByEdgeId = {}
 const platformHistory = []
-let platformRefreshTimer = null
 let platformRefreshInFlight = null
+let livePage = null
+const PLATFORM_POLL_MS = 30_000
 
 function isAbortError(err) {
   const msg = String(err?.message || err)
@@ -154,7 +155,7 @@ function renderPlatformPanel(platform) {
             { className: 'live-meta m-t-10 m-b-0' },
             platform.lastRefresh
               ? `${totalInstances} instances · ${activeInstanceCount(platform.statusCounts)} active · updated ${formatLastSeen(platform.lastRefresh)}`
-              : 'Listening on instances + users'
+              : 'Platform counts refresh every 30s'
           )
   )
 }
@@ -252,19 +253,66 @@ app.store.headerLinks.push({
 })
 
 app.routes.superuserOnly('#/live', () => {
-  const data = store({
-    edges: [],
-    error: '',
-    edgesSubscribed: false,
-    platformSubscribed: false,
-  })
+  if (!livePage) {
+    livePage = {
+      data: store({
+        edges: [],
+        error: '',
+        edgesSubscribed: false,
+        platformPollStarted: false,
+      }),
+      platform: store({
+        statusCounts: {},
+        totalUsers: null,
+        loading: true,
+        lastRefresh: null,
+      }),
+    }
+    startLivePage(livePage)
+  }
 
-  const platform = store({
-    statusCounts: {},
-    totalUsers: null,
-    loading: true,
-    lastRefresh: null,
-  })
+  const { data, platform } = livePage
+
+  return t.div(
+    { className: 'page page-live-edges' },
+    t.div(
+      { className: 'page-content' },
+      t.div(
+        { className: 'page-header' },
+        t.div(
+          { className: 'flex-fill' },
+          t.h1({ className: 'm-0' }, 'Live'),
+          t.p(
+            { className: 'txt-hint m-t-5 m-b-0' },
+            'Realtime mothership fleet view — platform counts, edge traffic, session sparklines.'
+          )
+        )
+      ),
+      () => (data.error ? t.div({ className: 'txt-danger m-b-base' }, data.error) : null),
+      () => renderPlatformPanel(platform),
+      t.h2({ className: 'live-section-heading live-divider' }, 'Edges'),
+      () =>
+        data.edges.length
+          ? t.div(
+              { className: 'grid sm' },
+              ...data.edges.map((edge) =>
+                t.div({ className: 'col-lg-6 col-md-12 m-b-base', key: edge.id }, renderEdgePanel(edge))
+              )
+            )
+          : t.div(
+              { className: 'live-empty' },
+              t.p({ className: 'm-0' }, 'No edges reporting yet.'),
+              t.p(
+                { className: 'm-t-10 m-b-0 txt-hint' },
+                'Start an edge daemon with mothership credentials configured.'
+              )
+            )
+    )
+  )
+})
+
+function startLivePage(livePage) {
+  const { data, platform } = livePage
 
   async function refreshPlatformCounts() {
     if (platformRefreshInFlight) {
@@ -308,15 +356,6 @@ app.routes.superuserOnly('#/live', () => {
     return platformRefreshInFlight
   }
 
-  function schedulePlatformRefresh() {
-    if (platformRefreshTimer) {
-      clearTimeout(platformRefreshTimer)
-    }
-    platformRefreshTimer = setTimeout(() => {
-      void refreshPlatformCounts()
-    }, 250)
-  }
-
   async function loadEdges() {
     try {
       data.error = ''
@@ -341,54 +380,18 @@ app.routes.superuserOnly('#/live', () => {
     })
   }
 
-  function ensurePlatformSubscribe() {
-    if (data.platformSubscribed) {
+  function ensurePlatformPoll() {
+    if (data.platformPollStarted) {
       return
     }
-    data.platformSubscribed = true
-    app.pb.collection('instances').subscribe('*', () => schedulePlatformRefresh())
-    app.pb.collection('users').subscribe('*', () => schedulePlatformRefresh())
+    data.platformPollStarted = true
+    setInterval(() => {
+      void refreshPlatformCounts()
+    }, PLATFORM_POLL_MS)
   }
 
   void refreshPlatformCounts()
   loadEdges()
   ensureEdgeSubscribe()
-  ensurePlatformSubscribe()
-
-  return t.div(
-    { className: 'page page-live-edges' },
-    t.div(
-      { className: 'page-content' },
-      t.div(
-        { className: 'page-header' },
-        t.div(
-          { className: 'flex-fill' },
-          t.h1({ className: 'm-0' }, 'Live'),
-          t.p(
-            { className: 'txt-hint m-t-5 m-b-0' },
-            'Realtime mothership fleet view — platform counts, edge traffic, session sparklines.'
-          )
-        )
-      ),
-      () => (data.error ? t.div({ className: 'txt-danger m-b-base' }, data.error) : null),
-      () => renderPlatformPanel(platform),
-      t.h2({ className: 'live-section-heading live-divider' }, 'Edges'),
-      () =>
-        data.edges.length
-          ? t.div(
-              { className: 'grid sm' },
-              ...data.edges.map((edge) =>
-                t.div({ className: 'col-lg-6 col-md-12 m-b-base', key: edge.id }, renderEdgePanel(edge))
-              )
-            )
-          : t.div(
-              { className: 'live-empty' },
-              t.p({ className: 'm-0' }, 'No edges reporting yet.'),
-              t.p(
-                { className: 'm-t-10 m-b-0 txt-hint' },
-                'Start an edge daemon with mothership credentials configured.'
-              )
-            )
-    )
-  )
-})
+  ensurePlatformPoll()
+}
