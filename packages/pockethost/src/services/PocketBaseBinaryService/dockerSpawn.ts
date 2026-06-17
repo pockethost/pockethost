@@ -2,6 +2,7 @@ import {
   DOCKER_INSTANCE_IMAGE_NAME,
   isDockerContainerConflict,
   isDockerContainerNotFound,
+  isDockerContainerStopBenign,
   mkContainerHomePath,
   PH_CONTAINER_STOP_TIMEOUT_SEC,
   removeNamedContainer,
@@ -67,9 +68,9 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
       try {
         await target.stop({ signal: 'SIGINT', t: stopTimeoutSec })
       } catch (stopErr) {
-        if (isDockerContainerNotFound(stopErr)) return
+        if (isDockerContainerStopBenign(stopErr)) return
         await target.kill().catch((killErr) => {
-          if (!isDockerContainerNotFound(killErr)) throw killErr
+          if (!isDockerContainerStopBenign(killErr)) throw killErr
         })
       }
       await target.remove({ force: true }).catch((removeErr) => {

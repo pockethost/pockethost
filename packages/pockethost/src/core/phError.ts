@@ -43,6 +43,16 @@ export const isDockerContainerNotFound = (err: unknown): boolean => {
   return /\(HTTP code 404\).*no such container|no such container:/i.test(msg)
 }
 
+/** Stop/kill raced with container exit, AutoRemove, or prior teardown. */
+export const isDockerContainerStopBenign = (err: unknown): boolean => {
+  if (isDockerContainerNotFound(err)) return true
+  const msg = err instanceof Error ? err.message : `${err}`
+  return (
+    /\(HTTP code 304\).*container already stopped/i.test(msg) ||
+    (/\(HTTP code 409\)/i.test(msg) && /cannot kill container|is not running/i.test(msg))
+  )
+}
+
 /** Transient Docker name/removal race (AutoRemove overlap, stop vs spawn). */
 export const isDockerContainerConflict = (err: unknown): boolean => {
   const msg = err instanceof Error ? err.message : `${err}`

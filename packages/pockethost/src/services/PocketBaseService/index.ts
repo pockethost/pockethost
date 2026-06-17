@@ -6,6 +6,7 @@ import {
   instanceContainerName,
   InstanceLogWriter,
   isDockerContainerNotFound,
+  isDockerContainerStopBenign,
   isPlatformDockerFailure,
   isSystemError,
   isUserError,
@@ -74,10 +75,10 @@ type ContainerRuntime = {
 
 const mkContainerKill = (dockerContainer: Container, logger: Logger) => () =>
   dockerContainer.stop({ signal: `SIGINT`, t: PH_CONTAINER_STOP_TIMEOUT_SEC() }).catch((e) => {
-    if (isDockerContainerNotFound(e)) return
+    if (isDockerContainerStopBenign(e)) return
     logger.error(e)
     return dockerContainer.kill().catch((killErr) => {
-      if (!isDockerContainerNotFound(killErr)) logger.error(killErr)
+      if (!isDockerContainerStopBenign(killErr)) logger.error(killErr)
     })
   })
 
@@ -360,7 +361,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
                     try {
                       await dockerContainer.stop()
                     } catch (stopError) {
-                      if (!isDockerContainerNotFound(stopError)) {
+                      if (!isDockerContainerStopBenign(stopError)) {
                         error(`Failed to stop container after port binding error: ${stopError}`)
                       }
                     }
