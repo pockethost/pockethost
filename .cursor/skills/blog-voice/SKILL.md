@@ -80,12 +80,15 @@ Skip implementation minutiae agents already know (factory patterns, import paths
 
 ## File checklist
 
-New post:
+New post (one folder per slug — see `.cursor/rules/blog-articles.mdc`):
 
 1. `packages/dashboard/src/routes/(static)/blog/{slug}/+page.md`
-2. Add entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts` with `description`, `date`, and `author` (see blog-voice skill)
+2. Co-located images in the same `{slug}/` folder; reference with relative paths (`![alt](hero.png)`)
+3. Add entry at **top** of `packages/dashboard/src/routes/(static)/blog/toc.ts` with `description`, `date`, and `author`
 
 Slug: lowercase kebab-case, descriptive (`webhooks-launch`, not `post-12`).
+
+When the user adds images before or after the draft, scan the slug folder and weave them into the article with sensible alt text and placement.
 
 ## Examples
 

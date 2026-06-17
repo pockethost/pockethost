@@ -1,0 +1,54 @@
+---
+description: Blog post folder layout and co-located images
+globs: packages/dashboard/src/routes/(static)/blog/**/*
+alwaysApply: false
+---
+
+# Blog articles
+
+Each post lives in **its own route folder** so markdown and assets stay together.
+
+## Layout
+
+```
+packages/dashboard/src/routes/(static)/blog/{slug}/
+  +page.md          # article body
+  hero.png          # optional images (any name)
+  diagram.webp
+```
+
+- **Slug folder required.** Never add a flat `blog/+page.md` or put multiple posts in one folder.
+- **Register** every new post at the top of `blog/toc.ts` (`description`, `date`, `author`). See `blog-voice` skill for tone and metadata.
+- Slug: lowercase kebab-case (`graceful-edge-restarts`).
+
+## Images
+
+Co-locate images **in the post folder** next to `+page.md`. Do not put post-specific images under `static/` or a shared `blog/assets/` tree unless the asset is reused across many posts.
+
+Reference with a **relative** path (bare filename is fine):
+
+```markdown
+![Edge restart flow](edge-restart-flow.png)
+```
+
+Build/dev runs `scripts/sync-route-images.js`, which mirrors route images to `static/generated/` and `remarkRouteImages` rewrites paths for deploy.
+
+Supported: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`.
+
+Prefer descriptive filenames (`firewall-grace-period.png`) over opaque timestamps.
+
+## When the user adds images
+
+The user often drops images into the slug folder **before or after** the draft exists. When working on a post:
+
+1. **List the slug folder** for image files besides `+page.md`.
+2. If images exist and are not referenced yet, **incorporate them** into `+page.md` with sensible alt text and placement (hero near the top, diagrams beside the section they illustrate).
+3. If the article is written but images are missing, leave placeholder comments out. Do not invent image paths.
+4. After adding or renaming images, `pnpm dev:dashboard` (or build) syncs them automatically.
+
+## New post checklist
+
+1. Create `blog/{slug}/+page.md`
+2. Add images to `blog/{slug}/` as needed
+3. Wire relative `![alt](file.ext)` references in the markdown
+4. Add `toc.ts` entry at the top
