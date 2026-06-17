@@ -161,6 +161,30 @@ document.head.appendChild(
 import('/_/extensions/example/chunk.js') // dynamic import works in browser
 ```
 
+## Styling conventions (v0.37+ admin UI)
+
+The admin dashboard ships its own CSS (`/_/assets/index-*.css`). Extensions do **not** get Bootstrap/Tailwind.
+
+**Three layers:**
+
+1. **Built-in admin classes** — reuse layout/typography from the host UI: `page`, `page-content`, `page-header`, `grid`, `col-lg-6`, `label`, `txt-hint`, `txt-danger`, `flex-fill`, `m-b-base`, etc. Inspect the admin with DevTools to find names. Avoid guessing Bootstrap names (`card`, `label-success`) — they are not in the PB stylesheet.
+2. **Extension CSS** — load from `/_/extensions/{name}/style.css`. Prefer PocketBase **CSS variables** so light/dark theme works: `var(--surfaceColor)`, `var(--surfaceAlt2Color)`, `var(--successTxtColor)`, `var(--accentColor)`, `var(--spacing)`, `var(--borderRadius)`, etc.
+3. **Optional globals** — the admin page already loads **uPlot** (`/_/libs/uplot/`) and Remix Icon (`ri-*` classes) if you need charts/icons.
+
+Minimal pattern:
+
+```js
+document.head.appendChild(t.link({ rel: 'stylesheet', href: '/_/extensions/my-plugin/style.css' }))
+
+// my-plugin/style.css
+.my-panel {
+  border: 1px solid var(--surfaceAlt2Color);
+  border-radius: var(--lgBorderRadius);
+  background: var(--surfaceAlt1Color);
+  padding: var(--spacing);
+}
+```
+
 ## Data access patterns
 
 Prefer `app.pb` (inherits superuser auth from the admin session):
@@ -171,6 +195,8 @@ const rows = await app.pb.collection('users').getList(1, 50, {
   sort: '-created',
 })
 ```
+
+`app.pb` has SDK auto-cancellation enabled by default. Duplicate in-flight requests to the same collection path cancel each other (e.g. two parallel `getList` calls on `instances`). Pass `{ $autoCancel: false }` when firing concurrent reads from one view, or serialize them. Ignore `ClientResponseError 0` / "autocancelled" in catch if you debounce realtime refreshes.
 
 For custom server routes, use `app.pb.send()` (same as npm SDK).
 
