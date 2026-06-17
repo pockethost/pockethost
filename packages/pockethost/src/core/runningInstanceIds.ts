@@ -1,5 +1,6 @@
 import { execSync } from 'child_process'
 import { DOCKER_INSTANCE_IMAGE_NAME } from '../constants'
+import { isCustomerInstanceContainerName } from './dockerInstance'
 
 export const getRunningInstanceIds = (): Set<string> => {
   const ids = new Set<string>()
@@ -20,6 +21,7 @@ export const getRunningInstanceIds = (): Set<string> => {
       const name = line.slice(0, tab)
       const image = line.slice(tab + 1)
       if (!image.startsWith(imagePrefix)) continue
+      if (!isCustomerInstanceContainerName(name)) continue
       ids.add(name)
     }
   } catch {
