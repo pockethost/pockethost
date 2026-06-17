@@ -27,6 +27,7 @@ PocketBase embeds a **Goja** JavaScript engine for server-side extensions. Code 
 | **Custom routes** | `(c) =>`, `c.pathParam('id')`, path `/api/foo/:id` | `(e) =>`, `e.request.pathValue('id')`, path `/api/foo/{id}` |
 | **Record hooks** | `onRecordAfterCreateRequest`, … | `onRecordAfterCreateSuccess`, … (call `e.next()`) |
 | **Admin auth table** | `_admins` (`passwordHash`) | `_superusers` (`password`) |
+| **Admin UI plugins** | N/A | `$app.onServe()` → `e.uiExtensions` (PB ≥0.37, experimental) — **pocketbase-admin-plugins** |
 
 When in doubt, open the **JSVM reference for that version** — hook names, route handler signatures, and `$app` methods differ. For mothership v0.39 port work, read [v023-upgrade.md](v023-upgrade.md) and the [official JSVM upgrade guide](https://pocketbase.io/v023upgrade/jsvm/).
 

@@ -20,6 +20,7 @@ Official docs: https://pocketbase.io/docs/
 | Design collections, rules, auth | **pocketbase** (this skill) |
 | Browser/Node app calling PocketBase over HTTP | **pocketbase-js-sdk** |
 | Server-side hooks in `pb_hooks/*.pb.js` | **pocketbase-jsvm** |
+| Superuser admin UI extensions (PB ≥0.37) | **pocketbase-admin-plugins** |
 
 ## Core concepts
 
