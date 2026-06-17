@@ -69,7 +69,7 @@ PocketBase **watches hook JS on disk** (`pb_hooks/*.pb.js` and files loaded via 
 Operational implications:
 
 - Do not `git checkout`, rsync, or deploy while PocketBase is running if the operation swaps hook files incrementally. A mid-checkout tree can be picked up and loaded as a torn mix of old and new code.
-- **Mothership:** stop before branch switches or bulk hook deploys (e.g. `v39.sh --forward` keeps mothership stopped until checkout and `pocketbase update` finish, then `pm2 reload`).
+- **Mothership:** stop before branch switches or bulk hook deploys (e.g. `v39.sh --forward` keeps mothership stopped until checkout finishes, then `pm2 reload`).
 - **Customer instances on PocketHost:** FTP/phio deploy restarts the instance container so hooks reload from a consistent tree — different mechanism, same “don’t run torn hooks” goal.
 
 ## Hook categories
