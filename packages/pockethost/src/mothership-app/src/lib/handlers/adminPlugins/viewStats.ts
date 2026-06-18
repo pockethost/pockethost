@@ -1,3 +1,5 @@
+import { getAppStoreJson, setAppStoreJson } from '$util/appStoreJson'
+
 export const LIVE_VIEW_STATS_TOPIC = 'mothership/live/view-stats'
 
 const LIVE_VIEW_STATS_STORE_KEY = 'phLiveViewStats'
@@ -62,7 +64,7 @@ const readStatsViewRecord = (record: models.Record): LiveViewStats => {
 }
 
 export const getLiveViewStats = (): LiveViewStats | null => {
-  return $app.store().get(LIVE_VIEW_STATS_STORE_KEY) as LiveViewStats | null
+  return getAppStoreJson<LiveViewStats>(LIVE_VIEW_STATS_STORE_KEY)
 }
 
 export const refreshLiveViewStats = (): LiveViewStats | null => {
@@ -70,7 +72,7 @@ export const refreshLiveViewStats = (): LiveViewStats | null => {
   if (!record) return null
 
   const stats = readStatsViewRecord(record)
-  $app.store().set(LIVE_VIEW_STATS_STORE_KEY, stats)
+  setAppStoreJson(LIVE_VIEW_STATS_STORE_KEY, stats)
   return stats
 }
 

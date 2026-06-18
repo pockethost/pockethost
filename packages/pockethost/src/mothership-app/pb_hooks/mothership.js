@@ -1,5 +1,26 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
+//#region src/lib/util/appStoreJson.ts
+/** JSON round-trip for $app.store() — Goja objects must not cross goroutines (see PB #7737). */
+const parseAppStoreJson = (raw) => {
+	if (raw == null || raw === "") return null;
+	if (typeof raw !== "string") return null;
+	return JSON.parse(raw);
+};
+const getAppStoreJson = (key) => {
+	return parseAppStoreJson($app.store().get(key));
+};
+const setAppStoreJson = (key, value) => {
+	$app.store().set(key, JSON.stringify(value));
+};
+const updateAppStoreJson = (key, updater) => {
+	$app.store().setFunc(key, (raw) => {
+		const next = updater(parseAppStoreJson(raw));
+		return JSON.stringify(next);
+	});
+};
+
+//#endregion
 //#region src/lib/handlers/adminPlugins/viewStats.ts
 const LIVE_VIEW_STATS_TOPIC = "mothership/live/view-stats";
 const LIVE_VIEW_STATS_STORE_KEY = "phLiveViewStats";
@@ -36,13 +57,13 @@ const readStatsViewRecord = (record) => {
 	};
 };
 const getLiveViewStats = () => {
-	return $app.store().get(LIVE_VIEW_STATS_STORE_KEY);
+	return getAppStoreJson(LIVE_VIEW_STATS_STORE_KEY);
 };
 const refreshLiveViewStats = () => {
 	const record = $app.findFirstRecordByFilter("stats", "id != \"\"");
 	if (!record) return null;
 	const stats = readStatsViewRecord(record);
-	$app.store().set(LIVE_VIEW_STATS_STORE_KEY, stats);
+	setAppStoreJson(LIVE_VIEW_STATS_STORE_KEY, stats);
 	return stats;
 };
 const broadcastLiveViewStats = () => {
@@ -109,7 +130,7 @@ const countUnverifiedUsers = () => {
 	return $app.countRecords("unverified_users");
 };
 const getLivePlatformStats = () => {
-	const stats = $app.store().get(LIVE_PLATFORM_STORE_KEY);
+	const stats = getAppStoreJson(LIVE_PLATFORM_STORE_KEY);
 	if (!stats?.statusCounts) return null;
 	return stats;
 };
@@ -123,56 +144,53 @@ const recountLivePlatformStats = () => {
 		unverifiedUsers: countUnverifiedUsers(),
 		updatedAt: (/* @__PURE__ */ new Date()).toISOString()
 	};
-	$app.store().set(LIVE_PLATFORM_STORE_KEY, stats);
+	setAppStoreJson(LIVE_PLATFORM_STORE_KEY, stats);
 	return stats;
 };
+const emptyLivePlatformStats = () => ({
+	statusCounts: emptyStatusCounts(),
+	totalUsers: 0,
+	verifiedUsers: 0,
+	unverifiedUsers: 0,
+	updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+});
 const applyStatusDelta = (delta) => {
-	$app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old) => {
-		const stats = old || {
-			statusCounts: emptyStatusCounts(),
-			totalUsers: 0,
-			verifiedUsers: 0,
-			unverifiedUsers: 0,
+	updateAppStoreJson(LIVE_PLATFORM_STORE_KEY, (old) => {
+		const stats = old || emptyLivePlatformStats();
+		const statusCounts = { ...stats.statusCounts };
+		for (const key of Object.keys(delta)) {
+			const next = (statusCounts[key] || 0) + delta[key];
+			statusCounts[key] = next < 0 ? 0 : next;
+		}
+		return {
+			...stats,
+			statusCounts,
 			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
 		};
-		for (const key of Object.keys(delta)) {
-			const next = (stats.statusCounts[key] || 0) + delta[key];
-			stats.statusCounts[key] = next < 0 ? 0 : next;
-		}
-		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
-		return stats;
 	});
 };
 const applyUserDelta = (delta) => {
-	$app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old) => {
-		const stats = old || {
-			statusCounts: emptyStatusCounts(),
-			totalUsers: 0,
-			verifiedUsers: 0,
-			unverifiedUsers: 0,
+	updateAppStoreJson(LIVE_PLATFORM_STORE_KEY, (old) => {
+		const stats = old || emptyLivePlatformStats();
+		const next = stats.totalUsers + delta;
+		return {
+			...stats,
+			totalUsers: next < 0 ? 0 : next,
 			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
 		};
-		const next = stats.totalUsers + delta;
-		stats.totalUsers = next < 0 ? 0 : next;
-		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
-		return stats;
 	});
 };
 const applyVerifiedDelta = (verifiedDelta, unverifiedDelta) => {
-	$app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old) => {
-		const stats = old || {
-			statusCounts: emptyStatusCounts(),
-			totalUsers: 0,
-			verifiedUsers: 0,
-			unverifiedUsers: 0,
-			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-		};
+	updateAppStoreJson(LIVE_PLATFORM_STORE_KEY, (old) => {
+		const stats = old || emptyLivePlatformStats();
 		const nextVerified = (stats.verifiedUsers || 0) + verifiedDelta;
 		const nextUnverified = (stats.unverifiedUsers || 0) + unverifiedDelta;
-		stats.verifiedUsers = nextVerified < 0 ? 0 : nextVerified;
-		stats.unverifiedUsers = nextUnverified < 0 ? 0 : nextUnverified;
-		stats.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
-		return stats;
+		return {
+			...stats,
+			verifiedUsers: nextVerified < 0 ? 0 : nextVerified,
+			unverifiedUsers: nextUnverified < 0 ? 0 : nextUnverified,
+			updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+		};
 	});
 };
 const broadcastLivePlatformStats = () => {
