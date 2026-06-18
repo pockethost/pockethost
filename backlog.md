@@ -79,6 +79,7 @@ _Pricing/lifetime sunset: [ROADMAP.md](ROADMAP.md). **Live Jul 1** = merge `laun
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **SFTP root-folder upload QA (PocketPages + phio)** | Med | S–M | **Customer report (2026-06-17, dhuster):** `phio deploy` fails copying `package.json`; manual SFTP upload to instance root also fails, but the same file uploads into a subfolder. Repro against [PocketPages structure](https://pocketpages.dev/docs/structure) + [deploy docs](https://pocketpages.dev/docs/deploying). Exercise `phio dev`/`deploy`, interactive SFTP, and Kirkland sync on root vs nested paths (`package.json`, `pb_hooks/`, `pb_public/`). Likely SFTP/VFS regression since FTPS sunset. Skill: `.cursor/skills/phio/SKILL.md`. PocketPages and phio users can deploy without workarounds. |
 | **phio ↔ pockethost merge / rename** | Med | M–L | **Partial (2026-06-13):** phio in monorepo (`packages/phio`, pnpm); Kirkland sync vendored at `vendor/ftp-deploy/` (SFTP-only since 1.0.0). Remaining: rename server → `pockethost-server`, publish CLI as `pockethost`, npm release from monorepo. VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
 | **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** `packages/phio` covers deploy/dev/logs; full SDK + dashboard parity still open. |
@@ -223,6 +224,7 @@ SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limit
 FTPS login welcome banner ──► FTPS sunset comms (point legacy users at SFTP)
 FTPS sunset comms ──► Remove FTPS (grace period)
 phio SFTP migration (replace FTPS deploy) ──► Remove FTPS (deploy path must exist before edge-ftp drop)
+SFTP root-folder upload QA (PocketPages + phio) ──► phio SFTP migration confidence; Remove FTPS (deploy path verified)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
