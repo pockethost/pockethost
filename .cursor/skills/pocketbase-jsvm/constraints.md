@@ -48,6 +48,16 @@ onRecordBeforeCreateRequest((e) => {
 const res = $http.send({ url: 'https://api.example.com', method: 'GET' })
 ```
 
+## `$app.store()` — do not share Goja objects
+
+`$app.store()` is Go-thread-safe, but **JS objects stored in it are shared across concurrent Goja VMs**. Never `get` an object and mutate it in place. Serialize at boundaries:
+
+- **Write (delta):** `setFunc(key, (raw) => JSON.stringify(updater(raw ? JSON.parse(raw) : {})))`
+- **Write (replace):** `set(key, JSON.stringify(value))`
+- **Read:** `JSON.parse(get(key))` into a local object
+
+Full explanation and PocketHost helpers: [app-store.md](app-store.md).
+
 ## Porting Node code
 
 [pocketbase-node](https://www.npmjs.com/package/pocketbase-node) provides a subset of Node APIs compatible with JSVM. Prefer PocketBase-native APIs (`$app`, `$http`) first.

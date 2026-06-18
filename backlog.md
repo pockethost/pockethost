@@ -245,6 +245,7 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-17 | **Goja store concurrency fix** — live stats `$app.store()` JSON boundaries (`appStoreJson`, PB #7737) |
 | 2026-06-17 | **Live platform stats drift heal** — minute cron + full recount after boot idle reset, mirror sync, runtime reset |
 | 2026-06-17 | **Concurrent instance vacuum sweep** — `PH_VACUUM_MAX_CONCURRENT` (default 10) parallelizes idle DB vacuums in `edge vacuum` |
 | 2026-06-16 | **Flounder countdown (pricing page)** — days-to-July-1 banner on `/pricing`, urgent card badge, hard-deadline copy; site banner shows days left |

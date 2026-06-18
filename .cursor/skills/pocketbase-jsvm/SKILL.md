@@ -42,6 +42,7 @@ Before writing hook code, verify:
 - [ ] Use `require()` for modules (CommonJS only)
 - [ ] Use `$app` / record APIs — not `new PocketBase()`
 - [ ] External HTTP via `$http.send()` (sync), not `fetch`
+- [ ] `$app.store()` values that cross requests: **JSON.stringify/parse** at boundaries — never mutate `get()` results in place ([app-store.md](app-store.md))
 
 For full environment constraints, see [constraints.md](constraints.md).
 
@@ -235,6 +236,10 @@ import { parseSshEd25519PublicKey } from 'pockethost/common'
 // ❌ pulls unrelated common modules into pb_hooks
 import { parseSshEd25519PublicKey } from '$common'
 ```
+
+## `$app.store()` concurrency
+
+Concurrent hooks must not share live Goja objects via `$app.store()`. Use JSON string boundaries and `setFunc` for atomic read-modify-write. See [app-store.md](app-store.md).
 
 ## Examples
 

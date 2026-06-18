@@ -37,6 +37,10 @@ When `common/` modules are bundled into `pb_hooks`:
 
 Read `.cursor/skills/pocketbase-jsvm/constraints.md` before adding hook-facing common helpers.
 
+## `$app.store()` — JSON boundaries
+
+Never store or mutate plain JS objects in `$app.store()` across concurrent requests (Goja VM pool — racy panic under load). Use `JSON.stringify`/`JSON.parse` at read/write boundaries; incremental updates via `setFunc`. Mothership helper: `$util/appStoreJson` (`getAppStoreJson`, `setAppStoreJson`, `updateAppStoreJson`). Details: `.cursor/skills/pocketbase-jsvm/app-store.md`.
+
 ## Live process watches hooks
 
 PocketBase watches hook JS on disk and **reloads the JSVM when files change without exiting the process**. Stop mothership before any operation that swaps hook files on a live tree (`git checkout`, partial deploy). Reload only after the full bundle is consistent on disk (see `v39.sh --forward`).

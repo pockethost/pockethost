@@ -119,7 +119,7 @@ Live plugin uses **both**:
 
 ## Incremental vs full recount
 
-**Incremental (hooks):** cheap, realtime. Example: instance status change adjusts `$app.store()` counter by ±1, then broadcast.
+**Incremental (hooks):** cheap, realtime. Example: instance status change adjusts `$app.store()` counter by ±1, then broadcast. Store values must be **JSON strings** at VM boundaries — use `setFunc` + parse/stringify, not in-place mutation of `get()` results ([app-store.md](../pocketbase-jsvm/app-store.md); mothership: `$util/appStoreJson`).
 
 **Full recount (refresh route / boot):** corrects drift. Example: `recountLivePlatformStats()` SQL counts all statuses, replaces store, broadcast.
 
