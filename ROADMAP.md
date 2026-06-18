@@ -41,7 +41,7 @@ Today ≈ **June 16**. **Do on** = the day you do the work (or send/post). **Liv
 | **Jun 29** | **Jul 1** | `launch/3.0` | In-dashboard checkout for new tiers |
 | **Jun 30** | **Jul 1** | `launch/3.0` | Powered-on limit enforcement (Free 1 / Pro 5 / Agency 50) |
 | **Jun 30** | **Jul 1** | `launch/3.0` | Primary-volume quota enforcement (Free 1 / Pro 50 / Agency 200 GB) |
-| **Jun 30** | **Jul 1** | `launch/3.0` | Per-tier rate limits + hibernate intervals |
+| **Jun 30** | **Jul 1** | `launch/3.0` | Per-tier rate limits + hibernate intervals + dashboard rate-limit controls + IP whitelisting |
 | **Jun 30** | **Jun 30** | `ops` | Last moment to buy Flounder — EOD |
 | **Jun 30** | — | `launch/3.0` | Final rebase on `main`, CI green |
 | **Jul 1** | **Jul 1** | `launch/3.0` → `main` | Merge + deploy. Dashboard Pages + mothership PM2. Smoke test. |
@@ -84,4 +84,4 @@ Deferred: multi-region edges, GDPR, SMTP per instance, CLI/SDK parity, dockerize
 
 Update rows when shipped (✅ prefix, move detail to backlog **Done**).
 
-Last reviewed: **2026-06-16** (Flounder countdown shipped).
+Last reviewed: **2026-06-17** (rate limit controls + IP whitelisting on 3.0 docket).
