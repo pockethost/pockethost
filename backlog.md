@@ -24,7 +24,7 @@ _Mothership on PocketBase v0.39 since 2026-06-16 (one-way cutover; no v0.22 roll
 | ---- | ---- | ------ | ----- |
 | **InstanceService batch status updates** | Low | S | **Mostly done** — boot uses single `POST /api/mirror` dump (`33798411`); reconnect reconcile via `saveRecord` loop. Remaining: collapse per-spawn/shutdown status writes in `InstanceService` if v0.39 batch APIs help. |
 | **Mothership mailer admin plugin** | Low | M | **Pre** ([ROADMAP.md](ROADMAP.md)): PB admin plugin (`pb_admin_ext/mailer/`) — bulk mail editor in superuser dashboard. Compose subject/HTML body, audience filter (`campaigns.usersQuery` or view collections), recipient preview + count, queue send via existing `campaigns` / `campaign_messages` / `notifications` pipeline + `$app.newMailClient()`. Operators run pre-announce, reminder, grace-window, and FTPS sunset emails without SQL or one-off scripts. Pairs with **Mothership operator stats** for live audience sizes. Skill: `.cursor/skills/pocketbase-admin-plugins/pockethost.md`. |
-| **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting using PB v0.39 view collections — not legacy SQL views. **Partial (2026-06-17):** Live admin plugin (platform counts SSE, edge traffic sparklines, Leaflet maps), hourly `GET /stats.json`. Remaining: full view rebuild; retire dependency on `1781606400_restored_sql_views.js`. |
+| **Mothership operator stats (post-v0.39)** | Low | M | Rebuild subscriber/growth reporting using PB v0.39 view collections — not legacy SQL views. **Partial (2026-06-17):** Live admin plugin (platform counts SSE + minute DB recount heal, edge traffic sparklines, Leaflet maps), hourly `GET /stats.json`. Remaining: full view rebuild; retire dependency on `1781606400_restored_sql_views.js`. |
 | **Remove mothership-boot idle reset** | Low | S | **Keep for now** — `HandleInstancesResetIdle` forces all instances `idle` on mothership boot (assume idle until edge speaks up). Edge `POST /api/mirror` live reconcile restores warm rows on reconnect. Brief idle flash on mothership-only restart is acceptable. Remove only after Phase 2 lease or container witness (Icebox). |
 | **Post-daemon-restart spawn throttle** | Low | S | Cold-start instances (not reattached on boot) can spike concurrently after daemon restart. Today `PH_MAX_CONCURRENT_DOCKER_LAUNCHES=5` (Bottleneck). Consider defaulting cap to CPU count or a tuned fleet value so large cold-start bursts do not thrash disk/CPU. Distinct from firewall grace (absorbs daemon bind window only). Warm containers are preserved across daemon SIGTERM (2026-06-17). |
 | **User-controlled rate limiting & IP whitelisting** | Med | L | Expose firewall/rate-limiter knobs per user or instance (today: trusted/untrusted IPs + hostname limits in `rate-limiter.ts`). Dashboard UI + mothership schema + edge config propagation. |
@@ -79,6 +79,7 @@ _Pricing/lifetime sunset: [ROADMAP.md](ROADMAP.md). **Live Jul 1** = merge `laun
 
 | Item | Risk | Effort | Notes |
 | ---- | ---- | ------ | ----- |
+| **SFTP root-folder upload QA (PocketPages + phio)** | Med | S–M | **Customer report (2026-06-17, dhuster):** `phio deploy` fails copying `package.json`; manual SFTP upload to instance root also fails, but the same file uploads into a subfolder. Repro against [PocketPages structure](https://pocketpages.dev/docs/structure) + [deploy docs](https://pocketpages.dev/docs/deploying). Exercise `phio dev`/`deploy`, interactive SFTP, and Kirkland sync on root vs nested paths (`package.json`, `pb_hooks/`, `pb_public/`). Likely SFTP/VFS regression since FTPS sunset. Skill: `.cursor/skills/phio/SKILL.md`. PocketPages and phio users can deploy without workarounds. |
 | **phio ↔ pockethost merge / rename** | Med | M–L | **Partial (2026-06-13):** phio in monorepo (`packages/phio`, pnpm); Kirkland sync vendored at `vendor/ftp-deploy/` (SFTP-only since 1.0.0). Remaining: rename server → `pockethost-server`, publish CLI as `pockethost`, npm release from monorepo. VFS/FTPS/SFTP changes must pass phio compatibility (`.cursor/skills/phio/SKILL.md`). |
 | **PH_* env var consolidation** | Med | M | Standardize settings/env on `PH_*` where sensible (`MOTHERSHIP_*`, `APEX_DOMAIN`, `DAEMON_*`, etc. in `constants.ts` + `.env-template`). Migration aliases + MEMORY/docs update; avoid breaking prod deploys without deprecation window. |
 | **PocketHost CLI & TS/JS SDK** | Med | L–XL | Terminal + programmatic API for most dashboard operations (instances, power, secrets, hooks deploy). `watch` mode: local file changes → remote sync (dev loop without manual FTP/dashboard uploads). SDK may backport into dashboard client layer. Developers automate hosting and iterate locally against remote instances. **Partial:** `packages/phio` covers deploy/dev/logs; full SDK + dashboard parity still open. |
@@ -149,7 +150,7 @@ _Worth tracking; not scheduled. Revisit when backlog thins or demand appears._
 
 ### Dependency diet (keep vs replace)
 
-- **Keep (core):** `dockerode`, `semver`, `rate-limiter-flexible`, `ip-cidr`, `ftp-srv` fork, `pocketbase`, `@microsoft/fetch-event-source` fork, `commander`, `cron`, `Bottleneck`, `http-proxy`/`http-proxy-middleware`, `better-sqlite3` (sendmail), `node-os-utils` (health).
+- **Keep (core):** `dockerode`, `semver`, `rate-limiter-flexible`, `ip-cidr`, `ftp-srv` fork, `pocketbase`, `@microsoft/fetch-event-source` fork, `commander`, `cron`, `Bottleneck`, `httpxy`/`http-proxy-middleware`, `better-sqlite3` (sendmail), `node-os-utils` (health).
 - **Do not drop without replacement:** firewall rate limiting, CIDR checks, container lifecycle, FTPS (until **FTPS sunset comms** grace period, then **Remove FTPS**).
 - **Hoist/dedupe (minor):** `tsx` (root + pockethost), `wrangler` (root + dashboard) — no functional change.
 
@@ -223,6 +224,7 @@ SMTP ──► abuse monitoring + rate limits (may overlap user-controlled limit
 FTPS login welcome banner ──► FTPS sunset comms (point legacy users at SFTP)
 FTPS sunset comms ──► Remove FTPS (grace period)
 phio SFTP migration (replace FTPS deploy) ──► Remove FTPS (deploy path must exist before edge-ftp drop)
+SFTP root-folder upload QA (PocketPages + phio) ──► phio SFTP migration confidence; Remove FTPS (deploy path verified)
 S3-default file storage ──► sqlite-only volumes; leaner PB backups
 S3-default file storage ──► Rclone tiered instance data cache (cold tier target)
 S3-default file storage ──► S3 redirect for file downloads (more instances on S3 → more egress savings)
@@ -245,6 +247,8 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-17 | **Goja store concurrency fix** — live stats `$app.store()` JSON boundaries (`appStoreJson`, PB #7737) |
+| 2026-06-17 | **Live platform stats drift heal** — minute cron + full recount after boot idle reset, mirror sync, runtime reset |
 | 2026-06-17 | **Concurrent instance vacuum sweep** — `PH_VACUUM_MAX_CONCURRENT` (default 10) parallelizes idle DB vacuums in `edge vacuum` |
 | 2026-06-16 | **Flounder countdown (pricing page)** — days-to-July-1 banner on `/pricing`, urgent card badge, hard-deadline copy; site banner shows days left |
 | 2026-06-17 | **Best-effort admin sync on spawn** — instance launches when mothership token fetch fails; admin creds from last successful sync |

@@ -88,6 +88,7 @@ export async function mothership({ logger }: MothershipConfig) {
 
   if (pb.needsContainerRuntime()) {
     info(`Starting mothership in Docker (${pb.platform.os}_${pb.platform.arch})`)
+    let shuttingDown = false
     const binPath = await pb.ensureBinary(MOTHERSHIP_SEMVER())
     const container = await spawnPocketBaseContainer({
       binPath,
@@ -105,21 +106,28 @@ export async function mothership({ logger }: MothershipConfig) {
       name: MOTHERSHIP_CONTAINER_NAME,
       onStdout: (chunk) => logLines(chunk.split('\n'), info),
       onStderr: (chunk) => logLines(chunk.split('\n'), error),
-      onExit: (code) => error(`Pocketbase exited with code ${code}`),
+      onExit: (code) => {
+        error(`Pocketbase exited with code ${code}`)
+        if (!shuttingDown) process.exit(code || 1)
+      },
     })
     process.on('SIGINT', () => {
+      shuttingDown = true
       rmNamedContainerSync(MOTHERSHIP_CONTAINER_NAME)
     })
     exitHook(() => {
+      shuttingDown = true
       rmNamedContainerSync(MOTHERSHIP_CONTAINER_NAME)
     })
     asyncExitHook(
       async () => {
+        shuttingDown = true
         await container.kill()
       },
       (PH_CONTAINER_STOP_TIMEOUT_SEC() + 2) * 1000
     )
   } else {
+    let shuttingDown = false
     pb.run(
       MOTHERSHIP_SEMVER(),
       [
@@ -140,16 +148,16 @@ export async function mothership({ logger }: MothershipConfig) {
       (proc) => {
         proc.stdout?.on('data', (data) => logLines(data.toString().split(`\n`), info))
         proc.stderr?.on('data', (data) => logLines(data.toString().split(`\n`), error))
-        proc.on('close', (code, signal) => {
+        proc.once(`exit`, (code, signal) => {
           error(`Pocketbase exited with code ${code} and signal ${signal}`)
+          if (!shuttingDown) process.exit(code ?? 1)
         })
-        proc.on('error', (err) => {
+        proc.once(`error`, (err) => {
           error(`Pocketbase error: ${err}`)
-        })
-        proc.on('exit', (code, signal) => {
-          error(`Pocketbase exited with code ${code} and signal ${signal}`)
+          if (!shuttingDown) process.exit(1)
         })
         exitHook(() => {
+          shuttingDown = true
           proc.kill()
         })
       }

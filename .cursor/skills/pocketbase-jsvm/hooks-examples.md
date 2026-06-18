@@ -116,6 +116,27 @@ cronAdd('cleanup', '0 3 * * *', () => {
 })
 ```
 
+## `$app.store()` counter (concurrent-safe)
+
+See [app-store.md](app-store.md) for why JSON boundaries are required.
+
+```js
+const STORE_KEY = 'myCounter'
+
+const bumpCounter = (delta) => {
+  $app.store().setFunc(STORE_KEY, (raw) => {
+    const n = raw ? JSON.parse(raw) : { count: 0 }
+    n.count = Math.max(0, (n.count || 0) + delta)
+    return JSON.stringify(n)
+  })
+}
+
+const readCounter = () => {
+  const raw = $app.store().get(STORE_KEY)
+  return raw ? JSON.parse(raw) : null
+}
+```
+
 ## PocketHost docs source
 
 More examples: `packages/dashboard/src/routes/(static)/docs/hooks.md`

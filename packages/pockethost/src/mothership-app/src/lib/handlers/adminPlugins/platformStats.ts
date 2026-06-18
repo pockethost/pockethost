@@ -1,3 +1,4 @@
+import { getAppStoreJson, setAppStoreJson, updateAppStoreJson } from '$util/appStoreJson'
 import { refreshAndBroadcastLiveViewStats } from './viewStats'
 
 export const LIVE_PLATFORM_TOPIC = 'mothership/live/platform'
@@ -42,7 +43,7 @@ const countUnverifiedUsers = (): number => {
 }
 
 export const getLivePlatformStats = (): LivePlatformStats | null => {
-  const stats = $app.store().get(LIVE_PLATFORM_STORE_KEY) as LivePlatformStats | null
+  const stats = getAppStoreJson<LivePlatformStats>(LIVE_PLATFORM_STORE_KEY)
   if (!stats?.statusCounts) return null
   return stats
 }
@@ -61,63 +62,61 @@ export const recountLivePlatformStats = (): LivePlatformStats => {
     updatedAt: new Date().toISOString(),
   }
 
-  $app.store().set(LIVE_PLATFORM_STORE_KEY, stats)
+  setAppStoreJson(LIVE_PLATFORM_STORE_KEY, stats)
   return stats
 }
 
+const emptyLivePlatformStats = (): LivePlatformStats => ({
+  statusCounts: emptyStatusCounts(),
+  totalUsers: 0,
+  verifiedUsers: 0,
+  unverifiedUsers: 0,
+  updatedAt: new Date().toISOString(),
+})
+
 const applyStatusDelta = (delta: Record<string, number>) => {
-  $app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old: LivePlatformStats | null) => {
-    const stats = old || {
-      statusCounts: emptyStatusCounts(),
-      totalUsers: 0,
-      verifiedUsers: 0,
-      unverifiedUsers: 0,
-      updatedAt: new Date().toISOString(),
-    }
+  updateAppStoreJson<LivePlatformStats>(LIVE_PLATFORM_STORE_KEY, (old) => {
+    const stats = old || emptyLivePlatformStats()
+    const statusCounts = { ...stats.statusCounts }
 
     for (const key of Object.keys(delta)) {
-      const next = (stats.statusCounts[key] || 0) + delta[key]
-      stats.statusCounts[key] = next < 0 ? 0 : next
+      const next = (statusCounts[key] || 0) + delta[key]
+      statusCounts[key] = next < 0 ? 0 : next
     }
 
-    stats.updatedAt = new Date().toISOString()
-    return stats
+    return {
+      ...stats,
+      statusCounts,
+      updatedAt: new Date().toISOString(),
+    }
   })
 }
 
 const applyUserDelta = (delta: number) => {
-  $app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old: LivePlatformStats | null) => {
-    const stats = old || {
-      statusCounts: emptyStatusCounts(),
-      totalUsers: 0,
-      verifiedUsers: 0,
-      unverifiedUsers: 0,
+  updateAppStoreJson<LivePlatformStats>(LIVE_PLATFORM_STORE_KEY, (old) => {
+    const stats = old || emptyLivePlatformStats()
+    const next = stats.totalUsers + delta
+
+    return {
+      ...stats,
+      totalUsers: next < 0 ? 0 : next,
       updatedAt: new Date().toISOString(),
     }
-
-    const next = stats.totalUsers + delta
-    stats.totalUsers = next < 0 ? 0 : next
-    stats.updatedAt = new Date().toISOString()
-    return stats
   })
 }
 
 const applyVerifiedDelta = (verifiedDelta: number, unverifiedDelta: number) => {
-  $app.store().setFunc(LIVE_PLATFORM_STORE_KEY, (old: LivePlatformStats | null) => {
-    const stats = old || {
-      statusCounts: emptyStatusCounts(),
-      totalUsers: 0,
-      verifiedUsers: 0,
-      unverifiedUsers: 0,
-      updatedAt: new Date().toISOString(),
-    }
-
+  updateAppStoreJson<LivePlatformStats>(LIVE_PLATFORM_STORE_KEY, (old) => {
+    const stats = old || emptyLivePlatformStats()
     const nextVerified = (stats.verifiedUsers || 0) + verifiedDelta
     const nextUnverified = (stats.unverifiedUsers || 0) + unverifiedDelta
-    stats.verifiedUsers = nextVerified < 0 ? 0 : nextVerified
-    stats.unverifiedUsers = nextUnverified < 0 ? 0 : nextUnverified
-    stats.updatedAt = new Date().toISOString()
-    return stats
+
+    return {
+      ...stats,
+      verifiedUsers: nextVerified < 0 ? 0 : nextVerified,
+      unverifiedUsers: nextUnverified < 0 ? 0 : nextUnverified,
+      updatedAt: new Date().toISOString(),
+    }
   })
 }
 
@@ -164,9 +163,19 @@ export const initLivePlatformStatsAtBoot = () => {
   recountLivePlatformStats()
 }
 
-export const HandleLivePlatformRefresh = (e: core.RequestEvent) => {
+/** Full DB recount + SSE broadcast. Safety net for incremental drift (mirror bulk reset, missed hooks). */
+export const refreshAndBroadcastLivePlatformStats = () => {
   const stats = recountLivePlatformStats()
   broadcastLivePlatformStats()
+  return stats
+}
+
+export const handleLivePlatformStatsCron = () => {
+  refreshAndBroadcastLivePlatformStats()
+}
+
+export const HandleLivePlatformRefresh = (e: core.RequestEvent) => {
+  const stats = refreshAndBroadcastLivePlatformStats()
   refreshAndBroadcastLiveViewStats()
   return e.json(200, stats)
 }

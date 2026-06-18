@@ -10,6 +10,10 @@ const CONSOLE_METHODS = {
   [LogLevelName.Abort]: console.error,
 }
 
+function utcTimestamp(): string {
+  return new Date().toISOString()
+}
+
 function formatArg(arg: any): any {
   if (arg instanceof Error) {
     return arg.stack ?? arg.message
@@ -38,7 +42,7 @@ export function ConsoleLogger(initialConfig: Partial<LoggerConfig> = {}): Logger
   function log(level: LogLevelName, args: any[]) {
     if (isLevelGte(level, config.level)) {
       const formattedArgs = args.map(formatArg)
-      CONSOLE_METHODS[level](`[${level.toUpperCase()}]`, ...withBreadcrumbs(formattedArgs))
+      CONSOLE_METHODS[level](`[${utcTimestamp()}]`, `[${level.toUpperCase()}]`, ...withBreadcrumbs(formattedArgs))
     }
   }
 

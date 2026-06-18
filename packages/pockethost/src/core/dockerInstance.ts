@@ -1,6 +1,11 @@
 import Docker, { ContainerInspectInfo } from 'dockerode'
 import { DOCKER_INSTANCE_IMAGE_NAME, MOTHERSHIP_CONTAINER_NAME } from '../constants'
-import { isDockerContainerConflict, isDockerContainerNotFound, systemError } from './phError'
+import {
+  isDockerContainerConflict,
+  isDockerContainerNotFound,
+  isDockerContainerStopBenign,
+  systemError,
+} from './phError'
 
 const DOCKER_CONTAINER_REMOVAL_WAIT_MS = 5000
 const DOCKER_CONTAINER_REMOVAL_POLL_MS = 100
@@ -70,9 +75,9 @@ export const stopInstanceContainer = async (instanceId: string, stopTimeoutSec: 
   const docker = new Docker()
   const container = docker.getContainer(instanceContainerName(instanceId))
   await container.stop({ signal: 'SIGINT', t: stopTimeoutSec }).catch(async (e) => {
-    if (isDockerContainerNotFound(e)) return
+    if (isDockerContainerStopBenign(e)) return
     await container.kill().catch((killErr) => {
-      if (!isDockerContainerNotFound(killErr)) throw killErr
+      if (!isDockerContainerStopBenign(killErr)) throw killErr
     })
   })
 }
@@ -101,7 +106,7 @@ export const removeNamedContainer = async (docker: Docker, name: string, stopTim
     const info = await container.inspect()
     if (info.State.Running) {
       await container.stop({ signal: 'SIGINT', t: stopTimeoutSec }).catch((e) => {
-        if (isDockerContainerNotFound(e) || isDockerContainerConflict(e)) return
+        if (isDockerContainerStopBenign(e) || isDockerContainerConflict(e)) return
         throw e
       })
     }
