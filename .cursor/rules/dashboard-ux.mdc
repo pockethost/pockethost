@@ -22,6 +22,7 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 - Reuse existing patterns: `TabbedFeatureLayout`, `FeatureTab`, `QuickReference`, `AlertBar`, `wa-callout-*`, `wa-card-*`, grid form layouts.
 - Prefer compact rows and aligned controls over stacked prose blocks.
 - Error hints: one short line near the field, not a tutorial.
+- **Required field markers:** Use an external `<label class="auth-label">` (or `.field-label`) plus `required` on the control. Do **not** put `required` on `wa-input`/`wa-select`/`wa-textarea` without also setting its `label` attribute — WA renders a stray asterisk on a separate line below your label. External-label forms rely on `authForm.css` / `webawesome-overrides.css` to hide the internal label row and show `*` inline on the external label via `:has()`. Prefer `wa-input label="…" required` when the WA built-in label is enough.
 
 ## Anti-patterns
 
@@ -30,6 +31,7 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 - Multiple `wa-callout` blocks before the user can do anything
 - Putting `PowerOffRequired` or API errors in `cta` instead of `FeatureTab` alerts / `powerOffAction`
 - Adding explanatory `<h3>` + paragraph when the page title or breadcrumb already sets context
+- `required` on `wa-input` / `wa-select` / `wa-textarea` with a separate external label (orphan asterisk on its own line)
 
 ## Docs vs app
 

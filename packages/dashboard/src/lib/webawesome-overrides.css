@@ -551,6 +551,23 @@ wa-input.wa-input-error::part(base):focus-within {
   box-shadow: 0 0 0 2px rgb(239 68 68 / 0.25);
 }
 
+/* External labels (auth-label, field-label): hide WA's empty internal label row.
+   Without [label], required wa-* still render form-control-label + ::after asterisk on its own line. */
+wa-input:not([label])::part(form-control-label),
+wa-select:not([label])::part(form-control-label),
+wa-textarea:not([label])::part(form-control-label) {
+  display: none;
+}
+
+.field:has(> wa-input[required], > wa-textarea[required], > wa-select[required]) > .field-label::after,
+.field:has(> wa-input[required], > wa-textarea[required], > wa-select[required])
+  > .field-label-row
+  > .field-label::after {
+  content: '*';
+  margin-inline-start: 0.25em;
+  color: #f87171;
+}
+
 /* ---- wa-select (TW utilities fail on shadow parts) ---- */
 wa-select {
   display: block;
