@@ -80,12 +80,39 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const vacuumLocks = await VacuumLockService(config)
   vacuumLocks.registerIsLive((id) => Boolean(instanceApis[id]))
 
+  const markInstanceIdle = async (id: InstanceId, reason: string) => {
+    try {
+      await client.updateInstance(id, { status: InstanceStatus.Idle })
+      dbg(`Marked ${id} idle (${reason})`)
+    } catch {
+      warn(
+        `Could not update instance fields for ${id}; status will catch up if still running when mothership returns (mothership boot resets all instances to idle)`
+      )
+    }
+  }
+
   const shutdownRunningInstance = async (id: InstanceId, reason: string) => {
     const pending = instanceApis[id]
     if (!pending) return
     dbg(`Shutting down ${id}: ${reason}`)
     const api = await pending
     api.shutdown()
+  }
+
+  const handlePowerOff = async (instance: InstanceFields) => {
+    const { id, status } = instance
+    if (status === InstanceStatus.Idle) return
+
+    const pending = instanceApis[id]
+    if (pending) {
+      dbg(`Shutting down ${id}: power off`)
+      const api = await pending
+      api.shutdown()
+      return
+    }
+
+    dbg(`No live instance for ${id} on power off; marking idle`)
+    await markInstanceIdle(id, 'power off')
   }
 
   const resolveLiveStatus = async (
@@ -337,8 +364,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   mirror.onInstanceUpserted((instance) => {
     if (!instance.power) {
-      shutdownRunningInstance(instance.id, 'power off').catch((e) => {
-        error(`Error shutting down ${instance.id} on power off`, { e })
+      handlePowerOff(instance).catch((e) => {
+        error(`Error handling power off for ${instance.id}`, { e })
       })
     }
   })
