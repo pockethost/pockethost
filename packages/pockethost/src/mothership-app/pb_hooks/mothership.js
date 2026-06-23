@@ -1189,6 +1189,35 @@ const HandleUserWelcomeMessage = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/outpost/api/HandleOutpostUnsubscribe.ts
+const HandleOutpostUnsubscribe = (e) => {
+	const audit = mkAudit(mkLog(`unsubscribe`), $app);
+	const id = e.request.url.query().get("e");
+	try {
+		const record = $app.findRecordById("users", id);
+		record.set(`unsubscribe`, true);
+		$app.save(record);
+		const email = record.getString("email");
+		audit("UNSUBSCRIBE", "", {
+			email,
+			user: id
+		});
+		$app.newMailClient().send(new MailerMessage({
+			from: {
+				address: $app.settings().meta.senderAddress,
+				name: $app.settings().meta.senderName
+			},
+			to: [{ address: `ben@benallfree.com` }],
+			subject: `UNSUBSCRIBE ${email}`
+		}));
+		return e.html(200, `<p>${email} has been unsubscribed.`);
+	} catch (_err) {
+		audit("UNSUBSCRIBE_ERR", `User ${id} not found`);
+		return e.html(200, `<p>Looks like you're already unsubscribed.`);
+	}
+};
+
+//#endregion
 //#region src/lib/handlers/signup/error.ts
 const error = (fieldName, slug, description, extra) => new ApiError(500, description, {
 	[fieldName]: new ValidationError(slug, description),
@@ -3600,6 +3629,7 @@ exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
 exports.HandleMirrorData = HandleMirrorData;
 exports.HandleMirrorSync = HandleMirrorSync;
+exports.HandleOutpostUnsubscribe = HandleOutpostUnsubscribe;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;
