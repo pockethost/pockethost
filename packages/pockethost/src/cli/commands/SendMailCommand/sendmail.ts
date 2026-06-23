@@ -23,6 +23,12 @@ function myParseInt(value: string) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+type BulkMailUser = UserFields & { unsubscribe?: boolean | number }
+
+function canReceiveBulkMail(user: BulkMailUser): boolean {
+  return Boolean(user.verified) && !Boolean(user.unsubscribe)
+}
+
 export const SendMailCommand = () =>
   new Command(`send`)
     .description(`Send a PocketHost bulk mail`)
@@ -86,9 +92,15 @@ export const SendMailCommand = () =>
         fields: `user`,
       })
       const sentUserIds = new Set(sentRecords.map((r) => r.user))
-      const users = candidates.filter((u) => !sentUserIds.has(u.id)).slice(0, limit)
+      const eligible = candidates.filter((u) => !sentUserIds.has(u.id) && canReceiveBulkMail(u as BulkMailUser))
+      const skippedSuppressed = candidates.filter(
+        (u) => !sentUserIds.has(u.id) && !canReceiveBulkMail(u as BulkMailUser)
+      ).length
+      const users = eligible.slice(0, limit)
 
-      info(`${users.length} recipient(s) (${sentUserIds.size} already sent)`)
+      info(
+        `${users.length} recipient(s) (${sentUserIds.size} already sent, ${skippedSuppressed} suppressed/unverified skipped)`
+      )
 
       const auth = <T>(fn: () => Promise<T>) => withAdminAuthRetry(client, adminEmail, adminPassword, fn)
 
@@ -120,16 +132,16 @@ export const SendMailCommand = () =>
 
         try {
           await auth(async () => {
-            await client.send(`/api/mail`, {
+            const res = (await client.send(`/api/mail`, {
               method: 'POST',
               body: {
                 to: user.email,
                 subject,
                 body: `${body}<hr/>[[<a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
               },
-            })
+            })) as { status?: string }
 
-            if (confirm) {
+            if (confirm && (res?.status === 'ok' || res?.status === 'skipped')) {
               await recordSent(user.id)
             }
           })

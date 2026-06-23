@@ -1,4 +1,5 @@
 import { Logger, interpolateString } from './Logger'
+import { mailRecipientSkipReason } from './mailRecipient'
 
 export const mkNotificationProcessor =
   (log: Logger, app: core.App, test = false) =>
@@ -24,6 +25,15 @@ export const mkNotificationProcessor =
     log({ channel, messageTemplateRec, userRec, vars, to, subject, html })
     switch (channel) {
       case `email`:
+        const skipReason = mailRecipientSkipReason(userRec)
+        if (skipReason) {
+          log(`skipped email to ${to}: ${skipReason}`)
+          if (!test) {
+            notificationRec.set(`delivered`, new DateTime())
+            app.save(notificationRec)
+          }
+          break
+        }
         /** @type {Partial<mailer.Message_In>} */
         const msgArgs = {
           from: {
