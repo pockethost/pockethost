@@ -22,6 +22,7 @@
     <a href="/pricing" class="site-nav-link site-nav-link--menu">Pricing</a>
     <a href="/blog" class="site-nav-link site-nav-link--menu">Blog</a>
     <a href="/docs" class="site-nav-link site-nav-link--menu">Docs</a>
+    <a href="/support" class="site-nav-link site-nav-link--menu">Support</a>
     <UserLoggedOut>
       <a href="/about" class="site-nav-link site-nav-link--menu">About</a>
     </UserLoggedOut>
@@ -37,6 +38,7 @@
     <a href="/pricing" class="site-nav-link">Pricing</a>
     <a href="/blog" class="site-nav-link">Blog</a>
     <a href="/docs" class="site-nav-link">Docs</a>
+    <a href="/support" class="site-nav-link">Support</a>
     <UserLoggedOut>
       <a href="/about" class="site-nav-link">About</a>
     </UserLoggedOut>
