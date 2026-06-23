@@ -2,6 +2,7 @@
   import { page } from '$app/stores'
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
+  import { authInputAutofill } from '$lib/authInputAutofill'
 
   const { requestPasswordResetConfirm } = client()
 
@@ -47,20 +48,21 @@
 
 <div class="w-full flex items-center justify-center px-4 md:px-16 py-10 md:py-16">
   <div class="auth-card w-full max-w-md">
-    <form class="auth-form" onsubmit={handleSubmit}>
+    <form class="auth-form" method="post" autocomplete="on" onsubmit={handleSubmit}>
       <h2 class="auth-form-title">New Password</h2>
 
       <div class="auth-field-group">
         <label class="auth-label" for="password">New Password</label>
-        <wa-input
+        <input
           type="password"
           id="password"
-          value={password}
-          oninput={(e: Event) => (password = (e.currentTarget as HTMLInputElement).value)}
-          required
+          name="password"
+          class="auth-field"
           autocomplete="new-password"
-          class="w-full"
-        ></wa-input>
+          bind:value={password}
+          use:authInputAutofill
+          required
+        />
       </div>
 
       {#each formErrors as error}
