@@ -9,6 +9,8 @@ import {
   exitHook,
   IS_DEV,
   Logger,
+  LS_API_KEY,
+  LS_STORE_ID,
   LS_WEBHOOK_SECRET,
   mkContainerHomePath,
   MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
@@ -42,6 +44,8 @@ export async function mothership({ logger }: MothershipConfig) {
   const env = Object.fromEntries(
     Object.entries({
       LS_WEBHOOK_SECRET: LS_WEBHOOK_SECRET(),
+      LS_API_KEY: LS_API_KEY(),
+      LS_STORE_ID: LS_STORE_ID(),
       DISCORD_TEST_CHANNEL_URL: DISCORD_TEST_CHANNEL_URL(),
       DISCORD_STREAM_CHANNEL_URL: DISCORD_STREAM_CHANNEL_URL(),
       DISCORD_HEALTH_CHANNEL_URL: DISCORD_HEALTH_CHANNEL_URL(),

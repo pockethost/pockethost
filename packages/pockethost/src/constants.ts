@@ -151,6 +151,8 @@ export const createSettings = () => ({
   TEST_EMAIL: mkString(),
 
   LS_WEBHOOK_SECRET: mkString(''),
+  LS_API_KEY: mkString(''),
+  LS_STORE_ID: mkString(''),
 
   SYSLOGD_PORT: mkNumber(6514),
 
@@ -262,6 +264,8 @@ export const MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID = () => settings().MOTHERSHIP_CLOU
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
 export const LS_WEBHOOK_SECRET = () => settings().LS_WEBHOOK_SECRET
+export const LS_API_KEY = () => settings().LS_API_KEY
+export const LS_STORE_ID = () => settings().LS_STORE_ID
 
 export const SYSLOGD_PORT = () => settings().SYSLOGD_PORT
 
@@ -339,6 +343,8 @@ export const logConstants = () => {
     DISCORD_STREAM_CHANNEL_URL,
     TEST_EMAIL,
     LS_WEBHOOK_SECRET,
+    LS_API_KEY,
+    LS_STORE_ID,
     SYSLOGD_PORT,
     DOCKER_CONTAINER_HOST,
     DOCKER_INSTANCE_IMAGE_NAME,

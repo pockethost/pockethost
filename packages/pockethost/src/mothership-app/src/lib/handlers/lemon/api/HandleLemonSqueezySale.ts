@@ -1,3 +1,4 @@
+import { FLOUNDER_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID, LEMON_SQUEEZY_PV_IDS } from '$common/lemonSqueezy'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
@@ -124,27 +125,9 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0
     log(`quantity ok`, context.quantity)
 
-    const FLOUNDER_ANNUAL_PV_ID = `367781-200790`
-    const FLOUNDER_LIFETIME_PV_ID = `306534-441845`
-    const PRO_MONTHLY_PV_ID = `159790-200788`
-    const PRO_ANNUAL_PV_ID = `159791-200789`
-    const FOUNDER_ANNUAL_PV_ID = `159792-200790`
-    const PAYWALL_INSTANCE_MONTHLY_PV_ID = `424532-651625`
-    const PAYWALL_FLOUNDER_PV_ID = `424532-651627`
-
     const pv_id = `${context.product_id}-${context.variant_id}`
 
-    if (
-      ![
-        FLOUNDER_ANNUAL_PV_ID,
-        FLOUNDER_LIFETIME_PV_ID,
-        PRO_MONTHLY_PV_ID,
-        PRO_ANNUAL_PV_ID,
-        FOUNDER_ANNUAL_PV_ID,
-        PAYWALL_INSTANCE_MONTHLY_PV_ID,
-        PAYWALL_FLOUNDER_PV_ID,
-      ].includes(pv_id)
-    ) {
+    if (!LEMON_SQUEEZY_PV_IDS.includes(pv_id as (typeof LEMON_SQUEEZY_PV_IDS)[number])) {
       throw new Error(`Product and variant not found: ${pv_id}`)
     }
 
@@ -180,47 +163,15 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     }
 
     const product_handler_map = {
-      // Founder's annual
-      [FOUNDER_ANNUAL_PV_ID]: () => {
-        userRec.set(`subscription`, `founder`)
-        userRec.set(`subscription_interval`, `year`)
-        userRec.set(`subscription_quantity`, 2147483647)
-      },
-      // Pro annual
-      [PRO_ANNUAL_PV_ID]: () => {
-        userRec.set(`subscription`, `premium`)
-        userRec.set(`subscription_interval`, `year`)
-        userRec.set(`subscription_quantity`, 250)
-      },
-      // Pro monthly
-      [PRO_MONTHLY_PV_ID]: () => {
-        userRec.set(`subscription`, `premium`)
-        userRec.set(`subscription_interval`, `month`)
-        userRec.set(`subscription_quantity`, 250)
-      },
-      // Flounder lifetime
       [FLOUNDER_LIFETIME_PV_ID]: () => {
         userRec.set(`subscription`, `flounder`)
         userRec.set(`subscription_interval`, `life`)
         userRec.set(`subscription_quantity`, 250)
       },
-      // Flounder annual
-      [FLOUNDER_ANNUAL_PV_ID]: () => {
-        userRec.set(`subscription`, `flounder`)
-        userRec.set(`subscription_interval`, `year`)
-        userRec.set(`subscription_quantity`, 250)
-      },
-      // Paywall instance
-      [PAYWALL_INSTANCE_MONTHLY_PV_ID]: () => {
+      [INSTANCE_MONTHLY_PV_ID]: () => {
         userRec.set(`subscription`, `premium`)
         userRec.set(`subscription_interval`, `month`)
         userRec.set(`subscription_quantity`, context.quantity)
-      },
-      // Paywall flounder
-      [PAYWALL_FLOUNDER_PV_ID]: () => {
-        userRec.set(`subscription`, `flounder`)
-        userRec.set(`subscription_interval`, `life`)
-        userRec.set(`subscription_quantity`, 250)
       },
     } as const
 

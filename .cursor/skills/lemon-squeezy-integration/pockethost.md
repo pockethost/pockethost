@@ -6,12 +6,12 @@ Repo-specific integration points. Generic LS docs are in the other reference fil
 
 | Concern | Path |
 |---------|------|
+| Product ids | `packages/pockethost/src/common/lemonSqueezy.ts` |
+| Checkout API | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts` |
 | Webhook handler | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts` |
 | Route registration | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/hooks.ts` |
-| Env constant | `packages/pockethost/src/constants.ts` → `LS_WEBHOOK_SECRET` |
-| Lemon.js types | `packages/dashboard/src/lemonsqueezy.d.ts` |
-| Pricing cards | `packages/dashboard/src/components/FlounderCard.svelte`, `FounderCard.svelte` |
-| Pricing UI | `packages/dashboard/src/components/PricingCard.svelte` |
+| Env constants | `packages/pockethost/src/constants.ts` → `LS_WEBHOOK_SECRET`, `LS_API_KEY`, `LS_STORE_ID` |
+| Dashboard checkout client | `packages/dashboard/src/util/lemonsqueezy.ts` |
 | Signup/pricing CTAs | `packages/dashboard/src/routes/(static)/pricing/SignupBox.svelte`, `CTAButton.svelte` |
 | Billing portal link | `packages/dashboard/src/routes/(app)/account/+page.svelte` |
 
@@ -21,9 +21,21 @@ Repo-specific integration points. Generic LS docs are in the other reference fil
 POST /api/ls
 ```
 
+## Checkout endpoint (auth required)
+
+```
+POST /api/ls/checkout
+```
+
+Body: `{ "pvId": "424532-651625" }` (see `common/lemonSqueezy.ts`). Returns `{ "url": "..." }` from Lemon Squeezy API.
+
 Registered in `hooks.ts`:
 
 ```typescript
+routerAdd('POST', '/api/ls/checkout', (e) => {
+  return require(`${__hooks}/mothership`).HandleLemonSqueezyCheckout(e)
+}, $apis.requireAuth())
+
 routerAdd('POST', '/api/ls', (c) => {
   return require(`${__hooks}/mothership`).HandleLemonSqueezySale(c)
 })
@@ -34,8 +46,8 @@ routerAdd('POST', '/api/ls', (c) => {
 | Variable | Purpose |
 |----------|---------|
 | `LS_WEBHOOK_SECRET` | Webhook HMAC signing secret |
-
-No `LEMONSQUEEZY_API_KEY` in repo yet — checkout uses static dashboard URLs, not dynamic API checkouts.
+| `LS_API_KEY` | Lemon Squeezy API key (checkout creation) |
+| `LS_STORE_ID` | Lemon Squeezy store id |
 
 ## Signature verification
 
@@ -64,19 +76,16 @@ Other events throw `Unsupported event`.
 
 ## Product / variant allowlist
 
+Shared constants: `packages/pockethost/src/common/lemonSqueezy.ts`
+
 Handler key format: `{product_id}-{variant_id}`
 
 | pv_id | Plan | `subscription` | `subscription_interval` | `subscription_quantity` |
 |-------|------|----------------|-------------------------|-------------------------|
-| `159792-200790` | Founder annual | `founder` | `year` | 2147483647 |
-| `159791-200789` | Pro annual | `premium` | `year` | 250 |
-| `159790-200788` | Pro monthly | `premium` | `month` | 250 |
-| `306534-441845` | Flounder lifetime | `flounder` | `life` | 250 |
-| `367781-200790` | Flounder annual | `flounder` | `year` | 250 |
-| `424532-651625` | Paywall instance monthly | `premium` | `month` | from `quantity` |
-| `424532-651627` | Paywall flounder | `flounder` | `life` | 250 |
+| `424532-651625` | Pay Per PocketBase (instance monthly) | `premium` | `month` | from `quantity` |
+| `424532-651627` | Flounder lifetime | `flounder` | `life` | 250 |
 
-Unknown `pv_id` throws `Product and variant not found`.
+Legacy grandfathered plans are not in the allowlist (variant inactive in LS). Unknown `pv_id` throws `Product and variant not found`.
 
 ## Required webhook payload
 
@@ -96,35 +105,20 @@ On successful signup: `notify('lemonbot', 'lemon_order_discord', user_id, contex
 
 Audit codes: `LS` (success), `LS_ERR` (failure)
 
-## Checkout URLs (dashboard)
+## Checkout (dashboard)
 
-Store domain: `https://store.pockethost.io`
+Pricing CTAs call `createLemonSqueezyCheckout(pvId)` in `packages/dashboard/src/util/lemonsqueezy.ts`, which POSTs to `/api/ls/checkout` with the user's auth token. Mothership creates the session via LS API and returns the hosted checkout URL.
 
-**Flounder** (`FlounderCard.svelte`):
-
-```
-https://store.pockethost.io/buy/d4b2d062-429c-49b4-9cdc-853aaeb17e20?checkout[custom][user_id]=${userId}&checkout[email]=${email}
-```
-
-**Founder** (`FounderCard.svelte`):
-
-- Lifetime: `.../checkout/buy/e71cbfb5-cec3-4745-97a7-d877f6776503?checkout[custom][user_id]=...`
-- Annual: `.../checkout/buy/e5660329-5b99-4ed6-8f36-0d387803e1d6?checkout[custom][user_id]=...`
-
-**Pricing/signup** (`SignupBox.svelte`, `CTAButton.svelte`): same Flounder buy URL pattern.
-
-**Billing portal** (`account/+page.svelte`): `https://store.pockethost.io/billing`
-
-Note: PocketHost uses both `/buy/{uuid}` and `/checkout/buy/{uuid}` URL formats from the LS custom domain.
+**Billing portal** (`account/+page.svelte`): `https://store.pockethost.io/billing` (until in-app cancel/upgrade ships).
 
 ## Adding a new plan (PocketHost checklist)
 
 1. Create variant in Lemon Squeezy dashboard; note `product_id` and `variant_id`
-2. Generate share/checkout URL from dashboard; add to relevant Svelte card with `checkout[custom][user_id]` and `checkout[email]`
-3. Add `{product_id}-{variant_id}` to allowlist array in `HandleLemonSqueezySale.ts`
-4. Add entry to `product_handler_map` with correct `subscription`, `subscription_interval`, `subscription_quantity`
-5. Rebuild mothership hooks: `pnpm --filter pockethost-mothership-app build` (or `pnpm dev:mothership-hooks` while developing)
-6. Test webhook with LS dashboard "Send test webhook" or a test purchase
+2. Add `{product_id}-{variant_id}` to `common/lemonSqueezy.ts` (`LEMON_SQUEEZY_PV_IDS`, `VARIANT_ID_BY_PV_ID`)
+3. Add entry to `product_handler_map` in `HandleLemonSqueezySale.ts`
+4. Pass `pvId` from dashboard pricing UI (`SignupBox` `pvId` prop)
+5. Rebuild mothership hooks: `pnpm --filter pockethost-mothership-app build`
+6. Test checkout + webhook with LS test mode
 
 ## Rebuild note
 

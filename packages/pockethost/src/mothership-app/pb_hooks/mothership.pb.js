@@ -105,6 +105,9 @@ onBootstrap((e) => {
 
 //#endregion
 //#region src/lib/handlers/lemon/hooks.ts
+routerAdd("POST", "/api/ls/checkout", (e) => {
+	return require(`${__hooks}/mothership`).HandleLemonSqueezyCheckout(e);
+}, $apis.requireAuth());
 routerAdd("POST", "/api/ls", (e) => {
 	return require(`${__hooks}/mothership`).HandleLemonSqueezySale(e);
 });

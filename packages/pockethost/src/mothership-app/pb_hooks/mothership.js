@@ -752,6 +752,82 @@ const BeforeUpdate_version = (e) => {
 };
 
 //#endregion
+//#region ../common/lemonSqueezy.ts
+/** Lemon Squeezy webhook key: `{product_id}-{variant_id}`. */
+const FLOUNDER_LIFETIME_PV_ID = "424532-651627";
+const INSTANCE_MONTHLY_PV_ID = "424532-651625";
+const LEMON_SQUEEZY_PV_IDS = [FLOUNDER_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID];
+const VARIANT_ID_BY_PV_ID = {
+	[FLOUNDER_LIFETIME_PV_ID]: "651627",
+	[INSTANCE_MONTHLY_PV_ID]: "651625"
+};
+const lemonSqueezyVariantId = (pvId) => VARIANT_ID_BY_PV_ID[pvId];
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts
+const HandleLemonSqueezyCheckout = (e) => {
+	const log = mkLog(`ls-checkout`);
+	try {
+		const authRecord = e.auth;
+		if (!authRecord) throw new UnauthorizedError(`Authentication required`);
+		const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`);
+		const storeId = process.env.LS_STORE_ID || $os.getenv(`LS_STORE_ID`);
+		if (!apiKey || !storeId) throw new BadRequestError(`Checkout is not configured (set LS_API_KEY and LS_STORE_ID on mothership)`);
+		const pvId = `${(() => {
+			try {
+				return JSON.parse(readerToString(e.request.body));
+			} catch {
+				throw new BadRequestError(`Invalid JSON body`);
+			}
+		})().pvId || ""}`.trim();
+		if (!pvId) throw new BadRequestError(`pvId is required`);
+		const variantId = lemonSqueezyVariantId(pvId);
+		if (!variantId) throw new BadRequestError(`Unknown plan: ${pvId}`);
+		const email = authRecord.get(`email`);
+		const userId = authRecord.id;
+		const res = $http.send({
+			url: `https://api.lemonsqueezy.com/v1/checkouts`,
+			method: `POST`,
+			headers: {
+				Authorization: `Bearer ${apiKey}`,
+				Accept: `application/vnd.api+json`,
+				"Content-Type": `application/vnd.api+json`
+			},
+			body: JSON.stringify({ data: {
+				type: `checkouts`,
+				attributes: { checkout_data: {
+					email,
+					custom: { user_id: userId }
+				} },
+				relationships: {
+					store: { data: {
+						type: `stores`,
+						id: storeId
+					} },
+					variant: { data: {
+						type: `variants`,
+						id: variantId
+					} }
+				}
+			} }),
+			timeout: 30
+		});
+		if (res.statusCode < 200 || res.statusCode >= 300) {
+			const detail = res.json?.errors?.[0]?.detail || res.json?.errors?.[0]?.title || JSON.stringify(res.json);
+			log(`LS checkout failed`, res.statusCode, detail);
+			throw new BadRequestError(`Could not create checkout session: ${detail}`);
+		}
+		const url = res.json?.data?.attributes?.url;
+		if (!url) throw new Error(`No checkout URL in Lemon Squeezy response`);
+		log(`checkout created`, userId, pvId);
+		return e.json(200, { url });
+	} catch (err) {
+		log(`${err}`);
+		throw err;
+	}
+};
+
+//#endregion
 //#region src/lib/util/mkNotifier.ts
 const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 	log({
@@ -818,23 +894,8 @@ const HandleLemonSqueezySale = (e) => {
 		log(`variant name ok`, context.variant_name);
 		context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0;
 		log(`quantity ok`, context.quantity);
-		const FLOUNDER_ANNUAL_PV_ID = `367781-200790`;
-		const FLOUNDER_LIFETIME_PV_ID = `306534-441845`;
-		const PRO_MONTHLY_PV_ID = `159790-200788`;
-		const PRO_ANNUAL_PV_ID = `159791-200789`;
-		const FOUNDER_ANNUAL_PV_ID = `159792-200790`;
-		const PAYWALL_INSTANCE_MONTHLY_PV_ID = `424532-651625`;
-		const PAYWALL_FLOUNDER_PV_ID = `424532-651627`;
 		const pv_id = `${context.product_id}-${context.variant_id}`;
-		if (![
-			FLOUNDER_ANNUAL_PV_ID,
-			FLOUNDER_LIFETIME_PV_ID,
-			PRO_MONTHLY_PV_ID,
-			PRO_ANNUAL_PV_ID,
-			FOUNDER_ANNUAL_PV_ID,
-			PAYWALL_INSTANCE_MONTHLY_PV_ID,
-			PAYWALL_FLOUNDER_PV_ID
-		].includes(pv_id)) throw new Error(`Product and variant not found: ${pv_id}`);
+		if (!LEMON_SQUEEZY_PV_IDS.includes(pv_id)) throw new Error(`Product and variant not found: ${pv_id}`);
 		const userRec = (() => {
 			try {
 				return $app.findFirstRecordByData("users", "id", context.user_id);
@@ -860,40 +921,15 @@ const HandleLemonSqueezySale = (e) => {
 		if (!event_handler) throw new Error(`Unsupported event: ${context.event_name}`);
 		else log(`event handler ok`, event_handler);
 		const product_handler = {
-			[FOUNDER_ANNUAL_PV_ID]: () => {
-				userRec.set(`subscription`, `founder`);
-				userRec.set(`subscription_interval`, `year`);
-				userRec.set(`subscription_quantity`, 2147483647);
-			},
-			[PRO_ANNUAL_PV_ID]: () => {
-				userRec.set(`subscription`, `premium`);
-				userRec.set(`subscription_interval`, `year`);
-				userRec.set(`subscription_quantity`, 250);
-			},
-			[PRO_MONTHLY_PV_ID]: () => {
-				userRec.set(`subscription`, `premium`);
-				userRec.set(`subscription_interval`, `month`);
-				userRec.set(`subscription_quantity`, 250);
-			},
 			[FLOUNDER_LIFETIME_PV_ID]: () => {
 				userRec.set(`subscription`, `flounder`);
 				userRec.set(`subscription_interval`, `life`);
 				userRec.set(`subscription_quantity`, 250);
 			},
-			[FLOUNDER_ANNUAL_PV_ID]: () => {
-				userRec.set(`subscription`, `flounder`);
-				userRec.set(`subscription_interval`, `year`);
-				userRec.set(`subscription_quantity`, 250);
-			},
-			[PAYWALL_INSTANCE_MONTHLY_PV_ID]: () => {
+			[INSTANCE_MONTHLY_PV_ID]: () => {
 				userRec.set(`subscription`, `premium`);
 				userRec.set(`subscription_interval`, `month`);
 				userRec.set(`subscription_quantity`, context.quantity);
-			},
-			[PAYWALL_FLOUNDER_PV_ID]: () => {
-				userRec.set(`subscription`, `flounder`);
-				userRec.set(`subscription_interval`, `life`);
-				userRec.set(`subscription_quantity`, 250);
 			}
 		}[pv_id];
 		if (!product_handler) throw new Error(`No product handler for ${pv_id}`);
@@ -3648,6 +3684,7 @@ exports.HandleInstanceDelete = HandleInstanceDelete;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;
 exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
 exports.HandleInstancesRuntimeReset = HandleInstancesRuntimeReset;
+exports.HandleLemonSqueezyCheckout = HandleLemonSqueezyCheckout;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
 exports.HandleMailSend = HandleMailSend;
