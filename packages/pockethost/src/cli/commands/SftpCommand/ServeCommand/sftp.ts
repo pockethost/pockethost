@@ -15,12 +15,16 @@ export async function sftp() {
 
   await tryFetch(MOTHERSHIP_URL(`/api/health`), { logger })
 
-  await MothershipAdminClientService({
-    url: MOTHERSHIP_URL(),
-    username: MOTHERSHIP_ADMIN_USERNAME(),
-    password: MOTHERSHIP_ADMIN_PASSWORD(),
-    logger,
-  })
+  try {
+    await MothershipAdminClientService()
+  } catch {
+    await MothershipAdminClientService({
+      url: MOTHERSHIP_URL(),
+      username: MOTHERSHIP_ADMIN_USERNAME(),
+      password: MOTHERSHIP_ADMIN_PASSWORD(),
+      logger,
+    })
+  }
 
   await sftpService({
     mothershipUrl: MOTHERSHIP_URL(),

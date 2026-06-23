@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'PocketHost 3.0 Preview: Flounder Ends July 1',
+    path: '/blog/pockethost-30-preview',
+    description:
+      'Heads-up before July 1: Flounder lifetime sales end, new Free/Pro/Agency tiers for new signups only, existing accounts grandfathered.',
+    date: 'Jun 20, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Mothership Live Dashboard (Admin UI Extensions)',
     path: '/blog/mothership-live-admin-plugin',
     description:
