@@ -74,8 +74,6 @@ Handler key format: `{product_id}-{variant_id}`
 | `306534-441845` | Flounder lifetime | `flounder` | `life` | 250 |
 | `367781-200790` | Flounder annual | `flounder` | `year` | 250 |
 | `424532-651625` | Paywall instance monthly | `premium` | `month` | from `quantity` |
-| `424532-651629` | Paywall pro monthly | `premium` | `month` | 250 |
-| `424532-651634` | Paywall pro annual | `premium` | `year` | 250 |
 | `424532-651627` | Paywall flounder | `flounder` | `life` | 250 |
 
 Unknown `pv_id` throws `Product and variant not found`.

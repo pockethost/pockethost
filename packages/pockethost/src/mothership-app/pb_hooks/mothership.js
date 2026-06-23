@@ -824,8 +824,6 @@ const HandleLemonSqueezySale = (e) => {
 		const PRO_ANNUAL_PV_ID = `159791-200789`;
 		const FOUNDER_ANNUAL_PV_ID = `159792-200790`;
 		const PAYWALL_INSTANCE_MONTHLY_PV_ID = `424532-651625`;
-		const PAYWALL_PRO_MONTHLY_PV_ID = `424532-651629`;
-		const PAYWALL_PRO_ANNUAL_PV_ID = `424532-651634`;
 		const PAYWALL_FLOUNDER_PV_ID = `424532-651627`;
 		const pv_id = `${context.product_id}-${context.variant_id}`;
 		if (![
@@ -835,8 +833,6 @@ const HandleLemonSqueezySale = (e) => {
 			PRO_ANNUAL_PV_ID,
 			FOUNDER_ANNUAL_PV_ID,
 			PAYWALL_INSTANCE_MONTHLY_PV_ID,
-			PAYWALL_PRO_MONTHLY_PV_ID,
-			PAYWALL_PRO_ANNUAL_PV_ID,
 			PAYWALL_FLOUNDER_PV_ID
 		].includes(pv_id)) throw new Error(`Product and variant not found: ${pv_id}`);
 		const userRec = (() => {
@@ -893,16 +889,6 @@ const HandleLemonSqueezySale = (e) => {
 				userRec.set(`subscription`, `premium`);
 				userRec.set(`subscription_interval`, `month`);
 				userRec.set(`subscription_quantity`, context.quantity);
-			},
-			[PAYWALL_PRO_MONTHLY_PV_ID]: () => {
-				userRec.set(`subscription`, `premium`);
-				userRec.set(`subscription_interval`, `month`);
-				userRec.set(`subscription_quantity`, 250);
-			},
-			[PAYWALL_PRO_ANNUAL_PV_ID]: () => {
-				userRec.set(`subscription`, `premium`);
-				userRec.set(`subscription_interval`, `year`);
-				userRec.set(`subscription_quantity`, 250);
 			},
 			[PAYWALL_FLOUNDER_PV_ID]: () => {
 				userRec.set(`subscription`, `flounder`);

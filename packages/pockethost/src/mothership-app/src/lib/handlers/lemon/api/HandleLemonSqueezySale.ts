@@ -130,8 +130,6 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     const PRO_ANNUAL_PV_ID = `159791-200789`
     const FOUNDER_ANNUAL_PV_ID = `159792-200790`
     const PAYWALL_INSTANCE_MONTHLY_PV_ID = `424532-651625`
-    const PAYWALL_PRO_MONTHLY_PV_ID = `424532-651629`
-    const PAYWALL_PRO_ANNUAL_PV_ID = `424532-651634`
     const PAYWALL_FLOUNDER_PV_ID = `424532-651627`
 
     const pv_id = `${context.product_id}-${context.variant_id}`
@@ -144,8 +142,6 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
         PRO_ANNUAL_PV_ID,
         FOUNDER_ANNUAL_PV_ID,
         PAYWALL_INSTANCE_MONTHLY_PV_ID,
-        PAYWALL_PRO_MONTHLY_PV_ID,
-        PAYWALL_PRO_ANNUAL_PV_ID,
         PAYWALL_FLOUNDER_PV_ID,
       ].includes(pv_id)
     ) {
@@ -219,18 +215,6 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
         userRec.set(`subscription`, `premium`)
         userRec.set(`subscription_interval`, `month`)
         userRec.set(`subscription_quantity`, context.quantity)
-      },
-      // Paywall pro monthly
-      [PAYWALL_PRO_MONTHLY_PV_ID]: () => {
-        userRec.set(`subscription`, `premium`)
-        userRec.set(`subscription_interval`, `month`)
-        userRec.set(`subscription_quantity`, 250)
-      },
-      // Paywall pro annual
-      [PAYWALL_PRO_ANNUAL_PV_ID]: () => {
-        userRec.set(`subscription`, `premium`)
-        userRec.set(`subscription_interval`, `year`)
-        userRec.set(`subscription_quantity`, 250)
       },
       // Paywall flounder
       [PAYWALL_FLOUNDER_PV_ID]: () => {
