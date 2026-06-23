@@ -9,7 +9,7 @@
   export let bestDeal: boolean = false
   export let badgeText: string | undefined = undefined
   export let badgeUrgent: boolean = false
-  export let title: string
+  export let title: string | undefined = undefined
   export let cta: string
   export let features: string[]
 
@@ -27,7 +27,9 @@
   {/if}
 
   <div class="pricing-plan-header">
-    <h3 class="pricing-plan-title">{title}</h3>
+    {#if title}
+      <h3 class="pricing-plan-title">{title}</h3>
+    {/if}
     <p class="pricing-plan-lead">{cta}</p>
   </div>
 

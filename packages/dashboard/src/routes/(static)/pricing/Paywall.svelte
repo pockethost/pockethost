@@ -24,33 +24,26 @@
 </script>
 
 <div class="pricing-page-header">
-  <h2 class="pricing-page-title">Affordable Hosting</h2>
-  <p class="pricing-page-subtitle">Premium Performance</p>
+  <h2 class="pricing-page-title">Pricing</h2>
   <FlounderCountdown />
 </div>
 
 <div class="pricing-page-grid">
   <SignupBox
-    price="$5 / month"
-    priceDetail="per instance"
-    title="Starter"
-    cta="Pay $5 per instance, up to a maximum of 5 instances."
-    features={[
-      'Access to all features',
-      '7 day risk-free trial',
-      'Global Fly ingress, private network routing',
-      'Unlimited bandwidth, storage, and CPU',
-      'FTP Access',
-      'Flexible - only pay for as many as you need',
-    ]}
-  />
-  <SignupBox
     selected
     bestDeal
-    price="$25 / month"
-    title="Unlimited"
-    cta="Pay just $25 monthly to get access to all features with unlimited instances!"
-    features={['Everything in the Starter plan', 'Unlimited instances']}
+    title="Pay Per PocketBase"
+    price="$5"
+    priceDetail="per PocketBase, per month"
+    cta="Each PocketBase includes 250 MB DB data storage and 10 GB file storage. Add another PocketBase, add another $5."
+    features={[
+      '250 MB DB data storage + 10 GB file storage per PocketBase',
+      'Storage adds to your account pool — shared across every PocketBase you run',
+      '7 day risk-free trial',
+      'Global Fly ingress, private network routing',
+      'Unmetered bandwidth and CPU (fair use)',
+      'SFTP file access',
+    ]}
   />
   <SignupBox
     buttonText="Become a Flounder"
@@ -60,7 +53,7 @@
     badgeUrgent
     cta="Pay once for lifetime Pro hosting. Sales end {FLOUNDER_SALES_END_LABEL}. No new buyers after that date."
     features={[
-      'Everything in the Unlimited plan',
+      'Pay Per PocketBase features, lifetime price',
       'Lifetime access',
       'No recurring fees',
       'Tee shirt',
@@ -70,19 +63,29 @@
   />
 </div>
 
-<div class="relative my-20 w-full max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-lg aspect-video">
-  <iframe
-    src="https://www.youtube.com/embed/Xe0FrGzlcVM"
-    title="PocketHost Demo"
-    class="w-full h-full"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    allowfullscreen
-  ></iframe>
-</div>
+<section class="pricing-below">
+  <div class="pricing-demo">
+    <p class="pricing-section-eyebrow">Walkthrough</p>
+    <h3 class="pricing-section-title">See PocketHost in two minutes</h3>
+    <div class="pricing-demo-frame">
+      <iframe
+        src="https://www.youtube.com/embed/Xe0FrGzlcVM"
+        title="PocketHost demo"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
 
-<div class="flex flex-col items-center gap-10 mb-20 px-4">
-  <h2 class="text-4xl font-semibold text-center text-white">Powerful Features</h2>
-  <Features />
-</div>
+  <div class="pricing-included">
+    <p class="pricing-section-eyebrow">Included</p>
+    <h3 class="pricing-section-title">Everything you need to ship</h3>
+    <Features />
+  </div>
 
-<Testimonials />
+  <div class="pricing-social-proof">
+    <p class="pricing-section-eyebrow">Builders</p>
+    <h3 class="pricing-section-title">Trusted by indie hackers</h3>
+    <Testimonials />
+  </div>
+</section>
