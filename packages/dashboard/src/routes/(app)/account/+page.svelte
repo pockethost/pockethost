@@ -30,7 +30,11 @@
           <dl class="account-stats-grid">
             <div class="account-stat">
               <dt>Email</dt>
-              <dd class="account-stat-value">{$userStore?.email}</dd>
+              <dd>
+                <span class="account-stat-value">{$userStore?.email}</span>
+                <span class="account-stat-sep">·</span>
+                <a href="/account/change-email" class="account-stat-link">Change email</a>
+              </dd>
             </div>
             <div class="account-stat">
               <dt>Plan</dt>

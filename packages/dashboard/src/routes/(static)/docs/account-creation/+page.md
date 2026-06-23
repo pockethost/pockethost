@@ -15,5 +15,5 @@ Create your PocketHost account to deploy and manage your PocketBase instances.
 
 ## Important
 
-- **Email Changes**: To change your email, visit our [Support Page](/support). Re-verification is required.
+- **Email Changes**: Go to [Account → Change email](/account/change-email), enter your new address, and confirm from the new inbox with your current password. Your old email stays active until you confirm. After confirmation, your [SFTP username](/docs/ftp) matches your account email.
 - **Verification Required**: You cannot use instances until your email is verified.

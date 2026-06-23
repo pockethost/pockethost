@@ -102,6 +102,17 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     return await client.collection('users').confirmPasswordReset(token, password, password)
   }
 
+  /** Sends an email change confirmation link to the new email address. Requires the user to be authenticated. */
+  const requestEmailChange = async (newEmail: string) => {
+    await client.collection('users').requestEmailChange(newEmail)
+  }
+
+  /** Confirms an email change with the token from the confirmation email and the current password. */
+  const confirmEmailChange = async (token: string, password: string) => {
+    await client.collection('users').confirmEmailChange(token, password)
+    client.authStore.clear()
+  }
+
   /**
    * This will log a user into Pocketbase, and includes an optional error handler
    *
@@ -290,6 +301,8 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     createUser,
     requestPasswordReset,
     requestPasswordResetConfirm,
+    requestEmailChange,
+    confirmEmailChange,
     confirmVerification,
     logOut,
     onAuthChange,
