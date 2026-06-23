@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { userStore, isUserLoggedIn } from '$util/stores'
-  import { FLOUNDER_CHECKOUT_VARIANT_ID, lemonsqueezyCheckoutUrl } from '$util/lemonsqueezy'
+  import { isUserLoggedIn } from '$util/stores'
+  import { createLemonSqueezyCheckout } from '$util/lemonsqueezy'
 
+  export let pvId: string
   export let selected: boolean = false
   export let buttonText: string = 'Subscribe Now'
   export let price: string
@@ -13,10 +14,26 @@
   export let cta: string
   export let features: string[]
 
-  $: checkoutUrl =
-    $isUserLoggedIn && $userStore?.id && $userStore?.email
-      ? lemonsqueezyCheckoutUrl(FLOUNDER_CHECKOUT_VARIANT_ID, $userStore.id, $userStore.email)
-      : null
+  let loading = false
+
+  const startCheckout = async () => {
+    if (!$isUserLoggedIn) {
+      alert('You must be logged in to subscribe')
+      return
+    }
+    if (loading) return
+
+    loading = true
+    try {
+      const url = await createLemonSqueezyCheckout(pvId)
+      window.location.href = url
+    } catch (err) {
+      console.error(err)
+      alert(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
+    } finally {
+      loading = false
+    }
+  }
 </script>
 
 <div class="pricing-plan {selected ? 'pricing-plan--featured' : ''}">
@@ -55,18 +72,13 @@
   </div>
 
   <div class="pricing-plan-cta-wrap">
-    {#if checkoutUrl}
-      <a href={checkoutUrl} class="pricing-plan-cta {selected ? 'pricing-plan-cta--featured wiggle' : ''}">
-        {buttonText}
-      </a>
-    {:else}
-      <button
-        type="button"
-        class="pricing-plan-cta {selected ? 'pricing-plan-cta--featured wiggle' : ''}"
-        onclick={() => alert('You must be logged in to subscribe')}
-      >
-        {buttonText}
-      </button>
-    {/if}
+    <button
+      type="button"
+      class="pricing-plan-cta {selected ? 'pricing-plan-cta--featured wiggle' : ''}"
+      disabled={loading}
+      onclick={startCheckout}
+    >
+      {loading ? 'Loading…' : buttonText}
+    </button>
   </div>
 </div>

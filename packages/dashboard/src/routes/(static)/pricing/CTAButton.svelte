@@ -1,15 +1,25 @@
 <script lang="ts">
-  import { userStore } from '$util/stores'
-  import { FLOUNDER_CHECKOUT_VARIANT_ID, lemonsqueezyCheckoutUrl } from '$util/lemonsqueezy'
+  import { FLOUNDER_LIFETIME_PV_ID, createLemonSqueezyCheckout } from '$util/lemonsqueezy'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
 
   export let fixed = false
 
-  $: checkoutUrl =
-    $userStore?.id && $userStore?.email
-      ? lemonsqueezyCheckoutUrl(FLOUNDER_CHECKOUT_VARIANT_ID, $userStore.id, $userStore.email)
-      : undefined
+  let loading = false
+
+  const startCheckout = async () => {
+    if (loading) return
+    loading = true
+    try {
+      const url = await createLemonSqueezyCheckout(FLOUNDER_LIFETIME_PV_ID)
+      window.location.href = url
+    } catch (err) {
+      console.error(err)
+      alert('Could not start checkout. Please try again.')
+    } finally {
+      loading = false
+    }
+  }
 </script>
 
 <UserLoggedIn>
@@ -18,9 +28,10 @@
     size="large"
     class={fixed ? 'w-full rounded-none fixed bottom-0' : ''}
     style="z-index: 1000"
-    href={checkoutUrl}
+    disabled={loading}
+    onclick={startCheckout}
   >
-    Unlock Access Now
+    {loading ? 'Loading…' : 'Unlock Access Now'}
   </wa-button>
 </UserLoggedIn>
 <UserLoggedOut>

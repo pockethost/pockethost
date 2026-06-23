@@ -4,6 +4,7 @@
   import { daysUntilFlounderSunset, flounderDaysLeftLabel, FLOUNDER_SALES_END_LABEL } from '$util/flounderSunset'
   import Features from './Features.svelte'
   import FlounderCountdown from './FlounderCountdown.svelte'
+  import { FLOUNDER_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID } from 'pockethost/common'
   import SignupBox from './SignupBox.svelte'
 
   let flounderDaysLeft = daysUntilFlounderSunset()
@@ -30,6 +31,7 @@
 
 <div class="pricing-page-grid">
   <SignupBox
+    pvId={INSTANCE_MONTHLY_PV_ID}
     selected
     bestDeal
     title="Pay Per PocketBase"
@@ -46,6 +48,7 @@
     ]}
   />
   <SignupBox
+    pvId={FLOUNDER_LIFETIME_PV_ID}
     buttonText="Become a Flounder"
     price="$359 once"
     title="Flounder - Lifetime"
