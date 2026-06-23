@@ -12,24 +12,25 @@ Task detail: [backlog.md](backlog.md) · Architecture: [MEMORY.md](MEMORY.md) ·
 
 Ship features to `main` whenever they are ready. **Two things may NOT go live before July 1:** new pricing and new limit enforcement. Those live on `launch/3.0` until the Jul 1 merge.
 
-| Branch           | Use                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------------------- |
-| `**main`\*\*     | Safe-to-ship-early work. Merge and deploy the same day.                                              |
-| `**launch/3.0**` | Gated launch bundle. Build on schedule below. **Live only Jul 1.** Rebase on `main` daily Jun 27–30. |
-| `**ops`\*\*      | Emails and public posts. Not a git branch.                                                           |
+| Branch        | Use                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `main`        | Safe-to-ship-early work. Merge and deploy the same day.                                              |
+| `launch/3.0`  | Gated launch bundle. Build on schedule below. **Live only Jul 1.** Rebase on `main` daily Jun 27–30. |
+| `ops`         | Emails and public posts. Not a git branch.                                                           |
 
 ---
 
 ## Daily calendar
 
-Today ≈ **June 21**. **Do on** = the day you do the work (or send/post). **Live on** = when customers or ops see the effect.
+Today ≈ **June 22**. **Do on** = the day you do the work (or send/post). **Live on** = when customers or ops see the effect.
 
 | Do on         | Live on     | Branch                | Task                                                                                                  |
 | ------------- | ----------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
 | —             | —           | —                     | ✅ v0.39 mothership, SFTP/phio, Flounder + FTPS phase-1 blogs, banner, `/3.0` draft                   |
 | ✅ **Jun 17** | **Jun 17**  | `main`                | Flounder countdown on `/pricing` + hard-deadline card copy                                            |
 | —             | —           | —                     | ⏭️ Mailer admin plugin — skipped; ops uses `pockethost mail send` (`campaigns` / `campaign_messages`) |
-| **Jun 20**    | **Jun 20**  | `ops`                 | Pre-announce email, all users (3.0, Flounder ends Jul 1, grandfathering) — `pockethost mail send`     |
+| ✅ **Jun 22** | **Jun 22**  | `main`                | Self-serve account email change (`/account/change-email`, confirm flow)                               |
+| ✅ **Jun 22** | **Jun 22**  | `ops`                 | Pre-announce email, all users (3.0, Flounder ends Jul 1, grandfathering) — `pockethost mail send`     |
 | **Jun 22**    | **Jun 22**  | `ops`                 | PocketBase community forum post                                                                       |
 | **Jun 24**    | **Jun 24**  | `ops`                 | Reddit r/pocketbase post                                                                              |
 | **Jun 25**    | **Jun 26**  | `main`                | Lemon Squeezy full dashboard integration (sign up / upgrade / downgrade / cancel — no offsite portal) |
@@ -75,14 +76,12 @@ Today ≈ **June 21**. **Do on** = the day you do the work (or send/post). **Liv
 
 ## Not on the calendar
 
-Parallel on `main` when you have slack: operator stats rebuild, InstanceService batch status.
+Parallel on `main` when you have slack: operator stats rebuild, InstanceService batch status, Lemon Squeezy customer-email sync (after account email change).
 
 Deferred: mailer admin plugin (CLI covers ops sends), multi-region edges, GDPR, SMTP per instance, CLI/SDK parity, dockerized node, Bun, dashboard layout rethink.
-
-upti
 
 ## Maintenance
 
 Update rows when shipped (✅ prefix, move detail to backlog **Done**).
 
-Last reviewed: **2026-06-21** (Lemon Squeezy full integration + LS 3.0 updates on calendar).
+Last reviewed: **2026-06-22** (pre-announce email sent; account email change shipped).
