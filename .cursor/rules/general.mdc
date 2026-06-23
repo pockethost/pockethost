@@ -42,5 +42,5 @@ Avoid side-effectful or long-running operations unless needed:
 `.husky/pre-push` runs `pnpm check:push` (Prettier, types in pockethost/phio/dashboard, vitest). **Run it before suggesting push or opening a PR.** Fix failures in the same session. See [pre-push-gate.mdc](pre-push-gate.mdc) and [check-push skill](../skills/check-push/SKILL.md).
 
 - **While editing**: targeted reads and local reasoning are fine. No typecheck on every small change.
-- **Before push-ready**: `pnpm check:push` must pass. Use `pnpm check:ci` if dashboard build inputs changed.
+- **Before push-ready**: `pnpm check:push` must pass. Use `pnpm check:ci` after `(static)/` route edits, query-string UI, or other dashboard build inputs (see `dashboard-ux.mdc`, check-push skill).
 - **OK anytime**: `pnpm lint` / `pnpm lint:fix`, read-only git commands, file edits, one-off non-server scripts.

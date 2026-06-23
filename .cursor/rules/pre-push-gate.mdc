@@ -33,7 +33,8 @@ alwaysApply: true
 | `pockethost` / `phio` types | fix reported files, re-run that package's `check:types` |
 | `dashboard` types | fix Svelte/TS issues, re-run dashboard `check:types` |
 | Vitest | fix test or implementation, re-run `pnpm test` |
+| Dashboard prerender / build | Run `pnpm check:ci`; on `(static)/` pages guard `searchParams` with `browser` (see `dashboard-ux.mdc`) |
 
 Full workflow: [`.cursor/skills/check-push/SKILL.md`](../skills/check-push/SKILL.md).
 
-After dashboard route/build changes, also run `pnpm check:ci` (adds dashboard `build`) before merge — CI runs that.
+After **`packages/dashboard/src/routes/(static)/`** changes, query-string UI, or other prerender-sensitive dashboard edits, run **`pnpm check:ci`** before merge. CI publish workflow runs dashboard `build`; `check:push` alone does not.

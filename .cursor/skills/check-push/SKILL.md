@@ -73,11 +73,24 @@ For a single file: `pnpm vitest run path/to/file.test.ts`
 
 ## Dashboard build (CI only)
 
-Pre-push does **not** run dashboard `build`. If you changed dashboard build inputs (routes, `svelte.config`, env, Vite config), also run:
+Pre-push does **not** run dashboard `build`. **`svelte-check` will not catch prerender failures.**
+
+Run **`pnpm check:ci`** (adds dashboard `build`) before push or merge when you changed any of:
+
+- Files under `packages/dashboard/src/routes/(static)/`
+- `$page.url`, `page.url.searchParams`, query-string banners, or URL-driven UI
+- `+layout.ts` / `+page.ts` with `prerender`, `ssr`, or `csr`
+- `svelte.config`, Vite config, or static adapter settings
 
 ```bash
 pnpm check:ci
 ```
+
+### Prerender build failure
+
+Symptom: `Cannot access url.searchParams on a page with prerendering enabled` or `Error: 500 /some-route` during `vite build`.
+
+Fix: see **Prerender (static routes)** in [.cursor/rules/dashboard-ux.mdc](../../rules/dashboard-ux.mdc). Usually guard with `browser` or move the read to `onMount`. Re-run `pnpm check:ci`.
 
 ## Pair with commit
 

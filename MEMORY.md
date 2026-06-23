@@ -74,6 +74,7 @@ Prefer factory functions (`createX`, `mkX`) over classes (see workspace rules).
 
 SvelteKit + Vite + Tailwind + **Web Awesome** (`@awesome.me/webawesome`, free tier). Static adapter; deploy via Wrangler Pages (`pnpm deploy` in package).
 
+- **Prerender:** root `prerender = true`; `(static)/` is build-time static. Do not read `page.url.searchParams` during SSR without a `browser` guard. Validate with `pnpm check:ci`, not just `check:types`. Rule: `.cursor/rules/dashboard-ux.mdc`.
 - **UX direction:** App routes (`(app)/`) should be task-first with progressive disclosure. The UI is text-heavy today. Prefer presets, short field hints, and collapsible help over inline reference walls. Rule: `.cursor/rules/dashboard-ux.mdc`. Browser QA: `.cursor/skills/dashboard-browser-qa/SKILL.md`.
 - **Browser QA:** Cursor IDE browser MCP works. Login: `.secret/pockethost-io-login` (L1 email, L2 password). Use `https://pockethost.lvh.me` with `dev:dashboard` + `dev:cli serve` running.
 - UI: `wa-*` web components; icons via `<wa-icon>` (Font Awesome Free)

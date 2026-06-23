@@ -16,6 +16,25 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 4. **Less visible chrome** — Fewer headings, callouts, and paragraphs on screen at once. If a section needs a paragraph of context, consider whether the control label + placeholder is enough.
 5. **Verify in browser** — Use [.cursor/skills/dashboard-browser-qa/SKILL.md](../skills/dashboard-browser-qa/SKILL.md). Credentials: `.secret/pockethost-io-login`. Base URL: `https://pockethost.lvh.me`.
 
+## Prerender (static routes)
+
+Root `+layout.ts` sets `prerender = true`. `(static)/` pages (login, marketing, docs, blog) are **prerendered at build time**. `(app)/` opts out via `+layout.ts`.
+
+**Do not read request URL state during SSR/prerender** on `(static)/` pages:
+
+- `$page.url.searchParams` / `page.url.searchParams`
+- `$page.url.hash` / dynamic query-driven UI in reactive statements
+
+`check:types` does **not** catch this. CI runs `pnpm --filter @pockethost/dashboard build`, which prerender-walks routes and fails with `Cannot access url.searchParams on a page with prerendering enabled`.
+
+**Fix patterns** (pick one):
+
+1. **Client-only read** (query banners, flash messages): guard with `browser` from `$app/environment`.
+2. **`onMount`**: read `window.location.search` after hydration.
+3. **Opt out of prerender**: `export const prerender = false` in the page or layout `+layout.ts` (token routes under `login/*/[token]/` already do this).
+
+Before push/merge on `(static)/` edits, run `pnpm check:ci` (see [check-push skill](../skills/check-push/SKILL.md)).
+
 ## Styling
 
 - Web Awesome (`wa-*`) + overrides in `src/lib/webawesome-overrides.css`. Do not put Tailwind border/bg/padding on `wa-*` hosts (see MEMORY.md Dashboard).
@@ -32,6 +51,7 @@ The dashboard is **text-heavy today** and hard to scan. Default to **simple, int
 - Putting `PowerOffRequired` or API errors in `cta` instead of `FeatureTab` alerts / `powerOffAction`
 - Adding explanatory `<h3>` + paragraph when the page title or breadcrumb already sets context
 - `required` on `wa-input` / `wa-select` / `wa-textarea` with a separate external label (orphan asterisk on its own line)
+- `$page.url.searchParams` (or `page.url.searchParams`) on `(static)/` pages without a `browser` guard or `onMount`
 
 ## Docs vs app
 
