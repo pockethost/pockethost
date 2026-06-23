@@ -1,4 +1,5 @@
 import { mkLog } from '$util/Logger'
+import { mailRecipientSkipReason } from '$util/mailRecipient'
 
 export const HandleMailSend = (e: core.RequestEvent) => {
   const log = mkLog(`mail`)
@@ -21,6 +22,17 @@ export const HandleMailSend = (e: core.RequestEvent) => {
   log(`bind parsed`, JSON.stringify(data))
 
   const { to, subject, body } = data
+
+  try {
+    const user = $app.findFirstRecordByData('users', 'email', to)
+    const skipReason = mailRecipientSkipReason(user)
+    if (skipReason) {
+      log(`skipped ${to}: ${skipReason}`)
+      return e.json(200, { status: 'skipped', reason: skipReason })
+    }
+  } catch (_e) {
+    log(`no user record for ${to}, sending anyway`)
+  }
 
   const email = new MailerMessage({
     from: {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
   import AlertBar from '$components/AlertBar.svelte'
+  import { authInputAutofill } from '$lib/authInputAutofill'
 
   const { requestPasswordReset } = client()
 
@@ -15,17 +16,22 @@
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
 
+    formError = ''
     isFormButtonDisabled = true
 
     try {
       await requestPasswordReset(email)
+      userShouldCheckTheirEmail = true
     } catch (error) {
-      const e = error as Error
-      formError = `Something went wrong with resetting you password. ${e.message}`
+      userShouldCheckTheirEmail = false
+      if (error instanceof Error) {
+        formError = client().parseError(error)[0] || `Something went wrong resetting your password. ${error.message}`
+      } else {
+        formError = 'Something went wrong resetting your password.'
+      }
     }
 
     isFormButtonDisabled = false
-    userShouldCheckTheirEmail = true
   }
 </script>
 
@@ -43,21 +49,22 @@
         </p>
       </div>
     {:else}
-      <form class="auth-form" onsubmit={handleSubmit}>
+      <form class="auth-form" method="post" autocomplete="on" onsubmit={handleSubmit}>
         <h2 class="auth-form-title">Password Reset</h2>
 
         <div class="auth-field-group">
           <label class="auth-label" for="email">Email address</label>
-          <wa-input
+          <input
             type="email"
             id="email"
+            name="email"
+            class="auth-field"
             placeholder="name@example.com"
-            value={email}
-            oninput={(e: Event) => (email = (e.currentTarget as HTMLInputElement).value)}
-            required
             autocomplete="email"
-            class="w-full"
-          ></wa-input>
+            bind:value={email}
+            use:authInputAutofill
+            required
+          />
         </div>
 
         <AlertBar message={formError} type="error" />

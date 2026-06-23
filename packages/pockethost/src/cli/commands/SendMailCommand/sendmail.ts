@@ -1,6 +1,5 @@
-import { PocketBase, UserFields, adminAuthWithPassword, logger } from '@'
+import { ClientResponseError, PocketBase, UserFields, adminAuthWithPassword, logger, withAdminAuthRetry } from '@'
 import Database from 'better-sqlite3'
-import Bottleneck from 'bottleneck'
 import { Command, InvalidArgumentError } from 'commander'
 import {
   MOTHERSHIP_ADMIN_PASSWORD,
@@ -11,6 +10,7 @@ import {
 } from '../../..'
 
 const TBL_SENT_MESSAGES = `sent_messages`
+const SEND_INTERVAL_MS = 100
 
 function myParseInt(value: string) {
   // parseInt takes a string and a radix
@@ -19,6 +19,14 @@ function myParseInt(value: string) {
     throw new InvalidArgumentError('Not a number.')
   }
   return parsedValue
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+type BulkMailUser = UserFields & { unsubscribe?: boolean | number }
+
+function canReceiveBulkMail(user: BulkMailUser): boolean {
+  return Boolean(user.verified) && !Boolean(user.unsubscribe)
 }
 
 export const SendMailCommand = () =>
@@ -42,71 +50,110 @@ export const SendMailCommand = () =>
 
       dbg({ messageId, confirm, limit })
 
-      const db = new Database(MOTHERSHIP_DATA_DB())
+      const adminEmail = MOTHERSHIP_ADMIN_USERNAME()
+      const adminPassword = MOTHERSHIP_ADMIN_PASSWORD()
 
       info(MOTHERSHIP_URL())
 
       const client = new PocketBase(MOTHERSHIP_URL())
-      await adminAuthWithPassword(client, MOTHERSHIP_ADMIN_USERNAME(), MOTHERSHIP_ADMIN_PASSWORD())
+      await adminAuthWithPassword(client, adminEmail, adminPassword)
 
       const message = await client.collection(`campaign_messages`).getOne(messageId, { expand: 'campaign' })
       const { campaign } = message.expand || {}
       dbg({ messageId, limit, message, campaign })
 
-      const vars: { [_: string]: string } = {
-        messageId,
-      }
-      await Promise.all(
-        Object.entries(campaign.vars).map(async ([k, sql]) => {
+      const vars: { [_: string]: string } = { messageId }
+      let subject: string
+      let body: string
+      let candidates: UserFields[]
+
+      const db = new Database(MOTHERSHIP_DATA_DB(), { readonly: true })
+      try {
+        for (const [k, sql] of Object.entries(campaign.vars)) {
           const result = db.prepare(String(sql)).get() as { value: string }
           vars[k.toLocaleLowerCase()] = result.value
-        })
+        }
+
+        dbg({ vars })
+        subject = interpolateString(message.subject, vars)
+        body = interpolateString(message.body, vars)
+
+        const audienceSql = `SELECT u.*
+    FROM (${campaign.usersQuery}) u
+     `
+        dbg(audienceSql)
+        candidates = db.prepare(audienceSql).all() as UserFields[]
+      } finally {
+        db.close()
+      }
+
+      const sentRecords = await client.collection(TBL_SENT_MESSAGES).getFullList({
+        filter: `campaign_message = "${messageId}"`,
+        fields: `user`,
+      })
+      const sentUserIds = new Set(sentRecords.map((r) => r.user))
+      const eligible = candidates.filter((u) => !sentUserIds.has(u.id) && canReceiveBulkMail(u as BulkMailUser))
+      const skippedSuppressed = candidates.filter(
+        (u) => !sentUserIds.has(u.id) && !canReceiveBulkMail(u as BulkMailUser)
+      ).length
+      const users = eligible.slice(0, limit)
+
+      info(
+        `${users.length} recipient(s) (${sentUserIds.size} already sent, ${skippedSuppressed} suppressed/unverified skipped)`
       )
 
-      dbg({ vars })
-      const subject = interpolateString(message.subject, vars)
-      const body = interpolateString(message.body, vars)
+      const auth = <T>(fn: () => Promise<T>) => withAdminAuthRetry(client, adminEmail, adminPassword, fn)
 
-      const sql = `SELECT u.*
-    FROM (${campaign.usersQuery}) u
-    LEFT JOIN sent_messages sm ON u.id = sm.user AND sm.campaign_message = '${messageId}'
-    WHERE sm.id IS NULL;
-     `
-      dbg(sql)
-      const users = db.prepare(sql).all().slice(0, limit) as UserFields[]
+      const recordSent = async (userId: string) => {
+        try {
+          await client.collection(TBL_SENT_MESSAGES).create({
+            user: userId,
+            campaign_message: messageId,
+          })
+        } catch (e) {
+          if (!(e instanceof ClientResponseError && e.status === 400)) throw e
+          const existing = await client.collection(TBL_SENT_MESSAGES).getList(1, 1, {
+            filter: `user = "${userId}" && campaign_message = "${messageId}"`,
+          })
+          if (existing.items.length === 0) throw e
+        }
+      }
 
-      // dbg({ users })
+      for (let i = 0; i < users.length; i++) {
+        const user = users[i]!
+        const recipient = user.email
 
-      const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 100 })
-      await Promise.all(
-        users.map((user) => {
-          return limiter.schedule(async () => {
-            if (!confirm) {
-              const old = user.email
-              user.email = TEST_EMAIL()
-              info(`Sending to ${user.email} masking ${old}`)
-            } else {
-              info(`Sending to ${user.email}`)
-            }
-            await client.send(`/api/mail`, {
+        if (!confirm) {
+          user.email = TEST_EMAIL()
+          info(`Sending to ${user.email} masking ${recipient}`)
+        } else {
+          info(`Sending to ${user.email}`)
+        }
+
+        try {
+          await auth(async () => {
+            const res = (await client.send(`/api/mail`, {
               method: 'POST',
               body: {
                 to: user.email,
                 subject,
                 body: `${body}<hr/>[[<a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
               },
-            })
-            info(`Sent`)
-            if (confirm) {
-              await client.collection(TBL_SENT_MESSAGES).create({
-                user: user.id,
-                message: messageId,
-                campaign_message: messageId,
-              })
+            })) as { status?: string }
+
+            if (confirm && (res?.status === 'ok' || res?.status === 'skipped')) {
+              await recordSent(user.id)
             }
           })
-        })
-      )
+        } catch (e) {
+          const detail = e instanceof ClientResponseError ? `${e.status}: ${e.message}` : String(e)
+          throw new Error(`Failed sending to ${recipient}: ${detail}`)
+        }
 
-      db.close()
+        info(`Sent`)
+
+        if (i < users.length - 1) {
+          await sleep(SEND_INTERVAL_MS)
+        }
+      }
     })

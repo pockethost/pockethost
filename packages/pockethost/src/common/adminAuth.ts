@@ -45,6 +45,22 @@ export async function adminAuthWithPassword(client: PocketBase, email: string, p
   }
 }
 
+/** Re-auth once and retry when a mothership admin API call returns 401. */
+export async function withAdminAuthRetry<T>(
+  client: PocketBase,
+  email: string,
+  password: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  try {
+    return await fn()
+  } catch (e) {
+    if (!(e instanceof ClientResponseError && e.status === 401)) throw e
+    await adminAuthWithPassword(client, email, password)
+    return await fn()
+  }
+}
+
 /** Create the first mothership admin when none exist. */
 export async function createFirstAdmin(client: PocketBase, email: string, password: string) {
   try {

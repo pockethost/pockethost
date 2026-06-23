@@ -762,11 +762,16 @@ const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 	const emailTemplate = app.findFirstRecordByData("message_templates", `slug`, template);
 	log(`got email template`, emailTemplate);
 	if (!emailTemplate) throw new Error(`Template ${template} not found`);
+	const templateVars = {
+		user_id,
+		...context
+	};
 	const emailNotification = new Record(app.findCollectionByNameOrId("notifications"), {
 		user: user_id,
 		channel,
 		message_template: emailTemplate.id,
-		message_template_vars: context
+		message_template_vars: templateVars,
+		payload: templateVars
 	});
 	log(`built notification record`, emailNotification);
 	app.save(emailNotification);
@@ -943,6 +948,20 @@ const HandleLemonSqueezySale = (e) => {
 };
 
 //#endregion
+//#region src/lib/util/mailRecipient.ts
+/** Reason a user must not receive platform email, or null if OK to send. */
+const mailRecipientSkipReason = (user) => {
+	if (!user.getBool("verified")) return "unverified";
+	if (user.getBool("unsubscribe")) return "unsubscribed";
+	return null;
+};
+/** Permanent bounce or complaint: stop all future platform email. */
+const suppressUserEmail = (user) => {
+	user.setVerified(false);
+	user.set("unsubscribe", true);
+};
+
+//#endregion
 //#region src/lib/handlers/mail/api/HandleMailSend.ts
 const HandleMailSend = (e) => {
 	const log = mkLog(`mail`);
@@ -957,6 +976,18 @@ const HandleMailSend = (e) => {
 	data = JSON.parse(JSON.stringify(data));
 	log(`bind parsed`, JSON.stringify(data));
 	const { to, subject, body } = data;
+	try {
+		const skipReason = mailRecipientSkipReason($app.findFirstRecordByData("users", "email", to));
+		if (skipReason) {
+			log(`skipped ${to}: ${skipReason}`);
+			return e.json(200, {
+				status: "skipped",
+				reason: skipReason
+			});
+		}
+	} catch (_e) {
+		log(`no user record for ${to}, sending anyway`);
+	}
 	const email = new MailerMessage({
 		from: {
 			address: $app.settings().meta.senderAddress,
@@ -1080,6 +1111,15 @@ const mkNotificationProcessor = (log, app, test = false) => (notificationRec) =>
 	});
 	switch (channel) {
 		case `email`:
+			const skipReason = mailRecipientSkipReason(userRec);
+			if (skipReason) {
+				log(`skipped email to ${to}: ${skipReason}`);
+				if (!test) {
+					notificationRec.set(`delivered`, new DateTime());
+					app.save(notificationRec);
+				}
+				break;
+			}
 			/** @type {Partial<mailer.Message_In>} */
 			const msgArgs = {
 				from: {
@@ -1180,6 +1220,35 @@ const HandleUserWelcomeMessage = (e) => {
 		newModel.set(`welcome`, new DateTime());
 	} catch (e) {
 		audit(`ERROR`, `${e}`, { user: newModel.id });
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/outpost/api/HandleOutpostUnsubscribe.ts
+const HandleOutpostUnsubscribe = (e) => {
+	const audit = mkAudit(mkLog(`unsubscribe`), $app);
+	const id = e.request.url.query().get("e");
+	try {
+		const record = $app.findRecordById("users", id);
+		record.set(`unsubscribe`, true);
+		$app.save(record);
+		const email = record.getString("email");
+		audit("UNSUBSCRIBE", "", {
+			email,
+			user: id
+		});
+		$app.newMailClient().send(new MailerMessage({
+			from: {
+				address: $app.settings().meta.senderAddress,
+				name: $app.settings().meta.senderName
+			},
+			to: [{ address: `ben@benallfree.com` }],
+			subject: `UNSUBSCRIBE ${email}`
+		}));
+		return e.html(200, `<p>${email} has been unsubscribed.`);
+	} catch (_err) {
+		audit("UNSUBSCRIBE_ERR", `User ${id} not found`);
+		return e.html(200, `<p>Looks like you're already unsubscribed.`);
 	}
 };
 
@@ -3316,27 +3385,38 @@ function isSnsSubscriptionConfirmationEvent(event) {
 function isSnsNotificationEvent(event) {
 	return event.Type === "Notification";
 }
-function isSnsNotificationBouncePayload(payload) {
-	return payload.notificationType === "Bounce";
-}
-function isSnsNotificationComplaintPayload(payload) {
-	return payload.notificationType === "Complaint";
+function sesEventType(msg) {
+	return String(msg.notificationType ?? msg.eventType ?? "");
 }
 const HandleSesError = (e) => {
 	const log = mkLog(`sns`);
 	const audit = mkAudit(log, $app);
 	const processBounce = (emailAddress) => {
-		log(`Processing ${emailAddress}`);
+		log(`Processing bounce ${emailAddress}`);
 		const extra = { email: emailAddress };
 		try {
 			const user = $app.findFirstRecordByData("users", "email", emailAddress);
 			log(`user is`, user);
 			extra.user = user.id;
-			user.setVerified(false);
+			suppressUserEmail(user);
 			$app.save(user);
 			audit("PBOUNCE", `User ${emailAddress} has been disabled`, extra);
 		} catch (e) {
 			audit("PBOUNCE_ERR", `${e}`, extra);
+		}
+	};
+	const processComplaint = (emailAddress) => {
+		log(`Processing complaint ${emailAddress}`);
+		const extra = { email: emailAddress };
+		try {
+			const user = $app.findFirstRecordByData("users", "email", emailAddress);
+			log(`user is`, user);
+			extra.user = user.id;
+			suppressUserEmail(user);
+			$app.save(user);
+			audit("COMPLAINT", `User ${emailAddress} has been unsubscribed`, extra);
+		} catch (e) {
+			audit("COMPLAINT_ERR", `${emailAddress} is not in the system.`, extra);
 		}
 	};
 	const raw = readerToString(e.request.body);
@@ -3348,47 +3428,42 @@ const HandleSesError = (e) => {
 		$http.send({ url });
 		return e.json(200, { status: "ok" });
 	}
-	if (isSnsNotificationEvent(data)) {
-		const msg = JSON.parse(data.Message);
-		log(msg);
-		if (isSnsNotificationBouncePayload(msg)) {
-			log(`Message is a bounce`);
-			const { bounce } = msg;
-			const { bounceType } = bounce;
-			switch (bounceType) {
-				case `Permanent`:
-					log(`Message is a permanent bounce`);
-					const { bouncedRecipients } = bounce;
-					bouncedRecipients.forEach((recipient) => {
-						const { emailAddress } = recipient;
-						processBounce(emailAddress);
-					});
-					break;
-				default: audit("SNS_ERR", `Unrecognized bounce type ${bounceType}`, { raw });
-			}
-		} else if (isSnsNotificationComplaintPayload(msg)) {
-			log(`Message is a Complaint`, msg);
-			const { complaint } = msg;
-			const { complainedRecipients } = complaint;
-			complainedRecipients.forEach((recipient) => {
-				const { emailAddress } = recipient;
-				log(`Processing ${emailAddress}`);
-				try {
-					const user = $app.findFirstRecordByData("users", "email", emailAddress);
-					log(`user is`, user);
-					user.set(`unsubscribe`, true);
-					$app.save(user);
-					audit("COMPLAINT", `User ${emailAddress} has been unsubscribed`, {
-						emailAddress,
-						user: user.id
-					});
-				} catch (e) {
-					audit("COMPLAINT_ERR", `${emailAddress} is not in the system.`, { emailAddress });
-				}
-			});
-		} else audit("SNS_ERR", `Unrecognized notification type ${data.Type}`, { raw });
+	if (!isSnsNotificationEvent(data)) {
+		audit("SNS_ERR", `Unrecognized SNS envelope type ${data.Type}`, { raw });
+		return e.json(200, { status: "ok" });
 	}
-	audit(`SNS_ERR`, `Message ${data.Type} not handled`, { raw });
+	const msg = JSON.parse(data.Message);
+	log(msg);
+	const eventType = sesEventType(msg);
+	if (eventType === "Bounce") {
+		log(`Message is a bounce`);
+		const bounce = msg.bounce;
+		if (!bounce) {
+			audit("SNS_ERR", "Bounce event missing bounce object", { raw });
+			return e.json(200, { status: "ok" });
+		}
+		const { bounceType, bouncedRecipients } = bounce;
+		if (bounceType === `Permanent`) {
+			log(`Message is a permanent bounce`);
+			bouncedRecipients.forEach((recipient) => {
+				processBounce(recipient.emailAddress);
+			});
+		} else audit("SNS_ERR", `Unrecognized bounce type ${bounceType}`, { raw });
+		return e.json(200, { status: "ok" });
+	}
+	if (eventType === "Complaint") {
+		log(`Message is a Complaint`, msg);
+		const complaint = msg.complaint;
+		if (!complaint) {
+			audit("SNS_ERR", "Complaint event missing complaint object", { raw });
+			return e.json(200, { status: "ok" });
+		}
+		complaint.complainedRecipients.forEach((recipient) => {
+			processComplaint(recipient.emailAddress);
+		});
+		return e.json(200, { status: "ok" });
+	}
+	audit("SNS_ERR", `Unrecognized SES event type ${eventType}`, { raw });
 	return e.json(200, { status: "ok" });
 };
 
@@ -3595,6 +3670,7 @@ exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
 exports.HandleMirrorData = HandleMirrorData;
 exports.HandleMirrorSync = HandleMirrorSync;
+exports.HandleOutpostUnsubscribe = HandleOutpostUnsubscribe;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;

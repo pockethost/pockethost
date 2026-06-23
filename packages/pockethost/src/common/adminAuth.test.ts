@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { adminAuthWithPassword, createFirstAdmin } from './adminAuth'
+import { adminAuthWithPassword, createFirstAdmin, withAdminAuthRetry } from './adminAuth'
 import { ClientResponseError, PocketBase } from './pocketbase'
 
 describe('adminAuth', () => {
@@ -75,5 +75,37 @@ describe('adminAuth', () => {
     client.admins.authWithPassword = vi.fn().mockRejectedValue(err)
 
     await expect(adminAuthWithPassword(client, 'admin@example.com', 'wrong')).rejects.toBe(err)
+  })
+
+  it('withAdminAuthRetry re-authenticates once on 401', async () => {
+    const client = new PocketBase('http://localhost:8090')
+    const authWithPassword = vi
+      .fn()
+      .mockResolvedValueOnce({ token: 'initial', record: { id: '1' } })
+      .mockResolvedValueOnce({ token: 'refreshed', record: { id: '1' } })
+    client.admins.authWithPassword = authWithPassword
+
+    const fn = vi
+      .fn()
+      .mockRejectedValueOnce(new ClientResponseError({ status: 401, message: 'expired' }))
+      .mockResolvedValueOnce('ok')
+
+    const result = await withAdminAuthRetry(client, 'admin@example.com', 'secret', fn)
+
+    expect(result).toBe('ok')
+    expect(fn).toHaveBeenCalledTimes(2)
+    expect(authWithPassword).toHaveBeenCalledTimes(1)
+  })
+
+  it('withAdminAuthRetry fails fast on non-401 errors', async () => {
+    const client = new PocketBase('http://localhost:8090')
+    client.admins.authWithPassword = vi.fn()
+
+    const err = new ClientResponseError({ status: 503, message: 'down' })
+    const fn = vi.fn().mockRejectedValue(err)
+
+    await expect(withAdminAuthRetry(client, 'admin@example.com', 'secret', fn)).rejects.toBe(err)
+    expect(fn).toHaveBeenCalledTimes(1)
+    expect(client.admins.authWithPassword).not.toHaveBeenCalled()
   })
 })
