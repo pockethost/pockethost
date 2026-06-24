@@ -9,6 +9,38 @@
  * hosts when a component needs a variant. Do not rely on TW utilities on wa-* tags.
  */
 
+/* Reserve icon space before custom elements upgrade (prevents layout shift on hydration). */
+wa-icon:not(:defined) {
+  box-sizing: content-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.125em;
+  width: 1.25em;
+  height: 1em;
+  min-width: 1.25em;
+  min-height: 1em;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+wa-button:not(:defined) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+wa-dropdown:not(:defined) {
+  display: inline-flex;
+  align-items: center;
+}
+
 /* WA default theme underlines every <a> with a dotted line — disable site-wide; use Tailwind underline where needed. */
 :root,
 .wa-theme-default {

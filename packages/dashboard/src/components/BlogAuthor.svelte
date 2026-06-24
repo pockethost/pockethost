@@ -13,7 +13,13 @@
     alt=""
     width={size}
     height={size}
+    loading="eager"
+    decoding="async"
     class="rounded-full shrink-0 bg-white/10"
+    style:width={`${size}px`}
+    style:height={`${size}px`}
+    style:min-width={`${size}px`}
+    style:min-height={`${size}px`}
   />
   <div class="text-sm text-white/60">
     {#if author.url}

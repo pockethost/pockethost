@@ -3,6 +3,7 @@
   import VerifyAccountBar from '$components/VerifyAccountBar.svelte'
   import Meta from '$components/guards/Meta.svelte'
   import '../app.css'
+  import '$lib/webawesome-icons'
   import '$lib/webawesome'
   import { onMount } from 'svelte'
   import { init } from '$util/stores'
@@ -24,6 +25,7 @@
 
 <svelte:head>
   <title>PocketHost</title>
+  <link rel="preload" as="image" href={cloudLogo} />
   {@html a11yDark}
 </svelte:head>
 

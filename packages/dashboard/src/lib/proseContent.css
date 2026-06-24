@@ -1,0 +1,50 @@
+/* Blog + prose route typography — lives in the main bundle to avoid late layout shifts. */
+.prose {
+  max-width: none;
+}
+
+.prose h1 {
+  @apply text-3xl md:text-4xl font-bold mb-6 mt-0;
+}
+
+.prose h2 {
+  @apply text-2xl md:text-3xl font-bold mb-4 mt-10 pt-2 border-t border-white/10;
+}
+
+.prose h2:first-of-type {
+  @apply mt-0 pt-0 border-t-0;
+}
+
+.prose h3 {
+  @apply text-xl md:text-2xl font-semibold mb-3 mt-6;
+}
+
+.prose p {
+  @apply leading-relaxed mb-4;
+}
+
+.prose ul,
+.prose ol {
+  @apply mb-4 pl-6;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose a {
+  @apply font-medium underline underline-offset-2 decoration-primary/40 hover:decoration-primary;
+}
+
+.prose :not(pre) > code {
+  @apply bg-neutral-800 px-1.5 py-0.5 rounded text-sm;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0 rounded-none text-sm;
+  display: block;
+}
+
+.prose blockquote {
+  @apply bg-neutral-800/50 border-l-4 border-l-primary pl-4 py-2 my-4 not-italic text-white/75;
+}

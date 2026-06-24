@@ -1,12 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+@import './lib/fonts.css';
 @import 'tailwindcss';
 @config '../tailwind.config.cjs';
 @plugin '@tailwindcss/typography';
 @source '../src/**/*.{svelte,js,ts,md}';
 
-/* Web Awesome CSS + overrides load from src/lib/webawesome.ts so Vite bundles nested @imports. */
 @import './lib/authForm.css';
 @import './lib/pricingCard.css';
+@import './lib/proseContent.css';
+@import '@awesome.me/webawesome/dist/styles/webawesome.css';
+@import './lib/webawesome-overrides.css';
 
 :root {
   /* wa-brand-green on <html> sets the full brand-* scale; keep PocketHost green as the base token. */
@@ -269,12 +271,16 @@
   text-decoration: none;
 }
 
+.blog-back-link wa-icon {
+  flex-shrink: 0;
+}
+
 .blog-back-link:hover {
   color: #fff;
 }
 
-* {
-  font-family: 'Figtree', sans-serif;
+html {
+  font-family: 'Figtree Variable', system-ui, sans-serif;
 }
 
 .prose :where(pre):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
@@ -356,10 +362,6 @@
   line-height: 1.625;
 }
 
-.prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
-  @apply mt-2 mb-2;
-}
-
 .prose :where(blockquote):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
   quotes: none;
 }
@@ -395,11 +397,6 @@
 
 .prose :where(a):not(:where([class~='not-prose'], [class~='not-prose'] *)):hover {
   color: #1db990;
-}
-
-.prose :where(li):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
-  @apply mt-0 mb-0;
-  line-height: 1.5em;
 }
 
 .mockup-code {
