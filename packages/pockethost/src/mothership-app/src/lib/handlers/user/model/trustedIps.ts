@@ -1,6 +1,6 @@
 import { normalizeTrustedIpList, validateTrustedIpListForSubscription } from '$common/trustedIps'
 
-const readTrustedIps = (record: models.Record): unknown => {
+export const readTrustedIps = (record: models.Record): unknown => {
   try {
     return record.get(`trusted_ips`)
   } catch {

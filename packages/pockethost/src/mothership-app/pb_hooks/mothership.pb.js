@@ -210,18 +210,13 @@ routerAdd("PATCH", "/api/user/trusted-ips", (e) => {
 onRecordUpdate((e) => {
 	const record = e.record;
 	if (!record) return;
-	const previous = readTrustedIpsFromRecord(record.original());
-	const current = readTrustedIpsFromRecord(record);
+	const mothership = require(`${__hooks}/mothership`);
+	const original = record.original();
+	const previous = mothership.readTrustedIps(original);
+	const current = mothership.readTrustedIps(record);
 	if (JSON.stringify(previous) === JSON.stringify(current)) return;
-	require(`${__hooks}/mothership`).validateUserTrustedIps(record);
+	mothership.validateUserTrustedIps(record);
 }, "users");
-function readTrustedIpsFromRecord(record) {
-	try {
-		return record.get(`trusted_ips`);
-	} catch {
-		return null;
-	}
-}
 
 //#endregion
 //#region src/lib/handlers/versions/hooks.ts
