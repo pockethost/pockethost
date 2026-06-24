@@ -3763,7 +3763,7 @@ const HandleUserTokenRequest = (e) => {
 /** Max trusted IP entries per active account. */
 const TRUSTED_IPS_MAX = 5;
 const maxTrustedIpsForSubscription = (subscription) => {
-	if (!subscription || subscription === "free") return 0;
+	if (!subscription) return 0;
 	return 5;
 };
 const isValidIpv4 = (value) => {
@@ -3820,7 +3820,7 @@ const validateTrustedIpListForSubscription = (raw, subscription) => {
 	const normalized = normalizeTrustedIpList(raw);
 	const max = maxTrustedIpsForSubscription(subscription);
 	if (normalized.length > max) {
-		if (max === 0) throw new Error("Active subscription required to manage trusted IPs.");
+		if (max === 0) throw new Error("Account required to manage trusted IPs.");
 		throw new Error(`You can add at most ${max} trusted IPs per account.`);
 	}
 	return normalized;
