@@ -1,8 +1,12 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
-  import { PLAN_NAMES } from 'pockethost/common'
+  import { PLAN_NAMES, SubscriptionInterval, SubscriptionType } from 'pockethost/common'
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
   import { userStore, userSubscriptionType } from '$util/stores'
+
+  $: canCancelMembership =
+    $userSubscriptionType === SubscriptionType.Premium &&
+    $userStore?.subscription_interval === SubscriptionInterval.Month
 </script>
 
 <svelte:head>
@@ -59,8 +63,14 @@
               class="account-btn account-btn--brand-outline"
             >
               <wa-icon name="credit-card"></wa-icon>
-              Manage membership
+              Update payment method
             </a>
+            {#if canCancelMembership}
+              <a href="/account/cancel" class="account-btn account-btn--outline">
+                <wa-icon name="ban"></wa-icon>
+                Cancel membership
+              </a>
+            {/if}
           </div>
         </div>
       </div>

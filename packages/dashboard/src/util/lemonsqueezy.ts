@@ -16,3 +16,21 @@ export const createLemonSqueezyCheckout = async (pvId: string) => {
     throw err
   }
 }
+
+export type CancelMembershipResult = {
+  status: string
+  endsAt: string | null
+}
+
+export const cancelLemonSqueezyMembership = async () => {
+  try {
+    return await client().client.send<CancelMembershipResult>(`/api/ls/cancel`, {
+      method: 'POST',
+    })
+  } catch (err) {
+    if (err instanceof ClientResponseError) {
+      throw new Error(err.response?.message || err.message)
+    }
+    throw err
+  }
+}
