@@ -1,12 +1,34 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
-  import { PLAN_NAMES, SubscriptionInterval, SubscriptionType } from 'pockethost/common'
+  import {
+    DB_STORAGE_MB_PER_INSTANCE,
+    FILE_STORAGE_GB_PER_INSTANCE,
+    PLAN_NAMES,
+    subscriptionStorageLimits,
+    SubscriptionInterval,
+    SubscriptionType,
+  } from 'pockethost/common'
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
   import { userStore, userSubscriptionType } from '$util/stores'
+  import StorageMeter from './StorageMeter.svelte'
 
   $: canCancelMembership =
     $userSubscriptionType === SubscriptionType.Premium &&
     $userStore?.subscription_interval === SubscriptionInterval.Month
+
+  $: instanceCount = $userStore?.subscription_quantity ?? 0
+  $: storageLimits = subscriptionStorageLimits(instanceCount)
+  $: perInstanceLabel = instanceCount === 1 ? 'PocketBase' : 'PocketBases'
+  $: volumeUsedBytes = $userStore?.volume_storage_used ?? 0
+  $: objectUsedBytes = $userStore?.object_storage_used ?? 0
+  $: volumeSubline =
+    instanceCount > 0
+      ? `Pooled across instances · ${DB_STORAGE_MB_PER_INSTANCE} MB × ${instanceCount} ${perInstanceLabel}`
+      : 'Upgrade to add storage'
+  $: objectSubline =
+    instanceCount > 0
+      ? `Pooled across instances · ${FILE_STORAGE_GB_PER_INSTANCE} GB × ${instanceCount} ${perInstanceLabel}`
+      : 'Upgrade to add storage'
 </script>
 
 <svelte:head>
@@ -47,10 +69,32 @@
             <div class="account-stat account-stat--wide">
               <dt>Instances</dt>
               <dd>
-                <span class="account-stat-value">{$userStore?.subscription_quantity}</span>
+                <span class="account-stat-value">{instanceCount}</span>
                 <span class="account-stat-muted"> allowed</span>
                 <span class="account-stat-sep">·</span>
                 <a href="/support" class="account-stat-link">Request more</a>
+              </dd>
+            </div>
+            <div class="account-stat account-stat--wide account-stat--meter">
+              <dt>DB storage</dt>
+              <dd>
+                <StorageMeter
+                  label="DB storage"
+                  usedBytes={volumeUsedBytes}
+                  limitBytes={storageLimits.volumeBytes}
+                  subline={volumeSubline}
+                />
+              </dd>
+            </div>
+            <div class="account-stat account-stat--wide account-stat--meter">
+              <dt>File storage</dt>
+              <dd>
+                <StorageMeter
+                  label="File storage"
+                  usedBytes={objectUsedBytes}
+                  limitBytes={storageLimits.objectBytes}
+                  subline={objectSubline}
+                />
               </dd>
             </div>
           </dl>

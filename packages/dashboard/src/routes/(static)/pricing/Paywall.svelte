@@ -4,7 +4,12 @@
   import { daysUntilFlounderSunset, flounderDaysLeftLabel, FLOUNDER_SALES_END_LABEL } from '$util/flounderSunset'
   import Features from './Features.svelte'
   import FlounderCountdown from './FlounderCountdown.svelte'
-  import { FLOUNDER_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID } from 'pockethost/common'
+  import {
+    DB_STORAGE_MB_PER_INSTANCE,
+    FILE_STORAGE_GB_PER_INSTANCE,
+    FLOUNDER_LIFETIME_PV_ID,
+    INSTANCE_MONTHLY_PV_ID,
+  } from 'pockethost/common'
   import SignupBox from './SignupBox.svelte'
 
   let flounderDaysLeft = daysUntilFlounderSunset()
@@ -37,9 +42,9 @@
     title="Pay Per PocketBase"
     price="$5"
     priceDetail="per PocketBase, per month"
-    cta="Each PocketBase includes 250 MB DB data storage and 10 GB file storage. Add another PocketBase, add another $5."
+    cta="Each PocketBase includes {DB_STORAGE_MB_PER_INSTANCE} MB DB data storage and {FILE_STORAGE_GB_PER_INSTANCE} GB file storage. Add another PocketBase, add another $5."
     features={[
-      '250 MB DB data storage + 10 GB file storage per PocketBase',
+      `${DB_STORAGE_MB_PER_INSTANCE} MB DB data storage + ${FILE_STORAGE_GB_PER_INSTANCE} GB file storage per PocketBase`,
       'Storage adds to your account pool — shared across every PocketBase you run',
       '7 day risk-free trial',
       'Global Fly ingress, private network routing',
