@@ -1,0 +1,49 @@
+---
+description: PocketHost billing model — hard paywall, Pay Per PocketBase
+alwaysApply: true
+---
+
+# Billing and paywall
+
+PocketHost is a **hard paywall** hosting service. There is **no free hosting tier** and no freemium plan for new customers.
+
+## Current model — Pay Per PocketBase
+
+- **$5/month per PocketBase slot** (7-day trial). See [/pricing](/pricing).
+- Each paid slot (`subscription_quantity`) adds:
+  - **250 MB** pooled DB data storage
+  - **10 GB** pooled file storage
+  - **One powered-on** PocketBase at a time
+- **Unlimited instance records** — create as many as you want. Only **power on** as many as your paid slots allow.
+- Checkout quantity = number of slots. Storage pools scale with quantity.
+- **No Pro, Agency, or tiered plans.** One product: Pay Per PocketBase.
+- **Grandfathered** accounts (Legacy, Flounder, Founder, early `subscription=free` rows, etc.) keep prior entitlements until migrated.
+- **`users.subscription === 'free'`** in mothership is a **legacy DB enum value**, not a product tier. It covers grandfathered no-pay accounts and lapsed/cancelled rows.
+
+## Legacy `subscription=free` accounts
+
+Some long-time users still have `subscription=free` in the database. They are grandfathered (effectively a ~$5 instance slot) and get the same platform features as paying subscribers for now. **Migration/cleanup is a separate backlog item.**
+
+## Copy rules for agents
+
+**Do not write:**
+
+- "free tier", "Free plan", "Hacker tier", Pro/Agency tiers, or tier comparison tables with $19.99/$49.99
+- "paid plans" vs "free tier" for standard features
+- "Pro subscribers" (use **subscribers** or **Pay Per PocketBase**)
+
+**Do write:**
+
+- **Pay Per PocketBase**, **$5 per slot**, **powered-on limit**, **pooled storage**
+- "subscribe", "your account", "add another PocketBase for $5"
+- "grandfathered" for pre-paywall or legacy rows
+- Third-party free tiers OK (Web Awesome, npm, etc.)
+
+## Code
+
+- `SubscriptionType.Premium` / `'premium'` = active Pay Per PocketBase monthly subscriber (DB enum name is historical).
+- `subscription_quantity` = paid slot count (powered-on cap + storage pool multiplier).
+- Limits per slot: `common/subscriptionLimits.ts` (`DB_STORAGE_MB_PER_INSTANCE`, `FILE_STORAGE_GB_PER_INSTANCE`).
+- Feature gates: prefer active hosting entitlement, not bare `subscription !== 'free'`, unless blocking lapsed accounts only.
+
+Read [MEMORY.md](MEMORY.md) Billing section when touching pricing, limits, dashboard paywalls, or Lemon Squeezy flows.

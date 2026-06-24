@@ -88,7 +88,7 @@
     const trimmed = formCname.trim()
 
     if (trimmed && !$isUserPaid) {
-      errorMessage = `Oof, you hit a paywall. This is a Pro feature only. Please <a class='text-primary' href="/account">upgrade your account.</a>`
+      errorMessage = `Oof, you hit a paywall. Custom domains require an active subscription. Please <a class='text-primary' href="/pricing">subscribe</a> or <a class='text-primary' href="/account">manage your account.</a>`
       return
     }
 

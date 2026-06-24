@@ -6,7 +6,7 @@ Full reference page: [/3.0](/3.0)
 
 ### Flounder lifetime ends July 1
 
-The **Flounder** one-time lifetime tier has been one of the best deals we ever offered. Pay once, Pro-tier hosting for as long as PocketHost exists. Unlimited instances, bandwidth, and storage under our [Fair Use](/docs/pricing-ethos) policy, plus `#onlyflounders` Discord and priority support.
+The **Flounder** one-time lifetime tier has been one of the best deals we ever offered. Pay once for Pay Per PocketBase hosting for as long as PocketHost exists. Unlimited instances, bandwidth, and storage under our [Fair Use](/docs/pricing-ethos) policy, plus `#onlyflounders` Discord and priority support.
 
 **Sales stop July 1, 2026.** After that, Flounder is off the menu for new buyers.
 
@@ -18,19 +18,15 @@ The [pricing page](/pricing) shows a countdown while sales are open. More detail
 
 Lifetime tiers helped bootstrap PocketHost. Going forward, recurring subscriptions are how we pay for storage, run the edge fleet, and ship features like [Auto Vacuum](/blog/auto-vacuum) and [SFTP file access](/blog/sftp-file-access). Retiring Flounder is part of that shift.
 
-### New tiers for new signups only
+### Pay Per PocketBase (already live)
 
-Starting July 1, **new customers** see clearer monthly tiers instead of lifetime checkout:
+PocketHost uses a simple **Pay Per PocketBase** model: **$5/month per slot**. Each slot adds **250 MB DB data storage** and **10 GB file storage** (pooled across your account) and lets you **power on one** PocketBase at a time.
 
-| Tier | Price | Powered-on instances | Primary storage |
-| ---- | ----- | -------------------- | --------------- |
-| **Free** | $0 | 1 | 1 GB |
-| **Pro** | $19.99/mo | 5 | 50 GB |
-| **Agency** | $49.99/mo | 50 | 200 GB |
+Create as many instance records as you want. Your paid slot count sets how many can be **powered on** at once.
 
-**If you already subscribe, your billing does not change.** Same plan, same price. These tiers apply to signups after July 1, not to existing accounts.
+**Jul 1 changes for everyone:** Flounder sales end, and we enforce powered-on and storage limits against your slot count. See the [pricing page](/pricing).
 
-We will publish the full pricing page and in-dashboard checkout when 3.0 goes live.
+**If you already subscribe, your billing does not change.** Same plan, same price.
 
 ### SFTP and FTPS (already in motion)
 
@@ -45,6 +41,6 @@ This refresh lines up with work we have already shipped:
 2. **Using FTPS?** Move clients and CI to SFTP when you can. [Docs](/docs/ftp) · [phio deploy](/docs/phio)
 3. **Existing subscriber?** No action required. Your account is grandfathered.
 
-We will send a reminder closer to July 1 and post again when the new tiers go live.
+We will send a reminder closer to July 1 and post again when limit enforcement goes live.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT) or [support](/support).

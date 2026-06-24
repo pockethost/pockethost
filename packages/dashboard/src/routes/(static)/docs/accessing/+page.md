@@ -14,6 +14,6 @@ Each PocketHost instance is assigned a permanent UUID, and a unique subdomain th
 
 > **Example:** I use PocketHost to run the backend for my web game, Harvest. I created a PocketHost instance and chose the subdomain `harvest`, making it accessible at `https://harvest.pockethost.io`. Since instances can be [renamed](/docs/rename-instance/), PocketHost also assigns a permanent UUID. In this case, the UUID is `mfsicdp6ia1zpiu`, so the instance is always accessible at `https://mfsicdp6ia1zpiu.pockethost.io`, regardless of subdomain changes.
 
-Custom domains are supported at the Pro level, and we manage SSL certificates for you. Learn more about setting up custom domains [here](/docs/custom-domain).
+Custom domains are supported on paid accounts, and we manage SSL certificates for you. Learn more about setting up custom domains [here](/docs/custom-domain).
 
 For direct file access, use [SFTP](/docs/ftp) with an SSH key to manage backups, uploads, hooks, and logs on your instance.

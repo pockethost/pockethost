@@ -1,10 +1,10 @@
-The **Flounder** lifetime deal is going away. If you want a one-time payment for long-term Pro-tier hosting, now is the time to decide.
+The **Flounder** lifetime deal is going away. If you want a one-time payment for long-term Pay Per PocketBase hosting, now is the time to decide.
 
 **Sales end July 1, 2026.** After that date, Flounder is off the menu for new buyers.
 
 ### What Flounder gets you
 
-Flounder is our lifetime Pro offer: pay once, host for as long as PocketHost exists. You get unlimited instances, unlimited bandwidth, and unlimited storage under our [Fair Use](/docs/pricing-ethos) policy. Plus the `#onlyflounders` Discord channel, priority support, and the rest of the perks on the [pricing page](/pricing).
+Flounder is our lifetime Pay Per PocketBase offer: pay once, host for as long as PocketHost exists. You get unlimited instances, unlimited bandwidth, and unlimited storage under our [Fair Use](/docs/pricing-ethos) policy. Plus the `#onlyflounders` Discord channel, priority support, and the rest of the perks on the [pricing page](/pricing).
 
 It has been one of the best deals we have ever offered. That is exactly why we cannot keep it open forever.
 

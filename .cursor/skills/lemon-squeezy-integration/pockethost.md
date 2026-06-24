@@ -36,7 +36,7 @@ Body: `{ "pvId": "424532-651625" }` (see `common/lemonSqueezy.ts`). Returns `{ "
 POST /api/ls/cancel
 ```
 
-Cancels the authenticated user's active Pro monthly Lemon Squeezy subscription. Looks up subscription by account email + instance-monthly variant, then `DELETE /subscriptions/{id}`. Returns `{ "status": "cancelled", "endsAt": "..." }`. PocketBase plan fields update on `subscription_expired` webhook (access continues until period end). Dashboard: `/account/cancel`.
+Cancels the authenticated user's active Pay Per PocketBase monthly Lemon Squeezy subscription. Looks up subscription by account email + instance-monthly variant, then `DELETE /subscriptions/{id}`. Returns `{ "status": "cancelled", "endsAt": "..." }`. PocketBase plan fields update on `subscription_expired` webhook (access continues until period end). Dashboard: `/account/cancel`.
 
 Registered in `hooks.ts`:
 

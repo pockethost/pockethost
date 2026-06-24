@@ -59,8 +59,8 @@
         pro-rate it. Sound good?
       </p>
       <p>
-        If you create additional instances and then downgrade to the free plan, the extra instances will remain
-        accessible in your dashboard, but they will not run.
+        If you create additional instances and then cancel your subscription, the extra instances will remain accessible
+        in your dashboard, but they will not run.
       </p>
     </FAQItem>
 

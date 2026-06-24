@@ -27,7 +27,7 @@
     if (!canCancel || isSubmitting) return
 
     const confirmed = confirm(
-      `Cancel your Pro membership? You keep access until the end of the current billing period. Your instances will stop running when the membership ends.`
+      `Cancel your Pay Per PocketBase subscription? You keep access until the end of the current billing period. Your instances will stop running when the subscription ends.`
     )
     if (!confirmed) return
 
@@ -53,7 +53,7 @@
 <FeatureTab title="Cancel membership" {errorMessage}>
   <svelte:fragment slot="summary">
     <p class="text-sm text-white/70 leading-relaxed">
-      Cancel recurring billing for your Pro plan. You keep your current instance allowance until the billing period
+      Cancel recurring billing for Pay Per PocketBase. You keep your current slot allowance until the billing period
       ends.
     </p>
   </svelte:fragment>
@@ -61,7 +61,7 @@
   {#if !canCancel}
     <wa-callout variant="neutral" open>
       <wa-icon slot="icon" name="circle-info"></wa-icon>
-      This account does not have a cancellable Pro membership.
+      This account does not have a cancellable Pay Per PocketBase subscription.
       <a href="/account" class="account-stat-link">Back to account</a>
     </wa-callout>
   {:else if cancelled}

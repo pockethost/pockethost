@@ -8,7 +8,7 @@ Welcome to PocketHost! This guide will help you set up your first PocketBase ins
 
 ## 1. Create a PocketHost Account
 
-The first step is to create a free account on PocketHost.
+The first step is to [create a PocketHost account](https://pockethost.io/get-started) and subscribe.
 
 - **Sign Up**: Visit [pockethost.io/get-started](https://pockethost.io/get-started).
 - **Email Verification**: Provide a valid email address and verify it through the confirmation email sent to you.

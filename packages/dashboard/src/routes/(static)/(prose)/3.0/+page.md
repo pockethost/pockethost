@@ -39,11 +39,11 @@ More detail: [Last call for Flounder lifetime access](/blog/flounder-lifetime-su
 
 ## Pricing is changing
 
-Subscriptions are how we sustain hosting long term. We are retiring lifetime sales and rolling out **new monthly tiers** with clearer limits for **new customers**.
+Subscriptions are how we sustain hosting long term. We are retiring lifetime sales and enforcing clearer limits on **Pay Per PocketBase** — **$5/month per slot**, each slot adding pooled storage and one powered-on PocketBase.
 
-**If you already subscribe, your billing does not change.** Same plan, same price. The new tiers apply to signups after we announce them, not to existing accounts.
+**If you already subscribe, your billing does not change.** Same plan, same price. Jul 1 mainly ends Flounder sales and turns on powered-on and storage enforcement.
 
-We will post the new tier details on the [blog](/blog) before they go live for new customers.
+We will post details on the [blog](/blog) and [pricing page](/pricing) before enforcement goes live.
 
 ## PocketBase v0.39 on the control plane
 
@@ -53,7 +53,7 @@ PocketHost 3.0 builds on a **mothership PocketBase v0.39** control plane. That u
 
 1. **Set up SFTP.** Generate an Ed25519 key, add it at [Account → Keys](/account/keys), and test a connection using [/docs/ftp](/docs/ftp).
 2. **Retire FTPS bookmarks.** Point clients and CI at SFTP when you can. Keep FTPS only where you still need it until deploy tooling catches up.
-3. **Decide on Flounder.** If lifetime Pro fits you, buy before **July 1** (or **July 31** if you already had an account on July 1).
+3. **Decide on Flounder.** If lifetime Pay Per PocketBase fits you, buy before **July 1** (or **July 31** if you already had an account on July 1).
 4. **Watch for updates.** Follow the [blog](/blog) and your account email for timelines as 3.0 rolls out.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT) or [support](/support).

@@ -1,37 +1,46 @@
 ---
 title: Pricing Ethos
-description: Understand PocketHost's simple and transparent pricing model, including instance plans, lifetime offers, and our Fair Use policy
+description: Understand PocketHost's Pay Per PocketBase pricing, lifetime offers, and Fair Use policy
 ---
 # Pricing Ethos
 
-At PocketHost, we believe in keeping things simple and transparent. Our pricing is designed to support indie hackers, makers, and small businesses. We offer flexible plans to suit your needs, based on the number of instances you want to run. We also offer limited Lifetime Offers during our bootstrapping phase.
+At PocketHost, we believe in keeping things simple and transparent. **Pay Per PocketBase** is our only monthly plan: **$5 per slot per month**. We also offer a limited **Flounder** lifetime deal during our bootstrapping phase.
 
-## Instances
+## Pay Per PocketBase
 
-You can get started easily on PocketHost by purchasing an instance.
+Each paid slot adds:
 
-- **Generous Resources**: Fair use of storage, bandwidth, and CPU.
-- **Priority Support**: Get help when you need it.
+- **250 MB** pooled DB data storage
+- **10 GB** pooled file storage
+- **One powered-on** PocketBase at a time
 
-## Lifetime Offers
+Create **unlimited instance records**. Your slot count (`subscription_quantity`) sets how many PocketBases you can **power on** at once. Add another slot, add another $5.
 
-- **One-Time Payment**: Enjoy Pro Tier benefits without recurring fees.
-- **Limited Availability**: Offered in limited quantities and sold on a first-come, first-served basis.
-- **Non-Transferable**: Cannot be pro-rated, transferred, used retroactively, reserved, or purchased in advance.
+- **Fair use bandwidth and CPU** on all paid slots
+- **7-day risk-free trial** on signup
+- **Community support** on Discord for everyone
 
-**Please Note**:
+See [pricing](/pricing) for checkout.
 
-- Once sold out, Lifetime Offers are gone forever.
-- Timing is everything—if you can wait and catch one of these deals, it's an incredible opportunity.
+## Lifetime Offers (Flounder)
+
+- **One-time payment**: Pay Per PocketBase features without recurring fees
+- **Limited availability**: Flounder sales end **July 1, 2026**
+- **Non-transferable**: Cannot be pro-rated, transferred, used retroactively, reserved, or purchased in advance
+
+**Please note:**
+
+- After July 1, new Flounder purchases are off the table
+- Existing Flounder subscribers stay grandfathered
 
 ## Fair Use Policy
 
-**Unlimited Doesn't Mean Infinite**
+**Unlimited doesn't mean infinite**
 
-While we offer ample limits for projects, storage, bandwidth, and CPU, all usage is subject to Fair Use:
+Bandwidth and CPU are unmetered under fair use. Storage is pooled per slot as above.
 
-- **Fair Use Basis**: Use resources similarly to the average active app on our platform.
-- **Resource Management**: Your app scales up or down based on its needs.
-- **Good Citizenship**: Be mindful of resource consumption to ensure a positive experience for all users.
+- **Fair use basis**: Use resources similarly to the average active app on our platform
+- **Resource management**: Your app scales up or down based on its needs
+- **Good citizenship**: Be mindful of resource consumption to ensure a positive experience for all users
 
 For more details, please refer to our complete [Fair Use Policy](/terms).

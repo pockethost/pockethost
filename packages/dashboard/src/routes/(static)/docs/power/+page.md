@@ -27,3 +27,7 @@ To power off the instance, follow these steps:
 3. Wait for the instance to shut down.
 
 When the instance is powered off, no requests will be answered.
+
+## Powered-on slots
+
+Pay Per PocketBase billing works in **slots**. Each $5/month slot lets you **power on one** PocketBase at a time. You can create unlimited instance records. If you try to power on more instances than your paid slot count, you will need to [add another slot](/pricing) or power off an instance first.

@@ -10,8 +10,8 @@ export enum SubscriptionType {
 
 export const PLAN_NAMES = {
   [SubscriptionType.Legacy]: 'Legacy',
-  [SubscriptionType.Free]: 'Hacker',
-  [SubscriptionType.Premium]: `Pro`,
+  [SubscriptionType.Free]: 'Hacker', // legacy DB enum only — not a product tier
+  [SubscriptionType.Premium]: `Pay Per PocketBase`,
   [SubscriptionType.Founder]: `Founder`,
   [SubscriptionType.Flounder]: `Flounder`,
 }

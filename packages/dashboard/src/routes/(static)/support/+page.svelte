@@ -33,6 +33,6 @@
       Prefer email or need to share something private? Write to
       <a class="text-primary" href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a>.
     </p>
-    <p class="text-white/60 text-sm">Pro subscribers receive priority email support.</p>
+    <p class="text-white/60 text-sm">Subscribers receive priority email support.</p>
   </section>
 </div>

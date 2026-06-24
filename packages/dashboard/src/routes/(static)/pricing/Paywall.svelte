@@ -59,7 +59,7 @@
     title="Flounder - Lifetime"
     badgeText={flounderBadge}
     badgeUrgent
-    cta="Pay once for lifetime Pro hosting. Sales end {FLOUNDER_SALES_END_LABEL}. No new buyers after that date."
+    cta="Pay once for lifetime Pay Per PocketBase hosting. Sales end {FLOUNDER_SALES_END_LABEL}. No new buyers after that date."
     features={[
       'Pay Per PocketBase features, lifetime price',
       'Lifetime access',

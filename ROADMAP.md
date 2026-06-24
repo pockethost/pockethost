@@ -1,16 +1,16 @@
 # PocketHost 3.0 — roadmap
 
-**North star:** **July 1, 2026** — merge `launch/3.0` → `main` and deploy. That is when new pricing and new limit enforcement go live. Grandfathered accounts unchanged.
+**North star:** **July 1, 2026** — merge `launch/3.0` → `main` and deploy. That is when Flounder sales end and new limit enforcement go live. Grandfathered accounts unchanged.
 
 Task detail: [backlog.md](backlog.md) · Architecture: [MEMORY.md](MEMORY.md) · Public summary: [/3.0](https://pockethost.io/3.0)
 
-**New tiers (new signups only):** Free 1 powered-on / 1 GB primary · Pro $19.99/mo 5 / 50 GB · Agency $49.99/mo 50 / 200 GB
+**Pricing model:** **Pay Per PocketBase** — **$5/mo per slot** (hard paywall, 7-day trial). Each slot adds **250 MB DB data** + **10 GB file storage** (pooled on the account) and allows **one powered-on** PocketBase. Create unlimited instance records. Only power on as many as your paid slots allow. No Pro/Agency tiers. No free hosting tier.
 
 ---
 
 ## The one rule
 
-Ship features to `main` whenever they are ready. **Two things may NOT go live before July 1:** new pricing and new limit enforcement. Those live on `launch/3.0` until the Jul 1 merge.
+Ship features to `main` whenever they are ready. **Two things may NOT go live before July 1:** Flounder checkout removal and new limit enforcement. Those live on `launch/3.0` until the Jul 1 merge.
 
 | Branch        | Use                                                                                                  |
 | ------------- | ---------------------------------------------------------------------------------------------------- |
@@ -34,16 +34,15 @@ Today ≈ **June 22**. **Do on** = the day you do the work (or send/post). **Liv
 | **Jun 22**    | **Jun 22**  | `ops`                 | PocketBase community forum post                                                                       |
 | **Jun 24**    | **Jun 24**  | `ops`                 | Reddit r/pocketbase post                                                                              |
 | **Jun 25**    | **Jun 26**  | `main`                | Lemon Squeezy full dashboard integration (sign up / upgrade / downgrade / cancel — no offsite portal) |
-| **Jun 27**    | **Jul 1**   | `launch/3.0`          | Lemon Squeezy 3.0 API updates (after full integration on `main`)                                      |
-| **Jun 27**    | **Jul 1**   | `launch/3.0`          | New pricing page (Free / Pro / Agency)                                                                |
+| **Jun 27**    | **Jul 1**   | `launch/3.0`          | Lemon Squeezy checkout updates (quantity / Pay Per PocketBase) after full integration on `main`       |
+| **Jun 27**    | **Jul 1**   | `launch/3.0`          | Pricing page + `/3.0` copy — Pay Per PocketBase limits finalized                                      |
 | **Jun 27**    | **Jul 1**   | `launch/3.0`          | Flounder / lifetime removed from checkout                                                             |
 | **Jun 28**    | **Jun 28**  | `ops`                 | Reminder email — `pockethost mail send`                                                               |
-| **Jun 28**    | **Jul 1**   | `launch/3.0`          | `/3.0` page + site banner — final tier copy                                                           |
-| **Jun 29**    | **Jul 1**   | `launch/3.0`          | 3.0 + pricing launch blog post(s)                                                                     |
-| **Jun 29**    | **Jul 1**   | `launch/3.0`          | In-dashboard checkout for new tiers (part of LS 3.0 updates)                                          |
-| **Jun 30**    | **Jul 1**   | `launch/3.0`          | Powered-on limit enforcement (Free 1 / Pro 5 / Agency 50)                                             |
-| **Jun 30**    | **Jul 1**   | `launch/3.0`          | Primary-volume quota enforcement (Free 1 / Pro 50 / Agency 200 GB)                                    |
-| **Jun 30**    | **Jul 1**   | `launch/3.0`          | Per-tier rate limits + hibernate intervals + dashboard rate-limit controls + IP whitelisting          |
+| **Jun 29**    | **Jul 1**   | `launch/3.0`          | 3.0 launch blog post(s)                                                                               |
+| **Jun 29**    | **Jul 1**   | `launch/3.0`          | In-dashboard checkout quantity changes (part of LS updates)                                             |
+| **Jun 30**    | **Jul 1**   | `launch/3.0`          | Powered-on limit enforcement (`subscription_quantity` slots)                                          |
+| **Jun 30**    | **Jul 1**   | `launch/3.0`          | Pooled storage quota enforcement (250 MB DB + 10 GB files per slot)                                   |
+| **Jun 30**    | **Jul 1**   | `launch/3.0`          | Unlimited instance records + dashboard powered-on usage UI + trusted IPs                                |
 | **Jun 30**    | **Jun 30**  | `ops`                 | Last moment to buy Flounder — EOD                                                                     |
 | **Jun 30**    | —           | `launch/3.0`          | Final rebase on `main`, CI green                                                                      |
 | **Jul 1**     | **Jul 1**   | `launch/3.0` → `main` | Merge + deploy. Dashboard Pages + mothership PM2. Smoke test.                                         |
@@ -68,7 +67,7 @@ Today ≈ **June 22**. **Do on** = the day you do the work (or send/post). **Liv
 ## Comms rules
 
 1. Email before forum/Reddit.
-2. One story: 3.0 is real; Flounder ends Jul 1; new tiers for new signups only.
+2. One story: 3.0 is real; Flounder ends Jul 1; **Pay Per PocketBase** ($5/slot) with enforced powered-on and storage limits.
 3. Stagger public posts 2–4 days apart.
 4. Skip HN "buy Flounder" and paid ads.
 
@@ -84,4 +83,4 @@ Deferred: mailer admin plugin (CLI covers ops sends), multi-region edges, GDPR, 
 
 Update rows when shipped (✅ prefix, move detail to backlog **Done**).
 
-Last reviewed: **2026-06-22** (pre-announce email sent; account email change shipped).
+Last reviewed: **2026-06-24** (Pay Per PocketBase only; no Pro/Agency; legacy `subscription=free` grandfathered separately).
