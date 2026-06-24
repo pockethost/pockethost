@@ -8,6 +8,7 @@ Repo-specific integration points. Generic LS docs are in the other reference fil
 |---------|------|
 | Product ids | `packages/pockethost/src/common/lemonSqueezy.ts` |
 | Checkout API | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts` |
+| Cancel API | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts` |
 | Webhook handler | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts` |
 | Route registration | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/hooks.ts` |
 | Env constants | `packages/pockethost/src/constants.ts` → `LS_WEBHOOK_SECRET`, `LS_API_KEY`, `LS_STORE_ID` |
@@ -29,11 +30,23 @@ POST /api/ls/checkout
 
 Body: `{ "pvId": "424532-651625" }` (see `common/lemonSqueezy.ts`). Returns `{ "url": "..." }` from Lemon Squeezy API.
 
+## Cancel endpoint (auth required)
+
+```
+POST /api/ls/cancel
+```
+
+Cancels the authenticated user's active Pro monthly Lemon Squeezy subscription. Looks up subscription by account email + instance-monthly variant, then `DELETE /subscriptions/{id}`. Returns `{ "status": "cancelled", "endsAt": "..." }`. PocketBase plan fields update on `subscription_expired` webhook (access continues until period end). Dashboard: `/account/cancel`.
+
 Registered in `hooks.ts`:
 
 ```typescript
 routerAdd('POST', '/api/ls/checkout', (e) => {
   return require(`${__hooks}/mothership`).HandleLemonSqueezyCheckout(e)
+}, $apis.requireAuth())
+
+routerAdd('POST', '/api/ls/cancel', (e) => {
+  return require(`${__hooks}/mothership`).HandleLemonSqueezyCancel(e)
 }, $apis.requireAuth())
 
 routerAdd('POST', '/api/ls', (c) => {
@@ -69,6 +82,7 @@ if (!$security.equal(context.body_hash, context.xsignature_header)) {
 |-------|--------|
 | `order_created` | Provision subscription (`signup_finalizer`) |
 | `order_refunded` | Cancel/decrement (`signup_canceller`) |
+| `subscription_cancelled` | Audit only (access until `ends_at`) |
 | `subscription_expired` | Cancel/decrement |
 | `subscription_payment_refunded` | Cancel/decrement |
 
@@ -103,13 +117,15 @@ Founder/flounder tiers are not decremented by this path.
 
 On successful signup: `notify('lemonbot', 'lemon_order_discord', user_id, context)`
 
+On cancellation: `notify('lemonbot', 'lemon_cancel_discord', user_id, context)` — `subscription_cancelled` webhook, plus refund webhooks (`order_refunded`, `subscription_payment_refunded`). Template slug `lemon_cancel_discord` seeded by migration `1782050000_lemon_cancel_discord_template.js`. Subject: `someone just cancelled {$PRODUCT_NAME} - {$VARIANT_NAME}`.
+
 Audit codes: `LS` (success), `LS_ERR` (failure)
 
 ## Checkout (dashboard)
 
 Pricing CTAs call `createLemonSqueezyCheckout(pvId)` in `packages/dashboard/src/util/lemonsqueezy.ts`, which POSTs to `/api/ls/checkout` with the user's auth token. Mothership creates the session via LS API and returns the hosted checkout URL.
 
-**Billing portal** (`account/+page.svelte`): `https://store.pockethost.io/billing` (until in-app cancel/upgrade ships).
+**Billing portal** (`account/+page.svelte`): `https://store.pockethost.io/billing` for payment method updates. **Cancel membership:** `/account/cancel` → `POST /api/ls/cancel`.
 
 ## Adding a new plan (PocketHost checklist)
 
