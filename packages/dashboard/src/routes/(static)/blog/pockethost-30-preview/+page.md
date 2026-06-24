@@ -1,12 +1,12 @@
 PocketHost **3.0** lands **July 1, 2026**. I am sending this to everyone now so nothing on that date feels like a surprise.
 
-If you already host with us, the short version is: **your plan and price stay the same.** The changes below apply to new signups, lifetime sales, and how we communicate limits going forward.
+If you already host with us, the short version is: **your plan and price stay the same.** The changes below are Flounder sales ending and enforcing Pay Per PocketBase slot and storage limits on July 1.
 
 Full reference page: [/3.0](/3.0)
 
 ### Flounder lifetime ends July 1
 
-The **Flounder** one-time lifetime tier has been one of the best deals we ever offered. Pay once for Pay Per PocketBase hosting for as long as PocketHost exists. Unlimited instances, bandwidth, and storage under our [Fair Use](/docs/pricing-ethos) policy, plus `#onlyflounders` Discord and priority support.
+The **Flounder** one-time lifetime tier has been one of the best deals we ever offered. Pay once for lifetime Pay Per PocketBase hosting for as long as PocketHost exists. Same platform features as monthly slots, unmetered bandwidth and CPU under [Fair Use](/docs/pricing-ethos), plus `#onlyflounders` Discord and priority support.
 
 **Sales stop July 1, 2026.** After that, Flounder is off the menu for new buyers.
 

@@ -4,7 +4,7 @@ The **Flounder** lifetime deal is going away. If you want a one-time payment for
 
 ### What Flounder gets you
 
-Flounder is our lifetime Pay Per PocketBase offer: pay once, host for as long as PocketHost exists. You get unlimited instances, unlimited bandwidth, and unlimited storage under our [Fair Use](/docs/pricing-ethos) policy. Plus the `#onlyflounders` Discord channel, priority support, and the rest of the perks on the [pricing page](/pricing).
+Flounder is our lifetime Pay Per PocketBase offer: pay once, host for as long as PocketHost exists. You get the same platform features as monthly slots, unmetered bandwidth and CPU under our [Fair Use](/docs/pricing-ethos) policy, plus the `#onlyflounders` Discord channel, priority support, and the rest of the perks on the [pricing page](/pricing).
 
 It has been one of the best deals we have ever offered. That is exactly why we cannot keep it open forever.
 
@@ -20,7 +20,7 @@ We are sending an email to all users with the same timeline and links. If you ar
 
 Lifetime tiers made sense when PocketHost was bootstrapping. They helped us fund global edge infrastructure and kept early believers on the platform for years.
 
-Going forward, recurring subscriptions are how we sustain hosting, pay for storage, and ship features like [Auto Vacuum](/blog/auto-vacuum) and [SFTP file access](/blog/sftp-file-access). Retiring Flounder is part of a broader pricing refresh we have been planning. More on that later.
+Going forward, recurring subscriptions are how we sustain hosting, pay for storage, and ship features like [Auto Vacuum](/blog/auto-vacuum) and [SFTP file access](/blog/sftp-file-access). Retiring Flounder is part of the [PocketHost 3.0](/3.0) refresh. See the [3.0 preview](/blog/pockethost-30-preview) for the full timeline.
 
 ### If you want the deal
 
