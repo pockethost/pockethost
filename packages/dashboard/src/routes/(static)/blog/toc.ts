@@ -8,10 +8,18 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Account Trusted IPs for Rate Limits',
+    path: '/blog/account-trusted-ips',
+    description:
+      'Self-serve trusted egress IPs for higher firewall limits. Optional X-PocketHost-Client-IP header for SSR proxies.',
+    date: 'Jun 24, 2026',
+    author: 'capn',
+  },
+  {
     title: 'PocketHost 3.0 Preview: Flounder Ends July 1',
     path: '/blog/pockethost-30-preview',
     description:
-      'Heads-up before July 1: Flounder lifetime sales end, new Free/Pro/Agency tiers for new signups only, existing accounts grandfathered.',
+      'Heads-up before July 1: Flounder lifetime sales end, Pay Per PocketBase limits enforced, existing accounts grandfathered.',
     date: 'Jun 20, 2026',
     author: 'capn',
   },

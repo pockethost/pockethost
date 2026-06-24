@@ -201,6 +201,27 @@ cronAdd("public-stats", "0 * * * *", () => {
 routerAdd("GET", "/api/userToken/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTokenRequest(e);
 }, $apis.requireSuperuserAuth());
+routerAdd("GET", "/api/user/trusted-ips", (e) => {
+	return require(`${__hooks}/mothership`).HandleUserTrustedIpsGet(e);
+}, $apis.requireAuth());
+routerAdd("PATCH", "/api/user/trusted-ips", (e) => {
+	return require(`${__hooks}/mothership`).HandleUserTrustedIpsUpdate(e);
+}, $apis.requireAuth());
+onRecordUpdate((e) => {
+	const record = e.record;
+	if (!record) return;
+	const previous = readTrustedIpsFromRecord(record.original());
+	const current = readTrustedIpsFromRecord(record);
+	if (JSON.stringify(previous) === JSON.stringify(current)) return;
+	require(`${__hooks}/mothership`).validateUserTrustedIps(record);
+}, "users");
+function readTrustedIpsFromRecord(record) {
+	try {
+		return record.get(`trusted_ips`);
+	} catch {
+		return null;
+	}
+}
 
 //#endregion
 //#region src/lib/handlers/versions/hooks.ts

@@ -3759,6 +3759,114 @@ const HandleUserTokenRequest = (e) => {
 };
 
 //#endregion
+//#region ../common/trustedIps.ts
+/** Max trusted IP entries per active account. */
+const TRUSTED_IPS_MAX = 5;
+const maxTrustedIpsForSubscription = (subscription) => {
+	if (!subscription || subscription === "free") return 0;
+	return 5;
+};
+const isValidIpv4 = (value) => {
+	const parts = value.split(".");
+	if (parts.length !== 4) return false;
+	for (const part of parts) {
+		if (!/^\d+$/.test(part)) return false;
+		const n = Number(part);
+		if (n < 0 || n > 255) return false;
+	}
+	return true;
+};
+const isValidIpv6 = (value) => {
+	if (!value.includes(":")) return false;
+	if (value.includes("..")) return false;
+	return /^[0-9a-f:]+$/i.test(value);
+};
+const isUnrestrictedCidr = (entry) => {
+	const normalized = entry.trim().toLowerCase();
+	return normalized === "0.0.0.0/0" || normalized === "::/0";
+};
+const normalizeTrustedIpEntry = (entry) => {
+	const trimmed = entry.trim();
+	if (!trimmed) throw new Error("IP address cannot be empty.");
+	if (isUnrestrictedCidr(trimmed)) throw new Error("Unrestricted CIDR ranges are not allowed.");
+	const slash = trimmed.indexOf("/");
+	const host = slash === -1 ? trimmed : trimmed.slice(0, slash);
+	const prefix = slash === -1 ? "" : trimmed.slice(slash + 1);
+	if (slash !== -1) {
+		if (!/^\d+$/.test(prefix)) throw new Error(`Invalid CIDR prefix in "${entry}".`);
+		const prefixNum = Number(prefix);
+		const maxPrefix = host.includes(":") ? 128 : 32;
+		if (prefixNum < 0 || prefixNum > maxPrefix) throw new Error(`Invalid CIDR prefix in "${entry}".`);
+	}
+	if (isValidIpv4(host)) return slash === -1 ? `${host}/32` : `${host}/${prefix}`;
+	if (isValidIpv6(host)) return slash === -1 ? `${host}/128` : `${host}/${prefix}`;
+	throw new Error(`Invalid IP or CIDR: "${entry}".`);
+};
+const normalizeTrustedIpList = (raw) => {
+	if (raw == null) return [];
+	if (!Array.isArray(raw)) throw new Error("trusted_ips must be an array of IP addresses or CIDR ranges.");
+	const normalized = [];
+	const seen = /* @__PURE__ */ new Set();
+	for (const entry of raw) {
+		if (typeof entry !== "string") throw new Error("Each trusted IP must be a string.");
+		const value = normalizeTrustedIpEntry(entry);
+		if (seen.has(value)) continue;
+		seen.add(value);
+		normalized.push(value);
+	}
+	return normalized;
+};
+const validateTrustedIpListForSubscription = (raw, subscription) => {
+	const normalized = normalizeTrustedIpList(raw);
+	const max = maxTrustedIpsForSubscription(subscription);
+	if (normalized.length > max) {
+		if (max === 0) throw new Error("Active subscription required to manage trusted IPs.");
+		throw new Error(`You can add at most ${max} trusted IPs per account.`);
+	}
+	return normalized;
+};
+
+//#endregion
+//#region src/lib/handlers/user/model/trustedIps.ts
+const readTrustedIps = (record) => {
+	try {
+		return record.get(`trusted_ips`);
+	} catch {
+		return null;
+	}
+};
+const validateUserTrustedIps = (record) => {
+	const subscription = record.getString(`subscription`);
+	const normalized = validateTrustedIpListForSubscription(readTrustedIps(record), subscription);
+	record.set(`trusted_ips`, normalized.length > 0 ? normalized : null);
+};
+const HandleUserTrustedIpsUpdate = (e) => {
+	const authRecord = e.auth;
+	if (!authRecord) throw new UnauthorizedError(`Authentication required`);
+	const parsed = (() => {
+		try {
+			return JSON.parse(readerToString(e.request.body));
+		} catch {
+			throw new BadRequestError(`Invalid JSON body`);
+		}
+	})();
+	if (!(`trusted_ips` in parsed)) throw new BadRequestError(`trusted_ips is required`);
+	const subscription = authRecord.getString(`subscription`);
+	const normalized = validateTrustedIpListForSubscription(parsed.trusted_ips, subscription);
+	const user = $app.findRecordById(`users`, authRecord.id);
+	user.set(`trusted_ips`, normalized.length > 0 ? normalized : null);
+	validateUserTrustedIps(user);
+	$app.save(user);
+	return e.json(200, { trusted_ips: normalized });
+};
+const HandleUserTrustedIpsGet = (e) => {
+	const authRecord = e.auth;
+	if (!authRecord) throw new UnauthorizedError(`Authentication required`);
+	const trusted_ips = normalizeTrustedIpList(readTrustedIps($app.findRecordById(`users`, authRecord.id)));
+	return e.json(200, { trusted_ips });
+};
+
+//#endregion
 //#region src/lib/handlers/versions/api/HandleVersionsRequest.ts
 /** Return a list of available PocketBase versions */
 const HandleVersionsRequest = (e) => {
@@ -3797,6 +3905,8 @@ exports.HandleSignupConfirm = HandleSignupConfirm;
 exports.HandleStatsRefreshAtBoot = HandleStatsRefreshAtBoot;
 exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
+exports.HandleUserTrustedIpsGet = HandleUserTrustedIpsGet;
+exports.HandleUserTrustedIpsUpdate = HandleUserTrustedIpsUpdate;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;
 exports.HandleVersionsRequest = HandleVersionsRequest;
 exports.LIVE_PLATFORM_TOPIC = LIVE_PLATFORM_TOPIC;
@@ -3825,3 +3935,4 @@ exports.refreshLiveViewStats = refreshLiveViewStats;
 exports.refreshPublicStats = refreshPublicStats;
 exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;
 exports.sendLiveViewStatsToClient = sendLiveViewStatsToClient;
+exports.validateUserTrustedIps = validateUserTrustedIps;

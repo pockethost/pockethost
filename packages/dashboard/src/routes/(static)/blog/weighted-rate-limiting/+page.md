@@ -19,7 +19,8 @@ The underlying buckets are the same as before:
 
 - Per-IP and per-hostname hourly limits (trusted vs untrusted clients)
 - Concurrent connection caps per IP and hostname
-- Cloudflare image proxy and user-configured proxy IPs still get trusted treatment when `PH_USER_PROXY_IPS` is set
+- Cloudflare image proxy and operator `PH_USER_PROXY_IPS` still get trusted treatment
+- **Trusted IPs** under [Account → Trusted IPs](/account/trusted-ips) for higher limits and SSR proxy header support
 
 Health probes and internal daemon paths are exempt. Dev mode can disable limits entirely with `PH_DISABLE_FIREWALL_RATE_LIMIT`.
 

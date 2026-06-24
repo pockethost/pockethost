@@ -146,6 +146,17 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     DeleteInstancePayloadSchema
   )
 
+  const getTrustedIps = async () => {
+    return client.send<{ trusted_ips: string[] }>(`/api/user/trusted-ips`, { method: 'GET' })
+  }
+
+  const updateTrustedIps = async (trusted_ips: string[]) => {
+    return client.send<{ trusted_ips: string[] }>(`/api/user/trusted-ips`, {
+      method: 'PATCH',
+      body: { trusted_ips },
+    })
+  }
+
   const getInstanceById = (id: InstanceId): Promise<InstanceFields | undefined> =>
     client.collection('instances').getOne<InstanceFields>(id)
 
@@ -312,5 +323,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     resendVerificationEmail,
     updateInstance,
     deleteInstance,
+    getTrustedIps,
+    updateTrustedIps,
   }
 }

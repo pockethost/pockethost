@@ -21,15 +21,15 @@ PocketHost enforces additional rate limits at the application level:
 
 #### Hourly Request Limits
 
-- **1,000 requests per hour per IP address**
-- **10,000 requests per hour per instance**
+- **1,000 requests per hour per IP address** (5,000 when the connecting IP is trusted)
+- **10,000 requests per hour per instance** (20,000 when the connecting IP is trusted)
 
-These limits reset every hour and track the total number of requests made.
+These limits reset every hour and track the total number of requests made. File routes (`/api/files/...`) consume less of the hourly budget than API routes.
 
 #### Concurrent Request Limits
 
-- **5 simultaneous requests per IP address**
-- **50 simultaneous requests per instance**
+- **15 simultaneous requests per IP address** (50 when the connecting IP is trusted)
+- **250 simultaneous requests per instance**
 
 These limits restrict the number of active requests that can be processed at the same time. Once a request completes, the slot becomes available for new requests.
 
@@ -39,27 +39,44 @@ If you're making numerous requests from the client side, we recommend using the 
 
 In general, exceeding the rate limit often indicates a coding issue. Another option is to write custom routes using [JS Hooks](/docs/programming) to perform bulk fetching and filtering server-side, which can be difficult to manage effectively on the client side.
 
-### Server-Side Rendering (SSR) and Proxy Servers
+### Trusted IPs
 
-If you're using a proxy server for Server-Side Rendering (SSR) purposes, all requests to PocketHost will appear to come from your server's IP address rather than your end users' IPs. This means your server will quickly hit the per-IP rate limits (1,000 requests/hour and 5 concurrent requests), affecting all your users.
+Add **Trusted IPs** under [Account → Trusted IPs](/account/trusted-ips). Requests from those addresses get higher rate limits on all of your instances.
 
-**Our recommended solutions:**
+Trusted IPs help when traffic shares one egress address:
 
-1. **Switch to Client-Side Rendering (CSR)** - Make API calls directly from the browser instead of through your server
-2. **Use [PocketPages.dev](https://pocketpages.dev)** - A lightweight SSR solution that runs directly within PocketBase
+- **Server-side proxy or SSR** — add your proxy server's IP, then send the real client IP in the `X-PocketHost-Client-IP` header on each request so each user gets their own limit bucket.
+- **Office or venue NAT** — add the shared egress IP to raise limits for that address (all users behind it still share one bucket unless you forward client IPs via the header).
+
+The header is only honored when the connecting IP is on your trusted list. Random clients cannot spoof it.
 
 **If you must use a proxy server:**
 
-If neither of the above solutions work for your use case, you can configure your proxy to forward the real client IP addresses:
+1. Add the proxy's public IP under [Account → Trusted IPs](/account/trusted-ips).
+2. Configure your proxy to send `X-PocketHost-Client-IP` with each request when you want per-user buckets.
 
-1. Configure your proxy server to send the `X-PocketHost-Client-IP` header with each request, containing the real client's IP address
-2. Contact [PocketHost Support](/support) to whitelist your proxy server's IP address
+**Our recommended alternatives:**
 
-Once whitelisted, PocketHost will use the IP from the `X-PocketHost-Client-IP` header for rate limiting instead of your proxy server's IP, ensuring each end user gets their own rate limit allocation.
+1. **Switch to Client-Side Rendering (CSR)** — make API calls from the browser instead of through your server
+2. **Use [PocketPages.dev](https://pocketpages.dev)** — SSR that runs inside PocketBase
 
-### Special Cases
+Changes to your trusted list apply on the firewall within seconds. No restart required. The edge keeps a live copy of account settings from mothership and refreshes when you save.
 
-In special cases, such as during conferences or events where a large amount of traffic originates from a single IP, we have ways to expand or bypass these rate limits. If this applies to you, please contact [PocketHost Support](/support).
+### Events and conferences
+
+Trusted IPs solve **known shared egress**. They do not solve **every attendee on a different IP**.
+
+| Scenario | Will Trusted IPs help? | What to do |
+| --- | --- | --- |
+| SSR through your server | Yes, with the header | Add proxy IP under [Trusted IPs](/account/trusted-ips), send `X-PocketHost-Client-IP` per request |
+| Venue WiFi with one NAT | Often yes | Add the venue egress IP if you know it (ask the organizer or check from on-site WiFi) |
+| Office with fixed egress | Yes | Add the office public IP. Everyone behind it shares one bucket unless you use the header from an internal proxy |
+| Conference hall on cellular | No | Each phone has its own IP. Use CSR from the browser, or contact [support](/support) before a large demo |
+| Unknown egress until day-of | Partial | Add IPs when you learn them. There is no "trust all IPs" self-service option |
+
+For a one-off event where you need higher limits across many unpredictable addresses, contact [PocketHost Support](/support) **before** the event. We can discuss a temporary instance-level boost. That is separate from the self-service trusted list.
+
+Read the [Account Trusted IPs announcement](/blog/account-trusted-ips) for the full story.
 
 ## Hibernation
 
@@ -72,7 +89,12 @@ To conserve resources, PocketHost instances may enter a **hibernation** state du
 
 ## Usage Limits
 
-In addition to rate limits, we monitor:
+In addition to rate limits, PocketHost enforces **Pay Per PocketBase** storage and powered-on caps:
+
+- **Powered-on instances**: Your paid slot count sets how many PocketBases can be **powered on** at once. Create unlimited instance records. Powered-off instances do not count against the cap. Sleeping (hibernated) instances still count as powered on.
+- **Storage**: **250 MB DB data** and **10 GB file storage** per paid slot, pooled across your account. See [Account](/account) for usage meters.
+
+We also monitor under fair use:
 
 - **Bandwidth** (both ingress and egress)
 - **Storage**

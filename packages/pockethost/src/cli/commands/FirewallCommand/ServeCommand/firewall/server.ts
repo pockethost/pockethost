@@ -10,7 +10,6 @@ import {
   MOTHERSHIP_PORT,
   PH_DISABLE_FIREWALL_RATE_LIMIT,
   PH_FIREWALL_DAEMON_GRACE_MS,
-  PH_USER_PROXY_IPS,
   SSL_CERT,
   SSL_KEY,
 } from '@'
@@ -25,6 +24,7 @@ import type { Socket } from 'net'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware, type VhostUpgradeHandler } from './createVhostProxyMiddleware'
 import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
+import { initFirewallTrustedIps } from './initFirewallTrustedIps'
 import { createRateLimiterMiddleware } from './rate-limiter'
 
 export type FirewallOptions = {
@@ -95,7 +95,12 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   if (PH_DISABLE_FIREWALL_RATE_LIMIT()) {
     info(`Firewall rate limiting disabled (PH_DISABLE_FIREWALL_RATE_LIMIT)`)
   } else {
-    app.use(createRateLimiterMiddleware(logger, PH_USER_PROXY_IPS()))
+    const trustedIpResolver = await initFirewallTrustedIps(logger)
+    app.use(
+      createRateLimiterMiddleware(logger, {
+        isTrustedConnectingIp: trustedIpResolver.isTrustedConnectingIp,
+      })
+    )
   }
 
   const graceMs = PH_FIREWALL_DAEMON_GRACE_MS()

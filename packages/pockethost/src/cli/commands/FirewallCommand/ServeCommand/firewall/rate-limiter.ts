@@ -1,7 +1,6 @@
 import express from 'express'
-import IPCIDR from 'ip-cidr'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
-import { Logger } from 'src/common'
+import { Logger, TRUSTED_IP_CLIENT_HEADER } from 'src/common'
 import {
   API_WEIGHT_NUM,
   FILES_WEIGHT_NUM,
@@ -9,9 +8,12 @@ import {
   isHealthProbePath,
   isPocketBaseFilesPath,
   toMicroPointLimit,
-  toProxyCidrString,
   WEIGHT_DEN,
 } from './rateLimiterPure'
+
+export type RateLimiterOptions = {
+  isTrustedConnectingIp?: (connectingIp: string | undefined, hostname: string) => Promise<boolean>
+}
 
 const headerContains = (header: string | string[] | undefined, token: string): boolean => {
   if (!header) return false
@@ -58,39 +60,21 @@ const LIMITS = {
   trustedHostnameConcurrent: { points: 250, duration: 0 },
 } as const
 
-/** Larger denominator → cheaper file routes vs API (FILES_WEIGHT_NUM / WEIGHT_DEN). */
-
 /** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
-export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps: string[] = []) => {
+export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiterOptions = {}) => {
+  const { isTrustedConnectingIp } = options
   const rateLimiterLogger = logger.create(`RateLimiter`)
-  const { dbg, warn } = rateLimiterLogger
+  const { dbg } = rateLimiterLogger
   dbg(`Creating`)
-  if (trustedUserProxyIps.length > 0) {
-    dbg(`User proxy IPs: ${trustedUserProxyIps.join(', ')}`)
-  }
 
-  const trustedProxyCidrs: IPCIDR[] = []
-  for (const raw of trustedUserProxyIps) {
-    const entry = raw.trim()
-    if (!entry) continue
-    try {
-      trustedProxyCidrs.push(new IPCIDR(toProxyCidrString(entry)))
-    } catch (err) {
-      warn(`Invalid PH_USER_PROXY_IPS entry, skipping: ${entry}`, err)
-    }
-  }
-
-  const isTrustedUserProxy = (connectingIp: string | undefined): boolean => {
-    if (!connectingIp) return false
-    return trustedProxyCidrs.some((cidr) => cidr.contains(connectingIp))
-  }
-
-  const getClientIp = (req: express.Request): string | undefined => {
-    const connectingIp = getConnectingIp(req)
-
-    // If from user proxy, check custom header first
-    if (isTrustedUserProxy(connectingIp)) {
-      const customIp = req.headers['x-pockethost-client-ip']
+  const getClientIp = async (
+    req: express.Request,
+    connectingIp: string | undefined,
+    hostname: string,
+    trustedConnectingIp: boolean
+  ): Promise<string | undefined> => {
+    if (trustedConnectingIp) {
+      const customIp = req.headers[TRUSTED_IP_CLIENT_HEADER]
       if (customIp) return Array.isArray(customIp) ? customIp[0] : customIp
     }
 
@@ -102,7 +86,6 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
   const trustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIp))
   const trustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedHostname))
 
-  // Concurrent request limiters (duration 0 means we manually manage release)
   const untrustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIpConcurrent))
   const trustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIpConcurrent))
   const untrustedHostnameConcurrentLimiter = new RateLimiterMemory(
@@ -117,12 +100,12 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
     }
 
     const connectingIp = getConnectingIp(req)
-    const endClientIp = getClientIp(req)
     const hostname = req.hostname
     const cfImageService = isCfImageService(req)
-    const userProxy = isTrustedUserProxy(connectingIp)
-    const trustedClient = cfImageService || userProxy
-    const trustReason = cfImageService ? 'cf-image' : userProxy ? 'user-proxy' : 'none'
+    const trustedConnectingIp = isTrustedConnectingIp ? await isTrustedConnectingIp(connectingIp, hostname) : false
+    const endClientIp = await getClientIp(req, connectingIp, hostname, trustedConnectingIp)
+    const trustedClient = cfImageService || trustedConnectingIp
+    const trustReason = cfImageService ? 'cf-image' : trustedConnectingIp ? 'trusted-ip' : 'none'
 
     const { dbg, warn } = rateLimiterLogger
       .create(hostname)
@@ -151,13 +134,12 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       return
     }
 
-    if (isTrustedUserProxy(connectingIp)) {
-      dbg(`User Proxy IP detected`, req.headers)
+    if (trustedConnectingIp) {
+      dbg(`Trusted IP detected`, req.headers)
     }
 
     const consumeWeight = isPocketBaseFilesPath(req.path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
 
-    // Check rate limits first (requests per hour per IP per hostname)
     {
       const key = `${endClientIp}:${hostname}`
       const cfg = trustedClient ? LIMITS.trustedIp : LIMITS.untrustedIp
@@ -187,7 +169,6 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       }
     }
 
-    // Check hostname rate limit (requests per hour per hostname)
     {
       const key = hostname
       const cfg = trustedClient ? LIMITS.trustedHostname : LIMITS.untrustedHostname
@@ -219,7 +200,6 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
 
     const releaseConcurrentCallbacks: Array<() => Promise<void>> = []
 
-    // Helper to release concurrent points
     const releaseConcurrentPoints = async () => {
       if (releaseConcurrentCallbacks.length === 0) return
       const callbacks = releaseConcurrentCallbacks.splice(0, releaseConcurrentCallbacks.length)
@@ -234,7 +214,6 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       )
     }
 
-    // Check concurrent limits per IP per hostname
     const ipConcurrentLimiterInstance = trustedClient ? trustedIpConcurrentLimiter : untrustedIpConcurrentLimiter
     const ipConcurrentCfg = trustedClient ? LIMITS.trustedIpConcurrent : LIMITS.untrustedIpConcurrent
     const ipConcurrentKey = `${endClientIp}:${hostname}`
@@ -271,7 +250,6 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       return
     }
 
-    // Check overall concurrent limits per host
     const hostnameConcurrentLimiterInstance = trustedClient
       ? trustedHostnameConcurrentLimiter
       : untrustedHostnameConcurrentLimiter
@@ -312,7 +290,6 @@ export const createRateLimiterMiddleware = (logger: Logger, trustedUserProxyIps:
       return
     }
 
-    // Release concurrent points when response finishes
     res.on('finish', releaseConcurrentPoints)
     res.on('close', releaseConcurrentPoints)
 
