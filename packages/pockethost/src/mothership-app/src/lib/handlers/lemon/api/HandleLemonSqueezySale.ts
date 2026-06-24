@@ -164,6 +164,10 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       order_refunded: () => {
         signup_canceller()
       },
+      subscription_cancelled: () => {
+        notifyCancellationDiscord()
+        audit(`LS`, `Subscription cancelled (active until period end).`, context)
+      },
       subscription_expired: () => {
         signup_canceller()
       },
@@ -214,6 +218,16 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       audit(`LS`, `Signup processed.`, context)
     }
 
+    const notifyCancellationDiscord = () => {
+      const notify = mkNotifier(log, $app)
+      const { user_id } = context
+      if (!user_id) {
+        throw new Error(`User ID expected here`)
+      }
+      notify(`lemonbot`, `lemon_cancel_discord`, user_id, context)
+      log(`saved cancel discord notice`)
+    }
+
     const signup_canceller = () => {
       if (userRec.get(`subscription`) !== `premium`) {
         return
@@ -229,6 +243,10 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       $app.save(userRec)
       log(`saved user`)
       audit(`LS`, `Signup cancelled.`, context)
+
+      if (context.event_name === `order_refunded` || context.event_name === `subscription_payment_refunded`) {
+        notifyCancellationDiscord()
+      }
     }
 
     event_handler()
