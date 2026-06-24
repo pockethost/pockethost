@@ -3466,6 +3466,8 @@ const HandleSignupConfirm = (e) => {
 			user.set("email", email);
 			user.set("subscription", "free");
 			user.set("subscription_quantity", 0);
+			user.set("volume_storage_used", 0);
+			user.set("object_storage_used", 0);
 			user.setPassword(password);
 			txApp.save(user);
 		} catch (e) {

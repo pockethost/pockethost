@@ -29,6 +29,10 @@ export type UserFields<TExtra = {}> = BaseFields & {
   subscription: SubscriptionType
   subscription_interval: SubscriptionInterval
   subscription_quantity: number
+  /** Bytes used on the edge primary volume (sqlite, hooks, static). */
+  volume_storage_used: number
+  /** Bytes used for PocketBase file/object storage. */
+  object_storage_used: number
   suspension: string
 } & TExtra
 
