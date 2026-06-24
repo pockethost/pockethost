@@ -8,7 +8,7 @@ description: >-
 
 # check:push
 
-Prevents `.husky/pre-push` failures. Command mirrors CI quality (no dashboard build).
+Prevents `.husky/pre-push` failures. Command mirrors CI quality + mothership hook freshness (no dashboard build).
 
 ## Run
 
@@ -23,6 +23,7 @@ pnpm lint && \
   pnpm --filter pockethost check:types && \
   pnpm --filter phio check:types && \
   pnpm --filter @pockethost/dashboard check:types && \
+  pnpm check:mothership-hooks && \
   pnpm test
 ```
 
@@ -62,6 +63,14 @@ pnpm --filter phio check:types
 ```bash
 pnpm --filter @pockethost/dashboard check:types
 ```
+
+### Mothership hooks stale
+
+```bash
+pnpm --filter pockethost-mothership-app build
+```
+
+Commit regenerated `pb_hooks/`, then re-run `pnpm check:mothership-hooks`.
 
 ### Tests
 

@@ -147,7 +147,7 @@ After handler TS changes: commit regenerated `pb_hooks/` or CI fails (`pnpm chec
 
 **Tests:** `pnpm test` (Vitest, root) — pockethost + phio unit tests. CI `quality` job runs lint, `check:types`, tests, and dashboard build.
 
-**Git hooks (husky):** `pnpm install` runs `prepare` → installs hooks. Pre-commit: `lint-staged` (Prettier on staged `*.{ts,js,cjs,svelte,json}`). Pre-push: `pnpm check:push` (lint + types + tests). Full CI parity locally: `pnpm check:ci` (adds dashboard build). Skip hooks only when intentional: `git commit --no-verify` / `git push --no-verify`.
+**Git hooks (husky):** `pnpm install` runs `prepare` → installs hooks. Pre-commit: `lint-staged` (Prettier on staged `*.{ts,js,cjs,svelte,json}`). Pre-push: `pnpm check:push` (lint + types + mothership hook freshness + tests). Full CI parity locally: `pnpm check:ci` (adds dashboard build). Skip hooks only when intentional: `git commit --no-verify` / `git push --no-verify`.
 
 Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-data`, `node_modules`.
 

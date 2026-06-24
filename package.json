@@ -8,7 +8,7 @@
   "scripts": {
     "lint": "prettier -c \"./**/*.{ts,js,cjs,svelte,json}\"",
     "lint:fix": "prettier -w \"./**/*.{ts,js,cjs,svelte,json}\"",
-    "check:push": "pnpm lint && pnpm --filter pockethost check:types && pnpm --filter phio check:types && pnpm --filter @pockethost/dashboard check:types && pnpm test",
+    "check:push": "pnpm lint && pnpm --filter pockethost check:types && pnpm --filter phio check:types && pnpm --filter @pockethost/dashboard check:types && pnpm check:mothership-hooks && pnpm test",
     "check:ci": "pnpm check:push && pnpm --filter @pockethost/dashboard build",
     "dev:cli": "cd packages/pockethost && pnpm dev",
     "dev:phio": "node --import tsx packages/phio/src/cli.ts",
