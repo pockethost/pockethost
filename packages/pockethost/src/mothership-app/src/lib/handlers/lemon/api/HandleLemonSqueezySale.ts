@@ -14,6 +14,7 @@ type LemonSqueezyDebugContext = PartialDeep<{
       attributes: {
         product_id: number
         product_name: string
+        user_email: string
         variant_id: number
         variant_name: string
         first_order_item: {
@@ -36,6 +37,8 @@ type LemonSqueezyDebugContext = PartialDeep<{
   type: string
   event_name: string
   user_id: string
+  user_email: string
+  user_id_source: 'custom_data' | 'email'
   product_id: number
   variant_id: number
   product_name: string
@@ -87,11 +90,7 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     }
 
     context.user_id = context.data?.meta?.custom_data?.user_id
-    if (!context.user_id) {
-      throw new Error(`No user ID`)
-    } else {
-      log(`user ID ok`, context.user_id)
-    }
+    context.user_email = `${context.data?.data?.attributes?.user_email || ''}`.trim()
 
     context.product_id =
       context.data?.data?.attributes?.first_order_item?.product_id || context.data?.data?.attributes?.product_id || 0
@@ -132,13 +131,31 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     }
 
     const userRec = (() => {
-      try {
-        return $app.findFirstRecordByData('users', 'id', context.user_id)
-      } catch (e) {
-        throw new Error(`User ${context.user_id} not found`)
+      if (context.user_id) {
+        context.user_id_source = `custom_data`
+        log(`user ID ok`, context.user_id)
+        try {
+          return $app.findFirstRecordByData(`users`, `id`, context.user_id)
+        } catch (e) {
+          throw new Error(`User ${context.user_id} not found`)
+        }
       }
+
+      if (context.user_email) {
+        log(`no custom user_id, falling back to checkout email`, context.user_email)
+        try {
+          const rec = $app.findFirstRecordByData(`users`, `email`, context.user_email)
+          context.user_id = rec.id
+          context.user_id_source = `email`
+          return rec
+        } catch (e) {
+          throw new Error(`No PocketHost user for checkout email ${context.user_email}`)
+        }
+      }
+
+      throw new Error(`No user ID or checkout email`)
     })()
-    log(`user record ok`, userRec)
+    log(`user record ok`, userRec.id, context.user_id_source)
 
     const event_name_map = {
       order_created: () => {
