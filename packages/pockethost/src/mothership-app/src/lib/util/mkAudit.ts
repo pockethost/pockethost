@@ -5,6 +5,8 @@ type AuditEvents =
   | 'NOTIFICATION_ERR'
   | 'LS'
   | 'LS_ERR'
+  | 'CREEMIO'
+  | 'CREEMIO_ERR'
   | 'PBOUNCE'
   | 'PBOUNCE_ERR'
   | 'SNS_ERR'
