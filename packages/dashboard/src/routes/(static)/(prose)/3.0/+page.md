@@ -1,6 +1,6 @@
 ---
 title: PocketHost 3.0
-description: What is changing in PocketHost 3.0. SFTP, Flounder sunset, pricing, and how to get ready.
+description: What is changing in PocketHost 3.0. SFTP, Flounder sunset, Pay Per PocketBase limits, and how to get ready.
 ---
 
 # PocketHost 3.0 is coming
@@ -37,23 +37,26 @@ If you have been thinking about Flounder, read the full timeline on the blog and
 
 More detail: [Last call for Flounder lifetime access](/blog/flounder-lifetime-sunset)
 
-## Pricing is changing
+## Pay Per PocketBase (already live)
 
-Subscriptions are how we sustain hosting long term. We are retiring lifetime sales and enforcing clearer limits on **Pay Per PocketBase** — **$5/month per slot**, each slot adding pooled storage and one powered-on PocketBase.
+PocketHost is a **hard paywall**: **$5/month per PocketBase slot** (7-day trial). There is no free hosting tier.
 
-**If you already subscribe, your billing does not change.** Same plan, same price. Jul 1 mainly ends Flounder sales and turns on powered-on and storage enforcement.
+Each paid slot adds **250 MB DB data** and **10 GB file storage** (pooled on your account) and lets you **power on one** PocketBase at a time. Create unlimited instance records. Your slot count sets how many can run at once.
 
-We will post details on the [blog](/blog) and [pricing page](/pricing) before enforcement goes live.
+**If you already subscribe, your billing does not change.** Same plan, same price. See the [pricing page](/pricing) and [pricing ethos](/docs/pricing-ethos).
+
+**What changes July 1:** Flounder sales end, and we **enforce** powered-on and storage limits against your slot count. Account storage meters on [/account](/account) show usage today. Enforcement goes live with 3.0.
 
 ## PocketBase v0.39 on the control plane
 
-PocketHost 3.0 builds on a **mothership PocketBase v0.39** control plane. That upgrade may land before the public 3.0 launch. It unlocks newer control-plane APIs and keeps us aligned with current PocketBase releases. Instance version selection on your projects is a separate concern. We will communicate anything that affects your instances.
+The mothership already runs **PocketBase v0.39**. That unlocks newer control-plane APIs and keeps us aligned with current PocketBase releases. Instance version selection on your projects is a separate concern. We will communicate anything that affects your instances.
 
 ## What to do now
 
 1. **Set up SFTP.** Generate an Ed25519 key, add it at [Account → Keys](/account/keys), and test a connection using [/docs/ftp](/docs/ftp).
 2. **Retire FTPS bookmarks.** Point clients and CI at SFTP when you can. Keep FTPS only where you still need it until deploy tooling catches up.
 3. **Decide on Flounder.** If lifetime Pay Per PocketBase fits you, buy before **July 1** (or **July 31** if you already had an account on July 1).
-4. **Watch for updates.** Follow the [blog](/blog) and your account email for timelines as 3.0 rolls out.
+4. **Check your usage.** Open [Account](/account) for DB and file storage meters vs your slot pool.
+5. **Watch for updates.** Follow the [blog](/blog) and your account email for timelines as 3.0 rolls out.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT) or [support](/support).
