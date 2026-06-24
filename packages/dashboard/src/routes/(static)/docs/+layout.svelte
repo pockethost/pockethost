@@ -90,6 +90,7 @@
         <DocLink path="rename-instance" title="Rename" />
         <DocLink path="delete" title="Delete" />
         <DocLink path="limits" title="Limits" />
+        <DocLink path="trusted-ips" title="Trusted IPs" />
         <DocLink path="smtp" title="Outgoing Email" />
         <DocLink path="versions" title="Changing Versions" />
         <DocLink path="s3" title="Using S3 Storage" />

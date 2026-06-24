@@ -57,7 +57,7 @@
   }
 </script>
 
-<FeatureTab title="Trusted IPs" documentation="/docs/limits" bind:errorMessage {successMessage} successFlash>
+<FeatureTab title="Trusted IPs" documentation="/docs/trusted-ips" bind:errorMessage {successMessage} successFlash>
   <svelte:fragment slot="summary">
     <p>
       Add IP addresses you trust for higher rate limits on your instances. If you proxy requests from a server (SSR),
@@ -98,7 +98,7 @@
         </div>
         <p class="text-sm text-neutral-400 mt-2">
           Up to {TRUSTED_IPS_MAX} entries per account. Applies to all instances. For conferences and unpredictable egress,
-          see <a href="/docs/limits#events-and-conferences" class="account-stat-link">Events and conferences</a>.
+          see <a href="/docs/trusted-ips#events-and-conferences" class="account-stat-link">Events and conferences</a>.
         </p>
       </div>
 

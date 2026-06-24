@@ -31,6 +31,6 @@ Trusted IPs are the wrong tool when you **do not know** the egress addresses ahe
 - **Venue WiFi with one NAT** — sometimes you know the egress IP the day of the event. Add it to Trusted IPs if you have it.
 - **Attendees on cellular** — every phone has a different IP. No whitelist fixes that. Prefer client-side API calls from the browser, or talk to us before a big demo.
 
-See [Limits → Events and conferences](/docs/limits#events-and-conferences) for the full breakdown.
+See [Trusted IPs → Events and conferences](/docs/trusted-ips#events-and-conferences) for the full breakdown.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT) or [support](/support).

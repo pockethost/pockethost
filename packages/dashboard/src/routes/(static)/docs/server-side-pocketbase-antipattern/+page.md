@@ -24,7 +24,7 @@ Managing authentication state becomes more complex when you need to transfer JWT
 
 ### Rate Limiting Issues
 
-Accessing PocketBase from a single backend IP address can trigger rate limits more easily than distributed client access. This is intentionally designed to encourage direct client communication.
+Accessing PocketBase from a single backend IP address can trigger rate limits more easily than distributed client access. This is intentionally designed to encourage direct client communication. If you must proxy, see [Trusted IPs](/docs/trusted-ips).
 
 ## Better Approaches
 

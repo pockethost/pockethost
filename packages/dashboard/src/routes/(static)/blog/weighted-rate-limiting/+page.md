@@ -20,7 +20,7 @@ The underlying buckets are the same as before:
 - Per-IP and per-hostname hourly limits (trusted vs untrusted clients)
 - Concurrent connection caps per IP and hostname
 - Cloudflare image proxy and operator `PH_USER_PROXY_IPS` still get trusted treatment
-- **Trusted IPs** under [Account → Trusted IPs](/account/trusted-ips) for higher limits and SSR proxy header support
+- **[Trusted IPs](/docs/trusted-ips)** under [Account → Trusted IPs](/account/trusted-ips) for higher limits and SSR proxy header support
 
 Health probes and internal daemon paths are exempt. Dev mode can disable limits entirely with `PH_DISABLE_FIREWALL_RATE_LIMIT`.
 
@@ -34,6 +34,6 @@ We do not expose per-instance limit knobs in the dashboard yet. That is on the b
 
 A `429 Too Many Requests` from the firewall means you exceeded an hourly or concurrent cap. Back off, cache file URLs where you can, and avoid tight polling loops against the REST API.
 
-If you believe you are blocked incorrectly (for example behind a legitimate reverse proxy), reach out on [Discord](https://discord.gg/nVTxCMEcGT) with your instance name and approximate timestamp.
+If you believe you are blocked incorrectly (for example behind a legitimate reverse proxy), see [Trusted IPs](/docs/trusted-ips) or reach out on [Discord](https://discord.gg/nVTxCMEcGT) with your instance name and approximate timestamp.
 
 Fair limits keep hosting affordable for everyone. Weighting them by route is a small change that better matches how PocketBase actually gets used.
