@@ -36,7 +36,7 @@
 
 <div class="min-h-screen">
   {#if !isIndexPage}
-    <div class="sticky top-0 z-10 bg-[#111111]/90 backdrop-blur-sm border-b border-white/10">
+    <div class="sticky top-0 z-30 bg-[#111111] border-b border-white/10">
       <div class="max-w-4xl mx-auto px-4 md:px-8 py-4">
         <a href="/blog" class="blog-back-link">
           <wa-icon name="arrow-left"></wa-icon>
@@ -49,7 +49,7 @@
       <h1 class="text-3xl md:text-5xl font-bold text-white leading-tight">{title}</h1>
     </div>
 
-    <div class="max-w-4xl mx-auto px-4 md:px-8 py-8 z-10 relative">
+    <div class="max-w-4xl mx-auto px-4 md:px-8 py-8">
       {#if author}
         <div class="flex justify-center">
           <BlogAuthor {author} {date} />
