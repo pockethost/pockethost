@@ -49,6 +49,24 @@ const hostForensics = (req: express.Request) => {
   }
 }
 
+const formatLimitedIp = (endClientIp: string | undefined, connectingIp: string | undefined): string => {
+  const ip = endClientIp ?? 'unknown'
+  if (connectingIp && endClientIp && connectingIp !== endClientIp) {
+    return `${ip} (connecting IP ${connectingIp})`
+  }
+  return ip
+}
+
+const formatIpOnInstance = (
+  endClientIp: string | undefined,
+  connectingIp: string | undefined,
+  hostname: string
+): string => `IP ${formatLimitedIp(endClientIp, connectingIp)} on instance ${hostname}`
+
+const formatHourlyLimit = (points: number): string => `${points.toLocaleString('en-US')} requests/hour`
+
+const formatConcurrentLimit = (points: number): string => `${points.toLocaleString('en-US')} concurrent requests`
+
 const LIMITS = {
   untrustedIp: { points: 1000, duration: 60 * 60 },
   untrustedHostname: { points: 10000, duration: 60 * 60 },
@@ -154,7 +172,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       } catch (rateLimiterRes: any) {
         const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
         logRateLimitExceeded(
-          `[1] ${trustedClient ? 'Trusted' : 'Untrusted'} IP rate limit exceeded. ` +
+          `${trustedClient ? 'Trusted' : 'Untrusted'} per-IP hourly rate limit exceeded. ` +
             `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
             `hostname=${hostname} trustReason=${trustReason} ` +
             `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
@@ -164,7 +182,11 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
           hostForensics(req)
         )
         res.set('Retry-After', String(retryAfter))
-        res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [1]`)
+        res
+          .status(429)
+          .send(
+            `Too Many Requests: per-IP hourly limit of ${formatHourlyLimit(cfg.points)} exceeded for ${formatIpOnInstance(endClientIp, connectingIp, hostname)}; retry after ${retryAfter} seconds`
+          )
         return
       }
     }
@@ -183,7 +205,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       } catch (rateLimiterRes: any) {
         const retryAfter = Math.ceil(rateLimiterRes.msBeforeNext / 1000)
         logRateLimitExceeded(
-          `[2] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname rate limit exceeded. ` +
+          `${trustedClient ? 'Trusted' : 'Untrusted'} per-instance hourly rate limit exceeded. ` +
             `key=${key} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
             `hostname=${hostname} trustReason=${trustReason} ` +
             `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
@@ -193,7 +215,11 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
           hostForensics(req)
         )
         res.set('Retry-After', String(retryAfter))
-        res.status(429).send(`Too Many Requests: retry after ${retryAfter} seconds [2]`)
+        res
+          .status(429)
+          .send(
+            `Too Many Requests: per-instance hourly limit of ${formatHourlyLimit(cfg.points)} exceeded for instance ${hostname}; retry after ${retryAfter} seconds`
+          )
         return
       }
     }
@@ -237,7 +263,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
         warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} IP concurrent limiter.`, rewardErr)
       }
       logRateLimitExceeded(
-        `[3] ${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent limit exceeded. ` +
+        `${trustedClient ? 'Trusted' : 'Untrusted'} per-IP concurrent request limit exceeded. ` +
           `key=${ipConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
           `hostname=${hostname} trustReason=${trustReason} ` +
           `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
@@ -246,7 +272,11 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
         hostForensics(req)
       )
       res.set('Retry-After', '1')
-      res.status(429).send(`Too Many Requests: concurrent request limit exceeded [3]`)
+      res
+        .status(429)
+        .send(
+          `Too Many Requests: per-IP concurrent limit of ${formatConcurrentLimit(ipConcurrentCfg.points)} exceeded for ${formatIpOnInstance(endClientIp, connectingIp, hostname)}`
+        )
       return
     }
 
@@ -277,7 +307,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
     } catch (rateLimiterRes: any) {
       await releaseConcurrentPoints()
       logRateLimitExceeded(
-        `[4] ${trustedClient ? 'Trusted' : 'Untrusted'} Hostname concurrent limit exceeded. ` +
+        `${trustedClient ? 'Trusted' : 'Untrusted'} per-instance concurrent request limit exceeded. ` +
           `key=${hostnameConcurrentKey} endClientIp=${endClientIp ?? 'unknown'} connectingIp=${connectingIp ?? 'unknown'} ` +
           `hostname=${hostname} trustReason=${trustReason} ` +
           `path=${req.path} weight=${consumeWeight}/${WEIGHT_DEN} ` +
@@ -286,7 +316,11 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
         hostForensics(req)
       )
       res.set('Retry-After', '1')
-      res.status(429).send(`Too Many Requests: concurrent request limit exceeded [4]`)
+      res
+        .status(429)
+        .send(
+          `Too Many Requests: per-instance concurrent limit of ${formatConcurrentLimit(hostnameConcurrentCfg.points)} exceeded for instance ${hostname}`
+        )
       return
     }
 
