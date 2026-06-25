@@ -91,4 +91,4 @@ PocketHost wrapper: `pnpm prod:cli mothership schema` (uses `MOTHERSHIP_SEMVER`)
 
 ## Hooks that must call `e.next()`
 
-All v0.23+ interceptors: bootstrap, record hooks, router middleware. Missing `e.next()` blocks the chain.
+All v0.23+ interceptors: bootstrap, record hooks, router middleware. Missing `e.next()` blocks the chain and skips the finalizer (DB write). The client may still return **200 OK** with no persisted change — not an thrown error. Every code path in the hook callback must call `e.next()`, including early `return` branches. Prefer validating in a custom route handler instead of adding `onRecordUpdate` guards for the same field.

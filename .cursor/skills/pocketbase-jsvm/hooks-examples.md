@@ -37,14 +37,11 @@ Prefer this over `JSON.parse(readerToString(e.request.body))` for JSON APIs:
 
 ```js
 routerAdd('PATCH', '/api/user/trusted-ips', (e) => {
-  let data = new DynamicModel({ trusted_ips: [] })
-  e.bindBody(data)
-  data = JSON.parse(JSON.stringify(data))
-
-  // validate data.trusted_ips, $app.save(record), ...
-  return e.json(200, { trusted_ips: data.trusted_ips })
+  return require(`${__hooks}/mothership`).HandleUserTrustedIpsUpdate(e)
 }, $apis.requireAuth())
 ```
+
+Validation and `$app.save()` live in `HandleUserTrustedIpsUpdate` — not an `onRecordUpdate` hook. See [quirks.md](quirks.md) §2 (`e.next()` on every path).
 
 See [request-body.md](request-body.md) for arrays, nested objects, webhooks, and failure modes.
 

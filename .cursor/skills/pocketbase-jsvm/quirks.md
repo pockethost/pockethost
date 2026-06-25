@@ -9,11 +9,12 @@ Environment limits (no async, no Node APIs): [constraints.md](constraints.md). R
 | Symptom | Likely quirk | Fix |
 |---------|--------------|-----|
 | Client sees "Something went wrong with your request." | Plain `throw new Error(...)` or `ReferenceError` in a hook | Use `BadRequestError` for intentional messages. Fix the underlying throw. Check mothership logs. |
+| Admin save returns OK but field unchanged | `onRecordUpdate` / `*Request` hook returned without `e.next()` | Call `e.next()` on **every** code path (including early `return`). Missing `e.next()` aborts the finalizer silently — no error. |
 | `Invalid IP or CIDR: "91"` from valid JSON array | `record.get('jsonField')` returned **byte array** of serialized JSON | `JSON.parse(toString(raw))` |
 | `Each trusted IP must be a string` with valid JSON | `DynamicModel` / `JSONArray` elements are not `typeof 'string'` | Coerce with `` `${entry}` `` before validating |
 | Destructuring / `$common` validators see wrong shape after `bindBody` | DynamicModel props are Go-backed until round-tripped | `data = JSON.parse(JSON.stringify(data))` after `e.bindBody(data)` |
 | `ReferenceError: helper is not defined` in record hook | **No function hoisting** in `mothership.pb.js` routers | `require(\`${__hooks}/mothership\`)` inside the callback |
-| Save succeeds in handler but fails in `onRecordUpdate` | `$app.save()` runs record hooks in the same request | Same read/coercion fixes in hook-layer code |
+| JSON field reads wrong inside `onRecordUpdate` | `$app.save()` runs record hooks in the same request | Use `readTrustedIpsFromRecord` / `toString` coercion in hook-layer code |
 
 ---
 
@@ -78,22 +79,55 @@ ReferenceError: readHelper is not defined
 PocketBase converts that to the generic client message **"Something went wrong with your request."**
 
 ```js
-// WRONG
+// WRONG — helper below the hook (no hoisting in Goja)
 onRecordUpdate((e) => {
   readHelper(e.record)
 }, 'users')
 function readHelper(record) { ... }
 
-// RIGHT — require compiled handler inside callback
+// WRONG — early return without e.next() (save silently skipped)
 onRecordUpdate((e) => {
   const record = e.record
   if (!record) return
-  const mothership = require(`${__hooks}/mothership`)
-  mothership.validateUserTrustedIps(record)
+  if (!fieldChanged(record)) return
+  require(`${__hooks}/mothership`).validateSomething(record)
+}, 'users')
+
+// RIGHT — custom route owns field validation; thin router only
+routerAdd('PATCH', '/api/user/trusted-ips', (e) => {
+  return require(`${__hooks}/mothership`).HandleUserTrustedIpsUpdate(e)
+}, $apis.requireAuth())
+
+// RIGHT — record hook: handler work, then e.next() on every path
+onRecordUpdate((e) => {
+  require(`${__hooks}/mothership`).BeforeUpdate_version(e)
+  e.next()
+}, 'instances')
+```
+
+Prefer logic in `mothership.js` exports; keep `*.pb.js` as thin `routerAdd` / `onRecord*` wiring. Do not re-validate a field in `onRecordUpdate` when a custom route already validated and saved it.
+
+### `e.next()` on every path
+
+v0.23+ hooks are a middleware chain. If a handler **returns without calling `e.next()`**, PocketBase skips the finalizer (the actual DB write). The client often still gets **200 OK** — the change simply never persists.
+
+```js
+// WRONG
+onRecordUpdate((e) => {
+  if (!shouldRun(e.record)) return
+  e.next()
+}, 'users')
+
+// RIGHT
+onRecordUpdate((e) => {
+  if (shouldRun(e.record)) {
+    require(`${__hooks}/mothership`).doWork(e)
+  }
+  e.next()
 }, 'users')
 ```
 
-Prefer logic in `mothership.js` exports; keep `*.pb.js` as thin `routerAdd` / `onRecord*` wiring.
+Or keep validation in a dedicated API handler and omit the `onRecordUpdate` hook entirely (PocketHost: `trusted_ips` → `PATCH /api/user/trusted-ips` only).
 
 ---
 
@@ -152,7 +186,8 @@ A custom route that calls `$app.save(record)` **also** runs matching `onRecordUp
 Plan for:
 
 - Shared read helpers (`readTrustedIpsFromRecord`) using `toString` where needed
-- No duplicate validation that re-reads a field before the save path is consistent
+- Validate and normalize in the **custom route** that owns the field (`HandleUserTrustedIpsUpdate`), not a duplicate `onRecordUpdate` guard
+- Every `onRecordUpdate` hook must call `e.next()` on all paths (see §2)
 - Hook router helpers reachable via `require()` (hoisting quirk above)
 
 ---
@@ -162,9 +197,10 @@ Plan for:
 When a hook "doesn't work" and the client only shows the generic message:
 
 1. Read **mothership / instance logs** — the real error is there (`ReferenceError`, validation text, etc.).
-2. Log `JSON.stringify(value)` and `typeof value` after `record.get()` on json fields.
-3. Confirm hook bundle is rebuilt (`pnpm --filter pockethost-mothership-app build`) and hot-reload picked up a consistent tree.
-4. Re-check [request-body.md](request-body.md) if the issue is PATCH/POST payload shape.
+2. If the client got 200 but data did not change, check for **`return` without `e.next()`** in `onRecordUpdate` / `*Request` hooks.
+3. Log `JSON.stringify(value)` and `typeof value` after `record.get()` on json fields.
+4. Confirm hook bundle is rebuilt (`pnpm --filter pockethost-mothership-app build`) and hot-reload picked up a consistent tree.
+5. Re-check [request-body.md](request-body.md) if the issue is PATCH/POST payload shape.
 
 ---
 
@@ -175,5 +211,5 @@ When a hook "doesn't work" and the client only shows the generic message:
 | `toString` + json field read | `mothership-app/src/lib/handlers/user/model/trustedIps.ts` |
 | `bindBody` + round-trip | same; `HandleMailSend`, `HandleInstanceUpdate` |
 | `BadRequestError` wrap | `validateSshKey.ts`, `trustedIps.ts` |
-| Hook router `require()` pattern | `mothership-app/src/lib/handlers/user/hooks.ts` |
+| Thin hook routers (no `onRecordUpdate` for trusted IPs) | `mothership-app/src/lib/handlers/user/hooks.ts` |
 | `$os.readFile` coercion | `handlers/stats/api/HandleStatsRequest.ts` |
