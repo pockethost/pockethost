@@ -3873,14 +3873,6 @@ const bindTrustedIpsBody = (e) => {
 	if (!(`trusted_ips` in data)) throw new BadRequestError(`trusted_ips is required`);
 	return data;
 };
-const validateUserTrustedIps = (record) => {
-	const subscription = record.getString(`subscription`);
-	const raw = readTrustedIpsFromRecord(record);
-	log(`validateUserTrustedIps: user=${record.id} subscription=${subscription} raw=${describeValue(raw)}`);
-	const normalized = validateTrustedIpsForSubscription(raw, subscription);
-	log(`validateUserTrustedIps: normalized=${describeValue(normalized)}`);
-	record.set(`trusted_ips`, normalized.length > 0 ? normalized : null);
-};
 const HandleUserTrustedIpsUpdate = (e) => {
 	const authRecord = e.auth;
 	if (!authRecord) throw new UnauthorizedError(`Authentication required`);
@@ -3981,4 +3973,3 @@ exports.refreshLiveViewStats = refreshLiveViewStats;
 exports.refreshPublicStats = refreshPublicStats;
 exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;
 exports.sendLiveViewStatsToClient = sendLiveViewStatsToClient;
-exports.validateUserTrustedIps = validateUserTrustedIps;

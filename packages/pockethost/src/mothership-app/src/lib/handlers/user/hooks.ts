@@ -24,16 +24,3 @@ routerAdd(
   },
   $apis.requireAuth()
 )
-
-onRecordUpdate((e) => {
-  const record = e.record
-  if (!record) return
-
-  const mothership = require(`${__hooks}/mothership`)
-  const previous = mothership.readTrustedIpsFromRecord(record.original())
-  const current = mothership.readTrustedIpsFromRecord(record)
-
-  if (JSON.stringify(previous) === JSON.stringify(current)) return
-
-  mothership.validateUserTrustedIps(record)
-}, 'users')

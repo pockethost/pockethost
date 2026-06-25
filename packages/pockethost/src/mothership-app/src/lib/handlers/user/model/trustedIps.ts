@@ -69,17 +69,6 @@ const bindTrustedIpsBody = (e: core.RequestEvent): { trusted_ips: unknown } => {
   return data
 }
 
-export const validateUserTrustedIps = (record: models.Record) => {
-  const subscription = record.getString(`subscription`)
-  const raw = readTrustedIpsFromRecord(record)
-  log(`validateUserTrustedIps: user=${record.id} subscription=${subscription} raw=${describeValue(raw)}`)
-
-  const normalized = validateTrustedIpsForSubscription(raw, subscription)
-  log(`validateUserTrustedIps: normalized=${describeValue(normalized)}`)
-
-  record.set(`trusted_ips`, normalized.length > 0 ? normalized : null)
-}
-
 export const HandleUserTrustedIpsUpdate = (e: core.RequestEvent) => {
   const authRecord = e.auth
   if (!authRecord) {
