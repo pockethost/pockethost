@@ -4,7 +4,8 @@ description: >-
   Writes PocketBase server-side JavaScript in the Goja JSVM: pb_hooks, routerAdd,
   record hooks, cron jobs, and synchronous $app APIs. Use for *.pb.js files,
   pb_hooks, pb_migrations JS, or server-side PocketBase extensions — not the
-  npm JS SDK. Always check target PocketBase version: v0.22 and v0.23+ use
+  npm JS SDK. Read quirks.md for Goja gotchas (toString, json fields, hoisting,
+  BadRequestError). Always check target PocketBase version: v0.22 and v0.23+ use
   different JSVM APIs and docs. PocketBase watches pb_hooks JS on disk and
   hot-reloads hooks inside the running process without exiting.
 ---
@@ -43,8 +44,9 @@ Before writing hook code, verify:
 - [ ] Use `$app` / record APIs — not `new PocketBase()`
 - [ ] External HTTP via `$http.send()` (sync), not `fetch`
 - [ ] `$app.store()` values that cross requests: **JSON.stringify/parse** at boundaries — never mutate `get()` results in place ([app-store.md](app-store.md))
+- [ ] Json fields, hook routers, client errors: skim [quirks.md](quirks.md) if behavior looks like Node
 
-For full environment constraints, see [constraints.md](constraints.md).
+For full environment constraints, see [constraints.md](constraints.md). **Goja behavioral quirks** (toString, hoisting, json fields, error sanitization): [quirks.md](quirks.md).
 
 ## File layout
 
@@ -124,7 +126,20 @@ routerAdd('PUT', '/api/instance/:id', (c) => {
 }, $apis.requireRecordAuth())
 ```
 
-Request body and auth info (≤ v0.22):
+Request body (≥ v0.23) — **use `e.bindBody()` + `DynamicModel`**, not `JSON.parse(readerToString(e.request.body))`:
+
+```js
+let data = new DynamicModel({ trusted_ips: [] })
+e.bindBody(data)
+data = JSON.parse(JSON.stringify(data)) // required before destructuring / $common validators
+const { trusted_ips } = data
+```
+
+Quick reads: `e.requestInfo().body`. Raw stream: `readerToString(e.request.body)` only for webhooks / signature verification.
+
+Full guide: [request-body.md](request-body.md) (includes **`BadRequestError` wrapping** for client-visible validation errors). Official docs: [Reading request body](https://pocketbase.io/docs/js-routing/#reading-request-body).
+
+Request body (≤ v0.22):
 
 ```js
 const body = $apis.requestInfo(c).data
@@ -139,10 +154,12 @@ Clients call custom routes via `pb.send()` — see **pocketbase-js-sdk**.
 ```js
 routerAdd('PATCH', '/posts/{postId}', (e) => {
   const postId = e.request.pathValue('postId')
-  const { status } = $apis.requestInfo(e).data
+  let data = new DynamicModel({ status: '' })
+  e.bindBody(data)
+  data = JSON.parse(JSON.stringify(data))
 
   const record = $app.findRecordById('posts', postId)
-  record.set('status', status)
+  record.set('status', data.status)
   $app.save(record)
 
   return e.json(200, { record })

@@ -35,7 +35,7 @@ v0.39 uses the same post-v0.23 JSVM. Do not mix ≤ v0.22 and ≥ v0.23 APIs in 
 | `(c: echo.Context)` | request event `(e)` |
 | `c.pathParam('id')` | `e.request.pathValue('id')` |
 | `'/api/foo/:id'` | `'/api/foo/{id}'` |
-| `$apis.requestInfo(c).data` | `e.requestInfo().body` |
+| `$apis.requestInfo(c).data` | `e.requestInfo().body` or **`e.bindBody(DynamicModel)`** (preferred for typed JSON) |
 | `$apis.requireAdminAuth()` | `$apis.requireSuperuserAuth()` |
 | `$apis.requireRecordAuth()` | `$apis.requireAuth()` |
 | `onAfterBootstrap` | `onBootstrap` + `e.next()` before work |

@@ -37,6 +37,10 @@ When `common/` modules are bundled into `pb_hooks`:
 
 Read `.cursor/skills/pocketbase-jsvm/constraints.md` before adding hook-facing common helpers.
 
+## Custom route JSON bodies
+
+Use `e.bindBody()` + `DynamicModel`, then `JSON.parse(JSON.stringify(data))` before validators — not `JSON.parse(readerToString(e.request.body))` except webhooks. Wrap `$common` validation `Error` throws as `BadRequestError`. See `.cursor/skills/pocketbase-jsvm/request-body.md` and [quirks.md](quirks.md).
+
 ## `$app.store()` — JSON boundaries
 
 Never store or mutate plain JS objects in `$app.store()` across concurrent requests (Goja VM pool — racy panic under load). Use `JSON.stringify`/`JSON.parse` at read/write boundaries; incremental updates via `setFunc`. Mothership helper: `$util/appStoreJson` (`getAppStoreJson`, `setAppStoreJson`, `updateAppStoreJson`). Details: `.cursor/skills/pocketbase-jsvm/app-store.md`.

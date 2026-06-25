@@ -82,6 +82,19 @@ const result = await pb.send('/test/theTestId', { method: 'POST' })
 
 Auth headers are attached automatically when `authStore` is valid.
 
+### JSON body shape
+
+Pass a plain object as `body`. The SDK serializes it as JSON with the correct `Content-Type`:
+
+```ts
+await pb.send('/api/user/trusted-ips', {
+  method: 'PATCH',
+  body: { trusted_ips: ['203.0.113.5/32'] },
+})
+```
+
+On the hook side (≥ v0.23), read with `e.bindBody(new DynamicModel({ trusted_ips: [] }))` — not manual `JSON.parse` on `e.request.body`. See **pocketbase-jsvm** [request-body.md](../pocketbase-jsvm/request-body.md).
+
 ## File uploads
 
 ```ts

@@ -31,6 +31,23 @@ module.exports = {
 }
 ```
 
+## Custom route body — bindBody (≥ v0.23, PocketHost mothership)
+
+Prefer this over `JSON.parse(readerToString(e.request.body))` for JSON APIs:
+
+```js
+routerAdd('PATCH', '/api/user/trusted-ips', (e) => {
+  let data = new DynamicModel({ trusted_ips: [] })
+  e.bindBody(data)
+  data = JSON.parse(JSON.stringify(data))
+
+  // validate data.trusted_ips, $app.save(record), ...
+  return e.json(200, { trusted_ips: data.trusted_ips })
+}, $apis.requireAuth())
+```
+
+See [request-body.md](request-body.md) for arrays, nested objects, webhooks, and failure modes.
+
 ## Custom route (client calls via pb.send)
 
 ≤ v0.22:

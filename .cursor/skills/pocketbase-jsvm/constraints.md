@@ -58,6 +58,8 @@ const res = $http.send({ url: 'https://api.example.com', method: 'GET' })
 
 Full explanation and PocketHost helpers: [app-store.md](app-store.md).
 
+Goja behavioral quirks (`toString`, json byte arrays, no function hoisting, error sanitization): [quirks.md](quirks.md).
+
 ## Porting Node code
 
 [pocketbase-node](https://www.npmjs.com/package/pocketbase-node) provides a subset of Node APIs compatible with JSVM. Prefer PocketBase-native APIs (`$app`, `$http`) first.
