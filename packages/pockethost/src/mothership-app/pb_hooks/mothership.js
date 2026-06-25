@@ -3841,7 +3841,7 @@ const clientErrorMessage = (error) => {
 	if (error instanceof Error) return error.message;
 	return `${error}`;
 };
-/** Read a JSON array field from a record in Goja — see pocketbase-jsvm/constraints.md § toString. */
+/** Read a JSON array field from a record in Goja — see pocketbase-jsvm/quirks.md § toString. */
 const readTrustedIpsFromRecord = (record) => {
 	try {
 		const raw = record.get(`trusted_ips`);

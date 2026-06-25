@@ -16,7 +16,7 @@ const clientErrorMessage = (error: unknown): string => {
   return `${error}`
 }
 
-/** Read a JSON array field from a record in Goja — see pocketbase-jsvm/constraints.md § toString. */
+/** Read a JSON array field from a record in Goja — see pocketbase-jsvm/quirks.md § toString. */
 export const readTrustedIpsFromRecord = (record: models.Record): unknown => {
   try {
     const raw = record.get(`trusted_ips`)
