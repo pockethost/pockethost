@@ -78,7 +78,7 @@ const applyRateLimitHeaders = (res: express.Response, buckets: RateLimitHeaderBu
   }
 
   const existing = res.getHeader('Access-Control-Expose-Headers')
-  const expose = new Set(POCKETHOST_RATE_LIMIT_EXPOSE_HEADERS)
+  const expose = new Set<string>(POCKETHOST_RATE_LIMIT_EXPOSE_HEADERS)
   if (typeof existing === 'string') {
     for (const header of existing.split(',')) {
       const trimmed = header.trim()
