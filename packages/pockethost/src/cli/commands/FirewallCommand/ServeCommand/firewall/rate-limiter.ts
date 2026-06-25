@@ -3,10 +3,13 @@ import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { Logger, TRUSTED_IP_CLIENT_HEADER } from 'src/common'
 import {
   API_WEIGHT_NUM,
+  buildPocketHostRateLimitHeaders,
   FILES_WEIGHT_NUM,
   getConnectingIp,
   isHealthProbePath,
   isPocketBaseFilesPath,
+  POCKETHOST_RATE_LIMIT_EXPOSE_HEADERS,
+  type RateLimitHeaderBucket,
   toMicroPointLimit,
   WEIGHT_DEN,
 } from './rateLimiterPure'
@@ -66,6 +69,45 @@ const formatIpOnInstance = (
 const formatHourlyLimit = (points: number): string => `${points.toLocaleString('en-US')} requests/hour`
 
 const formatConcurrentLimit = (points: number): string => `${points.toLocaleString('en-US')} concurrent requests`
+
+const applyRateLimitHeaders = (res: express.Response, buckets: RateLimitHeaderBucket[]) => {
+  if (buckets.length === 0) return
+
+  for (const [key, value] of Object.entries(buildPocketHostRateLimitHeaders(buckets))) {
+    res.set(key, value)
+  }
+
+  const existing = res.getHeader('Access-Control-Expose-Headers')
+  const expose = new Set(POCKETHOST_RATE_LIMIT_EXPOSE_HEADERS)
+  if (typeof existing === 'string') {
+    for (const header of existing.split(',')) {
+      const trimmed = header.trim()
+      if (trimmed) expose.add(trimmed)
+    }
+  }
+  res.set('Access-Control-Expose-Headers', Array.from(expose).join(', '))
+}
+
+const hourlyHeaderBucket = (
+  scope: 'ip-hourly' | 'instance-hourly',
+  limitPoints: number,
+  rateLimiterRes: { remainingPoints?: number; msBeforeNext?: number }
+): RateLimitHeaderBucket => ({
+  scope,
+  limitPoints,
+  remainingMicroPoints: rateLimiterRes.remainingPoints ?? 0,
+  msBeforeNext: rateLimiterRes.msBeforeNext,
+})
+
+const concurrentHeaderBucket = (
+  scope: 'ip-concurrent' | 'instance-concurrent',
+  limitPoints: number,
+  rateLimiterRes: { remainingPoints?: number }
+): RateLimitHeaderBucket => ({
+  scope,
+  limitPoints,
+  remainingMicroPoints: rateLimiterRes.remainingPoints ?? 0,
+})
 
 const LIMITS = {
   untrustedIp: { points: 1000, duration: 60 * 60 },
@@ -157,6 +199,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
     }
 
     const consumeWeight = isPocketBaseFilesPath(req.path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
+    const headerBuckets: RateLimitHeaderBucket[] = []
 
     {
       const key = `${endClientIp}:${hostname}`
@@ -164,6 +207,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       const limiter = trustedClient ? trustedIpRateLimiter : untrustedIpRateLimiter
       try {
         const ipResult = await limiter.consume(key, consumeWeight)
+        headerBuckets.push(hourlyHeaderBucket('ip-hourly', cfg.points, ipResult))
         dbg(
           `${trustedClient ? 'Trusted' : 'Untrusted'} IP request accepted. Key: ${key}. Points remaining: ${ipResult.remainingPoints}${
             trustedClient ? ' (trusted)' : ''
@@ -181,6 +225,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
             `retryAfter=${retryAfter}s`,
           hostForensics(req)
         )
+        applyRateLimitHeaders(res, [hourlyHeaderBucket('ip-hourly', cfg.points, rateLimiterRes)])
         res.set('Retry-After', String(retryAfter))
         res
           .status(429)
@@ -197,6 +242,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       const limiter = trustedClient ? trustedHostnameRateLimiter : untrustedHostnameRateLimiter
       try {
         const hostnameResult = await limiter.consume(key, consumeWeight)
+        headerBuckets.push(hourlyHeaderBucket('instance-hourly', cfg.points, hostnameResult))
         dbg(
           `${trustedClient ? 'Trusted' : 'Untrusted'} Hostname request accepted. Key: ${key}. Points remaining: ${hostnameResult.remainingPoints}${
             trustedClient ? ' (trusted)' : ''
@@ -214,6 +260,10 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
             `retryAfter=${retryAfter}s`,
           hostForensics(req)
         )
+        applyRateLimitHeaders(res, [
+          ...headerBuckets,
+          hourlyHeaderBucket('instance-hourly', cfg.points, rateLimiterRes),
+        ])
         res.set('Retry-After', String(retryAfter))
         res
           .status(429)
@@ -245,6 +295,7 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
     const ipConcurrentKey = `${endClientIp}:${hostname}`
     try {
       const ipConcurrentResult = await ipConcurrentLimiterInstance.consume(ipConcurrentKey, consumeWeight)
+      headerBuckets.push(concurrentHeaderBucket('ip-concurrent', ipConcurrentCfg.points, ipConcurrentResult))
       dbg(
         `${trustedClient ? 'Trusted' : 'Untrusted'} IP concurrent request accepted. Key: ${ipConcurrentKey}. Points remaining: ${ipConcurrentResult.remainingPoints}${
           trustedClient ? ' (trusted)' : ''
@@ -271,6 +322,10 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
           `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'}`,
         hostForensics(req)
       )
+      applyRateLimitHeaders(res, [
+        ...headerBuckets,
+        concurrentHeaderBucket('ip-concurrent', ipConcurrentCfg.points, rateLimiterRes),
+      ])
       res.set('Retry-After', '1')
       res
         .status(429)
@@ -289,6 +344,9 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(
         hostnameConcurrentKey,
         consumeWeight
+      )
+      headerBuckets.push(
+        concurrentHeaderBucket('instance-concurrent', hostnameConcurrentCfg.points, hostnameConcurrentResult)
       )
       dbg(
         `${trustedClient ? 'Trusted' : 'Untrusted'} hostname concurrent request accepted. Key: ${hostnameConcurrentKey}. Points remaining: ${hostnameConcurrentResult.remainingPoints}${
@@ -315,6 +373,10 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
           `consumedMp=${rateLimiterRes.consumedPoints ?? 'n/a'} remainingMp=${rateLimiterRes.remainingPoints ?? 'n/a'}`,
         hostForensics(req)
       )
+      applyRateLimitHeaders(res, [
+        ...headerBuckets,
+        concurrentHeaderBucket('instance-concurrent', hostnameConcurrentCfg.points, rateLimiterRes),
+      ])
       res.set('Retry-After', '1')
       res
         .status(429)
@@ -323,6 +385,8 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
         )
       return
     }
+
+    applyRateLimitHeaders(res, headerBuckets)
 
     res.on('finish', releaseConcurrentPoints)
     res.on('close', releaseConcurrentPoints)

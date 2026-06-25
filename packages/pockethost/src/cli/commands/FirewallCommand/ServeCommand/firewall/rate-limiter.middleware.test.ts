@@ -3,6 +3,10 @@ import { LoggerService } from 'src/common'
 import request from 'supertest'
 import { describe, expect, it, vi } from 'vitest'
 import { createRateLimiterMiddleware } from './rate-limiter'
+import { POCKETHOST_RATE_LIMIT_HEADERS } from './rateLimiterPure'
+
+const responseHeader = (headers: Record<string, unknown>, name: string) =>
+  headers[name.toLowerCase()] as string | undefined
 
 describe('createRateLimiterMiddleware', () => {
   it('bypasses health probe paths', async () => {
@@ -26,6 +30,10 @@ describe('createRateLimiterMiddleware', () => {
 
     const res = await request(app).get('/api/test').set('Host', 'example.com')
     expect(res.status).toBe(200)
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.ipHourlyLimit)).toBe('1000')
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyLimit)).toBe('10000')
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.ipConcurrentLimit)).toBe('15')
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.instanceConcurrentLimit)).toBe('250')
   })
 
   it('uses X-PocketHost-Client-IP when connecting IP is trusted', async () => {

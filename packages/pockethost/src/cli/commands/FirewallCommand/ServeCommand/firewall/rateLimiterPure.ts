@@ -41,3 +41,67 @@ export const toMicroPointLimit = (cfg: { points: number; duration: number }) => 
 
 export const consumeWeightForPath = (path: string): number =>
   isPocketBaseFilesPath(path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
+
+/** API-request budget from internal micro-points (see WEIGHT_DEN). */
+export const microPointsToApiBudget = (microPoints: number): number => Math.floor(microPoints / WEIGHT_DEN)
+
+export const rateLimitResetUnix = (msBeforeNext: number, nowMs = Date.now()): number =>
+  Math.ceil(nowMs / 1000 + msBeforeNext / 1000)
+
+export const POCKETHOST_RATE_LIMIT_HEADERS = {
+  ipHourlyLimit: 'X-PocketHost-RateLimit-Ip-Hourly-Limit',
+  ipHourlyRemaining: 'X-PocketHost-RateLimit-Ip-Hourly-Remaining',
+  ipHourlyReset: 'X-PocketHost-RateLimit-Ip-Hourly-Reset',
+  instanceHourlyLimit: 'X-PocketHost-RateLimit-Instance-Hourly-Limit',
+  instanceHourlyRemaining: 'X-PocketHost-RateLimit-Instance-Hourly-Remaining',
+  instanceHourlyReset: 'X-PocketHost-RateLimit-Instance-Hourly-Reset',
+  ipConcurrentLimit: 'X-PocketHost-RateLimit-Ip-Concurrent-Limit',
+  ipConcurrentRemaining: 'X-PocketHost-RateLimit-Ip-Concurrent-Remaining',
+  instanceConcurrentLimit: 'X-PocketHost-RateLimit-Instance-Concurrent-Limit',
+  instanceConcurrentRemaining: 'X-PocketHost-RateLimit-Instance-Concurrent-Remaining',
+} as const
+
+export const POCKETHOST_RATE_LIMIT_EXPOSE_HEADERS = Object.values(POCKETHOST_RATE_LIMIT_HEADERS)
+
+export type RateLimitHeaderBucket = {
+  scope: 'ip-hourly' | 'instance-hourly' | 'ip-concurrent' | 'instance-concurrent'
+  limitPoints: number
+  remainingMicroPoints: number
+  msBeforeNext?: number
+}
+
+export const buildPocketHostRateLimitHeaders = (buckets: RateLimitHeaderBucket[]): Record<string, string> => {
+  const headers: Record<string, string> = {}
+
+  for (const bucket of buckets) {
+    const remaining = String(microPointsToApiBudget(bucket.remainingMicroPoints))
+    const limit = String(bucket.limitPoints)
+
+    switch (bucket.scope) {
+      case 'ip-hourly':
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.ipHourlyLimit] = limit
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.ipHourlyRemaining] = remaining
+        if (bucket.msBeforeNext != null) {
+          headers[POCKETHOST_RATE_LIMIT_HEADERS.ipHourlyReset] = String(rateLimitResetUnix(bucket.msBeforeNext))
+        }
+        break
+      case 'instance-hourly':
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyLimit] = limit
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyRemaining] = remaining
+        if (bucket.msBeforeNext != null) {
+          headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyReset] = String(rateLimitResetUnix(bucket.msBeforeNext))
+        }
+        break
+      case 'ip-concurrent':
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.ipConcurrentLimit] = limit
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.ipConcurrentRemaining] = remaining
+        break
+      case 'instance-concurrent':
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceConcurrentLimit] = limit
+        headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceConcurrentRemaining] = remaining
+        break
+    }
+  }
+
+  return headers
+}
