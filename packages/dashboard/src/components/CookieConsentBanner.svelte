@@ -2,15 +2,12 @@
   import { browser } from '$app/environment'
   import { onMount } from 'svelte'
   import { slide } from 'svelte/transition'
-  import { acceptCookieConsent, hasCookieConsent, loadGoogleAnalytics } from '$lib/cookieConsent'
+  import { acceptCookieConsent, hasCookieConsent } from '$lib/cookieConsent'
 
   let visible = $state(false)
 
   onMount(() => {
-    if (hasCookieConsent()) {
-      loadGoogleAnalytics()
-      return
-    }
+    if (hasCookieConsent()) return
     visible = true
   })
 
@@ -34,7 +31,7 @@
           PocketHost uses cookies for analytics so we can improve the product.
           <a href="/privacy" class="text-primary hover:text-secondary underline underline-offset-2">Privacy policy</a>
         </p>
-        <wa-button type="button" variant="brand" size="small" class="shrink-0" onclick={accept}>Accept</wa-button>
+        <wa-button type="button" variant="brand" size="s" class="shrink-0" onclick={accept}>Accept</wa-button>
       </div>
     </wa-callout>
   </div>

@@ -18,10 +18,12 @@ export function hasCookieConsent(): boolean {
   return document.cookie.split(';').some((part) => part.trim().startsWith(`${COOKIE_CONSENT_KEY}=`))
 }
 
+let lastTrackedPath = ''
+
 export function acceptCookieConsent(): void {
   localStorage.setItem(COOKIE_CONSENT_KEY, CONSENT_VALUE)
   document.cookie = `${COOKIE_CONSENT_KEY}=${CONSENT_VALUE}; path=/; max-age=31536000; SameSite=Lax`
-  loadGoogleAnalytics()
+  trackGoogleAnalyticsPageView(window.location.pathname + window.location.search)
 }
 
 export function loadGoogleAnalytics(): void {
@@ -35,10 +37,27 @@ export function loadGoogleAnalytics(): void {
     window.dataLayer?.push(arguments)
   }
   window.gtag('js', new Date())
-  window.gtag('config', GA_MEASUREMENT_ID, { cookie_domain: 'none' })
+  window.gtag('config', GA_MEASUREMENT_ID, {
+    cookie_domain: 'none',
+    send_page_view: false,
+  })
 
   const script = document.createElement('script')
   script.async = true
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`
   document.head.appendChild(script)
+}
+
+/** Manual SPA page views via SvelteKit afterNavigate (avoids gtag history hooks). */
+export function trackGoogleAnalyticsPageView(pagePath: string): void {
+  if (typeof window === 'undefined' || !hasCookieConsent() || pagePath === lastTrackedPath) return
+
+  loadGoogleAnalytics()
+  if (!window.gtag) return
+
+  lastTrackedPath = pagePath
+  window.gtag('event', 'page_view', {
+    page_path: pagePath,
+    page_location: `${window.location.origin}${pagePath}`,
+  })
 }

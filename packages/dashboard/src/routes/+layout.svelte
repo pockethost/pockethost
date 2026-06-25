@@ -5,8 +5,11 @@
   import '../app.css'
   import '$lib/webawesome-icons'
   import '$lib/webawesome'
+  import { afterNavigate } from '$app/navigation'
+  import { browser } from '$app/environment'
   import { onMount } from 'svelte'
   import { init } from '$util/stores'
+  import { hasCookieConsent, trackGoogleAnalyticsPageView } from '$lib/cookieConsent'
   import CookieConsentBanner from '$components/CookieConsentBanner.svelte'
   import PocketHost30Banner from './PocketHost30Banner.svelte'
   import MothershipStatus from './MothershipStatus.svelte'
@@ -18,6 +21,14 @@
 
   onMount(() => {
     init()
+    if (hasCookieConsent()) {
+      trackGoogleAnalyticsPageView(window.location.pathname + window.location.search)
+    }
+  })
+
+  afterNavigate(({ to }) => {
+    if (!browser || !to?.url || !hasCookieConsent()) return
+    trackGoogleAnalyticsPageView(`${to.url.pathname}${to.url.search}`)
   })
 </script>
 
