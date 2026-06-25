@@ -48,7 +48,7 @@
   >
     <div class="flex items-center gap-3 min-w-0">
       {#if backHref}
-        <wa-button href={backHref} variant="neutral" size="small" appearance="outline" class="tabbed-feature-back-btn">
+        <wa-button href={backHref} variant="neutral" size="s" appearance="outline" class="tabbed-feature-back-btn">
           <wa-icon slot="start" name="arrow-left"></wa-icon>
           {backLabel}
         </wa-button>
@@ -73,7 +73,7 @@
     <wa-button
       href={backHref}
       variant="neutral"
-      size="small"
+      size="s"
       appearance="outline"
       class="tabbed-feature-back-btn tabbed-feature-back-btn--desktop"
     >
@@ -122,7 +122,7 @@
         <wa-button
           href={backHref}
           variant="neutral"
-          size="small"
+          size="s"
           appearance="plain"
           class="tabbed-feature-back-btn tabbed-feature-back-btn--sidebar"
           onclick={() => (sidebarOpen = false)}

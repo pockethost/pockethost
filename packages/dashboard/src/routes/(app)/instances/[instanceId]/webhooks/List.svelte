@@ -59,7 +59,7 @@
           {#if item.lastFired}
             <wa-button
               variant="neutral"
-              size="small"
+              size="s"
               appearance="plain"
               class="p-1 {getStatusColor(item.lastFired.response.status)}"
               onclick={() => toggleExpanded(item.endpoint)}
@@ -79,7 +79,7 @@
             onclick={handleDelete(item.endpoint)}
             type="button"
             variant="warning"
-            size="small"
+            size="s"
             appearance="outline"
           >
             <wa-icon name="trash"></wa-icon>

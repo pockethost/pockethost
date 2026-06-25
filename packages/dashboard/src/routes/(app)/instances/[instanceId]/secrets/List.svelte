@@ -47,7 +47,7 @@
             onclick={handleDelete(item.name)}
             type="button"
             variant="warning"
-            size="small"
+            size="s"
             appearance="outline"
           >
             <wa-icon name="trash"></wa-icon>

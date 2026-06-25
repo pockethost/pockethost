@@ -17,7 +17,7 @@
       <wa-badge variant="brand" class="ml-2">new</wa-badge>
     {/if}
     {#if item.info}
-      <wa-button variant="neutral" size="small" class="ml-2" onclick={handleInfoClick}>
+      <wa-button variant="neutral" size="s" class="ml-2" onclick={handleInfoClick}>
         <wa-icon name="circle-info"></wa-icon>
       </wa-button>
     {/if}

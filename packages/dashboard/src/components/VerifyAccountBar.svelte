@@ -36,7 +36,7 @@
 
         <div class="text-right w-full md:w-auto">
           {#if isButtonProcessing}
-            <wa-button variant="success" size="small" disabled>
+            <wa-button variant="success" size="s" disabled>
               <wa-icon slot="start" name="check"></wa-icon>
               Sent!
             </wa-button>
@@ -44,7 +44,7 @@
             <wa-button
               type="button"
               variant="neutral"
-              size="small"
+              size="s"
               appearance="outline"
               class="w-full"
               onclick={handleClick}

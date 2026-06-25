@@ -18,7 +18,7 @@
   import { page } from '$app/state'
   import { browser } from '$app/environment'
   import { onMount } from 'svelte'
-  import { goto } from '$app/navigation'
+  import { replaceState } from '$app/navigation'
 
   const initialPrefs = instanceListPrefsHasUrlParams(page.url.searchParams)
     ? loadInstanceListPrefsFromUrl(page.url.searchParams)
@@ -53,12 +53,19 @@
   }
 
   const updateUrl = () => {
+    if (!browser) return
+
     const params = new URLSearchParams()
     if (sortDirection !== DEFAULT_INSTANCE_LIST_PREFS.sortDirection) params.set('sort', sortDirection)
     if (searchQuery) params.set('q', searchQuery)
     if (viewMode !== DEFAULT_INSTANCE_LIST_PREFS.viewMode) params.set('view', viewMode)
     const qs = params.toString()
-    goto(qs ? `?${qs}` : '/dashboard', { replaceState: true, keepFocus: true, noScroll: true })
+    const nextUrl = qs ? `${page.url.pathname}?${qs}` : page.url.pathname
+    const currentUrl = `${page.url.pathname}${page.url.search}`
+
+    if (nextUrl !== currentUrl) {
+      replaceState(nextUrl, page.state)
+    }
   }
 
   $: if (syncReady) {
@@ -104,7 +111,7 @@
   <div class="instance-list-toolbar-actions">
     <wa-button
       variant="neutral"
-      size="small"
+      size="s"
       appearance="outline"
       onclick={toggleSortDirection}
       aria-label="Toggle sort direction"

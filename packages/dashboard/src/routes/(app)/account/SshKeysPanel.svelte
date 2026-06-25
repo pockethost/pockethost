@@ -99,7 +99,7 @@
           </div>
           <wa-button
             variant="danger"
-            size="small"
+            size="s"
             appearance="outline"
             class="shrink-0 sm:opacity-70 sm:group-hover:opacity-100"
             onclick={() => deleteKey(key.id)}

@@ -25,7 +25,7 @@
 <UserLoggedIn>
   <wa-button
     variant="warning"
-    size="large"
+    size="l"
     class={fixed ? 'w-full rounded-none fixed bottom-0' : ''}
     style="z-index: 1000"
     disabled={loading}
@@ -35,12 +35,7 @@
   </wa-button>
 </UserLoggedIn>
 <UserLoggedOut>
-  <wa-button
-    variant="warning"
-    size="large"
-    class={fixed ? 'w-full rounded-none fixed bottom-0' : ''}
-    href="/get-started"
-  >
+  <wa-button variant="warning" size="l" class={fixed ? 'w-full rounded-none fixed bottom-0' : ''} href="/get-started">
     Get Started
   </wa-button>
 </UserLoggedOut>

@@ -192,13 +192,13 @@ wa-button::part(base) {
     transform 150ms ease;
 }
 
-wa-button[size='small']::part(base) {
+wa-button[size='s']::part(base) {
   min-height: 2rem;
   padding: 0.25rem 0.75rem;
   font-size: 0.8125rem;
 }
 
-wa-button[size='large']::part(base) {
+wa-button[size='l']::part(base) {
   min-height: 2.75rem;
   padding: 0.625rem 1.25rem;
   font-size: 1rem;
