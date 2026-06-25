@@ -4,7 +4,7 @@ const pages: Record<string, { title: string; description: string }> = {
   '3.0': {
     title: 'PocketHost 3.0',
     description:
-      'What is changing in PocketHost 3.0: SFTP, Flounder sunset, Pay Per PocketBase limits, and how to get ready.',
+      'Every customer-facing change in PocketHost 3.0: SFTP, access keys, trusted IPs, phio deploy, auto vacuum, billing in the dashboard, Flounder sunset, and more.',
   },
   about: {
     title: 'About PocketHost',
