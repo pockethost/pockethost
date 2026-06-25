@@ -32,7 +32,7 @@ We do not expose per-instance limit knobs in the dashboard yet. That is on the b
 
 ### Hitting a limit?
 
-A `429 Too Many Requests` from the firewall means you exceeded an hourly or concurrent cap. Back off, cache file URLs where you can, and avoid tight polling loops against the REST API.
+A `429 Too Many Requests` from the firewall means you exceeded an hourly or concurrent cap. The response body names which limit fired, and **`X-PocketHost-RateLimit-*` headers** show limit, remaining budget, and (for hourly caps) reset time. See [Limits — response headers](/docs/limits#response-headers). Back off, cache file URLs where you can, and avoid tight polling loops against the REST API.
 
 If you believe you are blocked incorrectly (for example behind a legitimate reverse proxy), see [Trusted IPs](/docs/trusted-ips) or reach out on [Discord](https://discord.gg/nVTxCMEcGT) with your instance name and approximate timestamp.
 

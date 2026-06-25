@@ -43,6 +43,35 @@ Exceeding rate limits often indicates a coding issue. Consider [JS Hooks](/docs/
 
 If traffic comes from a shared server IP, see [Trusted IPs](/docs/trusted-ips) or [Server-Side PocketBase is an Anti-Pattern](/docs/server-side-pocketbase-antipattern).
 
+### Response headers
+
+Every request through the PocketHost firewall (success or `429`) includes **`X-PocketHost-RateLimit-*`** headers with your current budget on **that edge**. Inspect them with browser devtools, `curl -i`, or your HTTP client.
+
+| Header | Meaning |
+| --- | --- |
+| `X-PocketHost-RateLimit-Ip-Hourly-Limit` | Per-IP hourly cap (API-weighted; see below) |
+| `X-PocketHost-RateLimit-Ip-Hourly-Remaining` | Budget left this hour for your client IP on this instance |
+| `X-PocketHost-RateLimit-Ip-Hourly-Reset` | Unix timestamp when the per-IP hourly window resets |
+| `X-PocketHost-RateLimit-Instance-Hourly-Limit` | Per-instance hourly cap |
+| `X-PocketHost-RateLimit-Instance-Hourly-Remaining` | Budget left this hour for the instance hostname |
+| `X-PocketHost-RateLimit-Instance-Hourly-Reset` | Unix timestamp when the per-instance hourly window resets |
+| `X-PocketHost-RateLimit-Ip-Concurrent-Limit` | Max simultaneous requests from your IP on this instance |
+| `X-PocketHost-RateLimit-Ip-Concurrent-Remaining` | Concurrent slots left (while the request is in flight) |
+| `X-PocketHost-RateLimit-Instance-Concurrent-Limit` | Max simultaneous requests for the instance |
+| `X-PocketHost-RateLimit-Instance-Concurrent-Remaining` | Instance concurrent slots left |
+
+**Limit** and **Remaining** numbers use the same **API request weights** as the caps above (1,000 / 10,000 per hour, etc.). `/api/files/...` routes consume less budget, so file-heavy traffic can show higher **Remaining** than a naive request count would suggest.
+
+Example:
+
+```bash
+curl -sI "https://your-subdomain.pockethost.io/api/health"
+```
+
+Look for the `X-PocketHost-RateLimit-*` lines in the response headers. On `429 Too Many Requests`, the same headers reflect the bucket that blocked you, plus `Retry-After`.
+
+These headers reflect the **edge firewall that handled the request**, not a global dashboard aggregate. Cloudflare edge limits (above) are separate and are not included in these headers.
+
 ## Hibernation
 
 PocketHost instances may enter **hibernation** during inactivity. They wake on the next request, but the first request after hibernation may be slower.
