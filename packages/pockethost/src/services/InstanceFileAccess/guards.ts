@@ -28,11 +28,11 @@ export const FolderNamesMap: {
 export const INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES = Object.keys(FolderNamesMap)
 export const INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES = Object.values(FolderNamesMap)
 
-/** Top-level dirs under /{subdomain}/ — matches ensureInstanceDirectoryStructure + .cache */
-export const INSTANCE_ROOT_DIR_NAMES = [...INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES, `logs`] as const
+/** Top-level dirs under /{subdomain}/ — matches ensureInstanceDirectoryStructure + .cache + phio patches */
+export const INSTANCE_ROOT_DIR_NAMES = [...INSTANCE_ROOT_PHYSICAL_FOLDER_NAMES, `logs`, `patches`] as const
 
-/** Deploy tools (phio, FTP-Deploy-Action) write sync state at instance root */
-export const INSTANCE_ROOT_ALLOWED_FILE_NAMES = [`.ftp-deploy-sync-state.json`] as const
+/** Deploy tools (phio, FTP-Deploy-Action) sync these at instance root */
+export const INSTANCE_ROOT_ALLOWED_FILE_NAMES = [`.ftp-deploy-sync-state.json`, `package.json`, `bun.lock`] as const
 
 export function isInstanceRootVirtualFolder(name: string): name is VirtualFolderNames {
   return INSTANCE_ROOT_VIRTUAL_FOLDER_NAMES.includes(name as VirtualFolderNames)

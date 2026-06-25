@@ -13,10 +13,13 @@ import {
 const instance = { id: 'inst1' }
 
 describe('InstanceFileAccess guards', () => {
-  it('allows deploy sync state file at instance root', () => {
-    expect(isAllowedInstanceRootFile('.ftp-deploy-sync-state.json')).toBe(true)
-    expect(INSTANCE_ROOT_ALLOWED_FILE_NAMES).toContain('.ftp-deploy-sync-state.json')
-    expect(() => assertNotInstanceRootDelete(['.ftp-deploy-sync-state.json'], instance)).not.toThrow()
+  it('allows phio deploy files at instance root', () => {
+    for (const name of ['.ftp-deploy-sync-state.json', 'package.json', 'bun.lock'] as const) {
+      expect(isAllowedInstanceRootFile(name)).toBe(true)
+      expect(INSTANCE_ROOT_ALLOWED_FILE_NAMES).toContain(name)
+      expect(() => assertNotInstanceRootMutation([name], instance)).not.toThrow()
+      expect(() => assertNotInstanceRootDelete([name], instance)).not.toThrow()
+    }
   })
 
   it('blocks arbitrary files at instance root', () => {
@@ -36,6 +39,7 @@ describe('InstanceFileAccess guards', () => {
   it('allows mkdir on standard instance root folders', () => {
     expect(() => assertNotInstanceRootMkdir(['pb_public'], instance)).not.toThrow()
     expect(() => assertNotInstanceRootMkdir(['pb_hooks'], instance)).not.toThrow()
+    expect(() => assertNotInstanceRootMkdir(['patches'], instance)).not.toThrow()
   })
 
   it('blocks mkdir for custom top-level folders', () => {
