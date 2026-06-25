@@ -82,10 +82,11 @@ export const normalizeTrustedIpList = (raw: unknown): TrustedIpList => {
   const seen = new Set<string>()
 
   for (const entry of raw) {
-    if (typeof entry !== 'string') {
+    const text = entry == null ? '' : `${entry}`.trim()
+    if (!text || text === '[object Object]') {
       throw new Error('Each trusted IP must be a string.')
     }
-    const value = normalizeTrustedIpEntry(entry)
+    const value = normalizeTrustedIpEntry(text)
     if (seen.has(value)) continue
     seen.add(value)
     normalized.push(value)

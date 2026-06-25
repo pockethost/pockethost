@@ -29,19 +29,11 @@ onRecordUpdate((e) => {
   const record = e.record
   if (!record) return
 
-  const original = record.original()
-  const previous = readTrustedIpsFromRecord(original)
-  const current = readTrustedIpsFromRecord(record)
+  const mothership = require(`${__hooks}/mothership`)
+  const previous = mothership.readTrustedIpsFromRecord(record.original())
+  const current = mothership.readTrustedIpsFromRecord(record)
 
   if (JSON.stringify(previous) === JSON.stringify(current)) return
 
-  require(`${__hooks}/mothership`).validateUserTrustedIps(record)
+  mothership.validateUserTrustedIps(record)
 }, 'users')
-
-function readTrustedIpsFromRecord(record: models.Record): unknown {
-  try {
-    return record.get(`trusted_ips`)
-  } catch {
-    return null
-  }
-}

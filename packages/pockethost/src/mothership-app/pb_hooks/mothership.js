@@ -3808,8 +3808,9 @@ const normalizeTrustedIpList = (raw) => {
 	const normalized = [];
 	const seen = /* @__PURE__ */ new Set();
 	for (const entry of raw) {
-		if (typeof entry !== "string") throw new Error("Each trusted IP must be a string.");
-		const value = normalizeTrustedIpEntry(entry);
+		const text = entry == null ? "" : `${entry}`.trim();
+		if (!text || text === "[object Object]") throw new Error("Each trusted IP must be a string.");
+		const value = normalizeTrustedIpEntry(text);
 		if (seen.has(value)) continue;
 		seen.add(value);
 		normalized.push(value);
@@ -3828,41 +3829,85 @@ const validateTrustedIpListForSubscription = (raw, subscription) => {
 
 //#endregion
 //#region src/lib/handlers/user/model/trustedIps.ts
-const readTrustedIps = (record) => {
+const log = mkLog(`trusted-ips`);
+const describeValue = (value) => {
 	try {
-		return record.get(`trusted_ips`);
+		return JSON.stringify(value);
+	} catch {
+		return `${value}`;
+	}
+};
+const clientErrorMessage = (error) => {
+	if (error instanceof Error) return error.message;
+	return `${error}`;
+};
+/** Read a JSON array field from a record in Goja — see pocketbase-jsvm/constraints.md § toString. */
+const readTrustedIpsFromRecord = (record) => {
+	try {
+		const raw = record.get(`trusted_ips`);
+		if (raw == null) return null;
+		const roundTripped = JSON.parse(JSON.stringify(raw));
+		if (Array.isArray(roundTripped) && roundTripped.length > 0 && typeof roundTripped[0] === "string") return roundTripped;
+		if (Array.isArray(roundTripped) && roundTripped.length === 0) return roundTripped;
+		return JSON.parse(toString(raw));
 	} catch {
 		return null;
 	}
 };
+const validateTrustedIpsForSubscription = (raw, subscription) => {
+	try {
+		return validateTrustedIpListForSubscription(raw, subscription);
+	} catch (error) {
+		throw new BadRequestError(clientErrorMessage(error));
+	}
+};
+const bindTrustedIpsBody = (e) => {
+	log(`bindBody: content-type=${e.request.header.get(`Content-Type`) || `(none)`} rawBody=${readerToString(e.request.body)}`);
+	let data = new DynamicModel({ trusted_ips: [] });
+	e.bindBody(data);
+	log(`bindBody: after bind trusted_ips=${describeValue(data.trusted_ips)} typeof=${typeof data.trusted_ips}`);
+	data = JSON.parse(JSON.stringify(data));
+	log(`bindBody: after round-trip trusted_ips=${describeValue(data.trusted_ips)}`);
+	const requestInfoBody = e.requestInfo().body;
+	log(`bindBody: requestInfo().body=${describeValue(requestInfoBody)}`);
+	if (!(`trusted_ips` in data)) throw new BadRequestError(`trusted_ips is required`);
+	return data;
+};
 const validateUserTrustedIps = (record) => {
 	const subscription = record.getString(`subscription`);
-	const normalized = validateTrustedIpListForSubscription(readTrustedIps(record), subscription);
+	const raw = readTrustedIpsFromRecord(record);
+	log(`validateUserTrustedIps: user=${record.id} subscription=${subscription} raw=${describeValue(raw)}`);
+	const normalized = validateTrustedIpsForSubscription(raw, subscription);
+	log(`validateUserTrustedIps: normalized=${describeValue(normalized)}`);
 	record.set(`trusted_ips`, normalized.length > 0 ? normalized : null);
 };
 const HandleUserTrustedIpsUpdate = (e) => {
 	const authRecord = e.auth;
 	if (!authRecord) throw new UnauthorizedError(`Authentication required`);
-	const parsed = (() => {
-		try {
-			return JSON.parse(readerToString(e.request.body));
-		} catch {
-			throw new BadRequestError(`Invalid JSON body`);
-		}
-	})();
-	if (!(`trusted_ips` in parsed)) throw new BadRequestError(`trusted_ips is required`);
-	const subscription = authRecord.getString(`subscription`);
-	const normalized = validateTrustedIpListForSubscription(parsed.trusted_ips, subscription);
+	log(`PATCH: user=${authRecord.id} subscription=${authRecord.getString(`subscription`)}`);
+	const { trusted_ips: rawTrustedIps } = bindTrustedIpsBody(e);
+	log(`PATCH: rawTrustedIps=${describeValue(rawTrustedIps)}`);
+	const normalized = validateTrustedIpsForSubscription(rawTrustedIps, authRecord.getString(`subscription`));
+	log(`PATCH: normalized=${describeValue(normalized)}`);
 	const user = $app.findRecordById(`users`, authRecord.id);
+	log(`PATCH: before save stored=${describeValue(readTrustedIpsFromRecord(user))}`);
 	user.set(`trusted_ips`, normalized.length > 0 ? normalized : null);
-	validateUserTrustedIps(user);
 	$app.save(user);
+	log(`PATCH: after save stored=${describeValue(readTrustedIpsFromRecord(user))}`);
 	return e.json(200, { trusted_ips: normalized });
 };
 const HandleUserTrustedIpsGet = (e) => {
 	const authRecord = e.auth;
 	if (!authRecord) throw new UnauthorizedError(`Authentication required`);
-	const trusted_ips = normalizeTrustedIpList(readTrustedIps($app.findRecordById(`users`, authRecord.id)));
+	const raw = readTrustedIpsFromRecord($app.findRecordById(`users`, authRecord.id));
+	log(`GET: user=${authRecord.id} raw=${describeValue(raw)}`);
+	let trusted_ips;
+	try {
+		trusted_ips = normalizeTrustedIpList(raw);
+	} catch (error) {
+		throw new BadRequestError(clientErrorMessage(error));
+	}
+	log(`GET: normalized=${describeValue(trusted_ips)}`);
 	return e.json(200, { trusted_ips });
 };
 
@@ -3928,6 +3973,7 @@ exports.initLiveViewStatsAtBoot = initLiveViewStatsAtBoot;
 exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.normalizeInstanceStatus = normalizeInstanceStatus;
+exports.readTrustedIpsFromRecord = readTrustedIpsFromRecord;
 exports.recountLivePlatformStats = recountLivePlatformStats;
 exports.refreshAndBroadcastLivePlatformStats = refreshAndBroadcastLivePlatformStats;
 exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;
