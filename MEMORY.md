@@ -65,7 +65,7 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 | `users.subscription` | Meaning |
 |---|---|
 | `premium`, `founder`, `flounder`, `legacy` | Active paid or grandfathered hosting |
-| `free` | **DB enum only** — grandfathered no-pay accounts and lapsed/cancelled rows. Not a product tier. Grandfathered `free` users keep a ~$5 instance slot and normal feature entitlements until separately migrated. |
+| `free` | **DB enum only** — grandfathered no-pay accounts and lapsed/cancelled rows. Not a product tier. Grandfathered `free` users keep a ~$5 instance slot and normal feature entitlements until separately migrated. **Jul 1, 2026:** no entitlement changes for existing accounts; Flounder checkout removed for new signups only. |
 
 Agent/docs copy: **Pay Per PocketBase** only. No Pro/Agency tiers. Rule: [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc).
 
@@ -169,5 +169,5 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **PocketHost 3.0 launch:** platform foundation shipped (v0.39, SFTP/phio, edge restart reliability). Remaining = comms + billing/limits. See [ROADMAP.md](ROADMAP.md).
+- **PocketHost 3.0 launch:** Jul 1 = Flounder off checkout for new signups; existing accounts unchanged. Top open work: **LS slot upgrade/downgrade**, unlimited records + powered-on cap. Storage enforcement post–Jul 1. All on `main`. See [ROADMAP.md](ROADMAP.md).
 - **Mothership v0.39 follow-up:** cutover shipped 2026-06-16. Fix forward on webhooks, stats views, mail, and edge cases as they surface. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.

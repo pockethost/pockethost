@@ -83,6 +83,7 @@ if (!$security.equal(context.body_hash, context.xsignature_header)) {
 | `order_created` | Provision subscription (`signup_finalizer`) |
 | `order_refunded` | Cancel/decrement (`signup_canceller`) |
 | `subscription_cancelled` | Audit only (access until `ends_at`) |
+| `subscription_updated` | **Not handled yet** — should sync `subscription_quantity` from `first_subscription_item.quantity` |
 | `subscription_expired` | Cancel/decrement |
 | `subscription_payment_refunded` | Cancel/decrement |
 
@@ -126,6 +127,18 @@ Audit codes: `LS` (success), `LS_ERR` (failure)
 Pricing CTAs call `createLemonSqueezyCheckout(pvId)` in `packages/dashboard/src/util/lemonsqueezy.ts`, which POSTs to `/api/ls/checkout` with the user's auth token. Mothership creates the session via LS API and returns the hosted checkout URL.
 
 **Billing portal** (`account/+page.svelte`): `https://store.pockethost.io/billing` for payment method updates. **Cancel membership:** `/account/cancel` → `POST /api/ls/cancel`.
+
+## Slot quantity (not yet implemented — top backlog item)
+
+Pay Per PocketBase slots should change in-dashboard without the LS customer portal.
+
+1. `GET /v1/subscriptions?filter[user_email]=…&filter[variant_id]=…&filter[status]=active` (same as cancel lookup)
+2. Read `data.attributes.first_subscription_item.id` and current `quantity`
+3. `PATCH /v1/subscription-items/{id}` with `{ "data": { "type": "subscription-items", "id": "…", "attributes": { "quantity": N } } }`
+4. Optional: `invoice_immediately`, `disable_prorations` (see [LS subscription item update](https://docs.lemonsqueezy.com/api/subscription-items/update-subscription-item))
+5. Handle `subscription_updated` webhook → sync `subscription_quantity` on the user record
+
+Requires quantity-based billing on the Pay Per PocketBase variant (not usage-based). Fallback: open `urls.customer_portal` from the subscription object via Lemon.js overlay.
 
 ## Adding a new plan (PocketHost checklist)
 
