@@ -15,7 +15,7 @@ Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, p
 
 Read [MEMORY.md](MEMORY.md) before substantive architectural work.
 
-Billing: **Pay Per PocketBase** ($5/slot, hard paywall). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
+Billing: **Pay Per PocketBase** ($9/mo, $59/yr, $149 LTD per slot — target Jul 2026; checkout still legacy). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
 
 Mothership hook code (`mothership-app/src/lib/handlers/`) runs in PocketBase Goja JSVM after tsdown bundling. Read [.cursor/rules/mothership-hooks.mdc](.cursor/rules/mothership-hooks.mdc) before adding imports or shared helpers.
 

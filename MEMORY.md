@@ -60,12 +60,12 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 
 ## Billing
 
-**Hard paywall** — no free hosting tier. **Pay Per PocketBase:** $5/mo per slot. Each slot = one powered-on PocketBase + 250 MB DB + 10 GB file storage (pooled). Unlimited instance records; powered-on capped by `subscription_quantity`. See [/pricing](/pricing) and [/3.0](/3.0).
+**Hard paywall** — no free hosting tier. **Pay Per PocketBase** (target Jul 2026): **$9/mo**, **$59/yr**, or **$149 lifetime** per slot. Each slot = one powered-on PocketBase + 250 MB DB + 10 GB file storage (pooled). Unlimited instance records; powered-on capped by `subscription_quantity`. **Checkout still legacy** ($5/mo, $359 Flounder) until rollout. See [/pricing](/pricing) and [/3.0](/3.0).
 
 | `users.subscription` | Meaning |
 |---|---|
 | `premium`, `founder`, `flounder`, `legacy` | Active paid or grandfathered hosting |
-| `free` | **DB enum only** — grandfathered no-pay accounts and lapsed/cancelled rows. Not a product tier. Grandfathered `free` users keep a ~$5 instance slot and normal feature entitlements until separately migrated. **Jul 1, 2026:** no entitlement changes for existing accounts; Flounder checkout removed for new signups only. |
+| `free` | **DB enum only** — grandfathered no-pay accounts and lapsed/cancelled rows. Not a product tier. Grandfathered users keep prior entitlements until separately migrated. **Jul 1, 2026:** new pricing ($9 / $59 / $149 per slot) for new purchases only. Existing accounts unchanged. |
 
 Agent/docs copy: **Pay Per PocketBase** only. No Pro/Agency tiers. Rule: [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc).
 
@@ -169,5 +169,5 @@ After first deploy: `pm2 save` and `pm2 startup` (systemd) so apps and `pm2-logr
 
 ## Active threads
 
-- **PocketHost 3.0 launch:** Jul 1 = Flounder off checkout for new signups; existing accounts unchanged. Top open work: **LS slot upgrade/downgrade**, unlimited records + powered-on cap. Storage enforcement post–Jul 1. All on `main`. See [ROADMAP.md](ROADMAP.md).
+- **PocketHost 3.0 launch:** Jul 1 = new pricing ($9 / $59 / $149 per slot) for new signups. Existing accounts unchanged. Top open work: **Jul 1 pricing rollout**, **LS slot upgrade/downgrade**, unlimited records + powered-on cap. Storage enforcement post–Jul 1. See [ROADMAP.md](ROADMAP.md).
 - **Mothership v0.39 follow-up:** cutover shipped 2026-06-16. Fix forward on webhooks, stats views, mail, and edge cases as they surface. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.

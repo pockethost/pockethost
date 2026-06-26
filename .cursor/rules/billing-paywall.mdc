@@ -7,22 +7,39 @@ alwaysApply: true
 
 PocketHost is a **hard paywall** hosting service. There is **no free hosting tier** and no freemium plan for new customers.
 
-## Current model — Pay Per PocketBase
+## Target model — Pay Per PocketBase (Jul 2026)
 
-- **$5/month per PocketBase slot** (7-day trial). See [/pricing](/pricing).
-- Each paid slot (`subscription_quantity`) adds:
-  - **250 MB** pooled DB data storage
-  - **10 GB** pooled file storage
-  - **One powered-on** PocketBase at a time
-- **Unlimited instance records** — create as many as you want. Only **power on** as many as your paid slots allow.
-- Checkout quantity = number of slots. Storage pools scale with quantity.
-- **No Pro, Agency, or tiered plans.** One product: Pay Per PocketBase.
-- **Grandfathered** accounts (Legacy, Flounder, Founder, early `subscription=free` rows, etc.) keep prior entitlements until migrated.
-- **`users.subscription === 'free'`** in mothership is a **legacy DB enum value**, not a product tier. It covers grandfathered no-pay accounts and lapsed/cancelled rows.
+Per slot:
+
+| Billing | Price |
+| ------- | ----- |
+| Monthly | **$9**/PocketBase (7-day trial) |
+| Annual | **$59**/PocketBase |
+| Lifetime | **$149**/PocketBase |
+
+Each paid slot (`subscription_quantity`) adds:
+
+- **250 MB** pooled DB data storage
+- **10 GB** pooled file storage
+- **One powered-on** PocketBase at a time
+
+**Unlimited instance records** — create as many as you want. Only **power on** as many as your paid slots allow.
+
+Checkout quantity = number of slots. Storage pools scale with quantity.
+
+**No Pro, Agency, or tiered plans.** One product: Pay Per PocketBase with three billing intervals.
+
+**Grandfathered** accounts (Legacy, Flounder, Founder, early `subscription=free` rows, etc.) keep prior entitlements until migrated. **Jul 1, 2026:** new price points for **new purchases only**. Existing accounts unchanged.
+
+**`users.subscription === 'free'`** in mothership is a **legacy DB enum value**, not a product tier.
+
+## Current checkout (until rollout)
+
+Dashboard `/pricing` and Lemon Squeezy checkout still use **legacy** prices ($5/mo monthly, $359 Flounder lifetime) until **Jul 1 pricing rollout** ships. Agents should use **target** prices in planning copy and **legacy** prices only when describing what is live today.
 
 ## Legacy `subscription=free` accounts
 
-Some long-time users still have `subscription=free` in the database. They are grandfathered (effectively a ~$5 instance slot) and get the same platform features as paying subscribers for now. **Migration/cleanup is a separate backlog item.**
+Some long-time users still have `subscription=free` in the database. They are grandfathered and keep prior entitlements. **Migration/cleanup is a separate backlog item.**
 
 ## Copy rules for agents
 
@@ -31,17 +48,19 @@ Some long-time users still have `subscription=free` in the database. They are gr
 - "free tier", "Free plan", "Hacker tier", Pro/Agency tiers, or tier comparison tables with $19.99/$49.99
 - "paid plans" vs "free tier" for standard features
 - "Pro subscribers" (use **subscribers** or **Pay Per PocketBase**)
+- Target prices ($9 / $59 / $149) as if already live in checkout unless the task is rollout work
 
-**Do write:**
+**Do write (target model):**
 
-- **Pay Per PocketBase**, **$5 per slot**, **powered-on limit**, **pooled storage**
-- "subscribe", "your account", "add another PocketBase for $5"
+- **Pay Per PocketBase**, **$9/mo**, **$59/yr**, **$149 lifetime** per slot, **powered-on limit**, **pooled storage**
+- "subscribe", "your account", "add another PocketBase"
 - "grandfathered" for pre-paywall or legacy rows
 - Third-party free tiers OK (Web Awesome, npm, etc.)
 
 ## Code
 
-- `SubscriptionType.Premium` / `'premium'` = active Pay Per PocketBase monthly subscriber (DB enum name is historical).
+- `SubscriptionType.Premium` / `'premium'` = active Pay Per PocketBase subscriber (monthly or annual; DB enum name is historical).
+- `subscription_interval`: `month`, `year`, or `life` (lifetime / legacy Flounder).
 - `subscription_quantity` = paid slot count (powered-on cap + storage pool multiplier).
 - Limits per slot: `common/subscriptionLimits.ts` (`DB_STORAGE_MB_PER_INSTANCE`, `FILE_STORAGE_GB_PER_INSTANCE`).
 - Feature gates: prefer active hosting entitlement, not bare `subscription !== 'free'`, unless blocking lapsed accounts only.
