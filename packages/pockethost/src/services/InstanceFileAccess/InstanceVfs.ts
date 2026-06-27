@@ -3,7 +3,7 @@ import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
 import { checkBun } from './bunSideEffects'
-import { assertInstanceContext } from './errors'
+import { assertInstanceContext, isExpectedVfsClientError, isVfsNotFoundError } from './errors'
 import * as fsAsync from './fs-async'
 import {
   INSTANCE_ROOT_DIR_NAMES,
@@ -276,9 +276,13 @@ export class InstanceVfs {
     })
 
     stream.once('error', (e) => {
-      error(`write(${fileName}) error`)
-      error(e)
-      fsAsync.unlink(fsPath)
+      if (isExpectedVfsClientError(e)) {
+        dbg(`write(${fileName}) client error`, e)
+      } else {
+        error(`write(${fileName}) error`)
+        error(e)
+      }
+      fsAsync.unlink(fsPath).catch(() => {})
     })
     stream.once('close', () => {
       const virtualPath = join(this.cwd, fileName)
@@ -321,11 +325,18 @@ export class InstanceVfs {
     assertInstanceContext(instance)
     this.assertMutablePath(restOfVirtualPath, instance, 'delete')
 
-    const stat = await fsAsync.stat(fsPath)
-    if (stat.isDirectory()) {
-      return fsAsync.rmdir(fsPath)
+    try {
+      const stat = await fsAsync.stat(fsPath)
+      if (stat.isDirectory()) {
+        return fsAsync.rmdir(fsPath)
+      }
+      return fsAsync.unlink(fsPath)
+    } catch (err) {
+      if (isVfsNotFoundError(err)) {
+        throw new Error(`no such file or directory: ${path}`)
+      }
+      throw err
     }
-    return fsAsync.unlink(fsPath)
   }
 
   async mkdir(path: string) {

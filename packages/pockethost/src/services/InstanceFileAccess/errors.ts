@@ -15,9 +15,25 @@ export function assertInstanceContext(instance: InstanceFields | undefined): ass
   }
 }
 
+const VFS_NOT_FOUND_CODES = new Set(['ENOENT', 'ENOTDIR'])
+
+export function isVfsNotFoundError(err: unknown): boolean {
+  const code = (err as NodeJS.ErrnoException | undefined)?.code
+  if (code && VFS_NOT_FOUND_CODES.has(code)) {
+    return true
+  }
+
+  const message = err instanceof Error ? err.message : `${err}`
+  return message.includes('not found') || message.includes('no such file')
+}
+
 /** Expected client mistakes — not server faults. */
 export function isExpectedVfsClientError(err: unknown): boolean {
   if (err instanceof InstanceVfsUserError) {
+    return true
+  }
+
+  if (isVfsNotFoundError(err)) {
     return true
   }
 
@@ -26,8 +42,6 @@ export function isExpectedVfsClientError(err: unknown): boolean {
     message.includes('powered off') ||
     message.includes('not allowed') ||
     message.includes('Cannot ') ||
-    message.includes('not found') ||
-    message.includes('no such file') ||
     message.includes('Not a valid directory') ||
     message.includes('Cannot read a directory') ||
     message.includes(INSTANCE_CONTEXT_REQUIRED)

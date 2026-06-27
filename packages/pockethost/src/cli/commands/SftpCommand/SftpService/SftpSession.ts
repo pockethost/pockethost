@@ -2,7 +2,7 @@ import { InstanceFields, Logger } from '@'
 import { open, stat } from 'fs/promises'
 import ssh2 from 'ssh2'
 import { checkBun } from '../../../../services/InstanceFileAccess'
-import { isExpectedVfsClientError } from '../../../../services/InstanceFileAccess/errors'
+import { isExpectedVfsClientError, isVfsNotFoundError } from '../../../../services/InstanceFileAccess/errors'
 import { InstanceVfs, VfsEntry } from '../../../../services/InstanceFileAccess/InstanceVfs'
 
 type SFTPWrapper = ssh2.SFTPWrapper
@@ -56,12 +56,21 @@ const formatLongname = (entry: VfsEntry) => {
 }
 
 const statusForError = (err: unknown) => {
+  if (isVfsNotFoundError(err)) {
+    return STATUS_CODE.NO_SUCH_FILE
+  }
   if (isExpectedVfsClientError(err)) {
     return STATUS_CODE.PERMISSION_DENIED
   }
-  const message = err instanceof Error ? err.message : `${err}`
-  if (message.includes('not found') || message.includes('no such file')) return STATUS_CODE.NO_SUCH_FILE
   return STATUS_CODE.FAILURE
+}
+
+const logVfsError = (logger: Logger, err: unknown) => {
+  if (isExpectedVfsClientError(err)) {
+    logger.dbg(`client rejected`, err)
+    return
+  }
+  logger.error(err)
 }
 
 const flagsToFsMode = (flags: number): string => {
@@ -209,8 +218,8 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
           sftp.data(reqid, buffer.subarray(0, bytesRead))
         })
         .catch((err: unknown) => {
-          logger.error(err)
-          sftp.status(reqid, STATUS_CODE.FAILURE)
+          logVfsError(logger, err)
+          sftp.status(reqid, statusForError(err))
         })
     })
     .on('WRITE', (reqid, handleBuf, offset, data) => {
@@ -222,8 +231,8 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
         .write(data, 0, data.length, offset)
         .then(() => sftp.status(reqid, STATUS_CODE.OK))
         .catch((err: unknown) => {
-          logger.error(err)
-          sftp.status(reqid, STATUS_CODE.FAILURE)
+          logVfsError(logger, err)
+          sftp.status(reqid, statusForError(err))
         })
     })
     .on('CLOSE', (reqid, handleBuf) => {
@@ -247,8 +256,8 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
           sftp.status(reqid, STATUS_CODE.OK)
         })
         .catch((err) => {
-          logger.error(err)
-          sftp.status(reqid, STATUS_CODE.FAILURE)
+          logVfsError(logger, err)
+          sftp.status(reqid, statusForError(err))
         })
     })
     .on('FSTAT', (reqid, handleBuf) => {

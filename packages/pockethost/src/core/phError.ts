@@ -1,3 +1,5 @@
+import { isExpectedVfsClientError } from '../services/InstanceFileAccess/errors'
+
 export type PhErrorKind = 'user' | 'system'
 
 export type PhError = Error & { phErrorKind?: PhErrorKind }
@@ -34,6 +36,7 @@ export const isSftpClientError = (err: unknown): boolean => {
 export const classifySftpError = (err: unknown): PhError => {
   if (err instanceof Error && (err as PhError).phErrorKind) return err as PhError
   if (isSftpClientError(err)) return userError(err instanceof Error ? err : new Error(`${err}`))
+  if (isExpectedVfsClientError(err)) return userError(err instanceof Error ? err : new Error(`${err}`))
   return systemError(err instanceof Error ? err : new Error(`${err}`))
 }
 

@@ -1,10 +1,13 @@
-import { discordAlert, gracefulExit, isUserError } from '@'
 import { DEBUG } from '.'
+import { isExpectedVfsClientError } from '../services/InstanceFileAccess/errors'
+import { discordAlert } from './discordAlert'
+import { gracefulExit } from './exit'
+import { isUserError } from './phError'
 ;['unhandledRejection', 'uncaughtException'].forEach((type) => {
   process.on(type, (e) => {
     console.error(`Unhandled:`, e)
     try {
-      if (!isUserError(e)) {
+      if (!isUserError(e) && !isExpectedVfsClientError(e)) {
         discordAlert(e)
       }
     } catch (e) {
