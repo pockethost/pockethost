@@ -232,6 +232,7 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-06-28 | **Instance root VFS unrestricted** — drop root guards; real `readdir` at `/{subdomain}/`; fixes phio deploy `patches` 550 |
 | 2026-06-25 | **phio deploy at instance root** — SFTP root-folder upload fix (`dc30b781`); closes PocketPages root deploy QA |
 | 2026-06-23 | **Hibernated power-off idle status** — edge marks `status=idle` when `power=false` and no live container (fixes dashboard Stopping… stuck on SSE) |
 | 2026-06-22 | **Pricing change pre-announcement email** — all users; 3.0, Flounder ends Jul 1, grandfathering (`pockethost mail send`) |

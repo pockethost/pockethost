@@ -167,7 +167,7 @@ Adjust `remotePath` to your instance subdomain and folder.
 
 ## Instance layout
 
-After login you see a directory for each instance your key can access. Folder names are your instance **subdomains** (for example `harvest`), not UUIDs. `cd` into one to reach the usual PocketBase folders:
+After login you see a directory for each instance your key can access. Folder names are your instance **subdomains** (for example `harvest`), not UUIDs. `cd` into one to reach that instance's files on disk.
 
 | Directory | Description |
 | --------- | ----------- |
@@ -178,9 +178,9 @@ After login you see a directory for each instance your key can access. Folder na
 | `pb_data/backups` | PocketBase backups |
 | `pb_data/storage` | Uploaded files ([docs](https://pocketbase.io/docs/files-handling/)) |
 
-The instance root is **virtual**. You only see these standard folders, not arbitrary new top-level directories.
+These folders are created automatically when the instance starts or when you first connect. You may also see deploy files at the root (`package.json`, `patches/`, `.ftp-deploy-sync-state.json`, etc.) depending on your project.
 
-**Power off** your instance before modifying `pb_data` (same rule as the dashboard). Other folders can be edited while the instance is running.
+**Power off** your instance before modifying `pb_data` (same rule as the dashboard). Other paths can be edited while the instance is running.
 
 ## Troubleshooting
 

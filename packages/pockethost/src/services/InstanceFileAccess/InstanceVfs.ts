@@ -5,15 +5,7 @@ import { INSTANCES_ROOT } from '../../constants'
 import { checkBun } from './bunSideEffects'
 import { assertInstanceContext, isExpectedVfsClientError, isVfsNotFoundError } from './errors'
 import * as fsAsync from './fs-async'
-import {
-  INSTANCE_ROOT_DIR_NAMES,
-  POWERED_OFF_ONLY,
-  assertNotInstanceRootDelete,
-  assertNotInstanceRootMkdir,
-  assertNotInstanceRootMutation,
-  isAllowedInstanceRootDir,
-  isAtInstanceRoot,
-} from './guards'
+import { POWERED_OFF_ONLY } from './guards'
 import { VfsScope, instanceAllowedByScope } from './scope'
 
 const UNIX_SEP_REGEX = /\//g
@@ -144,56 +136,7 @@ export class InstanceVfs {
     } satisfies ResolvedPath
   }
 
-  private virtualInstanceRootEntries(instance: InstanceFields): VfsEntry[] {
-    return INSTANCE_ROOT_DIR_NAMES.map((name) => ({
-      name,
-      isDirectory: true,
-      mode: 0o755,
-      size: 0,
-      mtime: Date.parse(instance.updated),
-    }))
-  }
-
-  async chdir(path = '.') {
-    const { fsPath, clientPath, instance, restOfVirtualPath } = await this.resolvePath(path)
-
-    if (isAtInstanceRoot(restOfVirtualPath, instance)) {
-      this.cwd = clientPath
-      return this.currentDirectory()
-    }
-
-    return fsAsync
-      .stat(fsPath)
-      .then((stat) => {
-        if (!stat.isDirectory()) throw new Error('Not a valid directory')
-      })
-      .then(() => {
-        this.cwd = clientPath
-        return this.currentDirectory()
-      })
-      .catch(() => {
-        throw new Error(`no such file or directory: ${path}`)
-      })
-  }
-
-  async list(path = '.'): Promise<VfsEntry[]> {
-    const { fsPath, instance, restOfVirtualPath } = await this.resolvePath(path)
-
-    if (!instance) {
-      const instances = await this.listAccessibleInstances()
-      return instances.map((i) => ({
-        isDirectory: true,
-        mode: 0o755,
-        size: 0,
-        mtime: Date.parse(i.updated),
-        name: i.subdomain,
-      }))
-    }
-
-    if (isAtInstanceRoot(restOfVirtualPath, instance)) {
-      return this.virtualInstanceRootEntries(instance)
-    }
-
+  private async readDirEntries(fsPath: string): Promise<VfsEntry[]> {
     const fileNames = await fsAsync.readdir(fsPath)
     const stats = await Promise.all(
       fileNames.map(async (fileName) => {
@@ -216,8 +159,42 @@ export class InstanceVfs {
     return stats.filter((stat): stat is VfsEntry => stat != null)
   }
 
+  async chdir(path = '.') {
+    const { fsPath, clientPath } = await this.resolvePath(path)
+
+    return fsAsync
+      .stat(fsPath)
+      .then((stat) => {
+        if (!stat.isDirectory()) throw new Error('Not a valid directory')
+      })
+      .then(() => {
+        this.cwd = clientPath
+        return this.currentDirectory()
+      })
+      .catch(() => {
+        throw new Error(`no such file or directory: ${path}`)
+      })
+  }
+
+  async list(path = '.'): Promise<VfsEntry[]> {
+    const { fsPath, instance } = await this.resolvePath(path)
+
+    if (!instance) {
+      const instances = await this.listAccessibleInstances()
+      return instances.map((i) => ({
+        isDirectory: true,
+        mode: 0o755,
+        size: 0,
+        mtime: Date.parse(i.updated),
+        name: i.subdomain,
+      }))
+    }
+
+    return this.readDirEntries(fsPath)
+  }
+
   async stat(fileName: string): Promise<VfsEntry> {
-    const { fsPath, instance, clientPath, restOfVirtualPath } = await this.resolvePath(fileName)
+    const { fsPath, instance } = await this.resolvePath(fileName)
 
     if (!instance) {
       return {
@@ -226,26 +203,6 @@ export class InstanceVfs {
         size: 0,
         mtime: Date.now(),
         name: '/',
-      }
-    }
-
-    if (isAtInstanceRoot(restOfVirtualPath, instance)) {
-      return {
-        isDirectory: true,
-        mode: 0o755,
-        size: 0,
-        mtime: Date.parse(instance.updated),
-        name: instance.subdomain,
-      }
-    }
-
-    if (restOfVirtualPath.length === 1 && isAllowedInstanceRootDir(restOfVirtualPath[0]!)) {
-      return {
-        isDirectory: true,
-        mode: 0o755,
-        size: 0,
-        mtime: Date.parse(instance.updated),
-        name: restOfVirtualPath[0]!,
       }
     }
 
@@ -266,7 +223,6 @@ export class InstanceVfs {
 
     const { fsPath, clientPath, instance, restOfVirtualPath } = await this.resolvePath(fileName)
     assertInstanceContext(instance)
-    this.assertMutablePath(restOfVirtualPath, instance, 'write')
 
     const { append, start } = options || {}
 
@@ -323,7 +279,6 @@ export class InstanceVfs {
 
     const { fsPath, instance, restOfVirtualPath } = await this.resolvePath(path)
     assertInstanceContext(instance)
-    this.assertMutablePath(restOfVirtualPath, instance, 'delete')
 
     try {
       const stat = await fsAsync.stat(fsPath)
@@ -345,7 +300,6 @@ export class InstanceVfs {
 
     const { fsPath, instance, restOfVirtualPath } = await this.resolvePath(path)
     assertInstanceContext(instance)
-    this.assertMutablePath(restOfVirtualPath, instance, 'mkdir')
 
     return fsAsync.mkdir(fsPath, { recursive: true }).then(() => fsPath)
   }
@@ -354,37 +308,15 @@ export class InstanceVfs {
     const { dbg } = this.log.create(`rename`).breadcrumb(this.cwd).breadcrumb(from).breadcrumb(to)
     dbg(`rename`)
 
-    const { fsPath: fromPath, instance, restOfVirtualPath: fromRest } = await this.resolvePath(from)
-    const { fsPath: toPath, restOfVirtualPath: toRest } = await this.resolvePath(to)
+    const { fsPath: fromPath, instance } = await this.resolvePath(from)
+    const { fsPath: toPath } = await this.resolvePath(to)
 
     assertInstanceContext(instance)
-    this.assertMutablePath(fromRest, instance, 'rename')
-    this.assertMutablePath(toRest, instance, 'rename')
 
     return fsAsync.rename(fromPath, toPath)
   }
 
   async chmod(_path: string, _mode: Mode) {
     return
-  }
-
-  assertMutablePath(
-    restOfVirtualPath: string[],
-    instance: InstanceFields | undefined,
-    op: 'write' | 'mkdir' | 'delete' | 'rename'
-  ) {
-    if (!instance) return
-    if (op === 'mkdir') {
-      assertNotInstanceRootMkdir(restOfVirtualPath, instance)
-      return
-    }
-    if (op === 'delete') {
-      assertNotInstanceRootDelete(restOfVirtualPath, instance)
-      return
-    }
-    assertNotInstanceRootMutation(restOfVirtualPath, instance)
-    if (op === 'rename') {
-      assertNotInstanceRootMkdir(restOfVirtualPath, instance)
-    }
   }
 }

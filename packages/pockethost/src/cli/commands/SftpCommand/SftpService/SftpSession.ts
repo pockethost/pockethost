@@ -186,10 +186,7 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
 
       vfs
         .resolvePath(vfsPath)
-        .then(async ({ fsPath, clientPath, instance, restOfVirtualPath }) => {
-          if (isWrite) {
-            vfs.assertMutablePath(restOfVirtualPath, instance, 'write')
-          }
+        .then(async ({ fsPath, clientPath, instance }) => {
           const fh = await open(fsPath, mode)
           const handle = allocHandle({
             type: 'file',
