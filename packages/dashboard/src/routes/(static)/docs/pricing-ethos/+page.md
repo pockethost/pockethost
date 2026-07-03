@@ -1,10 +1,10 @@
 ---
 title: Pricing Ethos
-description: Understand PocketHost's Pay Per PocketBase pricing, lifetime offers, and Fair Use policy
+description: Understand PocketHost's Pay Per PocketBase pricing and Fair Use policy
 ---
 # Pricing Ethos
 
-At PocketHost, we believe in keeping things simple and transparent. **Pay Per PocketBase** is our only monthly plan: **$5 per slot per month**. We also offer a limited **Flounder** lifetime deal during our bootstrapping phase.
+At PocketHost, we believe in keeping things simple and transparent. **Pay Per PocketBase** is our only hosting product: **$9.99 per slot per month**, **$59.99 per slot per year**, or **$149.99 lifetime per slot**.
 
 ## Pay Per PocketBase
 
@@ -14,24 +14,13 @@ Each paid slot adds:
 - **10 GB** pooled file storage
 - **One powered-on** PocketBase at a time
 
-Create **unlimited instance records**. Your slot count (`subscription_quantity`) sets how many PocketBases you can **power on** at once. Add another slot, add another $5.
+Create **unlimited instance records**. Your slot count (`subscription_quantity`) sets how many PocketBases you can **power on** at once. Add another slot, add another PocketBase.
 
 - **Fair use bandwidth and CPU** on all paid slots
-- **7-day risk-free trial** on signup
+- **7-day risk-free trial** on monthly signup
 - **Community support** on Discord for everyone
 
 See [pricing](/pricing) for checkout.
-
-## Lifetime Offers (Flounder)
-
-- **One-time payment**: Pay Per PocketBase features without recurring fees
-- **Limited availability**: Flounder sales end **July 1, 2026**
-- **Non-transferable**: Cannot be pro-rated, transferred, used retroactively, reserved, or purchased in advance
-
-**Please note:**
-
-- After July 1, new Flounder purchases are off the table
-- Existing Flounder subscribers stay grandfathered
 
 ## Fair Use Policy
 

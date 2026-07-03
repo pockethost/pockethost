@@ -1,5 +1,6 @@
 import { goto } from '$app/navigation'
 import { client } from '$src/pocketbase-client'
+import { createLemonSqueezyCheckout } from '$util/lemonsqueezy'
 import { upsertGlobalInstance } from '$util/stores'
 
 export type FormErrorHandler = (value: string) => void
@@ -41,7 +42,8 @@ export const handleInstanceGeneratorWidget = async (
   email: string,
   password: string,
   instanceName: string,
-  setError = (value: string) => {}
+  setError = (value: string) => {},
+  checkoutPvId?: string
 ) => {
   const { authViaEmail } = client()
 
@@ -53,6 +55,12 @@ export const handleInstanceGeneratorWidget = async (
 
     await authViaEmail(email, password)
 
+    if (checkoutPvId) {
+      const url = await createLemonSqueezyCheckout(checkoutPvId)
+      window.location.href = url
+      return
+    }
+
     const instance = await client().getInstanceBySubdomain(instanceName)
 
     if (!instance) throw new Error(`This should never happen`)
@@ -62,5 +70,14 @@ export const handleInstanceGeneratorWidget = async (
     if (e instanceof Error) {
       setError(e.message)
     }
+  }
+}
+
+export const continueCheckoutAfterAuth = async (checkoutPvId: string, setError?: FormErrorHandler) => {
+  try {
+    const url = await createLemonSqueezyCheckout(checkoutPvId)
+    window.location.href = url
+  } catch (e) {
+    handleFormError(e instanceof Error ? e : new Error(`${e}`), setError)
   }
 }

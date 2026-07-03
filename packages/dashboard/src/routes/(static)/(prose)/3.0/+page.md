@@ -63,29 +63,23 @@ See [Account creation](/docs/account-creation).
 
 See [limits](/docs/limits).
 
-### Flounder lifetime ends July 1
+### Flounder lifetime (retired)
 
-The **Flounder** one-time lifetime tier stops selling **July 1, 2026**.
+The legacy **Flounder** one-time tier ($359) stopped selling **July 1, 2026**. **Existing Flounder subscribers** stay grandfathered.
 
-- **Existing Flounder subscribers** stay grandfathered. Your hosting does not change.
-- **Accounts created before July 1** get a **30-day grace window** (through **July 31**) to buy Flounder if you still want it.
-- After that, new lifetime purchases are off the table.
-
-Check [pricing](/pricing) while sales are open.
+New lifetime purchases use **$149.99 per slot** on [pricing](/pricing).
 
 More detail: [Last call for Flounder lifetime access](/blog/flounder-lifetime-sunset)
 
-### Pay Per PocketBase limits (July 1)
+### Pay Per PocketBase pricing
 
-PocketHost is a **hard paywall**: **$5/month per PocketBase slot** (7-day trial). Each paid slot adds **250 MB DB data** and **10 GB file storage** (pooled on your account) and lets you **power on one** PocketBase at a time.
+PocketHost is a **hard paywall**: **$9.99/month**, **$59.99/year**, or **$149.99 lifetime** per PocketBase slot (7-day trial on monthly). Each paid slot adds **250 MB DB data** and **10 GB file storage** (pooled on your account) and lets you **power on one** PocketBase at a time.
 
 Create **unlimited instance records**. Your slot count sets how many can run at once.
 
-**If you already subscribe, your billing does not change.** Same plan, same price.
+**If you already subscribe at a legacy price, your billing does not change.** Same plan, same price.
 
-**What changes July 1:** we **enforce** powered-on and storage limits against your slot count. See [pricing](/pricing) and [pricing ethos](/docs/pricing-ethos).
-
-More detail: [PocketHost 3.0 preview](/blog/pockethost-30-preview)
+See [pricing](/pricing) and [pricing ethos](/docs/pricing-ethos).
 
 ## Instance lifecycle and reliability
 
@@ -182,8 +176,7 @@ More detail: [Dashboard UI: Web Awesome migration](/blog/web-awesome-migration)
 1. **Set up SFTP.** Generate an Ed25519 key, add it at [Account → Keys](/account/keys), and test a connection using [/docs/ftp](/docs/ftp).
 2. **Retire FTPS bookmarks.** Point clients and CI at SFTP when you can. Keep FTPS only where you still need it until deploy tooling catches up.
 3. **Add trusted IPs if you proxy.** SSR apps and shared egress NATs benefit from [Account → Trusted IPs](/account/trusted-ips).
-4. **Decide on Flounder.** If lifetime Pay Per PocketBase fits you, buy before **July 1** (or **July 31** if you already had an account on July 1).
-5. **Check your usage.** Open [Account](/account) for DB and file storage meters vs your slot pool before enforcement on July 1.
-6. **Watch for updates.** Follow the [blog](/blog) and your account email as 3.0 rolls out.
+4. **Check your usage.** Open [Account](/account) for DB and file storage meters vs your slot pool.
+5. **Watch for updates.** Follow the [blog](/blog) and your account email as 3.0 rolls out.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT) or [support](/support).

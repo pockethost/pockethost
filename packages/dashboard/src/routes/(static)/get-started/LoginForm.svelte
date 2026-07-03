@@ -1,10 +1,12 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
-  import AlertBar from '$components/AlertBar.svelte'
+  import { continueCheckoutAfterAuth } from '$util/database'
+  import { planLabelForPvId } from '$util/checkoutIntent'
 
   const { authViaEmail } = client()
 
   export let isSignUpView: boolean = true
+  export let checkoutPvId = ''
 
   let email: string = ''
   let password: string = ''
@@ -12,6 +14,8 @@
   let showPassword: boolean = false
 
   $: isFormButtonDisabled = email.length === 0 || password.length === 0
+  $: planLabel = checkoutPvId ? planLabelForPvId(checkoutPvId) : ''
+  $: submitLabel = checkoutPvId ? 'Log in & subscribe' : 'Log In'
 
   let isButtonLoading: boolean = false
 
@@ -28,6 +32,12 @@
     showPassword = false
     try {
       await authViaEmail(email, password)
+      if (checkoutPvId) {
+        await continueCheckoutAfterAuth(checkoutPvId, (message) => {
+          formError = message
+        })
+        return
+      }
       window.location.href = '/dashboard'
     } catch (error) {
       const e = error as Error
@@ -39,6 +49,12 @@
 
 <form class="auth-form" method="post" autocomplete="on" onsubmit={handleSubmit}>
   <h2 class="auth-form-title">Log In</h2>
+
+  {#if checkoutPvId}
+    <p class="auth-form-lead">
+      Log in to continue checkout for <strong>{planLabel}</strong>.
+    </p>
+  {/if}
 
   <div class="auth-field-group">
     <label class="auth-label" for="email">Email</label>
@@ -85,13 +101,18 @@
     </div>
   </div>
 
-  <AlertBar message={formError} type="error" />
+  {#if formError}
+    <wa-callout variant="danger" class="wa-callout-padded">
+      <wa-icon slot="icon" name="circle-xmark"></wa-icon>
+      {formError}
+    </wa-callout>
+  {/if}
 
   <button type="submit" class="auth-submit" disabled={isFormButtonDisabled || isButtonLoading}>
     {#if isButtonLoading}
       <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
     {:else}
-      Log In
+      {submitLabel}
       <wa-icon name="arrow-right"></wa-icon>
     {/if}
   </button>

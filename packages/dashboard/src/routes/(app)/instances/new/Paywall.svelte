@@ -8,7 +8,7 @@
   <div class="wa-card-body">
     <h2 class="text-xl font-bold mb-2">Paywall!</h2>
     <p>
-      You need a paid PocketBase slot to create instances. Each $5/month slot adds pooled storage and one powered-on
+      You need a paid PocketBase slot to create instances. Each $9.99/month slot adds pooled storage and one powered-on
       instance.
     </p>
     <div class="w-full mt-6">

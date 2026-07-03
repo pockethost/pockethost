@@ -1,73 +1,65 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte'
   import Testimonials from '$src/components/Testimonials.svelte'
-  import { daysUntilFlounderSunset, flounderDaysLeftLabel, FLOUNDER_SALES_END_LABEL } from '$util/flounderSunset'
   import Features from './Features.svelte'
-  import FlounderCountdown from './FlounderCountdown.svelte'
   import {
     DB_STORAGE_MB_PER_INSTANCE,
     FILE_STORAGE_GB_PER_INSTANCE,
-    FLOUNDER_LIFETIME_PV_ID,
+    INSTANCE_ANNUAL_PV_ID,
+    INSTANCE_LIFETIME_PV_ID,
     INSTANCE_MONTHLY_PV_ID,
   } from 'pockethost/common'
   import SignupBox from './SignupBox.svelte'
 
-  let flounderDaysLeft = daysUntilFlounderSunset()
+  const MONTHLY_PRICE = 9.99
+  const ANNUAL_PRICE = 59.99
+  const monthlyYearTotal = MONTHLY_PRICE * 12
+  const annualSavings = Math.round((monthlyYearTotal - ANNUAL_PRICE) * 100) / 100
+  const annualSavingsPercent = Math.round((annualSavings / monthlyYearTotal) * 100)
 
-  let interval: ReturnType<typeof setInterval> | undefined
-
-  onMount(() => {
-    interval = setInterval(() => {
-      flounderDaysLeft = daysUntilFlounderSunset()
-    }, 60_000)
-  })
-
-  onDestroy(() => {
-    if (interval) clearInterval(interval)
-  })
-
-  $: flounderBadge = flounderDaysLeft > 0 ? flounderDaysLeftLabel(flounderDaysLeft).toUpperCase() : undefined
+  const slotStorage = `${DB_STORAGE_MB_PER_INSTANCE} MB DB data storage + ${FILE_STORAGE_GB_PER_INSTANCE} GB file storage per PocketBase`
+  const sharedFeatures = [
+    slotStorage,
+    'Storage adds to your account pool, shared across every PocketBase you run',
+    'Global Fly ingress, private network routing',
+    'Unmetered bandwidth and CPU (fair use)',
+    'SFTP file access',
+  ]
 </script>
 
 <div class="pricing-page-header">
   <h2 class="pricing-page-title">Pricing</h2>
-  <FlounderCountdown />
+  <p class="pricing-page-lead">Pay Per PocketBase. One slot powers on one PocketBase at a time.</p>
 </div>
 
 <div class="pricing-page-grid">
   <SignupBox
     pvId={INSTANCE_MONTHLY_PV_ID}
-    selected
-    bestDeal
-    title="Pay Per PocketBase"
-    price="$5"
+    title="Monthly"
+    price="$9.99"
     priceDetail="per PocketBase, per month"
-    cta="Each PocketBase includes {DB_STORAGE_MB_PER_INSTANCE} MB DB data storage and {FILE_STORAGE_GB_PER_INSTANCE} GB file storage. Add another PocketBase, add another $5."
-    features={[
-      `${DB_STORAGE_MB_PER_INSTANCE} MB DB data storage + ${FILE_STORAGE_GB_PER_INSTANCE} GB file storage per PocketBase`,
-      'Storage adds to your account pool — shared across every PocketBase you run',
-      '7 day risk-free trial',
-      'Global Fly ingress, private network routing',
-      'Unmetered bandwidth and CPU (fair use)',
-      'SFTP file access',
-    ]}
+    cta="Each slot includes {DB_STORAGE_MB_PER_INSTANCE} MB DB data storage and {FILE_STORAGE_GB_PER_INSTANCE} GB file storage. Add another PocketBase, add another slot."
+    features={['7 day risk-free trial', ...sharedFeatures]}
   />
   <SignupBox
-    pvId={FLOUNDER_LIFETIME_PV_ID}
-    buttonText="Become a Flounder"
-    price="$359 once"
-    title="Flounder - Lifetime"
-    badgeText={flounderBadge}
-    badgeUrgent
-    cta="Pay once for lifetime Pay Per PocketBase hosting. Sales end {FLOUNDER_SALES_END_LABEL}. No new buyers after that date."
-    features={[
-      'Pay Per PocketBase features, lifetime price',
-      'Lifetime access',
-      'No recurring fees',
-      'Tee shirt',
-      '#onlyflounders private Discord',
-      '-Girlfriend',
-    ]}
+    pvId={INSTANCE_ANNUAL_PV_ID}
+    selected
+    savingsPercent={annualSavingsPercent}
+    savingsAmountLabel={`Save $${annualSavings.toFixed(0)} per slot vs monthly billing`}
+    compareAtPrice={`$${monthlyYearTotal.toFixed(2)}/yr`}
+    title="Annual"
+    price="$59.99"
+    priceDetail="per PocketBase, per year"
+    cta="Same slot entitlements as monthly. Billed once per year."
+    features={[`Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo when paid annually`, ...sharedFeatures]}
+  />
+  <SignupBox
+    pvId={INSTANCE_LIFETIME_PV_ID}
+    buttonText="Buy lifetime slot"
+    price="$149.99"
+    priceDetail="once per PocketBase"
+    title="Lifetime"
+    cta="Pay once per slot for lifetime Pay Per PocketBase hosting. No recurring fees."
+    features={['Lifetime access per slot purchased', 'No recurring fees', ...sharedFeatures]}
   />
 </div>
 

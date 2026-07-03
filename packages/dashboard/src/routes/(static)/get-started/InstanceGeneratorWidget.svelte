@@ -3,9 +3,11 @@
   import RegisterForm from './RegisterForm.svelte'
   import { onMount } from 'svelte'
   import { slide } from 'svelte/transition'
+  import { readCheckoutPvIdFromSearch } from '$util/checkoutIntent'
 
   export let login = false
   let isSignUpView: boolean = !login
+  let checkoutPvId = ''
 
   onMount(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -14,26 +16,28 @@
     if (view === 'login') {
       isSignUpView = false
     }
+
+    checkoutPvId = readCheckoutPvIdFromSearch(window.location.search)
   })
 </script>
 
 <div class="auth-card w-full max-w-md">
   {#if isSignUpView}
     {#if login}
-      <RegisterForm bind:isSignUpView />
+      <RegisterForm bind:isSignUpView {checkoutPvId} />
     {:else}
       <div in:slide={{ delay: 400 }} out:slide>
-        <RegisterForm bind:isSignUpView />
+        <RegisterForm bind:isSignUpView {checkoutPvId} />
       </div>
     {/if}
   {/if}
 
   {#if !isSignUpView}
     {#if login}
-      <LoginForm bind:isSignUpView />
+      <LoginForm bind:isSignUpView {checkoutPvId} />
     {:else}
       <div in:slide={{ delay: 400 }} out:slide>
-        <LoginForm bind:isSignUpView />
+        <LoginForm bind:isSignUpView {checkoutPvId} />
       </div>
     {/if}
   {/if}

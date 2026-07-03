@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { FLOUNDER_LIFETIME_PV_ID, createLemonSqueezyCheckout } from '$util/lemonsqueezy'
+  import { goto } from '$app/navigation'
+  import { INSTANCE_MONTHLY_PV_ID, createLemonSqueezyCheckout } from '$util/lemonsqueezy'
+  import { checkoutIntentUrl } from '$util/checkoutIntent'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
 
@@ -11,7 +13,7 @@
     if (loading) return
     loading = true
     try {
-      const url = await createLemonSqueezyCheckout(FLOUNDER_LIFETIME_PV_ID)
+      const url = await createLemonSqueezyCheckout(INSTANCE_MONTHLY_PV_ID)
       window.location.href = url
     } catch (err) {
       console.error(err)
@@ -19,6 +21,10 @@
     } finally {
       loading = false
     }
+  }
+
+  const startSignupCheckout = async () => {
+    await goto(checkoutIntentUrl(INSTANCE_MONTHLY_PV_ID))
   }
 </script>
 
@@ -35,7 +41,12 @@
   </wa-button>
 </UserLoggedIn>
 <UserLoggedOut>
-  <wa-button variant="warning" size="l" class={fixed ? 'w-full rounded-none fixed bottom-0' : ''} href="/get-started">
-    Get Started
+  <wa-button
+    variant="warning"
+    size="l"
+    class={fixed ? 'w-full rounded-none fixed bottom-0' : ''}
+    onclick={startSignupCheckout}
+  >
+    Create account & subscribe
   </wa-button>
 </UserLoggedOut>

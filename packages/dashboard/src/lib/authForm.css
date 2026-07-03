@@ -26,6 +26,19 @@
   color: #fff;
 }
 
+.auth-form-lead {
+  margin: -0.25rem 0 0;
+  text-align: center;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: rgb(209 213 219);
+}
+
+.auth-form-lead strong {
+  color: #fff;
+  font-weight: 600;
+}
+
 .auth-field-group {
   display: flex;
   flex-direction: column;

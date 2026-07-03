@@ -1,13 +1,15 @@
 <script lang="ts">
-  import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client'
-  import { handleInstanceGeneratorWidget } from '$util/database'
+  import { continueCheckoutAfterAuth, handleInstanceGeneratorWidget } from '$util/database'
+  import { planLabelForPvId } from '$util/checkoutIntent'
   import { writable } from 'svelte/store'
   import { slide } from 'svelte/transition'
   import NewInstanceProcessingBlock from './NewInstanceProcessingBlock.svelte'
   import { onMount } from 'svelte'
 
   export let isSignUpView: boolean = false
+  export let checkoutPvId = ''
+
   let isProcessing: boolean = false
 
   const instanceNameField = writable('')
@@ -37,7 +39,7 @@
           ...info,
           fetching: true,
         }))
-        const res = await client().client.send(`/api/signup?name=${encodeURIComponent(name)}`, {})
+        await client().client.send(`/api/signup?name=${encodeURIComponent(name)}`, {})
         instanceInfo.update((info) => ({
           ...info,
           fetching: false,
@@ -67,6 +69,9 @@
   $: isFormButtonDisabled =
     email.length === 0 || password.length === 0 || $instanceInfo.name.length === 0 || !$instanceInfo.available
 
+  $: planLabel = checkoutPvId ? planLabelForPvId(checkoutPvId) : ''
+  $: submitLabel = checkoutPvId ? 'Create account & subscribe' : 'Create'
+
   const handleInstanceNameRegeneration = () => {
     generateSlug()
   }
@@ -79,10 +84,17 @@
     e.preventDefault()
     isFormButtonDisabled = true
     isProcessing = true
+    formError = ''
 
-    await handleInstanceGeneratorWidget(email, password, $instanceInfo.name, (error) => {
-      formError = error
-    })
+    await handleInstanceGeneratorWidget(
+      email,
+      password,
+      $instanceInfo.name,
+      (error) => {
+        formError = error
+      },
+      checkoutPvId || undefined
+    )
 
     isFormButtonDisabled = false
 
@@ -99,7 +111,20 @@
 {:else}
   <div in:slide={{ delay: 400 }} out:slide>
     <form class="auth-form" onsubmit={handleSubmit}>
-      <h2 class="auth-form-title">Create your first Instance, fast.</h2>
+      <h2 class="auth-form-title">
+        {#if checkoutPvId}
+          Create your account
+        {:else}
+          Create your first Instance, fast.
+        {/if}
+      </h2>
+
+      {#if checkoutPvId}
+        <p class="auth-form-lead">
+          You chose <strong>{planLabel}</strong>. We create your account and first instance, then send you to secure
+          checkout.
+        </p>
+      {/if}
 
       <div class="auth-field-group">
         <label class="auth-label" for="instance">Instance Name</label>
@@ -161,10 +186,15 @@
         ></wa-input>
       </div>
 
-      <AlertBar message={formError} type="error" />
+      {#if formError}
+        <wa-callout variant="danger" class="wa-callout-padded">
+          <wa-icon slot="icon" name="circle-xmark"></wa-icon>
+          {formError}
+        </wa-callout>
+      {/if}
 
       <button type="submit" class="auth-submit" disabled={isFormButtonDisabled}>
-        Create
+        {submitLabel}
         <wa-icon name="arrow-right"></wa-icon>
       </button>
     </form>
