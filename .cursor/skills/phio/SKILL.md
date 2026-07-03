@@ -66,7 +66,7 @@ Legacy FTPS (`__auth__` cookie on port 21) is still supported by the vendored en
 
 `ftp-deploy` writes `.ftp-deploy-sync-state.json` at the **instance root** (`/{subdomain}/.ftp-deploy-sync-state.json`). Same file is used by [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) in CI.
 
-`InstanceVfs` guards must allow this file at instance root. Blocking it breaks `phio deploy` and GitHub Actions FTP deploy.
+`InstanceVfs` does not restrict instance-root files or folders. `pb_data` still requires power-off. phio deploy and FTP-Deploy-Action sync freely at `/{subdomain}/`.
 
 ## Compatibility checklist
 

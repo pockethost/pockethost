@@ -4,6 +4,7 @@ import {
   InstanceVfsUserError,
   assertInstanceContext,
   isExpectedVfsClientError,
+  isVfsNotFoundError,
 } from './errors'
 
 describe('InstanceFileAccess errors', () => {
@@ -18,6 +19,12 @@ describe('InstanceFileAccess errors', () => {
     expect(isExpectedVfsClientError(new Error('Accessing evil is not allowed.'))).toBe(true)
     expect(isExpectedVfsClientError(new Error('Instance must be powered off first'))).toBe(true)
     expect(isExpectedVfsClientError(new Error('no such file or directory: foo'))).toBe(true)
+    expect(
+      isExpectedVfsClientError(
+        Object.assign(new Error("ENOENT: no such file or directory, unlink '/tmp/foo'"), { code: 'ENOENT' })
+      )
+    ).toBe(true)
+    expect(isVfsNotFoundError(Object.assign(new Error('missing'), { code: 'ENOENT' }))).toBe(true)
   })
 
   it('does not classify unexpected failures as client errors', () => {
