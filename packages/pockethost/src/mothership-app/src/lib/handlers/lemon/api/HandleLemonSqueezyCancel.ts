@@ -1,4 +1,4 @@
-import { INSTANCE_MONTHLY_PV_ID, lemonSqueezyVariantId } from '$common/lemonSqueezy'
+import { MONTHLY_CANCEL_VARIANT_IDS } from '$common/lemonSqueezy'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 
@@ -30,37 +30,43 @@ export const HandleLemonSqueezyCancel = (e: core.RequestEvent) => {
     }
 
     const email = authRecord.get(`email`)
-    const variantId = lemonSqueezyVariantId(INSTANCE_MONTHLY_PV_ID)
-    if (!variantId) {
-      throw new Error(`Missing variant id for ${INSTANCE_MONTHLY_PV_ID}`)
+
+    const findActiveSubscription = () => {
+      for (const variantId of MONTHLY_CANCEL_VARIANT_IDS) {
+        const listUrl =
+          `https://api.lemonsqueezy.com/v1/subscriptions` +
+          `?filter[user_email]=${encodeURIComponent(email)}` +
+          `&filter[variant_id]=${variantId}` +
+          `&filter[status]=active`
+
+        const listRes = $http.send({
+          url: listUrl,
+          method: `GET`,
+          headers: lsJsonHeaders(apiKey),
+          timeout: 30,
+        })
+
+        if (listRes.statusCode < 200 || listRes.statusCode >= 300) {
+          const detail =
+            listRes.json?.errors?.[0]?.detail || listRes.json?.errors?.[0]?.title || JSON.stringify(listRes.json)
+          log(`LS list subscriptions failed`, listRes.statusCode, variantId, detail)
+          throw new BadRequestError(`Could not look up subscription: ${detail}`)
+        }
+
+        const subscriptions = listRes.json?.data || []
+        if (subscriptions.length > 0) {
+          return subscriptions[0]
+        }
+      }
+      return null
     }
 
-    const listUrl =
-      `https://api.lemonsqueezy.com/v1/subscriptions` +
-      `?filter[user_email]=${encodeURIComponent(email)}` +
-      `&filter[variant_id]=${variantId}` +
-      `&filter[status]=active`
-
-    const listRes = $http.send({
-      url: listUrl,
-      method: `GET`,
-      headers: lsJsonHeaders(apiKey),
-      timeout: 30,
-    })
-
-    if (listRes.statusCode < 200 || listRes.statusCode >= 300) {
-      const detail =
-        listRes.json?.errors?.[0]?.detail || listRes.json?.errors?.[0]?.title || JSON.stringify(listRes.json)
-      log(`LS list subscriptions failed`, listRes.statusCode, detail)
-      throw new BadRequestError(`Could not look up subscription: ${detail}`)
-    }
-
-    const subscriptions = listRes.json?.data || []
-    if (subscriptions.length === 0) {
+    const activeSubscription = findActiveSubscription()
+    if (!activeSubscription) {
       throw new BadRequestError(`No active subscription found for this account`)
     }
 
-    const subscriptionId = `${subscriptions[0].id || ''}`.trim()
+    const subscriptionId = `${activeSubscription.id || ''}`.trim()
     if (!subscriptionId) {
       throw new Error(`Subscription id missing in Lemon Squeezy response`)
     }

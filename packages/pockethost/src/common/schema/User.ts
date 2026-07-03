@@ -1,3 +1,4 @@
+import type { BillingLinks, BillingProvider, ProductSku, SubscriptionStatus } from '../billing/types'
 import { type BaseFields } from './types'
 
 export enum SubscriptionType {
@@ -29,6 +30,14 @@ export type UserFields<TExtra = {}> = BaseFields & {
   subscription: SubscriptionType
   subscription_interval: SubscriptionInterval
   subscription_quantity: number
+  /** Internal product catalog id. Empty until backfilled / first billing event. */
+  product_sku?: ProductSku | ''
+  /** Account billing state (not a product tier). */
+  subscription_status?: SubscriptionStatus | ''
+  /** Provider references (LS subscription/customer ids, grandfathered flags). */
+  billing_links?: BillingLinks | null
+  /** Active billing provider; set on first LS match, admin-set for holdouts. */
+  billing_provider?: BillingProvider | ''
   /** Bytes used on the edge primary volume (sqlite, hooks, static). */
   volume_storage_used: number
   /** Bytes used for PocketBase file/object storage. */

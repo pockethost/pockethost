@@ -754,14 +754,36 @@ const BeforeUpdate_version = (e) => {
 //#endregion
 //#region ../common/lemonSqueezy.ts
 /** Lemon Squeezy webhook key: `{product_id}-{variant_id}`. */
-const FLOUNDER_LIFETIME_PV_ID = "424532-651627";
-const INSTANCE_MONTHLY_PV_ID = "424532-651625";
-const LEMON_SQUEEZY_PV_IDS = [FLOUNDER_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID];
+/** Legacy $5/mo — webhook/back-compat only (disabled in LS checkout). */
+const INSTANCE_MONTHLY_LEGACY_PV_ID = "424532-651625";
+/** Legacy $359 Flounder — webhook/back-compat only (disabled in LS checkout). */
+const FLOUNDER_LIFETIME_LEGACY_PV_ID = "424532-651627";
+/** Pay Per PocketBase monthly ($9.99/mo). */
+const INSTANCE_MONTHLY_PV_ID = "1192400-1864333";
+/** Pay Per PocketBase annual ($59.99/yr). */
+const INSTANCE_ANNUAL_PV_ID = "1192404-1864339";
+/** Pay Per PocketBase lifetime ($149.99 per slot). */
+const INSTANCE_LIFETIME_PV_ID = "1192406-1864341";
+const CHECKOUT_PV_IDS = [
+	INSTANCE_MONTHLY_PV_ID,
+	INSTANCE_ANNUAL_PV_ID,
+	INSTANCE_LIFETIME_PV_ID
+];
+const LEMON_SQUEEZY_PV_IDS = [
+	...CHECKOUT_PV_IDS,
+	INSTANCE_MONTHLY_LEGACY_PV_ID,
+	FLOUNDER_LIFETIME_LEGACY_PV_ID
+];
 const VARIANT_ID_BY_PV_ID = {
-	[FLOUNDER_LIFETIME_PV_ID]: "651627",
-	[INSTANCE_MONTHLY_PV_ID]: "651625"
+	[INSTANCE_MONTHLY_PV_ID]: "1864333",
+	[INSTANCE_ANNUAL_PV_ID]: "1864339",
+	[INSTANCE_LIFETIME_PV_ID]: "1864341",
+	[INSTANCE_MONTHLY_LEGACY_PV_ID]: "651625",
+	[FLOUNDER_LIFETIME_LEGACY_PV_ID]: "651627"
 };
 const lemonSqueezyVariantId = (pvId) => VARIANT_ID_BY_PV_ID[pvId];
+/** Monthly variant IDs for cancel lookup (current + legacy subscribers). */
+const MONTHLY_CANCEL_VARIANT_IDS = [lemonSqueezyVariantId(INSTANCE_MONTHLY_PV_ID), lemonSqueezyVariantId(INSTANCE_MONTHLY_LEGACY_PV_ID)].filter((id) => !!id);
 
 //#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts
@@ -782,23 +804,28 @@ const HandleLemonSqueezyCancel = (e) => {
 		const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`);
 		if (!apiKey) throw new BadRequestError(`Billing is not configured (set LS_API_KEY on mothership)`);
 		const email = authRecord.get(`email`);
-		const variantId = lemonSqueezyVariantId(INSTANCE_MONTHLY_PV_ID);
-		if (!variantId) throw new Error(`Missing variant id for ${INSTANCE_MONTHLY_PV_ID}`);
-		const listUrl = `https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]=${encodeURIComponent(email)}&filter[variant_id]=${variantId}&filter[status]=active`;
-		const listRes = $http.send({
-			url: listUrl,
-			method: `GET`,
-			headers: lsJsonHeaders(apiKey),
-			timeout: 30
-		});
-		if (listRes.statusCode < 200 || listRes.statusCode >= 300) {
-			const detail = listRes.json?.errors?.[0]?.detail || listRes.json?.errors?.[0]?.title || JSON.stringify(listRes.json);
-			log(`LS list subscriptions failed`, listRes.statusCode, detail);
-			throw new BadRequestError(`Could not look up subscription: ${detail}`);
-		}
-		const subscriptions = listRes.json?.data || [];
-		if (subscriptions.length === 0) throw new BadRequestError(`No active subscription found for this account`);
-		const subscriptionId = `${subscriptions[0].id || ""}`.trim();
+		const findActiveSubscription = () => {
+			for (const variantId of MONTHLY_CANCEL_VARIANT_IDS) {
+				const listUrl = `https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]=${encodeURIComponent(email)}&filter[variant_id]=${variantId}&filter[status]=active`;
+				const listRes = $http.send({
+					url: listUrl,
+					method: `GET`,
+					headers: lsJsonHeaders(apiKey),
+					timeout: 30
+				});
+				if (listRes.statusCode < 200 || listRes.statusCode >= 300) {
+					const detail = listRes.json?.errors?.[0]?.detail || listRes.json?.errors?.[0]?.title || JSON.stringify(listRes.json);
+					log(`LS list subscriptions failed`, listRes.statusCode, variantId, detail);
+					throw new BadRequestError(`Could not look up subscription: ${detail}`);
+				}
+				const subscriptions = listRes.json?.data || [];
+				if (subscriptions.length > 0) return subscriptions[0];
+			}
+			return null;
+		};
+		const activeSubscription = findActiveSubscription();
+		if (!activeSubscription) throw new BadRequestError(`No active subscription found for this account`);
+		const subscriptionId = `${activeSubscription.id || ""}`.trim();
 		if (!subscriptionId) throw new Error(`Subscription id missing in Lemon Squeezy response`);
 		const cancelRes = $http.send({
 			url: `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
@@ -893,6 +920,105 @@ const HandleLemonSqueezyCheckout = (e) => {
 };
 
 //#endregion
+//#region ../common/billing/productCatalog.ts
+const PRODUCT_CATALOG = {
+	"hosting.slot.recurring.month.legacy": {
+		legacySubscription: "premium",
+		interval: "month",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: true
+	},
+	"hosting.slot.recurring.month": {
+		legacySubscription: "premium",
+		interval: "month",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: true
+	},
+	"hosting.slot.recurring.year": {
+		legacySubscription: "premium",
+		interval: "year",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: true
+	},
+	"hosting.slot.lifetime.legacy_flounder": {
+		legacySubscription: "flounder",
+		interval: "life",
+		quantityFromCheckout: false,
+		fixedQuantity: 250,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.slot.lifetime": {
+		legacySubscription: "flounder",
+		interval: "life",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.legacy.founder": {
+		legacySubscription: "founder",
+		interval: "",
+		quantityFromCheckout: false,
+		statusWhenActive: "grandfathered",
+		cancelable: false
+	},
+	"hosting.legacy.legacy": {
+		legacySubscription: "legacy",
+		interval: "",
+		quantityFromCheckout: false,
+		statusWhenActive: "grandfathered",
+		cancelable: false
+	},
+	"hosting.grandfathered.hacker": {
+		legacySubscription: "free",
+		interval: "",
+		quantityFromCheckout: false,
+		fixedQuantity: 1,
+		statusWhenActive: "grandfathered",
+		cancelable: false
+	}
+};
+
+//#endregion
+//#region ../common/billing/providerMappings.ts
+/**
+* Maps an external provider entity to an internal SKU. The key is `{provider}:{externalId}` where `externalId` is the
+* Lemon Squeezy `{product_id}-{variant_id}` pv_id.
+*/
+const SKU_BY_PROVIDER_KEY = {
+	[`lemonsqueezy:${INSTANCE_MONTHLY_PV_ID}`]: "hosting.slot.recurring.month",
+	[`lemonsqueezy:${INSTANCE_ANNUAL_PV_ID}`]: "hosting.slot.recurring.year",
+	[`lemonsqueezy:${INSTANCE_LIFETIME_PV_ID}`]: "hosting.slot.lifetime",
+	[`lemonsqueezy:${INSTANCE_MONTHLY_LEGACY_PV_ID}`]: "hosting.slot.recurring.month.legacy",
+	[`lemonsqueezy:${FLOUNDER_LIFETIME_LEGACY_PV_ID}`]: "hosting.slot.lifetime.legacy_flounder"
+};
+const providerKey = (provider, externalId) => `${provider}:${externalId}`;
+const resolveProviderSku = (provider, externalId) => SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)];
+
+//#endregion
+//#region ../common/billing/entitlementFromPvId.ts
+/**
+* Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
+* Returns undefined for unmapped pv_ids so callers can reject unknown products.
+*/
+const entitlementFromPvId = (pvId, quantity) => {
+	const sku = resolveProviderSku("lemonsqueezy", pvId);
+	if (!sku) return void 0;
+	const template = PRODUCT_CATALOG[sku];
+	const resolvedQuantity = template.quantityFromCheckout ? quantity : template.fixedQuantity ?? 0;
+	return {
+		product_sku: sku,
+		subscription: template.legacySubscription,
+		subscription_interval: template.interval,
+		subscription_quantity: resolvedQuantity,
+		subscription_status: template.statusWhenActive
+	};
+};
+
+//#endregion
 //#region src/lib/util/mkNotifier.ts
 const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 	log({
@@ -959,7 +1085,8 @@ const HandleLemonSqueezySale = (e) => {
 		context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0;
 		log(`quantity ok`, context.quantity);
 		const pv_id = `${context.product_id}-${context.variant_id}`;
-		if (!LEMON_SQUEEZY_PV_IDS.includes(pv_id)) throw new Error(`Product and variant not found: ${pv_id}`);
+		const entitlement = entitlementFromPvId(pv_id, context.quantity || 0);
+		if (!entitlement) throw new Error(`Product and variant not found: ${pv_id}`);
 		const userRec = (() => {
 			if (context.user_id) {
 				context.user_id_source = `custom_data`;
@@ -1004,22 +1131,17 @@ const HandleLemonSqueezySale = (e) => {
 		}[context.event_name];
 		if (!event_handler) throw new Error(`Unsupported event: ${context.event_name}`);
 		else log(`event handler ok`, event_handler);
-		const product_handler = {
-			[FLOUNDER_LIFETIME_PV_ID]: () => {
-				userRec.set(`subscription`, `flounder`);
-				userRec.set(`subscription_interval`, `life`);
-				userRec.set(`subscription_quantity`, 250);
-			},
-			[INSTANCE_MONTHLY_PV_ID]: () => {
-				userRec.set(`subscription`, `premium`);
-				userRec.set(`subscription_interval`, `month`);
-				userRec.set(`subscription_quantity`, context.quantity);
-			}
-		}[pv_id];
-		if (!product_handler) throw new Error(`No product handler for ${pv_id}`);
-		else log(`product handler ok`, pv_id);
+		const applyEntitlement = () => {
+			userRec.set(`subscription`, entitlement.subscription);
+			userRec.set(`subscription_interval`, entitlement.subscription_interval);
+			userRec.set(`subscription_quantity`, entitlement.subscription_quantity);
+			userRec.set(`product_sku`, entitlement.product_sku);
+			userRec.set(`subscription_status`, entitlement.subscription_status);
+			userRec.set(`billing_provider`, `lemonsqueezy`);
+		};
+		log(`product handler ok`, pv_id, entitlement.product_sku);
 		const signup_finalizer = () => {
-			product_handler();
+			applyEntitlement();
 			$app.save(userRec);
 			log(`saved user`);
 			const notify = mkNotifier(log, $app);
@@ -1044,6 +1166,8 @@ const HandleLemonSqueezySale = (e) => {
 			if (newQuantity === 0) {
 				userRec.set(`subscription`, `free`);
 				userRec.set(`subscription_interval`, ``);
+				userRec.set(`product_sku`, ``);
+				userRec.set(`subscription_status`, `lapsed`);
 			}
 			$app.save(userRec);
 			log(`saved user`);
@@ -3466,6 +3590,7 @@ const HandleSignupConfirm = (e) => {
 			user.set("email", email);
 			user.set("subscription", "free");
 			user.set("subscription_quantity", 0);
+			user.set("subscription_status", "lapsed");
 			user.set("volume_storage_used", 0);
 			user.set("object_storage_used", 0);
 			user.setPassword(password);

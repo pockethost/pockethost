@@ -1,4 +1,4 @@
-import { FLOUNDER_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID, LEMON_SQUEEZY_PV_IDS } from '$common/lemonSqueezy'
+import { entitlementFromPvId } from '$common/billing/entitlementFromPvId'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
@@ -126,7 +126,8 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
 
     const pv_id = `${context.product_id}-${context.variant_id}`
 
-    if (!LEMON_SQUEEZY_PV_IDS.includes(pv_id as (typeof LEMON_SQUEEZY_PV_IDS)[number])) {
+    const entitlement = entitlementFromPvId(pv_id, context.quantity || 0)
+    if (!entitlement) {
       throw new Error(`Product and variant not found: ${pv_id}`)
     }
 
@@ -183,28 +184,19 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       log(`event handler ok`, event_handler)
     }
 
-    const product_handler_map = {
-      [FLOUNDER_LIFETIME_PV_ID]: () => {
-        userRec.set(`subscription`, `flounder`)
-        userRec.set(`subscription_interval`, `life`)
-        userRec.set(`subscription_quantity`, 250)
-      },
-      [INSTANCE_MONTHLY_PV_ID]: () => {
-        userRec.set(`subscription`, `premium`)
-        userRec.set(`subscription_interval`, `month`)
-        userRec.set(`subscription_quantity`, context.quantity)
-      },
-    } as const
-
-    const product_handler = product_handler_map[pv_id as keyof typeof product_handler_map]
-    if (!product_handler) {
-      throw new Error(`No product handler for ${pv_id}`)
-    } else {
-      log(`product handler ok`, pv_id)
+    const applyEntitlement = () => {
+      // Dual-write: legacy enum fields (back-compat) + new catalog fields.
+      userRec.set(`subscription`, entitlement.subscription)
+      userRec.set(`subscription_interval`, entitlement.subscription_interval)
+      userRec.set(`subscription_quantity`, entitlement.subscription_quantity)
+      userRec.set(`product_sku`, entitlement.product_sku)
+      userRec.set(`subscription_status`, entitlement.subscription_status)
+      userRec.set(`billing_provider`, `lemonsqueezy`)
     }
+    log(`product handler ok`, pv_id, entitlement.product_sku)
 
     const signup_finalizer = () => {
-      product_handler()
+      applyEntitlement()
       $app.save(userRec)
       log(`saved user`)
 
@@ -237,8 +229,11 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       userRec.set(`subscription_quantity`, newQuantity)
 
       if (newQuantity === 0) {
+        // Dual-write: clear legacy + new fields. Grandfathered hacker floor is a later deploy.
         userRec.set(`subscription`, `free`)
         userRec.set(`subscription_interval`, ``)
+        userRec.set(`product_sku`, ``)
+        userRec.set(`subscription_status`, `lapsed`)
       }
       $app.save(userRec)
       log(`saved user`)

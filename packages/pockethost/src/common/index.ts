@@ -1,5 +1,6 @@
 export * from './adminAuth'
 export * from './assert'
+export * from './billing'
 export * from './boolean'
 export * from './CleanupManager'
 export * from './ConsoleLogger'
