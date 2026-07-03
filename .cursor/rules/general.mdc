@@ -15,15 +15,24 @@ Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, p
 
 Read [MEMORY.md](MEMORY.md) before substantive architectural work.
 
-Billing: **Pay Per PocketBase** ($9/mo, $59/yr, $149 LTD per slot — target Jul 2026; checkout still legacy). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
+Billing: **Pay Per PocketBase** ($9.99/mo, $59.99/yr, $149.99 LTD per slot). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
 
 Mothership hook code (`mothership-app/src/lib/handlers/`) runs in PocketBase Goja JSVM after tsdown bundling. Read [.cursor/rules/mothership-hooks.mdc](.cursor/rules/mothership-hooks.mdc) before adding imports or shared helpers.
 
 # Programming Style
 
-- Prefer factory functions that return an API object instead of classes (`createX`, `mkX` — matches existing code)
+- Prefer factory functions that return an API object instead of classes (`createX`, `mkX`). Matches existing code.
 - Prefer early returns
 - Match surrounding file conventions (imports via `@` alias in `packages/pockethost`)
+
+# Punctuation (customer copy and docs)
+
+Follow [.cursor/rules/communication-style.mdc](communication-style.mdc):
+
+- **No em dashes** (`—`). Use a period and a new sentence, or rewrite.
+- **No semicolons** to join independent clauses. Split into two sentences instead.
+
+Applies to dashboard UI strings, blog posts, docs, and agent replies unless quoting third-party text.
 
 # Generating Markdown
 

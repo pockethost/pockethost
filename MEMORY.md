@@ -60,12 +60,12 @@ Common env: `APEX_DOMAIN`, `MOTHERSHIP_NAME`, `PH_ALLOWED_POCKETBASE_SEMVER`, `P
 
 ## Billing
 
-**Hard paywall** — no free hosting tier. **Pay Per PocketBase** (target Jul 2026): **$9/mo**, **$59/yr**, or **$149 lifetime** per slot. Each slot = one powered-on PocketBase + 250 MB DB + 10 GB file storage (pooled). Unlimited instance records; powered-on capped by `subscription_quantity`. **Checkout still legacy** ($5/mo, $359 Flounder) until rollout. See [/pricing](/pricing) and [/3.0](/3.0).
+**Hard paywall** — no free hosting tier. **Pay Per PocketBase**: **$9.99/mo**, **$59.99/yr**, or **$149.99 lifetime** per slot (Jul 2026 checkout live). Each slot = one powered-on PocketBase + 250 MB DB + 10 GB file storage (pooled). Unlimited instance records; powered-on capped by `subscription_quantity` (enforcement still WIP). pv_ids in `common/lemonSqueezy.ts`. SKU catalog in `common/billing/`. See [/pricing](/pricing).
 
 | `users.subscription` | Meaning |
 |---|---|
 | `premium`, `founder`, `flounder`, `legacy` | Active paid or grandfathered hosting |
-| `free` | **DB enum only** — grandfathered no-pay accounts and lapsed/cancelled rows. Not a product tier. Grandfathered users keep prior entitlements until separately migrated. **Jul 1, 2026:** new pricing ($9 / $59 / $149 per slot) for new purchases only. Existing accounts unchanged. |
+| `free` | **DB enum only** — grandfathered no-pay accounts and lapsed/cancelled rows. Not a product tier. Grandfathered users keep prior entitlements until separately migrated. New purchases use Jul 2026 price points; existing accounts unchanged. |
 
 Agent/docs copy: **Pay Per PocketBase** only. No Pro/Agency tiers. Rule: [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc).
 

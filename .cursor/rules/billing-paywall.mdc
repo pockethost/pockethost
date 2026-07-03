@@ -13,9 +13,9 @@ Per slot:
 
 | Billing | Price |
 | ------- | ----- |
-| Monthly | **$9**/PocketBase (7-day trial) |
-| Annual | **$59**/PocketBase |
-| Lifetime | **$149**/PocketBase |
+| Monthly | **$9.99**/PocketBase (7-day trial) |
+| Annual | **$59.99**/PocketBase (~50% vs 12× monthly) |
+| Lifetime | **$149.99**/PocketBase |
 
 Each paid slot (`subscription_quantity`) adds:
 
@@ -23,7 +23,7 @@ Each paid slot (`subscription_quantity`) adds:
 - **10 GB** pooled file storage
 - **One powered-on** PocketBase at a time
 
-**Unlimited instance records** — create as many as you want. Only **power on** as many as your paid slots allow.
+**Unlimited instance records.** Create as many as you want. Only **power on** as many as your paid slots allow.
 
 Checkout quantity = number of slots. Storage pools scale with quantity.
 
@@ -33,13 +33,9 @@ Checkout quantity = number of slots. Storage pools scale with quantity.
 
 **`users.subscription === 'free'`** in mothership is a **legacy DB enum value**, not a product tier.
 
-## Current checkout (until rollout)
+## Checkout (live Jul 2026)
 
-Dashboard `/pricing` and Lemon Squeezy checkout still use **legacy** prices ($5/mo monthly, $359 Flounder lifetime) until **Jul 1 pricing rollout** ships. Agents should use **target** prices in planning copy and **legacy** prices only when describing what is live today.
-
-## Legacy `subscription=free` accounts
-
-Some long-time users still have `subscription=free` in the database. They are grandfathered and keep prior entitlements. **Migration/cleanup is a separate backlog item.**
+Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**, and **$149.99 lifetime** per slot. **Annual** is the featured interval on `/pricing` (~50% savings vs 12 months of monthly). Legacy $5/mo and $359 Flounder are off checkout. Grandfathered webhook mappings remain for existing rows.
 
 ## Copy rules for agents
 
@@ -48,11 +44,12 @@ Some long-time users still have `subscription=free` in the database. They are gr
 - "free tier", "Free plan", "Hacker tier", Pro/Agency tiers, or tier comparison tables with $19.99/$49.99
 - "paid plans" vs "free tier" for standard features
 - "Pro subscribers" (use **subscribers** or **Pay Per PocketBase**)
-- Target prices ($9 / $59 / $149) as if already live in checkout unless the task is rollout work
+- Em dashes (`—`) in customer-facing copy. Use a period and a new sentence, or rewrite. See [communication-style.mdc](communication-style.mdc).
 
-**Do write (target model):**
+**Do write:**
 
-- **Pay Per PocketBase**, **$9/mo**, **$59/yr**, **$149 lifetime** per slot, **powered-on limit**, **pooled storage**
+- **Pay Per PocketBase**, **$9.99/mo**, **$59.99/yr**, **$149.99 lifetime** per slot (LS list prices), **powered-on limit**, **pooled storage**
+- Annual savings vs monthly when comparing intervals (~$60/slot/year, ~50%)
 - "subscribe", "your account", "add another PocketBase"
 - "grandfathered" for pre-paywall or legacy rows
 - Third-party free tiers OK (Web Awesome, npm, etc.)

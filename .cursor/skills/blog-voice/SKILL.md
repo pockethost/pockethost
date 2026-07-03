@@ -65,7 +65,7 @@ Use consistently:
 - **Edge**. Instance spawner / regional node
 - **Instance**. A user's hosted PocketBase
 
-**Billing language:** Hard paywall. **Pay Per PocketBase** — **$9/mo**, **$59/yr**, or **$149 lifetime** per slot (250 MB DB + 10 GB files + one powered-on each). Unlimited instance records; powered-on capped by paid slots. Checkout still shows legacy prices until Jul 1 rollout. See [.cursor/rules/billing-paywall.mdc](../../rules/billing-paywall.mdc).
+**Billing language:** Hard paywall. **Pay Per PocketBase** at **$9/mo**, **$59/yr**, or **$149 lifetime** per slot (250 MB DB + 10 GB files + one powered-on each). Unlimited instance records. Powered-on capped by paid slots. See [.cursor/rules/billing-paywall.mdc](../../rules/billing-paywall.mdc).
 
 Link internal posts with `/blog/{slug}` paths.
 

@@ -6,7 +6,7 @@ Task detail: [backlog.md](backlog.md) · Architecture: [MEMORY.md](MEMORY.md) ·
 
 **Pricing model (target, Jul 2026):** **Pay Per PocketBase** per slot — **$9/mo**, **$59/yr**, or **$149 lifetime** (hard paywall, 7-day trial on monthly). Each slot adds **250 MB DB data** + **10 GB file storage** (pooled on the account) and allows **one powered-on** PocketBase. Create unlimited instance records. Only power on as many as your paid slots allow. No Pro/Agency tiers. No free hosting tier.
 
-**Today:** checkout and `/pricing` still show legacy prices ($5/mo, $359 Flounder) until LS variants and product code are updated.
+**Today:** checkout and `/pricing` show **$9.99/mo**, **$59.99/yr**, **$149.99 lifetime** (Jul 2026 rollout shipped). Legacy $5/mo and $359 Flounder variants disabled in LS; webhook mappings retained for grandfathered rows.
 
 **Docs** describe pooled storage and powered-on caps. **Storage quota enforcement** is post–Jul 1. Meters and copy can ship before hard enforcement.
 
@@ -57,8 +57,8 @@ Today ≈ **June 25**. **Do on** = work day. **Live on** = when customers see th
 
 ## Jul 1
 
-- [ ] Checkout: $9/mo, $59/yr, $149 LTD per PocketBase slot
-- [ ] Legacy $5/mo and $359 Flounder offers removed from checkout
+- [x] Checkout: $9.99/mo, $59.99/yr, $149.99 LTD per PocketBase slot
+- [x] Legacy $5/mo and $359 Flounder offers removed from checkout
 - [ ] Unlimited instance records + powered-on slot cap shipped (if not already live)
 - [ ] Deploy dashboard + reload mothership
 - [ ] Smoke: new signup path, grandfathered account unchanged
@@ -85,4 +85,4 @@ Deferred (icebox): operator stats rebuild, mailer admin plugin, multi-region edg
 
 Update rows when shipped (✅ prefix, move detail to backlog **Done**).
 
-Last reviewed: **2026-06-25** ($9 / $59 / $149 per slot; Jul 1 new pricing; code not updated yet).
+Last reviewed: **2026-07-02** (Jul 1 checkout shipped in code; deploy + powered-on cap pending).

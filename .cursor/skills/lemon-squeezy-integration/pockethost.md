@@ -28,7 +28,7 @@ POST /api/ls
 POST /api/ls/checkout
 ```
 
-Body: `{ "pvId": "424532-651625" }` (see `common/lemonSqueezy.ts`). Returns `{ "url": "..." }` from Lemon Squeezy API.
+Body: `{ "pvId": "1192400-1864333" }` (see `common/lemonSqueezy.ts`). Returns `{ "url": "..." }` from Lemon Squeezy API.
 
 ## Cancel endpoint (auth required)
 
@@ -95,12 +95,15 @@ Shared constants: `packages/pockethost/src/common/lemonSqueezy.ts`
 
 Handler key format: `{product_id}-{variant_id}`
 
-| pv_id | Plan | `subscription` | `subscription_interval` | `subscription_quantity` |
-|-------|------|----------------|-------------------------|-------------------------|
-| `424532-651625` | Pay Per PocketBase (instance monthly) | `premium` | `month` | from `quantity` |
-| `424532-651627` | Flounder lifetime | `flounder` | `life` | 250 |
+| pv_id | Plan | SKU | `subscription` | `subscription_interval` | `subscription_quantity` |
+|-------|------|-----|----------------|-------------------------|-------------------------|
+| `1192400-1864333` | Pay Per PocketBase monthly ($9.99) | `hosting.slot.recurring.month` | `premium` | `month` | from `quantity` |
+| `1192404-1864339` | Pay Per PocketBase annual ($59.99) | `hosting.slot.recurring.year` | `premium` | `year` | from `quantity` |
+| `1192406-1864341` | Pay Per PocketBase lifetime ($149.99) | `hosting.slot.lifetime` | `flounder` | `life` | from `quantity` |
+| `424532-651625` | Legacy monthly ($5) — webhook only | `hosting.slot.recurring.month.legacy` | `premium` | `month` | from `quantity` |
+| `424532-651627` | Legacy Flounder ($359) — webhook only | `hosting.slot.lifetime.legacy_flounder` | `flounder` | `life` | 250 (fixed) |
 
-Legacy grandfathered plans are not in the allowlist (variant inactive in LS). Unknown `pv_id` throws `Product and variant not found`.
+Mappings live in `common/billing/providerMappings.ts`. Webhook resolves via `entitlementFromPvId()` in `HandleLemonSqueezySale.ts`. Unknown `pv_id` throws `Product and variant not found`.
 
 ## Required webhook payload
 
@@ -144,7 +147,7 @@ Requires quantity-based billing on the Pay Per PocketBase variant (not usage-bas
 
 1. Create variant in Lemon Squeezy dashboard; note `product_id` and `variant_id`
 2. Add `{product_id}-{variant_id}` to `common/lemonSqueezy.ts` (`LEMON_SQUEEZY_PV_IDS`, `VARIANT_ID_BY_PV_ID`)
-3. Add entry to `product_handler_map` in `HandleLemonSqueezySale.ts`
+3. Add mapping in `common/billing/providerMappings.ts` (and `PRODUCT_CATALOG` if new SKU)
 4. Pass `pvId` from dashboard pricing UI (`SignupBox` `pvId` prop)
 5. Rebuild mothership hooks: `pnpm --filter pockethost-mothership-app build`
 6. Test checkout + webhook with LS test mode
