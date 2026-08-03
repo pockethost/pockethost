@@ -8,9 +8,10 @@ import {
   removeNamedContainer,
   withDockerContainerConflictRetry,
 } from '@'
-import Docker, { Container, ContainerCreateOptions } from 'dockerode'
+import { Container, ContainerCreateOptions } from 'dockerode'
 import { execFileSync, spawn } from 'node:child_process'
 import { PassThrough } from 'node:stream'
+import { containerNofileUlimits, getDocker } from '../../core/dockerInstance'
 
 export type PocketBaseContainerSpawnConfig = {
   binPath: string
@@ -36,7 +37,7 @@ export const rmNamedContainerSync = (containerName: string) => {
 export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConfig) => {
   const { binPath, args, binds, env = {}, port, autoRemove = false, name, onStdout, onStderr, onExit } = cfg
 
-  const docker = new Docker()
+  const docker = getDocker()
   const pocketbasePath = mkContainerHomePath('pocketbase')
   const stdout = new PassThrough()
   const stderr = new PassThrough()
@@ -92,13 +93,7 @@ export const spawnPocketBaseContainer = async (cfg: PocketBaseContainerSpawnConf
       Init: true,
       AutoRemove: autoRemove,
       Binds: [...binds, `${binPath}:${pocketbasePath}:ro`],
-      Ulimits: [
-        {
-          Name: 'nofile',
-          Soft: 1024,
-          Hard: 4096,
-        },
-      ],
+      Ulimits: containerNofileUlimits(),
       ...(port
         ? {
             PortBindings: {

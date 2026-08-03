@@ -28,12 +28,13 @@ import {
   withDockerContainerConflictRetry,
 } from '@'
 import Bottleneck from 'bottleneck'
-import Docker, { Container, ContainerCreateOptions } from 'dockerode'
+import { Container, ContainerCreateOptions } from 'dockerode'
 import { existsSync } from 'fs'
 import { EventEmitter } from 'node:events'
 import { PassThrough } from 'node:stream'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
+import { containerNofileUlimits, getDocker } from '../../core/dockerInstance'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
@@ -150,7 +151,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
 
     const state = { started: false, stopped: false, stopping: false }
     const emitter = new EventEmitter()
-    const docker = new Docker()
+    const docker = getDocker()
     const dockerContainer = docker.getContainer(instanceContainerName(instanceId))
 
     let containerInfo
@@ -216,6 +217,14 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     }
     const { version, subdomain, instanceId, extraBinds, env, stderr, stdout, dev } = _cfg
 
+    const releaseLogStreams = () => {
+      stderr.removeAllListeners('data')
+      stdout.removeAllListeners('data')
+      stderr.destroy()
+      stdout.destroy()
+    }
+    cm.add(releaseLogStreams)
+
     logger.breadcrumb(subdomain).breadcrumb(instanceId)
     const iLogger = InstanceLogWriter(instanceId, 'exec', logger)
 
@@ -234,7 +243,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
     dbg(`[${instanceId}] Starting Docker container creation at ${new Date(containerStartTime).toISOString()}`)
 
     const container = await new Promise<ContainerRuntime>((resolve, reject) => {
-      const docker = new Docker()
+      const docker = getDocker()
       iLogger.info(`Starting instance`)
       stdout.on('data', (data) => {
         iLogger.info(data.toString())
@@ -269,13 +278,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
             '8090/tcp': [{ HostPort: `0` }],
           },
           Binds,
-          Ulimits: [
-            {
-              Name: 'nofile',
-              Soft: 1024,
-              Hard: 4096,
-            },
-          ],
+          Ulimits: containerNofileUlimits(),
         },
         Tty: false,
         ExposedPorts: {
@@ -299,8 +302,7 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
               const emitter = docker
                 .run(DOCKER_INSTANCE_IMAGE_NAME(), [''], [stdout, stderr], createOptions, (err, data) => {
                   state.stopped = true
-                  stderr.removeAllListeners(`data`)
-                  stdout.removeAllListeners(`data`)
+                  releaseLogStreams()
                   const StatusCode = (() => {
                     if (!data?.StatusCode) return 0
                     return parseInt(data.StatusCode, 10)
