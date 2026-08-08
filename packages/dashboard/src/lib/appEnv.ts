@@ -20,6 +20,11 @@ export const PUBLIC_MOTHERSHIP_URL =
 // Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = parseBoolean(import.meta.env.PUBLIC_DEBUG || 'true')
 
+/** Optional site-wide banner. Empty message hides the bar. */
+export const PUBLIC_SITE_BANNER_MESSAGE = (import.meta.env.PUBLIC_SITE_BANNER_MESSAGE || '').trim()
+export const PUBLIC_SITE_BANNER_LINK = (import.meta.env.PUBLIC_SITE_BANNER_LINK || '').trim()
+export const PUBLIC_SITE_BANNER_LINK_TEXT = (import.meta.env.PUBLIC_SITE_BANNER_LINK_TEXT || 'Learn more').trim()
+
 const mkPath = (...paths: string[]) => {
   return paths.filter((v) => !!v).join('/')
 }

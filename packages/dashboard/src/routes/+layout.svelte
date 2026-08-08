@@ -11,7 +11,8 @@
   import { init } from '$util/stores'
   import { hasCookieConsent, trackGoogleAnalyticsPageView } from '$lib/cookieConsent'
   import CookieConsentBanner from '$components/CookieConsentBanner.svelte'
-  import PocketHost30Banner from './PocketHost30Banner.svelte'
+  import SiteBanner from '$components/SiteBanner.svelte'
+  import { PUBLIC_SITE_BANNER_LINK, PUBLIC_SITE_BANNER_LINK_TEXT, PUBLIC_SITE_BANNER_MESSAGE } from '$lib/appEnv'
   import MothershipStatus from './MothershipStatus.svelte'
   import { cloudLogo } from '$lib/brand'
   import { proseCodeBlocks } from '$lib/proseCodeBlocks'
@@ -43,7 +44,11 @@
 <div class="bg-[#111111]">
   <MothershipStatus />
   <Navbar />
-  <PocketHost30Banner />
+  <SiteBanner
+    message={PUBLIC_SITE_BANNER_MESSAGE}
+    linkHref={PUBLIC_SITE_BANNER_LINK}
+    linkText={PUBLIC_SITE_BANNER_LINK_TEXT}
+  />
 
   <div class="px-4 md:px-20">
     <VerifyAccountBar />
