@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { MOTHERSHIP_CONTAINER_NAME } from '../constants'
 import {
   containerMatchesBinaryPath,
+  containerNofileUlimits,
   getContainerBoundBinaryPath,
   getContainerPortBinding,
   isCustomerInstanceContainerName,
@@ -42,6 +43,18 @@ describe('resolveInstanceIdFromInspect', () => {
 describe('getContainerPortBinding', () => {
   it('reads host port from inspect', () => {
     expect(getContainerPortBinding(mkInspect({}))).toBe(33525)
+  })
+})
+
+describe('containerNofileUlimits', () => {
+  it('uses server-friendly defaults above legacy 4096 hard cap', () => {
+    expect(containerNofileUlimits()).toEqual([
+      {
+        Name: 'nofile',
+        Soft: 65536,
+        Hard: 524288,
+      },
+    ])
   })
 })
 

@@ -1,5 +1,10 @@
-import Docker, { ContainerInspectInfo } from 'dockerode'
-import { DOCKER_INSTANCE_IMAGE_NAME, MOTHERSHIP_CONTAINER_NAME } from '../constants'
+import Docker, { ContainerInspectInfo, HostConfig } from 'dockerode'
+import {
+  DOCKER_INSTANCE_IMAGE_NAME,
+  MOTHERSHIP_CONTAINER_NAME,
+  _PH_CONTAINER_NOFILE_HARD,
+  _PH_CONTAINER_NOFILE_SOFT,
+} from '../constants'
 import {
   isDockerContainerConflict,
   isDockerContainerNotFound,
@@ -11,6 +16,22 @@ const DOCKER_CONTAINER_REMOVAL_WAIT_MS = 5000
 const DOCKER_CONTAINER_REMOVAL_POLL_MS = 100
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+let _docker: Docker | undefined
+
+/** Reuse one dockerode client so attach streams and HTTP agents are not duplicated per spawn. */
+export const getDocker = () => {
+  if (!_docker) _docker = new Docker()
+  return _docker
+}
+
+export const containerNofileUlimits = (): NonNullable<HostConfig['Ulimits']> => [
+  {
+    Name: 'nofile',
+    Soft: _PH_CONTAINER_NOFILE_SOFT,
+    Hard: _PH_CONTAINER_NOFILE_HARD,
+  },
+]
 
 export const instanceContainerName = (instanceId: string) => instanceId
 
@@ -53,7 +74,7 @@ export type RunningInstanceContainer = {
 }
 
 export const listRunningInstanceContainers = async (): Promise<RunningInstanceContainer[]> => {
-  const docker = new Docker()
+  const docker = getDocker()
   const imagePrefix = DOCKER_INSTANCE_IMAGE_NAME()
   const listed = await docker.listContainers({ filters: { status: ['running'] } })
   const results: RunningInstanceContainer[] = []
@@ -72,7 +93,7 @@ export const listRunningInstanceContainers = async (): Promise<RunningInstanceCo
 }
 
 export const stopInstanceContainer = async (instanceId: string, stopTimeoutSec: number) => {
-  const docker = new Docker()
+  const docker = getDocker()
   const container = docker.getContainer(instanceContainerName(instanceId))
   await container.stop({ signal: 'SIGINT', t: stopTimeoutSec }).catch(async (e) => {
     if (isDockerContainerStopBenign(e)) return
