@@ -20,7 +20,7 @@ PM2 apps are defined in `ecosystem.config.cjs` at the repo root.
 - `.env` configured on each host (`cp .env-template .env`)
 - UFW (or equivalent): `http`, `https`, `ftp` (21), `2222/tcp` for SFTP
 
-`setup.sh` is a reference bootstrap for a fresh Ubuntu edge node (Docker, ufw, pm2-logrotate).
+`setup.sh` is a reference bootstrap for a fresh Ubuntu edge node (Docker, inotify sysctl, ufw, pm2-logrotate). Existing nodes need `/etc/sysctl.d/99-pockethost.conf` manually if not re-provisioned — see MEMORY.md **Edge host kernel (inotify)**.
 
 ## Standard hosting-stack deploy
 

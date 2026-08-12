@@ -229,6 +229,7 @@ _Completed items with date + link to PR/release._
 
 | Date | Item |
 | ---- | ---- |
+| 2026-08-12 | **Raise edge host inotify sysctl limits** — `/etc/sysctl.d/99-pockethost.conf` (`max_user_instances=8192`, `max_user_watches=1048576`); fixes `registerHooks: too many open files` at ~60–70 warm instances; `setup.sh` + MEMORY |
 | 2026-08-03 | **Raise instance container nofile ulimits** — default 65536/524288 (was 1024/4096); shared dockerode client + log stream cleanup on container exit |
 | 2026-07-02 | **Jul 1 pricing rollout** — checkout $9.99/mo, $59.99/yr, $149.99 LTD; `common/billing/` SKU catalog; legacy Flounder/$5 off checkout |
 | 2026-06-28 | **Instance root VFS unrestricted** — drop root guards; real `readdir` at `/{subdomain}/`; fixes phio deploy `patches` 550 |

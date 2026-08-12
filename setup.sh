@@ -22,6 +22,15 @@ apt-get update
 
 apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# PocketBase jsvm pb_hooks watchers + containerd-shim each consume one inotify instance
+# charged to uid 0 host-wide. Default max_user_instances=128 exhausts around 60-70 warm
+# instance containers and panics registerHooks at boot.
+cat > /etc/sysctl.d/99-pockethost.conf <<'EOF'
+fs.inotify.max_user_instances = 8192
+fs.inotify.max_user_watches = 1048576
+EOF
+sysctl -p /etc/sysctl.d/99-pockethost.conf
+
 certbot certonly \
   --dns-cloudflare \
   --dns-cloudflare-credentials ~/certbot-creds.ini \

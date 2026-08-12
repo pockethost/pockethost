@@ -117,6 +117,8 @@ Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-da
 
 Prod: `ecosystem.config.cjs` via PM2. Runbook: `docs/production.md`. `setup.sh` configures `pm2-logrotate` (10M max, 7 retained).
 
+**Edge host kernel (inotify):** Each instance container's PocketBase jsvm watches `pb_hooks` via `inotify_init()`; each `containerd-shim` adds another. Both charge against **uid 0's host-wide** `fs.inotify.max_user_instances` (not container `nofile` ulimits). Kernel default **128** exhausts around **60–70 warm instances** → `registerHooks: too many open files` panic at boot. Required on every edge node: `/etc/sysctl.d/99-pockethost.conf` with `fs.inotify.max_user_instances=8192`, `fs.inotify.max_user_watches=1048576` (`setup.sh` writes this on provision). Instance Docker spawn still sets `PH_CONTAINER_NOFILE_SOFT`/`HARD` (65536/524288) for FD limits; that is a separate knob.
+
 ## Active threads
 
 - **PocketHost 3.0 post-launch:** Jul 2026 checkout live ($9.99 / $59.99 / $149.99 per slot). Top open work: **LS slot upgrade/downgrade**, **powered-on cap enforcement**, **pooled storage enforcement**. See [ROADMAP.md](ROADMAP.md) and [backlog.md](backlog.md).
