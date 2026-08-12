@@ -11,16 +11,16 @@ alwaysApply: true
 
 Before planning or coding on CLI commands, mothership/edge/firewall services, instance lifecycle, dashboard UI, PocketBase hooks/migrations, or dev workflow:
 
-1. **Read MEMORY.md** — prefer it over chat history or assumptions about older repo shapes.
+1. **Read MEMORY.md**. Prefer it over chat history or assumptions about older repo shapes.
 2. If MEMORY and code disagree, **trust the code** but **fix MEMORY in the same change set**.
 
 ## Update (before marking done)
 
-Update MEMORY.md in the **same commit/PR** when you change anything in the table below — do not defer.
+Update MEMORY.md in the **same commit/PR** when you change anything in the table below. Do not defer.
 
 | Area | Examples |
 |------|----------|
-| Monorepo layout | `packages/pockethost`, `packages/dashboard`, `packages/pockethost-instance`, mothership-app workspace |
+| Monorepo layout | `packages/pockethost`, `packages/dashboard`, `packages/phio`, `packages/pockethost-instance`, mothership-app workspace |
 | CLI surface | `pockethost` subcommands (`mothership`, `firewall`, `edge`, `serve`, `pocketbase`, `health`, `mail`) |
 | Runtime roles | Mothership (control plane), edge daemon (instance spawner), firewall (reverse proxy + rate limits) |
 | Instance model | `Instance` schema, Docker lifecycle, port pool, volume paths under `DATA_ROOT` |
@@ -33,7 +33,7 @@ Update MEMORY.md in the **same commit/PR** when you change anything in the table
 
 ## Style
 
-- Under ~150 lines — current state only, not a roadmap.
+- Under ~150 lines. Current state only, not a roadmap.
 - Tables over prose; **delete obsolete rows** when breaking changes land.
 - **Active threads**: in-flight cross-cutting work only.
 

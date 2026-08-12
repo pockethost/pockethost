@@ -6,10 +6,11 @@ alwaysApply: true
 
 PocketHost is a **multi-tenant PocketBase hosting platform** (monorepo). Core pieces:
 
-- **`packages/pockethost`** — Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
-- **`packages/dashboard`** — SvelteKit marketing site and user docs
-- **`packages/pockethost-instance`** — Docker image for per-instance PocketBase containers
-- **`mothership-app`** — PocketBase control-plane app (hooks, migrations, handler APIs)
+- **`packages/pockethost`**: Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
+- **`packages/dashboard`**: SvelteKit marketing site and user docs
+- **`packages/pockethost-instance`**: Docker image for per-instance PocketBase containers
+- **`packages/phio`**: Customer CLI (SFTP deploy). See `.cursor/skills/phio/SKILL.md`
+- **`packages/pockethost/src/mothership-app`**: PocketBase control-plane app (hooks, migrations, handler APIs)
 
 Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, pnpm workspaces.
 
@@ -17,7 +18,7 @@ Read [MEMORY.md](MEMORY.md) before substantive architectural work.
 
 Billing: **Pay Per PocketBase** ($9.99/mo, $59.99/yr, $149.99 LTD per slot). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
 
-Mothership hook code (`mothership-app/src/lib/handlers/`) runs in PocketBase Goja JSVM after tsdown bundling. Read [.cursor/rules/mothership-hooks.mdc](.cursor/rules/mothership-hooks.mdc) before adding imports or shared helpers.
+Mothership hook code (`packages/pockethost/src/mothership-app/src/lib/handlers/`) runs in PocketBase Goja JSVM after tsdown bundling. Read [.cursor/rules/mothership-hooks.mdc](.cursor/rules/mothership-hooks.mdc) before adding imports or shared helpers.
 
 # Programming Style
 
@@ -45,7 +46,7 @@ Applies to dashboard UI strings, blog posts, docs, and agent replies unless quot
 
 Avoid side-effectful or long-running operations unless needed:
 
-- **Do not** start hosting services (`mothership`, `firewall`, `edge:daemon`, `serve`) — they spawn Docker instances and bind ports.
+- **Do not** start hosting services (`mothership`, `firewall`, `edge:daemon`, `serve`). They spawn Docker instances and bind ports.
 - **Do not** run full production builds (`dashboard` vite build, Docker image build/push) or deploy (`wrangler pages deploy`) unless validating merge-ready dashboard work.
 
 ## Pre-push quality gate
