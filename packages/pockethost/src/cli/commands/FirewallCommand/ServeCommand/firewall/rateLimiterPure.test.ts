@@ -7,8 +7,10 @@ import {
   isHealthProbePath,
   isPocketBaseFilesPath,
   microPointsToApiBudget,
+  parseInstanceFirewall,
   POCKETHOST_RATE_LIMIT_HEADERS,
   rateLimitResetUnix,
+  resolveHourlyLimit,
   toMicroPointLimit,
   toProxyCidrString,
   WEIGHT_DEN,
@@ -70,5 +72,25 @@ describe('rateLimiterPure', () => {
     expect(headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceConcurrentLimit]).toBe('250')
     expect(headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceConcurrentRemaining]).toBe('240')
     expect(headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyReset]).toBeUndefined()
+  })
+
+  it('parses instance firewall hourly overrides', () => {
+    expect(parseInstanceFirewall({ instance_hourly: 20000 })).toEqual({ instance_hourly: 20000 })
+    expect(parseInstanceFirewall({ ip_hourly: 2000, instance_hourly: 50000 })).toEqual({
+      ip_hourly: 2000,
+      instance_hourly: 50000,
+    })
+    expect(parseInstanceFirewall('{"instance_hourly":20000}')).toEqual({ instance_hourly: 20000 })
+    expect(parseInstanceFirewall({ instance_hourly: 0, ip_hourly: -1 })).toEqual({})
+    expect(parseInstanceFirewall({ instance_hourly: '20000' })).toEqual({})
+    expect(parseInstanceFirewall(null)).toEqual({})
+  })
+
+  it('resolves hourly limits with trusted floor', () => {
+    expect(resolveHourlyLimit(undefined, 10000, 20000, false)).toBe(10000)
+    expect(resolveHourlyLimit(undefined, 10000, 20000, true)).toBe(20000)
+    expect(resolveHourlyLimit(20000, 10000, 20000, false)).toBe(20000)
+    expect(resolveHourlyLimit(50000, 10000, 20000, true)).toBe(50000)
+    expect(resolveHourlyLimit(5000, 10000, 20000, true)).toBe(20000)
   })
 })

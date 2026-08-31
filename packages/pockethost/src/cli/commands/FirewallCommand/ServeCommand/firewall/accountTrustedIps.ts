@@ -19,6 +19,7 @@ const compileTrustedIpCidrs = (entries: string[], logger: Logger): IPCIDR[] => {
 
 export type AccountTrustedIpResolver = {
   isTrustedConnectingIp: (connectingIp: string | undefined, hostname: string) => Promise<boolean>
+  getInstanceFirewall: (hostname: string) => Promise<unknown>
   refreshUser: (user: UserFields) => void
 }
 
@@ -62,8 +63,14 @@ export const createAccountTrustedIpResolver = (
     return accountCidrs.some((cidr) => cidr.contains(connectingIp))
   }
 
+  const getInstanceFirewall = async (hostname: string): Promise<unknown> => {
+    const instance = await mirror.getInstanceByHost(hostname)
+    return instance?.firewall ?? null
+  }
+
   return {
     isTrustedConnectingIp,
+    getInstanceFirewall,
     refreshUser,
   }
 }

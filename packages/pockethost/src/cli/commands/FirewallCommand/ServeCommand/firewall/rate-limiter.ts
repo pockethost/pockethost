@@ -8,14 +8,17 @@ import {
   getConnectingIp,
   isHealthProbePath,
   isPocketBaseFilesPath,
+  parseInstanceFirewall,
   POCKETHOST_RATE_LIMIT_EXPOSE_HEADERS,
   type RateLimitHeaderBucket,
+  resolveHourlyLimit,
   toMicroPointLimit,
   WEIGHT_DEN,
 } from './rateLimiterPure'
 
 export type RateLimiterOptions = {
   isTrustedConnectingIp?: (connectingIp: string | undefined, hostname: string) => Promise<boolean>
+  getInstanceFirewall?: (hostname: string) => Promise<unknown>
 }
 
 const headerContains = (header: string | string[] | undefined, token: string): boolean => {
@@ -109,11 +112,13 @@ const concurrentHeaderBucket = (
   remainingMicroPoints: rateLimiterRes.remainingPoints ?? 0,
 })
 
+const HOURLY_DURATION = 60 * 60
+
 const LIMITS = {
-  untrustedIp: { points: 1000, duration: 60 * 60 },
-  untrustedHostname: { points: 10000, duration: 60 * 60 },
-  trustedIp: { points: 5000, duration: 60 * 60 },
-  trustedHostname: { points: 20000, duration: 60 * 60 },
+  untrustedIp: { points: 1000, duration: HOURLY_DURATION },
+  untrustedHostname: { points: 10000, duration: HOURLY_DURATION },
+  trustedIp: { points: 5000, duration: HOURLY_DURATION },
+  trustedHostname: { points: 20000, duration: HOURLY_DURATION },
   untrustedIpConcurrent: { points: 15, duration: 0 },
   trustedIpConcurrent: { points: 50, duration: 0 },
   untrustedHostnameConcurrent: { points: 250, duration: 0 },
@@ -122,7 +127,7 @@ const LIMITS = {
 
 /** Scale bucket sizes so weighted consume keeps semantic API limits unchanged. */
 export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiterOptions = {}) => {
-  const { isTrustedConnectingIp } = options
+  const { isTrustedConnectingIp, getInstanceFirewall } = options
   const rateLimiterLogger = logger.create(`RateLimiter`)
   const { dbg } = rateLimiterLogger
   dbg(`Creating`)
@@ -141,10 +146,15 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
     return connectingIp
   }
 
-  const untrustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIp))
-  const untrustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedHostname))
-  const trustedIpRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIp))
-  const trustedHostnameRateLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedHostname))
+  const hourlyLimiterCache = new Map<number, RateLimiterMemory>()
+  const hourlyLimiterFor = (points: number) => {
+    let limiter = hourlyLimiterCache.get(points)
+    if (!limiter) {
+      limiter = new RateLimiterMemory(toMicroPointLimit({ points, duration: HOURLY_DURATION }))
+      hourlyLimiterCache.set(points, limiter)
+    }
+    return limiter
+  }
 
   const untrustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIpConcurrent))
   const trustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIpConcurrent))
@@ -201,10 +211,28 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
     const consumeWeight = isPocketBaseFilesPath(req.path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
     const headerBuckets: RateLimitHeaderBucket[] = []
 
+    let firewallOverrides = parseInstanceFirewall(null)
+    if (getInstanceFirewall) {
+      try {
+        firewallOverrides = parseInstanceFirewall(await getInstanceFirewall(hostname))
+      } catch (err) {
+        warn(`Failed reading instance firewall overrides for ${hostname}`, err)
+      }
+    }
+    if (firewallOverrides.ip_hourly != null || firewallOverrides.instance_hourly != null) {
+      dbg(`Instance firewall overrides`, firewallOverrides)
+    }
+
     {
       const key = `${endClientIp}:${hostname}`
-      const cfg = trustedClient ? LIMITS.trustedIp : LIMITS.untrustedIp
-      const limiter = trustedClient ? trustedIpRateLimiter : untrustedIpRateLimiter
+      const ipHourlyPoints = resolveHourlyLimit(
+        firewallOverrides.ip_hourly,
+        LIMITS.untrustedIp.points,
+        LIMITS.trustedIp.points,
+        trustedClient
+      )
+      const cfg = { points: ipHourlyPoints, duration: HOURLY_DURATION }
+      const limiter = hourlyLimiterFor(ipHourlyPoints)
       try {
         const ipResult = await limiter.consume(key, consumeWeight)
         headerBuckets.push(hourlyHeaderBucket('ip-hourly', cfg.points, ipResult))
@@ -238,8 +266,14 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
 
     {
       const key = hostname
-      const cfg = trustedClient ? LIMITS.trustedHostname : LIMITS.untrustedHostname
-      const limiter = trustedClient ? trustedHostnameRateLimiter : untrustedHostnameRateLimiter
+      const instanceHourlyPoints = resolveHourlyLimit(
+        firewallOverrides.instance_hourly,
+        LIMITS.untrustedHostname.points,
+        LIMITS.trustedHostname.points,
+        trustedClient
+      )
+      const cfg = { points: instanceHourlyPoints, duration: HOURLY_DURATION }
+      const limiter = hourlyLimiterFor(instanceHourlyPoints)
       try {
         const hostnameResult = await limiter.consume(key, consumeWeight)
         headerBuckets.push(hourlyHeaderBucket('instance-hourly', cfg.points, hostnameResult))

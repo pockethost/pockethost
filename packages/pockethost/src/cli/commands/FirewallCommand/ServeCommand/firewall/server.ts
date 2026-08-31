@@ -99,6 +99,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     app.use(
       createRateLimiterMiddleware(logger, {
         isTrustedConnectingIp: trustedIpResolver.isTrustedConnectingIp,
+        getInstanceFirewall: trustedIpResolver.getInstanceFirewall,
       })
     )
   }

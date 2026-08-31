@@ -39,6 +39,45 @@ export const toMicroPointLimit = (cfg: { points: number; duration: number }) => 
   duration: cfg.duration,
 })
 
+export type InstanceFirewallOverrides = {
+  ip_hourly?: number
+  instance_hourly?: number
+}
+
+const isPositiveInt = (n: unknown): n is number =>
+  typeof n === 'number' && Number.isFinite(n) && Number.isInteger(n) && n > 0
+
+/** Accept mothership JSON object or string. Invalid or missing keys are ignored. */
+export const parseInstanceFirewall = (raw: unknown): InstanceFirewallOverrides => {
+  let value = raw
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value)
+    } catch {
+      return {}
+    }
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+
+  const rec = value as Record<string, unknown>
+  const out: InstanceFirewallOverrides = {}
+  if (isPositiveInt(rec.ip_hourly)) out.ip_hourly = rec.ip_hourly
+  if (isPositiveInt(rec.instance_hourly)) out.instance_hourly = rec.instance_hourly
+  return out
+}
+
+/** Override replaces the untrusted cap. Trusted uses max(override, trusted default). */
+export const resolveHourlyLimit = (
+  override: number | undefined,
+  untrustedDefault: number,
+  trustedDefault: number,
+  trusted: boolean
+): number => {
+  if (override == null) return trusted ? trustedDefault : untrustedDefault
+  if (trusted) return Math.max(override, trustedDefault)
+  return override
+}
+
 export const consumeWeightForPath = (path: string): number =>
   isPocketBaseFilesPath(path) ? FILES_WEIGHT_NUM : API_WEIGHT_NUM
 

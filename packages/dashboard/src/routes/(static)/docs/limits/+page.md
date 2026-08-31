@@ -22,7 +22,7 @@ PocketHost implements multiple layers of rate limiting.
 - **1,000 requests per hour per IP address** (5,000 when the connecting IP is trusted)
 - **10,000 requests per hour per instance** (20,000 when the connecting IP is trusted)
 
-These limits reset every hour. File routes (`/api/files/...`) consume less of the hourly budget than API routes. See [weighted rate limits](/blog/weighted-rate-limiting) for how weighting works.
+These are the defaults. They reset every hour. Operators can raise an instance's hourly caps via mothership `instances.firewall` (`ip_hourly`, `instance_hourly`). File routes (`/api/files/...`) consume less of the hourly budget than API routes. See [weighted rate limits](/blog/weighted-rate-limiting) for how weighting works.
 
 #### Concurrent Request Limits
 

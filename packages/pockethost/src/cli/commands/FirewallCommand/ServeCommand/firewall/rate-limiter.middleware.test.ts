@@ -61,4 +61,21 @@ describe('createRateLimiterMiddleware', () => {
       .set('X-PocketHost-Client-IP', '203.0.113.10')
     expect(spoofRes.status).toBe(200)
   })
+
+  it('honors instance firewall hourly overrides', async () => {
+    const app = express()
+    app.use(
+      createRateLimiterMiddleware(LoggerService(), {
+        getInstanceFirewall: async () => ({ ip_hourly: 2000, instance_hourly: 20000 }),
+      })
+    )
+    app.get('/api/test', (_req, res) => {
+      res.status(200).send('ok')
+    })
+
+    const res = await request(app).get('/api/test').set('Host', 'chithi.example.com')
+    expect(res.status).toBe(200)
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.ipHourlyLimit)).toBe('2000')
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyLimit)).toBe('20000')
+  })
 })

@@ -35,6 +35,12 @@ export type InstanceWebhookItem = {
   }
 }
 
+/** Operator-only firewall overrides. Present keys replace the untrusted hourly defaults. */
+export type InstanceFirewall = {
+  ip_hourly?: number
+  instance_hourly?: number
+}
+
 export type InstanceFields<TExtra = {}> = BaseFields & {
   subdomain: Subdomain
   uid: UserId
@@ -52,6 +58,8 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   /** @deprecated Will be removed - frontend now handles health checking directly */
   cname_active: boolean
   idleTtl: number
+  /** Operator-only. `{ ip_hourly?, instance_hourly? }` via mothership admin. */
+  firewall?: InstanceFirewall | null
 } & TExtra
 
 export type WithUser<TUser = UserFields> = {
