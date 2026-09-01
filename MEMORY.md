@@ -42,7 +42,7 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 
 - **Mothership**: PocketBase **0.39.*** at `mothership-app/`. v0.23+ JSVM hooks. `pb_hooks/` is tsdown output (edit TS under `src/lib/handlers/` only). Regenerate: `pnpm check:mothership-hooks`. JSVM rules: `.cursor/rules/mothership-hooks.mdc`, `.cursor/skills/pocketbase-jsvm/`. Admin UI plugins: `.cursor/skills/pocketbase-admin-plugins/`. Public stats: `GET /stats.json`.
 - **Edge daemon**: Spawns/stops instance containers; port pool; idle TTL. Preserves containers across daemon restarts (reattach on boot). Traffic stats → `POST /api/edge/heartbeat`. Proxy: `ProxyService` → `InstanceService`.
-- **Firewall**: Reverse proxy + rate limits. Trusted IPs (`users.trusted_ips` + `PH_USER_PROXY_IPS`). Operator hourly overrides on `instances.firewall` (`ip_hourly`, `instance_hourly`). `X-PocketHost-RateLimit-*` headers. Daemon grace: polls `/_api/daemon/health` before proxying (default 60s). Docs: `/docs/limits`, `/docs/trusted-ips`.
+- **Firewall**: Reverse proxy + rate limits. Trusted IPs (`users.trusted_ips` + `PH_USER_PROXY_IPS`). Operator overrides on `instances.firewall` (`ip_hourly`, `instance_hourly`, `ip_concurrent`, `instance_concurrent`). `X-PocketHost-RateLimit-*` headers. Daemon grace: polls `/_api/daemon/health` before proxying (default 60s). Docs: `/docs/limits`, `/docs/trusted-ips`.
 
 ## Key paths & settings
 

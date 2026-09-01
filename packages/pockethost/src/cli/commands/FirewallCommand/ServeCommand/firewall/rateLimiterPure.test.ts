@@ -1,6 +1,8 @@
 import type express from 'express'
+import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { describe, expect, it } from 'vitest'
 import {
+  API_WEIGHT_NUM,
   buildPocketHostRateLimitHeaders,
   consumeWeightForPath,
   getConnectingIp,
@@ -74,14 +76,18 @@ describe('rateLimiterPure', () => {
     expect(headers[POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyReset]).toBeUndefined()
   })
 
-  it('parses instance firewall hourly overrides', () => {
+  it('parses instance firewall hourly and concurrent overrides', () => {
     expect(parseInstanceFirewall({ instance_hourly: 20000 })).toEqual({ instance_hourly: 20000 })
     expect(parseInstanceFirewall({ ip_hourly: 2000, instance_hourly: 50000 })).toEqual({
       ip_hourly: 2000,
       instance_hourly: 50000,
     })
+    expect(parseInstanceFirewall({ instance_concurrent: 500, ip_concurrent: 40 })).toEqual({
+      instance_concurrent: 500,
+      ip_concurrent: 40,
+    })
     expect(parseInstanceFirewall('{"instance_hourly":20000}')).toEqual({ instance_hourly: 20000 })
-    expect(parseInstanceFirewall({ instance_hourly: 0, ip_hourly: -1 })).toEqual({})
+    expect(parseInstanceFirewall({ instance_hourly: 0, ip_hourly: -1, instance_concurrent: 0 })).toEqual({})
     expect(parseInstanceFirewall({ instance_hourly: '20000' })).toEqual({})
     expect(parseInstanceFirewall(null)).toEqual({})
   })
@@ -92,5 +98,15 @@ describe('rateLimiterPure', () => {
     expect(resolveHourlyLimit(20000, 10000, 20000, false)).toBe(20000)
     expect(resolveHourlyLimit(50000, 10000, 20000, true)).toBe(50000)
     expect(resolveHourlyLimit(5000, 10000, 20000, true)).toBe(20000)
+  })
+
+  it('rejected duration-0 consume charges points until rewarded', async () => {
+    const limiter = new RateLimiterMemory(toMicroPointLimit({ points: 1, duration: 0 }))
+    const key = 'host'
+    await limiter.consume(key, API_WEIGHT_NUM)
+    await expect(limiter.consume(key, API_WEIGHT_NUM)).rejects.toMatchObject({ consumedPoints: 20 })
+    expect((await limiter.get(key))?.consumedPoints).toBe(20)
+    await limiter.reward(key, API_WEIGHT_NUM)
+    expect((await limiter.get(key))?.consumedPoints).toBe(10)
   })
 })

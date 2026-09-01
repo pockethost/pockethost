@@ -42,6 +42,8 @@ export const toMicroPointLimit = (cfg: { points: number; duration: number }) => 
 export type InstanceFirewallOverrides = {
   ip_hourly?: number
   instance_hourly?: number
+  ip_concurrent?: number
+  instance_concurrent?: number
 }
 
 const isPositiveInt = (n: unknown): n is number =>
@@ -63,6 +65,8 @@ export const parseInstanceFirewall = (raw: unknown): InstanceFirewallOverrides =
   const out: InstanceFirewallOverrides = {}
   if (isPositiveInt(rec.ip_hourly)) out.ip_hourly = rec.ip_hourly
   if (isPositiveInt(rec.instance_hourly)) out.instance_hourly = rec.instance_hourly
+  if (isPositiveInt(rec.ip_concurrent)) out.ip_concurrent = rec.ip_concurrent
+  if (isPositiveInt(rec.instance_concurrent)) out.instance_concurrent = rec.instance_concurrent
   return out
 }
 

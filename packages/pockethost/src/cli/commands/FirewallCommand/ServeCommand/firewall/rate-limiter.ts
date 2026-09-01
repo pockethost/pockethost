@@ -156,12 +156,15 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
     return limiter
   }
 
-  const untrustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.untrustedIpConcurrent))
-  const trustedIpConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedIpConcurrent))
-  const untrustedHostnameConcurrentLimiter = new RateLimiterMemory(
-    toMicroPointLimit(LIMITS.untrustedHostnameConcurrent)
-  )
-  const trustedHostnameConcurrentLimiter = new RateLimiterMemory(toMicroPointLimit(LIMITS.trustedHostnameConcurrent))
+  const concurrentLimiterCache = new Map<number, RateLimiterMemory>()
+  const concurrentLimiterFor = (points: number) => {
+    let limiter = concurrentLimiterCache.get(points)
+    if (!limiter) {
+      limiter = new RateLimiterMemory(toMicroPointLimit({ points, duration: 0 }))
+      concurrentLimiterCache.set(points, limiter)
+    }
+    return limiter
+  }
 
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (isHealthProbePath(req.path)) {
@@ -219,7 +222,12 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
         warn(`Failed reading instance firewall overrides for ${hostname}`, err)
       }
     }
-    if (firewallOverrides.ip_hourly != null || firewallOverrides.instance_hourly != null) {
+    if (
+      firewallOverrides.ip_hourly != null ||
+      firewallOverrides.instance_hourly != null ||
+      firewallOverrides.ip_concurrent != null ||
+      firewallOverrides.instance_concurrent != null
+    ) {
       dbg(`Instance firewall overrides`, firewallOverrides)
     }
 
@@ -324,8 +332,14 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       )
     }
 
-    const ipConcurrentLimiterInstance = trustedClient ? trustedIpConcurrentLimiter : untrustedIpConcurrentLimiter
-    const ipConcurrentCfg = trustedClient ? LIMITS.trustedIpConcurrent : LIMITS.untrustedIpConcurrent
+    const ipConcurrentPoints = resolveHourlyLimit(
+      firewallOverrides.ip_concurrent,
+      LIMITS.untrustedIpConcurrent.points,
+      LIMITS.trustedIpConcurrent.points,
+      trustedClient
+    )
+    const ipConcurrentLimiterInstance = concurrentLimiterFor(ipConcurrentPoints)
+    const ipConcurrentCfg = { points: ipConcurrentPoints }
     const ipConcurrentKey = `${endClientIp}:${hostname}`
     try {
       const ipConcurrentResult = await ipConcurrentLimiterInstance.consume(ipConcurrentKey, consumeWeight)
@@ -369,10 +383,14 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
       return
     }
 
-    const hostnameConcurrentLimiterInstance = trustedClient
-      ? trustedHostnameConcurrentLimiter
-      : untrustedHostnameConcurrentLimiter
-    const hostnameConcurrentCfg = trustedClient ? LIMITS.trustedHostnameConcurrent : LIMITS.untrustedHostnameConcurrent
+    const instanceConcurrentPoints = resolveHourlyLimit(
+      firewallOverrides.instance_concurrent,
+      LIMITS.untrustedHostnameConcurrent.points,
+      LIMITS.trustedHostnameConcurrent.points,
+      trustedClient
+    )
+    const hostnameConcurrentLimiterInstance = concurrentLimiterFor(instanceConcurrentPoints)
+    const hostnameConcurrentCfg = { points: instanceConcurrentPoints }
     const hostnameConcurrentKey = hostname
     try {
       const hostnameConcurrentResult = await hostnameConcurrentLimiterInstance.consume(
@@ -397,6 +415,11 @@ export const createRateLimiterMiddleware = (logger: Logger, options: RateLimiter
         )
       })
     } catch (rateLimiterRes: any) {
+      try {
+        await hostnameConcurrentLimiterInstance.reward(hostnameConcurrentKey, consumeWeight)
+      } catch (rewardErr) {
+        warn(`Failed to revert ${trustedClient ? 'trusted' : 'untrusted'} hostname concurrent limiter.`, rewardErr)
+      }
       await releaseConcurrentPoints()
       logRateLimitExceeded(
         `${trustedClient ? 'Trusted' : 'Untrusted'} per-instance concurrent request limit exceeded. ` +

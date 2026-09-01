@@ -62,11 +62,16 @@ describe('createRateLimiterMiddleware', () => {
     expect(spoofRes.status).toBe(200)
   })
 
-  it('honors instance firewall hourly overrides', async () => {
+  it('honors instance firewall hourly and concurrent overrides', async () => {
     const app = express()
     app.use(
       createRateLimiterMiddleware(LoggerService(), {
-        getInstanceFirewall: async () => ({ ip_hourly: 2000, instance_hourly: 20000 }),
+        getInstanceFirewall: async () => ({
+          ip_hourly: 2000,
+          instance_hourly: 20000,
+          ip_concurrent: 40,
+          instance_concurrent: 500,
+        }),
       })
     )
     app.get('/api/test', (_req, res) => {
@@ -77,5 +82,7 @@ describe('createRateLimiterMiddleware', () => {
     expect(res.status).toBe(200)
     expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.ipHourlyLimit)).toBe('2000')
     expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.instanceHourlyLimit)).toBe('20000')
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.ipConcurrentLimit)).toBe('40')
+    expect(responseHeader(res.headers, POCKETHOST_RATE_LIMIT_HEADERS.instanceConcurrentLimit)).toBe('500')
   })
 })
