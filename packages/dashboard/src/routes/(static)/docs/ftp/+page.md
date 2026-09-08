@@ -76,17 +76,27 @@ Then connect with:
 sftp pockethost
 ```
 
-Upload a hook with `scp`:
+PocketHost exposes **SFTP only**. There is no remote shell, so `rsync`, `scp`, and `ssh` exec do not work.
+
+Upload a hook with the `sftp` client:
 
 ```bash
-scp -i ~/.ssh/pockethost_ed25519 -P 2222 ./pb_hooks/myhook.pb.js you@example.com@ftp.pockethost.io:your-instance/pb_hooks/
+sftp -i ~/.ssh/pockethost_ed25519 -P 2222 you@example.com@ftp.pockethost.io <<'EOF'
+cd your-instance/pb_hooks
+put ./myhook.pb.js
+EOF
 ```
 
-Sync a folder with `rsync` (macOS: install via Homebrew if missing):
+Upload a folder recursively:
 
 ```bash
-rsync -avz -e "ssh -i ~/.ssh/pockethost_ed25519 -p 2222" ./pb_hooks/ you@example.com@ftp.pockethost.io:your-instance/pb_hooks/
+sftp -i ~/.ssh/pockethost_ed25519 -P 2222 you@example.com@ftp.pockethost.io <<'EOF'
+cd your-instance/pb_hooks
+put -r ./pb_hooks
+EOF
 ```
+
+For incremental sync on save, use [phio](/docs/phio) or an IDE SFTP extension (see [GUI and IDE clients](#3-gui-and-ide-clients)).
 
 ### Windows
 
