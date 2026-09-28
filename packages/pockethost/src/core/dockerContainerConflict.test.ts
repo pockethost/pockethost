@@ -1,6 +1,11 @@
 import Docker from 'dockerode'
 import { describe, expect, it, vi } from 'vitest'
-import { waitUntilNamedContainerRemoved, withDockerContainerConflictRetry } from './dockerInstance'
+import {
+  DOCKER_CONTAINER_REMOVAL_WAIT_MS,
+  removeNamedContainer,
+  waitUntilNamedContainerRemoved,
+  withDockerContainerConflictRetry,
+} from './dockerInstance'
 import { isDockerContainerConflict, isDockerContainerStopBenign } from './phError'
 
 describe('isDockerContainerConflict', () => {
@@ -51,7 +56,39 @@ describe('isDockerContainerStopBenign', () => {
   })
 })
 
+describe('removeNamedContainer', () => {
+  it('times out when inspect never settles', async () => {
+    vi.useFakeTimers()
+    const inspect = vi.fn(() => new Promise(() => {}))
+    const docker = {
+      getContainer: () => ({
+        inspect,
+        stop: vi.fn(),
+        remove: vi.fn(),
+      }),
+    } as unknown as Docker
+
+    const pending = removeNamedContainer(docker, 'stuck', 1)
+    const rejection = expect(pending).rejects.toThrow(/Timed out waiting for Docker inspect stuck/)
+    await vi.advanceTimersByTimeAsync(DOCKER_CONTAINER_REMOVAL_WAIT_MS)
+    await rejection
+    vi.useRealTimers()
+  })
+})
+
 describe('waitUntilNamedContainerRemoved', () => {
+  it('times out when inspect hangs', async () => {
+    vi.useFakeTimers()
+    const inspect = vi.fn(() => new Promise(() => {}))
+    const docker = { getContainer: () => ({ inspect }) } as unknown as Docker
+
+    const pending = waitUntilNamedContainerRemoved(docker, 'stuck', 200)
+    const rejection = expect(pending).rejects.toThrow(/Timed out waiting for Docker inspect stuck/)
+    await vi.advanceTimersByTimeAsync(200)
+    await rejection
+    vi.useRealTimers()
+  })
+
   it('returns once inspect fails with not found', async () => {
     const inspect = vi.fn().mockRejectedValueOnce(new Error('(HTTP code 404) no such container: abc'))
     const docker = { getContainer: () => ({ inspect }) } as unknown as Docker

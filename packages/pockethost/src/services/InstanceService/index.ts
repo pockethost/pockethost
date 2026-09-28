@@ -33,6 +33,7 @@ import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipMirrorService'
 import { instanceAppVersionFromPbVersion } from './instanceAppVersion'
+import { shouldSkipInstanceFieldUpdate } from './instanceFieldUpdate'
 import { reconcilePreservedContainers } from './reconcilePreservedContainers'
 
 enum InstanceApiStatus {
@@ -50,6 +51,12 @@ type InstanceApi = {
   whenLowered: () => Promise<void>
 }
 
+type InstanceApiSlot = {
+  promise: Promise<InstanceApi>
+  api?: InstanceApi
+  generation: number
+}
+
 export type InstanceServiceConfig = SingletonBaseConfig & {
   instanceApiTimeoutMs: number
   instanceApiCheckIntervalMs: number
@@ -65,7 +72,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   const mirror = await MothershipMirrorService()
 
-  const instanceApis: { [_: InstanceId]: Promise<InstanceApi> } = {}
+  const instanceApiSlots: { [_: InstanceId]: InstanceApiSlot } = {}
+  const instanceFieldLimiters: { [_: InstanceId]: Bottleneck } = {}
+  const instanceGeneration: { [_: InstanceId]: number } = {}
   const gatewayPending: { [_: InstanceId]: number } = {}
 
   const bumpGatewayPending = (id: InstanceId) => {
@@ -78,36 +87,73 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const getGatewayPending = (id: InstanceId) => gatewayPending[id] ?? 0
 
   const vacuumLocks = await VacuumLockService(config)
-  vacuumLocks.registerIsLive((id) => Boolean(instanceApis[id]))
+  vacuumLocks.registerIsLive((id) => Boolean(instanceApiSlots[id]))
 
-  const markInstanceIdle = async (id: InstanceId, reason: string) => {
-    try {
-      await client.updateInstance(id, { status: InstanceStatus.Idle })
-      dbg(`Marked ${id} idle (${reason})`)
-    } catch {
-      warn(
-        `Could not update instance fields for ${id}; status will catch up if still running when mothership returns (mothership boot resets all instances to idle)`
-      )
+  const getInstanceFieldLimiter = (id: InstanceId) => {
+    if (!instanceFieldLimiters[id]) {
+      instanceFieldLimiters[id] = new Bottleneck({ maxConcurrent: 1 })
     }
+    return instanceFieldLimiters[id]
+  }
+
+  const queueInstanceFieldUpdate = (id: InstanceId, fields: Partial<InstanceFields>) => {
+    return getInstanceFieldLimiter(id).schedule(async () => {
+      if (shouldSkipInstanceFieldUpdate(fields, (await mirror.getInstance(id))?.power)) {
+        dbg(`Skipping instance field update for ${id}`, fields)
+        return
+      }
+      dbg(`Updating instance fields`, fields)
+      try {
+        await client.updateInstance(id, fields)
+        dbg(`Updated instance fields`, fields)
+      } catch {
+        warn(
+          `Could not update instance fields for ${id}; status will catch up if still running when mothership returns (mothership boot resets all instances to idle)`
+        )
+      }
+    })
+  }
+
+  const markInstanceIdle = (id: InstanceId, reason: string) => {
+    return queueInstanceFieldUpdate(id, { status: InstanceStatus.Idle }).then(() => {
+      dbg(`Marked ${id} idle (${reason})`)
+    })
+  }
+
+  const abandonInstanceApiSlot = (id: InstanceId, reason: string) => {
+    instanceGeneration[id] = (instanceGeneration[id] ?? 0) + 1
+    delete instanceApiSlots[id]
+    dbg(`Abandoned in-flight start for ${id} (${reason})`)
   }
 
   const shutdownRunningInstance = async (id: InstanceId, reason: string) => {
-    const pending = instanceApis[id]
-    if (!pending) return
-    dbg(`Shutting down ${id}: ${reason}`)
-    const api = await pending
-    api.shutdown()
+    const slot = instanceApiSlots[id]
+    if (!slot) return
+    if (slot.api) {
+      dbg(`Shutting down ${id}: ${reason}`)
+      slot.api.shutdown()
+      return
+    }
+    abandonInstanceApiSlot(id, reason)
+    await pbService.stop(id).catch((e) => {
+      warn(`Failed to stop ${id} after abandoning start (${reason})`, { e })
+    })
   }
 
   const handlePowerOff = async (instance: InstanceFields) => {
     const { id, status } = instance
     if (status === InstanceStatus.Idle) return
 
-    const pending = instanceApis[id]
-    if (pending) {
+    const slot = instanceApiSlots[id]
+    if (slot?.api) {
       dbg(`Shutting down ${id}: power off`)
-      const api = await pending
-      api.shutdown()
+      slot.api.shutdown()
+      return
+    }
+
+    if (slot) {
+      abandonInstanceApiSlot(id, 'power off')
+      await markInstanceIdle(id, 'power off')
       return
     }
 
@@ -133,9 +179,9 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   const getLiveInstances = async (): Promise<MirrorLiveInstance[]> => {
     return Promise.all(
-      Object.entries(instanceApis).map(async ([id, pending]) => ({
+      Object.entries(instanceApiSlots).map(async ([id, slot]) => ({
         id,
-        status: await resolveLiveStatus(pending),
+        status: await resolveLiveStatus(slot.promise),
       }))
     )
   }
@@ -148,7 +194,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       })
   })
 
-  const createInstanceApi = async (instance: InstanceFields, preserved = false): Promise<InstanceApi> => {
+  const createInstanceApi = async (
+    instance: InstanceFields,
+    preserved = false,
+    startGeneration = 0
+  ): Promise<InstanceApi> => {
     const { id, subdomain, version } = instance
     const systemInstanceLogger = instanceServiceLogger.create(subdomain).breadcrumb(id).breadcrumb(version)
     const { dbg, warn, error, info, trace } = systemInstanceLogger
@@ -163,21 +213,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     // Declare api variable early to avoid temporal dead zone
     let api: InstanceApi
 
-    const clientLimiter = new Bottleneck({ maxConcurrent: 1 })
-    const updateInstance = clientLimiter.wrap((id: InstanceId, fields: Partial<InstanceFields>) => {
-      dbg(`Updating instance fields`, fields)
-      return client
-        .updateInstance(id, fields)
-        .then(() => {
-          dbg(`Updated instance fields`, fields)
-        })
-        .catch(() => {
-          warn(
-            `Could not update instance fields for ${id}; status will catch up if still running when mothership returns (mothership boot resets all instances to idle)`
-          )
-        })
-    })
-    const updateInstanceStatus = (id: InstanceId, status: InstanceStatus) => updateInstance(id, { status })
+    const updateInstanceStatus = (instanceId: InstanceId, status: InstanceStatus) =>
+      queueInstanceFieldUpdate(instanceId, { status })
 
     let openRequestCount = 0
     let lastRequest = now()
@@ -192,7 +229,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       }
       shutdownInProgress = true
       dbg(`Lowering drawbridge for ${id}`)
-      delete instanceApis[id]
+      const slot = instanceApiSlots[id]
+      if (slot?.generation === startGeneration) {
+        delete instanceApiSlots[id]
+      }
       if (idleTid) {
         clearInterval(idleTid)
         idleTid = undefined
@@ -377,34 +417,54 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   })
 
   const mkInstanceApiPromise = (instance: InstanceFields, requestId: string, preserved = false) => {
+    const { id } = instance
+    const startGeneration = (instanceGeneration[id] ?? 0) + 1
+    instanceGeneration[id] = startGeneration
+
+    const slot: InstanceApiSlot = {
+      generation: startGeneration,
+      promise: undefined!,
+    }
+
     const start = now()
-    return createInstanceApi(instance, preserved).catch((e) => {
-      const duration = now() - start
-      if (isUserError(e)) {
-        dbg(`Container ${instance.id} failed to launch in ${duration}ms`)
-      } else {
-        warn(`Container ${instance.id} failed to launch in ${duration}ms`)
-      }
+    slot.promise = createInstanceApi(instance, preserved, startGeneration)
+      .then((api) => {
+        slot.api = api
+        return api
+      })
+      .catch((e) => {
+        const duration = now() - start
+        if (isUserError(e)) {
+          dbg(`Container ${id} failed to launch in ${duration}ms`)
+        } else {
+          warn(`Container ${id} failed to launch in ${duration}ms`)
+        }
 
-      delete instanceApis[instance.id]
+        const current = instanceApiSlots[id]
+        if (current?.generation === startGeneration) {
+          delete instanceApiSlots[id]
+        }
 
-      if (isSystemError(e)) {
-        throw e
-      }
+        if (isSystemError(e)) {
+          throw e
+        }
 
-      throw userError(
-        `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${instance.id} or contact support at https://pockethost.io/support. [${requestId}]`
-      )
-    })
+        throw userError(
+          `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${id} or contact support at https://pockethost.io/support. [${requestId}]`
+        )
+      })
+
+    instanceApiSlots[id] = slot
+    return slot.promise
   }
 
   const ensureInstanceApi = async (instance: InstanceFields, requestId: string): Promise<InstanceApi> => {
     while (true) {
-      if (!instanceApis[instance.id]) {
-        instanceApis[instance.id] = mkInstanceApiPromise(instance, requestId)
+      if (!instanceApiSlots[instance.id]) {
+        mkInstanceApiPromise(instance, requestId)
       }
 
-      const api = await instanceApis[instance.id]!
+      const api = await instanceApiSlots[instance.id]!.promise
 
       if (!api.isLowering()) {
         return api
@@ -412,14 +472,19 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
       dbg(`Instance ${instance.id} is lowering, waiting before raising (${requestId})`)
       await api.whenLowered()
-      delete instanceApis[instance.id]
+      delete instanceApiSlots[instance.id]
     }
   }
 
   asyncExitHook(async () => {
     setInstanceTrafficReady(false)
     dbg(`Detaching instance manager, leaving Docker containers running`)
-    await Promise.all(Object.values(instanceApis).map(async (api) => (await api).detach()))
+    await Promise.all(
+      Object.values(instanceApiSlots).map(async (slot) => {
+        const api = slot.api ?? (await slot.promise.catch(() => undefined))
+        api?.detach()
+      })
+    )
   })
 
   const getMothershipInstance = async (instanceId: InstanceId): Promise<InstanceFields | undefined> => {
@@ -433,10 +498,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   await reconcilePreservedContainers({
     getInstance: getMothershipInstance,
     pbService,
-    isAlreadyManaged: (instanceId) => Boolean(instanceApis[instanceId]),
+    isAlreadyManaged: (instanceId) => Boolean(instanceApiSlots[instanceId]),
     adoptInstance: async (instance) => {
-      instanceApis[instance.id] = mkInstanceApiPromise(instance, 'boot', true)
-      await instanceApis[instance.id]
+      mkInstanceApiPromise(instance, 'boot', true)
+      await instanceApiSlots[instance.id]!.promise
     },
     logger: instanceServiceLogger,
   })

@@ -12,10 +12,27 @@ import {
   systemError,
 } from './phError'
 
-const DOCKER_CONTAINER_REMOVAL_WAIT_MS = 5000
+export const DOCKER_CONTAINER_REMOVAL_WAIT_MS = 5000
 const DOCKER_CONTAINER_REMOVAL_POLL_MS = 100
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+const withDockerOpTimeout = async <T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> => {
+  if (timeoutMs <= 0) {
+    throw systemError(`Timed out waiting for ${label}`)
+  }
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(systemError(`Timed out waiting for ${label}`)), timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
 
 let _docker: Docker | undefined
 
@@ -110,8 +127,14 @@ export const waitUntilNamedContainerRemoved = async (
 ): Promise<void> => {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) break
     try {
-      await docker.getContainer(name).inspect()
+      await withDockerOpTimeout(
+        docker.getContainer(name).inspect(),
+        Math.min(DOCKER_CONTAINER_REMOVAL_POLL_MS * 2, remaining),
+        `Docker inspect ${name}`
+      )
       await sleep(Math.min(DOCKER_CONTAINER_REMOVAL_POLL_MS, deadline - Date.now()))
     } catch (e) {
       if (isDockerContainerNotFound(e)) return
@@ -124,14 +147,26 @@ export const waitUntilNamedContainerRemoved = async (
 export const removeNamedContainer = async (docker: Docker, name: string, stopTimeoutSec: number): Promise<void> => {
   const container = docker.getContainer(name)
   try {
-    const info = await container.inspect()
+    const info = await withDockerOpTimeout(
+      container.inspect(),
+      DOCKER_CONTAINER_REMOVAL_WAIT_MS,
+      `Docker inspect ${name}`
+    )
     if (info.State.Running) {
-      await container.stop({ signal: 'SIGINT', t: stopTimeoutSec }).catch((e) => {
-        if (isDockerContainerStopBenign(e) || isDockerContainerConflict(e)) return
-        throw e
-      })
+      await withDockerOpTimeout(
+        container.stop({ signal: 'SIGINT', t: stopTimeoutSec }).catch((e) => {
+          if (isDockerContainerStopBenign(e) || isDockerContainerConflict(e)) return
+          throw e
+        }),
+        DOCKER_CONTAINER_REMOVAL_WAIT_MS,
+        `Docker stop ${name}`
+      )
     }
-    await container.remove({ force: true })
+    await withDockerOpTimeout(
+      container.remove({ force: true }),
+      DOCKER_CONTAINER_REMOVAL_WAIT_MS,
+      `Docker remove ${name}`
+    )
   } catch (e) {
     if (isDockerContainerNotFound(e)) return
     if (isDockerContainerConflict(e)) {
