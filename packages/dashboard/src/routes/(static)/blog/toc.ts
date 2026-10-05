@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Orphan Instance Data: 30-Day Quarantine',
+    path: '/blog/edge-orphan-quarantine',
+    description:
+      'edge purge-orphans moves orphan instance folders to quarantine for 30 days before final deletion, with a zero-instance guard and manual restore path.',
+    date: 'Oct 5, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Account Trusted IPs for Rate Limits',
     path: '/blog/account-trusted-ips',
     description:

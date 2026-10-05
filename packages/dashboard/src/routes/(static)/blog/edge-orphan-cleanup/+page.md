@@ -30,6 +30,8 @@ We log kept vs orphaned paths and bytes freed on every run. Expect smaller numbe
 
 ### Related work
 
-This pairs with [Auto Vacuum](/blog/auto-vacuum) (reclaiming space *inside* SQLite files) and [runtime status sync](/blog/runtime-status-sync) (honest instance state across restarts). Different problems, same theme: the platform should not lie about what is on disk.
+This pairs with [Auto Vacuum](/blog/auto-vacuum) (reclaiming space _inside_ SQLite files) and [runtime status sync](/blog/runtime-status-sync) (honest instance state across restarts). Different problems, same theme: the platform should not lie about what is on disk.
+
+Update (2026): orphan folders now sit in a **30-day quarantine** before final deletion. See [Orphan data quarantine](/blog/edge-orphan-quarantine).
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT).
