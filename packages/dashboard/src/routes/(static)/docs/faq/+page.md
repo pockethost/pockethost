@@ -12,7 +12,7 @@ description: Frequently Asked Questions about PocketHost
 
 The goal of PocketHost is to provide a Firebase/Supabase-like experience where users can instantly provision new PocketBase instances.
 
-In addition to hosting, PocketHost supports services like backup, restore, SFTP access, static file hosting, and Node.js cloud workers. It aims to deliver a turnkey solution for quickly deploying small and medium-sized PocketBase projects with minimal setup.
+In addition to hosting, PocketHost supports PocketBase's built-in backup and restore, SFTP access, static file hosting, and Node.js cloud workers. It aims to deliver a turnkey solution for quickly deploying small and medium-sized PocketBase projects with minimal setup.
 
 ### What is pockethost.io?
 
@@ -34,7 +34,7 @@ pockethost.io and PocketHost are highly stable, with over 99.964% uptime (see [S
 
 ### How often does my data get backed up?
 
-Data is backed up daily by us. You can also back up your data anytime using SFTP.
+PocketHost does not back up your instance data. Backups are your responsibility. Use PocketBase's built-in backup tools in the admin panel, or download your files anytime over SFTP. See [Backup and Restore](/docs/backup-restore).
 
 ### Is my data safe and secure?
 
