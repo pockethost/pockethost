@@ -48,8 +48,8 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 
 - Settings factory: `packages/pockethost/src/constants.ts` → `createSettings()`.
 - Data root: `PH_HOME` (default `env-paths('pockethost').data`) / `DATA_ROOT`.
-- Layout under `DATA_ROOT`: `mothership/`, `instances/<instanceId>/`. `MOTHERSHIP_NAME` is hostname only, not a filesystem path.
-- Instance delete: mothership removes PB record; edge `purge-orphans` cleans orphan dirs (PM2 daily).
+- Layout under `DATA_ROOT`: `mothership/`, `instances/<instanceId>/`, `quarantine/instances/<instanceId>.<epochMs>/`. `MOTHERSHIP_NAME` is hostname only, not a filesystem path.
+- Instance delete: mothership removes PB record; edge `purge-orphans` moves orphan dirs to quarantine (PM2 daily), permanently deletes after 30 days (`--quarantine-days`). Zero mothership instances aborts without touching disk. Manual restore: `mv` quarantine folder back to `instances/<id>/`.
 - Edge vacuum: `edge vacuum` (PM2 nightly) on idle instances with `autoVacuum` enabled. Per-instance locks via `VacuumLockService`.
 - Env: `createSettings()` in `constants.ts`. Key vars: `APEX_DOMAIN`, `PH_HOME`/`DATA_ROOT`, `PH_SECRET`, `DOCKER_INSTANCE_IMAGE_NAME`, `LS_*`. Dev defaults disable instance webhooks and firewall rate limits unless overridden.
 

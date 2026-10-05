@@ -286,6 +286,7 @@ export const PH_MOTHERSHIP_MIRROR_PORT = () => env.get('PH_EDGE_MIRROR_PORT').de
 
 export const MOTHERSHIP_DATA_ROOT = (...paths: string[]) => DATA_ROOT('mothership', ...paths)
 export const INSTANCES_ROOT = (...paths: string[]) => DATA_ROOT('instances', ...paths)
+export const INSTANCES_QUARANTINE_ROOT = (...paths: string[]) => DATA_ROOT('quarantine', 'instances', ...paths)
 export const MOTHERSHIP_DATA_DB = () => join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) => join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
@@ -365,6 +366,7 @@ export const logConstants = () => {
     PH_VACUUM_MAX_CONCURRENT,
     MOTHERSHIP_DATA_DB,
     INSTANCES_ROOT,
+    INSTANCES_QUARANTINE_ROOT,
     PH_MOTHERSHIP_MIRROR_PORT,
   }
   for (const [k, v] of Object.entries(vars)) {

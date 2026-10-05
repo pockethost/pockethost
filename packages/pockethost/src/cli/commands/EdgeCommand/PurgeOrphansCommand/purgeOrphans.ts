@@ -1,4 +1,5 @@
 import {
+  INSTANCES_QUARANTINE_ROOT,
   INSTANCES_ROOT,
   LoggerService,
   MOTHERSHIP_ADMIN_PASSWORD,
@@ -8,8 +9,25 @@ import {
   logger,
   mkInstanceDataPath,
 } from '@'
-import { existsSync, globSync, readdirSync, rmSync, statSync } from 'fs'
-import { dirname, join, resolve } from 'path'
+import { existsSync, globSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'fs'
+import { basename, dirname, join, resolve } from 'path'
+
+const MS_PER_DAY = 86_400_000
+
+export const mkQuarantineName = (instanceId: string, quarantinedAtMs: number) => `${instanceId}.${quarantinedAtMs}`
+
+export const parseQuarantineName = (name: string): { id: string; quarantinedAt: number } | null => {
+  const match = /^([a-z0-9]{15})\.(\d+)$/.exec(name)
+  const id = match?.[1]
+  const quarantinedAtRaw = match?.[2]
+  if (!id || quarantinedAtRaw === undefined) return null
+  const quarantinedAt = Number(quarantinedAtRaw)
+  if (!Number.isFinite(quarantinedAt)) return null
+  return { id, quarantinedAt }
+}
+
+export const isQuarantineExpired = (quarantinedAtMs: number, nowMs: number, quarantineDays: number) =>
+  nowMs - quarantinedAtMs >= quarantineDays * MS_PER_DAY
 
 export const findInstanceDataDirs = (): string[] => {
   const instancesRoot = resolve(INSTANCES_ROOT())
@@ -53,10 +71,42 @@ const fetchInstanceIds = async (): Promise<string[]> => {
   return instances.map((instance) => instance.id)
 }
 
-export const purgeOrphanInstanceData = async ({ dryRun = false } = {}) => {
+const listQuarantineEntries = (
+  quarantineRoot: string
+): { name: string; path: string; parsed: { id: string; quarantinedAt: number } }[] => {
+  if (!existsSync(quarantineRoot)) return []
+
+  const entries: { name: string; path: string; parsed: { id: string; quarantinedAt: number } }[] = []
+  for (const name of readdirSync(quarantineRoot, { withFileTypes: true })) {
+    if (!name.isDirectory()) continue
+    const parsed = parseQuarantineName(name.name)
+    if (!parsed) continue
+    entries.push({ name: name.name, path: join(quarantineRoot, name.name), parsed })
+  }
+  return entries
+}
+
+export type PurgeOrphanInstanceDataOptions = {
+  dryRun?: boolean
+  quarantineDays?: number
+}
+
+export const purgeOrphanInstanceData = async ({
+  dryRun = false,
+  quarantineDays = 30,
+}: PurgeOrphanInstanceDataOptions = {}) => {
   const { dbg, info, warn } = logger().create('purgeOrphanInstanceData')
   const instancesRoot = resolve(INSTANCES_ROOT())
+  const quarantineRoot = resolve(INSTANCES_QUARANTINE_ROOT())
+  const nowMs = Date.now()
+
   const instanceIds = await fetchInstanceIds()
+
+  if (instanceIds.length === 0) {
+    warn(`Mothership returned zero instances. Aborting without touching disk.`)
+    return { quarantined: 0, expired: 0 }
+  }
+
   const validPaths = new Set(instanceIds.map((id) => resolve(mkInstanceDataPath(id))))
 
   const localDirs = findInstanceDataDirs()
@@ -64,6 +114,7 @@ export const purgeOrphanInstanceData = async ({ dryRun = false } = {}) => {
   const keptDirs = localDirs.filter((dir) => validPaths.has(dir))
 
   info(`Scanning ${instancesRoot} for orphan instance data`)
+  info(`Quarantine: ${quarantineRoot} (${quarantineDays}-day retention)`)
   info(`Local: ${localDirs.length} director${localDirs.length === 1 ? 'y' : 'ies'} with pb_data`)
   for (const dir of keptDirs) {
     info(`  keep: ${dir}`)
@@ -77,34 +128,74 @@ export const purgeOrphanInstanceData = async ({ dryRun = false } = {}) => {
     dbg(`${id} -> ${mkInstanceDataPath(id)}`)
   }
 
-  let removed = 0
+  let quarantined = 0
+  let quarantineBytes = 0
+  let expired = 0
   let freedBytes = 0
-  let orphanBytes = 0
 
   if (orphanDirs.length === 0) {
-    info(`No orphan instance data directories to remove`)
+    info(`No orphan instance data directories to quarantine`)
   } else if (dryRun) {
-    orphanBytes = orphanDirs.reduce((total, dir) => total + dirSizeBytes(dir), 0)
+    quarantineBytes = orphanDirs.reduce((total, dir) => total + dirSizeBytes(dir), 0)
     info(
-      `Dry run: would remove ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`
+      `Dry run: would quarantine ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`
     )
     for (const dir of orphanDirs) {
-      info(`  would remove: ${dir}`)
+      const id = basename(dir)
+      const dest = join(quarantineRoot, mkQuarantineName(id, nowMs))
+      info(`  would quarantine: ${dir} -> ${dest}`)
     }
   } else {
-    info(`Removing ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`)
+    mkdirSync(quarantineRoot, { recursive: true })
+    info(`Quarantining ${orphanDirs.length} orphan instance data director${orphanDirs.length === 1 ? 'y' : 'ies'}`)
 
     for (const dir of orphanDirs) {
+      const id = basename(dir)
+      const dest = join(quarantineRoot, mkQuarantineName(id, nowMs))
       try {
-        dbg(`Removing orphan instance data at ${dir}`)
+        dbg(`Quarantining orphan instance data at ${dir} -> ${dest}`)
         const bytes = dirSizeBytes(dir)
         if (existsSync(dir)) {
-          rmSync(dir, { recursive: true, force: true })
+          renameSync(dir, dest)
         }
-        removed++
-        freedBytes += bytes
+        quarantined++
+        quarantineBytes += bytes
+        info(`  quarantined: ${dest}`)
       } catch (e) {
-        warn(`Failed to remove orphan instance data at ${dir}`, e)
+        warn(`Failed to quarantine orphan instance data at ${dir}`, e)
+      }
+    }
+  }
+
+  const quarantineEntries = listQuarantineEntries(quarantineRoot)
+  const toExpire = quarantineEntries.filter(({ parsed }) =>
+    isQuarantineExpired(parsed.quarantinedAt, nowMs, quarantineDays)
+  )
+
+  if (toExpire.length === 0) {
+    info(`No quarantine entries past ${quarantineDays}-day retention`)
+  } else if (dryRun) {
+    info(`Dry run: would expire ${toExpire.length} quarantine entr${toExpire.length === 1 ? 'y' : 'ies'}`)
+    for (const { path } of toExpire) {
+      info(`  would expire: ${path}`)
+    }
+    freedBytes = toExpire.reduce((total, { path }) => total + dirSizeBytes(path), 0)
+  } else {
+    info(
+      `Expiring ${toExpire.length} quarantine entr${toExpire.length === 1 ? 'y' : 'ies'} older than ${quarantineDays} days`
+    )
+    for (const { path } of toExpire) {
+      try {
+        dbg(`Removing expired quarantine at ${path}`)
+        const bytes = dirSizeBytes(path)
+        if (existsSync(path)) {
+          rmSync(path, { recursive: true, force: true })
+        }
+        expired++
+        freedBytes += bytes
+        info(`  expired: ${path}`)
+      } catch (e) {
+        warn(`Failed to remove expired quarantine at ${path}`, e)
       }
     }
   }
@@ -113,12 +204,15 @@ export const purgeOrphanInstanceData = async ({ dryRun = false } = {}) => {
   info(`  mothership instances: ${instanceIds.length}`)
   info(`  kept: ${keptDirs.length}`)
   info(`  orphaned: ${orphanDirs.length}`)
-  info(`  removed: ${removed}`)
+  info(`  quarantined: ${quarantined}`)
+  info(`  expired: ${expired}`)
   if (dryRun) {
-    info(`  would free: ${formatBytes(orphanBytes)}`)
+    info(`  would quarantine bytes: ${formatBytes(quarantineBytes)}`)
+    info(`  would free from expiry: ${formatBytes(freedBytes)}`)
   } else {
-    info(`  freed: ${formatBytes(freedBytes)}`)
+    info(`  quarantined bytes: ${formatBytes(quarantineBytes)}`)
+    info(`  freed from expiry: ${formatBytes(freedBytes)}`)
   }
 
-  return removed
+  return { quarantined, expired }
 }
