@@ -9,11 +9,6 @@ module.exports = {
       script: 'pnpm prod:cli edge daemon serve',
     },
     {
-      name: `edge-ftp`,
-      script: 'pnpm prod:cli edge ftp serve',
-      cron_restart: '0 0 * * *',
-    },
-    {
       name: `edge-sftp`,
       script: 'pnpm prod:cli sftp serve',
       cron_restart: '0 0 * * *',
