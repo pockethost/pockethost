@@ -62,7 +62,7 @@ For hooks, migrations, and backups, use **SFTP** with an Ed25519 SSH key.
 1. Create a key with `ssh-keygen -t ed25519` and register the public key under **[Account → Keys](/account/keys)**.
 2. Connect to `ftp.pockethost.io` on port **2222** with your email as the username and your private key.
 
-Legacy FTPS on port 21 is deprecated. See **[SFTP File Access](/docs/ftp)** for macOS, Windows, Linux, and client-specific instructions.
+FTPS on port 21 has been removed. See **[SFTP File Access](/docs/ftp)** for macOS, Windows, Linux, and client-specific instructions.
 
 For watch-and-deploy from your project directory, use **[phio](/docs/phio)** (`phio link`, `phio dev`, `phio deploy`).
 

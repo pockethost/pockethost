@@ -37,11 +37,11 @@ More detail: [phio 0.4: Deploy over SFTP](/blog/phio-sftp-deploy)
 
 ### FTPS sunset
 
-**FTPS on port 21** (email + password) is on a sunset path and will be removed after a grace period. It still works during the transition. New setups should use SFTP only.
+**FTPS on port 21** is off. Use SFTP.
 
-If you use GitHub Actions against `ftp.pockethost.io:21`, migrate to SFTP or run **`phio deploy`** in CI.
+If a GitHub Action still targets `ftp.pockethost.io:21`, move it to SFTP or run **`phio deploy`** in CI.
 
-More detail: [FTPS is going away](/blog/ftps-sunset)
+More detail: [FTPS officially sunset](/blog/ftps-officially-sunset)
 
 ## Account and billing
 
@@ -174,7 +174,7 @@ More detail: [Dashboard UI: Web Awesome migration](/blog/web-awesome-migration)
 ## What to do now
 
 1. **Set up SFTP.** Generate an Ed25519 key, add it at [Account → Keys](/account/keys), and test a connection using [/docs/ftp](/docs/ftp).
-2. **Retire FTPS bookmarks.** Point clients and CI at SFTP when you can. Keep FTPS only where you still need it until deploy tooling catches up.
+2. **Retire FTPS bookmarks.** Port 21 is off. Point clients and CI at SFTP.
 3. **Add trusted IPs if you proxy.** SSR apps and shared egress NATs benefit from [Account → Trusted IPs](/account/trusted-ips).
 4. **Check your usage.** Open [Account](/account) for DB and file storage meters vs your slot pool.
 5. **Watch for updates.** Follow the [blog](/blog) and your account email as 3.0 rolls out.

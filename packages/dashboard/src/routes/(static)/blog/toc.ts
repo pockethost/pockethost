@@ -8,6 +8,13 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'FTPS Officially Sunset',
+    path: '/blog/ftps-officially-sunset',
+    description: 'FTPS on port 21 is off. SFTP is how you reach instance files. Setup is in the SFTP docs.',
+    date: 'Oct 12, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Account Trusted IPs for Rate Limits',
     path: '/blog/account-trusted-ips',
     description:

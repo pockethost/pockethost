@@ -1,3 +1,5 @@
+Update (Oct 12, 2026): FTPS is off. See [FTPS officially sunset](/blog/ftps-officially-sunset).
+
 We shipped [SFTP file access](/blog/sftp-file-access) in June. **FTPS on port 21 is now on a sunset path.** If you still connect with explicit TLS and your PocketHost password, it is time to migrate.
 
 ### What is changing

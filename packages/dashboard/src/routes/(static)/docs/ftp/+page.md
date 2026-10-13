@@ -4,11 +4,11 @@ description: Access PocketBase instance files over SFTP with Ed25519 SSH keys on
 ---
 # SFTP File Access
 
-PocketHost provides **SFTP** access to your instance files. This replaces legacy **FTPS** (FTP over TLS on port 21) as the recommended way to upload hooks, migrations, and backups.
+PocketHost provides **SFTP** access to your instance files. Use it to upload hooks, migrations, and backups.
 
 Authentication is **Ed25519 SSH keys only**. There is no password login on SFTP. Manage keys under **[Account → Keys](/account/keys)** in the dashboard.
 
-> **FTPS is deprecated.** Explicit FTPS on port 21 still works with your PocketHost email and password for now, but we are sunsetting it. Use SFTP for all new setups. See the [SFTP announcement](/blog/sftp-file-access).
+> **FTPS is off.** Port 21 no longer accepts connections. Use SFTP. See [FTPS officially sunset](/blog/ftps-officially-sunset).
 
 ## Connection settings
 
@@ -217,7 +217,7 @@ Recent OpenSSH clients may warn that the connection is not using a post-quantum 
 
 ## Legacy FTPS
 
-FTPS on port 21 (explicit TLS, email + password) remains available during the migration period. Do not use it for new projects. It will be removed after a documented sunset period.
+FTPS on port 21 has been removed. Use SFTP with an Ed25519 key. See [FTPS officially sunset](/blog/ftps-officially-sunset).
 
 ## Automated deploy (phio and CI)
 
@@ -231,4 +231,4 @@ phio dev
 
 phio manages its own Ed25519 deploy key (labeled **`Phio`** under Account → Keys). You do not need a separate key for phio unless you want scoped CI access.
 
-For GitHub Actions, either run **`phio deploy`** with `PHIO_USERNAME` / `PHIO_PASSWORD` secrets (see [phio CLI](/docs/phio)), or migrate [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) from FTPS on port 21 to SFTP on port 2222 with an Ed25519 private key. See **[FTPS sunset](/blog/ftps-sunset)** for the migration timeline.
+For GitHub Actions, run **`phio deploy`** with `PHIO_USERNAME` / `PHIO_PASSWORD` secrets (see [phio CLI](/docs/phio)), or use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) over SFTP on port 2222 with an Ed25519 private key.

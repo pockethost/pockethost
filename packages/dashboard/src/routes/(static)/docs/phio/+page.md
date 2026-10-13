@@ -188,7 +188,7 @@ jobs:
 
 Store your PocketHost email and password as repository secrets. phio registers its deploy key on first deploy.
 
-For GitHub Actions that already use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action), migrate from FTPS on port 21 to SFTP on port 2222 with an Ed25519 private key. See **[FTPS sunset](/blog/ftps-sunset)** for the timeline.
+For GitHub Actions that already use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action), use SFTP on port 2222 with an Ed25519 private key. FTPS on port 21 is off. See **[FTPS officially sunset](/blog/ftps-officially-sunset)**.
 
 ## Troubleshooting
 
