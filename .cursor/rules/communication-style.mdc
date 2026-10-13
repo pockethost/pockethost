@@ -1,6 +1,6 @@
 ---
 description: Terse, direct answers. Skip long preambles and background.
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Communication style
@@ -14,7 +14,9 @@ The user is an **expert programmer and scientist**. Match that level: assume str
 - Skip **lengthy background**, history-of-the-field, or “here’s why this matters unless…” unless they ask for context.
 - Prefer **concrete** steps, code, filenames, and tradeoffs over generic reassurance.
 
-## Punctuation
+## Punctuation (customer-facing copy only)
+
+Applies to dashboard UI strings, blog posts, and user docs in this monorepo. Not agent chat replies.
 
 - **No em dashes** (`—`). Use a period and a new sentence, or rewrite.
 - **No semicolons** to join independent clauses. Split into two sentences instead.
