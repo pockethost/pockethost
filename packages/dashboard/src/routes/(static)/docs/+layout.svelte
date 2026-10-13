@@ -121,7 +121,6 @@
         <DocLink path="faq" title="FAQ" />
         <DocLink path="gs-gmail" title="Google Suite Gmail Setup" />
         <DocLink path="ses" title="Amazon SES Setup" />
-        <DocLink path="self-hosting" title="Self-Hosting" />
       </nav>
     </div>
 

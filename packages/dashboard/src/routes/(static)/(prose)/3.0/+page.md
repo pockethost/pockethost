@@ -129,7 +129,7 @@ More detail: [Auto Vacuum for idle instances](/blog/auto-vacuum)
 
 **Vacuum Now** is on-demand compaction when you need disk space back immediately, not after the next idle window. It force-stops the instance, compacts both SQLite files, then lets you power back on. Plan for a brief maintenance window.
 
-The dashboard button is rolling out as part of 3.0. Until then, self-hosters can run `pockethost edge vacuum` on idle instances.
+The dashboard button is rolling out as part of 3.0.
 
 More detail: [Vacuum Now](/blog/vacuum-now)
 

@@ -14,7 +14,7 @@ The CLI and edge services no longer depend on:
 
 We also removed dead weight that had lingered for years: unused dashboard packages, the old Changesets release tooling, dev-only cert helpers, and a few orphaned type packages.
 
-None of this changes how you use PocketHost. Instances still spawn the same way. The dashboard still talks to Mothership the same way. If you self-host with `pnpm dev:cli serve`, you get the same commands with a leaner install.
+None of this changes how you use PocketHost. Instances still spawn the same way. The dashboard still talks to Mothership the same way.
 
 ### Why bother
 

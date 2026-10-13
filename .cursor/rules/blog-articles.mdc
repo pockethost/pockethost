@@ -18,6 +18,7 @@ packages/dashboard/src/routes/(static)/blog/{slug}/
 ```
 
 - **Slug folder required.** Never add a flat `blog/+page.md` or put multiple posts in one folder.
+- **End users only.** No self-host runbooks or "if you self-host" asides. See [end-user-docs.mdc](end-user-docs.mdc).
 - **Register** every new post at the top of `blog/toc.ts` (`description`, `date`, `author`). See `blog-voice` skill for tone and metadata.
 - Slug: lowercase kebab-case (`graceful-edge-restarts`).
 

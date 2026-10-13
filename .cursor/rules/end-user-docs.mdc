@@ -1,0 +1,28 @@
+---
+description: Customer docs and blog are for PocketHost end users, not self-host operators
+alwaysApply: true
+---
+
+# Audience: PocketHost end users
+
+Blog posts, `/docs`, dashboard copy, and marketing are for people who host PocketBase **on PocketHost**.
+
+## Do
+
+- Explain what they see and do in the dashboard, SFTP, the PocketBase admin, and their app.
+- Say what PocketHost does for them (delete, vacuum, restarts, billing) in plain language.
+- Data portability is one sentence. They can export over SFTP and run **PocketBase** on their own hardware. Do not write that runbook.
+
+## Don't
+
+- Self-host runbooks for PocketHost (`serve`, `edge purge-orphans`, `edge vacuum`, PM2, `$DATA_ROOT`, `$PH_HOME`, env tuning).
+- "If you self-host" or "Self-hosters" sections, CLI previews, or a self-hosting doc page.
+- Operator recovery steps (quarantine `mv`, `sqlite3 VACUUM` on the node, `pnpm dev:cli`).
+
+Internal notes (`MEMORY.md`, contributor skills) may name those commands. Do not paste them into blog posts or docs.
+
+## Examples
+
+Bad: `Self-hosters can preview with: pockethost edge purge-orphans --dry-run`
+
+Good: `When you delete an instance, it leaves your account immediately. PocketHost holds the files for 30 days, then removes them. That hold is not a backup.`

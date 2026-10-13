@@ -68,9 +68,7 @@ Not every outdated package got bumped. Some pins stay pinned until we have time 
 
 ### What this means for you
 
-**Hosted instances:** unchanged behavior. Same spawn flow, same SFTP, same firewall, same dashboard. This is platform hygiene on `main`, not a product launch.
-
-**Self-hosters:** pull latest, `pnpm install`, and you inherit the same gates we run in CI. If you contribute handler changes, commit the regenerated `pb_hooks/` or `pnpm check:mothership-hooks` fails. That was always true. Now `pnpm test` exists too.
+**Your instances:** unchanged behavior. Same spawn flow, same SFTP, same firewall, same dashboard. This is platform hygiene, not a product launch.
 
 **Cutover day:** when we flip Mothership to v0.39, edge nodes should already be running the CLI build we soaked on `main`. No dependency roulette on the night of the upgrade. That was the whole strategy in the [pre-stage post](/blog/mothership-v039-prestage).
 

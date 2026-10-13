@@ -22,7 +22,7 @@ During the nightly sweep, edge holds a short maintenance lock on each instance b
 
 Auto Vacuum is **on by default** for new instances. Toggle it per instance under **Danger Zone → Auto Vacuum** in the dashboard.
 
-When disabled, PocketHost skips your instance during the nightly sweep. You can still compact databases manually if you self-host or SSH to the volume.
+When disabled, PocketHost skips your instance during the nightly sweep.
 
 ## Disabling Auto Vacuum
 

@@ -31,8 +31,6 @@ The SFTP server runs on the edge (`ssh2` in Node). We extracted a shared virtual
 
 Instance directories are created when you first open an instance over SFTP, even if the container has never run.
 
-If you self-host PocketHost locally, `serve` starts SFTP on port 2222 alongside mothership, the edge daemon, and the firewall.
-
 ### Post-quantum warning from OpenSSH
 
 Recent macOS and Linux clients may print:

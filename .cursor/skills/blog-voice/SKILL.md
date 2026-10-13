@@ -75,7 +75,7 @@ When describing engineering work:
 
 1. State the old pain or limitation in one sentence.
 2. Explain the new approach in plain terms (not a file tree).
-3. Tie back to user-visible behavior (dashboard, version picker, `serve`, etc.).
+3. Tie back to user-visible behavior (dashboard, version picker, SFTP). Audience is PocketHost end users. See [end-user-docs.mdc](../../rules/end-user-docs.mdc).
 4. Optional: one concrete detail (API used, command to run). Not a code dump.
 
 Skip implementation minutiae agents already know (factory patterns, import paths) unless the post is a deep dive.

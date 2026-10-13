@@ -20,11 +20,11 @@ In addition to hosting, PocketHost supports PocketBase's built-in backup and res
 
 ### What are the long-term plans?
 
-PocketHost was created to serve the PocketBase community, combining the sovereignty benefits of self-hosting with the convenience of managed hosting.
+PocketHost exists so you can run PocketBase projects without standing up servers yourself.
 
 Development priorities are driven by personal and community needs, and contributions from everyone are encouraged.
 
-Rest assured, you can always export your instance data and self-host if needed.
+You can always export your instance over SFTP and run PocketBase on your own hardware.
 
 ## Data, Privacy, and Security
 
@@ -38,7 +38,7 @@ PocketHost does not back up your instance data. Backups are your responsibility.
 
 ### Is my data safe and secure?
 
-Yes, your data on pockethost.io is as secure as it would be on your own server—potentially more so, given that our infrastructure is rigorously tested. Access to the pockethost.io infrastructure is secured via SSH with RSA-2048 encryption.
+Yes, your data on pockethost.io is as secure as it would be on your own server. It may be more so, given that our infrastructure is rigorously tested. Access to the pockethost.io infrastructure is secured via SSH with RSA-2048 encryption.
 
 While the data volume is not encrypted at the OS level (see [#143](https://github.com/benallfree/pockethost/issues/143) for details), the VPS itself is encrypted by Digital Ocean. You can always back up and download your data via [SFTP](/docs/ftp) using an SSH key registered in your account.
 

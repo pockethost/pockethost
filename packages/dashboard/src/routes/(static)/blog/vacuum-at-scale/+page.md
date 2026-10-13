@@ -6,7 +6,7 @@ Here is how we solved it.
 
 ### The race we had
 
-The nightly job (`pockethost edge vacuum`) used to check `docker ps` once per sweep. The edge daemon keeps live instances in memory too, including containers in **Starting** state. A one-shot Docker snapshot and the spawn loop did not share a lock.
+The nightly job used to check `docker ps` once per sweep. The edge daemon keeps live instances in memory too, including containers in **Starting** state. A one-shot Docker snapshot and the spawn loop did not share a lock.
 
 Result: theoretical TOCTOU windows where compact and spawn could overlap on the same instance.
 
@@ -29,23 +29,10 @@ That keeps each night's run bounded as the fleet grows.
 
 ### First production results
 
-The first fleet-wide compact after we shipped Auto Vacuum **reclaimed about 52 GB** across idle instances, roughly **10% of used space** on that node. That is space *inside* SQLite files (freelist pages from deleted rows), not whole orphan folders. See [edge orphan cleanup](/blog/edge-orphan-cleanup) for the separate job that removed ~300 GB, nearly half the disk, from deleted-instance data.
+The first fleet-wide compact after we shipped Auto Vacuum **reclaimed about 52 GB** across idle instances, roughly **10% of used space** on that node. That is space _inside_ SQLite files (freelist pages from deleted rows), not whole orphan folders. See [edge orphan cleanup](/blog/edge-orphan-cleanup) for the separate job that removed ~300 GB, nearly half the disk, from deleted-instance data.
 
 ### What you see
 
 Nothing in the dashboard. This is plumbing behind [Auto Vacuum](/blog/auto-vacuum).
 
 You get the same user-facing behavior: idle instances compact overnight, running instances wait until they sleep, brief blips if a request collides with an in-progress vacuum. Under the hood, the edge and the compact job now agree on who owns the instance at every step.
-
-### Self-hosters
-
-Same commands as before. Locks activate automatically when the edge daemon is running:
-
-```bash
-pockethost edge vacuum --dry-run
-pockethost edge vacuum --hours-back=24
-```
-
-If you run compact on a machine without the edge daemon, behavior falls back to the Docker mount check only.
-
-Questions or war stories about SQLite freelists? [Discord](https://discord.gg/nVTxCMEcGT).

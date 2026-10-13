@@ -10,9 +10,9 @@ It's just me making this thing. I have to sleep sometimes. I have a life and fam
 
 Unless you are willing to pay outrageous amounts of money, SLA's are just theatre. They are a way to make you feel better about the service, but in reality, they don't mean anything because downtime is typically caused by things like hardware failures, network issues, or other things that are out of our control.
 
-### Self-hosting doesn't come with an SLA either
+### Running it yourself is not an SLA either
 
-The alternative to PocketHost is to self-host. Self-hosting doesn't come with an SLA either. It's just you. You have to figure out how to manage hardware failures, network issues, and other things that are out of your control. Instead of doing that, you're paying someone else to do it for you, but the underlying problems are still the same. I don't want to hide that reality from you. So we will do the best we can, and you'll benefit from running on a global platform that is WAY more advanced than what you would be able to do on your own. Not because you can't, but just because it isn't feasible to set up a global network for yourself unless you are running a really big project.
+The other option is to run PocketBase on your own hardware. That does not come with an SLA either. It is just you, dealing with hardware failures and network issues. You are paying PocketHost so you do not have to do that. The underlying problems still exist. I do not want to hide that. We will do the best we can, and you get a platform that is much further along than a single-machine setup. Not because you could not build one, but because a global network is not practical unless the project is huge.
 
 ### I do like uptime stats and transparency
 

@@ -27,8 +27,6 @@ If the edge still is not ready after the grace window, you get a **503** with `R
 
 Health probe paths bypass the grace period so external monitors can still see the edge boot sequence accurately.
 
-Self-hosters can tune this with `PH_FIREWALL_DAEMON_GRACE_MS` (default `60000`) and `PH_FIREWALL_DAEMON_GRACE_RETRY_MS` (default `500`). Set grace to `0` to disable it.
-
 ### Fix 2: keep instance containers running
 
 The second fix is on the edge itself.

@@ -1,4 +1,4 @@
-We just vacuumed our Mothership `logs.db` and reclaimed **6.5 GB of disk** from a file that held about **1,800 log rows**. If you self-host PocketHost or run PocketBase with request logging and retention turned on, yours might look the same. This is a PSA, not a product release.
+We vacuumed our control-plane `logs.db` and reclaimed **6.5 GB of disk** from a file that held about **1,800 log rows**. If your instance keeps request logs, `logs.db` can look the same. This is why Auto Vacuum exists.
 
 ### The case study
 
@@ -31,57 +31,14 @@ Your row count can look totally normal. Disk usage will not.
 
 ### Who should care
 
-- **Self-hosted PocketHost** operators with Mothership logging enabled (it is on by default for request logs).
-- **Any PocketBase admin** using **Logs → Max days** retention. Same mechanism, same bloat pattern.
-- Anyone wondering why `pb_data/logs.db` dwarfed `data.db` despite "only a thousand records" in the admin UI.
+Anyone whose `logs.db` is huge while the admin UI shows a normal row count. **Logs → Max days** deletes old rows. It does not shrink the file.
 
 This is not corruption. It is SQLite behavior plus automatic log cleanup with no automatic vacuum.
 
-### How to fix it
+### What you should do
 
-Stop PocketBase (or Mothership) so nothing holds the database open. Back up if you want to be cautious. Then:
+Nothing, if **Auto Vacuum** is on. It is on by default. PocketHost compacts idle instance `data.db` and `logs.db` overnight. Toggle it under **Danger Zone → Auto Vacuum**. See [Auto Vacuum](/docs/auto-vacuum) and [the announcement](/blog/auto-vacuum).
 
-```bash
-cd /path/to/pb_data
+If you need the space back while the instance is still running, use **Vacuum Now** when that dashboard action is available. See [Vacuum Now](/blog/vacuum-now).
 
-sqlite3 logs.db "PRAGMA wal_checkpoint(TRUNCATE); VACUUM;"
-```
-
-On PocketHost prod that path is usually something like:
-
-```bash
-$PH_HOME/data/mothership/pb_data/logs.db
-```
-
-For us that was:
-
-```bash
-pm2 stop mothership
-cd /mnt/sfo_data/pockethost/.pockethost/data/mothership/pb_data
-sqlite3 logs.db "PRAGMA wal_checkpoint(TRUNCATE); VACUUM;"
-pm2 start mothership
-```
-
-While Mothership was down we also vacuumed `data.db` and dropped it from 2.5 GB to 58 MB. Same root cause: years of deletes without reclaim. Worth checking both files if disk is tight.
-
-Verify after:
-
-```bash
-ls -lh logs.db data.db
-sqlite3 logs.db "SELECT COUNT(*) FROM _logs;"
-sqlite3 logs.db "PRAGMA integrity_check;"
-```
-
-You should see a small file, the same row count as before, and `ok`.
-
-`VACUUM` needs temporary disk space roughly equal to the current file size while it rewrites. Plan for that on small volumes.
-
-### How often
-
-We are not suggesting a weekly cron for everyone. Once a year, or when `ls -lh pb_data/*.db` stops matching your gut feel, is probably enough for typical traffic.
-
-If you run log retention at `maxDays: 1`, the bloat accumulates quietly. A quick `PRAGMA freelist_count` vs `PRAGMA page_count` tells you how bad it is without opening every table.
-
-### What we are doing about it
-
-We shipped **[Auto Vacuum](/blog/auto-vacuum)** for hosted instances: a nightly `edge-vacuum` job that `VACUUM`s idle instance databases when the feature is enabled (on by default). See that post and **[Auto Vacuum docs](/docs/auto-vacuum)** for dashboard toggles, downtime expectations, and self-host commands.
+Compaction needs temporary disk roughly the size of the file being rewritten. PocketHost accounts for that before it runs. You do not schedule it yourself.

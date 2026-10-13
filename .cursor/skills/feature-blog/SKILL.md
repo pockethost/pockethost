@@ -58,7 +58,7 @@ Legacy pattern to avoid: [pockethost-2-3-0-release](../../../packages/dashboard/
 
 When finishing user-facing work in this session:
 
-- [ ] Does this change matter to hosted users or self-hosters? If no → skip post.
+- [ ] Does this change matter to PocketHost end users? If no → skip post. See [end-user-docs.mdc](../../rules/end-user-docs.mdc).
 - [ ] If yes → offer to draft the post (or write it if the user asked to ship the full feature).
 - [ ] Post uses blog-voice signature and file checklist.
 - [ ] No new semver release-post unless the user explicitly requests one.

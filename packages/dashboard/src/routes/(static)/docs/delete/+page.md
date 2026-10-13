@@ -19,15 +19,13 @@ Once deleted, you lose access to:
 
 The instance no longer appears in the dashboard and is not reachable over SFTP or HTTP.
 
-### What PocketHost does on the edge
+### After you delete
 
-When the Mothership record is gone, the edge treats the on-disk folder as orphan data. A daily job moves orphans into **quarantine** under `$DATA_ROOT/quarantine/instances/` and deletes them after **30 days**. During quarantine the data is not served and is not available through your account.
+PocketHost holds the files for **30 days**, then removes them. During that window they are not served and you cannot open them from your account.
 
-That window exists for operational recovery (for example mistaken deletes). It is not a backup, and we do not guarantee recovery from it.
+That hold exists so we can recover from a mistaken delete. It is not a backup, and we do not guarantee recovery from it.
 
 **PocketHost does not back up your instance data.** If you might need the data later, create a backup with PocketBase's built-in backup tools before you delete. See [Backup and Restore](/docs/backup-restore).
-
-See [Orphan Instance Data: 30-Day Quarantine](/blog/edge-orphan-quarantine) for the full edge behavior, including self-host `--dry-run` and manual restore.
 
 ![](first-power-off.png)
 

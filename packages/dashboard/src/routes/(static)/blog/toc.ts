@@ -8,14 +8,6 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
-    title: 'Orphan Instance Data: 30-Day Quarantine',
-    path: '/blog/edge-orphan-quarantine',
-    description:
-      'edge purge-orphans moves orphan instance folders to quarantine for 30 days before final deletion, with a zero-instance guard and manual restore path.',
-    date: 'Oct 5, 2026',
-    author: 'capn',
-  },
-  {
     title: 'Account Trusted IPs for Rate Limits',
     path: '/blog/account-trusted-ips',
     description:
@@ -107,7 +99,7 @@ export const toc: BlogTocEntry[] = [
     title: 'Reclaiming 300 GB of Orphan Instance Data',
     path: '/blog/edge-orphan-cleanup',
     description:
-      'Edge cleanup removed instance folders with no Mothership record. First production sweep freed ~300 GB, nearly half the used space on that node.',
+      'Deleted instances no longer leave ghost files behind. The first cleanup freed about 300 GB. Held files are removed after 30 days. That hold is not a backup.',
     date: 'Jun 13, 2026',
     author: 'capn',
   },

@@ -1,37 +1,17 @@
-When you delete an instance in the dashboard, you expect the disk to go with it. For years, that was not always true on the edge.
+When you delete an instance in the dashboard, it should leave your account. For a long time, the files on disk did not always leave with it.
 
-Orphan data folders could linger under `$DATA_ROOT/instances/` after the Mothership record was gone. Failed deletes, race conditions, and old code paths all contributed. The data was invisible in the dashboard but still eating block storage.
+Failed deletes and old code paths left folders behind. They did not show up in the dashboard. They still used disk. The first cleanup pass reclaimed about **300 GB** on one node, nearly half the used space. Your live instances were not touched.
 
-We fixed that. The first production sweep **reclaimed about 300 GB**, nearly **half the used space** on the node that ran it.
+### What you should expect
 
-### What we changed
+Delete still works the same way. Power the instance off, then delete it. The subdomain, SFTP access, and the dashboard entry go away immediately.
 
-**Delete is now Mothership-first.** When you remove an instance, the control plane drops the PocketBase record (with the usual idle gate). The edge no longer tries to rimraf during that request.
+PocketHost then holds the files for **30 days** and deletes them. During that window they are not served, and you cannot open them from your account. That hold is not a backup. We do not guarantee we can restore a deleted instance. If you might need the data, use PocketBase's backup tools before you delete. See [Backup and Restore](/docs/backup-restore) and [Deleting an Instance](/docs/delete).
 
-**Purge runs on the edge.** `pockethost edge purge-orphans` compares local `pb_data` directories against the live instance list from Mothership. Anything on disk without a matching record is an orphan. PM2 runs it daily as `edge-purge-orphans`.
+You do not need to do anything else. The daily cleanup is on us.
 
-Self-hosters can preview with:
+### Related
 
-```bash
-pockethost edge purge-orphans --dry-run
-```
-
-### Why this matters for you
-
-You should not notice anything day to day. Deletes in the dashboard still work the same. The win is operational: less wasted disk, lower risk of full volumes, and honest accounting when we size edge nodes.
-
-If you self-host PocketHost, run `--dry-run` occasionally and confirm you have zero orphans after deletes.
-
-### The 300 GB number
-
-That was one node's first pass after we shipped the job. Nearly **50% of used disk** on that node was ghost data from instances that no longer existed in Mothership. Your live instances were not touched.
-
-We log kept vs orphaned paths and bytes freed on every run. Expect smaller numbers going forward. The daily job is insurance, not a one-time rescue.
-
-### Related work
-
-This pairs with [Auto Vacuum](/blog/auto-vacuum) (reclaiming space _inside_ SQLite files) and [runtime status sync](/blog/runtime-status-sync) (honest instance state across restarts). Different problems, same theme: the platform should not lie about what is on disk.
-
-Update (2026): orphan folders now sit in a **30-day quarantine** before final deletion. See [Orphan data quarantine](/blog/edge-orphan-quarantine).
+This pairs with [Auto Vacuum](/blog/auto-vacuum), which reclaims empty space inside SQLite files for instances you still have, and [runtime status sync](/blog/runtime-status-sync), which keeps instance state honest across restarts.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT).
