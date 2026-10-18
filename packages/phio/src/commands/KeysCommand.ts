@@ -1,16 +1,22 @@
 import { Command } from 'commander'
 import { generateApiKey } from '../lib/apiKey'
 import { savedInstanceName } from '../lib/defaultInstanceId'
+import { DEPLOY_KEY_LABEL, SSH_KEYS_COLLECTION } from '../lib/deployKey'
 import { ensureLoggedIn } from '../lib/ensureLoggedIn'
 import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
 import { fingerprintForPublicKey } from '../lib/sshPublicKey'
-
-const SSH_KEYS_COLLECTION = 'ssh_keys'
 
 export const createApiKey = async (instanceName: string, label?: string) => {
   if (!instanceName) {
     throw new Error(
       `No instance name provided and none is linked. Use 'phio keys create <instance>'`
+    )
+  }
+
+  // `phio deploy` looks up its own all-instances key by this label
+  if (label === DEPLOY_KEY_LABEL) {
+    throw new Error(
+      `The label "${DEPLOY_KEY_LABEL}" is reserved for phio's deploy key. Choose another label.`
     )
   }
 

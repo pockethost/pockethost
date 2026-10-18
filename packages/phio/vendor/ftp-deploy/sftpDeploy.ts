@@ -91,15 +91,21 @@ async function connect(
   }
 
   const serverDir = args['server-dir'].replace(/\/$/, '') || '.'
-  // realPath resolves '' (not an error) for missing or out-of-scope paths
-  const resolved = await retryRequest(
-    logger,
-    async () => await client.realPath(serverDir)
-  )
-  if (!resolved) {
-    throw new Error(
-      `Remote directory "${serverDir}" not found. Check the instance name, or that your key has access to this instance.`
+  const notFound = (detail?: string) =>
+    new Error(
+      `Remote directory "${serverDir}" not found${detail ? ` (${detail})` : ''}. ` +
+        `Check the instance name, or that your key has access to this instance.`
     )
+  // realPath resolves '' for a missing path, and rejects for one the server refuses
+  const resolved = await retryRequest(logger, async () => {
+    try {
+      return await client.realPath(serverDir)
+    } catch (error) {
+      throw notFound(error instanceof Error ? error.message : `${error}`)
+    }
+  })
+  if (!resolved) {
+    throw notFound()
   }
 }
 

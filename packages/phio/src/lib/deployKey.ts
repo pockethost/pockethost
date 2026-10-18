@@ -11,7 +11,7 @@ import {
   pkcs8Ed25519ToOpenSshPrivateKeyPem,
 } from '../../vendor/ftp-deploy/sshPrivateKey'
 
-const SSH_KEYS_COLLECTION = 'ssh_keys'
+export const SSH_KEYS_COLLECTION = 'ssh_keys'
 export const DEPLOY_KEY_LABEL = 'Phio'
 
 const PRIVATE_KEY_FILE = 'phio_deploy_ed25519'
