@@ -34,7 +34,10 @@ const writeSshString = (value: Buffer | string) => {
   return Buffer.concat([len, buf])
 }
 
-const spkiToOpenSshPublicKey = (publicKey: KeyObject, comment = 'phio') => {
+export const spkiToOpenSshPublicKey = (
+  publicKey: KeyObject,
+  comment = 'phio'
+) => {
   const der = publicKey.export({ format: 'der', type: 'spki' })
   const raw = der.subarray(der.length - 32)
   const wire = Buffer.concat([
