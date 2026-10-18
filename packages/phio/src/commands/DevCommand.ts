@@ -5,8 +5,9 @@ import Bottleneck from 'bottleneck'
 import { watch } from 'chokidar'
 import { Command } from 'commander'
 import multimatch from 'multimatch'
+import { parseApiKey } from '../lib/apiKey'
 import { ensureDeployKey } from '../lib/deployKey'
-import { PHIO_CONFIG_FILE } from '../lib/constants'
+import { PHIO_API_KEY, PHIO_CONFIG_FILE } from '../lib/constants'
 import { PHIO_SFTP_HOST, PHIO_SFTP_PORT } from '../lib/sftpConnection'
 import { ensureLoggedIn } from '../lib/ensureLoggedIn'
 import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
@@ -40,18 +41,21 @@ export const watchAndDeploy = async (
     )
   }
   console.log(`Dev mode`)
-  await ensureLoggedIn()
 
   const { include, exclude, verbose } = options
   // console.log({ include, exclude })
 
-  const instance = await (async () => {
-    try {
-      return await getInstanceBySubdomainCnameOrId(instanceName)
-    } catch (error) {
-      throw new Error(`Instance ${instanceName} not found`)
-    }
-  })()
+  // API keys cannot query the mothership; the SFTP server enforces their scope
+  const instance = PHIO_API_KEY()
+    ? { subdomain: instanceName }
+    : await (async () => {
+        await ensureLoggedIn()
+        try {
+          return await getInstanceBySubdomainCnameOrId(instanceName)
+        } catch (error) {
+          throw new Error(`Instance ${instanceName} not found`)
+        }
+      })()
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
   const upload = debounce(
@@ -84,12 +88,19 @@ export const watchAndDeploy = async (
   watcher.on('add', handle).on('change', handle).on('unlink', handle)
 }
 
-export async function deployMyCode(
-  instanceName: string,
-  include: string[],
-  exclude: string[],
-  verbose: boolean
-) {
+/**
+ * PHIO_API_KEY (instance-scoped, for CI) wins over the logged-in user's
+ * all-instances deploy key.
+ */
+const resolveDeployCredentials = async (): Promise<
+  Pick<IFtpDeployArguments, 'username' | 'private-key' | 'private-key-path'>
+> => {
+  const apiKey = PHIO_API_KEY()
+  if (apiKey) {
+    const { email, privateKey } = parseApiKey(apiKey)
+    return { username: email, 'private-key': privateKey }
+  }
+
   await ensureLoggedIn()
   const client = await getClient()
   const { privateKeyPath } = await ensureDeployKey(client)
@@ -97,14 +108,23 @@ export async function deployMyCode(
   if (!email) {
     throw new Error(`You must be logged in first. Use 'phio login'`)
   }
+  return { username: email, 'private-key-path': privateKeyPath }
+}
+
+export async function deployMyCode(
+  instanceName: string,
+  include: string[],
+  exclude: string[],
+  verbose: boolean
+) {
+  const credentials = await resolveDeployCredentials()
 
   console.log(`🚚 Deploy started for ${instanceName}`)
   const args: IFtpDeployArguments = {
     server: PHIO_SFTP_HOST,
     protocol: 'sftp',
     port: PHIO_SFTP_PORT,
-    username: email,
-    'private-key-path': privateKeyPath,
+    ...credentials,
     'server-dir': `${instanceName}/`,
     include,
     exclude: mergeDeployExcludes(excludeDefaults, exclude),

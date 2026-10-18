@@ -183,6 +183,7 @@ export function getDefaultSettings(
     port: withoutDefaults.port ?? 2222,
     protocol: 'sftp',
     'private-key-path': withoutDefaults['private-key-path'],
+    'private-key': withoutDefaults['private-key'],
     'local-dir': withoutDefaults['local-dir'] ?? './',
     'server-dir': withoutDefaults['server-dir'] ?? './',
     'state-name':

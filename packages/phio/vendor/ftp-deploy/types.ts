@@ -9,6 +9,8 @@ export interface IFtpDeployArguments {
   port?: number
   protocol?: 'sftp'
   'private-key-path'?: string
+  /** Private key contents; takes precedence over private-key-path */
+  'private-key'?: string
   'local-dir'?: string
   'server-dir'?: string
   'state-name'?: string
@@ -27,6 +29,7 @@ export interface IFtpDeployArgumentsWithDefaults {
   port: number
   protocol: 'sftp'
   'private-key-path': string | undefined
+  'private-key': string | undefined
   'local-dir': string
   'server-dir': string
   'state-name': string

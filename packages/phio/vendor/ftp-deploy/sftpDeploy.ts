@@ -65,11 +65,15 @@ async function connect(
   args: IFtpDeployArgumentsWithDefaults,
   logger: ILogger
 ) {
-  if (!args['private-key-path']) {
-    throw new Error(`SFTP deploy requires "private-key-path"`)
-  }
-
-  const privateKey = readPrivateKeyForSsh2(args['private-key-path'])
+  const privateKey = (() => {
+    if (args['private-key']) {
+      return args['private-key']
+    }
+    if (args['private-key-path']) {
+      return readPrivateKeyForSsh2(args['private-key-path'])
+    }
+    throw new Error(`SFTP deploy requires "private-key" or "private-key-path"`)
+  })()
 
   try {
     await client.connect({
@@ -87,7 +91,22 @@ async function connect(
   }
 
   const serverDir = args['server-dir'].replace(/\/$/, '') || '.'
-  await retryRequest(logger, async () => await client.realPath(serverDir))
+  const notFound = (detail?: string) =>
+    new Error(
+      `Remote directory "${serverDir}" not found${detail ? ` (${detail})` : ''}. ` +
+        `Check the instance name, or that your key has access to this instance.`
+    )
+  // realPath resolves '' for a missing path, and rejects for one the server refuses
+  const resolved = await retryRequest(logger, async () => {
+    try {
+      return await client.realPath(serverDir)
+    } catch (error) {
+      throw notFound(error instanceof Error ? error.message : `${error}`)
+    }
+  })
+  if (!resolved) {
+    throw notFound()
+  }
 }
 
 async function getServerFiles(
