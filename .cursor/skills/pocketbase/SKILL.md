@@ -48,7 +48,7 @@ Rules control list/view/create/update/delete per collection. Write rules as filt
 - Prefer **API rules** over middleware for access control.
 - `@request.auth` — current authenticated record (or null).
 - `@collection.*` — cross-collection lookups in rules.
-- Empty rule = locked; `@request.auth.id != ""` = any authenticated user.
+- `null` rule = locked (superusers only); `""` (empty string) = PUBLIC, anyone including guests; `@request.auth.id != ""` = any authenticated user. Superusers bypass rules, so test as real users.
 
 ### Migrations
 
