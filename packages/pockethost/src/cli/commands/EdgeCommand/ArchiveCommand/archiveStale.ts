@@ -78,6 +78,8 @@ export type ArchiveStaleOptions = {
   maxInstances?: number
   maxBytes?: number
   includeLapsed?: boolean
+  /** Email each owner a download link. Off by default: archiving is quiet. */
+  email?: boolean
 }
 
 export type ArchiveStaleSummary = {
@@ -99,6 +101,7 @@ export const archiveStaleInstances = async ({
   maxInstances = 200,
   maxBytes = 100 * 1024 ** 3,
   includeLapsed = false,
+  email = false,
 }: ArchiveStaleOptions = {}): Promise<ArchiveStaleSummary> => {
   const { info, warn, error } = logger().create(`archiveStale`)
   const nowMs = Date.now()
@@ -108,7 +111,7 @@ export const archiveStaleInstances = async ({
   const instancesRoot = resolve(INSTANCES_ROOT())
   const mode = apply ? `APPLY` : `DRY RUN`
 
-  if (!linkSecret) throw new Error(`PH_ARCHIVE_LINK_SECRET (or PH_SECRET) must be set to sign download links`)
+  if (email && !linkSecret) throw new Error(`PH_ARCHIVE_LINK_SECRET (or PH_SECRET) must be set to sign download links`)
 
   const summary: ArchiveStaleSummary = {
     candidates: 0,
@@ -123,7 +126,7 @@ export const archiveStaleInstances = async ({
   }
 
   info(
-    `[${mode}] remote=${remote} stale=${staleDays}d retention=${retentionDays}d caps=${maxInstances} instances / ${formatBytes(maxBytes)}${includeLapsed ? ` +lapsed` : ``}`
+    `[${mode}] remote=${remote} stale=${staleDays}d retention=${retentionDays}d caps=${maxInstances} instances / ${formatBytes(maxBytes)}${includeLapsed ? ` +lapsed` : ``} email=${email ? `on` : `off`}`
   )
 
   const pb = await connect()
@@ -167,7 +170,7 @@ export const archiveStaleInstances = async ({
   sized.sort((a, b) => b.bytes - a.bytes)
   info(`${sized.length} with local data; ${summary.noLocalData} without; ${summary.running} running (skipped)`)
 
-  const templateId = await ensureTemplate(pb, apply)
+  const templateId = email ? await ensureTemplate(pb, apply) : ``
 
   let budgetBytes = maxBytes
   for (const { instance, bytes } of sized) {
@@ -197,7 +200,9 @@ export const archiveStaleInstances = async ({
 
       await pb
         .collection(`instances`)
-        .update(instance.id, { suspension: pushSuspension(mkArchivedSuspension(deleteDate), previousSuspension) })
+        .update(instance.id, {
+          suspension: pushSuspension(mkArchivedSuspension(deleteDate, { emailed: email }), previousSuspension),
+        })
       await sleep(SUSPENSION_SETTLE_MS)
       if ((await listRunningInstanceContainers()).some((c) => c.instanceId === instance.id)) {
         await pb.collection(`instances`).update(instance.id, { suspension: previousSuspension })
@@ -225,6 +230,7 @@ export const archiveStaleInstances = async ({
       continue
     }
 
+    if (!email) continue
     try {
       const link = mkArchiveDownloadUrl(linkOrigin, instance.id, Math.floor(deleteDate.getTime() / 1000), linkSecret)
       const vars = { subdomain: instance.subdomain, size: formatBytes(bytes), link, deletedate: fmtDate(deleteDate) }

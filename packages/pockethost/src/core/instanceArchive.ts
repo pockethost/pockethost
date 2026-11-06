@@ -15,9 +15,11 @@ export const ARCHIVE_DEFAULTS = {
   retentionDays: 180,
 } as const
 
-export const mkArchivedSuspension = (deleteDate: Date) =>
+export const mkArchivedSuspension = (deleteDate: Date, { emailed = false }: { emailed?: boolean } = {}) =>
   `${ARCHIVED_SUSPENSION_PREFIX} This instance was archived after 12 months of inactivity. ` +
-  `Check your email for the download link (available until ${fmtDate(deleteDate)}), or contact support to restore it.`
+  (emailed
+    ? `Check your email for the download link (available until ${fmtDate(deleteDate)}), or contact support to restore it.`
+    : `Contact support before ${fmtDate(deleteDate)} to restore it.`)
 
 export const mkArchiveExpiredSuspension = () =>
   `${ARCHIVED_SUSPENSION_PREFIX} This instance was archived after 12 months of inactivity, ` +

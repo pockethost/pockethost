@@ -11,13 +11,14 @@ export const ArchiveCommand = () => {
     .description(
       `Suspend and archive free instances with no start in --stale-days; delete archives after --retention-days`
     )
-    .option(`--apply`, `Actually archive, email and delete (default is a dry run)`, false)
+    .option(`--apply`, `Actually archive and delete (default is a dry run)`, false)
     .option(`--stale-days <days>`, `Days since last start`, int, ARCHIVE_DEFAULTS.staleDays)
     .option(`--retention-days <days>`, `Days to keep archives`, int, ARCHIVE_DEFAULTS.retentionDays)
     .option(`--max-instances <n>`, `Max instances to archive per run`, int, 200)
     .option(`--max-gb <gb>`, `Max GB to archive per run`, int, 100)
+    .option(`--email`, `Email each owner a download link (off by default)`, false)
     .option(`--include-lapsed`, `Also archive owners who used to pay (subscription_status=lapsed)`, false)
-    .action(async ({ apply, staleDays, retentionDays, maxInstances, maxGb, includeLapsed }) => {
+    .action(async ({ apply, staleDays, retentionDays, maxInstances, maxGb, includeLapsed, email }) => {
       logger().context({ cli: 'edge:archive:stale' })
       const { archiveStaleInstances } = await import('./archiveStale')
       await archiveStaleInstances({
@@ -27,6 +28,7 @@ export const ArchiveCommand = () => {
         maxInstances,
         maxBytes: maxGb * 1024 ** 3,
         includeLapsed,
+        email,
       })
     })
 

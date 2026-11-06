@@ -58,6 +58,12 @@ describe(`suspension text`, () => {
     expect(isArchivedSuspension(`Fair use violation`)).toBe(false)
     expect(isArchivedSuspension(``)).toBe(false)
   })
+  it(`only mentions email when one was sent`, () => {
+    const d = new Date(`2027-05-05T12:00:00Z`)
+    expect(mkArchivedSuspension(d)).not.toMatch(/email/i)
+    expect(mkArchivedSuspension(d)).toContain(`Contact support before 2027-05-05`)
+    expect(mkArchivedSuspension(d, { emailed: true })).toMatch(/email/i)
+  })
   it(`includes the deletion date`, () => {
     expect(mkArchivedSuspension(new Date(`2027-05-05T12:00:00Z`))).toContain(`2027-05-05`)
   })
