@@ -204,6 +204,16 @@ describe('firewall instance CORS end to end', () => {
     expect(res.headers['access-control-allow-origin']).toBe('*')
   })
 
+  it('edge routes stay permissive on locked instances (dashboard log stream)', async () => {
+    for (const path of ['/logs', '/_api/daemon/health']) {
+      const pre = await preflight('locked.test', 'https://pockethost.io', path)
+      expect(pre.status).toBe(204)
+      expect(pre.headers['access-control-allow-origin']).toBe('*')
+    }
+    const post = await request(firewall).get('/logs').set('Host', 'locked.test').set('Origin', 'https://pockethost.io')
+    expect(post.headers['access-control-allow-origin']).toBe('*')
+  })
+
   it('* in the secret behaves like allow-all', async () => {
     const res = await request(firewall).get('/x').set('Host', 'star.test').set('Origin', 'https://evil.test')
     expect(res.headers['access-control-allow-origin']).toBe('*')

@@ -12,8 +12,16 @@ export const PH_CORS_ORIGINS_SECRET = 'PH_CORS_ORIGINS'
 /** Same as PocketBase's default `AllowMethods`. */
 const ALLOW_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE'
 
-/** Firewall-owned routes keep today's permissive CORS (the dashboard calls them on custom domains). */
-const isFirewallRoute = (path: string) => path.startsWith('/api/firewall/') || path.startsWith('/api/_private/')
+/**
+ * Edge-owned routes keep today's permissive CORS: they never reach PocketBase and the dashboard calls them cross-origin
+ * on instance hosts (custom-domain health check, the `/logs` realtime log stream).
+ */
+const isEdgeRoute = (path: string) =>
+  path.startsWith('/api/firewall/') ||
+  path.startsWith('/api/_private/') ||
+  path === '/logs' ||
+  path.startsWith('/logs/') ||
+  path.startsWith('/_api/daemon/')
 
 /** `a, b ,,b` -> `['a', 'b']`. Returns null when nothing is left. No other validation: we trust the user. */
 export const parseCorsOrigins = (raw: unknown): string[] | null => {
@@ -94,7 +102,7 @@ export type InstanceCorsOptions = {
 export const createInstanceCorsMiddleware = ({ getInstanceSecrets }: InstanceCorsOptions): RequestHandler => {
   return async (req, res, next) => {
     let origins: string[] | null = null
-    if (getInstanceSecrets && !isFirewallRoute(req.path) && req.hostname) {
+    if (getInstanceSecrets && !isEdgeRoute(req.path) && req.hostname) {
       try {
         const secrets = await getInstanceSecrets(req.hostname)
         origins = parseCorsOrigins(secrets?.[PH_CORS_ORIGINS_SECRET])
