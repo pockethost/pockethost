@@ -35,6 +35,7 @@ import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipM
 import { instanceAppVersionFromPbVersion } from './instanceAppVersion'
 import { shouldSkipInstanceFieldUpdate } from './instanceFieldUpdate'
 import { reconcilePreservedContainers } from './reconcilePreservedContainers'
+import { trackRequestLifetime } from './requestLifetime'
 
 enum InstanceApiStatus {
   Starting = 'starting',
@@ -578,26 +579,21 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       }
     }
 
-    const releaseGatewayPending = bumpGatewayPending(instance.id)
+    const lifetime = trackRequestLifetime(res, bumpGatewayPending(instance.id))
 
     try {
       const api = await ensureInstanceApi(instance, res.locals.requestId)
 
-      const endRequest = api.startRequest()
-      const onClose = () => {
-        endRequest()
-        releaseGatewayPending()
-      }
-      res.on('close', onClose)
-      if (req.closed) {
-        dbg(`Request already closed. ${res.locals.requestId}`)
+      if (!lifetime.begin(api.startRequest)) {
+        dbg(`Client disconnected before instance was ready. ${res.locals.requestId}`)
+        return
       }
 
       dbg(`Forwarding proxy request for ${req.url} to instance ${api.internalUrl}`)
 
       await proxy.web(req, res, { target: api.internalUrl })
     } catch (e) {
-      releaseGatewayPending()
+      lifetime.release()
       throw e
     }
   })
