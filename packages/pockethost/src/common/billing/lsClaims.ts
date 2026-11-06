@@ -97,3 +97,33 @@ export const lsClaimsFromAudit = (contexts: unknown[]): LsClaims => {
   for (const userId of Object.keys(emails)) emailLists[userId] = Object.keys(emails[userId]!)
   return { owners, emails: emailLists, conflicts: Object.keys(conflicted) }
 }
+
+/**
+ * Extend claims to subscriptions through the order that started them. Checkout webhooks for a new subscription are
+ * usually logged as `order_created` (keyed by order ID), while the billing row is keyed by subscription ID; LS links
+ * them via the subscription's `order_id`. A subscription claimed directly by a different user becomes a conflict.
+ * Returns a new claims object; the input is not changed.
+ */
+export const claimSubscriptionsByOrder = (
+  claims: LsClaims,
+  links: { subscriptionId: unknown; orderId: unknown }[]
+): LsClaims => {
+  const owners = { ...claims.owners }
+  const conflicted: { [key: LsResourceKey]: true } = {}
+  for (const key of claims.conflicts) conflicted[key] = true
+
+  for (const link of links) {
+    const subKey = lsResourceKey('subscription', link.subscriptionId)
+    const orderKey = lsResourceKey('order', link.orderId)
+    if (!subKey || !orderKey || conflicted[subKey]) continue
+    const buyer = claims.owners[orderKey]
+    if (!buyer) continue
+    if (owners[subKey] && owners[subKey] !== buyer) {
+      conflicted[subKey] = true
+      delete owners[subKey]
+      continue
+    }
+    owners[subKey] = buyer
+  }
+  return { owners, emails: claims.emails, conflicts: Object.keys(conflicted) }
+}

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { lsClaimsFromAudit, lsResourceKeyOfItem, lsResourceKeyOfWebhookData } from './lsClaims'
+import {
+  claimSubscriptionsByOrder,
+  lsClaimsFromAudit,
+  lsResourceKeyOfItem,
+  lsResourceKeyOfWebhookData,
+} from './lsClaims'
 
 const webhook = (
   userId: string | undefined,
@@ -83,5 +88,56 @@ describe('lsClaimsFromAudit', () => {
     const claims = lsClaimsFromAudit([webhook('u1', 'subscriptions', 9), webhook('u1', 'subscriptions', 9)])
     expect(claims.owners).toEqual({ 'subscription:9': 'u1' })
     expect(claims.conflicts).toEqual([])
+  })
+})
+
+describe('claimSubscriptionsByOrder', () => {
+  const base = () =>
+    lsClaimsFromAudit([
+      webhook('u1', 'orders', 100),
+      webhook('u2', 'orders', 200),
+      webhook('u3', 'subscriptions', 20),
+    ])
+
+  it('gives a subscription to whoever bought the order that started it', () => {
+    const claims = claimSubscriptionsByOrder(base(), [
+      { subscriptionId: 10, orderId: 100 },
+      { subscriptionId: '11', orderId: '200' },
+      { subscriptionId: 12, orderId: 999 },
+    ])
+    expect(claims.owners).toMatchObject({ 'subscription:10': 'u1', 'subscription:11': 'u2' })
+    expect(claims.owners['subscription:12']).toBeUndefined()
+    expect(claims.conflicts).toEqual([])
+  })
+
+  it('agrees with a direct claim by the same user', () => {
+    const claims = claimSubscriptionsByOrder(
+      lsClaimsFromAudit([webhook('u1', 'orders', 100), webhook('u1', 'subscriptions', 10)]),
+      [{ subscriptionId: 10, orderId: 100 }]
+    )
+    expect(claims.owners['subscription:10']).toBe('u1')
+    expect(claims.conflicts).toEqual([])
+  })
+
+  it('turns a disagreement with a direct claim into a conflict', () => {
+    const claims = claimSubscriptionsByOrder(base(), [{ subscriptionId: 20, orderId: 100 }])
+    expect(claims.owners['subscription:20']).toBeUndefined()
+    expect(claims.conflicts).toEqual(['subscription:20'])
+  })
+
+  it('ignores incomplete links and keeps existing conflicts', () => {
+    const start = lsClaimsFromAudit([
+      webhook('u1', 'orders', 100),
+      webhook('u1', 'subscriptions', 30),
+      webhook('u2', 'subscriptions', 30),
+    ])
+    const claims = claimSubscriptionsByOrder(start, [
+      { subscriptionId: undefined, orderId: 100 },
+      { subscriptionId: 10, orderId: '' },
+      { subscriptionId: 30, orderId: 100 },
+    ])
+    expect(claims.owners).toEqual({ 'order:100': 'u1' })
+    expect(claims.conflicts).toEqual(['subscription:30'])
+    expect(start.owners).toEqual({ 'order:100': 'u1' })
   })
 })

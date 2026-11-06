@@ -1227,10 +1227,18 @@ const findBillingItemRecord = (app, item) => {
 };
 const loadBillingItemRecords = (app, userId) => app.findRecordsByFilter(COLLECTION, `user = {:user}`, `created`, 0, 0, { user: userId }).filter((r) => !!r);
 const loadBillingItems = (app, userId) => loadBillingItemRecords(app, userId).map(toItem);
-/** Every Lemon Squeezy row, with the user it is currently on. */
+const storedOrderId = (rec) => {
+	try {
+		return `${JSON.parse(rec.getString(`provider_data`) || `null`)?.order_id ?? ""}`;
+	} catch {
+		return ``;
+	}
+};
+/** Every Lemon Squeezy row, with the user it is currently on (and, for subscriptions, the order that started it). */
 const loadAllLsBillingItems = (app) => app.findRecordsByFilter(COLLECTION, `provider = 'lemonsqueezy'`, `created`, 0, 0).filter((r) => !!r).map((r) => ({
 	userId: r.getString(`user`),
-	item: toItem(r)
+	item: toItem(r),
+	orderId: r.getString(`kind`) === `subscription` ? storedOrderId(r) : ``
 }));
 /**
 * Insert or update one billing item. When `providerUpdatedAt` is given and the stored row is newer, the write is
@@ -1587,6 +1595,35 @@ const lsClaimsFromAudit = (contexts) => {
 		conflicts: Object.keys(conflicted)
 	};
 };
+/**
+* Extend claims to subscriptions through the order that started them. Checkout webhooks for a new subscription are
+* usually logged as `order_created` (keyed by order ID), while the billing row is keyed by subscription ID; LS links
+* them via the subscription's `order_id`. A subscription claimed directly by a different user becomes a conflict.
+* Returns a new claims object; the input is not changed.
+*/
+const claimSubscriptionsByOrder = (claims, links) => {
+	const owners = { ...claims.owners };
+	const conflicted = {};
+	for (const key of claims.conflicts) conflicted[key] = true;
+	for (const link of links) {
+		const subKey = lsResourceKey("subscription", link.subscriptionId);
+		const orderKey = lsResourceKey("order", link.orderId);
+		if (!subKey || !orderKey || conflicted[subKey]) continue;
+		const buyer = claims.owners[orderKey];
+		if (!buyer) continue;
+		if (owners[subKey] && owners[subKey] !== buyer) {
+			conflicted[subKey] = true;
+			delete owners[subKey];
+			continue;
+		}
+		owners[subKey] = buyer;
+	}
+	return {
+		owners,
+		emails: claims.emails,
+		conflicts: Object.keys(conflicted)
+	};
+};
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/runReconcile.ts
@@ -1641,8 +1678,10 @@ const runReconcile = (opts = {}) => {
 	const storeId = process.env.LS_STORE_ID || $os.getenv(`LS_STORE_ID`);
 	if (!storeId) throw new BadRequestError(`LS_STORE_ID is not set`);
 	const onlyUser = opts.onlyUserId ? $app.findRecordById(`users`, opts.onlyUserId) : void 0;
-	const claims = lsClaimsFromAudit(lsAuditContexts());
-	const auditAlt = claims.emails;
+	const auditClaims = lsClaimsFromAudit(lsAuditContexts());
+	/** Extended below with subscriptions claimed through the order that started them. */
+	let claims = auditClaims;
+	const auditAlt = auditClaims.emails;
 	const emailsOf = (rec) => [...new Set([...lsEmailsFor(rec), ...auditAlt[rec.id] || []])];
 	const existsCache = {};
 	const userExists = (id) => {
@@ -1659,11 +1698,15 @@ const runReconcile = (opts = {}) => {
 		const owner = key ? claims.owners[key] : void 0;
 		return owner && userExists(owner) ? owner : void 0;
 	};
-	const ownedBy = {};
-	for (const key of Object.keys(claims.owners)) {
-		const userId = claims.owners[key];
-		(ownedBy[userId] = ownedBy[userId] || []).push(key);
-	}
+	let ownedBy = {};
+	const indexOwners = () => {
+		ownedBy = {};
+		for (const key of Object.keys(claims.owners)) {
+			const userId = claims.owners[key];
+			(ownedBy[userId] = ownedBy[userId] || []).push(key);
+		}
+	};
+	indexOwners();
 	const byEmail = {};
 	const byKey = {};
 	const unknown = [];
@@ -1708,6 +1751,22 @@ const runReconcile = (opts = {}) => {
 		}
 	}
 	if (!onlyUser && lsSubscriptionsSeen === 0) throw new Error(`Lemon Squeezy returned no subscriptions for store ${storeId}; refusing to reconcile`);
+	const holders = {};
+	const subscriptionOrders = [];
+	for (const row of loadAllLsBillingItems($app)) {
+		const key = lsResourceKeyOfItem(row.item);
+		if (key) holders[key] = row;
+		if (row.item.kind === `subscription` && row.orderId) subscriptionOrders.push({
+			subscriptionId: row.item.external_id,
+			orderId: row.orderId
+		});
+	}
+	for (const found of Object.values(byKey)) if (found.item.kind === `subscription`) subscriptionOrders.push({
+		subscriptionId: found.item.external_id,
+		orderId: found.providerData?.order_id
+	});
+	claims = claimSubscriptionsByOrder(auditClaims, subscriptionOrders);
+	indexOwners();
 	if (onlyUser) for (const key of ownedBy[onlyUser.id] || []) {
 		if (byKey[key]) continue;
 		const sep = key.indexOf(`:`);
@@ -1725,11 +1784,6 @@ const runReconcile = (opts = {}) => {
 		} catch (err) {
 			idFetchErrors.push(`${key}: ${err}`);
 		}
-	}
-	const holders = {};
-	for (const row of loadAllLsBillingItems($app)) {
-		const key = lsResourceKeyOfItem(row.item);
-		if (key) holders[key] = row;
 	}
 	const users = {};
 	const addUser = (rec) => {

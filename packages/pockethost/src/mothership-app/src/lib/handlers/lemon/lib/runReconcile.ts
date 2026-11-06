@@ -10,7 +10,12 @@ import {
   type LsOrderResource,
   type LsSubscriptionResource,
 } from '$common/billing/billingItems'
-import { lsClaimsFromAudit, lsResourceKeyOfItem, type LsResourceKey } from '$common/billing/lsClaims'
+import {
+  claimSubscriptionsByOrder,
+  lsClaimsFromAudit,
+  lsResourceKeyOfItem,
+  type LsResourceKey,
+} from '$common/billing/lsClaims'
 import { resolveUserEntitlements } from '$common/billing/resolveUserEntitlements'
 import {
   ensureBaseline,
@@ -122,8 +127,10 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   }
 
   const onlyUser = opts.onlyUserId ? $app.findRecordById(`users`, opts.onlyUserId) : undefined
-  const claims = lsClaimsFromAudit(lsAuditContexts())
-  const auditAlt = claims.emails
+  const auditClaims = lsClaimsFromAudit(lsAuditContexts())
+  /** Extended below with subscriptions claimed through the order that started them. */
+  let claims = auditClaims
+  const auditAlt = auditClaims.emails
   const emailsOf = (rec: core.Record) => [...new Set([...lsEmailsFor(rec), ...(auditAlt[rec.id] || [])])]
 
   const existsCache: { [id: string]: boolean } = {}
@@ -143,11 +150,15 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
     const owner = key ? claims.owners[key] : undefined
     return owner && userExists(owner) ? owner : undefined
   }
-  const ownedBy: { [userId: string]: LsResourceKey[] } = {}
-  for (const key of Object.keys(claims.owners)) {
-    const userId = claims.owners[key]!
-    ;(ownedBy[userId] = ownedBy[userId] || []).push(key)
+  let ownedBy: { [userId: string]: LsResourceKey[] } = {}
+  const indexOwners = () => {
+    ownedBy = {}
+    for (const key of Object.keys(claims.owners)) {
+      const userId = claims.owners[key]!
+      ;(ownedBy[userId] = ownedBy[userId] || []).push(key)
+    }
   }
+  indexOwners()
 
   // 1. Everything LS knows, grouped by lowercase email and indexed by resource.
   const byEmail: { [email: string]: Found[] } = {}
@@ -193,6 +204,23 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
     // An empty store-wide listing means an API/auth problem, never "everyone churned".
     throw new Error(`Lemon Squeezy returned no subscriptions for store ${storeId}; refusing to reconcile`)
   }
+  // Where every LS row lives right now.
+  const holders: { [key: LsResourceKey]: { userId: string; item: BillingItem } } = {}
+  const subscriptionOrders: { subscriptionId: string; orderId: unknown }[] = []
+  for (const row of loadAllLsBillingItems($app)) {
+    const key = lsResourceKeyOfItem(row.item)
+    if (key) holders[key] = row
+    if (row.item.kind === `subscription` && row.orderId)
+      subscriptionOrders.push({ subscriptionId: row.item.external_id, orderId: row.orderId })
+  }
+  // A new subscription's checkout is logged against its first order; carry that claim over to the subscription.
+  for (const found of Object.values(byKey)) {
+    if (found.item.kind === `subscription`)
+      subscriptionOrders.push({ subscriptionId: found.item.external_id, orderId: (found.providerData as any)?.order_id })
+  }
+  claims = claimSubscriptionsByOrder(auditClaims, subscriptionOrders)
+  indexOwners()
+
   if (onlyUser) {
     // An email search can't find purchases whose LS email has since changed; fetch the user's own ones by ID.
     for (const key of ownedBy[onlyUser.id] || []) {
@@ -213,13 +241,6 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
         idFetchErrors.push(`${key}: ${err}`)
       }
     }
-  }
-
-  // Where every LS row lives right now.
-  const holders: { [key: LsResourceKey]: { userId: string; item: BillingItem } } = {}
-  for (const row of loadAllLsBillingItems($app)) {
-    const key = lsResourceKeyOfItem(row.item)
-    if (key) holders[key] = row
   }
 
   // 2. Candidate users: anyone holding slots, anyone LS knows by email, anyone a checkout ties to a purchase or email.

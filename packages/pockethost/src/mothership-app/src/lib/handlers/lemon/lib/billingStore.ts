@@ -50,12 +50,24 @@ export const loadBillingItemRecords = (app: core.App, userId: string) =>
 export const loadBillingItems = (app: core.App, userId: string): BillingItem[] =>
   loadBillingItemRecords(app, userId).map(toItem)
 
-/** Every Lemon Squeezy row, with the user it is currently on. */
-export const loadAllLsBillingItems = (app: core.App): { userId: string; item: BillingItem }[] =>
+const storedOrderId = (rec: core.Record) => {
+  try {
+    return `${JSON.parse(rec.getString(`provider_data`) || `null`)?.order_id ?? ''}`
+  } catch {
+    return ``
+  }
+}
+
+/** Every Lemon Squeezy row, with the user it is currently on (and, for subscriptions, the order that started it). */
+export const loadAllLsBillingItems = (app: core.App): { userId: string; item: BillingItem; orderId: string }[] =>
   app
     .findRecordsByFilter(COLLECTION, `provider = 'lemonsqueezy'`, `created`, 0, 0)
     .filter((r): r is core.Record => !!r)
-    .map((r) => ({ userId: r.getString(`user`), item: toItem(r) }))
+    .map((r) => ({
+      userId: r.getString(`user`),
+      item: toItem(r),
+      orderId: r.getString(`kind`) === `subscription` ? storedOrderId(r) : ``,
+    }))
 
 /**
  * Insert or update one billing item. When `providerUpdatedAt` is given and the stored row is newer, the write is
