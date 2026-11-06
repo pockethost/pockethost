@@ -203,6 +203,7 @@ jobs:
 
       - name: Discord feature branch notification
         if: github.event_name == 'pull_request_target' || (github.event_name == 'push' && github.ref_name != env.MAIN_BRANCH)
+        continue-on-error: true
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
@@ -211,6 +212,7 @@ jobs:
 
       - name: Discord live branch notification
         if: github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH
+        continue-on-error: true
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
