@@ -55,7 +55,7 @@ See [pricing ethos](/docs/pricing-ethos).
 
 Change your account email at **[Account → Change email](/account/change-email)**. Enter a new address, confirm from the new inbox with your current password. Your old email stays active until you confirm. After confirmation, your [SFTP username](/docs/ftp) matches your account email.
 
-See [Account creation](/docs/account-creation).
+See [Account creation](/docs/getting-started).
 
 ### Account storage meters
 

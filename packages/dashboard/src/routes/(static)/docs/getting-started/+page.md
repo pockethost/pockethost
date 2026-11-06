@@ -11,10 +11,8 @@ Welcome to PocketHost! This guide will help you set up your first PocketBase ins
 The first step is to [create a PocketHost account](https://pockethost.io/get-started) and subscribe.
 
 - **Sign Up**: Visit [pockethost.io/get-started](https://pockethost.io/get-started).
-- **Email Verification**: Provide a valid email address and verify it through the confirmation email sent to you.
-- **Account Setup**: Complete your profile setup, and you're ready to go!
-
-_For detailed instructions, see [Account Creation](/docs/account-creation)._
+- **Email Verification**: Click the link in the confirmation email. You can't use instances until your email is verified. Unverified accounts and their instances are deleted after **7 days**.
+- **Changing your email**: Go to [Account → Change email](/account/change-email), enter the new address, and confirm from the new inbox with your current password. Your old email stays active until you confirm. Your [SFTP username](/docs/ftp) follows your account email.
 
 ## 2. Choose an Instance Name
 
@@ -24,8 +22,6 @@ After logging in, you can create a new PocketBase instance.
 - **Custom Name**: You can also choose a custom name that reflects your project or brand.
 
 **Note**: Instance names must be unique and comply with our naming guidelines.
-
-_Learn more in [Choosing an Instance Name](#)._
 
 ## 3. Accessing the Instance Admin Interface
 
@@ -41,8 +37,6 @@ Once your instance is created, you can access the PocketBase admin UI.
 https://myapp.pockethost.io/_
 ```
 
-_For more details, visit [Accessing the Admin Interface](#)._
-
 ## 4. Exploring the Instance Dashboard
 
 PocketHost provides a user-friendly dashboard to manage your instances.
@@ -52,8 +46,6 @@ PocketHost provides a user-friendly dashboard to manage your instances.
   - Start, stop, or restart instances.
   - View instance status and resource usage.
   - Configure settings and access logs.
-
-_See [Using the PocketHost Dashboard](#) for an in-depth guide._
 
 ## 5. Managing instance files (SFTP)
 
@@ -70,7 +62,7 @@ For watch-and-deploy from your project directory, use **[phio](/docs/phio)** (`p
 
 **Next Steps**:
 
-Now that you're set up, you can start building your application!
+Now that you're set up, read [How PocketHost Works](/docs/how-it-works) to see what's different from running PocketBase yourself. Then:
 
 - **Configure Your Database**: Set up collections and records in the admin UI.
 - **Integrate with Your App**: Connect your PocketBase instance to your web or mobile application.

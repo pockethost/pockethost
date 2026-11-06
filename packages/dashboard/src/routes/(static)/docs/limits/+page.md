@@ -39,7 +39,7 @@ Connecting from an address on your [Trusted IPs](/docs/trusted-ips) list uses th
 
 If you make many requests from the client, use the [Bottleneck NPM package](https://www.npmjs.com/package/bottleneck) to throttle efficiently.
 
-Exceeding rate limits often indicates a coding issue. Consider [JS Hooks](/docs/programming) for bulk fetching server-side instead of tight client polling.
+Exceeding rate limits often indicates a coding issue. Consider [JS Hooks](/docs/js) for bulk fetching server-side instead of tight client polling.
 
 If traffic comes from a shared server IP, see [Trusted IPs](/docs/trusted-ips) or [Server-Side PocketBase is an Anti-Pattern](/docs/server-side-pocketbase-antipattern).
 
@@ -74,7 +74,7 @@ These headers reflect the **edge firewall that handled the request**, not a glob
 
 ## Hibernation
 
-PocketHost instances may enter **hibernation** during inactivity. They wake on the next request, but the first request after hibernation may be slower.
+PocketHost instances may enter **hibernation** during inactivity. They wake on the next request, but the first request after hibernation may be slower. See [How PocketHost Works](/docs/how-it-works).
 
 ### Important Caveats
 

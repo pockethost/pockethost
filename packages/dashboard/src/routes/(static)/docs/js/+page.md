@@ -216,3 +216,9 @@ While Goja supports many ECMAScript features, there may be some limitations:
 ## Handling Absence of Node.js Standard Modules
 
 Since Node.js core modules are not available, you need to ensure that your code does not rely on them. If you need functionality provided by those modules, consider looking at [pocketbase-node](https://www.npmjs.com/package/pocketbase-node), which aims to provide a subset of Node.js modules compatible with PocketBase’s JSVM environment.
+
+## PocketPages and server-side rendering
+
+[PocketPages](https://pocketpages.dev) builds on the JSVM to serve server-rendered pages straight from PocketBase. Put your frontend in the same instance as your data, get SEO-friendly HTML, and skip a separate app server.
+
+For a fully static frontend, see [Static Assets](/docs/static-assets).

@@ -10,7 +10,7 @@ PocketHost instances can host static assets. Upload files to `pb_public` via [SF
 
 Static files from `pb_public` are served through PocketHost's edge and cached on the **Cloudflare CDN**. That is good for performance: repeat visitors get fast responses from the cache.
 
-It also has a downside. A **cache miss** (first request for a file, or after the cache expires) reaches your instance. If the instance is [hibernated](/docs/limits), that request **wakes it up** and counts toward usage. A busy site with many assets, or traffic that regularly misses cache, can keep your instance awake more than you expect.
+It also has a downside. A **cache miss** (first request for a file, or after the cache expires) reaches your instance. If the instance is [hibernated](/docs/how-it-works), that request **wakes it up** and counts toward usage. A busy site with many assets, or traffic that regularly misses cache, can keep your instance awake more than you expect.
 
 For small projects, prototypes, or apps where a few cache misses are fine, hosting everything on PocketHost is simple and works well.
 

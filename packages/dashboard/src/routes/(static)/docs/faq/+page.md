@@ -34,7 +34,7 @@ pockethost.io and PocketHost are highly stable, with over 99.964% uptime (see [S
 
 ### How often does my data get backed up?
 
-PocketHost does not back up your instance data. Backups are your responsibility. Use PocketBase's built-in backup tools in the admin panel, or download your files anytime over SFTP. See [Backup and Restore](/docs/backup-restore).
+PocketHost makes every effort to protect your data, but we recommend keeping your own backups. Use PocketBase's built-in backup tools in the admin panel, or download your files anytime over SFTP. See [Backup and Restore](/docs/backup-restore).
 
 ### Is my data safe and secure?
 

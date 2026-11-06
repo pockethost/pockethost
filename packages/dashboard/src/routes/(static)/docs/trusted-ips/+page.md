@@ -25,7 +25,7 @@ If you must route PocketBase traffic through your server:
 1. Add the proxy's public IP under [Account → Trusted IPs](/account/trusted-ips).
 2. Configure your proxy to send `X-PocketHost-Client-IP` with each request when you want per-user buckets.
 
-Before adding a proxy, read [Server-Side PocketBase is an Anti-Pattern](/docs/server-side-pocketbase-antipattern). Direct browser access or [JS Hooks](/docs/programming) is usually simpler.
+Before adding a proxy, read [Server-Side PocketBase is an Anti-Pattern](/docs/server-side-pocketbase-antipattern). Direct browser access or [JS Hooks](/docs/js) is usually simpler.
 
 ## Events and conferences
 

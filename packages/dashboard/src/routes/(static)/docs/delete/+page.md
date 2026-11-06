@@ -25,7 +25,7 @@ PocketHost holds the files for **30 days**, then removes them. During that windo
 
 That hold exists so we can recover from a mistaken delete. It is not a backup, and we do not guarantee recovery from it.
 
-**PocketHost does not back up your instance data.** If you might need the data later, create a backup with PocketBase's built-in backup tools before you delete. See [Backup and Restore](/docs/backup-restore).
+If you might need the data later, create a backup with PocketBase's built-in backup tools before you delete. See [Backup and Restore](/docs/backup-restore).
 
 ![](first-power-off.png)
 

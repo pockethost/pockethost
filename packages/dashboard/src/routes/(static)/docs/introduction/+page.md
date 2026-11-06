@@ -39,3 +39,14 @@ Here's all the Linux/devops stuff that PocketHost does for you:
 - Cloud computing or VPS deployment
 - CDN and static asset hosting
 - Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on
+
+## Who uses PocketHost
+
+- **Indie hackers and makers** who want to build, not manage servers
+- **Small businesses** running production PocketBase backends
+- **Developers** shipping prototypes, proofs of concept, and full apps
+- **Educators and students** learning web and mobile development
+
+## About
+
+[Ben Allfree](https://github.com/benallfree) started PocketHost in 2021 after setting up PocketBase by hand one too many times. PocketHost is open source under the MIT License. See [Pricing Ethos](/docs/pricing-ethos) for how pricing works and [How PocketHost Works](/docs/how-it-works) for what to expect from the platform.

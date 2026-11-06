@@ -4,7 +4,7 @@ description: Learn how to back up and restore your PocketBase instance
 ---
 # Backing Up and Restoring
 
-**PocketHost does not back up your instance data.** Backups are your responsibility. We expect you to use PocketBase's built-in backup tools (described below) if you want copies of your data.
+PocketHost makes every effort to protect your data, but you should always keep your own backups. Use PocketBase's built-in backup tools (described below) to make copies you control.
 
 PocketBase offers built-in backup and restore features, making it easy to secure your data and recover from potential issues. However, there are important considerations and alternative methods to ensure your backups are safe and reliable.
 
