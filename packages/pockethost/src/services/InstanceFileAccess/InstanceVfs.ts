@@ -1,12 +1,13 @@
-import { InstanceFields, Logger, PocketBase, ensureInstanceDirectoryStructure } from '@'
+import { InstanceFields, Logger, PocketBase, UserFields, ensureInstanceDirectoryStructure } from '@'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
 import { checkBun } from './bunSideEffects'
-import { assertInstanceContext, isExpectedVfsClientError, isVfsNotFoundError } from './errors'
+import { InstanceVfsUserError, assertInstanceContext, isExpectedVfsClientError, isVfsNotFoundError } from './errors'
 import * as fsAsync from './fs-async'
 import { POWERED_OFF_ONLY } from './guards'
 import { VfsScope, instanceAllowedByScope } from './scope'
+import { fileAccessSuspension } from './suspension'
 
 const UNIX_SEP_REGEX = /\//g
 const WIN_SEP_REGEX = /\\/g
@@ -95,11 +96,18 @@ export class InstanceVfs {
       const filter = this.scope
         ? `subdomain=${JSON.stringify(subdomain)} && uid=${JSON.stringify(this.scope.userId)}`
         : `subdomain=${JSON.stringify(subdomain)}`
-      const instance = await this.client.collection(`instances`).getFirstListItem<InstanceFields>(filter)
-      if (!instance) {
+      const { expand, ...instance } = await this.client
+        .collection(`instances`)
+        .getFirstListItem<InstanceFields & { expand?: { uid?: UserFields } }>(filter, { expand: `uid` })
+      if (!instance?.id) {
         throw new Error(`${subdomain} not found.`)
       }
       this.assertInstanceAccess(instance)
+      /** Checked before ensureInstanceDirectoryStructure so archived instances are never recreated. */
+      const suspension = fileAccessSuspension(expand?.uid, instance)
+      if (suspension) {
+        throw new InstanceVfsUserError(suspension)
+      }
       const instanceRootDir = restOfVirtualPath[0]
       if (instanceRootDir && POWERED_OFF_ONLY.includes(instanceRootDir) && instance.power) {
         throw new Error(`Instance must be powered off first`)

@@ -1,4 +1,5 @@
 import { PocketBase } from '@'
+import { fileAccessSuspension } from './suspension'
 
 export async function authenticateFileAccess(
   mothershipUrl: string,
@@ -11,8 +12,12 @@ export async function authenticateFileAccess(
     if (!client.authStore.isValid) {
       throw new Error(`Invalid cookie`)
     }
-    return client
+  } else {
+    await client.collection('users').authWithPassword(username, password)
   }
-  await client.collection('users').authWithPassword(username, password)
+  const suspension = fileAccessSuspension(client.authStore.record as { suspension?: string } | null)
+  if (suspension) {
+    throw new Error(suspension)
+  }
   return client
 }

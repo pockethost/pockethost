@@ -15,6 +15,7 @@ import ssh2 from 'ssh2'
 import { InstanceVfs } from '../../../../services/InstanceFileAccess/InstanceVfs'
 import type { SshKeyAuthResult } from '../../../../services/InstanceFileAccess/sshKeyAuth'
 import { findSshKeyByPublicKey, verifySshPublicKeySignature } from '../../../../services/InstanceFileAccess/sshKeyAuth'
+import { fileAccessSuspension } from '../../../../services/InstanceFileAccess/suspension'
 import { ensureHostKey } from './hostKey'
 import { attachSftpSession } from './SftpSession'
 
@@ -73,6 +74,12 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
             .then((result) => {
               if (!result) {
                 return ctx.reject(['publickey'])
+              }
+
+              const suspension = fileAccessSuspension(result.user)
+              if (suspension) {
+                dbg(`Rejecting SFTP login for suspended account`, { username })
+                return ctx.reject()
               }
 
               if (!pkCtx.signature) {
