@@ -7,11 +7,13 @@ import {
   InstanceStatus,
   LoggerService,
   mkSingleton,
+  PH_MIRROR_DRIFT_CHECK_MS,
   PocketBase,
   SingletonBaseConfig,
   UserFields,
   UserId,
 } from '@'
+import { findMirrorDrift, toPbDate, type MirrorDrift } from './drift'
 
 export type MirrorLiveInstance = {
   id: InstanceId
@@ -38,7 +40,7 @@ export type MothershipMirrorServiceConfig = SingletonBaseConfig & {
 
 export const MothershipMirrorService = mkSingleton(async (config: MothershipMirrorServiceConfig) => {
   const logger = (config.logger ?? LoggerService()).create(`MothershipMirrorService`)
-  const { dbg, error } = logger
+  const { dbg, info, warn, error } = logger
 
   const [onInstanceUpserted, fireInstanceUpserted] = createEvent<InstanceFields>()
   const [onInstanceDeleted, fireInstanceDeleted] = createEvent<InstanceId>()
@@ -113,6 +115,34 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     instances.forEach((instance) => upsertInstance(instance))
   }
 
+  /** Events the realtime subscription should have delivered but didn't are only reported once the change is this old. */
+  const DRIFT_GRACE_MS = 10 * 1000
+  let initialSyncDone = false
+
+  const reportDrift = (collection: string, source: string, drifts: MirrorDrift<{ id: string; updated: string }>[]) => {
+    for (const { record, kind, changedKeys } of drifts) {
+      warn(`Mirror drift (${source}): ${kind} ${collection} ${record.id} [${changedKeys.join(', ')}]`)
+    }
+  }
+
+  /** Store records the mirror missed and fire the events realtime would have fired. */
+  const applyDrift = (
+    source: string,
+    instanceDrift: MirrorDrift<InstanceFields>[],
+    userDrift: MirrorDrift<UserFields>[]
+  ) => {
+    reportDrift(`user`, source, userDrift)
+    reportDrift(`instance`, source, instanceDrift)
+    for (const { record } of userDrift) {
+      upsertUser(record)
+      fireUserUpserted(record)
+    }
+    for (const { record } of instanceDrift) {
+      upsertInstance(record)
+      fireInstanceUpserted(record)
+    }
+  }
+
   const syncMirror = async (options: MirrorSyncOptions = {}) => {
     const { instances = [], resetIdle = false } = options
     dbg(`syncMirror`, { live: instances.length, resetIdle })
@@ -124,7 +154,17 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
       method: `POST`,
       body: { instances, resetIdle },
     })
+    if (initialSyncDone) {
+      // A resync after a reconnect must act on changes missed while disconnected, not just store them.
+      const cutoff = toPbDate(Date.now() - DRIFT_GRACE_MS)
+      applyDrift(
+        `resync`,
+        findMirrorDrift((id) => mirror.instancesById[id], mirrorInstances, cutoff),
+        findMirrorDrift((id) => mirror.users[id], users, cutoff)
+      )
+    }
     applyMirrorDump(users, mirrorInstances)
+    initialSyncDone = true
     dbg(`synced mirror: ${mirrorInstances.length} instances, ${users.length} users, ${updated} live`)
   }
 
@@ -196,6 +236,43 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
       }
     })
     .catch(error)
+
+  /**
+   * Safety net for missed realtime events: periodically fetch recently updated records and apply any the mirror doesn't
+   * have. Each one found is logged as drift so missed events can be measured.
+   */
+  const driftCheckMs = PH_MIRROR_DRIFT_CHECK_MS()
+  if (driftCheckMs > 0) {
+    let since = Date.now()
+    let checking = false
+    const checkDrift = async () => {
+      if (!initialSyncDone || checking) return
+      checking = true
+      const start = Date.now()
+      try {
+        const filter = client.filter(`updated >= {:from}`, { from: toPbDate(since - DRIFT_GRACE_MS) })
+        const [instances, users] = await Promise.all([
+          client.collection(`instances`).getFullList<InstanceFields>({ filter, batch: 500 }),
+          client.collection(`users`).getFullList<UserFields>({ filter, batch: 500 }),
+        ])
+        const cutoff = toPbDate(start - DRIFT_GRACE_MS)
+        const instanceDrift = findMirrorDrift((id) => mirror.instancesById[id], instances, cutoff)
+        const userDrift = findMirrorDrift((id) => mirror.users[id], users, cutoff)
+        applyDrift(`poll`, instanceDrift, userDrift)
+        dbg(
+          `drift check: ${instances.length} instances, ${users.length} users, ${instanceDrift.length + userDrift.length} drifted`
+        )
+        // Records newer than the cutoff were not judged yet; overlap the next window so they are.
+        since = start - DRIFT_GRACE_MS
+      } catch (e) {
+        error(`Mirror drift check failed; will retry`, { e })
+      } finally {
+        checking = false
+      }
+    }
+    setInterval(() => void checkDrift(), driftCheckMs).unref()
+    info(`Mirror drift check every ${driftCheckMs}ms`)
+  }
 
   const api = {
     async getInstance(id: InstanceId) {

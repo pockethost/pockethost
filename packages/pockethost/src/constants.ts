@@ -93,6 +93,8 @@ export const createSettings = () => ({
   DAEMON_PORT: mkNumber(3000),
   DAEMON_PB_IDLE_TTL: mkNumber(1000 * 5), // 5 seconds
   PH_CONTAINER_LAUNCH_WARN_MS: mkNumber(200),
+  /** How often edge services re-check the mothership for changes their realtime mirror missed. 0 disables. */
+  PH_MIRROR_DRIFT_CHECK_MS: mkNumber(60 * 1000),
   PH_CONTAINER_STOP_TIMEOUT_SEC: mkNumber(5),
   PH_CONTAINER_NOFILE_SOFT: mkNumber(_PH_CONTAINER_NOFILE_SOFT),
   PH_CONTAINER_NOFILE_HARD: mkNumber(_PH_CONTAINER_NOFILE_HARD),
@@ -201,6 +203,7 @@ export const PH_USER_PROXY_IPS = () => settings().PH_USER_PROXY_IPS
 export const DAEMON_PORT = () => settings().DAEMON_PORT
 export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
+export const PH_MIRROR_DRIFT_CHECK_MS = () => settings().PH_MIRROR_DRIFT_CHECK_MS
 export const PH_CONTAINER_STOP_TIMEOUT_SEC = () => settings().PH_CONTAINER_STOP_TIMEOUT_SEC
 export const PH_CONTAINER_NOFILE_SOFT = () => settings().PH_CONTAINER_NOFILE_SOFT
 export const PH_CONTAINER_NOFILE_HARD = () => settings().PH_CONTAINER_NOFILE_HARD
@@ -312,6 +315,7 @@ export const logConstants = () => {
     DAEMON_PORT,
     DAEMON_PB_IDLE_TTL,
     PH_CONTAINER_LAUNCH_WARN_MS,
+    PH_MIRROR_DRIFT_CHECK_MS,
     PH_CONTAINER_STOP_TIMEOUT_SEC,
     PH_CONTAINER_NOFILE_SOFT,
     PH_CONTAINER_NOFILE_HARD,

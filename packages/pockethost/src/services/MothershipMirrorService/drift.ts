@@ -1,0 +1,40 @@
+type MirroredRecord = { id: string; updated: string }
+
+export type MirrorDrift<T extends MirroredRecord> = {
+  record: T
+  /** `missing`: not in the mirror at all. `stale`: the mirror holds an older version. */
+  kind: 'missing' | 'stale'
+  /** Names of fields whose values differ. Names only, never values (they can hold secrets). */
+  changedKeys: string[]
+}
+
+const IGNORED_KEYS = new Set(['updated', 'created', 'collectionId', 'collectionName', 'expand'])
+
+export const changedKeys = (before: object, after: object): string[] => {
+  const a = before as Record<string, unknown>
+  const b = after as Record<string, unknown>
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  return [...keys].filter((k) => !IGNORED_KEYS.has(k) && JSON.stringify(a[k]) !== JSON.stringify(b[k])).sort()
+}
+
+/** PocketBase stores datetimes as `YYYY-MM-DD HH:MM:SS.sssZ`, which sorts lexicographically. */
+export const toPbDate = (ms: number) => new Date(ms).toISOString().replace('T', ' ')
+
+/**
+ * Compares records fetched from the mothership against the mirror and returns the ones the mirror missed.
+ *
+ * Records updated after `cutoff` are skipped: their realtime event may still be in flight, so they are not yet evidence
+ * of a missed event. The next check picks them up.
+ */
+export const findMirrorDrift = <T extends MirroredRecord>(
+  getMirrored: (id: string) => T | undefined,
+  fetched: T[],
+  cutoff: string
+): MirrorDrift<T>[] =>
+  fetched.flatMap((record): MirrorDrift<T>[] => {
+    if (record.updated > cutoff) return []
+    const mirrored = getMirrored(record.id)
+    if (!mirrored) return [{ record, kind: 'missing', changedKeys: [] }]
+    if (mirrored.updated >= record.updated) return []
+    return [{ record, kind: 'stale', changedKeys: changedKeys(mirrored, record) }]
+  })
