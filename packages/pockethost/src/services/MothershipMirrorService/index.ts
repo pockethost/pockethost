@@ -10,6 +10,7 @@ import {
   PH_MIRROR_DRIFT_CHECK_MS,
   PH_MIRROR_STALL_MS,
   PocketBase,
+  shouldEnsureInstanceDirectories,
   SingletonBaseConfig,
   UserFields,
   UserId,
@@ -79,7 +80,10 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     if (record.cname) {
       mirror.instancesByCname[record.cname] = record
     }
-    ensureInstanceDirectoryStructure(record.id, logger)
+    // Users are applied before instances in a dump, so the owner is normally known here.
+    if (shouldEnsureInstanceDirectories(record, mirror.users[record.uid])) {
+      ensureInstanceDirectoryStructure(record.id, logger)
+    }
   }
 
   const deleteInstance = (id: InstanceId) => {

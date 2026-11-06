@@ -15,6 +15,7 @@ import {
   PocketBase,
   UserFields,
   deleteInstanceArchive,
+  dirHasAnyFile,
   downloadInstanceArchive,
   fmtDate,
   isArchiveExpired,
@@ -329,7 +330,14 @@ export const restoreArchivedInstance = async (instanceId: string) => {
     )
   }
   const dir = mkInstanceDataPath(instanceId)
-  if (existsSync(dir)) throw new Error(`${dir} already exists; refusing to overwrite`)
+  if (existsSync(dir)) {
+    // An empty skeleton (recreated by older mirror code) is fine to replace; real data is not.
+    if (dirHasAnyFile(mkInstanceDataPath(instanceId, `pb_data`))) {
+      throw new Error(`${dir}/pb_data already has files; refusing to overwrite`)
+    }
+    info(`Removing empty skeleton folder ${dir}`)
+    rmSync(dir, { recursive: true, force: true })
+  }
 
   info(`Restoring ${instance.subdomain} (${instanceId}) from ${PH_ARCHIVE_REMOTE()}`)
   await downloadInstanceArchive(PH_ARCHIVE_REMOTE(), instanceId, resolve(INSTANCES_ROOT()))
