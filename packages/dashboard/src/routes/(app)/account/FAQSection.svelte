@@ -18,17 +18,6 @@
       </p>
     </FAQItem>
 
-    <FAQItem question="Giving Back to the Open Source Community">
-      <p class="mb-4">
-        PocketHost is committed to giving back to the open source community that helps create PocketHost and PocketBase.
-      </p>
-      <p class="mb-4">
-        10% of net proceeds (after expenses) are donated back to the community. Specifically, PocketHost makes donations
-        to the PocketBase project and major contributors to the PocketHost project.
-      </p>
-      <p>In addition, 1% of membership fees is collected by Stripe to reduce carbon footprints around the world.</p>
-    </FAQItem>
-
     <FAQItem question="Fair Use Policy">
       <p class="mb-4">
         When we say 'unlimited', we mean it in the Fair Use sense of the word. Obviously, everything has limits. In our

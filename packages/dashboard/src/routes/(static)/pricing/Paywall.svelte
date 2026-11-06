@@ -18,6 +18,7 @@
 
   const slotStorage = `${DB_STORAGE_MB_PER_INSTANCE} MB DB data storage + ${FILE_STORAGE_GB_PER_INSTANCE} GB file storage per PocketBase`
   const sharedFeatures = [
+    '7 day risk-free trial',
     slotStorage,
     'Storage adds to your account pool, shared across every PocketBase you run',
     'Cloudflare CDN and DDoS protection',
@@ -38,7 +39,7 @@
     price="$9.99"
     priceDetail="per PocketBase, per month"
     cta="Each slot includes {DB_STORAGE_MB_PER_INSTANCE} MB DB data storage and {FILE_STORAGE_GB_PER_INSTANCE} GB file storage. Add another PocketBase, add another slot."
-    features={['7 day risk-free trial', ...sharedFeatures]}
+    features={sharedFeatures}
   />
   <SignupBox
     pvId={INSTANCE_ANNUAL_PV_ID}
@@ -50,7 +51,11 @@
     price="$59.99"
     priceDetail="per PocketBase, per year"
     cta="Same slot entitlements as monthly. Billed once per year."
-    features={[`Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo when paid annually`, ...sharedFeatures]}
+    features={[
+      sharedFeatures[0],
+      `Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo when paid annually`,
+      ...sharedFeatures.slice(1),
+    ]}
   />
   <SignupBox
     pvId={INSTANCE_LIFETIME_PV_ID}
@@ -59,7 +64,12 @@
     priceDetail="once per PocketBase"
     title="Lifetime"
     cta="Pay once per slot for lifetime Pay Per PocketBase hosting. No recurring fees."
-    features={['Lifetime access per slot purchased', 'No recurring fees', ...sharedFeatures]}
+    features={[
+      sharedFeatures[0],
+      'Lifetime access per slot purchased',
+      'No recurring fees',
+      ...sharedFeatures.slice(1),
+    ]}
   />
 </div>
 

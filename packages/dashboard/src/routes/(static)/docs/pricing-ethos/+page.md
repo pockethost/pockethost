@@ -17,7 +17,7 @@ Each paid slot adds:
 Create **unlimited instance records**. Your slot count (`subscription_quantity`) sets how many PocketBases you can **power on** at once. Add another slot, add another PocketBase.
 
 - **Fair use bandwidth and CPU** on all paid slots
-- **7-day risk-free trial** on monthly signup
+- **7-day risk-free trial** on every plan
 - **Community support** on Discord for everyone
 
 See [pricing](/pricing) for checkout.

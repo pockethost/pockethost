@@ -43,6 +43,6 @@ Founded by [Ben Allfree](https://github.com/benallfree) in 2021, PocketHost was 
 
 - **Generous Project Limits**: Create and manage multiple projects within our fair use guidelines.
 - **Fair Use Resources**: Generous allocation of storage, bandwidth, and CPU based on fair use.
-- **Simple Pricing**: [Pay Per PocketBase](/pricing) at $9.99/mo per slot (or annual/lifetime options). 7-day trial on monthly signup.
+- **Simple Pricing**: [Pay Per PocketBase](/pricing) at $9.99/mo per slot (or annual/lifetime options). 7-day risk-free trial on every plan.
 - **Easy Integration**: Seamlessly integrate with PocketBase and other tools.
 - **Community Support**: Access to a community of like-minded developers and comprehensive documentation.
