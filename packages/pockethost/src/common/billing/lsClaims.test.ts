@@ -93,11 +93,7 @@ describe('lsClaimsFromAudit', () => {
 
 describe('claimSubscriptionsByOrder', () => {
   const base = () =>
-    lsClaimsFromAudit([
-      webhook('u1', 'orders', 100),
-      webhook('u2', 'orders', 200),
-      webhook('u3', 'subscriptions', 20),
-    ])
+    lsClaimsFromAudit([webhook('u1', 'orders', 100), webhook('u2', 'orders', 200), webhook('u3', 'subscriptions', 20)])
 
   it('gives a subscription to whoever bought the order that started it', () => {
     const claims = claimSubscriptionsByOrder(base(), [

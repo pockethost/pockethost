@@ -11,3 +11,4 @@ forks
 
 packages/pockethost/src/mothership-app/pb_hooks
 **/types.d.ts
+.claude

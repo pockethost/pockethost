@@ -216,7 +216,10 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   // A new subscription's checkout is logged against its first order; carry that claim over to the subscription.
   for (const found of Object.values(byKey)) {
     if (found.item.kind === `subscription`)
-      subscriptionOrders.push({ subscriptionId: found.item.external_id, orderId: (found.providerData as any)?.order_id })
+      subscriptionOrders.push({
+        subscriptionId: found.item.external_id,
+        orderId: (found.providerData as any)?.order_id,
+      })
   }
   claims = claimSubscriptionsByOrder(auditClaims, subscriptionOrders)
   indexOwners()
