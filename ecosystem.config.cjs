@@ -37,5 +37,12 @@ module.exports = {
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
       script: 'pnpm prod:cli edge purge-orphans',
     },
+    {
+      // Off until the manual rollout runs are done: `pm2 start edge-archive-stale` to enable.
+      name: `edge-archive-stale`,
+      autostart: false,
+      restart_delay: 60 * 60 * 1000 * 24, // 1 day
+      script: 'pnpm prod:cli edge archive stale --apply --max-instances 200 --max-gb 100',
+    },
   ],
 }

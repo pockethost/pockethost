@@ -269,6 +269,15 @@ export const DISCORD_ALERT_CHANNEL_URL = () => env.get('DISCORD_ALERT_CHANNEL_UR
 export const DISCORD_TEST_CHANNEL_URL = () => env.get('DISCORD_TEST_CHANNEL_URL').asString()
 export const DISCORD_STREAM_CHANNEL_URL = () => env.get('DISCORD_STREAM_CHANNEL_URL').asString()
 
+/** Rclone path holding instance archives (`<remote>:<bucket>/<prefix>`). */
+export const PH_ARCHIVE_REMOTE = () => env.get('PH_ARCHIVE_REMOTE').default('sfo-2-data:sfo-2-data/archive').asString()
+/** HMAC key for archive download links. Falls back to PH_SECRET. */
+export const PH_ARCHIVE_LINK_SECRET = () =>
+  env.get('PH_ARCHIVE_LINK_SECRET').asString() || env.get('PH_SECRET').asString() || ''
+/** Public origin serving `/_ph/archive/:id` (the firewall, on the mothership host). */
+export const PH_ARCHIVE_LINK_ORIGIN = () =>
+  env.get('PH_ARCHIVE_LINK_ORIGIN').asString() || `${_HTTP_PROTOCOL}//${_MOTHERSHIP_NAME}.${_APEX_DOMAIN}`
+
 export const MOTHERSHIP_CLOUDFLARE_API_TOKEN = () => settings().MOTHERSHIP_CLOUDFLARE_API_TOKEN
 export const MOTHERSHIP_CLOUDFLARE_ZONE_ID = () => settings().MOTHERSHIP_CLOUDFLARE_ZONE_ID
 export const MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID = () => settings().MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID

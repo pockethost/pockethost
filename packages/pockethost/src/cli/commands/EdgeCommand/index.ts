@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { ArchiveCommand } from './ArchiveCommand'
 import { DaemonCommand } from './DaemonCommand'
 import { FtpCommand } from './FtpCommand'
 import { PurgeOrphansCommand } from './PurgeOrphansCommand'
@@ -13,6 +14,7 @@ export const EdgeCommand = () => {
 
   cmd
     .addCommand(PurgeOrphansCommand())
+    .addCommand(ArchiveCommand())
     .addCommand(VacuumCommand())
     .addCommand(DaemonCommand())
     .addCommand(FtpCommand())
