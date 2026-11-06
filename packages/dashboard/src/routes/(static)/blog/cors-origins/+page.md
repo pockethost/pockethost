@@ -14,7 +14,7 @@ The edge applies it within a few seconds, with no restart. Matching works like P
 
 Instances without the secret don't change at all.
 
-### One trade-off
+### Caching
 
 Cloudflare's cache doesn't keep a copy per origin, so with a list set, Cloudflare stops caching your instance's files. Browsers still cache them.
 
