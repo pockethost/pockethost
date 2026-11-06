@@ -207,18 +207,6 @@ describe('firewall instance CORS end to end', () => {
   it('* in the secret behaves like allow-all', async () => {
     const res = await request(firewall).get('/x').set('Host', 'star.test').set('Origin', 'https://evil.test')
     expect(res.headers['access-control-allow-origin']).toBe('*')
-    expect(res.headers['cloudflare-cdn-cache-control']).toBeUndefined()
-  })
-
-  it('restricted list: tells Cloudflare not to cache, for every origin and preflights', async () => {
-    for (const origin of ['https://good.test', 'https://evil.test']) {
-      const res = await request(firewall).get('/x').set('Host', 'locked.test').set('Origin', origin)
-      expect(res.headers['cloudflare-cdn-cache-control']).toBe('no-store')
-    }
-    const noOrigin = await request(firewall).get('/x').set('Host', 'locked.test')
-    expect(noOrigin.headers['cloudflare-cdn-cache-control']).toBe('no-store')
-    const open = await request(firewall).get('/x').set('Host', 'open.test')
-    expect(open.headers['cloudflare-cdn-cache-control']).toBeUndefined()
   })
 
   it('requests without Origin are untouched apart from CORS headers', async () => {

@@ -13,7 +13,7 @@ To allow only your own sites, add a [secret](/docs/secrets) named `PH_CORS_ORIGI
 https://app.example.com, https://admin.example.com, http://localhost:5173
 ```
 
-It takes effect within a few seconds. You don't need to restart the instance.
+It takes effect within a few seconds. You don't need to restart the instance. Files Cloudflare has already cached update when they expire (see Cached files below).
 
 ## Format
 
@@ -38,13 +38,13 @@ When `PH_CORS_ORIGINS` is set, it replaces any CORS headers your own hooks send.
 
 CORS only affects browsers. It doesn't stop scripts, servers or apps from calling your API. Use [API rules](https://pocketbase.io/docs/api-rules-and-filters/) for access control.
 
-## Caching
+## Cached files
 
-Cloudflare's cache doesn't keep a separate copy per origin. So when `PH_CORS_ORIGINS` has a list (anything but `*`), PocketHost tells Cloudflare not to cache your instance's responses. Browsers still cache them as usual. Files such as images in `pb_public` or `/api/files` are then served from your instance each time instead of from Cloudflare's cache.
+Cloudflare caches some files, such as images in `pb_public` and files served from `/api/files`, separately for each origin, so CORS works for cached files too. If you change `PH_CORS_ORIGINS`, copies Cloudflare has already cached keep their old CORS header until they expire.
 
 ## Turning it off
 
-Delete the secret. Within a few seconds every origin is allowed again.
+Delete the secret. Within a few seconds every origin is allowed again, apart from files Cloudflare has already cached.
 
 ## Leaving PocketHost
 

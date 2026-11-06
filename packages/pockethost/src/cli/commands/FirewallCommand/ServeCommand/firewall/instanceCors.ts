@@ -111,11 +111,6 @@ export const createInstanceCorsMiddleware = ({ getInstanceSecrets }: InstanceCor
     const allowOrigin = resolveAllowOrigin(origins, req.headers.origin)
     res.locals[LOCALS_KEY] = { allowOrigin } satisfies InstanceCorsPolicy
     appendVary(res, 'Origin')
-    if (!origins.includes('*')) {
-      // Cloudflare ignores `Vary: Origin`, so a cached file would be served with whatever CORS header the first
-      // requester got. Keep Cloudflare from caching these responses; browsers still follow Cache-Control.
-      res.setHeader('Cloudflare-CDN-Cache-Control', 'no-store')
-    }
     if (allowOrigin) {
       res.setHeader('Access-Control-Allow-Origin', allowOrigin)
     }
@@ -147,11 +142,7 @@ export const createInstanceCorsMiddleware = ({ getInstanceSecrets }: InstanceCor
 export const rewriteProxiedCorsHeaders = (proxyRes: IncomingMessage, res: Response) => {
   if (!getInstanceCorsPolicy(res)) return
   for (const name of Object.keys(proxyRes.headers)) {
-    const lower = name.toLowerCase()
-    if (
-      lower.startsWith('access-control-allow-') ||
-      (lower === 'cloudflare-cdn-cache-control' && res.hasHeader(lower))
-    ) {
+    if (name.toLowerCase().startsWith('access-control-allow-')) {
       delete proxyRes.headers[name]
     }
   }
