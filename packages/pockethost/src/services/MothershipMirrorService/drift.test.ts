@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { changedKeys, findMirrorDrift, toPbDate } from './drift'
+import { changedKeys, findMirrorDrift, isOlderThanMirrored, toPbDate } from './drift'
 
 type Rec = { id: string; updated: string; power?: boolean; secrets?: Record<string, string>; status?: string }
 
@@ -55,5 +55,25 @@ describe('findMirrorDrift', () => {
     const mirrored: Rec = { id: 'ws', updated: T0, power: true }
     const fetched: Rec = { id: 'ws', updated: '2026-11-06 10:00:05.000Z', power: false }
     expect(findMirrorDrift(mirrorOf(mirrored), [fetched], CUTOFF)).toEqual([])
+  })
+})
+
+describe('isOlderThanMirrored', () => {
+  it('rejects an event older than the mirrored copy (out-of-order delivery)', () => {
+    // Two rapid updates; PocketBase delivers the newer one first, then the older one.
+    const newer: Rec = { id: 'a', updated: '2026-11-06 15:40:00.120Z', status: 'running' }
+    const older: Rec = { id: 'a', updated: '2026-11-06 15:40:00.050Z', status: 'starting' }
+    expect(isOlderThanMirrored(newer, older)).toBe(true)
+  })
+
+  it('accepts newer events, equal timestamps, and records not yet mirrored', () => {
+    expect(isOlderThanMirrored({ id: 'a', updated: T0 }, { id: 'a', updated: T1 })).toBe(false)
+    expect(isOlderThanMirrored({ id: 'a', updated: T1 }, { id: 'a', updated: T1 })).toBe(false)
+    expect(isOlderThanMirrored(undefined, { id: 'a', updated: T1 })).toBe(false)
+  })
+
+  it('accepts when either side has no timestamp', () => {
+    expect(isOlderThanMirrored({ id: 'a', updated: '' }, { id: 'a', updated: T0 })).toBe(false)
+    expect(isOlderThanMirrored({ id: 'a', updated: T1 }, { id: 'a', updated: '' })).toBe(false)
   })
 })

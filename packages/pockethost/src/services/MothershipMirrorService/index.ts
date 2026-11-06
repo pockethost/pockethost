@@ -8,12 +8,13 @@ import {
   LoggerService,
   mkSingleton,
   PH_MIRROR_DRIFT_CHECK_MS,
+  PH_MIRROR_STALL_MS,
   PocketBase,
   SingletonBaseConfig,
   UserFields,
   UserId,
 } from '@'
-import { findMirrorDrift, toPbDate, type MirrorDrift } from './drift'
+import { findMirrorDrift, isOlderThanMirrored, toPbDate, type MirrorDrift } from './drift'
 
 export type MirrorLiveInstance = {
   id: InstanceId
@@ -110,9 +111,19 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     }
   }
 
+  /** Realtime/resync records skipped because the mirror already held a newer version (out-of-order delivery). */
+  let staleSkipped = 0
+
   const applyMirrorDump = (users: UserFields[], instances: InstanceFields[]) => {
-    users.forEach((user) => upsertUser(user))
-    instances.forEach((instance) => upsertInstance(instance))
+    // The dump is built before it is sent; a realtime event may have delivered a newer version meanwhile.
+    users.forEach((user) => {
+      if (isOlderThanMirrored(mirror.users[user.id], user)) return void staleSkipped++
+      upsertUser(user)
+    })
+    instances.forEach((instance) => {
+      if (isOlderThanMirrored(mirror.instancesById[instance.id], instance)) return void staleSkipped++
+      upsertInstance(instance)
+    })
   }
 
   /** Events the realtime subscription should have delivered but didn't are only reported once the change is this old. */
@@ -191,51 +202,87 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     }
   }
 
+  /** Time of the last realtime message from the mothership, used to detect a stalled or blind stream. */
+  let lastRealtimeAt = Date.now()
   let sseConnectedOnce = false
-  client.realtime
-    .subscribe(`PB_CONNECT`, () => {
-      if (!sseConnectedOnce) {
-        sseConnectedOnce = true
-        return
-      }
-      dbg(`mothership SSE reconnected, syncing mirror with live instances`)
-      fireResynced(undefined)
-    })
-    .catch(error)
 
-  client
-    .collection(`instances`)
-    .subscribe<InstanceFields>(`*`, (e) => {
-      const { action, record } = e
-      if (action === `create` || action === `update`) {
-        dbg(`instance`, { action, record })
-        upsertInstance(record)
-        fireInstanceUpserted(record)
-      }
-      if (action === `delete`) {
-        dbg(`instance`, { action, record })
-        deleteInstance(record.id)
-        fireInstanceDeleted(record.id)
-      }
-    })
-    .catch(error)
+  // Fires on server closes (PocketBase force-closes every SSE connection after 30 min, or 5 min idle), mothership
+  // restarts, and our own forced reconnects. Messages published while disconnected are lost; the resync below catches up.
+  client.realtime.onDisconnect = (activeSubscriptions) => {
+    info(`Realtime disconnected (${activeSubscriptions.length} active subscriptions)`)
+  }
 
-  client
-    .collection(`users`)
-    .subscribe<UserFields>(`*`, (e) => {
-      const { action, record } = e
-      if (action === `create` || action === `update`) {
-        dbg(`user`, { action, record })
-        upsertUser(record)
-        fireUserUpserted(record)
-      }
-      if (action === `delete`) {
-        dbg(`user`, { action, record })
-        deleteUser(record.id)
-        fireUserDeleted(record.id)
-      }
-    })
-    .catch(error)
+  const subscribeAll = () =>
+    Promise.all([
+      client.realtime.subscribe(`PB_CONNECT`, () => {
+        lastRealtimeAt = Date.now()
+        if (!sseConnectedOnce) {
+          sseConnectedOnce = true
+          info(`Realtime connected`)
+          return
+        }
+        info(`Realtime reconnected; resyncing mirror`)
+        fireResynced(undefined)
+      }),
+
+      client.collection(`instances`).subscribe<InstanceFields>(`*`, (e) => {
+        lastRealtimeAt = Date.now()
+        const { action, record } = e
+        if (action === `create` || action === `update`) {
+          if (isOlderThanMirrored(mirror.instancesById[record.id], record)) {
+            staleSkipped++
+            dbg(`Skipping out-of-order instance event`, { id: record.id, updated: record.updated })
+            return
+          }
+          dbg(`instance`, { action, record })
+          upsertInstance(record)
+          fireInstanceUpserted(record)
+        }
+        if (action === `delete`) {
+          dbg(`instance`, { action, record })
+          deleteInstance(record.id)
+          fireInstanceDeleted(record.id)
+        }
+      }),
+
+      client.collection(`users`).subscribe<UserFields>(`*`, (e) => {
+        lastRealtimeAt = Date.now()
+        const { action, record } = e
+        if (action === `create` || action === `update`) {
+          if (isOlderThanMirrored(mirror.users[record.id], record)) {
+            staleSkipped++
+            dbg(`Skipping out-of-order user event`, { id: record.id, updated: record.updated })
+            return
+          }
+          dbg(`user`, { action, record })
+          upsertUser(record)
+          fireUserUpserted(record)
+        }
+        if (action === `delete`) {
+          dbg(`user`, { action, record })
+          deleteUser(record.id)
+          fireUserDeleted(record.id)
+        }
+      }),
+    ])
+
+  subscribeAll().catch(error)
+
+  /** Drop the SSE connection and subscribe again. The new PB_CONNECT triggers a resync. */
+  let reconnecting = false
+  const forceReconnect = async () => {
+    if (reconnecting) return
+    reconnecting = true
+    try {
+      await client.realtime.unsubscribe()
+      await subscribeAll()
+      lastRealtimeAt = Date.now()
+    } catch (e) {
+      error(`Forced realtime reconnect failed; will retry on the next check`, { e })
+    } finally {
+      reconnecting = false
+    }
+  }
 
   /**
    * Safety net for missed realtime events: periodically fetch recently updated records and apply any the mirror doesn't
@@ -245,6 +292,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   if (driftCheckMs > 0) {
     let since = Date.now()
     let checking = false
+    const stallMs = PH_MIRROR_STALL_MS()
     const checkDrift = async () => {
       if (!initialSyncDone || checking) return
       checking = true
@@ -259,6 +307,19 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
         const instanceDrift = findMirrorDrift((id) => mirror.instancesById[id], instances, cutoff)
         const userDrift = findMirrorDrift((id) => mirror.users[id], users, cutoff)
         applyDrift(`poll`, instanceDrift, userDrift)
+        if (staleSkipped > 0) {
+          info(`Realtime: ignored ${staleSkipped} out-of-order event(s) since the last check`)
+          staleSkipped = 0
+        }
+        // The mothership changes constantly, so silence while it has changes means the stream is dead or blind
+        // (e.g. subscribed without the auth that instance events require).
+        const silentMs = Date.now() - lastRealtimeAt
+        if (instances.length + users.length > 0 && silentMs > stallMs) {
+          warn(
+            `Realtime stalled: no mothership event for ${Math.round(silentMs / 1000)}s while ${instances.length + users.length} record(s) changed; forcing reconnect`
+          )
+          await forceReconnect()
+        }
         dbg(
           `drift check: ${instances.length} instances, ${users.length} users, ${instanceDrift.length + userDrift.length} drifted`
         )

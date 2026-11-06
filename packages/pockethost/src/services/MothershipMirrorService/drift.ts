@@ -17,6 +17,16 @@ export const changedKeys = (before: object, after: object): string[] => {
   return [...keys].filter((k) => !IGNORED_KEYS.has(k) && JSON.stringify(a[k]) !== JSON.stringify(b[k])).sort()
 }
 
+/**
+ * True when `incoming` is an older version than the copy the mirror already holds.
+ *
+ * PocketBase sends each realtime message from its own goroutine, so rapid updates to one record can arrive out of
+ * order. Applying an older version after a newer one would leave the mirror stale. Equal timestamps are not considered
+ * older: they can't be ordered, so the latest arrival wins.
+ */
+export const isOlderThanMirrored = (mirrored: MirroredRecord | undefined, incoming: MirroredRecord): boolean =>
+  !!mirrored && !!incoming.updated && !!mirrored.updated && incoming.updated < mirrored.updated
+
 /** PocketBase stores datetimes as `YYYY-MM-DD HH:MM:SS.sssZ`, which sorts lexicographically. */
 export const toPbDate = (ms: number) => new Date(ms).toISOString().replace('T', ' ')
 
