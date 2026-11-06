@@ -548,7 +548,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         */
     dbg(`Checking for active instances`)
     if (owner.subscription_quantity === 0) {
-      throw userError(`Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>`)
+      // 402 Payment Required: the account has no paid slots. A 500 would read as a platform outage.
+      throw userError(`Instances will not run until you <a href=${APP_URL(`access`)}>upgrade</a>`, { httpStatus: 402 })
     }
 
     /*

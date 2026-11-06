@@ -8,6 +8,7 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
+  type PhError,
   PocketbaseService,
   proxyService,
   realtimeLog,
@@ -63,7 +64,7 @@ export async function daemon({ logger }: DaemonOptions) {
     if (isSystemError(err)) {
       discordAlert(err)
     }
-    res.status(500).send(err.toString())
+    res.status((err as PhError).httpStatus ?? 500).send(err.toString())
   }
   ;(await proxyService()).use(errorHandler)
 }

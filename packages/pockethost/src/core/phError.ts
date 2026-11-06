@@ -2,11 +2,13 @@ import { isExpectedVfsClientError } from '../services/InstanceFileAccess/errors'
 
 export type PhErrorKind = 'user' | 'system'
 
-export type PhError = Error & { phErrorKind?: PhErrorKind }
+/** `httpStatus`: what the edge returns when this error ends an instance request (default 500). */
+export type PhError = Error & { phErrorKind?: PhErrorKind; httpStatus?: number }
 
-export const userError = (message: string | Error): PhError => {
+export const userError = (message: string | Error, opts: { httpStatus?: number } = {}): PhError => {
   const err = (message instanceof Error ? message : new Error(message)) as PhError
   err.phErrorKind = 'user'
+  if (opts.httpStatus) err.httpStatus = opts.httpStatus
   return err
 }
 
