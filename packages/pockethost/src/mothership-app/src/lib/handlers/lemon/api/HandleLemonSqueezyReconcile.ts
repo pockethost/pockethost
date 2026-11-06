@@ -8,10 +8,14 @@ const auditReport = (report: ReconcileReport, who: string) => {
     `LS`,
     `Billing reconcile (${who}, ${report.mode}) applied: ${report.changed} changed, ${report.gained} gained, ` +
       `${report.reductions.filter((r) => !r.held).length} reduced, ${report.reductionsHeld} reductions held, ` +
-      `${report.preserveReleased.length} unverified preserve rows released, ${report.errors.length} errors.`,
+      `${report.preserveReleased.length} unverified preserve rows released, ` +
+      `${report.reassigned.filter((r) => !r.held).length} purchases moved to their checkout's account, ` +
+      `${report.errors.length} errors.`,
     {
       reductions: report.reductions,
       preserveReleased: report.preserveReleased,
+      reassigned: report.reassigned,
+      affectedOutsideRun: report.affectedOutsideRun,
       errors: report.errors,
     }
   )

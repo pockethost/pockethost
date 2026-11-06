@@ -7,6 +7,7 @@
  */
 export * from './billingItems'
 export * from './entitlementFromPvId'
+export * from './lsClaims'
 export * from './productCatalog'
 export * from './providerMappings'
 export * from './resolveUserEntitlements'

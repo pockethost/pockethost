@@ -50,6 +50,13 @@ export const loadBillingItemRecords = (app: core.App, userId: string) =>
 export const loadBillingItems = (app: core.App, userId: string): BillingItem[] =>
   loadBillingItemRecords(app, userId).map(toItem)
 
+/** Every Lemon Squeezy row, with the user it is currently on. */
+export const loadAllLsBillingItems = (app: core.App): { userId: string; item: BillingItem }[] =>
+  app
+    .findRecordsByFilter(COLLECTION, `provider = 'lemonsqueezy'`, `created`, 0, 0)
+    .filter((r): r is core.Record => !!r)
+    .map((r) => ({ userId: r.getString(`user`), item: toItem(r) }))
+
 /**
  * Insert or update one billing item. When `providerUpdatedAt` is given and the stored row is newer, the write is
  * skipped so out-of-order webhooks cannot roll state back.

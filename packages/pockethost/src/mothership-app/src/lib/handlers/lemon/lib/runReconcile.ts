@@ -10,9 +10,11 @@ import {
   type LsOrderResource,
   type LsSubscriptionResource,
 } from '$common/billing/billingItems'
+import { lsClaimsFromAudit, lsResourceKeyOfItem, type LsResourceKey } from '$common/billing/lsClaims'
 import { resolveUserEntitlements } from '$common/billing/resolveUserEntitlements'
 import {
   ensureBaseline,
+  loadAllLsBillingItems,
   loadBillingItems,
   lsEmailsFor,
   reconcileUser,
@@ -21,7 +23,11 @@ import {
 } from './billingStore'
 import { lsRequest } from './lsApi'
 
-type Found = { item: BillingItem; providerData: unknown }
+/**
+ * A billing item to keep for a user. `providerData` is fresh LS data to store; `move` re-homes an existing row (no
+ * fresh data) onto this user. Either one means the row is written on apply.
+ */
+type Found = { item: BillingItem; providerData: unknown; move?: boolean }
 
 export type ReconcileOptions = {
   /** Write billing items and user entitlements. Default: dry run. */
@@ -65,34 +71,29 @@ const userFields = (rec: core.Record) => ({
   subscription_status: rec.getString(`subscription_status`),
 })
 
-/**
- * User id → LS checkout emails, from old webhook audit records. Only pairs tied by checkout `custom_data.user_id` are
- * trusted (never ones the old handler matched by email).
- */
-const altEmailsFromAudit = (): { [userId: string]: string[] } => {
-  const out: { [userId: string]: Set<string> } = {}
+/** Parsed `context` of every LS webhook audit record. */
+const lsAuditContexts = (): unknown[] => {
+  const out: unknown[] = []
   for (const rec of $app.findRecordsByFilter(`audit`, `event ~ 'LS'`, ``, 0, 0)) {
     if (!rec) continue
-    let c: any
     try {
-      c = JSON.parse(rec.getString(`context`) || `null`)
+      out.push(JSON.parse(rec.getString(`context`) || `null`))
     } catch {
-      continue
+      // unparseable context: nothing to learn from it
     }
-    const customId = c?.data?.meta?.custom_data?.user_id
-    const email = lc(c?.data?.data?.attributes?.user_email)
-    if (!customId || !email || c?.user_id_source === `email`) continue
-    ;(out[customId] = out[customId] || new Set()).add(email)
   }
-  const result: { [userId: string]: string[] } = {}
-  for (const [id, set] of Object.entries(out)) result[id] = [...set]
-  return result
+  return out
 }
 
 type Plan = {
   userRec: core.Record
   merged: { [key: string]: Found }
-  altFromAudit?: string[]
+  /** Emails to record in `billing_links`: from old checkouts, and the current LS email of purchases tied by ID. */
+  rememberEmails: string[]
+  /** Rows on this user that a checkout ties to another user; moved to that user on apply. */
+  gives: { item: BillingItem; to: string }[]
+  /** Rows a checkout ties to this user that sit on another user now; moved here on apply. */
+  takes: { key: string; from: string }[]
   preserveWrite?: { item: BillingItem; note: string }
   summary: any
   changed: boolean
@@ -100,8 +101,12 @@ type Plan = {
 }
 
 /**
- * Rebuild `billing_items` from Lemon Squeezy and recompute users' slots. Purchases are found under the account email
- * and under alternate LS emails (recorded in `billing_links` or learned from old webhook audit records).
+ * Rebuild `billing_items` from Lemon Squeezy and recompute users' slots.
+ *
+ * A purchase belongs to the user its checkout named (`custom_data.user_id`, learned from old webhook audit records),
+ * matched by LS subscription / order ID, so it is found even after the customer changes their email in Lemon Squeezy,
+ * and it never goes to a different account that happens to share an email. Purchases no checkout ties to anyone are
+ * matched by email: the account email plus alternate LS emails (recorded in `billing_links` or seen on old checkouts).
  *
  * Slots are what verified LS purchases plus any founder/legacy/grandfathered baseline support. `preserve:<id>` rows
  * from the one-time backfill are released in normal runs: if Lemon Squeezy can't show a payment, the slots go (to 0 if
@@ -117,17 +122,45 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   }
 
   const onlyUser = opts.onlyUserId ? $app.findRecordById(`users`, opts.onlyUserId) : undefined
-  const auditAlt = altEmailsFromAudit()
+  const claims = lsClaimsFromAudit(lsAuditContexts())
+  const auditAlt = claims.emails
   const emailsOf = (rec: core.Record) => [...new Set([...lsEmailsFor(rec), ...(auditAlt[rec.id] || [])])]
 
-  // 1. Everything LS knows, grouped by lowercase email.
+  const existsCache: { [id: string]: boolean } = {}
+  const userExists = (id: string) => {
+    if (!(id in existsCache)) {
+      try {
+        $app.findRecordById(`users`, id)
+        existsCache[id] = true
+      } catch {
+        existsCache[id] = false
+      }
+    }
+    return existsCache[id]!
+  }
+  /** The user a checkout ties this LS resource to, if that account still exists. */
+  const ownerOf = (key: LsResourceKey | undefined) => {
+    const owner = key ? claims.owners[key] : undefined
+    return owner && userExists(owner) ? owner : undefined
+  }
+  const ownedBy: { [userId: string]: LsResourceKey[] } = {}
+  for (const key of Object.keys(claims.owners)) {
+    const userId = claims.owners[key]!
+    ;(ownedBy[userId] = ownedBy[userId] || []).push(key)
+  }
+
+  // 1. Everything LS knows, grouped by lowercase email and indexed by resource.
   const byEmail: { [email: string]: Found[] } = {}
+  const byKey: { [key: LsResourceKey]: Found } = {}
   const unknown: string[] = []
   const unknownOrders: string[] = []
+  const idFetchErrors: string[] = []
   let lsSubscriptionsSeen = 0
   const push = (email: string, found: Found) => {
     const k = lc(email)
     ;(byEmail[k] = byEmail[k] || []).push(found)
+    const resourceKey = lsResourceKeyOfItem(found.item)
+    if (resourceKey) byKey[resourceKey] = found
   }
   const scopes = onlyUser ? emailsOf(onlyUser).map((em) => `&filter[user_email]=${encodeURIComponent(em)}`) : [``]
   for (const scope of scopes) {
@@ -160,8 +193,36 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
     // An empty store-wide listing means an API/auth problem, never "everyone churned".
     throw new Error(`Lemon Squeezy returned no subscriptions for store ${storeId}; refusing to reconcile`)
   }
+  if (onlyUser) {
+    // An email search can't find purchases whose LS email has since changed; fetch the user's own ones by ID.
+    for (const key of ownedBy[onlyUser.id] || []) {
+      if (byKey[key]) continue
+      const sep = key.indexOf(`:`)
+      const kind = key.slice(0, sep)
+      const id = key.slice(sep + 1)
+      try {
+        const data = lsRequest(
+          `GET`,
+          `/${kind === `order` ? `orders` : `subscriptions`}/${encodeURIComponent(id)}`
+        )?.data
+        const a = (data?.attributes || {}) as any
+        if (!data || `${a.store_id ?? ''}` !== `${storeId}`) continue
+        const item = kind === `order` ? billingItemFromLsOrder(data) : billingItemFromLsSubscription(data)
+        if (item) push(`${a.user_email || ''}`, { item, providerData: a })
+      } catch (err) {
+        idFetchErrors.push(`${key}: ${err}`)
+      }
+    }
+  }
 
-  // 2. Candidate users: anyone holding slots, anyone LS knows by email, anyone tied to an LS email via checkout data.
+  // Where every LS row lives right now.
+  const holders: { [key: LsResourceKey]: { userId: string; item: BillingItem } } = {}
+  for (const row of loadAllLsBillingItems($app)) {
+    const key = lsResourceKeyOfItem(row.item)
+    if (key) holders[key] = row
+  }
+
+  // 2. Candidate users: anyone holding slots, anyone LS knows by email, anyone a checkout ties to a purchase or email.
   const users: { [id: string]: core.Record } = {}
   const addUser = (rec: core.Record | undefined) => {
     if (rec) users[rec.id] = rec
@@ -178,7 +239,7 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
     )) {
       addUser(rec)
     }
-    for (const id of Object.keys(auditAlt)) {
+    for (const id of new Set([...Object.keys(auditAlt), ...Object.keys(ownedBy)])) {
       if (users[id]) continue
       try {
         addUser($app.findRecordById(`users`, id))
@@ -201,7 +262,9 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   if (!onlyUser) {
     for (const [email, found] of Object.entries(byEmail)) {
       if (claimed.has(email)) continue
-      const active = found.filter((f) => reconcileEntitlement([f.item], new Date()).subscription_quantity)
+      const active = found.filter(
+        (f) => !ownerOf(lsResourceKeyOfItem(f.item)) && reconcileEntitlement([f.item], new Date()).subscription_quantity
+      )
       if (active.length) unmatchedEmails.push(`${email} (${active.length} active)`)
     }
   }
@@ -216,18 +279,52 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
 
   for (const userRec of Object.values(users)) {
     try {
+      const uid = userRec.id
       const email = lc(userRec.getString(`email`))
       const emails = emailsOf(userRec)
       const altEmails = emails.filter((em) => em !== email)
       if (altEmails.length) usersWithAltEmails++
       const current = userFields(userRec)
-      const existing = loadBillingItems($app, userRec.id)
+      const existing = loadBillingItems($app, uid)
+      /** False for an LS purchase a checkout ties to some other (existing) account. */
+      const isMine = (item: BillingItem) => {
+        const owner = ownerOf(lsResourceKeyOfItem(item))
+        return !owner || owner === uid
+      }
+
       const merged: { [key: string]: Found } = {}
-      for (const item of existing) merged[keyOf(item)] = { item, providerData: undefined }
-      for (const em of emails) for (const found of byEmail[em] || []) merged[keyOf(found.item)] = found
+      const gives: Plan['gives'] = []
+      for (const item of existing) {
+        if (isMine(item)) merged[keyOf(item)] = { item, providerData: undefined }
+        else gives.push({ item, to: ownerOf(lsResourceKeyOfItem(item))! })
+      }
+      for (const em of emails) {
+        for (const found of byEmail[em] || []) if (isMine(found.item)) merged[keyOf(found.item)] = found
+      }
+      const rememberEmails = [...(auditAlt[uid] || [])]
+      for (const key of ownedBy[uid] || []) {
+        const fresh = byKey[key]
+        if (fresh) {
+          merged[keyOf(fresh.item)] = fresh
+          const lsEmail = lc((fresh.providerData as any)?.user_email)
+          if (lsEmail) rememberEmails.push(lsEmail)
+          continue
+        }
+        // Not in this LS listing: keep the stored row, re-homing it if it sits on someone else.
+        const held = holders[key]
+        if (held && held.userId !== uid)
+          merged[keyOf(held.item)] = { item: held.item, providerData: undefined, move: true }
+      }
+      // Only purchases a checkout ties to this user. Unclaimed rows shared by email keep their old behavior.
+      const takes: Plan['takes'] = []
+      for (const key of ownedBy[uid] || []) {
+        const holder = holders[key]
+        if (holder && holder.userId !== uid && merged[keyOf(holder.item)]) takes.push({ key, from: holder.userId })
+      }
+
       const hasBaseline = existing.some((i) => i.kind === `manual` && isBaselineExternalId(i.external_id))
       if (!hasBaseline) {
-        const baseline = baselineItemFromUser(current, userRec.id)
+        const baseline = baselineItemFromUser(current, uid)
         if (baseline) merged[keyOf(baseline)] = { item: baseline, providerData: undefined }
       }
 
@@ -244,7 +341,7 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
           preserveItem = {
             provider: `manual`,
             kind: `manual`,
-            external_id: `${PRESERVE_PREFIX}${userRec.id}`,
+            external_id: `${PRESERVE_PREFIX}${uid}`,
             sku:
               (oldPreserve?.sku as BillingItem['sku']) ||
               resolveUserEntitlements(current).sku ||
@@ -261,7 +358,7 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
             item: { ...oldPreserve, quantity: 0, status: `inactive` },
             note: `Released ${now.toISOString()}: no verified Lemon Squeezy payment for these slots.`,
           }
-          preserveReleased.push({ user_id: userRec.id, email, was: oldPreserve.quantity })
+          preserveReleased.push({ user_id: uid, email, was: oldPreserve.quantity })
         }
       }
 
@@ -269,7 +366,7 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
       const computed = reconcileEntitlement(items, now)
       if (preserveItem && isBillingItemActive(preserveItem, now)) {
         preserved.push({
-          user_id: userRec.id,
+          user_id: uid,
           email,
           slots: preserveItem.quantity,
           ends_at: preserveItem.ends_at || null,
@@ -277,9 +374,10 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
       }
 
       const summary = {
-        user_id: userRec.id,
+        user_id: uid,
         email,
         alt_emails: altEmails,
+        ls_ids_claimed: (ownedBy[uid] || []).length,
         before: {
           quantity: current.subscription_quantity,
           sku: current.product_sku,
@@ -294,17 +392,23 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
           (i) =>
             `${i.kind}:${i.external_id} ${i.sku} x${i.quantity} ${i.status}${i.ends_at ? ` until ${i.ends_at}` : ''}`
         ),
+        takes,
+        gives: gives.map((g) => ({ key: lsResourceKeyOfItem(g.item), to: g.to })),
       }
       const reduced = summary.after.quantity < summary.before.quantity
       const changed =
         summary.before.quantity !== summary.after.quantity ||
         summary.before.sku !== summary.after.sku ||
         summary.before.subscription !== summary.after.subscription ||
-        !!preserveWrite
+        !!preserveWrite ||
+        takes.length > 0 ||
+        gives.length > 0
       plans.push({
         userRec,
         merged,
-        altFromAudit: auditAlt[userRec.id],
+        rememberEmails,
+        gives,
+        takes,
         preserveWrite,
         summary,
         changed,
@@ -318,6 +422,7 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   // 4. Guard rail, then apply.
   const reducing = plans.filter((p) => p.reduced)
   const holdReductions = !onlyUser && reducing.length > maxReductions
+  const heldUsers = new Set(holdReductions ? reducing.map((p) => p.userRec.id) : [])
   const reductions = plans
     .filter((p) => p.reduced)
     .map((p) => ({
@@ -327,25 +432,80 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
       after: p.summary.after.quantity,
       held: holdReductions,
     }))
+  // A move shows up as one user's take and/or the other's give; list it once.
+  const moves: { [id: string]: { key: string; from: string; to: string; held: boolean } } = {}
+  const addMove = (key: string, from: string, to: string) => {
+    moves[`${key}>${to}`] = { key, from, to, held: heldUsers.has(from) || heldUsers.has(to) }
+  }
+  for (const p of plans) {
+    for (const t of p.takes) addMove(t.key, t.from, p.userRec.id)
+    for (const g of p.gives) addMove(lsResourceKeyOfItem(g.item)!, p.userRec.id, g.to)
+  }
+  const reassigned = Object.values(moves)
+
+  // Accounts outside this run (single-user mode) that a claimed purchase moves off or onto: show their new totals, and
+  // recompute them on apply, so a moved purchase is never left counted on the account it left.
+  const inRun = new Set(plans.map((p) => p.userRec.id))
+  const outside: { [id: string]: { leaving: string[]; arriving: BillingItem[] } } = {}
+  const outsideOf = (id: string) => (outside[id] = outside[id] || { leaving: [], arriving: [] })
+  for (const p of plans) {
+    if (heldUsers.has(p.userRec.id)) continue
+    for (const t of p.takes) if (!inRun.has(t.from)) outsideOf(t.from).leaving.push(t.key)
+    for (const g of p.gives) if (!inRun.has(g.to)) outsideOf(g.to).arriving.push(g.item)
+  }
+  const affectedOutsideRun: { user_id: string; email: string; before: number; after: number }[] = []
+  for (const id of Object.keys(outside)) {
+    try {
+      const rec = $app.findRecordById(`users`, id)
+      const { leaving, arriving } = outside[id]!
+      const items = [
+        ...loadBillingItems($app, id).filter((i) => !leaving.includes(lsResourceKeyOfItem(i) || ``)),
+        ...arriving,
+      ]
+      affectedOutsideRun.push({
+        user_id: id,
+        email: lc(rec.getString(`email`)),
+        before: rec.getInt(`subscription_quantity`),
+        after: reconcileEntitlement(items, now).subscription_quantity,
+      })
+    } catch (err) {
+      errors.push({ user_id: id, error: `${err}` })
+    }
+  }
 
   if (apply) {
     for (const p of plans) {
-      if (holdReductions && p.reduced) continue
+      if (heldUsers.has(p.userRec.id)) continue
+      const uid = p.userRec.id
       try {
-        if (p.altFromAudit) rememberLsEmails($app, p.userRec, p.altFromAudit)
+        rememberLsEmails($app, p.userRec, p.rememberEmails)
         // Baseline first (also re-keys a pre-fix shared row), then LS rows from this pass.
         ensureBaseline($app, p.userRec)
         for (const f of Object.values(p.merged)) {
-          if (f.providerData !== undefined) {
-            upsertBillingItem($app, p.userRec.id, f.item, { providerData: f.providerData })
-          }
+          if (f.providerData === undefined && !f.move) continue
+          const key = lsResourceKeyOfItem(f.item)
+          const holder = key ? holders[key] : undefined
+          // Don't take a claimed purchase off a user whose drops are being held this run.
+          if (key && ownerOf(key) === uid && holder && holder.userId !== uid && heldUsers.has(holder.userId)) continue
+          upsertBillingItem($app, uid, f.item, f.providerData === undefined ? {} : { providerData: f.providerData })
+        }
+        for (const g of p.gives) {
+          if (heldUsers.has(g.to)) continue
+          upsertBillingItem($app, g.to, g.item)
         }
         if (p.preserveWrite) {
-          upsertBillingItem($app, p.userRec.id, p.preserveWrite.item, { note: p.preserveWrite.note })
+          upsertBillingItem($app, uid, p.preserveWrite.item, { note: p.preserveWrite.note })
         }
         reconcileUser($app, p.userRec)
       } catch (err) {
         errors.push({ user_id: p.summary.user_id, error: `${err}` })
+      }
+    }
+    for (const a of affectedOutsideRun) {
+      try {
+        reconcileUser($app, $app.findRecordById(`users`, a.user_id))
+      } catch (err) {
+        errors.push({ user_id: a.user_id, error: `${err}` })
       }
     }
   }
@@ -357,16 +517,21 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
     usersChecked: Object.keys(users).length,
     usersWithAltEmails,
     lsSubscriptionsSeen,
+    lsIdsClaimed: Object.keys(claims.owners).length,
+    lsIdClaimConflicts: claims.conflicts,
     changed: changes.length,
     gained: plans.filter((p) => p.summary.after.quantity > p.summary.before.quantity).length,
     changes,
     reductions,
     reductionsHeld: holdReductions ? reducing.length : 0,
+    reassigned,
+    affectedOutsideRun,
     preserveReleased,
     preserved,
     unmatchedEmails,
     unknown,
     unknownOrders,
+    idFetchErrors,
     errors,
   }
 }
