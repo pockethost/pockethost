@@ -50,7 +50,14 @@ export const uploadInstanceArchive = async (instancesRoot: string, instanceId: s
     stdio: [`ignore`, `pipe`, `pipe`],
   })
   const zstd = spawn(`nice`, [`-n`, `19`, `zstd`, `-3`, `-T2`, `-q`, `-c`], { stdio: [`pipe`, `pipe`, `pipe`] })
-  const rcat = spawn(`rclone`, [`rcat`, remotePath(remote, instanceId)], { stdio: [`pipe`, `ignore`, `pipe`] })
+  // --s3-no-check-bucket: the bucket exists and the IDrive key can't CreateBucket, which rclone tries by default.
+  // --s3-chunk-size: a stream of unknown size is capped at chunk × 10,000 parts. The 5Mi default (~48 GiB) is too close
+  // to the largest instances; 64Mi allows ~625 GiB for ~256 MiB of buffers (chunk × 4 concurrent parts).
+  const rcat = spawn(
+    `rclone`,
+    [`rcat`, `--s3-no-check-bucket`, `--s3-chunk-size`, `64Mi`, remotePath(remote, instanceId)],
+    { stdio: [`pipe`, `ignore`, `pipe`] }
+  )
 
   const digest = { bytes: 0, hash: createHash(`sha256`) }
   tar.stdout!.pipe(zstd.stdin!)
