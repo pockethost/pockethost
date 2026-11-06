@@ -27,7 +27,7 @@ const TLS_EXPIRY_WARN_DAYS = 14
 const FETCH_TIMEOUT_MS = 5000
 const TCP_TIMEOUT_MS = 3000
 
-const PM2_APPS = [`firewall`, `edge-daemon`, `edge-ftp`, `edge-sftp`, `mothership`] as const
+const PM2_APPS = [`firewall`, `edge-daemon`, `edge-sftp`, `mothership`] as const
 
 type Finding = {
   name: string
