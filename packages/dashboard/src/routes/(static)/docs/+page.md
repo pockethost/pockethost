@@ -30,13 +30,12 @@ Founded by [Ben Allfree](https://github.com/benallfree) in 2021, PocketHost was 
 ## **Security and Reliability**
 
 - **Isolated Environments**: Docker containerization ensures your data is isolated and secure.
-- **Innovative Technology**: Leveraging cutting-edge solutions for resource management and scalability.
 - **Regular Updates**: Continuous improvements and updates to keep your applications running smoothly.
 
 ## Who Should Use PocketHost?
 
 - **Indie Hackers and Makers**: Perfect for those who want to focus on building and innovating without the hassle of server management.
-- **Small Businesses**: An affordable solution that scales with your business needs.
+- **Small Businesses**: An affordable way to run production PocketBase backends without managing servers.
 - **Developers**: Ideal for deploying prototypes, proofs of concept, or full-scale applications quickly.
 - **Educators and Students**: A great tool for learning and teaching web and mobile application development.
 

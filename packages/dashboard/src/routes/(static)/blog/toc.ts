@@ -273,14 +273,14 @@ export const toc: BlogTocEntry[] = [
   {
     title: 'PocketHost is live in 40+ countries',
     path: '/blog/live-in-40-countries',
-    description: 'PocketHost hosting is now available in more than 40 countries worldwide.',
+    description: 'Our 2024 Fly.io edge rollout (since retired in favor of Cloudflare).',
     date: 'Dec 25, 2024',
     author: 'capn',
   },
   {
     title: 'Announcing Pocker',
     path: '/blog/announcing-pocker',
-    description: 'Introducing our custom container solution for global PocketBase hosting.',
+    description: 'Our 2024 Go container experiment (since retired).',
     date: 'Dec 20, 2024',
     author: 'capn',
   },

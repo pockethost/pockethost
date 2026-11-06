@@ -33,12 +33,9 @@ const client = new PocketBase(`https://harvest.pockethost.io`)
 
 Here's all the Linux/devops stuff that PocketHost does for you:
 
-- Email and DKIM+SPF and more
 - DNS jargon: MX, TXT, CNAME
 - SSL cert provisioning and management
 - Storage
-- Volume mounts
 - Cloud computing or VPS deployment
 - CDN and static asset hosting
-- Amazon AWS
 - Lots more - scaling, firewalls, DDoS defense, user security, log rotation, patches, updates, build tools, CPU architectures, multitenancy, on and on

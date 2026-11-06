@@ -1,3 +1,5 @@
+> **Update (Nov 2026):** The Fly.io edge network described in this post has since been retired. Traffic now routes through Cloudflare directly to our servers in San Francisco.
+
 I've been hard at work getting PocketHost live in 40+ countries. This is the beginning of the 2025 global takeover by PocketHost.
 
 ![](2025-01-05-07-46-14.png)

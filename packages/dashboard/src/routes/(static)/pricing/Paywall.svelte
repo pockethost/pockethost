@@ -20,7 +20,7 @@
   const sharedFeatures = [
     slotStorage,
     'Storage adds to your account pool, shared across every PocketBase you run',
-    'Global Fly ingress, private network routing',
+    'Cloudflare CDN and DDoS protection',
     'Unmetered bandwidth and CPU (fair use)',
     'SFTP file access',
   ]

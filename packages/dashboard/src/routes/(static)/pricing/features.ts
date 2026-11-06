@@ -1,8 +1,8 @@
 export const highlights = [
   {
     icon: 'globe',
-    title: 'Global ingress',
-    description: 'Fly.io edge routing, low latency worldwide.',
+    title: 'Cloudflare CDN',
+    description: 'Static assets cached at the edge, DDoS protection included.',
   },
   {
     icon: 'folder-open',

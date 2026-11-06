@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-**Last Updated: October 5, 2024**
+**Last Updated: November 6, 2026**
 
 At PocketHost, we are committed to protecting your privacy and ensuring the security of your data. This Privacy Policy outlines how we collect, use, and safeguard your information when you use our services.
 
@@ -36,11 +36,11 @@ PocketHost provides hosting services for PocketBase applications. By using our s
 
 ### 3.1 Hosting Environment
 
-We utilize trusted third-party providers, **DigitalOcean** and **Fly.io**, to host our infrastructure.
+PocketHost servers are hosted by **DigitalOcean** in San Francisco, USA. Web traffic to PocketHost and your instances passes through **Cloudflare**, which provides TLS, CDN caching, and DDoS protection.
 
-#### DigitalOcean and Fly.io Security Measures
+#### DigitalOcean and Cloudflare Security Measures
 
-- **At-Rest Encryption**: Both providers offer encryption of volume storage at rest, protecting data against unauthorized physical access.
+- **At-Rest Encryption**: DigitalOcean encrypts volume storage at rest, protecting data against unauthorized physical access.
 
 - **Network Security**: Advanced network security measures like firewalls and intrusion detection systems are employed.
 
@@ -48,7 +48,7 @@ We utilize trusted third-party providers, **DigitalOcean** and **Fly.io**, to ho
 
 - **Access Controls**: Strict access controls with multi-factor authentication and role-based permissions are in place.
 
-- **Regular Backups and Redundancy**: Regular backups and redundant systems prevent data loss and ensure high availability.
+- **Backups**: PocketHost does not provide platform backups of your instance data. You are responsible for your own backups (see section 3.5).
 
 ### 3.2 PocketBase Instances
 

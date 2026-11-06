@@ -13,7 +13,7 @@
       icon: 'database',
       title: 'Database',
       description:
-        'Your PocketHost instance is powered by its own internal SQLite instance. SQLite is more performant than mySQL or Postgres and is perfect for powering your next app.',
+        'Your PocketHost instance is powered by its own internal SQLite instance. SQLite is fast, simple, and perfect for powering your next app.',
     },
     {
       icon: 'lock',
