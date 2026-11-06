@@ -50,6 +50,8 @@ Yes, data import is possible via [SFTP](/docs/ftp/).
 
 You can use the SFTP feature to download and transfer all your data.
 
+If you set a `PB_ENCRYPTION_KEY` secret, take the key with you and start PocketBase with `--encryptionEnv=PB_ENCRYPTION_KEY`. Without it, PocketBase can't read your settings. See [Settings Encryption](/docs/encryption).
+
 ## Pricing, Limits, and Usage Restrictions
 
 ### How much does the service cost?

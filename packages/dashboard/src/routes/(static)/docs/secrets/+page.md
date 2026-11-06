@@ -7,3 +7,14 @@ description: Use PocketHost Secrets to securely store API keys and sensitive dat
 Secrets are created through the PocketHost instance dashboard and are automatically made available in the PocketBase runtime environment, including `pb_hooks`. Use secrets to securely store API keys and other sensitive information that should not be embedded in your source code.
 
 ![](secrets.png)
+
+## Reserved names
+
+Some secret names also change how PocketHost runs your instance:
+
+| Secret              | What it does                                                                 |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `PB_ENCRYPTION_KEY` | Encrypts your PocketBase settings. See [Settings Encryption](/docs/encryption). |
+| `PH_CORS_ORIGINS`   | Limits which websites can call your instance from a browser. Applies within seconds, no restart. See [CORS Origins](/docs/cors). |
+
+Other secrets take effect the next time your instance starts. To apply a change right away, power the instance off and on.

@@ -102,6 +102,8 @@
         <DocLink path="logs" title="Logging" />
         <DocLink path="dev-mode" title="Dev Mode" />
         <DocLink path="secrets" title="Secrets" />
+        <DocLink path="encryption" title="Settings Encryption" />
+        <DocLink path="cors" title="CORS Origins" />
         <DocLink path="webhooks" title="Webhooks" />
         <DocLink path="ftp" title="SFTP File Access" />
         <DocLink path="phio" title="phio CLI" />

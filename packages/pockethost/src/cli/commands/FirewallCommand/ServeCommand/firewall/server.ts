@@ -1,6 +1,5 @@
 import {
   APEX_DOMAIN,
-  corsMiddleware,
   DAEMON_PORT,
   enforceHttps,
   IPCIDR_LIST,
@@ -25,6 +24,7 @@ import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware, type VhostUpgradeHandler } from './createVhostProxyMiddleware'
 import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
 import { initFirewallTrustedIps } from './initFirewallTrustedIps'
+import { createInstanceCorsMiddleware, rewriteProxiedCorsHeaders } from './instanceCors'
 import { createRateLimiterMiddleware } from './rate-limiter'
 
 export type FirewallOptions = {
@@ -49,8 +49,11 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   // Create Express app
   const app = express()
 
-  app.options('/{*path}', corsMiddleware)
-  app.use(corsMiddleware)
+  // The mothership mirror (needed for rate limits and per-instance CORS) is only started when rate limiting is on.
+  // Without it, every host keeps the permissive edge CORS.
+  const trustedIpResolver = PH_DISABLE_FIREWALL_RATE_LIMIT() ? null : await initFirewallTrustedIps(logger)
+
+  app.use(createInstanceCorsMiddleware({ getInstanceSecrets: trustedIpResolver?.getInstanceSecrets }))
   if (!IS_DEV() || tlsReady) {
     app.use(enforceHttps)
   }
@@ -92,10 +95,9 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   // Use the IP blocker middleware
   app.use(createIpWhitelistMiddleware(IPCIDR_LIST()))
-  if (PH_DISABLE_FIREWALL_RATE_LIMIT()) {
+  if (!trustedIpResolver) {
     info(`Firewall rate limiting disabled (PH_DISABLE_FIREWALL_RATE_LIMIT)`)
   } else {
-    const trustedIpResolver = await initFirewallTrustedIps(logger)
     app.use(
       createRateLimiterMiddleware(logger, {
         isTrustedConnectingIp: trustedIpResolver.isTrustedConnectingIp,
@@ -135,6 +137,9 @@ export const firewall = async ({ logger }: FirewallOptions) => {
       error: (err, req, res) => {
         if (!('status' in res)) return
         daemonProxyErrorHandler(err, req, res, () => undefined)
+      },
+      proxyRes: (proxyRes, _req, res) => {
+        rewriteProxiedCorsHeaders(proxyRes, res)
       },
     },
   })

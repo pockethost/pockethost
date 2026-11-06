@@ -8,6 +8,22 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Choose Which Sites Can Call Your Instance',
+    path: '/blog/cors-origins',
+    description:
+      'Add a PH_CORS_ORIGINS secret to replace the default Access-Control-Allow-Origin: * with your own list. Applies in seconds.',
+    date: 'Nov 6, 2026',
+    author: 'capn',
+  },
+  {
+    title: 'Encrypted PocketBase Settings',
+    path: '/blog/settings-encryption',
+    description:
+      'Add a PB_ENCRYPTION_KEY secret and PocketHost starts PocketBase with --encryptionEnv. Encrypted databases can move in.',
+    date: 'Nov 6, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Fixing Instances That Never Went to Sleep',
     path: '/blog/hibernation-leak',
     description:

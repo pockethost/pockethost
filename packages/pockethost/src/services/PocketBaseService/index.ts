@@ -35,6 +35,7 @@ import { PassThrough } from 'node:stream'
 import { gte } from 'semver'
 import { AsyncReturnType } from 'type-fest'
 import { containerNofileUlimits, getDocker } from '../../core/dockerInstance'
+import { buildServeArgs, PB_ENCRYPTION_KEY_ENV } from './buildServeArgs'
 
 export type Env = { [_: string]: string }
 export type SpawnConfig = {
@@ -286,9 +287,9 @@ export const createPocketbaseService = async (config: PocketbaseServiceConfig) =
         },
       }
 
-      createOptions.Cmd = ['./pocketbase', `serve`, `--http`, `0.0.0.0:8090`]
-      if (dev) {
-        createOptions.Cmd.push(`--dev`)
+      createOptions.Cmd = buildServeArgs({ dev, env })
+      if (createOptions.Cmd.includes(`--encryptionEnv=${PB_ENCRYPTION_KEY_ENV}`)) {
+        iLogger.info(`Settings encryption enabled (${PB_ENCRYPTION_KEY_ENV})`)
       }
       createOptions.WorkingDir = `/home/pockethost`
 
