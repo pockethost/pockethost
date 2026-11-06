@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Fixing Instances That Never Went to Sleep',
+    path: '/blog/hibernation-leak',
+    description:
+      'A disconnect during wake-up could keep an instance awake for days. Fixed. One node went from 518 awake containers to about 95.',
+    date: 'Nov 6, 2026',
+    author: 'capn',
+  },
+  {
     title: 'FTPS Officially Sunset',
     path: '/blog/ftps-officially-sunset',
     description: 'FTPS on port 21 is off. SFTP is how you reach instance files. Setup is in the SFTP docs.',
