@@ -36,7 +36,7 @@ Body: `{ "pvId": "1192400-1864333" }` (see `common/lemonSqueezy.ts`). Returns `{
 POST /api/ls/cancel
 ```
 
-Cancels the authenticated user's active Pay Per PocketBase monthly Lemon Squeezy subscription. Looks up subscription by account email + instance-monthly variant, then `DELETE /subscriptions/{id}`. Returns `{ "status": "cancelled", "endsAt": "..." }`. PocketBase plan fields update on `subscription_expired` webhook (access continues until period end). Dashboard: `/account/cancel`.
+Cancels the authenticated user's monthly subscriptions at period end, found via `billing_items`. Body `{ "itemId": "..." }` cancels one; without it, **all** active monthly subscriptions are cancelled. Returns `{ "status": "cancelled", "endsAt": "<latest>", "cancelled": [...] }`. Slots stay until `ends_at` (reconcile counts cancelled-but-paid subscriptions). Dashboard: `/account/cancel`.
 
 Registered in `hooks.ts`:
 
@@ -76,18 +76,46 @@ if (!$security.equal(context.body_hash, context.xsignature_header)) {
 }
 ```
 
+## Billing items (multi-subscription model)
+
+Users can hold **any number** of LS purchases at once — e.g. several monthly subscriptions (PayPal subscriptions cannot change quantity, so adding slots means a new subscription) plus lifetime orders. Each purchase is one row in `billing_items` (`provider`, `kind` = `subscription` | `order` | `manual`, `external_id`, `sku`, `quantity`, `status`, `ends_at`, `provider_data`).
+
+`users.subscription_quantity` is **always recomputed** as the sum of active rows (`reconcileEntitlement()` in `common/billing/billingItems.ts`) — never incremented/decremented. Active = subscription `on_trial`/`active`/`past_due`/`cancelled` (until `ends_at`), order `paid`/`partial_refund`, manual `active`. Legacy plan fields come from the highest-priority active SKU (monthly first, so in-app cancel stays reachable).
+
+JSVM helpers: `src/lib/handlers/lemon/lib/billingStore.ts` (upsert, bootstrap, reconcile) and `lib/lsApi.ts`.
+
+**Bootstrap:** the first event for a user with no rows snapshots any non-LS plan (founder / legacy / grandfathered hacker) as a `manual` row and pulls their existing LS subscriptions + lifetime orders by email.
+
 ## Events handled
 
-| Event | Action |
-|-------|--------|
-| `order_created` | Provision subscription (`signup_finalizer`) |
-| `order_refunded` | Cancel/decrement (`signup_canceller`) |
-| `subscription_cancelled` | Audit only (access until `ends_at`) |
-| `subscription_updated` | **Not handled yet** — should sync `subscription_quantity` from `first_subscription_item.quantity` |
-| `subscription_expired` | Cancel/decrement |
-| `subscription_payment_refunded` | Cancel/decrement |
+Any `subscriptions`, `subscription-invoices` or `orders` event: upsert the referenced subscription(s) / lifetime order, then reconcile. Recurring `order_*` events and `subscription_payment_*` events fetch the subscription from the LS API (`filter[order_id]` / `GET /subscriptions/{id}`), so they work whether or not `subscription_*` webhooks are enabled. Out-of-order subscription events are skipped when the stored `provider_data.updated_at` is newer. Other resource types return 200 `ignored`.
 
-Other events throw `Unsupported event`.
+Enable in LS webhook settings: `order_created`, `order_refunded`, `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_resumed`, `subscription_expired`, `subscription_paused`, `subscription_unpaused`, `subscription_payment_refunded`.
+
+## Reconcile (superuser, manual)
+
+```
+POST /api/ls/reconcile                          # dry run: JSON report, no writes
+POST /api/ls/reconcile?apply=1                  # write billing_items + user entitlements
+POST /api/ls/reconcile?apply=1&maxReductions=N  # apply a reviewed batch of up to N slot drops
+POST /api/ls/reconcile?user=<id>                # one user, exact recompute (e.g. after editing their billing_items)
+POST /api/ls/reconcile?apply=1&backfill=1       # one-time backfill mode (creates preserve rows; don't use routinely)
+```
+
+Logic lives in `src/lib/handlers/lemon/lib/runReconcile.ts`. It pulls every subscription and order in `LS_STORE_ID` and matches
+them to users by account email and by alternate LS emails (`users.billing_links.lemonsqueezy.emails`, plus pairs learned from
+old webhook audit records where checkout `custom_data.user_id` tied an LS email to the account).
+
+- Slots = active verified LS purchases + any founder/legacy/grandfathered `baseline:<id>` row + manual grants.
+- `preserve:<id>` rows (from the 2026-11-06 backfill) are released in normal runs: if LS can't show a payment, the slots go.
+  At 0 slots the edge refuses every request to the account's instances (HTTP 402).
+- Guard rails: an empty store-wide subscription listing aborts the run; if more than `maxReductions` (default 25) users
+  would lose slots, all drops are held and reported.
+- Not run by cron. The ops health check runs a dry run once a day and reports gains/drops for approval. Apply with
+  `packages/pockethost/scripts/mothership-reconcile-apply.sh [--max-reductions N | <user_id>]`; read-only queries with
+  `packages/pockethost/scripts/mothership-api.sh`.
+- Give a customer slots back: add a `billing_items` row (`provider`/`kind` `manual`, `external_id` e.g. `grant:<id>`,
+  `sku`, `quantity`, `status` `active`), then reconcile that user.
 
 ## Product / variant allowlist
 
@@ -103,19 +131,7 @@ Handler key format: `{product_id}-{variant_id}`
 | `424532-651625` | Legacy monthly ($5) — webhook only | `hosting.slot.recurring.month.legacy` | `premium` | `month` | from `quantity` |
 | `424532-651627` | Legacy Flounder ($359) — webhook only | `hosting.slot.lifetime.legacy_flounder` | `flounder` | `life` | 250 (fixed) |
 
-Mappings live in `common/billing/providerMappings.ts`. Webhook resolves via `entitlementFromPvId()` in `HandleLemonSqueezySale.ts`. Unknown `pv_id` throws `Product and variant not found`.
-
-## Required webhook payload
-
-- `meta.custom_data.user_id` — must match a PocketBase `users` record ID
-- `meta.event_name`
-- `data.attributes.first_order_item` or top-level `product_id` / `variant_id`
-
-## Cancel logic
-
-`signup_canceller` only affects users with `subscription === 'premium'`. Decrements `subscription_quantity` by order quantity; sets `free` when quantity reaches 0.
-
-Founder/flounder tiers are not decremented by this path.
+Mappings live in `common/billing/providerMappings.ts`. Resolved via `entitlementFromPvId()` inside `billingItemFromLsSubscription()` / `billingItemFromLsOrder()`. Unknown `pv_id` on a webhook returns 500 (`LS_ERR` audit).
 
 ## Notifications
 

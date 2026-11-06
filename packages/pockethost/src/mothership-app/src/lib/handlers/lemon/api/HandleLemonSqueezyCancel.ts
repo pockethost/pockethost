@@ -1,13 +1,23 @@
-import { MONTHLY_CANCEL_VARIANT_IDS } from '$common/lemonSqueezy'
+import { isBillingItemActive } from '$common/billing/billingItems'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
+import {
+  ensureUserBootstrapped,
+  loadBillingItemRecords,
+  reconcileUser,
+  upsertLsSubscription,
+} from '../lib/billingStore'
+import { lsCancelSubscription } from '../lib/lsApi'
 
-const lsJsonHeaders = (apiKey: string) => ({
-  Authorization: `Bearer ${apiKey}`,
-  Accept: `application/vnd.api+json`,
-  'Content-Type': `application/vnd.api+json`,
-})
+const CANCELABLE_SKUS = [`hosting.slot.recurring.month`, `hosting.slot.recurring.month.legacy`]
 
+/**
+ * Cancel the authenticated user's monthly membership at period end.
+ *
+ * Body (optional): `{ "itemId": "<billing_items id>" }` cancels one subscription. Without it, every active monthly
+ * subscription on the account is cancelled — users can hold several (e.g. PayPal subscriptions that could not change
+ * quantity), and "cancel membership" means all of them.
+ */
 export const HandleLemonSqueezyCancel = (e: core.RequestEvent) => {
   const log = mkLog(`ls-cancel`)
   const audit = mkAudit(log, $app)
@@ -18,82 +28,56 @@ export const HandleLemonSqueezyCancel = (e: core.RequestEvent) => {
       throw new UnauthorizedError(`Authentication required`)
     }
 
-    const subscription = authRecord.get(`subscription`)
-    const interval = authRecord.get(`subscription_interval`)
-    if (subscription !== `premium` || interval !== `month`) {
+    const itemId = (() => {
+      try {
+        return `${JSON.parse(readerToString(e.request.body) || '{}')?.itemId || ''}`.trim()
+      } catch {
+        return ``
+      }
+    })()
+
+    const userRec = $app.findRecordById(`users`, authRecord.id)
+    ensureUserBootstrapped($app, userRec)
+
+    const now = new Date()
+    const targets = loadBillingItemRecords($app, userRec.id).filter((rec) => {
+      if (itemId && rec.id !== itemId) return false
+      return (
+        rec.getString(`provider`) === `lemonsqueezy` &&
+        rec.getString(`kind`) === `subscription` &&
+        CANCELABLE_SKUS.includes(rec.getString(`sku`)) &&
+        // Already-cancelled subscriptions are still "active" until ends_at; don't cancel them twice.
+        rec.getString(`status`) !== `cancelled` &&
+        isBillingItemActive({ kind: `subscription`, status: rec.getString(`status`) }, now)
+      )
+    })
+
+    if (targets.length === 0) {
       throw new BadRequestError(`No cancellable membership on this account`)
     }
 
-    const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`)
-    if (!apiKey) {
-      throw new BadRequestError(`Billing is not configured (set LS_API_KEY on mothership)`)
+    const cancelled: { itemId: string; subscriptionId: string; endsAt: string | null }[] = []
+    for (const rec of targets) {
+      const subscriptionId = rec.getString(`external_id`)
+      const sub = lsCancelSubscription(subscriptionId)
+      upsertLsSubscription($app, userRec.id, sub)
+      cancelled.push({ itemId: rec.id, subscriptionId, endsAt: (sub.attributes as any)?.ends_at || null })
     }
 
-    const email = authRecord.get(`email`)
+    // Access continues until ends_at; reconcile keeps cancelled-but-paid slots active.
+    reconcileUser($app, userRec)
 
-    const findActiveSubscription = () => {
-      for (const variantId of MONTHLY_CANCEL_VARIANT_IDS) {
-        const listUrl =
-          `https://api.lemonsqueezy.com/v1/subscriptions` +
-          `?filter[user_email]=${encodeURIComponent(email)}` +
-          `&filter[variant_id]=${variantId}` +
-          `&filter[status]=active`
+    const endsAt =
+      cancelled
+        .map((c) => c.endsAt)
+        .filter((d): d is string => !!d)
+        .sort()
+        .pop() || null
 
-        const listRes = $http.send({
-          url: listUrl,
-          method: `GET`,
-          headers: lsJsonHeaders(apiKey),
-          timeout: 30,
-        })
+    log(`subscriptions cancelled`, userRec.id, JSON.stringify(cancelled))
+    audit(`LS`, `Membership cancelled via dashboard.`, { user_id: userRec.id, cancelled, ends_at: endsAt })
 
-        if (listRes.statusCode < 200 || listRes.statusCode >= 300) {
-          const detail =
-            listRes.json?.errors?.[0]?.detail || listRes.json?.errors?.[0]?.title || JSON.stringify(listRes.json)
-          log(`LS list subscriptions failed`, listRes.statusCode, variantId, detail)
-          throw new BadRequestError(`Could not look up subscription: ${detail}`)
-        }
-
-        const subscriptions = listRes.json?.data || []
-        if (subscriptions.length > 0) {
-          return subscriptions[0]
-        }
-      }
-      return null
-    }
-
-    const activeSubscription = findActiveSubscription()
-    if (!activeSubscription) {
-      throw new BadRequestError(`No active subscription found for this account`)
-    }
-
-    const subscriptionId = `${activeSubscription.id || ''}`.trim()
-    if (!subscriptionId) {
-      throw new Error(`Subscription id missing in Lemon Squeezy response`)
-    }
-
-    const cancelRes = $http.send({
-      url: `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
-      method: `DELETE`,
-      headers: lsJsonHeaders(apiKey),
-      timeout: 30,
-    })
-
-    if (cancelRes.statusCode < 200 || cancelRes.statusCode >= 300) {
-      const detail =
-        cancelRes.json?.errors?.[0]?.detail || cancelRes.json?.errors?.[0]?.title || JSON.stringify(cancelRes.json)
-      log(`LS cancel failed`, cancelRes.statusCode, detail)
-      throw new BadRequestError(`Could not cancel subscription: ${detail}`)
-    }
-
-    const endsAt = cancelRes.json?.data?.attributes?.ends_at || null
-    log(`subscription cancelled`, authRecord.id, subscriptionId, endsAt)
-    audit(`LS`, `Membership cancelled via dashboard.`, {
-      user_id: authRecord.id,
-      subscription_id: subscriptionId,
-      ends_at: endsAt,
-    })
-
-    return e.json(200, { status: `cancelled`, endsAt })
+    return e.json(200, { status: `cancelled`, endsAt, cancelled })
   } catch (err) {
     log(`${err}`)
     throw err

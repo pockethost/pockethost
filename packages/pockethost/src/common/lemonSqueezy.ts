@@ -6,6 +6,25 @@ export const INSTANCE_MONTHLY_LEGACY_PV_ID = '424532-651625'
 /** Legacy $359 Flounder — webhook/back-compat only (disabled in LS checkout). */
 export const FLOUNDER_LIFETIME_LEGACY_PV_ID = '424532-651627'
 
+/**
+ * Retired LS products — webhook/reconcile only, never sold again. Ids recovered from git history and the mothership
+ * audit table (2026-11-06).
+ */
+/** "idkfa" — 2026 Paywall Pro monthly (250 slots). */
+export const LEGACY_PAYWALL_PRO_MONTHLY_PV_ID = '424532-651629'
+/** 2026 Paywall Pro annual (250 slots). */
+export const LEGACY_PAYWALL_PRO_ANNUAL_PV_ID = '424532-651634'
+/** 2023 PocketHost Pro monthly. */
+export const LEGACY_PRO_MONTHLY_PV_ID = '159790-200788'
+/** 2023 PocketHost Pro annual. */
+export const LEGACY_PRO_ANNUAL_PV_ID = '159791-200789'
+/** 2023 Founder's Edition annual. */
+export const LEGACY_FOUNDER_ANNUAL_PV_ID = '159792-200790'
+/** 2023 Flounder's Edition annual. */
+export const LEGACY_FLOUNDER_ANNUAL_PV_ID = '367781-547858'
+/** 2023 Flounder's Edition lifetime (same 250-slot lifetime as the later "iddqd" variant). */
+export const LEGACY_FLOUNDER_LIFETIME_2023_PV_ID = '306534-441845'
+
 /** Pay Per PocketBase monthly ($9.99/mo). */
 export const INSTANCE_MONTHLY_PV_ID = '1192400-1864333'
 
@@ -32,9 +51,3 @@ const VARIANT_ID_BY_PV_ID: Record<string, string> = {
 }
 
 export const lemonSqueezyVariantId = (pvId: string) => VARIANT_ID_BY_PV_ID[pvId]
-
-/** Monthly variant IDs for cancel lookup (current + legacy subscribers). */
-export const MONTHLY_CANCEL_VARIANT_IDS = [
-  lemonSqueezyVariantId(INSTANCE_MONTHLY_PV_ID),
-  lemonSqueezyVariantId(INSTANCE_MONTHLY_LEGACY_PV_ID),
-].filter((id): id is string => !!id)

@@ -1,3 +1,4 @@
 export * from './api/HandleLemonSqueezyCancel'
 export * from './api/HandleLemonSqueezyCheckout'
+export * from './api/HandleLemonSqueezyReconcile'
 export * from './api/HandleLemonSqueezySale'

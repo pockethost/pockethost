@@ -9,6 +9,10 @@ export type ProductSku =
   | 'hosting.slot.recurring.year'
   | 'hosting.slot.lifetime.legacy_flounder'
   | 'hosting.slot.lifetime'
+  | 'hosting.legacy.unlimited.month'
+  | 'hosting.legacy.unlimited.year'
+  | 'hosting.legacy.founder.year'
+  | 'hosting.legacy.flounder.year'
   | 'hosting.legacy.founder'
   | 'hosting.legacy.legacy'
   | 'hosting.grandfathered.hacker'
@@ -26,6 +30,8 @@ export type BillingLinks = {
     prior_instance_count?: number
   }
   lemonsqueezy?: {
+    /** Lowercased LS checkout emails that differ from the account email (paired via checkout custom_data.user_id). */
+    emails?: string[]
     subscription_id?: string
     customer_id?: string
     variant_id?: string

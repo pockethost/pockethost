@@ -5,6 +5,7 @@
  * Node-only reconciler code (LS API client, async) must live under `billing/reconcile/` and must never be re-exported
  * here, or it will be pulled into the Goja hook bundle.
  */
+export * from './billingItems'
 export * from './entitlementFromPvId'
 export * from './productCatalog'
 export * from './providerMappings'

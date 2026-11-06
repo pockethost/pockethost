@@ -58,6 +58,41 @@ export const PRODUCT_CATALOG: Record<ProductSku, EntitlementTemplate> = {
     statusWhenActive: 'active',
     cancelable: false,
   },
+  // Retired "unlimited"-era LS products (2023 Pro/Founder/Flounder plans and the 2026 Paywall Pro "idkfa"). They
+  // grant 250 slots, which is what the old handlers set (or what holders were migrated to). Still billed by LS; not
+  // sold anymore, and not cancelable from the dashboard (LS customer portal only).
+  'hosting.legacy.unlimited.month': {
+    legacySubscription: SubscriptionType.Premium,
+    interval: SubscriptionInterval.Month,
+    quantityFromCheckout: false,
+    fixedQuantity: 250,
+    statusWhenActive: 'active',
+    cancelable: false,
+  },
+  'hosting.legacy.unlimited.year': {
+    legacySubscription: SubscriptionType.Premium,
+    interval: SubscriptionInterval.Year,
+    quantityFromCheckout: false,
+    fixedQuantity: 250,
+    statusWhenActive: 'active',
+    cancelable: false,
+  },
+  'hosting.legacy.founder.year': {
+    legacySubscription: SubscriptionType.Founder,
+    interval: SubscriptionInterval.Year,
+    quantityFromCheckout: false,
+    fixedQuantity: 250,
+    statusWhenActive: 'active',
+    cancelable: false,
+  },
+  'hosting.legacy.flounder.year': {
+    legacySubscription: SubscriptionType.Flounder,
+    interval: SubscriptionInterval.Year,
+    quantityFromCheckout: false,
+    fixedQuantity: 250,
+    statusWhenActive: 'active',
+    cancelable: false,
+  },
   'hosting.legacy.founder': {
     legacySubscription: SubscriptionType.Founder,
     interval: '',

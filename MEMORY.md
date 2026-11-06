@@ -64,6 +64,8 @@ Users → firewall (SSL, vhost, rate limits) → edge daemon → Docker PocketBa
 | `premium`, `founder`, `flounder`, `legacy` | Active paid or grandfathered hosting |
 | `free` | DB enum only. Grandfathered no-pay or lapsed rows. Not a product tier. |
 
+**Slots = sum of `billing_items`.** Each LS subscription, LS lifetime order, or manual grant is one `billing_items` row; `users.subscription_quantity` and the plan fields are recomputed from all active rows on every LS webhook (never incremented in place). Users may hold several LS subscriptions (PayPal ones cannot change quantity). Superuser `POST /api/ls/reconcile` (dry run; `?apply=1` writes) rebuilds rows from LS. Details: `.cursor/skills/lemon-squeezy-integration/pockethost.md`.
+
 Agent/docs copy: **Pay Per PocketBase** only. No Pro/Agency tiers. Rule: [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc).
 
 ## Services (factory pattern)
@@ -116,6 +118,8 @@ Do not commit: `.env`, `.pockethost`, `dist`, `.svelte-kit`, `pb_data`, `live-da
 ## Production / PM2
 
 Prod: `ecosystem.config.cjs` via PM2. Runbook: `docs/production.md`. `setup.sh` configures `pm2-logrotate` (10M max, 7 retained).
+
+**Mothership hooks load straight from the checkout.** Prod runs PocketBase with `--hooksDir`/`--migrationsDir` pointing into the repo, so building `mothership-app` in that checkout is a deploy (hooks reload, pending migrations apply). Test hook changes from a separate worktree or a throwaway PocketBase. Host specifics: private ops notes.
 
 **Edge host kernel (inotify):** Each instance container's PocketBase jsvm watches `pb_hooks` via `inotify_init()`; each `containerd-shim` adds another. Both charge against **uid 0's host-wide** `fs.inotify.max_user_instances` (not container `nofile` ulimits). Kernel default **128** exhausts around **60–70 warm instances** → `registerHooks: too many open files` panic at boot. Required on every edge node: `/etc/sysctl.d/99-pockethost.conf` with `fs.inotify.max_user_instances=8192`, `fs.inotify.max_user_watches=1048576` (`setup.sh` writes this on provision). Instance Docker spawn still sets `PH_CONTAINER_NOFILE_SOFT`/`HARD` (65536/524288) for FD limits; that is a separate knob.
 

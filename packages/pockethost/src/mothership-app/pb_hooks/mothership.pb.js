@@ -114,6 +114,9 @@ routerAdd("POST", "/api/ls/cancel", (e) => {
 routerAdd("POST", "/api/ls", (e) => {
 	return require(`${__hooks}/mothership`).HandleLemonSqueezySale(e);
 });
+routerAdd("POST", "/api/ls/reconcile", (e) => {
+	return require(`${__hooks}/mothership`).HandleLemonSqueezyReconcile(e);
+}, $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/mail/hooks.ts

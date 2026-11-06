@@ -1,251 +1,180 @@
-import { entitlementFromPvId } from '$common/billing/entitlementFromPvId'
+import {
+  billingItemFromLsOrder,
+  isRecurringLsOrder,
+  type BillingItem,
+  type LsOrderResource,
+  type LsSubscriptionResource,
+} from '$common/billing/billingItems'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
-import { PartialDeep } from 'type-fest'
+import {
+  ensureUserBootstrapped,
+  findBillingItemRecord,
+  reconcileUser,
+  rememberLsEmails,
+  upsertBillingItem,
+  upsertLsSubscription,
+} from '../lib/billingStore'
+import { lsSubscription, lsSubscriptionsByOrderId } from '../lib/lsApi'
 
-type LemonSqueezyDebugContext = PartialDeep<{
-  secret: string
-  raw: string
-  body_hash: string
-  xsignature_header: string
-  data: {
-    data: {
-      attributes: {
-        product_id: number
-        product_name: string
-        user_email: string
-        variant_id: number
-        variant_name: string
-        first_order_item: {
-          product_id: number
-          product_name: string
-          variant_id: number
-          variant_name: string
-          quantity: number
-        }
-      }
-      type: string
-    }
-    meta: {
-      event_name: string
-      custom_data: {
-        user_id: string
-      }
-    }
-  }
-  type: string
-  event_name: string
-  user_id: string
-  user_email: string
-  user_id_source: 'custom_data' | 'email'
-  product_id: number
-  variant_id: number
-  product_name: string
-  quantity: number
-  variant_name: string
-}>
+type LsWebhookPayload = {
+  meta?: { event_name?: string; custom_data?: { user_id?: string } }
+  data?: { id?: string | number; type?: string; attributes?: Record<string, any> }
+}
 
+type SaleContext = {
+  event_name?: string
+  type?: string
+  resource_id?: string
+  user_id?: string
+  user_email?: string
+  user_id_source?: 'custom_data' | 'billing_item' | 'email'
+  product_name?: string
+  variant_name?: string
+  quantity?: number
+  slots_before?: number
+  slots_after?: number
+  bootstrapped?: boolean
+  stale_event_skipped?: boolean
+}
+
+/** Events that post to the lemon_cancel_discord channel. */
+const CANCEL_EVENTS = [`subscription_cancelled`, `order_refunded`, `subscription_payment_refunded`]
+
+/**
+ * Lemon Squeezy webhook. Every event updates the one billing item it is about (subscription or lifetime order), then
+ * the user's slot count is recomputed from all of their billing items. Users may hold any number of subscriptions
+ * (PayPal subscriptions cannot change quantity, so adding slots means buying another one) — they are summed, never
+ * overwritten.
+ */
 export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
   const log = mkLog(`ls`)
   const audit = mkAudit(log, $app)
-  const context: LemonSqueezyDebugContext = {}
+  const context: SaleContext = {}
 
-  log(`Top of ls`)
   try {
-    context.secret = process.env.LS_WEBHOOK_SECRET
-    if (!context.secret) {
+    const secret = process.env.LS_WEBHOOK_SECRET
+    if (!secret) {
       throw new Error(`No secret`)
     }
-    log(`Secret`, context.secret)
 
-    context.raw = readerToString(e.request.body)
-
-    context.body_hash = $security.hs256(context.raw, context.secret)
-    log(`Body hash`, context.body_hash)
-
-    context.xsignature_header = e.request.header.get('X-Signature')
-    log(`Signature`, context.xsignature_header)
-
-    if (context.xsignature_header == undefined || !$security.equal(context.body_hash, context.xsignature_header)) {
+    const raw = readerToString(e.request.body)
+    const signature = e.request.header.get('X-Signature')
+    if (!signature || !$security.equal($security.hs256(raw, secret), signature)) {
       throw new BadRequestError(`Invalid signature`)
     }
-    log(`Signature verified`)
 
-    context.data = JSON.parse(context.raw)
-    log(`payload`, JSON.stringify(context.data, null, 2))
+    const payload = JSON.parse(raw) as LsWebhookPayload
+    log(`payload`, JSON.stringify(payload, null, 2))
 
-    context.type = context.data?.data?.type
-    if (!context.type) {
-      throw new Error(`No type`)
-    } else {
-      log(`type ok`, context.type)
+    context.event_name = payload.meta?.event_name
+    context.type = payload.data?.type
+    context.resource_id = `${payload.data?.id ?? ''}`
+    const attrs = payload.data?.attributes || {}
+    if (!context.event_name || !context.type) {
+      throw new Error(`Missing event name or type`)
     }
 
-    context.event_name = context.data?.meta?.event_name
-    if (!context.event_name) {
-      throw new Error(`No event name`)
-    } else {
-      log(`event name ok`, context.event_name)
+    /** Resolve the LS subscriptions this event is about, plus a lifetime order item if any. */
+    const resolveResources = (): { subscriptions: LsSubscriptionResource[]; order?: BillingItem } => {
+      switch (context.type) {
+        case `subscriptions`:
+          return { subscriptions: [payload.data as LsSubscriptionResource] }
+        case `subscription-invoices`:
+          return { subscriptions: [lsSubscription(attrs.subscription_id)] }
+        case `orders`: {
+          const order = payload.data as LsOrderResource
+          if (isRecurringLsOrder(order)) {
+            // Covers stores where subscription_* webhooks are not enabled yet.
+            return { subscriptions: lsSubscriptionsByOrderId(order.id) }
+          }
+          const item = billingItemFromLsOrder(order)
+          if (!item) {
+            const i = attrs.first_order_item || {}
+            throw new Error(`Product and variant not found: ${i.product_id}-${i.variant_id}`)
+          }
+          return { subscriptions: [], order: item }
+        }
+        default:
+          return { subscriptions: [] }
+      }
     }
 
-    context.user_id = context.data?.meta?.custom_data?.user_id
-    context.user_email = `${context.data?.data?.attributes?.user_email || ''}`.trim()
-
-    context.product_id =
-      context.data?.data?.attributes?.first_order_item?.product_id || context.data?.data?.attributes?.product_id || 0
-
-    if (!context.product_id) {
-      throw new Error(`No product ID`)
-    } else {
-      log(`product ID ok`, context.product_id)
+    if (![`subscriptions`, `subscription-invoices`, `orders`].includes(context.type)) {
+      audit(`LS`, `Ignored unsupported event ${context.event_name} (${context.type}).`, context)
+      return e.json(200, { status: `ignored` })
     }
 
-    context.product_name =
-      context.data?.data?.attributes?.first_order_item?.product_name ||
-      context.data?.data?.attributes?.product_name ||
-      ''
-    log(`product name ok`, context.product_name)
-
-    context.variant_id =
-      context.data?.data?.attributes?.first_order_item?.variant_id || context.data?.data?.attributes?.variant_id || 0
-    if (!context.variant_id) {
-      throw new Error(`No variant ID`)
-    } else {
-      log(`variant ID ok`, context.variant_id)
-    }
-
-    context.variant_name =
-      context.data?.data?.attributes?.first_order_item?.variant_name ||
-      context.data?.data?.attributes?.variant_name ||
-      ''
-    log(`variant name ok`, context.variant_name)
-
-    context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0
-    log(`quantity ok`, context.quantity)
-
-    const pv_id = `${context.product_id}-${context.variant_id}`
-
-    const entitlement = entitlementFromPvId(pv_id, context.quantity || 0)
-    if (!entitlement) {
-      throw new Error(`Product and variant not found: ${pv_id}`)
-    }
+    const { subscriptions, order } = resolveResources()
+    const first = subscriptions[0]
+    const firstAttrs = (first?.attributes || {}) as Record<string, any>
+    context.product_name = order?.product_name || firstAttrs.product_name || attrs.product_name || ``
+    context.variant_name = order?.variant_name || firstAttrs.variant_name || attrs.variant_name || ``
+    context.quantity =
+      order?.quantity || firstAttrs.first_subscription_item?.quantity || attrs.first_order_item?.quantity
 
     const userRec = (() => {
-      if (context.user_id) {
+      const customUserId = payload.meta?.custom_data?.user_id
+      if (customUserId) {
         context.user_id_source = `custom_data`
-        log(`user ID ok`, context.user_id)
         try {
-          return $app.findFirstRecordByData(`users`, `id`, context.user_id)
-        } catch (e) {
-          throw new Error(`User ${context.user_id} not found`)
+          return $app.findRecordById(`users`, customUserId)
+        } catch {
+          throw new Error(`User ${customUserId} not found`)
         }
       }
 
-      if (context.user_email) {
-        log(`no custom user_id, falling back to checkout email`, context.user_email)
-        try {
-          const rec = $app.findFirstRecordByData(`users`, `email`, context.user_email)
-          context.user_id = rec.id
-          context.user_id_source = `email`
-          return rec
-        } catch (e) {
-          throw new Error(`No PocketHost user for checkout email ${context.user_email}`)
-        }
+      const known = first
+        ? findBillingItemRecord($app, { provider: `lemonsqueezy`, kind: `subscription`, external_id: `${first.id}` })
+        : order && findBillingItemRecord($app, order)
+      if (known) {
+        context.user_id_source = `billing_item`
+        return $app.findRecordById(`users`, known.getString(`user`))
       }
 
+      const email = `${attrs.user_email || firstAttrs.user_email || ''}`.trim()
+      if (email) {
+        context.user_id_source = `email`
+        try {
+          return $app.findFirstRecordByData(`users`, `email`, email)
+        } catch {
+          throw new Error(`No PocketHost user for checkout email ${email}`)
+        }
+      }
       throw new Error(`No user ID or checkout email`)
     })()
-    log(`user record ok`, userRec.id, context.user_id_source)
+    context.user_id = userRec.id
+    context.user_email = userRec.getString(`email`)
 
-    const event_name_map = {
-      order_created: () => {
-        signup_finalizer()
-      },
-      order_refunded: () => {
-        signup_canceller()
-      },
-      subscription_cancelled: () => {
-        notifyCancellationDiscord()
-        audit(`LS`, `Subscription cancelled (active until period end).`, context)
-      },
-      subscription_expired: () => {
-        signup_canceller()
-      },
-      subscription_payment_refunded: () => {
-        signup_canceller()
-      },
-    } as const
-
-    const event_handler = event_name_map[context.event_name as keyof typeof event_name_map]
-    if (!event_handler) {
-      throw new Error(`Unsupported event: ${context.event_name}`)
-    } else {
-      log(`event handler ok`, event_handler)
+    // Customers often check out under a different email. When checkout data (or an existing row) ties this event to
+    // the user, remember that LS email so later syncs find their other purchases too.
+    if (context.user_id_source !== `email`) {
+      rememberLsEmails($app, userRec, [attrs.user_email, firstAttrs.user_email].filter(Boolean))
     }
 
-    const applyEntitlement = () => {
-      // Dual-write: legacy enum fields (back-compat) + new catalog fields.
-      userRec.set(`subscription`, entitlement.subscription)
-      userRec.set(`subscription_interval`, entitlement.subscription_interval)
-      userRec.set(`subscription_quantity`, entitlement.subscription_quantity)
-      userRec.set(`product_sku`, entitlement.product_sku)
-      userRec.set(`subscription_status`, entitlement.subscription_status)
-      userRec.set(`billing_provider`, `lemonsqueezy`)
+    context.bootstrapped = ensureUserBootstrapped($app, userRec)
+
+    for (const sub of subscriptions) {
+      const { skipped } = upsertLsSubscription($app, userRec.id, sub)
+      if (skipped) context.stale_event_skipped = true
     }
-    log(`product handler ok`, pv_id, entitlement.product_sku)
-
-    const signup_finalizer = () => {
-      applyEntitlement()
-      $app.save(userRec)
-      log(`saved user`)
-
-      const notify = mkNotifier(log, $app)
-      const { user_id } = context
-      if (!user_id) {
-        throw new Error(`User ID expected here`)
-      }
-      notify(`lemonbot`, `lemon_order_discord`, user_id, context)
-      log(`saved discord notice`)
-      audit(`LS`, `Signup processed.`, context)
+    if (order) {
+      upsertBillingItem($app, userRec.id, order, { providerData: attrs })
     }
 
-    const notifyCancellationDiscord = () => {
-      const notify = mkNotifier(log, $app)
-      const { user_id } = context
-      if (!user_id) {
-        throw new Error(`User ID expected here`)
-      }
-      notify(`lemonbot`, `lemon_cancel_discord`, user_id, context)
-      log(`saved cancel discord notice`)
+    const { before, after } = reconcileUser($app, userRec)
+    context.slots_before = before
+    context.slots_after = after
+
+    const notify = mkNotifier(log, $app)
+    if (context.event_name === `order_created`) {
+      notify(`lemonbot`, `lemon_order_discord`, userRec.id, context)
+    } else if (CANCEL_EVENTS.includes(context.event_name)) {
+      notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context)
     }
 
-    const signup_canceller = () => {
-      if (userRec.get(`subscription`) !== `premium`) {
-        return
-      }
-      const currentQuantity = userRec.get(`subscription_quantity`)
-      const newQuantity = Math.max(currentQuantity - (context.quantity || 1), 0)
-      userRec.set(`subscription_quantity`, newQuantity)
-
-      if (newQuantity === 0) {
-        // Dual-write: clear legacy + new fields. Grandfathered hacker floor is a later deploy.
-        userRec.set(`subscription`, `free`)
-        userRec.set(`subscription_interval`, ``)
-        userRec.set(`product_sku`, ``)
-        userRec.set(`subscription_status`, `lapsed`)
-      }
-      $app.save(userRec)
-      log(`saved user`)
-      audit(`LS`, `Signup cancelled.`, context)
-
-      if (context.event_name === `order_refunded` || context.event_name === `subscription_payment_refunded`) {
-        notifyCancellationDiscord()
-      }
-    }
-
-    event_handler()
-
+    audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context)
     return e.json(200, { status: 'ok' })
   } catch (err) {
     audit(`LS_ERR`, `${err}`, context)

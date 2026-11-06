@@ -752,12 +752,136 @@ const BeforeUpdate_version = (e) => {
 };
 
 //#endregion
+//#region ../common/schema/User.ts
+const PLAN_NAMES = {
+	["legacy"]: "Legacy",
+	["free"]: "Hacker",
+	["premium"]: `Pay Per PocketBase`,
+	["founder"]: `Founder`,
+	["flounder"]: `Flounder`
+};
+
+//#endregion
+//#region ../common/billing/productCatalog.ts
+const PRODUCT_CATALOG = {
+	"hosting.slot.recurring.month.legacy": {
+		legacySubscription: "premium",
+		interval: "month",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: true
+	},
+	"hosting.slot.recurring.month": {
+		legacySubscription: "premium",
+		interval: "month",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: true
+	},
+	"hosting.slot.recurring.year": {
+		legacySubscription: "premium",
+		interval: "year",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: true
+	},
+	"hosting.slot.lifetime.legacy_flounder": {
+		legacySubscription: "flounder",
+		interval: "life",
+		quantityFromCheckout: false,
+		fixedQuantity: 250,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.slot.lifetime": {
+		legacySubscription: "flounder",
+		interval: "life",
+		quantityFromCheckout: true,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.legacy.unlimited.month": {
+		legacySubscription: "premium",
+		interval: "month",
+		quantityFromCheckout: false,
+		fixedQuantity: 250,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.legacy.unlimited.year": {
+		legacySubscription: "premium",
+		interval: "year",
+		quantityFromCheckout: false,
+		fixedQuantity: 250,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.legacy.founder.year": {
+		legacySubscription: "founder",
+		interval: "year",
+		quantityFromCheckout: false,
+		fixedQuantity: 250,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.legacy.flounder.year": {
+		legacySubscription: "flounder",
+		interval: "year",
+		quantityFromCheckout: false,
+		fixedQuantity: 250,
+		statusWhenActive: "active",
+		cancelable: false
+	},
+	"hosting.legacy.founder": {
+		legacySubscription: "founder",
+		interval: "",
+		quantityFromCheckout: false,
+		statusWhenActive: "grandfathered",
+		cancelable: false
+	},
+	"hosting.legacy.legacy": {
+		legacySubscription: "legacy",
+		interval: "",
+		quantityFromCheckout: false,
+		statusWhenActive: "grandfathered",
+		cancelable: false
+	},
+	"hosting.grandfathered.hacker": {
+		legacySubscription: "free",
+		interval: "",
+		quantityFromCheckout: false,
+		fixedQuantity: 1,
+		statusWhenActive: "grandfathered",
+		cancelable: false
+	}
+};
+const isKnownSku = (sku) => Object.prototype.hasOwnProperty.call(PRODUCT_CATALOG, sku);
+
+//#endregion
 //#region ../common/lemonSqueezy.ts
 /** Lemon Squeezy webhook key: `{product_id}-{variant_id}`. */
 /** Legacy $5/mo — webhook/back-compat only (disabled in LS checkout). */
 const INSTANCE_MONTHLY_LEGACY_PV_ID = "424532-651625";
 /** Legacy $359 Flounder — webhook/back-compat only (disabled in LS checkout). */
 const FLOUNDER_LIFETIME_LEGACY_PV_ID = "424532-651627";
+/**
+* Retired LS products — webhook/reconcile only, never sold again. Ids recovered from git history and the mothership
+* audit table (2026-11-06).
+*/
+/** "idkfa" — 2026 Paywall Pro monthly (250 slots). */
+const LEGACY_PAYWALL_PRO_MONTHLY_PV_ID = "424532-651629";
+/** 2026 Paywall Pro annual (250 slots). */
+const LEGACY_PAYWALL_PRO_ANNUAL_PV_ID = "424532-651634";
+/** 2023 PocketHost Pro monthly. */
+const LEGACY_PRO_MONTHLY_PV_ID = "159790-200788";
+/** 2023 PocketHost Pro annual. */
+const LEGACY_PRO_ANNUAL_PV_ID = "159791-200789";
+/** 2023 Founder's Edition annual. */
+const LEGACY_FOUNDER_ANNUAL_PV_ID = "159792-200790";
+/** 2023 Flounder's Edition annual. */
+const LEGACY_FLOUNDER_ANNUAL_PV_ID = "367781-547858";
+/** 2023 Flounder's Edition lifetime (same 250-slot lifetime as the later "iddqd" variant). */
+const LEGACY_FLOUNDER_LIFETIME_2023_PV_ID = "306534-441845";
 /** Pay Per PocketBase monthly ($9.99/mo). */
 const INSTANCE_MONTHLY_PV_ID = "1192400-1864333";
 /** Pay Per PocketBase annual ($59.99/yr). */
@@ -782,72 +906,559 @@ const VARIANT_ID_BY_PV_ID = {
 	[FLOUNDER_LIFETIME_LEGACY_PV_ID]: "651627"
 };
 const lemonSqueezyVariantId = (pvId) => VARIANT_ID_BY_PV_ID[pvId];
-/** Monthly variant IDs for cancel lookup (current + legacy subscribers). */
-const MONTHLY_CANCEL_VARIANT_IDS = [lemonSqueezyVariantId(INSTANCE_MONTHLY_PV_ID), lemonSqueezyVariantId(INSTANCE_MONTHLY_LEGACY_PV_ID)].filter((id) => !!id);
 
 //#endregion
-//#region src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts
-const lsJsonHeaders = (apiKey) => ({
+//#region ../common/billing/providerMappings.ts
+/**
+* Maps an external provider entity to an internal SKU. The key is `{provider}:{externalId}` where `externalId` is the
+* Lemon Squeezy `{product_id}-{variant_id}` pv_id.
+*/
+const SKU_BY_PROVIDER_KEY = {
+	[`lemonsqueezy:${INSTANCE_MONTHLY_PV_ID}`]: "hosting.slot.recurring.month",
+	[`lemonsqueezy:${INSTANCE_ANNUAL_PV_ID}`]: "hosting.slot.recurring.year",
+	[`lemonsqueezy:${INSTANCE_LIFETIME_PV_ID}`]: "hosting.slot.lifetime",
+	[`lemonsqueezy:${INSTANCE_MONTHLY_LEGACY_PV_ID}`]: "hosting.slot.recurring.month.legacy",
+	[`lemonsqueezy:${FLOUNDER_LIFETIME_LEGACY_PV_ID}`]: "hosting.slot.lifetime.legacy_flounder",
+	[`lemonsqueezy:${LEGACY_FLOUNDER_LIFETIME_2023_PV_ID}`]: "hosting.slot.lifetime.legacy_flounder",
+	[`lemonsqueezy:${LEGACY_PAYWALL_PRO_MONTHLY_PV_ID}`]: "hosting.legacy.unlimited.month",
+	[`lemonsqueezy:${LEGACY_PAYWALL_PRO_ANNUAL_PV_ID}`]: "hosting.legacy.unlimited.year",
+	[`lemonsqueezy:${LEGACY_PRO_MONTHLY_PV_ID}`]: "hosting.legacy.unlimited.month",
+	[`lemonsqueezy:${LEGACY_PRO_ANNUAL_PV_ID}`]: "hosting.legacy.unlimited.year",
+	[`lemonsqueezy:${LEGACY_FOUNDER_ANNUAL_PV_ID}`]: "hosting.legacy.founder.year",
+	[`lemonsqueezy:${LEGACY_FLOUNDER_ANNUAL_PV_ID}`]: "hosting.legacy.flounder.year"
+};
+const providerKey = (provider, externalId) => `${provider}:${externalId}`;
+const resolveProviderSku = (provider, externalId) => SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)];
+
+//#endregion
+//#region ../common/billing/entitlementFromPvId.ts
+/**
+* Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
+* Returns undefined for unmapped pv_ids so callers can reject unknown products.
+*/
+const entitlementFromPvId = (pvId, quantity) => {
+	const sku = resolveProviderSku("lemonsqueezy", pvId);
+	if (!sku) return void 0;
+	const template = PRODUCT_CATALOG[sku];
+	const resolvedQuantity = template.quantityFromCheckout ? quantity : template.fixedQuantity ?? 0;
+	return {
+		product_sku: sku,
+		subscription: template.legacySubscription,
+		subscription_interval: template.interval,
+		subscription_quantity: resolvedQuantity,
+		subscription_status: template.statusWhenActive
+	};
+};
+
+//#endregion
+//#region ../common/billing/resolveUserEntitlements.ts
+/**
+* Infer the SKU from legacy fields. Single source of truth for both the read fallback (here) and the backfill migration
+* (Deploy 2).
+*/
+const skuFromLegacy = (subscription, interval, quantity) => {
+	switch (subscription) {
+		case "premium":
+			if (interval === "year") return "hosting.slot.recurring.year";
+			if (interval === "life") return "hosting.slot.lifetime";
+			return "hosting.slot.recurring.month.legacy";
+		case "flounder": return "hosting.slot.lifetime.legacy_flounder";
+		case "founder": return "hosting.legacy.founder";
+		case "legacy": return "hosting.legacy.legacy";
+		case "free": return quantity > 0 ? "hosting.grandfathered.hacker" : "";
+		default: return "";
+	}
+};
+const resolveUserEntitlements = (user) => {
+	const legacySubscription = `${user.subscription ?? ""}`;
+	const interval = `${user.subscription_interval ?? ""}`;
+	const slotCount = user.subscription_quantity ?? 0;
+	const storedSku = user.product_sku;
+	const sku = storedSku && isKnownSku(storedSku) ? storedSku : skuFromLegacy(user.subscription, user.subscription_interval, slotCount);
+	const template = sku ? PRODUCT_CATALOG[sku] : void 0;
+	const status = (() => {
+		if (user.subscription_status === "active" || user.subscription_status === "lapsed" || user.subscription_status === "grandfathered") return user.subscription_status;
+		if (template) return template.statusWhenActive === "grandfathered" ? "grandfathered" : "active";
+		return "lapsed";
+	})();
+	const hasHostingAccess = slotCount > 0;
+	const isGrandfathered = sku === "hosting.grandfathered.hacker";
+	return {
+		sku,
+		status,
+		slotCount,
+		interval,
+		hasHostingAccess,
+		hasSubscriberFeatures: hasHostingAccess,
+		isPaidSubscriber: status === "active" && legacySubscription === "premium",
+		isGrandfathered,
+		isCancelableMonthly: !!template && template.cancelable && interval === "month" && hasHostingAccess,
+		displayPlanName: PLAN_NAMES[legacySubscription] ?? PLAN_NAMES["free"]
+	};
+};
+
+//#endregion
+//#region ../common/billing/billingItems.ts
+/** LS subscription statuses that still grant access. `cancelled` = cancelled but paid through `ends_at`. */
+const ACTIVE_SUBSCRIPTION_STATUSES = [
+	"on_trial",
+	"active",
+	"past_due",
+	"cancelled"
+];
+/** LS order statuses that still grant access (lifetime purchases). */
+const ACTIVE_ORDER_STATUSES = ["paid", "partial_refund"];
+const isBillingItemActive = (item, now) => {
+	switch (item.kind) {
+		case "subscription":
+			if (!ACTIVE_SUBSCRIPTION_STATUSES.includes(item.status)) return false;
+			if (item.status === "cancelled" && item.ends_at) {
+				const ends = new Date(item.ends_at);
+				if (!isNaN(ends.getTime()) && ends.getTime() <= now.getTime()) return false;
+			}
+			return true;
+		case "order": return ACTIVE_ORDER_STATUSES.includes(item.status);
+		case "manual":
+			if (item.status !== "active") return false;
+			if (item.ends_at) {
+				const ends = new Date(item.ends_at);
+				if (!isNaN(ends.getTime()) && ends.getTime() <= now.getTime()) return false;
+			}
+			return true;
+		default: return false;
+	}
+};
+/**
+* When a user holds several SKUs, this decides which one drives the legacy `subscription` / `subscription_interval`
+* fields (plan label, cancel button). Recurring monthly first so the in-app cancel flow stays reachable.
+*/
+const SKU_PRIORITY = [
+	"hosting.slot.recurring.month",
+	"hosting.slot.recurring.month.legacy",
+	"hosting.slot.recurring.year",
+	"hosting.legacy.unlimited.month",
+	"hosting.legacy.unlimited.year",
+	"hosting.legacy.founder.year",
+	"hosting.legacy.flounder.year",
+	"hosting.slot.lifetime",
+	"hosting.slot.lifetime.legacy_flounder",
+	"hosting.legacy.founder",
+	"hosting.legacy.legacy",
+	"hosting.grandfathered.hacker"
+];
+/**
+* Legacy "unlimited" accounts store int32 max as their slot count. Totals are capped there so stacking another purchase
+* on top neither overflows nor changes anything.
+*/
+const UNLIMITED_SLOTS = 2147483647;
+const LAPSED_ENTITLEMENT = {
+	product_sku: "",
+	subscription: "free",
+	subscription_interval: "",
+	subscription_quantity: 0,
+	subscription_status: "lapsed"
+};
+/** Sum every active item into the fields written to the `users` record. */
+const reconcileEntitlement = (items, now) => {
+	const active = items.filter((i) => isBillingItemActive(i, now) && isKnownSku(i.sku) && i.quantity > 0);
+	if (active.length === 0) return LAPSED_ENTITLEMENT;
+	const primary = [...active].sort((a, b) => SKU_PRIORITY.indexOf(a.sku) - SKU_PRIORITY.indexOf(b.sku))[0];
+	const template = PRODUCT_CATALOG[primary.sku];
+	const quantity = Math.min(active.reduce((sum, i) => sum + i.quantity, 0), UNLIMITED_SLOTS);
+	const anyPaid = active.some((i) => PRODUCT_CATALOG[i.sku].statusWhenActive === "active");
+	return {
+		product_sku: primary.sku,
+		subscription: template.legacySubscription,
+		subscription_interval: template.interval,
+		subscription_quantity: quantity,
+		subscription_status: anyPaid ? "active" : "grandfathered"
+	};
+};
+/** SKUs that never come from Lemon Squeezy, so a fresh LS sync cannot rediscover them. */
+const NON_LS_SKUS = [
+	"hosting.legacy.founder",
+	"hosting.legacy.legacy",
+	"hosting.grandfathered.hacker"
+];
+/**
+* Pre-`billing_items` accounts on a non-LS plan (founder / legacy / grandfathered hacker) keep that entitlement as a
+* manual row so a later LS purchase adds to it instead of replacing it.
+*/
+const baselineExternalId = (userId) => `baseline:${userId}`;
+/** True for a manual baseline row (current per-user key, or the buggy pre-fix per-SKU key). */
+const isBaselineExternalId = (externalId) => externalId.startsWith("baseline:");
+const baselineItemFromUser = (user, userId) => {
+	const resolved = resolveUserEntitlements(user);
+	if (!resolved.sku || !NON_LS_SKUS.includes(resolved.sku) || resolved.slotCount <= 0) return void 0;
+	return {
+		provider: "manual",
+		kind: "manual",
+		external_id: baselineExternalId(userId),
+		sku: resolved.sku,
+		quantity: resolved.slotCount,
+		status: "active"
+	};
+};
+const pvIdOf = (attrs) => `${attrs.product_id ?? ""}-${attrs.variant_id ?? ""}`;
+const isRecurringSku = (sku) => {
+	const interval = PRODUCT_CATALOG[sku].interval;
+	return interval === "month" || interval === "year";
+};
+/** Map an LS subscription to a billing item. Undefined for unmapped variants. */
+const billingItemFromLsSubscription = (sub) => {
+	const attrs = sub.attributes || {};
+	const entitlement = entitlementFromPvId(pvIdOf(attrs), attrs.first_subscription_item?.quantity || 1);
+	if (!entitlement) return void 0;
+	return {
+		provider: "lemonsqueezy",
+		kind: "subscription",
+		external_id: `${sub.id}`,
+		sku: entitlement.product_sku,
+		quantity: entitlement.subscription_quantity,
+		status: `${attrs.status || ""}`,
+		ends_at: attrs.ends_at || void 0,
+		renews_at: attrs.renews_at || void 0,
+		variant_id: `${attrs.variant_id ?? ""}`,
+		product_name: attrs.product_name || "",
+		variant_name: attrs.variant_name || ""
+	};
+};
+/**
+* Map an LS order to a billing item. Only one-time (lifetime) purchases become order items — recurring orders are
+* represented by their subscription. Undefined for recurring or unmapped variants.
+*/
+const billingItemFromLsOrder = (order) => {
+	const item = order.attributes?.first_order_item;
+	if (!item) return void 0;
+	const entitlement = entitlementFromPvId(pvIdOf(item), item.quantity || 1);
+	if (!entitlement || isRecurringSku(entitlement.product_sku)) return void 0;
+	return {
+		provider: "lemonsqueezy",
+		kind: "order",
+		external_id: `${order.id}`,
+		sku: entitlement.product_sku,
+		quantity: entitlement.subscription_quantity,
+		status: `${order.attributes?.status || ""}`,
+		variant_id: `${item.variant_id ?? ""}`,
+		product_name: item.product_name || "",
+		variant_name: item.variant_name || ""
+	};
+};
+/** True when an LS order's product is a recurring plan (its slots live on the subscription, not the order). */
+const isRecurringLsOrder = (order) => {
+	const item = order.attributes?.first_order_item;
+	if (!item) return false;
+	const entitlement = entitlementFromPvId(pvIdOf(item), 1);
+	return !!entitlement && isRecurringSku(entitlement.product_sku);
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/lib/lsApi.ts
+/** Overridable for local testing against a mock; production uses the real API. */
+const LS_API = process.env.LS_API_BASE || `https://api.lemonsqueezy.com/v1`;
+const lsApiKey = () => {
+	const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`);
+	if (!apiKey) throw new BadRequestError(`Billing is not configured (set LS_API_KEY on mothership)`);
+	return apiKey;
+};
+const headers = (apiKey) => ({
 	Authorization: `Bearer ${apiKey}`,
 	Accept: `application/vnd.api+json`,
 	"Content-Type": `application/vnd.api+json`
 });
+const errorDetail = (json) => json?.errors?.[0]?.detail || json?.errors?.[0]?.title || JSON.stringify(json);
+const lsRequest = (method, url, body) => {
+	const res = $http.send({
+		url: url.startsWith("http") ? url : `${LS_API}${url}`,
+		method,
+		headers: headers(lsApiKey()),
+		body: body === void 0 ? "" : JSON.stringify(body),
+		timeout: 30
+	});
+	if (res.statusCode < 200 || res.statusCode >= 300) throw new BadRequestError(`Lemon Squeezy ${method} ${url} failed (${res.statusCode}): ${errorDetail(res.json)}`);
+	return res.json;
+};
+/** GET a paginated LS list endpoint and return every `data` entry. */
+const lsListAll = (path) => {
+	const out = [];
+	let url = `${path}${path.includes("?") ? "&" : "?"}page[size]=100`;
+	for (let guard = 0; url && guard < 50; guard++) {
+		const json = lsRequest(`GET`, url);
+		out.push(...json?.data || []);
+		url = json?.links?.next || void 0;
+	}
+	return out;
+};
+const lsSubscriptionsByEmail = (email) => lsListAll(`/subscriptions?filter[user_email]=${encodeURIComponent(email)}`);
+const lsOrdersByEmail = (email) => lsListAll(`/orders?filter[user_email]=${encodeURIComponent(email)}`);
+const lsSubscriptionsByOrderId = (orderId) => lsListAll(`/subscriptions?filter[order_id]=${encodeURIComponent(`${orderId}`)}`);
+const lsSubscription = (subscriptionId) => lsRequest(`GET`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
+/** Cancel at period end. Returns the updated subscription resource. */
+const lsCancelSubscription = (subscriptionId) => lsRequest(`DELETE`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
+
+//#endregion
+//#region src/lib/handlers/lemon/lib/billingStore.ts
+const COLLECTION = `billing_items`;
+/** PB stores dates as `2026-12-01 00:00:00.000Z`; normalize to ISO so Goja's Date parses it. */
+const isoOrUndefined = (value) => value ? value.replace(" ", "T") : void 0;
+const toItem = (rec) => ({
+	provider: rec.getString(`provider`),
+	kind: rec.getString(`kind`),
+	external_id: rec.getString(`external_id`),
+	sku: rec.getString(`sku`),
+	quantity: rec.getInt(`quantity`),
+	status: rec.getString(`status`),
+	ends_at: isoOrUndefined(rec.getString(`ends_at`)),
+	renews_at: isoOrUndefined(rec.getString(`renews_at`)),
+	variant_id: rec.getString(`variant_id`),
+	product_name: rec.getString(`product_name`),
+	variant_name: rec.getString(`variant_name`)
+});
+const findBillingItemRecord = (app, item) => {
+	try {
+		return app.findFirstRecordByFilter(COLLECTION, `provider = {:provider} && kind = {:kind} && external_id = {:external_id}`, {
+			provider: item.provider,
+			kind: item.kind,
+			external_id: item.external_id
+		});
+	} catch {
+		return;
+	}
+};
+const loadBillingItemRecords = (app, userId) => app.findRecordsByFilter(COLLECTION, `user = {:user}`, `created`, 0, 0, { user: userId }).filter((r) => !!r);
+const loadBillingItems = (app, userId) => loadBillingItemRecords(app, userId).map(toItem);
+/**
+* Insert or update one billing item. When `providerUpdatedAt` is given and the stored row is newer, the write is
+* skipped so out-of-order webhooks cannot roll state back.
+*/
+const upsertBillingItem = (app, userId, item, options = {}) => {
+	const existing = findBillingItemRecord(app, item);
+	if (existing && options.providerUpdatedAt) {
+		const stored = (() => {
+			try {
+				return JSON.parse(existing.getString(`provider_data`) || `null`)?.updated_at;
+			} catch {
+				return;
+			}
+		})();
+		if (stored && new Date(stored).getTime() > new Date(options.providerUpdatedAt).getTime()) return {
+			record: existing,
+			skipped: true
+		};
+	}
+	const rec = existing || new Record(app.findCollectionByNameOrId(COLLECTION));
+	rec.set(`user`, userId);
+	rec.set(`provider`, item.provider);
+	rec.set(`kind`, item.kind);
+	rec.set(`external_id`, item.external_id);
+	rec.set(`sku`, item.sku);
+	rec.set(`quantity`, item.quantity);
+	rec.set(`status`, item.status);
+	rec.set(`ends_at`, item.ends_at || ``);
+	rec.set(`renews_at`, item.renews_at || ``);
+	rec.set(`variant_id`, item.variant_id || ``);
+	rec.set(`product_name`, item.product_name || ``);
+	rec.set(`variant_name`, item.variant_name || ``);
+	if (options.note !== void 0) rec.set(`note`, options.note);
+	if (options.providerData !== void 0) rec.set(`provider_data`, options.providerData);
+	app.save(rec);
+	return {
+		record: rec,
+		skipped: false
+	};
+};
+const upsertLsSubscription = (app, userId, sub) => {
+	const item = billingItemFromLsSubscription(sub);
+	if (!item) throw new Error(`Unknown Lemon Squeezy variant on subscription ${sub.id}`);
+	const attrs = sub.attributes || {};
+	return {
+		item,
+		...upsertBillingItem(app, userId, item, {
+			providerData: attrs,
+			providerUpdatedAt: attrs.updated_at
+		})
+	};
+};
+/** Pull every LS subscription + lifetime order for the user's email and upsert them. */
+const lc$1 = (s) => `${s ?? ""}`.trim().toLowerCase();
+const readBillingLinks = (userRec) => {
+	try {
+		return JSON.parse(userRec.getString(`billing_links`) || `null`) || {};
+	} catch {
+		return {};
+	}
+};
+/** Every email this user has bought under on Lemon Squeezy: the account email plus recorded alternates. */
+const lsEmailsFor = (userRec) => {
+	const alt = readBillingLinks(userRec)?.lemonsqueezy?.emails || [];
+	return [...new Set([lc$1(userRec.getString(`email`)), ...alt.map(lc$1)])].filter(Boolean);
+};
+/**
+* Record LS checkout emails that differ from the account email. Only call with emails tied to this user by checkout
+* `custom_data.user_id` (or an existing billing item), never by email lookup. Returns true when something was added.
+*/
+const rememberLsEmails = (app, userRec, emails) => {
+	const known = lsEmailsFor(userRec);
+	const add = emails.map(lc$1).filter((e) => e && !known.includes(e));
+	if (!add.length) return false;
+	const links = readBillingLinks(userRec);
+	links.lemonsqueezy = links.lemonsqueezy || {};
+	links.lemonsqueezy.emails = [...new Set([...(links.lemonsqueezy.emails || []).map(lc$1), ...add])];
+	userRec.set(`billing_links`, links);
+	app.saveNoValidate(userRec);
+	return true;
+};
+const syncUserFromLemonSqueezy = (app, userRec, dryRun = false) => {
+	const report = {
+		subscriptions: 0,
+		orders: 0,
+		unknown: []
+	};
+	const items = [];
+	for (const email of lsEmailsFor(userRec)) {
+		for (const sub of lsSubscriptionsByEmail(email)) {
+			const item = billingItemFromLsSubscription(sub);
+			if (!item) {
+				report.unknown.push(`subscription:${sub.id}:${sub.attributes?.variant_name || "?"}`);
+				continue;
+			}
+			items.push({
+				item,
+				providerData: sub.attributes
+			});
+			report.subscriptions++;
+		}
+		for (const order of lsOrdersByEmail(email)) {
+			const item = billingItemFromLsOrder(order);
+			if (!item) continue;
+			items.push({
+				item,
+				providerData: order.attributes
+			});
+			report.orders++;
+		}
+	}
+	if (!dryRun) for (const { item, providerData } of items) upsertBillingItem(app, userRec.id, item, { providerData });
+	return {
+		report,
+		items: items.map((i) => i.item)
+	};
+};
+const userEntitlementFields = (userRec) => ({
+	subscription: userRec.getString(`subscription`),
+	subscription_interval: userRec.getString(`subscription_interval`),
+	subscription_quantity: userRec.getInt(`subscription_quantity`),
+	product_sku: userRec.getString(`product_sku`),
+	subscription_status: userRec.getString(`subscription_status`)
+});
+/**
+* Make sure a user with a non-LS plan (founder / legacy / grandfathered hacker) has their own baseline row. Also
+* re-keys a row left by the pre-fix bug, where every user shared one `baseline:<sku>` row. Returns true if a row was
+* written.
+*/
+const ensureBaseline = (app, userRec, records = loadBillingItemRecords(app, userRec.id)) => {
+	const own = records.find((r) => r.getString(`kind`) === `manual` && isBaselineExternalId(r.getString(`external_id`)));
+	if (own) {
+		if (own.getString(`external_id`) !== baselineExternalId(userRec.id)) {
+			own.set(`external_id`, baselineExternalId(userRec.id));
+			app.save(own);
+		}
+		return false;
+	}
+	const baseline = baselineItemFromUser(userEntitlementFields(userRec), userRec.id);
+	if (!baseline) return false;
+	upsertBillingItem(app, userRec.id, baseline, { note: `Pre-billing_items entitlement snapshot` });
+	return true;
+};
+/**
+* Before applying an LS event: keep the user's non-LS baseline, and the first time we see them pull their existing LS
+* purchases, so the event adds to — rather than replaces — what they have.
+*/
+const ensureUserBootstrapped = (app, userRec) => {
+	const records = loadBillingItemRecords(app, userRec.id);
+	ensureBaseline(app, userRec, records);
+	if (records.some((r) => r.getString(`provider`) === `lemonsqueezy`)) return false;
+	syncUserFromLemonSqueezy(app, userRec);
+	return true;
+};
+const applyEntitlement = (userRec, e) => {
+	userRec.set(`subscription`, e.subscription);
+	userRec.set(`subscription_interval`, e.subscription_interval);
+	userRec.set(`subscription_quantity`, e.subscription_quantity);
+	userRec.set(`product_sku`, e.product_sku);
+	userRec.set(`subscription_status`, e.subscription_status);
+};
+/** Recompute the user's entitlement from all billing items and save it. */
+const reconcileUser = (app, userRec, items = loadBillingItems(app, userRec.id)) => {
+	const before = userRec.getInt(`subscription_quantity`);
+	const entitlement = reconcileEntitlement(items, /* @__PURE__ */ new Date());
+	applyEntitlement(userRec, entitlement);
+	if (items.some((i) => i.provider === `lemonsqueezy`)) userRec.set(`billing_provider`, `lemonsqueezy`);
+	app.saveNoValidate(userRec);
+	return {
+		before,
+		after: entitlement.subscription_quantity,
+		entitlement
+	};
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts
+const CANCELABLE_SKUS = [`hosting.slot.recurring.month`, `hosting.slot.recurring.month.legacy`];
+/**
+* Cancel the authenticated user's monthly membership at period end.
+*
+* Body (optional): `{ "itemId": "<billing_items id>" }` cancels one subscription. Without it, every active monthly
+* subscription on the account is cancelled — users can hold several (e.g. PayPal subscriptions that could not change
+* quantity), and "cancel membership" means all of them.
+*/
 const HandleLemonSqueezyCancel = (e) => {
 	const log = mkLog(`ls-cancel`);
 	const audit = mkAudit(log, $app);
 	try {
 		const authRecord = e.auth;
 		if (!authRecord) throw new UnauthorizedError(`Authentication required`);
-		const subscription = authRecord.get(`subscription`);
-		const interval = authRecord.get(`subscription_interval`);
-		if (subscription !== `premium` || interval !== `month`) throw new BadRequestError(`No cancellable membership on this account`);
-		const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`);
-		if (!apiKey) throw new BadRequestError(`Billing is not configured (set LS_API_KEY on mothership)`);
-		const email = authRecord.get(`email`);
-		const findActiveSubscription = () => {
-			for (const variantId of MONTHLY_CANCEL_VARIANT_IDS) {
-				const listUrl = `https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]=${encodeURIComponent(email)}&filter[variant_id]=${variantId}&filter[status]=active`;
-				const listRes = $http.send({
-					url: listUrl,
-					method: `GET`,
-					headers: lsJsonHeaders(apiKey),
-					timeout: 30
-				});
-				if (listRes.statusCode < 200 || listRes.statusCode >= 300) {
-					const detail = listRes.json?.errors?.[0]?.detail || listRes.json?.errors?.[0]?.title || JSON.stringify(listRes.json);
-					log(`LS list subscriptions failed`, listRes.statusCode, variantId, detail);
-					throw new BadRequestError(`Could not look up subscription: ${detail}`);
-				}
-				const subscriptions = listRes.json?.data || [];
-				if (subscriptions.length > 0) return subscriptions[0];
+		const itemId = (() => {
+			try {
+				return `${JSON.parse(readerToString(e.request.body) || "{}")?.itemId || ""}`.trim();
+			} catch {
+				return ``;
 			}
-			return null;
-		};
-		const activeSubscription = findActiveSubscription();
-		if (!activeSubscription) throw new BadRequestError(`No active subscription found for this account`);
-		const subscriptionId = `${activeSubscription.id || ""}`.trim();
-		if (!subscriptionId) throw new Error(`Subscription id missing in Lemon Squeezy response`);
-		const cancelRes = $http.send({
-			url: `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
-			method: `DELETE`,
-			headers: lsJsonHeaders(apiKey),
-			timeout: 30
+		})();
+		const userRec = $app.findRecordById(`users`, authRecord.id);
+		ensureUserBootstrapped($app, userRec);
+		const now = /* @__PURE__ */ new Date();
+		const targets = loadBillingItemRecords($app, userRec.id).filter((rec) => {
+			if (itemId && rec.id !== itemId) return false;
+			return rec.getString(`provider`) === `lemonsqueezy` && rec.getString(`kind`) === `subscription` && CANCELABLE_SKUS.includes(rec.getString(`sku`)) && rec.getString(`status`) !== `cancelled` && isBillingItemActive({
+				kind: `subscription`,
+				status: rec.getString(`status`)
+			}, now);
 		});
-		if (cancelRes.statusCode < 200 || cancelRes.statusCode >= 300) {
-			const detail = cancelRes.json?.errors?.[0]?.detail || cancelRes.json?.errors?.[0]?.title || JSON.stringify(cancelRes.json);
-			log(`LS cancel failed`, cancelRes.statusCode, detail);
-			throw new BadRequestError(`Could not cancel subscription: ${detail}`);
+		if (targets.length === 0) throw new BadRequestError(`No cancellable membership on this account`);
+		const cancelled = [];
+		for (const rec of targets) {
+			const subscriptionId = rec.getString(`external_id`);
+			const sub = lsCancelSubscription(subscriptionId);
+			upsertLsSubscription($app, userRec.id, sub);
+			cancelled.push({
+				itemId: rec.id,
+				subscriptionId,
+				endsAt: sub.attributes?.ends_at || null
+			});
 		}
-		const endsAt = cancelRes.json?.data?.attributes?.ends_at || null;
-		log(`subscription cancelled`, authRecord.id, subscriptionId, endsAt);
+		reconcileUser($app, userRec);
+		const endsAt = cancelled.map((c) => c.endsAt).filter((d) => !!d).sort().pop() || null;
+		log(`subscriptions cancelled`, userRec.id, JSON.stringify(cancelled));
 		audit(`LS`, `Membership cancelled via dashboard.`, {
-			user_id: authRecord.id,
-			subscription_id: subscriptionId,
+			user_id: userRec.id,
+			cancelled,
 			ends_at: endsAt
 		});
 		return e.json(200, {
 			status: `cancelled`,
-			endsAt
+			endsAt,
+			cancelled
 		});
 	} catch (err) {
 		log(`${err}`);
@@ -920,102 +1531,314 @@ const HandleLemonSqueezyCheckout = (e) => {
 };
 
 //#endregion
-//#region ../common/billing/productCatalog.ts
-const PRODUCT_CATALOG = {
-	"hosting.slot.recurring.month.legacy": {
-		legacySubscription: "premium",
-		interval: "month",
-		quantityFromCheckout: true,
-		statusWhenActive: "active",
-		cancelable: true
-	},
-	"hosting.slot.recurring.month": {
-		legacySubscription: "premium",
-		interval: "month",
-		quantityFromCheckout: true,
-		statusWhenActive: "active",
-		cancelable: true
-	},
-	"hosting.slot.recurring.year": {
-		legacySubscription: "premium",
-		interval: "year",
-		quantityFromCheckout: true,
-		statusWhenActive: "active",
-		cancelable: true
-	},
-	"hosting.slot.lifetime.legacy_flounder": {
-		legacySubscription: "flounder",
-		interval: "life",
-		quantityFromCheckout: false,
-		fixedQuantity: 250,
-		statusWhenActive: "active",
-		cancelable: false
-	},
-	"hosting.slot.lifetime": {
-		legacySubscription: "flounder",
-		interval: "life",
-		quantityFromCheckout: true,
-		statusWhenActive: "active",
-		cancelable: false
-	},
-	"hosting.legacy.founder": {
-		legacySubscription: "founder",
-		interval: "",
-		quantityFromCheckout: false,
-		statusWhenActive: "grandfathered",
-		cancelable: false
-	},
-	"hosting.legacy.legacy": {
-		legacySubscription: "legacy",
-		interval: "",
-		quantityFromCheckout: false,
-		statusWhenActive: "grandfathered",
-		cancelable: false
-	},
-	"hosting.grandfathered.hacker": {
-		legacySubscription: "free",
-		interval: "",
-		quantityFromCheckout: false,
-		fixedQuantity: 1,
-		statusWhenActive: "grandfathered",
-		cancelable: false
+//#region src/lib/handlers/lemon/lib/runReconcile.ts
+const listAll = (path) => {
+	const out = [];
+	let url = `${path}&page[size]=100`;
+	for (let guard = 0; url && guard < 500; guard++) {
+		const json = lsRequest(`GET`, url);
+		out.push(...json?.data || []);
+		url = json?.links?.next || void 0;
 	}
+	return out;
 };
-
-//#endregion
-//#region ../common/billing/providerMappings.ts
+const keyOf = (i) => `${i.provider}:${i.kind}:${i.external_id}`;
+const lc = (s) => `${s ?? ""}`.trim().toLowerCase();
+const PRESERVE_PREFIX = `preserve:`;
+const isPreserve = (i) => i.kind === `manual` && i.external_id.startsWith(PRESERVE_PREFIX);
+const userFields = (rec) => ({
+	subscription: rec.getString(`subscription`),
+	subscription_interval: rec.getString(`subscription_interval`),
+	subscription_quantity: rec.getInt(`subscription_quantity`),
+	product_sku: rec.getString(`product_sku`),
+	subscription_status: rec.getString(`subscription_status`)
+});
 /**
-* Maps an external provider entity to an internal SKU. The key is `{provider}:{externalId}` where `externalId` is the
-* Lemon Squeezy `{product_id}-{variant_id}` pv_id.
+* User id → LS checkout emails, from old webhook audit records. Only pairs tied by checkout `custom_data.user_id` are
+* trusted (never ones the old handler matched by email).
 */
-const SKU_BY_PROVIDER_KEY = {
-	[`lemonsqueezy:${INSTANCE_MONTHLY_PV_ID}`]: "hosting.slot.recurring.month",
-	[`lemonsqueezy:${INSTANCE_ANNUAL_PV_ID}`]: "hosting.slot.recurring.year",
-	[`lemonsqueezy:${INSTANCE_LIFETIME_PV_ID}`]: "hosting.slot.lifetime",
-	[`lemonsqueezy:${INSTANCE_MONTHLY_LEGACY_PV_ID}`]: "hosting.slot.recurring.month.legacy",
-	[`lemonsqueezy:${FLOUNDER_LIFETIME_LEGACY_PV_ID}`]: "hosting.slot.lifetime.legacy_flounder"
+const altEmailsFromAudit = () => {
+	const out = {};
+	for (const rec of $app.findRecordsByFilter(`audit`, `event ~ 'LS'`, ``, 0, 0)) {
+		if (!rec) continue;
+		let c;
+		try {
+			c = JSON.parse(rec.getString(`context`) || `null`);
+		} catch {
+			continue;
+		}
+		const customId = c?.data?.meta?.custom_data?.user_id;
+		const email = lc(c?.data?.data?.attributes?.user_email);
+		if (!customId || !email || c?.user_id_source === `email`) continue;
+		(out[customId] = out[customId] || /* @__PURE__ */ new Set()).add(email);
+	}
+	const result = {};
+	for (const [id, set] of Object.entries(out)) result[id] = [...set];
+	return result;
 };
-const providerKey = (provider, externalId) => `${provider}:${externalId}`;
-const resolveProviderSku = (provider, externalId) => SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)];
-
-//#endregion
-//#region ../common/billing/entitlementFromPvId.ts
 /**
-* Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
-* Returns undefined for unmapped pv_ids so callers can reject unknown products.
+* Rebuild `billing_items` from Lemon Squeezy and recompute users' slots. Purchases are found under the account email
+* and under alternate LS emails (recorded in `billing_links` or learned from old webhook audit records).
+*
+* Slots are what verified LS purchases plus any founder/legacy/grandfathered baseline support. `preserve:<id>` rows
+* from the one-time backfill are released in normal runs: if Lemon Squeezy can't show a payment, the slots go (to 0 if
+* nothing else applies, which stops the account's instances) and the customer can contact support.
 */
-const entitlementFromPvId = (pvId, quantity) => {
-	const sku = resolveProviderSku("lemonsqueezy", pvId);
-	if (!sku) return void 0;
-	const template = PRODUCT_CATALOG[sku];
-	const resolvedQuantity = template.quantityFromCheckout ? quantity : template.fixedQuantity ?? 0;
-	return {
-		product_sku: sku,
-		subscription: template.legacySubscription,
-		subscription_interval: template.interval,
-		subscription_quantity: resolvedQuantity,
-		subscription_status: template.statusWhenActive
+const runReconcile = (opts = {}) => {
+	const apply = !!opts.apply;
+	const backfill = !!opts.backfill;
+	const maxReductions = opts.maxReductions ?? 25;
+	const storeId = process.env.LS_STORE_ID || $os.getenv(`LS_STORE_ID`);
+	if (!storeId) throw new BadRequestError(`LS_STORE_ID is not set`);
+	const onlyUser = opts.onlyUserId ? $app.findRecordById(`users`, opts.onlyUserId) : void 0;
+	const auditAlt = altEmailsFromAudit();
+	const emailsOf = (rec) => [...new Set([...lsEmailsFor(rec), ...auditAlt[rec.id] || []])];
+	const byEmail = {};
+	const unknown = [];
+	const unknownOrders = [];
+	let lsSubscriptionsSeen = 0;
+	const push = (email, found) => {
+		const k = lc(email);
+		(byEmail[k] = byEmail[k] || []).push(found);
 	};
+	const scopes = onlyUser ? emailsOf(onlyUser).map((em) => `&filter[user_email]=${encodeURIComponent(em)}`) : [``];
+	for (const scope of scopes) {
+		for (const sub of listAll(`/subscriptions?filter[store_id]=${storeId}${scope}`)) {
+			lsSubscriptionsSeen++;
+			const a = sub.attributes || {};
+			const item = billingItemFromLsSubscription(sub);
+			if (!item) {
+				unknown.push(`subscription ${sub.id} ${a.user_email} ${a.product_name} - ${a.variant_name} (${a.status})`);
+				continue;
+			}
+			push(`${a.user_email || ""}`, {
+				item,
+				providerData: a
+			});
+		}
+		for (const order of listAll(`/orders?filter[store_id]=${storeId}${scope}`)) {
+			const a = order.attributes || {};
+			const item = billingItemFromLsOrder(order);
+			if (!item) {
+				if (!isRecurringLsOrder(order)) {
+					const i = a.first_order_item || {};
+					unknownOrders.push(`order ${order.id} ${a.user_email} ${i.product_id}-${i.variant_id} ${i.product_name} - ${i.variant_name} (${a.status})`);
+				}
+				continue;
+			}
+			push(`${a.user_email || ""}`, {
+				item,
+				providerData: a
+			});
+		}
+	}
+	if (!onlyUser && lsSubscriptionsSeen === 0) throw new Error(`Lemon Squeezy returned no subscriptions for store ${storeId}; refusing to reconcile`);
+	const users = {};
+	const addUser = (rec) => {
+		if (rec) users[rec.id] = rec;
+	};
+	if (onlyUser) addUser(onlyUser);
+	else {
+		for (const rec of $app.findRecordsByFilter(`users`, `subscription != 'free' || subscription_quantity > 0 || billing_provider = 'lemonsqueezy'`, ``, 0, 0)) addUser(rec);
+		for (const id of Object.keys(auditAlt)) {
+			if (users[id]) continue;
+			try {
+				addUser($app.findRecordById(`users`, id));
+			} catch {}
+		}
+		for (const email of Object.keys(byEmail)) try {
+			addUser($app.findFirstRecordByFilter(`users`, `email = {:email}`, { email }));
+		} catch {}
+	}
+	const claimed = /* @__PURE__ */ new Set();
+	for (const rec of Object.values(users)) for (const em of emailsOf(rec)) claimed.add(em);
+	const unmatchedEmails = [];
+	if (!onlyUser) for (const [email, found] of Object.entries(byEmail)) {
+		if (claimed.has(email)) continue;
+		const active = found.filter((f) => reconcileEntitlement([f.item], /* @__PURE__ */ new Date()).subscription_quantity);
+		if (active.length) unmatchedEmails.push(`${email} (${active.length} active)`);
+	}
+	const now = /* @__PURE__ */ new Date();
+	const plans = [];
+	const preserved = [];
+	const preserveReleased = [];
+	const errors = [];
+	let usersWithAltEmails = 0;
+	for (const userRec of Object.values(users)) try {
+		const email = lc(userRec.getString(`email`));
+		const emails = emailsOf(userRec);
+		const altEmails = emails.filter((em) => em !== email);
+		if (altEmails.length) usersWithAltEmails++;
+		const current = userFields(userRec);
+		const existing = loadBillingItems($app, userRec.id);
+		const merged = {};
+		for (const item of existing) merged[keyOf(item)] = {
+			item,
+			providerData: void 0
+		};
+		for (const em of emails) for (const found of byEmail[em] || []) merged[keyOf(found.item)] = found;
+		if (!existing.some((i) => i.kind === `manual` && isBaselineExternalId(i.external_id))) {
+			const baseline = baselineItemFromUser(current, userRec.id);
+			if (baseline) merged[keyOf(baseline)] = {
+				item: baseline,
+				providerData: void 0
+			};
+		}
+		const all = Object.values(merged).map((f) => f.item);
+		const oldPreserve = existing.find(isPreserve);
+		const base = onlyUser ? all : all.filter((i) => !isPreserve(i));
+		const withoutPreserve = reconcileEntitlement(base, now);
+		const gap = Math.max(0, current.subscription_quantity - withoutPreserve.subscription_quantity);
+		let preserveWrite;
+		let preserveItem;
+		if (!onlyUser) {
+			if (backfill && gap > 0) {
+				preserveItem = {
+					provider: `manual`,
+					kind: `manual`,
+					external_id: `${PRESERVE_PREFIX}${userRec.id}`,
+					sku: oldPreserve?.sku || resolveUserEntitlements(current).sku || `hosting.slot.recurring.month`,
+					quantity: gap,
+					status: `active`,
+					ends_at: oldPreserve?.ends_at
+				};
+				preserveWrite = {
+					item: preserveItem,
+					note: `Backfill: slots not explained by Lemon Squeezy. Review.`
+				};
+			} else if (oldPreserve && oldPreserve.status === `active`) {
+				preserveWrite = {
+					item: {
+						...oldPreserve,
+						quantity: 0,
+						status: `inactive`
+					},
+					note: `Released ${now.toISOString()}: no verified Lemon Squeezy payment for these slots.`
+				};
+				preserveReleased.push({
+					user_id: userRec.id,
+					email,
+					was: oldPreserve.quantity
+				});
+			}
+		}
+		const items = preserveItem ? [...base, preserveItem] : base;
+		const computed = reconcileEntitlement(items, now);
+		if (preserveItem && isBillingItemActive(preserveItem, now)) preserved.push({
+			user_id: userRec.id,
+			email,
+			slots: preserveItem.quantity,
+			ends_at: preserveItem.ends_at || null
+		});
+		const summary = {
+			user_id: userRec.id,
+			email,
+			alt_emails: altEmails,
+			before: {
+				quantity: current.subscription_quantity,
+				sku: current.product_sku,
+				subscription: current.subscription
+			},
+			after: {
+				quantity: computed.subscription_quantity,
+				sku: computed.product_sku,
+				subscription: computed.subscription
+			},
+			items: items.map((i) => `${i.kind}:${i.external_id} ${i.sku} x${i.quantity} ${i.status}${i.ends_at ? ` until ${i.ends_at}` : ""}`)
+		};
+		const reduced = summary.after.quantity < summary.before.quantity;
+		const changed = summary.before.quantity !== summary.after.quantity || summary.before.sku !== summary.after.sku || summary.before.subscription !== summary.after.subscription || !!preserveWrite;
+		plans.push({
+			userRec,
+			merged,
+			altFromAudit: auditAlt[userRec.id],
+			preserveWrite,
+			summary,
+			changed,
+			reduced
+		});
+	} catch (err) {
+		errors.push({
+			user_id: userRec.id,
+			error: `${err}`
+		});
+	}
+	const reducing = plans.filter((p) => p.reduced);
+	const holdReductions = !onlyUser && reducing.length > maxReductions;
+	const reductions = plans.filter((p) => p.reduced).map((p) => ({
+		user_id: p.summary.user_id,
+		email: p.summary.email,
+		before: p.summary.before.quantity,
+		after: p.summary.after.quantity,
+		held: holdReductions
+	}));
+	if (apply) for (const p of plans) {
+		if (holdReductions && p.reduced) continue;
+		try {
+			if (p.altFromAudit) rememberLsEmails($app, p.userRec, p.altFromAudit);
+			ensureBaseline($app, p.userRec);
+			for (const f of Object.values(p.merged)) if (f.providerData !== void 0) upsertBillingItem($app, p.userRec.id, f.item, { providerData: f.providerData });
+			if (p.preserveWrite) upsertBillingItem($app, p.userRec.id, p.preserveWrite.item, { note: p.preserveWrite.note });
+			reconcileUser($app, p.userRec);
+		} catch (err) {
+			errors.push({
+				user_id: p.summary.user_id,
+				error: `${err}`
+			});
+		}
+	}
+	const changes = plans.filter((p) => p.changed || onlyUser).map((p) => p.summary);
+	return {
+		dryRun: !apply,
+		mode: onlyUser ? `user` : backfill ? `backfill` : `normal`,
+		usersChecked: Object.keys(users).length,
+		usersWithAltEmails,
+		lsSubscriptionsSeen,
+		changed: changes.length,
+		gained: plans.filter((p) => p.summary.after.quantity > p.summary.before.quantity).length,
+		changes,
+		reductions,
+		reductionsHeld: holdReductions ? reducing.length : 0,
+		preserveReleased,
+		preserved,
+		unmatchedEmails,
+		unknown,
+		unknownOrders,
+		errors
+	};
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLemonSqueezyReconcile.ts
+const auditReport = (report, who) => {
+	mkAudit(mkLog(`ls-reconcile`), $app)(`LS`, `Billing reconcile (${who}, ${report.mode}) applied: ${report.changed} changed, ${report.gained} gained, ${report.reductions.filter((r) => !r.held).length} reduced, ${report.reductionsHeld} reductions held, ${report.preserveReleased.length} unverified preserve rows released, ${report.errors.length} errors.`, {
+		reductions: report.reductions,
+		preserveReleased: report.preserveReleased,
+		errors: report.errors
+	});
+};
+/**
+* Superuser: `POST /api/ls/reconcile` — dry run by default.
+*
+* - `apply=1` writes.
+* - `user=<id>` one user, exact recompute.
+* - `backfill=1` one-time mode that creates preserve rows instead of lowering anyone.
+* - `maxReductions=<n>` (default 25): above this many drops, all drops are held. See `runReconcile`.
+*/
+const HandleLemonSqueezyReconcile = (e) => {
+	const q = e.request.url.query();
+	const num = (k) => {
+		const v = q.get(k);
+		return v === `` ? void 0 : Number(v);
+	};
+	const report = runReconcile({
+		apply: q.get(`apply`) === `1`,
+		onlyUserId: q.get(`user`) || void 0,
+		backfill: q.get(`backfill`) === `1`,
+		maxReductions: num(`maxReductions`)
+	});
+	if (!report.dryRun) auditReport(report, q.get(`user`) ? `user ${q.get(`user`)}` : `manual`);
+	return e.json(200, report);
 };
 
 //#endregion
@@ -1046,135 +1869,116 @@ const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 
 //#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
+/** Events that post to the lemon_cancel_discord channel. */
+const CANCEL_EVENTS = [
+	`subscription_cancelled`,
+	`order_refunded`,
+	`subscription_payment_refunded`
+];
+/**
+* Lemon Squeezy webhook. Every event updates the one billing item it is about (subscription or lifetime order), then
+* the user's slot count is recomputed from all of their billing items. Users may hold any number of subscriptions
+* (PayPal subscriptions cannot change quantity, so adding slots means buying another one) — they are summed, never
+* overwritten.
+*/
 const HandleLemonSqueezySale = (e) => {
 	const log = mkLog(`ls`);
 	const audit = mkAudit(log, $app);
 	const context = {};
-	log(`Top of ls`);
 	try {
-		context.secret = process.env.LS_WEBHOOK_SECRET;
-		if (!context.secret) throw new Error(`No secret`);
-		log(`Secret`, context.secret);
-		context.raw = readerToString(e.request.body);
-		context.body_hash = $security.hs256(context.raw, context.secret);
-		log(`Body hash`, context.body_hash);
-		context.xsignature_header = e.request.header.get("X-Signature");
-		log(`Signature`, context.xsignature_header);
-		if (context.xsignature_header == void 0 || !$security.equal(context.body_hash, context.xsignature_header)) throw new BadRequestError(`Invalid signature`);
-		log(`Signature verified`);
-		context.data = JSON.parse(context.raw);
-		log(`payload`, JSON.stringify(context.data, null, 2));
-		context.type = context.data?.data?.type;
-		if (!context.type) throw new Error(`No type`);
-		else log(`type ok`, context.type);
-		context.event_name = context.data?.meta?.event_name;
-		if (!context.event_name) throw new Error(`No event name`);
-		else log(`event name ok`, context.event_name);
-		context.user_id = context.data?.meta?.custom_data?.user_id;
-		context.user_email = `${context.data?.data?.attributes?.user_email || ""}`.trim();
-		context.product_id = context.data?.data?.attributes?.first_order_item?.product_id || context.data?.data?.attributes?.product_id || 0;
-		if (!context.product_id) throw new Error(`No product ID`);
-		else log(`product ID ok`, context.product_id);
-		context.product_name = context.data?.data?.attributes?.first_order_item?.product_name || context.data?.data?.attributes?.product_name || "";
-		log(`product name ok`, context.product_name);
-		context.variant_id = context.data?.data?.attributes?.first_order_item?.variant_id || context.data?.data?.attributes?.variant_id || 0;
-		if (!context.variant_id) throw new Error(`No variant ID`);
-		else log(`variant ID ok`, context.variant_id);
-		context.variant_name = context.data?.data?.attributes?.first_order_item?.variant_name || context.data?.data?.attributes?.variant_name || "";
-		log(`variant name ok`, context.variant_name);
-		context.quantity = context.data?.data?.attributes?.first_order_item?.quantity || 0;
-		log(`quantity ok`, context.quantity);
-		const pv_id = `${context.product_id}-${context.variant_id}`;
-		const entitlement = entitlementFromPvId(pv_id, context.quantity || 0);
-		if (!entitlement) throw new Error(`Product and variant not found: ${pv_id}`);
+		const secret = process.env.LS_WEBHOOK_SECRET;
+		if (!secret) throw new Error(`No secret`);
+		const raw = readerToString(e.request.body);
+		const signature = e.request.header.get("X-Signature");
+		if (!signature || !$security.equal($security.hs256(raw, secret), signature)) throw new BadRequestError(`Invalid signature`);
+		const payload = JSON.parse(raw);
+		log(`payload`, JSON.stringify(payload, null, 2));
+		context.event_name = payload.meta?.event_name;
+		context.type = payload.data?.type;
+		context.resource_id = `${payload.data?.id ?? ""}`;
+		const attrs = payload.data?.attributes || {};
+		if (!context.event_name || !context.type) throw new Error(`Missing event name or type`);
+		/** Resolve the LS subscriptions this event is about, plus a lifetime order item if any. */
+		const resolveResources = () => {
+			switch (context.type) {
+				case `subscriptions`: return { subscriptions: [payload.data] };
+				case `subscription-invoices`: return { subscriptions: [lsSubscription(attrs.subscription_id)] };
+				case `orders`: {
+					const order = payload.data;
+					if (isRecurringLsOrder(order)) return { subscriptions: lsSubscriptionsByOrderId(order.id) };
+					const item = billingItemFromLsOrder(order);
+					if (!item) {
+						const i = attrs.first_order_item || {};
+						throw new Error(`Product and variant not found: ${i.product_id}-${i.variant_id}`);
+					}
+					return {
+						subscriptions: [],
+						order: item
+					};
+				}
+				default: return { subscriptions: [] };
+			}
+		};
+		if (![
+			`subscriptions`,
+			`subscription-invoices`,
+			`orders`
+		].includes(context.type)) {
+			audit(`LS`, `Ignored unsupported event ${context.event_name} (${context.type}).`, context);
+			return e.json(200, { status: `ignored` });
+		}
+		const { subscriptions, order } = resolveResources();
+		const first = subscriptions[0];
+		const firstAttrs = first?.attributes || {};
+		context.product_name = order?.product_name || firstAttrs.product_name || attrs.product_name || ``;
+		context.variant_name = order?.variant_name || firstAttrs.variant_name || attrs.variant_name || ``;
+		context.quantity = order?.quantity || firstAttrs.first_subscription_item?.quantity || attrs.first_order_item?.quantity;
 		const userRec = (() => {
-			if (context.user_id) {
+			const customUserId = payload.meta?.custom_data?.user_id;
+			if (customUserId) {
 				context.user_id_source = `custom_data`;
-				log(`user ID ok`, context.user_id);
 				try {
-					return $app.findFirstRecordByData(`users`, `id`, context.user_id);
-				} catch (e) {
-					throw new Error(`User ${context.user_id} not found`);
+					return $app.findRecordById(`users`, customUserId);
+				} catch {
+					throw new Error(`User ${customUserId} not found`);
 				}
 			}
-			if (context.user_email) {
-				log(`no custom user_id, falling back to checkout email`, context.user_email);
+			const known = first ? findBillingItemRecord($app, {
+				provider: `lemonsqueezy`,
+				kind: `subscription`,
+				external_id: `${first.id}`
+			}) : order && findBillingItemRecord($app, order);
+			if (known) {
+				context.user_id_source = `billing_item`;
+				return $app.findRecordById(`users`, known.getString(`user`));
+			}
+			const email = `${attrs.user_email || firstAttrs.user_email || ""}`.trim();
+			if (email) {
+				context.user_id_source = `email`;
 				try {
-					const rec = $app.findFirstRecordByData(`users`, `email`, context.user_email);
-					context.user_id = rec.id;
-					context.user_id_source = `email`;
-					return rec;
-				} catch (e) {
-					throw new Error(`No PocketHost user for checkout email ${context.user_email}`);
+					return $app.findFirstRecordByData(`users`, `email`, email);
+				} catch {
+					throw new Error(`No PocketHost user for checkout email ${email}`);
 				}
 			}
 			throw new Error(`No user ID or checkout email`);
 		})();
-		log(`user record ok`, userRec.id, context.user_id_source);
-		const event_handler = {
-			order_created: () => {
-				signup_finalizer();
-			},
-			order_refunded: () => {
-				signup_canceller();
-			},
-			subscription_cancelled: () => {
-				notifyCancellationDiscord();
-				audit(`LS`, `Subscription cancelled (active until period end).`, context);
-			},
-			subscription_expired: () => {
-				signup_canceller();
-			},
-			subscription_payment_refunded: () => {
-				signup_canceller();
-			}
-		}[context.event_name];
-		if (!event_handler) throw new Error(`Unsupported event: ${context.event_name}`);
-		else log(`event handler ok`, event_handler);
-		const applyEntitlement = () => {
-			userRec.set(`subscription`, entitlement.subscription);
-			userRec.set(`subscription_interval`, entitlement.subscription_interval);
-			userRec.set(`subscription_quantity`, entitlement.subscription_quantity);
-			userRec.set(`product_sku`, entitlement.product_sku);
-			userRec.set(`subscription_status`, entitlement.subscription_status);
-			userRec.set(`billing_provider`, `lemonsqueezy`);
-		};
-		log(`product handler ok`, pv_id, entitlement.product_sku);
-		const signup_finalizer = () => {
-			applyEntitlement();
-			$app.save(userRec);
-			log(`saved user`);
-			const notify = mkNotifier(log, $app);
-			const { user_id } = context;
-			if (!user_id) throw new Error(`User ID expected here`);
-			notify(`lemonbot`, `lemon_order_discord`, user_id, context);
-			log(`saved discord notice`);
-			audit(`LS`, `Signup processed.`, context);
-		};
-		const notifyCancellationDiscord = () => {
-			const notify = mkNotifier(log, $app);
-			const { user_id } = context;
-			if (!user_id) throw new Error(`User ID expected here`);
-			notify(`lemonbot`, `lemon_cancel_discord`, user_id, context);
-			log(`saved cancel discord notice`);
-		};
-		const signup_canceller = () => {
-			if (userRec.get(`subscription`) !== `premium`) return;
-			const currentQuantity = userRec.get(`subscription_quantity`);
-			const newQuantity = Math.max(currentQuantity - (context.quantity || 1), 0);
-			userRec.set(`subscription_quantity`, newQuantity);
-			if (newQuantity === 0) {
-				userRec.set(`subscription`, `free`);
-				userRec.set(`subscription_interval`, ``);
-				userRec.set(`product_sku`, ``);
-				userRec.set(`subscription_status`, `lapsed`);
-			}
-			$app.save(userRec);
-			log(`saved user`);
-			audit(`LS`, `Signup cancelled.`, context);
-			if (context.event_name === `order_refunded` || context.event_name === `subscription_payment_refunded`) notifyCancellationDiscord();
-		};
-		event_handler();
+		context.user_id = userRec.id;
+		context.user_email = userRec.getString(`email`);
+		if (context.user_id_source !== `email`) rememberLsEmails($app, userRec, [attrs.user_email, firstAttrs.user_email].filter(Boolean));
+		context.bootstrapped = ensureUserBootstrapped($app, userRec);
+		for (const sub of subscriptions) {
+			const { skipped } = upsertLsSubscription($app, userRec.id, sub);
+			if (skipped) context.stale_event_skipped = true;
+		}
+		if (order) upsertBillingItem($app, userRec.id, order, { providerData: attrs });
+		const { before, after } = reconcileUser($app, userRec);
+		context.slots_before = before;
+		context.slots_after = after;
+		const notify = mkNotifier(log, $app);
+		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
+		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
+		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context);
 		return e.json(200, { status: "ok" });
 	} catch (err) {
 		audit(`LS_ERR`, `${err}`, context);
@@ -4050,6 +4854,7 @@ exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
 exports.HandleInstancesRuntimeReset = HandleInstancesRuntimeReset;
 exports.HandleLemonSqueezyCancel = HandleLemonSqueezyCancel;
 exports.HandleLemonSqueezyCheckout = HandleLemonSqueezyCheckout;
+exports.HandleLemonSqueezyReconcile = HandleLemonSqueezyReconcile;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
 exports.HandleMailSend = HandleMailSend;
