@@ -57,8 +57,7 @@ Spot-check obvious matches — do not block on a full audit. If nothing needs up
 3. Map each changed file to **this conversation**. Leave everything else unstaged.
 4. Draft one or more commit messages (subject **under 50 characters**).
 5. Stage only the scoped files (or hunks), then commit each logical group sequentially.
-   - Pre-commit runs **lint-staged** (Prettier on staged `*.{ts,js,cjs,svelte,json}`). If formatting changes land, include them in the same commit (re-stage after the hook runs, or run `pnpm lint:fix` on touched paths before staging).
-   - Do not use `--no-verify` unless the user explicitly asked to skip hooks.
+   - There is no pre-commit hook. Run `pnpm lint:fix` (or Prettier on the touched paths) before staging so the pre-push `check:push` and CI lint pass.
 6. Run `git status` after the last commit to verify success.
 7. If the user will **push** or open a **PR** next, run `pnpm check:push` per [check-push/SKILL.md](../check-push/SKILL.md) and fix failures before suggesting `git push`.
 

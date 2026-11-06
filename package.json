@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
     "prettier": "^3.8.4",
     "prettier-plugin-jsdoc": "^1.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
@@ -38,8 +37,5 @@
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   },
-  "packageManager": "pnpm@11.6.0",
-  "lint-staged": {
-    "*.{ts,js,cjs,svelte,json}": "prettier --write"
-  }
+  "packageManager": "pnpm@11.6.0"
 }
