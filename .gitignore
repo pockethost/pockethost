@@ -16,3 +16,5 @@ dist
 .scripts
 *.tgz
 pb_data
+# Claude Code personal settings
+.claude/settings.local.json
