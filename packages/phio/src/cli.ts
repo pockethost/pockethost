@@ -5,6 +5,7 @@ import { ensurePhioRoot } from './lib/phioRoot'
 import { DeployCommand } from './commands/DeployCommand'
 import { DevCommand } from './commands/DevCommand'
 import { InfoCommand } from './commands/InfoCommand'
+import { KeysCommand } from './commands/KeysCommand'
 import { LinkCommand } from './commands/LinkCommand'
 import { ListCommand } from './commands/ListCommand'
 import { LoginCommand } from './commands/LoginCommand'
@@ -25,6 +26,7 @@ program
   .addCommand(LinkCommand())
   .addCommand(DeployCommand())
   .addCommand(SftpCommand())
+  .addCommand(KeysCommand())
   .addCommand(LogoutCommand())
   .addCommand(InfoCommand())
 

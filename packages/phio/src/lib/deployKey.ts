@@ -11,7 +11,7 @@ import {
   pkcs8Ed25519ToOpenSshPrivateKeyPem,
 } from '../../vendor/ftp-deploy/sshPrivateKey'
 
-const SSH_KEYS_COLLECTION = 'ssh_keys'
+export const SSH_KEYS_COLLECTION = 'ssh_keys'
 export const DEPLOY_KEY_LABEL = 'Phio'
 
 const PRIVATE_KEY_FILE = 'phio_deploy_ed25519'
@@ -34,7 +34,10 @@ const writeSshString = (value: Buffer | string) => {
   return Buffer.concat([len, buf])
 }
 
-const spkiToOpenSshPublicKey = (publicKey: KeyObject, comment = 'phio') => {
+export const spkiToOpenSshPublicKey = (
+  publicKey: KeyObject,
+  comment = 'phio'
+) => {
   const der = publicKey.export({ format: 'der', type: 'spki' })
   const raw = der.subarray(der.length - 32)
   const wire = Buffer.concat([

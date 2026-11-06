@@ -59,6 +59,7 @@ phio logs my-instance
 | `phio dev [instance]` | Watch local files and sync on change |
 | `phio deploy [instance]` | One-shot sync to remote |
 | `phio sftp [instance]` | Interactive SFTP session to instance files |
+| `phio keys create [instance]` | Create an instance-scoped API key for CI |
 | `phio logs [instance]` | Tail instance logs over SSE |
 
 `dev` and `deploy` accept:
@@ -151,6 +152,7 @@ Override saved config without editing files:
 | -------- | ------- |
 | `PHIO_USERNAME` | PocketHost email (non-interactive login) |
 | `PHIO_PASSWORD` | PocketHost password (with `PHIO_USERNAME`) |
+| `PHIO_API_KEY` | Instance-scoped API key for `deploy`/`dev` (no login needed) |
 | `PHIO_INSTANCE_NAME` | Default instance name |
 | `PHIO_MOTHERSHIP_URL` | Mothership API URL (default production) |
 | `PHIO_HOME` | phio config directory (default OS config path for `phio`) |
@@ -159,7 +161,49 @@ Override saved config without editing files:
 
 ## CI example
 
-Use env-based login and a linked instance name in CI:
+Deploy from CI with an **instance-scoped API key** so your PocketHost password never leaves your machine. If the key leaks, it can only touch the one instance it was created for.
+
+1. On your machine, create a key for the instance CI deploys to:
+
+   ```bash
+   phio login
+   phio keys create my-instance
+   ```
+
+   phio prints a `phio_sk_...` key once. It is registered under **[Account → Keys](/account/keys)** as `phio API key (my-instance)`, limited to that instance.
+
+2. Save it as a repository secret (for example `PHIO_API_KEY`).
+
+3. Deploy with it:
+
+```yaml
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Deploy to PocketHost
+        env:
+          PHIO_API_KEY: ${{ secrets.PHIO_API_KEY }}
+        run: |
+          npm install -g phio
+          phio deploy my-instance -v
+```
+
+With `PHIO_API_KEY` set, `deploy` and `dev` skip login and use the key directly, so pass the instance **subdomain** (or link it in `.phioconfig`). To revoke the key, delete it under **[Account → Keys](/account/keys)**. Other commands (`list`, `logs`, ...) still need a login.
+
+### CI with email and password
+
+You can also log in with your account credentials. This gives CI access to every instance on your account:
 
 ```yaml
 on:
@@ -196,13 +240,17 @@ For GitHub Actions that already use [SamKirkland/FTP-Deploy-Action](https://gith
 
 Run `phio link <instance>` in your project directory, or pass the instance name on the command line.
 
+### `Remote directory "<instance>" not found`
+
+The instance name is wrong, or the API key in `PHIO_API_KEY` was created for a different instance. Create a key for this instance with `phio keys create <instance>`.
+
 ### Deploy key mismatch
 
 The **`Phio`** key in **[Account → Keys](/account/keys)** must match `~/.config/phio/phio_deploy_ed25519.pub`. Delete the local key files and run `phio info` or `phio deploy` to regenerate and re-register.
 
 ### Permission denied (publickey) during deploy
 
-Confirm you are logged in (`phio login` or `PHIO_USERNAME`/`PHIO_PASSWORD`), then run `phio info` to verify the deploy key is registered.
+Confirm you are logged in (`phio login` or `PHIO_USERNAME`/`PHIO_PASSWORD`), then run `phio info` to verify the deploy key is registered. With `PHIO_API_KEY`, the key may have been deleted under **[Account → Keys](/account/keys)**; create a new one.
 
 ### `Could not find 'sftp' on PATH`
 
