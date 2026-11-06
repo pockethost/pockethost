@@ -3,6 +3,7 @@
   import { client } from '$src/pocketbase-client/index.js'
   import { SECRET_KEY_REGEX, type UpdateInstancePayload } from 'pockethost/common'
   import { instance } from '../store.js'
+  import { confirmEncryptionKeyChange, ENCRYPTION_KEY_SECRET } from './encryptionKey'
   import { items } from './stores.js'
 
   let secretKey: string = ''
@@ -26,6 +27,11 @@
   const handleSubmit = async (e: Event) => {
     e.preventDefault()
     errorMessage = ''
+
+    const existing = $items.find((i) => i.name === secretKey)
+    if (secretKey === ENCRYPTION_KEY_SECRET && existing && existing.value !== secretValue) {
+      if (!confirmEncryptionKeyChange()) return
+    }
 
     try {
       isFormValid = false
@@ -79,6 +85,12 @@
           placeholder="Key"
           class={!isKeyValid && secretKey.length > 0 ? 'wa-input-error' : ''}
         ></wa-input>
+        {#if secretKey === ENCRYPTION_KEY_SECRET}
+          <div class="mt-1 text-sm">
+            Encrypts your PocketBase settings. Keep a copy of this key: settings won't load without it.
+            <a href="/docs/encryption" class="underline">Settings Encryption</a>
+          </div>
+        {/if}
         {#if !isKeyValid && secretKey.length > 0}
           <div class="mt-1">
             <span class="text-error">

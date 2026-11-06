@@ -4,9 +4,11 @@
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import { logger, type UpdateInstancePayload } from 'pockethost/common'
+  import { confirmEncryptionKeyDelete, ENCRYPTION_KEY_SECRET } from './encryptionKey'
 
   const handleDelete = (name: string) => async (e: Event) => {
     e.preventDefault()
+    if (name === ENCRYPTION_KEY_SECRET && !confirmEncryptionKeyDelete()) return
     logger().debug(`Deleting ${name}`)
     items.delete(name)
     await client().updateInstance({
