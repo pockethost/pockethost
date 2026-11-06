@@ -25,6 +25,14 @@ export const initFirewallTrustedIps = async (logger: Logger) => {
   await mirror.bootSync()
   await mirror.whenReady
 
+  // Events published while the SSE stream was down are lost. The firewall runs no instances, so it resyncs with an
+  // empty live list (no mothership writes); the resync applies and logs whatever changed in the gap.
+  mirror.onResynced(() => {
+    mirror.syncMirror().catch((e) => {
+      logger.create(`firewall`).error(`Error syncing mirror after mothership reconnect`, { e })
+    })
+  })
+
   const globalTrustedIps = PH_USER_PROXY_IPS()
   const resolver = createAccountTrustedIpResolver(mirror, globalTrustedIps, logger)
 

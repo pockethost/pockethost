@@ -31,6 +31,14 @@ import {
   tryFetch,
 } from '@'
 
+/**
+ * Outside dev, don't let PocketBase restart the mothership in place when pb_hooks changes. Builds, the pre-push hook
+ * check, and other work in the live checkout rewrite pb_hooks/mothership.pb.js. Each restart dropped every realtime
+ * client (the edge mirror) and applied any new pb_migrations. Hook changes now need an explicit `pm2 restart
+ * mothership`.
+ */
+const NO_HOOKS_WATCH = [`--hooksWatch=false`]
+
 export type MothershipConfig = {
   logger: Logger
 }
@@ -81,6 +89,8 @@ export async function mothership({ logger }: MothershipConfig) {
   ]
   if (IS_DEV()) {
     args.push(`--dev`)
+  } else {
+    args.push(...NO_HOOKS_WATCH)
   }
   dbg({ args })
 
@@ -146,7 +156,7 @@ export async function mothership({ logger }: MothershipConfig) {
         MOTHERSHIP_MIGRATIONS_DIR(),
         `--publicDir`,
         _MOTHERSHIP_APP_ROOT(`pb_public`),
-        ...(IS_DEV() ? [`--dev`] : []),
+        ...(IS_DEV() ? [`--dev`] : NO_HOOKS_WATCH),
       ],
       { env, cwd: _MOTHERSHIP_APP_ROOT() },
       (proc) => {
