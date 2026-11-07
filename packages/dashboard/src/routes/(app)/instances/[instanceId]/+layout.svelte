@@ -7,10 +7,10 @@
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
   import { globalInstancesStore, patchGlobalInstance, upsertGlobalInstance } from '$util/stores'
-  import { assert } from 'pockethost/common'
+  import { assert } from '@pockethost/server/common'
   import { instance } from './store'
   import { client } from '$src/pocketbase-client'
-  import { type InstanceId } from 'pockethost/common'
+  import { type InstanceId } from '@pockethost/server/common'
   import Toggle from './Toggle.svelte'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 

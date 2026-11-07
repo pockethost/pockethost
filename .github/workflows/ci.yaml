@@ -29,10 +29,10 @@ jobs:
         run: pnpm lint
 
       - name: pockethost types
-        run: pnpm --filter pockethost check:types
+        run: pnpm --filter @pockethost/server check:types
 
       - name: phio types
-        run: pnpm --filter phio check:types
+        run: pnpm --filter pockethost check:types
 
       - name: dashboard types
         run: pnpm --filter @pockethost/dashboard check:types

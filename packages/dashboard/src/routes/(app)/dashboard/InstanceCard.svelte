@@ -7,7 +7,7 @@
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { isInstanceShuttingDown } from '$util/instancePower'
-  import type { InstanceFields } from 'pockethost/common'
+  import type { InstanceFields } from '@pockethost/server/common'
 
   export let instance: InstanceFields
   export let isFavorite = false

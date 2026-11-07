@@ -1,4 +1,4 @@
-import type { RecordId, SshKeyFields } from 'pockethost/common'
+import type { RecordId, SshKeyFields } from '@pockethost/server/common'
 
 export const sshKeyAccessesInstance = (key: SshKeyFields, instanceId: RecordId) =>
   key.all_instances || (key.instances ?? []).includes(instanceId)

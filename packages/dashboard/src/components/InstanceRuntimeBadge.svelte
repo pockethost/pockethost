@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getInstanceRuntimeState, runtimeStateLabel, type InstanceRuntimeState } from '$util/instancePower'
-  import type { InstanceFields } from 'pockethost/common'
+  import type { InstanceFields } from '@pockethost/server/common'
 
   interface Props {
     instance: Pick<InstanceFields, 'power' | 'status'>

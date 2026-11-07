@@ -3,7 +3,7 @@
   import { items } from './stores'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
-  import { logger } from 'pockethost/common'
+  import { logger } from '@pockethost/server/common'
 
   let expandedWebhooks: Set<string> = new Set()
 

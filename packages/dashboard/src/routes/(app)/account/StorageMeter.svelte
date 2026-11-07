@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatStorageBytes, storageUsagePercent } from 'pockethost/common'
+  import { formatStorageBytes, storageUsagePercent } from '@pockethost/server/common'
 
   export let label: string
   export let usedBytes = 0

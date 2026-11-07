@@ -1,7 +1,7 @@
 <script lang="ts">
   import AlertBar from '$components/AlertBar.svelte'
   import { client } from '$src/pocketbase-client/index.js'
-  import { SECRET_KEY_REGEX, type UpdateInstancePayload } from 'pockethost/common'
+  import { SECRET_KEY_REGEX, type UpdateInstancePayload } from '@pockethost/server/common'
   import { instance } from '../store.js'
   import { confirmEncryptionKeyChange, ENCRYPTION_KEY_SECRET } from './encryptionKey'
   import { items } from './stores.js'

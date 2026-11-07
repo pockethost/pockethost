@@ -8,8 +8,8 @@ alwaysApply: true
 `.husky/pre-push` runs **`pnpm check:push`** (same as CI quality minus dashboard build):
 
 1. `pnpm lint` — Prettier on `*.{ts,js,cjs,svelte,json}`
-2. `pnpm --filter pockethost check:types` — `tsc --noEmit`
-3. `pnpm --filter phio check:types` — `tsc --noEmit`
+2. `pnpm --filter @pockethost/server check:types` — `tsc --noEmit`
+3. `pnpm --filter pockethost check:types` — `tsc --noEmit` (customer CLI), then `pnpm --filter pockethost build` + `node packages/cli/dist/cli.js --version`
 4. `pnpm --filter @pockethost/dashboard check:types` — `svelte-check`
 5. `pnpm check:mothership-hooks` — `tsdown` + `git diff --exit-code -- pb_hooks/`
 6. `pnpm test` — `vitest run`

@@ -7,7 +7,7 @@
   import { isInstanceShuttingDown } from '$util/instancePower'
   import InstanceFavoriteButton from '$components/InstanceFavoriteButton.svelte'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
-  import type { InstanceFields } from 'pockethost/common'
+  import type { InstanceFields } from '@pockethost/server/common'
 
   export let instance: InstanceFields
   export let isFavorite = false

@@ -37,6 +37,70 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@24.13.2)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  packages/cli:
+    dependencies:
+      ssh2-sftp-client:
+        specifier: ^12.1.1
+        version: 12.1.1
+    devDependencies:
+      '@inquirer/prompts':
+        specifier: ^8.5.2
+        version: 8.5.2(@types/node@20.19.43)
+      '@microsoft/fetch-event-source':
+        specifier: github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0
+        version: https://codeload.github.com/pockethost/fetch-event-source/tar.gz/ebe3b7122647b48b93fd11effbbfb915d98956b0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      '@types/ssh2-sftp-client':
+        specifier: ^9.0.6
+        version: 9.0.6
+      bottleneck:
+        specifier: ^2.19.5
+        version: 2.19.5
+      chokidar:
+        specifier: ^5.0.0
+        version: 5.0.0
+      commander:
+        specifier: ^15.0.0
+        version: 15.0.0
+      env-paths:
+        specifier: ^4.0.0
+        version: 4.0.0
+      env-var:
+        specifier: ^7.5.0
+        version: 7.5.0
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
+      glob:
+        specifier: ^13.0.6
+        version: 13.0.6
+      multimatch:
+        specifier: ^8.0.0
+        version: 8.0.0
+      ora:
+        specifier: ^9.4.0
+        version: 9.4.0
+      pocketbase:
+        specifier: ^0.27.0
+        version: 0.27.0
+      pretty-bytes:
+        specifier: ^7.1.0
+        version: 7.1.0
+      pretty-ms:
+        specifier: ^9.3.0
+        version: 9.3.0
+      tsx:
+        specifier: ^4.22.4
+        version: 4.22.4
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@20.19.43)(vite@8.0.16(@types/node@20.19.43)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/dashboard:
     dependencies:
       '@noble/hashes':
@@ -49,6 +113,9 @@ importers:
       '@microsoft/fetch-event-source':
         specifier: github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0
         version: https://codeload.github.com/pockethost/fetch-event-source/tar.gz/ebe3b7122647b48b93fd11effbbfb915d98956b0
+      '@pockethost/server':
+        specifier: workspace:^
+        version: link:../pockethost
       '@sveltejs/adapter-static':
         specifier: ^3.0.10
         version: 3.0.10(@sveltejs/kit@2.65.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0)))
@@ -76,9 +143,6 @@ importers:
       pocketbase:
         specifier: ^0.27.0
         version: 0.27.0
-      pockethost:
-        specifier: workspace:^
-        version: link:../pockethost
       svelte:
         specifier: ^5.56.3
         version: 5.56.3
@@ -103,67 +167,6 @@ importers:
       wrangler:
         specifier: ^4.100.0
         version: 4.100.0
-
-  packages/phio:
-    dependencies:
-      '@inquirer/prompts':
-        specifier: ^8.5.2
-        version: 8.5.2(@types/node@20.19.43)
-      '@microsoft/fetch-event-source':
-        specifier: github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0
-        version: https://codeload.github.com/pockethost/fetch-event-source/tar.gz/ebe3b7122647b48b93fd11effbbfb915d98956b0
-      bottleneck:
-        specifier: ^2.19.5
-        version: 2.19.5
-      chokidar:
-        specifier: ^5.0.0
-        version: 5.0.0
-      commander:
-        specifier: ^15.0.0
-        version: 15.0.0
-      env-paths:
-        specifier: ^4.0.0
-        version: 4.0.0
-      env-var:
-        specifier: ^7.5.0
-        version: 7.5.0
-      glob:
-        specifier: ^13.0.6
-        version: 13.0.6
-      multimatch:
-        specifier: ^8.0.0
-        version: 8.0.0
-      ora:
-        specifier: ^9.4.0
-        version: 9.4.0
-      pocketbase:
-        specifier: ^0.27.0
-        version: 0.27.0
-      pretty-bytes:
-        specifier: ^7.1.0
-        version: 7.1.0
-      pretty-ms:
-        specifier: ^9.3.0
-        version: 9.3.0
-      ssh2-sftp-client:
-        specifier: ^12.1.1
-        version: 12.1.1
-      tsx:
-        specifier: ^4.22.4
-        version: 4.22.4
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.43
-      '@types/ssh2-sftp-client':
-        specifier: ^9.0.6
-        version: 9.0.6
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^4.1.8
-        version: 4.1.8(@types/node@20.19.43)(vite@8.0.16(@types/node@20.19.43)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/pockethost:
     dependencies:
@@ -1011,9 +1014,6 @@ packages:
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
     engines: {node: '>=6.0.0'}
 
-  '@jridgewell/sourcemap-codec@1.5.0':
-    resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
-
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
@@ -1702,9 +1702,6 @@ packages:
 
   '@types/ssh2-sftp-client@9.0.6':
     resolution: {integrity: sha512-4+KvXO/V77y9VjI2op2T8+RCGI/GXQAwR0q5Qkj/EJ5YSeyKszqZP6F8i3H3txYoBqjc7sgorqyvBP3+w1EHyg==}
-
-  '@types/ssh2@1.15.3':
-    resolution: {integrity: sha512-pUhXytp7aRAj1AKCQpdKNKGb32e53MUGPu186U9cm8mbX6kxF0UcngI/RVoKvJTWdHqDFiNrSDiPR/JZWexcCQ==}
 
   '@types/ssh2@1.15.5':
     resolution: {integrity: sha512-N1ASjp/nXH3ovBHddRJpli4ozpk6UdDYIX4RJWFa9L1YKnzdhTlVmiGHm4DZnj/jLbqZpes4aeR30EFGQtvhQQ==}
@@ -2809,10 +2806,6 @@ packages:
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
 
-  minipass@7.1.2:
-    resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
-    engines: {node: '>=16 || 14 >=14.17'}
-
   minipass@7.1.3:
     resolution: {integrity: sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==}
     engines: {node: '>=16 || 14 >=14.17'}
@@ -3252,10 +3245,6 @@ packages:
   ssh2-sftp-client@12.1.1:
     resolution: {integrity: sha512-wYVDgwkpcKG2iPGQQ+QR33xkWqLFIaVrYvA+uON4pmxTPaPuB81f1aooUEPN75e/9DCK6rrKYXb6zR6zP3+EtA==}
     engines: {node: '>=18.20.4'}
-
-  ssh2@1.16.0:
-    resolution: {integrity: sha512-r1X4KsBGedJqo7h8F5c4Ybpcr5RjyP+aWIG007uBPRjmdQWfEiVLzSK71Zji1B9sKxwaCvD8y8cwSkYrlLiRRg==}
-    engines: {node: '>=10.16.0'}
 
   ssh2@1.17.0:
     resolution: {integrity: sha512-wPldCk3asibAjQ/kziWQQt1Wh3PgDFpC0XpwclzKcdT1vql6KeYxf5LIt4nlFkUeR8WuphYMKqUA56X4rjbfgQ==}
@@ -4240,8 +4229,6 @@ snapshots:
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
-  '@jridgewell/sourcemap-codec@1.5.0': {}
-
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
   '@jridgewell/trace-mapping@0.3.29':
@@ -4252,7 +4239,7 @@ snapshots:
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
@@ -4798,11 +4785,7 @@ snapshots:
 
   '@types/ssh2-sftp-client@9.0.6':
     dependencies:
-      '@types/ssh2': 1.15.3
-
-  '@types/ssh2@1.15.3':
-    dependencies:
-      '@types/node': 18.19.70
+      '@types/ssh2': 1.15.5
 
   '@types/ssh2@1.15.5':
     dependencies:
@@ -5993,8 +5976,6 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minipass@7.1.2: {}
-
   minipass@7.1.3: {}
 
   mkdirp-classic@0.5.3: {}
@@ -6109,7 +6090,7 @@ snapshots:
   path-scurry@2.0.2:
     dependencies:
       lru-cache: 11.5.1
-      minipass: 7.1.2
+      minipass: 7.1.3
 
   path-to-regexp@6.3.0: {}
 
@@ -6486,15 +6467,7 @@ snapshots:
   ssh2-sftp-client@12.1.1:
     dependencies:
       concat-stream: 2.0.0
-      ssh2: 1.16.0
-
-  ssh2@1.16.0:
-    dependencies:
-      asn1: 0.2.6
-      bcrypt-pbkdf: 1.0.2
-    optionalDependencies:
-      cpu-features: 0.0.10
-      nan: 2.22.0
+      ssh2: 1.17.0
 
   ssh2@1.17.0:
     dependencies:

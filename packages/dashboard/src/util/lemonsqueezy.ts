@@ -1,6 +1,6 @@
 import { client } from '$src/pocketbase-client'
-import { ClientResponseError } from 'pockethost/common'
-export { INSTANCE_ANNUAL_PV_ID, INSTANCE_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID } from 'pockethost/common'
+import { ClientResponseError } from '@pockethost/server/common'
+export { INSTANCE_ANNUAL_PV_ID, INSTANCE_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID } from '@pockethost/server/common'
 
 export const createLemonSqueezyCheckout = async (pvId: string) => {
   try {

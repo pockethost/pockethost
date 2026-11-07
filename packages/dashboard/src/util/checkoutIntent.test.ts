@@ -1,4 +1,4 @@
-import { INSTANCE_ANNUAL_PV_ID, INSTANCE_MONTHLY_PV_ID } from 'pockethost/common'
+import { INSTANCE_ANNUAL_PV_ID, INSTANCE_MONTHLY_PV_ID } from '@pockethost/server/common'
 import { describe, expect, it } from 'vitest'
 import { checkoutIntentUrl, planLabelForPvId, readCheckoutPvIdFromSearch } from './checkoutIntent'
 

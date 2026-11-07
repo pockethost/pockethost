@@ -9,7 +9,7 @@ PocketHost is a **multi-tenant PocketBase hosting platform** (monorepo). Core pi
 - **`packages/pockethost`**: Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
 - **`packages/dashboard`**: SvelteKit marketing site and user docs
 - **`packages/pockethost-instance`**: Docker image for per-instance PocketBase containers
-- **`packages/phio`**: Customer CLI (SFTP deploy). See `.cursor/skills/phio/SKILL.md`
+- **`packages/cli`**: Customer CLI, npm `pockethost` (formerly `phio`; SFTP deploy). See `.cursor/skills/pockethost-cli/SKILL.md`
 - **`packages/pockethost/src/mothership-app`**: PocketBase control-plane app (hooks, migrations, handler APIs)
 
 Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, pnpm workspaces.

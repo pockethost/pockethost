@@ -129,7 +129,7 @@ For privileged operations, add a JS hook route and call it with `pb.send()` inst
 Import SDK types and class from `pockethost/common`, not directly from `pocketbase`:
 
 ```ts
-import { PocketBase, ClientResponseError, BaseAuthStore } from 'pockethost/common'
+import { PocketBase, ClientResponseError, BaseAuthStore } from '@pockethost/server/common'
 ```
 
 Prefer factory wrappers over raw `new PocketBase()` in app code. See [pockethost-client.md](pockethost-client.md).

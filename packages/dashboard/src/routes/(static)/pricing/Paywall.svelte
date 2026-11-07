@@ -7,7 +7,7 @@
     INSTANCE_ANNUAL_PV_ID,
     INSTANCE_LIFETIME_PV_ID,
     INSTANCE_MONTHLY_PV_ID,
-  } from 'pockethost/common'
+  } from '@pockethost/server/common'
   import SignupBox from './SignupBox.svelte'
 
   const MONTHLY_PRICE = 9.99

@@ -7,7 +7,7 @@
     subscriptionStorageLimits,
     SubscriptionInterval,
     SubscriptionType,
-  } from 'pockethost/common'
+  } from '@pockethost/server/common'
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
   import { userStore, userSubscriptionType } from '$util/stores'
   import StorageMeter from './StorageMeter.svelte'

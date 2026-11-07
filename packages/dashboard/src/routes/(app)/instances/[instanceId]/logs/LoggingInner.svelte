@@ -1,7 +1,7 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
   import { mkCleanup } from '$util/componentCleanup'
-  import { StreamNames, type Unsubscribe, type InstanceLogFields } from 'pockethost/common'
+  import { StreamNames, type Unsubscribe, type InstanceLogFields } from '@pockethost/server/common'
   import { onMount, tick } from 'svelte'
   import { derived, writable } from 'svelte/store'
   import { instance } from '../store'

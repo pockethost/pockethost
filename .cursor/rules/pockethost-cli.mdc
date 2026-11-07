@@ -1,0 +1,36 @@
+---
+description: pockethost customer CLI (formerly phio) — compatibility, docs, and deploy contract
+globs:
+  - packages/cli/**
+  - packages/dashboard/src/routes/(static)/docs/phio/**
+  - packages/pockethost/src/services/InstanceFileAccess/**
+  - packages/pockethost/src/cli/commands/EdgeCommand/FtpCommand/**
+  - packages/pockethost/src/cli/commands/SftpCommand/**
+---
+
+# Customer CLI compatibility
+
+`packages/cli/` is the **customer-facing CLI**, published to npm as `pockethost` (≥3.0; formerly `phio`). It deploys via **SFTP** (port 2222, Ed25519 deploy key) using the vendored Kirkland sync engine (`vendor/ftp-deploy/`) against `InstanceVfs`.
+
+Before landing changes to file access, VFS guards, SFTP key auth, or instance paths:
+
+1. Read [`.cursor/skills/pockethost-cli/SKILL.md`](../skills/pockethost-cli/SKILL.md).
+2. Confirm `pockethost deploy` / `dev` still work (especially instance-root writes like `.ftp-deploy-sync-state.json`).
+3. Legacy FTPS (`edge ftp`) changes do not affect the CLI unless FTPS protocol is re-enabled in it.
+
+The CLI is a pnpm workspace package, bundled with esbuild to `dist/cli.js` (plain Node >=20, no tsx at runtime). The hosting stack (`@pockethost/server`) requires Node 24.
+
+# CLI feature documentation
+
+Ship **user-facing** CLI commands, flags, or behavior changes in the **same change set** as docs in **both** places:
+
+| Doc | Path |
+| --- | --- |
+| Package README | `packages/cli/README.md` |
+| Dashboard docs | `packages/dashboard/src/routes/(static)/docs/phio/+page.md` |
+
+Update the commands list, options, and any quick-start examples in both files. Keep them aligned (same command names, flags, defaults).
+
+**Skip** for internal-only work (refactors, deps, tests) with no CLI surface change.
+
+**Blog posts** are separate. Use [`.cursor/skills/feature-blog/SKILL.md`](../skills/feature-blog/SKILL.md) for customer announcements, not as a substitute for the README or the CLI docs page.

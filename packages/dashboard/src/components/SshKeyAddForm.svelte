@@ -4,7 +4,7 @@
   import { fingerprintForPublicKeyInput, parseSshEd25519PublicKey } from '$lib/ssh/ed25519PublicKey'
   import { findDuplicateKey, formatSshKeySaveError, shouldGrantInstanceAccess } from '$lib/ssh/sshKeySaveErrors'
   import { globalInstancesStore, userStore } from '$util/stores'
-  import { SSH_KEY_COLLECTION, type InstanceFields, type SshKeyFields } from 'pockethost/common'
+  import { SSH_KEY_COLLECTION, type InstanceFields, type SshKeyFields } from '@pockethost/server/common'
   import { createEventDispatcher } from 'svelte'
   import { bash } from 'svelte-highlight/languages'
 

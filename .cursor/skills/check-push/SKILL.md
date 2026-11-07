@@ -20,8 +20,8 @@ Equivalent to:
 
 ```bash
 pnpm lint && \
+  pnpm --filter @pockethost/server check:types && \
   pnpm --filter pockethost check:types && \
-  pnpm --filter phio check:types && \
   pnpm --filter @pockethost/dashboard check:types && \
   pnpm check:mothership-hooks && \
   pnpm test
@@ -46,16 +46,17 @@ pnpm lint:fix
 
 Or format touched files only. Re-run `pnpm lint`.
 
-### Types — pockethost
+### Types — server
+
+```bash
+pnpm --filter @pockethost/server check:types
+```
+
+### Types + bundle — customer CLI
 
 ```bash
 pnpm --filter pockethost check:types
-```
-
-### Types — phio
-
-```bash
-pnpm --filter phio check:types
+pnpm --filter pockethost build && node packages/cli/dist/cli.js --version
 ```
 
 ### Types — dashboard

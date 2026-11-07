@@ -1,0 +1,71 @@
+{
+  "name": "pockethost",
+  "version": "3.0.0",
+  "description": "The PocketHost CLI: deploy, sync, and tail logs for your PocketHost instances",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pockethost/pockethost.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://pockethost.io",
+  "keywords": [
+    "cli",
+    "pocketbase",
+    "pockethost"
+  ],
+  "author": "Ben Allfree",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pockethost/pockethost/issues"
+  },
+  "type": "module",
+  "bin": {
+    "pockethost": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check:types": "tsc --noEmit",
+    "dev": "node --import tsx ./src/cli.ts",
+    "start": "node --import tsx ./src/cli.ts",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm check:types && pnpm test",
+    "prepack": "pnpm build"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "dependencies": {
+    "ssh2-sftp-client": "^12.1.1"
+  },
+  "devDependencies": {
+    "@inquirer/prompts": "^8.5.2",
+    "@microsoft/fetch-event-source": "github:pockethost/fetch-event-source#ebe3b7122647b48b93fd11effbbfb915d98956b0",
+    "@types/node": "^20.0.0",
+    "@types/ssh2-sftp-client": "^9.0.6",
+    "bottleneck": "^2.19.5",
+    "chokidar": "^5.0.0",
+    "commander": "^15.0.0",
+    "env-paths": "^4.0.0",
+    "env-var": "^7.5.0",
+    "esbuild": "^0.28.1",
+    "glob": "^13.0.6",
+    "multimatch": "^8.0.0",
+    "ora": "^9.4.0",
+    "pocketbase": "^0.27.0",
+    "pretty-bytes": "^7.1.0",
+    "pretty-ms": "^9.3.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
+}

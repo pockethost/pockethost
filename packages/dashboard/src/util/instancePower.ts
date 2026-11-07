@@ -1,4 +1,4 @@
-import { InstanceStatus, type InstanceFields } from 'pockethost/common'
+import { InstanceStatus, type InstanceFields } from '@pockethost/server/common'
 
 export const isInstanceShuttingDown = (instance: Pick<InstanceFields, 'power' | 'status'>) =>
   !instance.power && instance.status !== InstanceStatus.Idle && instance.status !== InstanceStatus.Unknown
