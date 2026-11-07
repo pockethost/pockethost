@@ -11,7 +11,7 @@ Then type `pockethost` wherever you typed `phio`. `pockethost login`, `pockethos
 
 Nobody searches npm for "phio". When people want a PocketHost CLI, they type `npm install -g pockethost`. Until now, that installed the PocketHost server itself, which is not what you want on your laptop.
 
-So the `pockethost` package on npm is now the CLI. It starts at **3.0.0** because the package name already had 2.x releases. The CLI also lives in the main PocketHost repo now instead of its own, so it ships alongside the server changes it depends on.
+So the `pockethost` package on npm is now the CLI. It starts at **3.0.0** to line up with PocketHost 3.0 and leave the old 1.x releases behind. The CLI also lives in the main PocketHost repo now instead of its own, so it ships alongside the server changes it depends on.
 
 ### Nothing to redo
 
