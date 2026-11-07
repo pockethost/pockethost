@@ -134,7 +134,7 @@
         <AlertBar message="Your custom domain name is active." type="success" />
       {:else if domainHealthy === false}
         <AlertBar
-          message="We are having trouble checking the health of your custom domain name. Check your CNAME settings and try again."
+          message="We are having trouble checking the health of your custom domain name. Check your CNAME settings, then click Update Custom Domain again to re-register it."
           type="warning"
         />
       {:else if domainHealthy === null}

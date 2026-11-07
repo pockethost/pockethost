@@ -1,4 +1,5 @@
 export * from './adminPlugins'
+export * from './cloudflare'
 export * from './edge'
 export * from './instance'
 export * from './lemon'

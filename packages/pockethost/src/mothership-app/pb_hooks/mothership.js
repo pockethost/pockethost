@@ -272,6 +272,220 @@ const handleLivePlatformUserUpdate = (e) => {
 };
 
 //#endregion
+//#region src/lib/util/cloudflare.ts
+const DEAD_STATUSES = [
+	"moved",
+	"blocked",
+	"pending_blocked",
+	"deleted"
+];
+const DEAD_SSL_STATUSES = ["expired", "deleted"];
+const isDeadHostname = (h) => {
+	const ssl = h.ssl?.status || "";
+	return DEAD_STATUSES.includes(h.status) || DEAD_SSL_STATUSES.includes(ssl) || ssl.endsWith("_timed_out");
+};
+const cfCall = (path, method, body, log) => {
+	const apiToken = $os.getenv("MOTHERSHIP_CLOUDFLARE_API_TOKEN");
+	const zoneId = $os.getenv("MOTHERSHIP_CLOUDFLARE_ZONE_ID");
+	if (!apiToken || !zoneId) {
+		log?.("Cloudflare API credentials not configured - skipping Cloudflare operations");
+		return null;
+	}
+	const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/${path}`;
+	try {
+		const res = $http.send({
+			url,
+			method,
+			headers: {
+				Authorization: `Bearer ${apiToken}`,
+				"Content-Type": "application/json"
+			},
+			body: body ? JSON.stringify(body) : "",
+			timeout: 30
+		});
+		if (res.statusCode < 200 || res.statusCode >= 300) log?.(`Cloudflare ${method} ${path} failed: ${res.statusCode}`, res.json);
+		return {
+			statusCode: res.statusCode,
+			json: res.json
+		};
+	} catch (error) {
+		log?.(`Cloudflare ${method} ${path} error:`, `${error}`);
+		return null;
+	}
+};
+const ok = (res) => !!res && res.statusCode >= 200 && res.statusCode < 300;
+const createCustomHostname = (hostname, log) => ok(cfCall("custom_hostnames", "POST", {
+	hostname,
+	ssl: {
+		method: "http",
+		type: "dv"
+	}
+}, log));
+const deleteCustomHostnameById = (id, log) => ok(cfCall(`custom_hostnames/${id}`, "DELETE", void 0, log));
+/** All custom hostnames on the zone. Returns null if any page fails, so callers never act on a partial list. */
+const listCustomHostnames = (log) => {
+	const all = [];
+	for (let page = 1;; page++) {
+		const res = cfCall(`custom_hostnames?per_page=50&page=${page}`, "GET", void 0, log);
+		if (!ok(res) || !res.json?.success) return null;
+		const result = res.json.result || [];
+		all.push(...result);
+		const totalPages = res.json.result_info?.total_pages || 1;
+		if (page >= totalPages || result.length === 0) break;
+	}
+	return all;
+};
+const findCustomHostname = (hostname, log) => {
+	const res = cfCall(`custom_hostnames?hostname=${encodeURIComponent(hostname)}`, "GET", void 0, log);
+	if (!ok(res)) return null;
+	return (res.json?.result || []).find((h) => h.hostname.toLowerCase() === hostname.toLowerCase()) || null;
+};
+/**
+* Make sure Cloudflare has a working entry for this hostname. Leaves an active or still-validating entry alone;
+* replaces a dead one (expired/deleted cert, moved, blocked, timed out) with a fresh one.
+*/
+const ensureCustomHostname = (hostname, log) => {
+	const existing = findCustomHostname(hostname, log);
+	if (existing) {
+		if (!isDeadHostname(existing)) return true;
+		log?.(`Replacing dead Cloudflare hostname ${hostname} (${existing.status}/${existing.ssl?.status})`);
+		deleteCustomHostnameById(existing.id, log);
+	}
+	return createCustomHostname(hostname, log);
+};
+
+//#endregion
+//#region src/lib/util/Logger.ts
+const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
+	if (typeof p === "object") return JSON.stringify(p, null, 2);
+	return p;
+}));
+const dbg = (...args) => console.log(args);
+const interpolateString = (template, dict) => {
+	return template.replace(/\{\$(\w+)\}/g, (match, key) => {
+		dbg({
+			match,
+			key
+		});
+		const lowerKey = key.toLowerCase();
+		return dict.hasOwnProperty(lowerKey) ? dict[lowerKey] || "" : match;
+	});
+};
+
+//#endregion
+//#region src/lib/handlers/cloudflare/api/HandleCustomHostnameRegister.ts
+/**
+* POST /api/cloudflare/hostnames/register/{instanceId} (superuser). Re-adds an instance's cname, e.g. after an archive
+* restore.
+*/
+const HandleCustomHostnameRegister = (e) => {
+	const log = mkLog(`cloudflare-hostname-register`);
+	const cname = $app.findRecordById("instances", e.request.pathValue("id")).getString("cname").trim();
+	if (!cname) return e.json(200, { status: "no-cname" });
+	const created = ensureCustomHostname(cname, log);
+	return e.json(200, {
+		status: created ? "registered" : "failed",
+		cname
+	});
+};
+
+//#endregion
+//#region src/lib/handlers/cloudflare/cron/sweepCustomHostnames.ts
+/** Matches ARCHIVED_SUSPENSION_PREFIX in core/instanceArchive.ts (not importable from the JSVM bundle). */
+const ARCHIVED_PREFIX = "Archived:";
+const PENDING_GRACE_DAYS = 14;
+const IGNORED_STATUSES = ["deleted", "pending_deletion"];
+const OWN_ZONE_SUFFIX = ".pockethost.io";
+/** If a run would delete more than this share of all hostnames, something is wrong (e.g. a bad DB read). */
+const MAX_DELETE_RATIO = .5;
+const norm = (h) => h.trim().toLowerCase();
+/** Why a hostname should go, or null to keep it. Pure, so it's easy to reason about. */
+const reasonToDelete = (h, owner, now) => {
+	const ssl = h.ssl?.status || "";
+	if (!owner) return "orphan";
+	if (owner.suspension.startsWith(ARCHIVED_PREFIX)) return "archived";
+	if (isDeadHostname(h)) return `dead (${h.status}/${ssl})`;
+	if (h.status !== "active") {
+		if ((now - new Date(h.created_at).getTime()) / 864e5 > PENDING_GRACE_DAYS) return `not active after ${PENDING_GRACE_DAYS} days (${h.status}/${ssl})`;
+	}
+	return null;
+};
+const sweepCustomHostnames = (apply) => {
+	const log = mkLog(`cloudflare-hostnames`);
+	const listed = listCustomHostnames(log);
+	if (!listed) throw new Error(`Could not list Cloudflare custom hostnames`);
+	const hostnames = listed.filter((h) => !IGNORED_STATUSES.includes(h.status) && !norm(h.hostname).endsWith(OWN_ZONE_SUFFIX));
+	const owners = /* @__PURE__ */ new Map();
+	$app.findRecordsByFilter("instances", "cname != ''", "", 0, 0).forEach((r) => {
+		if (!r) return;
+		const cname = norm(r.getString("cname"));
+		if (cname) owners.set(cname, { suspension: r.getString("suspension") });
+	});
+	const now = Date.now();
+	const toDelete = [];
+	const inCloudflare = /* @__PURE__ */ new Set();
+	for (const h of hostnames) {
+		const name = norm(h.hostname);
+		inCloudflare.add(name);
+		const reason = reasonToDelete(h, owners.get(name), now);
+		if (reason) toDelete.push({
+			hostname: h.hostname,
+			id: h.id,
+			status: h.status,
+			ssl: h.ssl?.status || "",
+			reason
+		});
+	}
+	const missing = [...owners.entries()].filter(([name, o]) => !inCloudflare.has(name) && !o.suspension.startsWith(ARCHIVED_PREFIX)).map(([name]) => name);
+	const result = {
+		apply,
+		total: hostnames.length,
+		kept: hostnames.length - toDelete.length,
+		toDelete,
+		deleted: 0,
+		failed: [],
+		missing
+	};
+	if (apply && hostnames.length > 0 && toDelete.length / hostnames.length > MAX_DELETE_RATIO) result.aborted = `Would delete ${toDelete.length} of ${hostnames.length} (over ${MAX_DELETE_RATIO * 100}%). Not deleting; review with a dry run.`;
+	else if (apply) for (const d of toDelete) if (deleteCustomHostnameById(d.id, log)) result.deleted++;
+	else result.failed.push(d.hostname);
+	const byReason = {};
+	toDelete.forEach((d) => {
+		const key = d.reason.split(" (")[0];
+		byReason[key] = (byReason[key] || 0) + 1;
+	});
+	log(`${apply ? "APPLY" : "DRY RUN"}: ${result.total} hostnames, keep ${result.kept}, delete ${toDelete.length}`, {
+		byReason,
+		deleted: result.deleted,
+		failed: result.failed,
+		missing: missing.length,
+		aborted: result.aborted
+	});
+	return result;
+};
+/** Daily cron. Deletes only when MOTHERSHIP_CLOUDFLARE_SWEEP_APPLY is true; otherwise logs a dry run. */
+const cronSweepCustomHostnames = () => {
+	const apply = [
+		"1",
+		"true",
+		"yes"
+	].includes(($os.getenv("MOTHERSHIP_CLOUDFLARE_SWEEP_APPLY") || "").toLowerCase());
+	try {
+		sweepCustomHostnames(apply);
+	} catch (e) {
+		mkLog(`cloudflare-hostnames`)(`Sweep failed:`, `${e}`);
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/cloudflare/api/HandleCustomHostnamesSweep.ts
+/** POST /api/cloudflare/hostnames/sweep[?apply=1] (superuser). Dry run unless apply=1. */
+const HandleCustomHostnamesSweep = (e) => {
+	const apply = e.request.url.query().get("apply") === "1";
+	return e.json(200, sweepCustomHostnames(apply));
+};
+
+//#endregion
 //#region src/lib/handlers/edge/api/HandleEdgeHeartbeat.ts
 const HandleEdgeHeartbeat = (e) => {
 	const { body } = e.requestInfo();
@@ -318,24 +532,6 @@ const markStaleEdges = () => {
 			$app.save(record);
 		}
 	}
-};
-
-//#endregion
-//#region src/lib/util/Logger.ts
-const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
-	if (typeof p === "object") return JSON.stringify(p, null, 2);
-	return p;
-}));
-const dbg = (...args) => console.log(args);
-const interpolateString = (template, dict) => {
-	return template.replace(/\{\$(\w+)\}/g, (match, key) => {
-		dbg({
-			match,
-			key
-		});
-		const lowerKey = key.toLowerCase();
-		return dict.hasOwnProperty(lowerKey) ? dict[lowerKey] || "" : match;
-	});
 };
 
 //#endregion
@@ -447,43 +643,6 @@ const removeEmptyKeys = (obj) => Object.fromEntries(Object.entries(obj).filter((
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceUpdate.ts
-const callCloudflareAPI = (endpoint, method, body, log) => {
-	const apiToken = $os.getenv("MOTHERSHIP_CLOUDFLARE_API_TOKEN");
-	const zoneId = $os.getenv("MOTHERSHIP_CLOUDFLARE_ZONE_ID");
-	if (!apiToken || !zoneId) {
-		if (log) log("Cloudflare API credentials not configured - skipping Cloudflare operations");
-		return null;
-	}
-	const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/${endpoint}`;
-	try {
-		const config = {
-			url,
-			method,
-			headers: {
-				Authorization: `Bearer ${apiToken}`,
-				"Content-Type": "application/json"
-			},
-			timeout: 30
-		};
-		if (body) config.body = JSON.stringify(body);
-		if (log) log(`Making Cloudflare API call: ${method} ${url}`, config);
-		const response = $http.send(config);
-		if (log) log(`Cloudflare API response:`, response);
-		return response;
-	} catch (error) {
-		if (log) log(`Cloudflare API error:`, error);
-		return null;
-	}
-};
-const createCloudflareCustomHostname = (hostname, log) => {
-	return callCloudflareAPI("custom_hostnames", "POST", {
-		hostname,
-		ssl: {
-			method: "http",
-			type: "dv"
-		}
-	}, log);
-};
 const HandleInstanceUpdate = (e) => {
 	const log = mkLog(`PUT:instance`);
 	log(`TOP OF PUT`);
@@ -526,9 +685,9 @@ const HandleInstanceUpdate = (e) => {
 	const oldCname = record.getString("cname").trim();
 	const newCname = cname !== null ? cname.trim() : null;
 	const cnameChanged = newCname !== null && oldCname !== newCname;
-	if (cnameChanged && newCname.length > 0) {
-		log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`);
-		if (createCloudflareCustomHostname(newCname, log)) log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`);
+	if (newCname !== null && newCname.length > 0) {
+		log(`CNAME saved ("${oldCname}" -> "${newCname}") - registering with Cloudflare`);
+		if (ensureCustomHostname(newCname, log)) log(`Cloudflare custom hostname ready for "${newCname}" - frontend will poll for health`);
 	}
 	const recordAutoVacuum = record.getBool("autoVacuum");
 	if (subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncAdmin !== null && syncAdmin !== record.getBool("syncAdmin") || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged) {
@@ -5112,6 +5271,8 @@ exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
+exports.HandleCustomHostnameRegister = HandleCustomHostnameRegister;
+exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
 exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;
@@ -5146,6 +5307,7 @@ exports.LIVE_PLATFORM_TOPIC = LIVE_PLATFORM_TOPIC;
 exports.LIVE_VIEW_STATS_TOPIC = LIVE_VIEW_STATS_TOPIC;
 exports.broadcastLivePlatformStats = broadcastLivePlatformStats;
 exports.broadcastLiveViewStats = broadcastLiveViewStats;
+exports.cronSweepCustomHostnames = cronSweepCustomHostnames;
 exports.getLivePlatformStats = getLivePlatformStats;
 exports.getLiveViewStats = getLiveViewStats;
 exports.handleLivePlatformInstanceCreate = handleLivePlatformInstanceCreate;
@@ -5162,6 +5324,7 @@ exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.normalizeInstanceStatus = normalizeInstanceStatus;
 exports.readTrustedIpsFromRecord = readTrustedIpsFromRecord;
+exports.reasonToDelete = reasonToDelete;
 exports.recountLivePlatformStats = recountLivePlatformStats;
 exports.refreshAndBroadcastLivePlatformStats = refreshAndBroadcastLivePlatformStats;
 exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;
@@ -5169,3 +5332,4 @@ exports.refreshLiveViewStats = refreshLiveViewStats;
 exports.refreshPublicStats = refreshPublicStats;
 exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;
 exports.sendLiveViewStatsToClient = sendLiveViewStatsToClient;
+exports.sweepCustomHostnames = sweepCustomHostnames;
