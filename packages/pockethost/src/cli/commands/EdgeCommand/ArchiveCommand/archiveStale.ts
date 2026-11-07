@@ -70,6 +70,21 @@ const connect = async () => {
 }
 
 type Candidate = InstanceFields & { expand: { uid: UserFields } }
+type Sized = { instance: Candidate; bytes: number }
+
+/** Run `fn` over `items` with at most `limit` in flight; results keep input order. */
+export const mapLimit = async <T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> => {
+  const results = new Array<R>(items.length)
+  let next = 0
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++
+      results[i] = await fn(items[i]!)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker))
+  return results
+}
 
 export type ArchiveStaleOptions = {
   apply?: boolean
@@ -80,6 +95,10 @@ export type ArchiveStaleOptions = {
   includeLapsed?: boolean
   /** Email each owner a download link. Off by default: archiving is quiet. */
   email?: boolean
+  /** Instances suspended together; they share one settle wait and one container check. */
+  batchSize?: number
+  /** Uploads (and sizing) running at once. */
+  concurrency?: number
 }
 
 export type ArchiveStaleSummary = {
@@ -102,6 +121,8 @@ export const archiveStaleInstances = async ({
   maxBytes = 100 * 1024 ** 3,
   includeLapsed = false,
   email = false,
+  batchSize = 50,
+  concurrency = 8,
 }: ArchiveStaleOptions = {}): Promise<ArchiveStaleSummary> => {
   const { info, warn, error } = logger().create(`archiveStale`)
   const nowMs = Date.now()
@@ -126,7 +147,7 @@ export const archiveStaleInstances = async ({
   }
 
   info(
-    `[${mode}] remote=${remote} stale=${staleDays}d retention=${retentionDays}d caps=${maxInstances} instances / ${formatBytes(maxBytes)}${includeLapsed ? ` +lapsed` : ``} email=${email ? `on` : `off`}`
+    `[${mode}] remote=${remote} stale=${staleDays}d retention=${retentionDays}d caps=${maxInstances} instances / ${formatBytes(maxBytes)} batch=${batchSize} concurrency=${concurrency}${includeLapsed ? ` +lapsed` : ``} email=${email ? `on` : `off`}`
   )
 
   const pb = await connect()
@@ -154,97 +175,165 @@ export const archiveStaleInstances = async ({
 
   const running = new Set((await listRunningInstanceContainers()).map((c) => c.instanceId))
 
-  const sized: Array<{ instance: Candidate; bytes: number }> = []
+  const present: Candidate[] = []
   for (const instance of candidates) {
-    const dir = mkInstanceDataPath(instance.id)
-    if (!existsSync(dir)) {
-      summary.noLocalData++
-      continue
-    }
-    if (running.has(instance.id)) {
-      summary.running++
-      continue
-    }
-    sized.push({ instance, bytes: await dirSizeBytes(dir) })
+    if (!existsSync(mkInstanceDataPath(instance.id))) summary.noLocalData++
+    else if (running.has(instance.id)) summary.running++
+    else present.push(instance)
   }
+  const sized = await mapLimit(present, concurrency, async (instance) => ({
+    instance,
+    bytes: await dirSizeBytes(mkInstanceDataPath(instance.id)),
+  }))
   sized.sort((a, b) => b.bytes - a.bytes)
   info(`${sized.length} with local data; ${summary.noLocalData} without; ${summary.running} running (skipped)`)
 
   const templateId = email ? await ensureTemplate(pb, apply) : ``
+  const deleteDate = new Date(nowMs + retentionDays * MS_PER_DAY)
+  const mkLabel = ({ instance, bytes }: Sized) =>
+    `${instance.subdomain} (${instance.id}, ${formatBytes(bytes)}, owner ${instance.expand.uid.email})`
 
+  // Pick the work list up front so the caps apply the same way in dry runs and real runs.
+  const selected: Sized[] = []
   let budgetBytes = maxBytes
-  for (const { instance, bytes } of sized) {
-    if (summary.archived + summary.failed >= maxInstances) break
-    if (bytes > budgetBytes) continue
-    const owner = instance.expand.uid
-    const label = `${instance.subdomain} (${instance.id}, ${formatBytes(bytes)}, owner ${owner.email})`
+  for (const item of sized) {
+    if (selected.length >= maxInstances) break
+    if (item.bytes > budgetBytes) continue
+    selected.push(item)
+    budgetBytes -= item.bytes
+  }
 
-    if (!apply) {
-      info(`  would archive: ${label}`)
+  if (!apply) {
+    for (const item of selected) {
+      info(`  would archive: ${mkLabel(item)}`)
       summary.archived++
-      summary.archivedBytes += bytes
-      budgetBytes -= bytes
-      continue
+      summary.archivedBytes += item.bytes
     }
+  }
 
-    const deleteDate = new Date(nowMs + retentionDays * MS_PER_DAY)
-    // An existing suspension (e.g. fair use) is kept underneath the archive reason, and put back on failure.
-    const previousSuspension = instance.suspension
-    try {
-      // Re-read: skip anything that woke up or changed since the list was fetched.
-      const fresh = await pb.collection(`instances`).getOne<InstanceFields>(instance.id)
-      if (fresh.suspension !== previousSuspension || fresh.updated !== instance.updated) {
-        info(`  skip (changed since scan): ${label}`)
-        continue
-      }
+  // SIGINT/SIGTERM finishes the batch in flight, then stops before the next one.
+  let stopping = false
+  const onSignal = (sig: string) => {
+    if (!stopping) warn(`${sig}: finishing the current batch, then stopping`)
+    stopping = true
+  }
+  const onInt = () => onSignal(`SIGINT`)
+  const onTerm = () => onSignal(`SIGTERM`)
+  if (apply) {
+    process.on(`SIGINT`, onInt)
+    process.on(`SIGTERM`, onTerm)
+  }
 
-      await pb
-        .collection(`instances`)
-        .update(instance.id, {
-          suspension: pushSuspension(mkArchivedSuspension(deleteDate, { emailed: email }), previousSuspension),
+  const revert = async (item: Sized) =>
+    pb
+      .collection(`instances`)
+      .update(item.instance.id, { suspension: item.instance.suspension })
+      .catch((e) => error(`  could not reset suspension for ${item.instance.id}`, e))
+
+  try {
+    for (let i = 0; apply && i < selected.length && !stopping; i += batchSize) {
+      const batch = selected.slice(i, i + batchSize)
+
+      // 1. Suspend the whole batch. An existing suspension (e.g. fair use) is kept underneath the archive reason,
+      //    and put back on failure.
+      const suspended = (
+        await mapLimit(batch, concurrency, async (item) => {
+          const { instance } = item
+          try {
+            // Re-read: skip anything that woke up or changed since the list was fetched.
+            const fresh = await pb.collection(`instances`).getOne<InstanceFields>(instance.id)
+            if (fresh.suspension !== instance.suspension || fresh.updated !== instance.updated) {
+              info(`  skip (changed since scan): ${mkLabel(item)}`)
+              return null
+            }
+            await pb.collection(`instances`).update(instance.id, {
+              suspension: pushSuspension(mkArchivedSuspension(deleteDate, { emailed: email }), instance.suspension),
+            })
+            return item
+          } catch (e) {
+            summary.failed++
+            error(`  FAILED to suspend: ${mkLabel(item)}`, e)
+            await revert(item)
+            return null
+          }
         })
+      ).filter((x): x is Sized => !!x)
+
+      // 2. One wait for the whole batch to reach the edge daemon, then one container check.
+      if (suspended.length === 0) continue
       await sleep(SUSPENSION_SETTLE_MS)
-      if ((await listRunningInstanceContainers()).some((c) => c.instanceId === instance.id)) {
-        await pb.collection(`instances`).update(instance.id, { suspension: previousSuspension })
-        info(`  skip (started during archive): ${label}`)
+      const nowRunning = new Set((await listRunningInstanceContainers()).map((c) => c.instanceId))
+      const ready: Sized[] = []
+      for (const item of suspended) {
+        if (!nowRunning.has(item.instance.id)) {
+          ready.push(item)
+          continue
+        }
+        await revert(item)
+        info(`  skip (started during archive): ${mkLabel(item)}`)
         summary.running++
-        continue
       }
 
-      const digest = await uploadInstanceArchive(instancesRoot, instance.id, remote)
-      await verifyInstanceArchive(remote, instance.id, digest)
-      rmSync(mkInstanceDataPath(instance.id), { recursive: true, force: true })
+      // 3. Upload, verify and delete in parallel.
+      const archived = (
+        await mapLimit(ready, concurrency, async (item) => {
+          const { instance, bytes } = item
+          try {
+            const digest = await uploadInstanceArchive(instancesRoot, instance.id, remote)
+            await verifyInstanceArchive(remote, instance.id, digest)
+            rmSync(mkInstanceDataPath(instance.id), { recursive: true, force: true })
+            summary.archived++
+            summary.archivedBytes += bytes
+            info(`  archived: ${mkLabel(item)} -> ${formatBytes(digest.bytes)} compressed`)
+            return item
+          } catch (e) {
+            summary.failed++
+            error(`  FAILED: ${mkLabel(item)}`, e)
+            await revert(item)
+            await deleteInstanceArchive(remote, instance.id).catch(() => {})
+            return null
+          }
+        })
+      ).filter((x): x is Sized => !!x)
 
-      summary.archived++
-      summary.archivedBytes += bytes
-      budgetBytes -= bytes
-      info(`  archived: ${label} -> ${formatBytes(digest.bytes)} compressed`)
-    } catch (e) {
-      summary.failed++
-      error(`  FAILED: ${label}`, e)
-      await pb
-        .collection(`instances`)
-        .update(instance.id, { suspension: previousSuspension })
-        .catch((e2) => error(`  could not reset suspension for ${instance.id}`, e2))
-      await deleteInstanceArchive(remote, instance.id).catch(() => {})
-      continue
+      if (!email) continue
+      for (const { instance, bytes } of archived) {
+        try {
+          const link = mkArchiveDownloadUrl(
+            linkOrigin,
+            instance.id,
+            Math.floor(deleteDate.getTime() / 1000),
+            linkSecret
+          )
+          const vars = {
+            subdomain: instance.subdomain,
+            size: formatBytes(bytes),
+            link,
+            deletedate: fmtDate(deleteDate),
+          }
+          await pb.collection(`notifications`).create({
+            user: instance.expand.uid.id,
+            channel: `email`,
+            message_template: templateId,
+            message_template_vars: vars,
+            payload: vars,
+          })
+        } catch (e) {
+          summary.emailFailed++
+          error(`  email failed for ${instance.subdomain} (${instance.id})`, e)
+        }
+      }
     }
+  } finally {
+    process.off(`SIGINT`, onInt)
+    process.off(`SIGTERM`, onTerm)
+  }
 
-    if (!email) continue
-    try {
-      const link = mkArchiveDownloadUrl(linkOrigin, instance.id, Math.floor(deleteDate.getTime() / 1000), linkSecret)
-      const vars = { subdomain: instance.subdomain, size: formatBytes(bytes), link, deletedate: fmtDate(deleteDate) }
-      await pb.collection(`notifications`).create({
-        user: owner.id,
-        channel: `email`,
-        message_template: templateId,
-        message_template_vars: vars,
-        payload: vars,
-      })
-    } catch (e) {
-      summary.emailFailed++
-      error(`  email failed for ${label}`, e)
-    }
+  if (stopping) {
+    info(
+      `[archive-stale ${mode}] stopped early: ${summary.archived} archived (${formatBytes(summary.archivedBytes)} freed), ${summary.failed} failed`
+    )
+    return summary
   }
 
   /* ---------- Expiry pass ---------- */

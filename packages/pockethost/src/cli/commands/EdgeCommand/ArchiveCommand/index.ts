@@ -17,20 +17,36 @@ export const ArchiveCommand = () => {
     .option(`--max-instances <n>`, `Max instances to archive per run`, int, 200)
     .option(`--max-gb <gb>`, `Max GB to archive per run`, int, 100)
     .option(`--email`, `Email each owner a download link (off by default)`, false)
+    .option(`--batch-size <n>`, `Instances suspended together (one settle wait per batch)`, int, 50)
+    .option(`--concurrency <n>`, `Uploads running at once`, int, 8)
     .option(`--include-lapsed`, `Also archive owners who used to pay (subscription_status=lapsed)`, false)
-    .action(async ({ apply, staleDays, retentionDays, maxInstances, maxGb, includeLapsed, email }) => {
-      logger().context({ cli: 'edge:archive:stale' })
-      const { archiveStaleInstances } = await import('./archiveStale')
-      await archiveStaleInstances({
+    .action(
+      async ({
         apply,
         staleDays,
         retentionDays,
         maxInstances,
-        maxBytes: maxGb * 1024 ** 3,
+        maxGb,
         includeLapsed,
         email,
-      })
-    })
+        batchSize,
+        concurrency,
+      }) => {
+        logger().context({ cli: 'edge:archive:stale' })
+        const { archiveStaleInstances } = await import('./archiveStale')
+        await archiveStaleInstances({
+          apply,
+          staleDays,
+          retentionDays,
+          maxInstances,
+          maxBytes: maxGb * 1024 ** 3,
+          includeLapsed,
+          email,
+          batchSize,
+          concurrency,
+        })
+      }
+    )
 
   cmd
     .command(`restore <instanceId>`)

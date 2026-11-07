@@ -99,7 +99,14 @@ export const listRunningInstanceContainers = async (): Promise<RunningInstanceCo
   for (const summary of listed) {
     if (!summary.Image.startsWith(imagePrefix)) continue
 
-    const inspect = await docker.getContainer(summary.Id).inspect()
+    // A container can exit between list and inspect; it's no longer running, so skip it.
+    let inspect: ContainerInspectInfo
+    try {
+      inspect = await docker.getContainer(summary.Id).inspect()
+    } catch (e) {
+      if (isDockerContainerNotFound(e)) continue
+      throw e
+    }
     const instanceId = resolveInstanceIdFromInspect(inspect)
     if (!instanceId) continue
 
