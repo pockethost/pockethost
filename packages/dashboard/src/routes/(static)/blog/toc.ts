@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'One Storage Number: Disk Storage',
+    path: '/blog/disk-storage',
+    description:
+      'Storage is now one pooled number: 10 GB per paid instance, or a flat 25 GB on legacy plans. Files in your own S3 bucket do not count.',
+    date: 'Nov 7, 2026',
+    author: 'capn',
+  },
+  {
     title: 'phio Is Now pockethost',
     path: '/blog/phio-is-now-pockethost',
     description:

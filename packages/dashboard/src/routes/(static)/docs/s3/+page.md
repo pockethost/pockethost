@@ -25,7 +25,7 @@ By offloading these tasks to S3, you can reduce the burden on your PocketHost in
 
 ## Storage Conservation
 
-Using S3 for files like uploads and backups helps conserve your local storage for more critical data, such as **databases and logs**, which must reside on your instance. This helps your PocketHost instance run more efficiently. Learn more about storage limits in [Limits](/docs/limits).
+Using S3 for files like uploads and backups helps conserve your local storage for more critical data, such as **databases and logs**, which must reside on your instance. This helps your PocketHost instance run more efficiently. Files in your own S3 bucket don't count toward your [disk storage](/docs/limits#disk-storage).
 
 ## Migrating Files to S3
 

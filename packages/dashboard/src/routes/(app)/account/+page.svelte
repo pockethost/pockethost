@@ -18,7 +18,7 @@
 
   $: instanceCount = $userStore?.subscription_quantity ?? 0
   $: storageLimits = subscriptionStorageLimits(instanceCount)
-  $: perInstanceLabel = instanceCount === 1 ? 'PocketBase' : 'PocketBases'
+  $: perInstanceLabel = instanceCount === 1 ? 'instance' : 'instances'
   $: volumeUsedBytes = $userStore?.volume_storage_used ?? 0
   $: objectUsedBytes = $userStore?.object_storage_used ?? 0
   $: volumeSubline =

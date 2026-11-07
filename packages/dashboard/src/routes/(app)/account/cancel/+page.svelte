@@ -53,8 +53,7 @@
 <FeatureTab title="Cancel membership" {errorMessage}>
   <svelte:fragment slot="summary">
     <p class="text-sm text-white/70 leading-relaxed">
-      Cancel recurring billing for Pay Per PocketBase. You keep your current slot allowance until the billing period
-      ends.
+      Cancel recurring billing for Pay Per PocketBase. You keep your current instances until the billing period ends.
     </p>
   </svelte:fragment>
 

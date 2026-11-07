@@ -9,23 +9,22 @@ PocketHost is a **hard paywall** hosting service. There is **no free hosting tie
 
 ## Target model: Pay Per PocketBase (Jul 2026)
 
-Per slot:
+Per instance:
 
 | Billing | Price |
 | ------- | ----- |
-| Monthly | **$9.99**/PocketBase (7-day trial) |
-| Annual | **$59.99**/PocketBase (~50% vs 12× monthly) |
-| Lifetime | **$149.99**/PocketBase |
+| Monthly | **$9.99**/instance (7-day trial) |
+| Annual | **$59.99**/instance (~50% vs 12× monthly) |
+| Lifetime | **$149.99**/instance |
 
-Each paid slot (`subscription_quantity`) adds:
+Each paid instance (`subscription_quantity`) adds:
 
-- **250 MB** pooled DB data storage
-- **10 GB** pooled file storage
-- **One powered-on** PocketBase at a time
+- **One more instance.** You can have as many instances as you pay for, and all of them can run. Powered-off instances still count. There is **no powered-on cap** and no "unlimited instance records" (that older model was dropped).
+- **10 GB** of pooled **disk storage**: everything on our servers (databases, logs, `pb_public`, hooks, backups, local uploads). Files in the customer's own S3 bucket don't count.
 
-**Unlimited instance records.** Create as many as you want. Only **power on** as many as your paid slots allow.
+Legacy plans with 250+ instances (Flounder, Founder, retired "unlimited" plans) get a **flat 25 GB** of disk storage, not 10 GB × instances. Accounts with no paid instances get **1 GB**. Policy text lives in `/docs/limits#disk-storage`. It is published policy only. Nothing in code meters or enforces it.
 
-Checkout quantity = number of slots. Storage pools scale with quantity.
+Checkout quantity = number of instances.
 
 **No Pro, Agency, or tiered plans.** One product: Pay Per PocketBase with three billing intervals.
 
@@ -35,7 +34,7 @@ Checkout quantity = number of slots. Storage pools scale with quantity.
 
 ## Checkout (live Jul 2026)
 
-Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**, and **$149.99 lifetime** per slot. **Annual** is the featured interval on `/pricing` (~50% savings vs 12 months of monthly). Legacy $5/mo and $359 Flounder are off checkout. Grandfathered webhook mappings remain for existing rows.
+Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**, and **$149.99 lifetime** per instance. **Annual** is the featured interval on `/pricing` (~50% savings vs 12 months of monthly). Legacy $5/mo and $359 Flounder are off checkout. Grandfathered webhook mappings remain for existing rows.
 
 ## Copy rules for agents
 
@@ -48,9 +47,9 @@ Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**,
 
 **Do write:**
 
-- **Pay Per PocketBase**, **$9.99/mo**, **$59.99/yr**, **$149.99 lifetime** per slot (LS list prices), **powered-on limit**, **pooled storage**
-- Annual savings vs monthly when comparing intervals (~$60/slot/year, ~50%)
-- "subscribe", "your account", "add another PocketBase"
+- **Pay Per PocketBase**, **$9.99/mo**, **$59.99/yr**, **$149.99 lifetime** per instance (LS list prices), **disk storage**
+- Annual savings vs monthly when comparing intervals (~$60/instance/year, ~50%)
+- "subscribe", "your account", "add another instance". Say "instances", never "slots" or "PocketBases" (see [end-user-docs.mdc](end-user-docs.mdc))
 - "grandfathered" for pre-paywall or legacy rows
 - Third-party free tiers OK (Web Awesome, npm, etc.)
 
@@ -58,8 +57,8 @@ Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**,
 
 - `SubscriptionType.Premium` / `'premium'` = active Pay Per PocketBase subscriber (monthly or annual; DB enum name is historical).
 - `subscription_interval`: `month`, `year`, or `life` (lifetime / legacy Flounder).
-- `subscription_quantity` = paid slot count (powered-on cap + storage pool multiplier).
-- Limits per slot: `common/subscriptionLimits.ts` (`DB_STORAGE_MB_PER_INSTANCE`, `FILE_STORAGE_GB_PER_INSTANCE`).
+- `subscription_quantity` = paid instance count. The dashboard caps total instances at it. The edge daemon refuses to run instances when it is 0.
+- `common/subscriptionLimits.ts` still has the old DB/file split constants for the account page meters. They predate the disk storage policy and nothing populates usage.
 - Feature gates: prefer active hosting entitlement, not bare `subscription !== 'free'`, unless blocking lapsed accounts only.
 
 Read [MEMORY.md](MEMORY.md) Billing section when touching pricing, limits, dashboard paywalls, or Lemon Squeezy flows.

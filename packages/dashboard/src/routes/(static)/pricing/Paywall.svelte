@@ -1,13 +1,7 @@
 <script lang="ts">
   import Testimonials from '$src/components/Testimonials.svelte'
   import Features from './Features.svelte'
-  import {
-    DB_STORAGE_MB_PER_INSTANCE,
-    FILE_STORAGE_GB_PER_INSTANCE,
-    INSTANCE_ANNUAL_PV_ID,
-    INSTANCE_LIFETIME_PV_ID,
-    INSTANCE_MONTHLY_PV_ID,
-  } from '@pockethost/server/common'
+  import { INSTANCE_ANNUAL_PV_ID, INSTANCE_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID } from '@pockethost/server/common'
   import SignupBox from './SignupBox.svelte'
 
   const MONTHLY_PRICE = 9.99
@@ -16,7 +10,7 @@
   const annualSavings = Math.round((monthlyYearTotal - ANNUAL_PRICE) * 100) / 100
   const annualSavingsPercent = Math.round((annualSavings / monthlyYearTotal) * 100)
 
-  const slotStorage = `${DB_STORAGE_MB_PER_INSTANCE} MB DB data storage + ${FILE_STORAGE_GB_PER_INSTANCE} GB file storage per PocketBase`
+  const slotStorage = `10 GB disk storage per instance (files in your own S3 don't count)`
   const trialFeature = '7 day risk-free trial'
   const slotFeatures = [
     slotStorage,
@@ -30,7 +24,7 @@
 
 <div class="pricing-page-header">
   <h2 class="pricing-page-title">Pricing</h2>
-  <p class="pricing-page-lead">Pay Per PocketBase. One slot powers on one PocketBase at a time.</p>
+  <p class="pricing-page-lead">Pay Per PocketBase. Pay for each instance you run.</p>
 </div>
 
 <div class="pricing-page-grid">
@@ -38,30 +32,30 @@
     pvId={INSTANCE_MONTHLY_PV_ID}
     title="Monthly"
     price="$9.99"
-    priceDetail="per PocketBase, per month"
-    cta="Each slot includes {DB_STORAGE_MB_PER_INSTANCE} MB DB data storage and {FILE_STORAGE_GB_PER_INSTANCE} GB file storage. Add another PocketBase, add another slot."
+    priceDetail="per instance, per month"
+    cta="Each instance includes 10 GB disk storage. Need more? Add another instance."
     features={sharedFeatures}
   />
   <SignupBox
     pvId={INSTANCE_ANNUAL_PV_ID}
     selected
     savingsPercent={annualSavingsPercent}
-    savingsAmountLabel={`Save $${annualSavings.toFixed(0)} per slot vs monthly billing`}
+    savingsAmountLabel={`Save $${annualSavings.toFixed(0)} per instance vs monthly billing`}
     compareAtPrice={`$${monthlyYearTotal.toFixed(2)}/yr`}
     title="Annual"
     price="$59.99"
-    priceDetail="per PocketBase, per year"
-    cta="Same slot entitlements as monthly. Billed once per year."
+    priceDetail="per instance, per year"
+    cta="Same as monthly. Billed once per year."
     features={[trialFeature, `Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo when paid annually`, ...slotFeatures]}
   />
   <SignupBox
     pvId={INSTANCE_LIFETIME_PV_ID}
-    buttonText="Buy lifetime slot"
+    buttonText="Buy lifetime instance"
     price="$149.99"
-    priceDetail="once per PocketBase"
+    priceDetail="once per instance"
     title="Lifetime"
-    cta="Pay once per slot for lifetime Pay Per PocketBase hosting. No recurring fees."
-    features={[trialFeature, 'Lifetime access per slot purchased', 'No recurring fees', ...slotFeatures]}
+    cta="Pay once per instance for lifetime hosting. No recurring fees."
+    features={[trialFeature, 'Lifetime hosting for each instance purchased', 'No recurring fees', ...slotFeatures]}
   />
 </div>
 

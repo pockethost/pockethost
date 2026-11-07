@@ -8,8 +8,8 @@
   <div class="wa-card-body">
     <h2 class="text-xl font-bold mb-2">Paywall!</h2>
     <p>
-      You need a paid PocketBase slot to create instances. Each $9.99/month slot adds pooled storage and one powered-on
-      instance.
+      You need another paid instance to create this one. Each instance is $9.99/month and includes 10 GB of disk
+      storage.
     </p>
     <div class="w-full mt-6">
       <wa-button href="/pricing" variant="brand" class="w-full">Pay Per PocketBase</wa-button>

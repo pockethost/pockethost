@@ -4,19 +4,18 @@ description: Understand PocketHost's Pay Per PocketBase pricing and Fair Use pol
 ---
 # Pricing Ethos
 
-At PocketHost, we believe in keeping things simple and transparent. **Pay Per PocketBase** is our only hosting product: **$9.99 per slot per month**, **$59.99 per slot per year**, or **$149.99 lifetime per slot**.
+At PocketHost, we believe in keeping things simple and transparent. **Pay Per PocketBase** is our only hosting product: **$9.99 per instance per month**, **$59.99 per instance per year**, or **$149.99 lifetime per instance**.
 
 ## Pay Per PocketBase
 
-Each paid slot adds:
+Each paid instance adds:
 
-- **250 MB** pooled DB data storage
-- **10 GB** pooled file storage
-- **One powered-on** PocketBase at a time
+- **10 GB** pooled disk storage (databases, logs, `pb_public`, backups, and local uploads; files in your own S3 bucket don't count)
+- **One more instance**, which can run all the time
 
-Create **unlimited instance records**. Your slot count (`subscription_quantity`) sets how many PocketBases you can **power on** at once. Add another slot, add another PocketBase.
+You can have as many instances as you pay for. Need another one? Add another instance.
 
-- **Fair use bandwidth and CPU** on all paid slots
+- **Fair use bandwidth and CPU** on all paid instances
 - **7-day risk-free trial** on every plan
 - **Community support** on Discord for everyone
 
@@ -26,7 +25,7 @@ See [pricing](/pricing) for checkout.
 
 **Unlimited doesn't mean infinite**
 
-Bandwidth and CPU are unmetered under fair use. Storage is pooled per slot as above.
+Bandwidth and CPU are unmetered under fair use. Disk storage is pooled across your paid instances as above. Legacy plans (Flounder, Founder, and other plans with 250 or more instances) get a flat 25 GB, and accounts with no paid instances get 1 GB. See [Limits](/docs/limits#disk-storage).
 
 - **Fair use basis**: Use resources similarly to the average active app on our platform
 - **Resource management**: Your app scales up or down based on its needs

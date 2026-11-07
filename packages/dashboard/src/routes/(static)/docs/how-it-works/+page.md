@@ -14,7 +14,6 @@ PocketHost starts your instance when a request arrives. After a few seconds with
 - The next request wakes it. That first request takes a little longer while PocketBase starts.
 - Nothing runs while the instance is asleep. That includes `pb_hooks` timers, background goroutines, and long-lived in-memory state.
 - Realtime (SSE) connections keep the instance awake while they are open.
-- A hibernated instance still counts as powered on for your [slot count](/docs/limits#usage-limits).
 
 See [Limits](/docs/limits#hibernation) for details.
 

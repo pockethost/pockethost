@@ -2,7 +2,7 @@
 
 # Terms of Service
 
-**Last Modified Date: September 12, 2025**
+**Last Modified Date: November 7, 2026**
 
 Welcome to PocketHost! These Terms of Service ("Terms") govern your access to and use of PocketHost's services, so please read them carefully.
 
@@ -63,6 +63,7 @@ Our ethos is centered around supporting indie developers and hackers. We activel
   - Spamming
   - Crypto mining
   - Any use other than hosting PocketBase for web and mobile applications
+- **App-Related Data Only**: PocketHost hosts PocketBase apps. It is not a general file or object storage host. Everything you store on PocketHost must be part of a PocketBase app you run here: its database, file uploads, hooks, migrations, backups, and the frontend files it serves from `pb_public`. Using an instance mainly to store or serve files or data that your PocketBase app does not use (for example, bulk media mirrors, dataset or archive dumps, or scraper output) is not allowed. Store that kind of data with an object storage or static hosting provider instead.
 - **System Integrity**: Misuse of resources or activities that severely affect system performance or user experience are prohibited.
 
 ## 7. Misuse and Termination

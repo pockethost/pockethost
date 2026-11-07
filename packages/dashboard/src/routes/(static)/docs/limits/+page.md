@@ -83,16 +83,36 @@ PocketHost instances may enter **hibernation** during inactivity. They wake on t
 
 ## Usage Limits
 
-PocketHost enforces **Pay Per PocketBase** storage and powered-on caps:
+PocketHost limits are simple: **you pay per instance**.
 
-- **Powered-on instances**: Your paid slot count sets how many PocketBases can be **powered on** at once. Create unlimited instance records. Powered-off instances do not count against the cap. Sleeping (hibernated) instances still count as powered on.
-- **Storage**: **250 MB DB data** and **10 GB file storage** per paid slot, pooled across your account. See [Account](/account) for usage meters.
+- **Instances**: You can have as many instances as you pay for, and all of them can run. Powered-off instances still count, so to make room for a new one, delete an instance or [add another](/pricing).
+- **Disk storage**: **10 GB per paid instance**, pooled across your account. Legacy plans get a flat 25 GB, and accounts with no paid instances get 1 GB. See [Disk storage](#disk-storage).
 
 We also monitor bandwidth, storage, and CPU under fair use. We think fair means using about the same resources as the average active app on the platform. See [Pricing Ethos](/docs/pricing-ethos) for how we balance scale and indie-friendly hosting.
 
 We operate under a **Fair Use Policy** in our [Terms of Service](/terms). If usage significantly exceeds typical levels, we may contact you to discuss a resolution.
 
 In extreme cases, if the issue cannot be resolved and it negatively impacts other users, your instance may be suspended. In severe cases, we may delete data without providing a backup. This is rare (it has only happened once due to an abusive situation).
+
+## Disk storage
+
+Disk storage is **everything your instances keep on PocketHost's servers**: databases, logs, `pb_public`, `pb_hooks`, backups, and file uploads stored locally. It's one number, pooled across all of your instances.
+
+| Plan | Disk storage |
+|---|---|
+| Pay Per PocketBase | **10 GB per paid instance** |
+| Flounder, Founder, and other legacy plans | **25 GB** total |
+| No paid instances | **1 GB** total |
+
+Legacy plans come with a large instance allowance (250 or more). Their storage is a flat 25 GB and doesn't grow with the number of instances.
+
+**Files in your own S3 bucket don't count.** If you store uploads or backups in S3, they don't use your disk storage. See [S3 storage](/docs/s3). This is the best option for large or fast-growing files such as images and media.
+
+**Static files in `pb_public` are welcome, and they count.** Serving your frontend or a few assets from `pb_public` is fine; those files use your disk storage like everything else. For a large static site or a media library, a static host or CDN (such as Cloudflare Pages or Cloudflare R2) is usually faster and cheaper, and it keeps your disk storage free for your data.
+
+**Store PocketBase app data, not everything.** PocketHost hosts PocketBase apps, not files in general. What you keep here should be part of a PocketBase app you run: its database, uploads, hooks, backups, and frontend. Bulk files your app doesn't use, such as media mirrors, data dumps, or scraper output, belong with an object storage or static hosting provider. See section 6.2 of the [Terms of Service](/terms).
+
+See [Account](/account) for your usage meter.
 
 ## Prohibited Content
 

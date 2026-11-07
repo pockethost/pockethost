@@ -59,7 +59,7 @@ See [Account creation](/docs/getting-started).
 
 ### Account storage meters
 
-**[Account](/account)** shows pooled **DB storage** and **file storage** usage against your slot pool. Meters are live today. **Enforcement** against your paid slot count goes live **July 1**.
+**[Account](/account)** shows pooled **DB storage** and **file storage** usage, pooled across your instances. Meters are live today. **Enforcement** against the number of instances you pay for goes live **July 1**.
 
 See [limits](/docs/limits).
 
@@ -67,15 +67,15 @@ See [limits](/docs/limits).
 
 The legacy **Flounder** one-time tier ($359) stopped selling **July 1, 2026**. **Existing Flounder subscribers** stay grandfathered.
 
-New lifetime purchases use **$149.99 per slot** on [pricing](/pricing).
+New lifetime purchases use **$149.99 per instance** on [pricing](/pricing).
 
 More detail: [Last call for Flounder lifetime access](/blog/flounder-lifetime-sunset)
 
 ### Pay Per PocketBase pricing
 
-PocketHost is a **hard paywall**: **$9.99/month**, **$59.99/year**, or **$149.99 lifetime** per PocketBase slot (7-day risk-free trial on every plan). Each paid slot adds **250 MB DB data** and **10 GB file storage** (pooled on your account) and lets you **power on one** PocketBase at a time.
+PocketHost is a **hard paywall**: **$9.99/month**, **$59.99/year**, or **$149.99 lifetime** per instance (7-day risk-free trial on every plan). Each paid instance adds **10 GB of disk storage** (pooled on your account; see [disk storage](/docs/limits#disk-storage)) and gives you **one more instance**.
 
-Create **unlimited instance records**. Your slot count sets how many can run at once.
+You can have as many instances as you pay for, and all of them can run.
 
 **If you already subscribe at a legacy price, your billing does not change.** Same plan, same price.
 
@@ -176,7 +176,7 @@ More detail: [Dashboard UI: Web Awesome migration](/blog/web-awesome-migration)
 1. **Set up SFTP.** Generate an Ed25519 key, add it at [Account → Keys](/account/keys), and test a connection using [/docs/ftp](/docs/ftp).
 2. **Retire FTPS bookmarks.** Port 21 is off. Point clients and CI at SFTP.
 3. **Add trusted IPs if you proxy.** SSR apps and shared egress NATs benefit from [Account → Trusted IPs](/account/trusted-ips).
-4. **Check your usage.** Open [Account](/account) for DB and file storage meters vs your slot pool.
+4. **Check your usage.** Open [Account](/account) for your DB and file storage meters.
 5. **Watch for updates.** Follow the [blog](/blog) and your account email as 3.0 rolls out.
 
 Questions? [Discord](https://discord.gg/nVTxCMEcGT) or [support](/support).

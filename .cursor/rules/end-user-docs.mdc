@@ -21,6 +21,13 @@ Blog posts, `/docs`, dashboard copy, and marketing are for people who host Pocke
 
 Internal notes (`MEMORY.md`, contributor skills) may name those commands. Do not paste them into blog posts or docs.
 
+## Terminology
+
+- Call them **instances**. Not "slots", not "PocketBases" ("each instance you pay for", "10 GB per paid instance", "Add another instance").
+- **PocketBase** is the software ("PocketBase 0.23", "the PocketBase admin"). **Pay Per PocketBase** is the product name and stays.
+- Internal code and billing (`subscription_quantity`, `hosting.slot.*` SKUs) can keep "slot". Don't let it leak into copy.
+- The model is **pay per instance**: you can have as many instances as you pay for, and all of them can run. Powered-off instances still count. Never write "create unlimited instances" or describe a cap on how many can be powered on; that older model is gone.
+
 ## Examples
 
 Bad: `Self-hosters can preview with: pockethost edge purge-orphans --dry-run`
