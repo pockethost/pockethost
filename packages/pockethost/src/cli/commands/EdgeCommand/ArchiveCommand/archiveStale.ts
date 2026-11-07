@@ -441,6 +441,13 @@ export const restoreArchivedInstance = async (instanceId: string) => {
   await pb.collection(`instances`).update(instanceId, { suspension: previous })
   info(`Restored. The archive stays in storage until its retention period ends.`)
   if (previous) info(`The instance is still suspended for its earlier reason: ${JSON.stringify(previous)}`)
+  if (instance.cname?.trim()) {
+    // The daily sweep removed its Cloudflare custom hostname while archived; put it back.
+    const res = await pb
+      .send(`/api/cloudflare/hostnames/register/${instanceId}`, { method: `POST` })
+      .catch((e: unknown) => ({ status: `failed`, error: `${e}` }))
+    info(`Custom domain ${instance.cname}: ${JSON.stringify(res)}`)
+  }
   const owner = await pb.collection(`users`).getOne<UserFields>(instance.uid)
   if (owner.suspension) info(`The owner's account is suspended: ${JSON.stringify(owner.suspension)}`)
 }

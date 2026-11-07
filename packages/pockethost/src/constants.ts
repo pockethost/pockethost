@@ -155,6 +155,8 @@ export const createSettings = () => ({
   MOTHERSHIP_CLOUDFLARE_API_TOKEN: mkString('', { required: true }),
   MOTHERSHIP_CLOUDFLARE_ZONE_ID: mkString('', { required: true }),
   MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID: mkString('', { required: true }),
+  /** When true, the daily custom-hostname sweep deletes; otherwise it only logs a dry run. */
+  MOTHERSHIP_CLOUDFLARE_SWEEP_APPLY: mkBoolean(false),
 
   TEST_EMAIL: mkString(),
 
@@ -281,6 +283,7 @@ export const PH_ARCHIVE_LINK_ORIGIN = () =>
 export const MOTHERSHIP_CLOUDFLARE_API_TOKEN = () => settings().MOTHERSHIP_CLOUDFLARE_API_TOKEN
 export const MOTHERSHIP_CLOUDFLARE_ZONE_ID = () => settings().MOTHERSHIP_CLOUDFLARE_ZONE_ID
 export const MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID = () => settings().MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID
+export const MOTHERSHIP_CLOUDFLARE_SWEEP_APPLY = () => settings().MOTHERSHIP_CLOUDFLARE_SWEEP_APPLY
 
 export const TEST_EMAIL = () => settings().TEST_EMAIL
 
@@ -344,6 +347,7 @@ export const logConstants = () => {
     MOTHERSHIP_CLOUDFLARE_API_TOKEN,
     MOTHERSHIP_CLOUDFLARE_ZONE_ID,
     MOTHERSHIP_CLOUDFLARE_ACCOUNT_ID,
+    MOTHERSHIP_CLOUDFLARE_SWEEP_APPLY,
     INITIAL_PORT_POOL_SIZE,
     DATA_ROOT,
     NODE_ENV,

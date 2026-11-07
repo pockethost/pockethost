@@ -1,62 +1,7 @@
 import { type InstanceWebhookCollection } from '$common'
+import { ensureCustomHostname } from '$util/cloudflare'
 import { mkLog, StringKvLookup } from '$util/Logger'
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
-
-// Helper function to make Cloudflare API calls
-const callCloudflareAPI = (endpoint: string, method: string, body?: any, log?: any) => {
-  const apiToken = $os.getenv('MOTHERSHIP_CLOUDFLARE_API_TOKEN')
-  const zoneId = $os.getenv('MOTHERSHIP_CLOUDFLARE_ZONE_ID')
-
-  if (!apiToken || !zoneId) {
-    if (log) log('Cloudflare API credentials not configured - skipping Cloudflare operations')
-    return null
-  }
-
-  const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/${endpoint}`
-
-  try {
-    const config: any = {
-      url: url,
-      method: method,
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: 30,
-    }
-
-    if (body) {
-      config.body = JSON.stringify(body)
-    }
-
-    if (log) log(`Making Cloudflare API call: ${method} ${url}`, config)
-
-    const response = $http.send(config)
-
-    if (log) log(`Cloudflare API response:`, response)
-
-    return response
-  } catch (error) {
-    if (log) log(`Cloudflare API error:`, error)
-    return null
-  }
-}
-
-// Helper to create custom hostname in Cloudflare
-const createCloudflareCustomHostname = (hostname: string, log: any) => {
-  return callCloudflareAPI(
-    'custom_hostnames',
-    'POST',
-    {
-      hostname: hostname,
-      ssl: {
-        method: 'http',
-        type: 'dv',
-      },
-    },
-    log
-  )
-}
 
 export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   const log = mkLog(`PUT:instance`)
@@ -134,13 +79,14 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   const newCname = cname !== null ? cname.trim() : null
   const cnameChanged = newCname !== null && oldCname !== newCname
 
-  if (cnameChanged && newCname.length > 0) {
-    log(`CNAME changed from "${oldCname}" to "${newCname}" - adding to Cloudflare`)
+  // Register whenever the domain is saved, even unchanged: saving again re-adds a hostname the daily
+  // sweep removed (expired cert, moved DNS). A working entry is left alone. The old hostname
+  // (if the domain changed) is removed by the sweep once no instance uses it.
+  if (newCname !== null && newCname.length > 0) {
+    log(`CNAME saved ("${oldCname}" -> "${newCname}") - registering with Cloudflare`)
 
-    // Blindly add to Cloudflare
-    const createResponse = createCloudflareCustomHostname(newCname, log)
-    if (createResponse) {
-      log(`Cloudflare API call completed for "${newCname}" - frontend will poll for health`)
+    if (ensureCustomHostname(newCname, log)) {
+      log(`Cloudflare custom hostname ready for "${newCname}" - frontend will poll for health`)
     }
   }
 
