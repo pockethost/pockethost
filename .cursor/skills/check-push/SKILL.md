@@ -67,6 +67,8 @@ pnpm --filter @pockethost/dashboard check:types
 
 ### Mothership hooks stale
 
+The check itself never writes `pb_hooks/`. Rebuilding does, and on the production server `/root/pockethost` is the live checkout, so rebuild in a git worktree:
+
 ```bash
 pnpm --filter pockethost-mothership-app build
 ```

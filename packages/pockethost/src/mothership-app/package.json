@@ -3,7 +3,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:fresh": "tsdown && git diff --exit-code -- pb_hooks/"
+    "check:fresh": "d=$(mktemp -d) && tsdown --out-dir \"$d\" > /dev/null && diff -q \"$d/mothership.pb.js\" pb_hooks/mothership.pb.js && diff -q \"$d/mothership.js\" pb_hooks/mothership.js; s=$?; rm -rf \"$d\"; [ $s -eq 0 ] || echo 'pb_hooks is stale. Rebuild it in a worktree (pnpm --filter pockethost-mothership-app build) and commit pb_hooks/.'; exit $s"
   },
   "devDependencies": {
     "tsdown": "^0.22.2",
