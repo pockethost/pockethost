@@ -1,8 +1,14 @@
 # Auto-Archive Stale Free Instances
 
-**Rule:** a free-plan instance that hasn't started in **365 days** is suspended and archived to IDrive e2. The owner gets one email with a download link. The archive is deleted from IDrive after **180 days**.
+**Rule:** a free-plan instance that hasn't started in **365 days** is suspended and archived to IDrive e2. Archiving is quiet: no email. The suspension message tells the owner to contact support before the deletion date. The archive is deleted from IDrive after **180 days**.
 
-Status: implemented on branch `feat/archive-stale` (not merged, not deployed).
+Status: on main and run once by hand on 2026-11-06/07. The daily PM2 job (`edge-archive-stale`) is not started yet.
+
+## First run (2026-11-06/07)
+
+- **10,750 instances archived; 86 GB freed** on the data volume (864 GB → 778 GB used). IDrive holds 45.5 GiB.
+- The first 22 were archived with `--email` and their owners were emailed. Every later one was archived quietly.
+- **31 instances can't be archived:** their subdomains (1–2 characters, capitals or punctuation) fail mothership's current validation, so the suspension update is rejected. They're left untouched. Renaming the subdomain would let them archive.
 
 ## Expected savings (dry run against production, 2026-11-06)
 
@@ -23,17 +29,17 @@ Status: implemented on branch `feat/archive-stale` (not merged, not deployed).
 
 ### `pockethost edge archive stale` (daily, dry run unless `--apply`)
 
-**Archive pass**, largest instances first, up to `--max-instances` / `--max-gb`:
+**Archive pass**, largest instances first, up to `--max-instances` / `--max-gb`, in batches of `--batch-size` (50) with `--concurrency` (8) uploads at once. SIGINT/SIGTERM finishes the current batch and stops.
 
 1. Candidates: `updated` older than `--stale-days` (365), not already archived, owner `subscription = free`, and `subscription_status` neither `active` nor (without `--include-lapsed`) `lapsed`. Skips instances with no local folder or a running container.
    - **Suspended instances and accounts are included.** Suspension doesn't exempt data from the stale rules.
    - Lapsed owners are skipped by default because billing reconciliation is still moving accounts. On 2026-11-06, 12,212 free users' records changed in one day, and at least one owner went from premium to free/lapsed.
 2. Re-read the instance and skip it if it changed since the scan.
-3. Push the `Archived:` reason on top of any existing suspension, wait 5 s for the mirror, and skip (put the previous suspension back) if a container started anyway.
+3. Push the `Archived:` reason on top of any existing suspension for the whole batch, wait 5 s once for the mirror, and skip (put the previous suspension back) any instance whose container started anyway.
 4. `tar | zstd -3 | rclone rcat`, hashing on the way.
 5. Read the object back: same byte count, same SHA-256, and `zstd -t` passes. **Any failure: put the previous suspension back, keep local data, delete the partial upload.**
 6. Delete the local folder.
-7. Create a `notifications` record (template `instance-archived`) with the subdomain, size, signed link and deletion date. It's sent by the mothership's existing notification hook through SES, from ben@pockethost.io.
+7. Only with `--email` (off by default): create a `notifications` record (template `instance-archived`) with the subdomain, size, signed link and deletion date. It's sent by the mothership's existing notification hook through SES, from ben@pockethost.io.
 
 **Expiry pass:** delete archives older than `--retention-days` (180) and push an "archive has been deleted" reason on top of the suspension history. Archives whose instance record no longer exists are deleted right away.
 
@@ -41,7 +47,7 @@ Ends with a log summary and, on `--apply`, a Discord post to `DISCORD_ALERT_CHAN
 
 ### Download link
 
-- The email links to `PH_ARCHIVE_LINK_ORIGIN/_ph/archive/<id>?exp=<unix>&sig=<hmac>` (default origin: the mothership host).
+- Only used with `--email`. The email links to `PH_ARCHIVE_LINK_ORIGIN/_ph/archive/<id>?exp=<unix>&sig=<hmac>` (default origin: the mothership host).
 - The firewall checks the HMAC-SHA256 (`PH_ARCHIVE_LINK_SECRET`, falling back to `PH_SECRET`) and the expiry, then 302s to a 1-hour presigned IDrive URL (`rclone link`). Presigned S3 URLs can't last more than 7 days, hence the indirection.
 - Bad signature: 403. Expired: 410. Archive gone: 404.
 
@@ -58,24 +64,17 @@ For support: requires an `Archived:` suspension and no local folder. It download
 | `src/cli/commands/EdgeCommand/ArchiveCommand/`            | `edge archive stale` / `restore`, email template                                                  |
 | `src/cli/commands/FirewallCommand/.../archiveDownload.ts` | Signed download route (tests), wired in `server.ts`                                               |
 | `src/constants.ts`                                        | `PH_ARCHIVE_REMOTE`, `PH_ARCHIVE_LINK_SECRET`, `PH_ARCHIVE_LINK_ORIGIN`                           |
-| `ecosystem.config.cjs`                                    | `edge-archive-stale`, `autostart: false`                                                          |
+| `ecosystem.config.cjs`                                    | `edge-archive-stale`, `autostart: false` (quiet: no `--email`)                                    |
 
-## Rollout
+## Next
 
-1. Merge, then restart `firewall` so the download route is live **before** any email goes out.
-2. `pnpm prod:cli edge archive stale` (dry run) and review the list.
-3. `pnpm prod:cli edge archive stale --apply --max-instances 9` for the 9 instances over 1 GB. Check:
-   - the email arrives (it's BCC'd to `pockethost+notifications@`)
-   - the link downloads
-   - `edge archive restore` works on one instance
-4. `pm2 start edge-archive-stale`: 200 instances/day, about a month to clear the backlog. Watch the SES bounce rate while it runs.
+- Start the daily job: `pm2 start ecosystem.config.cjs --only edge-archive-stale && pm2 save`. It catches instances as they cross 365 days.
+- Restore hasn't been tested on production yet.
 
 ## Known gaps / choices
 
-- **Unsubscribed users get no email.** The notification processor skips them (318 instances, 1.9 GB). Their instance is still archived, and they see the suspension message if they come back.
-- **Unverified users get no email** (599 instances, 5.5 GB). Same outcome.
+- **No email by default.** Emails invite reactivation requests from owners who had moved on; owners find out when they come back.
 - **At 180 days, the instance record stays** (suspended, subdomain still taken). It could be deleted instead.
 - **Owners with other active instances aren't excluded** (298 owners, 4.1 GB), per "if they're over the stale period, archive".
-- **Suspended accounts get the archive email too**, like everyone else under the stale rules.
 - **Suspended instances on paid plans are still skipped**, because the plan rule applies to everyone. This morning's snapshot had about 19 GB of stale suspended data across all plans; the free-plan part (8.9 GB) is included.
 - **`instances.updated` is the staleness signal.** It also moves on any record edit, so a few long-idle instances look fresher than they are (for example `bessemer-loadboard`: last start 2025-10, record edited 2026-04). That errs on the safe side.
