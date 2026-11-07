@@ -3,7 +3,7 @@
   import { items } from './stores'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
-  import { logger, type UpdateInstancePayload } from 'pockethost/common'
+  import { logger, type UpdateInstancePayload } from '@pockethost/server/common'
   import { confirmEncryptionKeyDelete, ENCRYPTION_KEY_SECRET } from './encryptionKey'
 
   const handleDelete = (name: string) => async (e: Event) => {

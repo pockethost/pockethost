@@ -9,7 +9,7 @@ import {
   type InstanceId,
   type UnsubscribeFunc,
   type UserFields,
-} from 'pockethost/common'
+} from '@pockethost/server/common'
 import { writable } from 'svelte/store'
 
 try {

@@ -7,7 +7,7 @@
   import { FTP_HOST, SFTP_COMMAND, SFTP_PORT } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
-  import { SSH_KEY_COLLECTION, type SshKeyFields } from 'pockethost/common'
+  import { SSH_KEY_COLLECTION, type SshKeyFields } from '@pockethost/server/common'
   import { instance } from '../store'
   import { bash } from 'svelte-highlight/languages'
   import { onMount } from 'svelte'

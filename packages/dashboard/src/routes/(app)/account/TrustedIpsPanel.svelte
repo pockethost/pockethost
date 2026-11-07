@@ -1,7 +1,7 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
   import { client } from '$src/pocketbase-client'
-  import { TRUSTED_IPS_MAX, type TrustedIpList } from 'pockethost/common'
+  import { TRUSTED_IPS_MAX, type TrustedIpList } from '@pockethost/server/common'
   import { onMount } from 'svelte'
 
   let trustedIps: TrustedIpList = []

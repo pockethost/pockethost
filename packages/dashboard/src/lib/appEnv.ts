@@ -1,4 +1,4 @@
-import { type InstanceFields, parseBoolean } from 'pockethost/common'
+import { type InstanceFields, parseBoolean } from '@pockethost/server/common'
 
 /**
  * These environment variables default to pointing to the production build so frontend development is easy. If they are

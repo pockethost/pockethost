@@ -37,7 +37,7 @@ Dashboard singleton: `packages/dashboard/src/pocketbase-client/index.ts`
 Mothership exposes custom `/api/*` routes from JS hooks. Use `createRestHelper` for validated calls:
 
 ```ts
-import { createRestHelper, RestCommands, RestMethods, CreateInstancePayloadSchema } from 'pockethost/common'
+import { createRestHelper, RestCommands, RestMethods, CreateInstancePayloadSchema } from '@pockethost/server/common'
 
 const { mkRest } = createRestHelper({ client })
 

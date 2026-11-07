@@ -10,7 +10,7 @@ Living architecture reference for agents. Current state only; update in the same
 | Dashboard | `packages/dashboard` | SvelteKit static site + docs (`@pockethost/dashboard`) |
 | Instance image | `packages/pockethost-instance` | Docker image for per-instance PocketBase containers (`benallfree/pockethost-instance:latest`) |
 | Mothership PB app | `packages/pockethost/src/mothership-app` | PocketBase control-plane app (hooks, migrations, handlers) |
-| Customer CLI | `packages/phio` | SFTP deploy CLI (`phio` bin). See `.cursor/skills/phio/SKILL.md` |
+| Customer CLI | `packages/cli` | npm `pockethost` (≥3.0; formerly `phio`). SFTP deploy CLI, bundled to `dist/cli.js`. See `.cursor/skills/pockethost-cli/SKILL.md` |
 
 Workspace: `pnpm-workspace.yaml` — root `packages/*` plus `mothership-app`.
 

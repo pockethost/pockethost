@@ -12,7 +12,7 @@
     type InstanceListSortDirection,
     type InstanceListViewMode,
   } from '$util/instanceListPrefs'
-  import { type InstanceFields } from 'pockethost/common'
+  import { type InstanceFields } from '@pockethost/server/common'
   import InstanceCard from './InstanceCard.svelte'
   import InstanceTableRow from './InstanceTableRow.svelte'
   import { page } from '$app/state'

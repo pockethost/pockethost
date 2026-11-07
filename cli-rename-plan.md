@@ -128,7 +128,7 @@ Worktree and checks as described in "Before starting".
      `pockethost.json`. Whenever an old one is found, write `.pockethostconfig`, delete the old file and print
      `Migrated instance link from <old> to .pockethostconfig (commit this change)`. This follows the existing
      migrations in `src/lib/defaultInstanceId.ts`.
-   - **Config folder `envPaths('phio')` → `envPaths('pockethost')`** (on Linux `~/.config/phio` →
+   - **Config folder `envPaths('phio')` → `envPaths('pockethost', { suffix: '' })`** (on Linux `~/.config/phio-nodejs` →
      `~/.config/pockethost`). It holds the login **and the Ed25519 deploy key**. On first run, if the new folder is
      missing and the old one exists, **copy** it across (copy rather than move, so nothing is lost if the copy
      fails partway). Reusing the same key means no duplicate key is registered under Account → Keys. New installs

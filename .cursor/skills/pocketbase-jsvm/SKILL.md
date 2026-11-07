@@ -248,7 +248,7 @@ Handlers compile with **tsdown** into `pb_hooks/mothership.js` and run in **Goja
 import { parseSshEd25519PublicKey } from '$common/sshPublicKey'
 
 // ❌ tsdown won't resolve without tsconfig path
-import { parseSshEd25519PublicKey } from 'pockethost/common'
+import { parseSshEd25519PublicKey } from '@pockethost/server/common'
 
 // ❌ pulls unrelated common modules into pb_hooks
 import { parseSshEd25519PublicKey } from '$common'

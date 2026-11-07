@@ -23,7 +23,7 @@ import {
   type UpdateInstanceResult,
   assertExists,
   createRestHelper,
-} from 'pockethost/common'
+} from '@pockethost/server/common'
 
 export type AuthToken = string
 export type AuthStoreProps = {

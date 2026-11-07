@@ -25,7 +25,7 @@
     "@types/node": "^24.13.2",
     "highlight.js": "11.11.1",
     "mdsvex": "^0.12.7",
-    "pockethost": "workspace:^",
+    "@pockethost/server": "workspace:^",
     "pocketbase": "^0.27.0",
     "svelte": "^5.56.3",
     "svelte-check": "^4.6.0",

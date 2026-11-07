@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { assertExists } from 'pockethost/common'
+  import { assertExists } from '@pockethost/server/common'
   import CodeSample from '$components/CodeSample.svelte'
   import FeatureTab from '$components/FeatureTab.svelte'
   import QuickReference from '$components/QuickReference.svelte'

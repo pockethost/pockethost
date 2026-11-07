@@ -1,4 +1,4 @@
-import { type InstanceWebhookCollection, type InstanceWebhookItem } from 'pockethost/common'
+import { type InstanceWebhookCollection, type InstanceWebhookItem } from '@pockethost/server/common'
 import { writable } from 'svelte/store'
 
 // Use the proper types from the schema

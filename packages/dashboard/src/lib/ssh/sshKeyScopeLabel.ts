@@ -1,4 +1,4 @@
-import type { InstanceFields, RecordId, SshKeyFields } from 'pockethost/common'
+import type { InstanceFields, RecordId, SshKeyFields } from '@pockethost/server/common'
 
 export const sshKeyScopeLabel = (key: SshKeyFields, instancesById: Record<RecordId, InstanceFields>): string => {
   if (key.all_instances) return 'All instances'

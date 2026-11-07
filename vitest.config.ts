@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     include: [
       'packages/pockethost/src/**/*.test.ts',
-      'packages/phio/src/**/*.test.ts',
+      'packages/cli/src/**/*.test.ts',
       'packages/dashboard/src/**/*.test.ts',
     ],
     environment: 'node',

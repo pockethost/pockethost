@@ -4,7 +4,7 @@
   import { sshKeyScopeLabel } from '$lib/ssh/sshKeyScopeLabel'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
-  import { SSH_KEY_COLLECTION, type SshKeyFields } from 'pockethost/common'
+  import { SSH_KEY_COLLECTION, type SshKeyFields } from '@pockethost/server/common'
   import { onMount } from 'svelte'
 
   let keys: SshKeyFields[] = []
