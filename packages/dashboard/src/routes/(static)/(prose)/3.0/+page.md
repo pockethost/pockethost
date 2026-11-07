@@ -31,7 +31,7 @@ More detail: [Account access keys](/blog/account-access-keys)
 
 **`phio dev`**, **`phio deploy`**, and **`phio logs`** now sync over **SFTP on port 2222** with an auto-provisioned Ed25519 deploy key. Project linking moves to `.phioconfig`.
 
-See [phio CLI](/docs/phio).
+See [PocketHost CLI](/docs/cli) (formerly phio).
 
 More detail: [phio 0.4: Deploy over SFTP](/blog/phio-sftp-deploy)
 

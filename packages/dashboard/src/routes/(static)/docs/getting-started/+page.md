@@ -56,7 +56,7 @@ For hooks, migrations, and backups, use **SFTP** with an Ed25519 SSH key.
 
 FTPS on port 21 has been removed. See **[SFTP File Access](/docs/ftp)** for macOS, Windows, Linux, and client-specific instructions.
 
-For watch-and-deploy from your project directory, use **[phio](/docs/phio)** (`phio link`, `phio dev`, `phio deploy`).
+For watch-and-deploy from your project directory, use the **[PocketHost CLI](/docs/cli)** (`pockethost link`, `pockethost dev`, `pockethost deploy`).
 
 ---
 
@@ -66,7 +66,7 @@ Now that you're set up, read [How PocketHost Works](/docs/how-it-works) to see w
 
 - **Configure Your Database**: Set up collections and records in the admin UI.
 - **Integrate with Your App**: Connect your PocketBase instance to your web or mobile application.
-- **Deploy Updates**: Use [phio](/docs/phio), [SFTP](/docs/ftp), or the admin UI to manage your instance files.
+- **Deploy Updates**: Use the [PocketHost CLI](/docs/cli), [SFTP](/docs/ftp), or the admin UI to manage your instance files.
 
 ---
 

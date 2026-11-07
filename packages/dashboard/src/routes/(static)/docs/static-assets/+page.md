@@ -4,7 +4,7 @@ description: Host static files on PocketHost or publish them directly to Cloudfl
 ---
 # Publishing Static Assets
 
-PocketHost instances can host static assets. Upload files to `pb_public` via [SFTP](/docs/ftp) or [phio](/docs/phio) and PocketBase serves them over HTTPS on your instance subdomain or [custom domain](/docs/custom-domain).
+PocketHost instances can host static assets. Upload files to `pb_public` via [SFTP](/docs/ftp) or the [PocketHost CLI](/docs/cli) and PocketBase serves them over HTTPS on your instance subdomain or [custom domain](/docs/custom-domain).
 
 ## Hosting on PocketHost
 

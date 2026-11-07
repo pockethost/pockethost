@@ -96,7 +96,7 @@ put -r ./pb_hooks
 EOF
 ```
 
-For incremental sync on save, use [phio](/docs/phio) or an IDE SFTP extension (see [GUI and IDE clients](#3-gui-and-ide-clients)).
+For incremental sync on save, use the [PocketHost CLI](/docs/cli) or an IDE SFTP extension (see [GUI and IDE clients](#3-gui-and-ide-clients)).
 
 ### Windows
 
@@ -219,16 +219,16 @@ Recent OpenSSH clients may warn that the connection is not using a post-quantum 
 
 FTPS on port 21 has been removed. Use SFTP with an Ed25519 key. See [FTPS officially sunset](/blog/ftps-officially-sunset).
 
-## Automated deploy (phio and CI)
+## Automated deploy (CLI and CI)
 
-For day-to-day development, use **[phio](/docs/phio)** to link a project, watch local files, and sync over SFTP:
+For day-to-day development, use the **[PocketHost CLI](/docs/cli)** to link a project, watch local files, and sync over SFTP:
 
 ```bash
-phio login
-phio link my-instance
-phio dev
+pockethost login
+pockethost link my-instance
+pockethost dev
 ```
 
-phio manages its own Ed25519 deploy key (labeled **`Phio`** under Account → Keys). You do not need a separate key for phio unless you want scoped CI access.
+The CLI manages its own Ed25519 deploy key (labeled **`PocketHost CLI`** under Account → Keys). You do not need a separate key for it unless you want scoped CI access.
 
-For GitHub Actions, run **`phio deploy`** with `PHIO_USERNAME` / `PHIO_PASSWORD` secrets (see [phio CLI](/docs/phio)), or use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) over SFTP on port 2222 with an Ed25519 private key.
+For GitHub Actions, run **`pockethost deploy`** with `POCKETHOST_USERNAME` / `POCKETHOST_PASSWORD` secrets (see [PocketHost CLI](/docs/cli)), or use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) over SFTP on port 2222 with an Ed25519 private key.

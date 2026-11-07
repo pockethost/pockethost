@@ -28,7 +28,7 @@ export const docsNav: DocNavSection[] = [
     title: 'Deploying & files',
     items: [
       { slug: 'ftp', title: 'SFTP File Access' },
-      { slug: 'phio', title: 'phio CLI' },
+      { slug: 'cli', title: 'PocketHost CLI' },
       { slug: 'static-assets', title: 'Static Assets' },
       { slug: 'backup-restore', title: 'Backup & Restore' },
     ],

@@ -2,7 +2,7 @@
 description: pockethost customer CLI (formerly phio) — compatibility, docs, and deploy contract
 globs:
   - packages/cli/**
-  - packages/dashboard/src/routes/(static)/docs/phio/**
+  - packages/dashboard/src/routes/(static)/docs/cli/**
   - packages/pockethost/src/services/InstanceFileAccess/**
   - packages/pockethost/src/cli/commands/EdgeCommand/FtpCommand/**
   - packages/pockethost/src/cli/commands/SftpCommand/**
@@ -27,7 +27,7 @@ Ship **user-facing** CLI commands, flags, or behavior changes in the **same chan
 | Doc | Path |
 | --- | --- |
 | Package README | `packages/cli/README.md` |
-| Dashboard docs | `packages/dashboard/src/routes/(static)/docs/phio/+page.md` |
+| Dashboard docs | `packages/dashboard/src/routes/(static)/docs/cli/+page.md` |
 
 Update the commands list, options, and any quick-start examples in both files. Keep them aligned (same command names, flags, defaults).
 

@@ -37,7 +37,7 @@ You choose a PocketBase version per instance and can [change it](/docs/versions)
 
 ## Files and deploys
 
-There is no shell. Get files onto your instance with [SFTP](/docs/ftp) or the [phio CLI](/docs/phio), which watches your local project and syncs changes as you save. Environment variables are set as [Secrets](/docs/secrets).
+There is no shell. Get files onto your instance with [SFTP](/docs/ftp) or the [PocketHost CLI](/docs/cli), which watches your local project and syncs changes as you save. Environment variables are set as [Secrets](/docs/secrets).
 
 ## Applying changes
 

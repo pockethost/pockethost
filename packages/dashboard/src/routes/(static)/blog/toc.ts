@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'phio Is Now pockethost',
+    path: '/blog/phio-is-now-pockethost',
+    description:
+      'The PocketHost CLI is now npm install -g pockethost. Your login, deploy key, and .phioconfig carry over on first run.',
+    date: 'Nov 7, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Choose Which Sites Can Call Your Instance',
     path: '/blog/cors-origins',
     description:

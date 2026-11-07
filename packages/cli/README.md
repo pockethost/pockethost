@@ -71,7 +71,7 @@ stored under `POCKETHOST_HOME` (default `~/.config/pockethost/`). The CLI auto-r
 under Account → Keys on first use (an existing **`Phio`** key from phio is reused). Run `pockethost info` to inspect
 key status.
 
-Customer docs: https://pockethost.io/docs/phio
+Customer docs: https://pockethost.io/docs/cli
 
 ## Environment variables
 
