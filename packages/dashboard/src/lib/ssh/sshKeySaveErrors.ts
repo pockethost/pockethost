@@ -1,6 +1,6 @@
 import { client } from '$src/pocketbase-client'
-import { ClientResponseError } from 'pocketbase'
 import type { RecordId, SshKeyFields } from '@pockethost/server/common'
+import { ClientResponseError } from 'pocketbase'
 import { sshKeyAccessesInstance } from './instanceAccess'
 
 export const findDuplicateKey = (keys: SshKeyFields[], fingerprint: string) =>
