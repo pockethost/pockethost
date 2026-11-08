@@ -34,3 +34,14 @@ export const runtimeStateLabel: Record<InstanceRuntimeState, string> = {
   failed: 'Failed',
   off: 'Off',
 }
+
+/**
+ * Tell the user why a power change was refused (e.g. the plan's instance limit). There's no toast system yet, so this
+ * uses a plain alert; without it the toggle just flips back with no explanation.
+ */
+export const reportPowerChangeError = (error: unknown) => {
+  const e = error as { data?: { message?: string }; message?: string; status?: number }
+  if (e?.status === 0) return // request aborted (navigation), not a refusal
+  const message = e?.data?.message || e?.message
+  if (message && typeof window !== 'undefined') window.alert(message)
+}

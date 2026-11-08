@@ -897,6 +897,63 @@ const findOwnedInstance = (caller, id) => {
 };
 
 //#endregion
+//#region ../common/instanceLimits.ts
+/**
+* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`), and all
+* of them may run. Archived instances don't count. Shared by the mothership (create / power-on checks, bundled into the
+* JSVM, so no Node imports here) and the edge over-limit sweep.
+*/
+/** Archived instances carry this prefix in `instances.suspension`. */
+const ARCHIVED_SUSPENSION_PREFIX = `Archived:`;
+const isArchivedSuspension = (suspension) => !!suspension && suspension.startsWith(ARCHIVED_SUSPENSION_PREFIX);
+const instanceAllowance = (user) => Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+/** Instances that count toward the limit: everything except archived ones. */
+const countedInstances = (owned) => owned.filter((i) => !isArchivedSuspension(i.suspension));
+/** Counted instances that are powered on. */
+const poweredOnInstances = (owned) => countedInstances(owned).filter((i) => i.power);
+const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
+/** Error message when the account can't create another instance, or null when it can. */
+const createLimitError = (owned, allowance) => {
+	const count = countedInstances(owned).length;
+	if (count < allowance) return null;
+	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
+	return `Your plan includes ${plural(allowance)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
+};
+/**
+* Error message when `instanceId` can't be powered on, or null when it can. Only the other powered-on instances are
+* counted, so re-saving an instance that is already on never fails.
+*/
+const powerOnLimitError = (instanceId, owned, allowance) => {
+	const othersOn = poweredOnInstances(owned).filter((i) => i.id !== instanceId).length;
+	if (othersOn < allowance) return null;
+	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
+	return `Your plan includes ${plural(allowance)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
+};
+
+//#endregion
+//#region src/lib/handlers/instance/lib/instanceLimits.ts
+/** Every instance the user owns, in the shape the limit rules need. */
+const ownedInstances = (uid) => $app.findRecordsByFilter("instances", "uid = {:uid}", "", 0, 0, { uid }).map((r) => ({
+	id: r.id,
+	power: r.getBool("power"),
+	suspension: r.getString("suspension"),
+	updated: r.getString("updated")
+}));
+const allowanceOf = (uid) => instanceAllowance({ subscription_quantity: $app.findRecordById("users", uid).getInt("subscription_quantity") });
+/** 402 Payment Required: the plan doesn't include another instance. */
+const limitError = (message) => new ApiError(402, message, {});
+/** Throws 402 when the user already owns every instance their plan includes (archived ones don't count). */
+const assertCanCreateInstance = (uid) => {
+	const message = createLimitError(ownedInstances(uid), allowanceOf(uid));
+	if (message) throw limitError(message);
+};
+/** Throws 402 when powering on `instanceId` would run more instances than the user's plan includes. */
+const assertCanPowerOn = (uid, instanceId) => {
+	const message = powerOnLimitError(instanceId, ownedInstances(uid), allowanceOf(uid));
+	if (message) throw limitError(message);
+};
+
+//#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceCreate.ts
 /** POST /api/instance. Dashboard (JWT) or a personal access token for all instances with write access. */
 const HandleInstanceCreate = (e) => {
@@ -918,6 +975,7 @@ const HandleInstanceCreate = (e) => {
 	const nameError = instanceNameError(subdomain);
 	if (nameError) throw new BadRequestError(nameError);
 	if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
+	assertCanCreateInstance(caller.userId);
 	const collection = $app.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
 	record.set("uid", caller.userId);
@@ -1057,6 +1115,7 @@ const HandleInstanceUpdate = (e) => {
 	if (subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncAdmin !== null && syncAdmin !== record.getBool("syncAdmin") || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged) {
 		if (record.getBool("power") || record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be powered off first.`);
 	}
+	if (power === true && !record.getBool("power")) assertCanPowerOn(caller.userId, id);
 	const sanitized = removeEmptyKeys({
 		subdomain,
 		version,

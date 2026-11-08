@@ -2,6 +2,7 @@ import { mkLog } from '$util/Logger'
 import { listVersions } from '$util/versions'
 import { isAvailable } from '../../signup/isAvailable'
 import { resolveInstanceCaller } from '../lib/instanceCaller'
+import { assertCanCreateInstance } from '../lib/instanceLimits'
 import { instanceNameError } from '../lib/instancePolicy'
 
 /** POST /api/instance. Dashboard (JWT) or a personal access token for all instances with write access. */
@@ -35,6 +36,8 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
   const nameError = instanceNameError(subdomain)
   if (nameError) throw new BadRequestError(nameError)
   if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`)
+
+  assertCanCreateInstance(caller.userId)
 
   const collection = $app.findCollectionByNameOrId('instances')
   const record = new Record(collection)

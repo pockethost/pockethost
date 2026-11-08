@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { isArchivedSuspension } from '../common/instanceLimits'
 import {
   ARCHIVE_REASON_SUPPORT,
   MS_PER_DAY,
   isArchiveExpired,
-  isArchivedSuspension,
   isStaleCandidate,
   mkArchiveDownloadUrl,
   mkArchiveExpiredSuspension,

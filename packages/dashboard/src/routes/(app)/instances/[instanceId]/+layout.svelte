@@ -12,7 +12,7 @@
   import { client } from '$src/pocketbase-client'
   import { type InstanceId } from '@pockethost/server/common'
   import Toggle from './Toggle.svelte'
-  import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
+  import { isInstanceFullyOff, isInstanceShuttingDown, reportPowerChangeError } from '$util/instancePower'
 
   let isReady = false
   let isLoading = false
@@ -72,7 +72,7 @@
       .then(() => 'saved')
       .catch((error) => {
         patchGlobalInstance(id, { power: !isChecked })
-        error.data.message || error.message
+        reportPowerChangeError(error)
       })
   }
 

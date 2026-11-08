@@ -4,6 +4,7 @@ import { mkLog, StringKvLookup } from '$util/Logger'
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
 import { isAvailable } from '../../signup/isAvailable'
 import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
+import { assertCanPowerOn } from '../lib/instanceLimits'
 import { applySecretsPatch, instanceNameError, invalidSecretKey } from '../lib/instancePolicy'
 
 /**
@@ -128,6 +129,9 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       throw new BadRequestError(`Instance must be powered off first.`)
     }
   }
+
+  // Powering on counts against the plan; re-saving an instance that is already on never fails.
+  if (power === true && !record.getBool('power')) assertCanPowerOn(caller.userId, id)
 
   const sanitized = removeEmptyKeys({
     subdomain,

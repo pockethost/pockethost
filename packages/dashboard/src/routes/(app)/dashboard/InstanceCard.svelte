@@ -6,7 +6,7 @@
   import InstanceFavoriteButton from '$components/InstanceFavoriteButton.svelte'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
-  import { isInstanceShuttingDown } from '$util/instancePower'
+  import { isInstanceShuttingDown, reportPowerChangeError } from '$util/instancePower'
   import type { InstanceFields } from '@pockethost/server/common'
 
   export let instance: InstanceFields
@@ -20,8 +20,9 @@
   const handlePowerChange = (power: boolean) => {
     patchGlobalInstance(instance.id, { power })
 
-    updateInstance({ id: instance.id, fields: { power } }).catch(() => {
+    updateInstance({ id: instance.id, fields: { power } }).catch((error) => {
       patchGlobalInstance(instance.id, { power: !power })
+      reportPowerChangeError(error)
     })
   }
 

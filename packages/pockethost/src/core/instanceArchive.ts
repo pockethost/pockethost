@@ -1,12 +1,11 @@
 import { createHmac, timingSafeEqual } from 'crypto'
+import { ARCHIVED_SUSPENSION_PREFIX, isArchivedSuspension } from '../common/instanceLimits'
 
 /**
  * Stale free-plan instances are suspended and archived to object storage. The archived state lives entirely in
  * `instances.suspension` (prefix below) and the archive location is derived from the instance id, so no schema change
  * is needed.
  */
-
-export const ARCHIVED_SUSPENSION_PREFIX = `Archived:`
 
 export const MS_PER_DAY = 86_400_000
 
@@ -30,9 +29,6 @@ export const mkArchivedSuspension = (
 
 export const mkArchiveExpiredSuspension = () =>
   `${ARCHIVED_SUSPENSION_PREFIX} This instance was archived, and the archive has since been deleted.`
-
-export const isArchivedSuspension = (suspension: string | undefined | null) =>
-  !!suspension && suspension.startsWith(ARCHIVED_SUSPENSION_PREFIX)
 
 /*
  * Suspension history. A new reason goes on top and earlier reasons are kept below it, so

@@ -4,7 +4,7 @@
   import { client } from '$src/pocketbase-client'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
   import { patchGlobalInstance } from '$util/stores'
-  import { isInstanceShuttingDown } from '$util/instancePower'
+  import { isInstanceShuttingDown, reportPowerChangeError } from '$util/instancePower'
   import InstanceFavoriteButton from '$components/InstanceFavoriteButton.svelte'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import type { InstanceFields } from '@pockethost/server/common'
@@ -21,8 +21,9 @@
   const handlePowerChange = (power: boolean) => {
     patchGlobalInstance(instance.id, { power })
 
-    updateInstance({ id: instance.id, fields: { power } }).catch(() => {
+    updateInstance({ id: instance.id, fields: { power } }).catch((error) => {
       patchGlobalInstance(instance.id, { power: !power })
+      reportPowerChangeError(error)
     })
   }
 
