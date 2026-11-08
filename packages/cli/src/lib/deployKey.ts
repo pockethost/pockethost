@@ -11,7 +11,7 @@ import {
 } from '../../vendor/ftp-deploy/sshPrivateKey'
 
 export const DEPLOY_KEY_LABEL = 'PocketHost CLI'
-export const SSH_KEYS_URL = 'https://app.pockethost.io/account/keys'
+export const SSH_KEYS_URL = 'https://pockethost.io/account/keys'
 
 const PRIVATE_KEY_FILE = DEPLOY_KEY_FILE
 const PUBLIC_KEY_FILE = `${DEPLOY_KEY_FILE}.pub`

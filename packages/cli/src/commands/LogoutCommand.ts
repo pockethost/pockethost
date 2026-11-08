@@ -5,7 +5,7 @@ export const logout = async () => {
   config(`token`, '')
   config(`pb_auth`, '')
   console.log(
-    `Logged out (saved token removed). To revoke the token itself, delete it at https://app.pockethost.io/account/tokens.`
+    `Logged out (saved token removed). To revoke the token itself, delete it at https://pockethost.io/account/tokens.`
   )
 }
 

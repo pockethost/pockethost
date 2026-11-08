@@ -3,7 +3,7 @@ import { envVar, MOTHERSHIP_URL, TOKEN } from './constants'
 
 export const PAT_PREFIX = 'ph_pat_'
 const PAT_RE = /^ph_pat_[a-z0-9]{15}_[0-9A-Za-z]{43}$/
-export const TOKENS_URL = 'https://app.pockethost.io/account/tokens'
+export const TOKENS_URL = 'https://pockethost.io/account/tokens'
 
 export const isPat = (v: string) => PAT_RE.test(v.trim())
 

@@ -24,7 +24,7 @@ migrate(
       fix(`appName`, PH_APP_NAME)
       fix(`appUrl`, PH_INSTANCE_URL)
       fix(`senderName`, PH_APP_NAME)
-      fix(`senderAddress`, `${PH_APP_NAME}@app.pockethost.io`)
+      fix(`senderAddress`, `${PH_APP_NAME}@pockethost.io`)
 
       dao.saveSettings(settings)
 

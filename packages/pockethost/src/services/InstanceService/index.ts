@@ -458,7 +458,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         }
 
         throw userError(
-          `Could not launch container. Please review your instance logs at https://app.pockethost.io/app/instances/${id} or contact support at https://pockethost.io/support. [${requestId}]`
+          `Could not launch container. Please review your instance logs at https://pockethost.io/instances/${id} or contact support at https://pockethost.io/support. [${requestId}]`
         )
       })
 
