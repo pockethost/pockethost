@@ -41,7 +41,7 @@
     "httpxy": "^0.5.3",
     "ip-cidr": "^4.0.2",
     "node-os-utils": "^2.0.3",
-    "pocketbase": "^0.27.0",
+    "pocketbase": "^0.28.2",
     "rate-limiter-flexible": "^11.2.0",
     "semver": "^7.8.4",
     "ssh2": "^1.17.0",

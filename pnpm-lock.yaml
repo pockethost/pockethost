@@ -138,8 +138,8 @@ importers:
         specifier: ^0.12.7
         version: 0.12.7(svelte@5.56.3)
       pocketbase:
-        specifier: ^0.27.0
-        version: 0.27.0
+        specifier: ^0.28.2
+        version: 0.28.2
       svelte:
         specifier: ^5.56.3
         version: 5.56.3
@@ -213,8 +213,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       pocketbase:
-        specifier: ^0.27.0
-        version: 0.27.0
+        specifier: ^0.28.2
+        version: 0.28.2
       rate-limiter-flexible:
         specifier: ^11.2.0
         version: 11.2.0
@@ -2964,8 +2964,8 @@ packages:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
-  pocketbase@0.27.0:
-    resolution: {integrity: sha512-K5N6d93UP/BNMbMnlZ6BUfy9VPCIvLyqhJFOsNI8OsZwzvKWEAfyD36boi5K4ECIOl5HMlo0TzuaeGdKpMwizQ==}
+  pocketbase@0.28.2:
+    resolution: {integrity: sha512-5lS4g7iDZi90LxLai8kyUK4r5u1GkEAoZ3yuzTEFX97FyDQAoEmXWbTqf+pYA1hz5e/icBQu1MCUjM/9V8mitg==}
 
   postcss-selector-parser@6.0.10:
     resolution: {integrity: sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==}
@@ -6101,7 +6101,7 @@ snapshots:
 
   picomatch@4.0.4: {}
 
-  pocketbase@0.27.0: {}
+  pocketbase@0.28.2: {}
 
   postcss-selector-parser@6.0.10:
     dependencies:
