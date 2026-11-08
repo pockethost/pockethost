@@ -32,7 +32,6 @@ import { globSync } from 'fs'
 import { basename, join } from 'path'
 import { AsyncReturnType } from 'type-fest'
 import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipMirrorService'
-import { instanceAppVersionFromPbVersion } from './instanceAppVersion'
 import { shouldSkipInstanceFieldUpdate } from './instanceFieldUpdate'
 import { reconcilePreservedContainers } from './reconcilePreservedContainers'
 import { trackRequestLifetime } from './requestLifetime'
@@ -262,22 +261,15 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         childProcess = await pbService.attach({ instanceId: instance.id, logger: systemInstanceLogger })
       } else {
         /** Create spawn config */
-        const instanceAppVersion = (() => {
-          try {
-            return instanceAppVersionFromPbVersion(instance.version)
-          } catch {
-            throw userError(`Invalid version: ${instance.version}`)
-          }
-        })()
         const spawnArgs: SpawnConfig = {
           subdomain: instance.subdomain,
           instanceId: instance.id,
           dev: instance.dev,
           extraBinds: [
-            globSync(join(INSTANCE_APP_MIGRATIONS_DIR(instanceAppVersion), '*.js')).map(
+            globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map(
               (file) => `${file}:${mkContainerHomePath(`pb_migrations/${basename(file)}`)}:ro`
             ),
-            globSync(join(INSTANCE_APP_HOOK_DIR(instanceAppVersion), '*.js')).map(
+            globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map(
               (file) => `${file}:${mkContainerHomePath(`pb_hooks/${basename(file)}`)}:ro`
             ),
           ].flat(),

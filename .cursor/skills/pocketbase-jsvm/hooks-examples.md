@@ -94,8 +94,7 @@ Reference: `packages/pockethost/src/mothership-app/pb_hooks/mothership.pb.js`
 
 Compare side-by-side:
 
-- ≤ v0.22: `packages/pockethost/src/instance-app/v22/pb_hooks/_ph_admin_sync.pb.js` (`$app.onBeforeServe`, `$app.dao()`, `_admins`)
-- ≥ v0.23: `packages/pockethost/src/instance-app/v23/pb_hooks/_ph_admin_sync.pb.js` (`onBootstrap`, `e.app`, `_superusers`)
+- Both APIs in one file: `packages/pockethost/src/instance-app/pb_hooks/_ph_lib.js` `adminSync` (≤ v0.22: `$app.onBeforeServe`, `$app.dao()`, `_admins`; ≥ v0.23: `onBootstrap`, `e.app`, `_superusers`)
 
 ≥ v0.23 example:
 
@@ -120,7 +119,7 @@ onBootstrap((e) => {
 })
 ```
 
-Reference: `packages/pockethost/src/instance-app/v23/pb_hooks/_ph_admin_sync.pb.js`
+Reference: `packages/pockethost/src/instance-app/pb_hooks/_ph_admin_sync.pb.js`
 
 ## Cron job
 

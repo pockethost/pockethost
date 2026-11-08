@@ -33,11 +33,11 @@ Use the instance subdomain URL, not localhost, for production apps.
 |------|------|
 | `packages/pockethost/` | Platform CLI, instance orchestration, mothership |
 | `packages/pockethost/src/mothership-app/` | Mothership PocketBase (accounts, instances) |
-| `packages/pockethost/src/instance-app/v*/` | Template files baked into user instances |
+| `packages/pockethost/src/instance-app/` | Template files baked into user instances |
 | `packages/dashboard/` | PocketHost web dashboard (SvelteKit) |
 
 Mothership hooks live in `packages/pockethost/src/mothership-app/pb_hooks/`.
-Instance template hooks live in `packages/pockethost/src/instance-app/v*/pb_hooks/`.
+Instance template hooks live in `packages/pockethost/src/instance-app/pb_hooks/`.
 
 ## Pocker sandbox
 

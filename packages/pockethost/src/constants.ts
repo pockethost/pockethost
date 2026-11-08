@@ -259,12 +259,9 @@ export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 export const PH_EDGE_ID = () => settings().PH_EDGE_ID
 export const PH_EDGE_HEARTBEAT_MS = () => settings().PH_EDGE_HEARTBEAT_MS
 
-export const INSTANCE_APP_ROOT = (version: string, ...paths: string[]) =>
-  join(settings().INSTANCE_APP_ROOT, version, ...paths)
-export const INSTANCE_APP_HOOK_DIR = (version: string, ...paths: string[]) =>
-  INSTANCE_APP_ROOT(version, `pb_hooks`, ...paths)
-export const INSTANCE_APP_MIGRATIONS_DIR = (version: string, ...paths: string[]) =>
-  INSTANCE_APP_ROOT(version, `pb_migrations`, ...paths)
+export const INSTANCE_APP_ROOT = (...paths: string[]) => join(settings().INSTANCE_APP_ROOT, ...paths)
+export const INSTANCE_APP_HOOK_DIR = (...paths: string[]) => INSTANCE_APP_ROOT(`pb_hooks`, ...paths)
+export const INSTANCE_APP_MIGRATIONS_DIR = (...paths: string[]) => INSTANCE_APP_ROOT(`pb_migrations`, ...paths)
 
 export const DISCORD_HEALTH_CHANNEL_URL = () => env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
 export const DISCORD_ALERT_CHANNEL_URL = () => env.get('DISCORD_ALERT_CHANNEL_URL').asString()
@@ -369,7 +366,7 @@ export const logConstants = () => {
     EDGE_APEX_DOMAIN,
     PH_EDGE_ID,
     PH_EDGE_HEARTBEAT_MS,
-    INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(`<version>`),
+    INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(),
     DISCORD_HEALTH_CHANNEL_URL,
     DISCORD_ALERT_CHANNEL_URL,
     DISCORD_TEST_CHANNEL_URL,

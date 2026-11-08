@@ -22,7 +22,7 @@ PocketBase embeds a **Goja** JavaScript engine for server-side extensions. Code 
 |---|---------|---------|
 | **Overview** | [old/js-overview](https://pocketbase.io/old/docs/js-overview/) | [js-overview](https://pocketbase.io/docs/js-overview/) |
 | **API reference** | [old/jsvm](https://pocketbase.io/old/jsvm/) | [jsvm](https://pocketbase.io/jsvm/) |
-| **Typings (PocketHost)** | `packages/pockethost/src/instance-app/v22/types/types.d.ts` | `pb_data/types.d.ts` on instance; PocketHost templates in `instance-app/v23/` |
+| **Typings (PocketHost)** | `packages/pockethost/src/instance-app/types/types.d.ts` (0.22 API) | `pb_data/types.d.ts` on instance; PocketHost templates in `instance-app/` (one set for every version) |
 | **Record access** | `$app.dao().findRecordById(...)` | `$app.findRecordById(...)` |
 | **Startup hook** | `$app.onBeforeServe().add((e) => { ... })` or `onAfterBootstrap` | `onBootstrap((e) => { e.next(); ... })` |
 | **Custom routes** | `(c) =>`, `c.pathParam('id')`, path `/api/foo/:id` | `(e) =>`, `e.request.pathValue('id')`, path `/api/foo/{id}` |
@@ -230,9 +230,9 @@ const log = mkLog('main')
 ## PocketHost specifics
 
 - User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
-- Instance templates: `packages/pockethost/src/instance-app/v22/` (≤ v0.22) and `v23/` (≥ v0.23) — compare `_ph_admin_sync.pb.js` for a side-by-side API diff.
+- Instance templates: `packages/pockethost/src/instance-app/`, one set for every version. Files detect the API at runtime (`typeof onBootstrap`, migration arg type). See `pb_hooks/_ph_lib.js` `adminSync` for a side-by-side API diff.
 - Mothership hooks (≥ v0.23 / v0.39): `packages/pockethost/src/mothership-app/pb_hooks/` — port guide in [v023-upgrade.md](v023-upgrade.md). **Source** is `src/lib/handlers/`; see [.cursor/rules/mothership-hooks.mdc](../../rules/mothership-hooks.mdc)
-- Typings: `instance-app/v22/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
+- Typings: `instance-app/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
 - PocketHost sandbox may restrict `$os` — avoid OS-level calls.
 
 ## Mothership hook build boundary
@@ -265,5 +265,5 @@ See [hooks-examples.md](hooks-examples.md) for copy-paste patterns from this rep
 ## API reference
 
 1. Pick the **JSVM reference for the target version** (see [Version split](#version-split--read-this-first) above).
-2. Cross-check generated typings — v22: `instance-app/v22/types/types.d.ts`; mothership: `mothership-app/src/types/types.d.ts`.
+2. Cross-check generated typings — v22: `instance-app/types/types.d.ts`; mothership: `mothership-app/src/types/types.d.ts`.
 3. On a running instance, `pb_data/types.d.ts` matches that instance's PocketBase version.

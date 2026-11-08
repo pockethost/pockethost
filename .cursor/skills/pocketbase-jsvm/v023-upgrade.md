@@ -52,7 +52,7 @@ v0.39 uses the same post-v0.23 JSVM. Do not mix ≤ v0.22 and ≥ v0.23 APIs in 
 
 ## Repo before/after
 
-**v22 instance admin sync** (`instance-app/v22/pb_hooks/_ph_admin_sync.pb.js`):
+**v22 instance admin sync** (`instance-app/pb_hooks/_ph_lib.js`, `legacy` branch):
 
 ```js
 onAfterBootstrap((e) => {
@@ -60,7 +60,7 @@ onAfterBootstrap((e) => {
 })
 ```
 
-**v23 instance admin sync** (`instance-app/v23/pb_hooks/_ph_admin_sync.pb.js`):
+**v23 instance admin sync** (`instance-app/pb_hooks/_ph_lib.js`):
 
 ```js
 onBootstrap((e) => {
