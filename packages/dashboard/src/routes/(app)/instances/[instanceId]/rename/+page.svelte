@@ -27,7 +27,7 @@
     successMessage = ''
     isButtonDisabled = true
 
-    const instanceNameValidation = formSubdomain.trim().replace(/[0-9]/g, '')
+    const instanceNameValidation = formSubdomain.trim().toLowerCase()
     const confirmVersionChange = confirm(`Are you sure you want to rename your instance to ${instanceNameValidation}?`)
 
     if (confirmVersionChange) {
