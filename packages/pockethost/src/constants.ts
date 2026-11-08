@@ -273,7 +273,7 @@ export const DISCORD_STREAM_CHANNEL_URL = () => env.get('DISCORD_STREAM_CHANNEL_
 
 /** Rclone path holding instance archives (`<remote>:<bucket>/<prefix>`). */
 export const PH_ARCHIVE_REMOTE = () => env.get('PH_ARCHIVE_REMOTE').default('sfo-2-data:sfo-2-data/archive').asString()
-/** rclone remote for iceboxed PocketBase backup zips (`edge archive backups`). */
+/** Rclone remote for iceboxed PocketBase backup zips (`edge archive backups`). */
 export const PH_BACKUP_ICEBOX_REMOTE = () =>
   env.get('PH_BACKUP_ICEBOX_REMOTE').default('sfo-2-data:sfo-2-data/backup-icebox').asString()
 /** HMAC key for archive download links. Falls back to PH_SECRET. */
