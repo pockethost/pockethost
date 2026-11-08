@@ -21,6 +21,8 @@ export type OverLimitOptions = {
   email?: boolean
   graceMs?: number
   now?: number
+  /** Skip the warning and grace period: power off the extras now. For one-off cleanups. */
+  immediate?: boolean
 }
 
 export type OverLimitSummary = {
@@ -52,10 +54,11 @@ export const sweepOverLimit = async ({
   email = true,
   graceMs = OVER_LIMIT_GRACE_MS,
   now = Date.now(),
+  immediate = false,
 }: OverLimitOptions = {}): Promise<OverLimitSummary> => {
   const { info, warn, error } = logger().create(`overLimit`)
   const mode = apply ? `APPLY` : `DRY RUN`
-  info(`[${mode}] grace=${graceMs / 3_600_000}h email=${email ? `on` : `off`}`)
+  info(`[${mode}] grace=${immediate ? `none (immediate)` : `${graceMs / 3_600_000}h`} email=${email ? `on` : `off`}`)
 
   const pb = await connectMothership()
   const instances = await pb
@@ -95,7 +98,11 @@ export const sweepOverLimit = async ({
 
   for (const user of users) {
     const owned = byOwner.get(user.id) ?? []
-    const step = planOverLimit(user, owned, now, graceMs)
+    const planned = planOverLimit(user, owned, now, graceMs)
+    const step =
+      immediate && (planned.kind === `start` || planned.kind === `wait`)
+        ? ({ kind: `power-off`, excess: planned.excess } as const)
+        : planned
     if (step.kind === `ok`) continue
     const running = poweredOnInstances(owned).length
     const allowance = instanceAllowance(user)

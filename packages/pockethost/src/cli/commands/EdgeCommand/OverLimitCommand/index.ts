@@ -11,8 +11,9 @@ export const OverLimitCommand = () =>
     .option(`--apply`, `Write changes and send email (default is a dry run)`, false)
     .option(`--no-email`, `Don't email owners (records and power changes still apply)`)
     .option(`--grace-hours <n>`, `Hours between the warning and powering off`, num, 24)
-    .action(async ({ apply, email, graceHours }) => {
+    .option(`--immediate`, `Skip the warning and grace period and power off the extras now (one-off cleanups)`, false)
+    .action(async ({ apply, email, graceHours, immediate }) => {
       logger().context({ cli: 'edge:over-limit' })
       const { sweepOverLimit } = await import('./overLimit')
-      await sweepOverLimit({ apply, email, graceMs: graceHours * 60 * 60 * 1000 })
+      await sweepOverLimit({ apply, email, immediate, graceMs: graceHours * 60 * 60 * 1000 })
     })

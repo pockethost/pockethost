@@ -85,7 +85,7 @@ PocketHost instances may enter **hibernation** during inactivity. They wake on t
 
 PocketHost limits are simple: **you pay per instance**.
 
-- **Instances**: You can have as many instances as you pay for, and all of them can run. Powered-off instances still count, so to make room for a new one, delete an instance or [add another](/pricing).
+- **Instances**: You can have as many instances as you pay for, and all of them can run. Powered-off instances still count, so to make room for a new one, delete an instance or [add another](/pricing). Archived instances don't count. See [When your plan goes down](#when-your-plan-goes-down).
 - **Disk storage**: **10 GB per paid instance**, pooled across your account. Legacy plans get a flat 25 GB, and accounts with no paid instances get 1 GB. See [Disk storage](#disk-storage).
 
 We also monitor bandwidth, storage, and CPU under fair use. We think fair means using about the same resources as the average active app on the platform. See [Pricing Ethos](/docs/pricing-ethos) for how we balance scale and indie-friendly hosting.
@@ -93,6 +93,16 @@ We also monitor bandwidth, storage, and CPU under fair use. We think fair means 
 We operate under a **Fair Use Policy** in our [Terms of Service](/terms). If usage significantly exceeds typical levels, we may contact you to discuss a resolution.
 
 In extreme cases, if the issue cannot be resolved and it negatively impacts other users, your instance may be suspended. In severe cases, we may delete data without providing a backup. This is rare (it has only happened once due to an abusive situation).
+
+## When your plan goes down
+
+If your plan goes down (a subscription ends, or you lower the number of instances) and you have more instances running than it now includes:
+
+- **We email you, and you have 24 hours to choose.** In your [dashboard](/dashboard), power off or delete the instances you don't need, or [add instances](/pricing) to your plan.
+- **After 24 hours, we power off the extras.** We pick the instances you've used least recently, until the number running matches your plan.
+- **Nothing is deleted.** A powered-off instance keeps all of its data, and you can power it back on whenever your plan has room.
+
+While you have more instances than your plan includes, you can't create new ones, and only as many as your plan includes can be powered on. To change which ones run, power one off, then power another on.
 
 ## Disk storage
 

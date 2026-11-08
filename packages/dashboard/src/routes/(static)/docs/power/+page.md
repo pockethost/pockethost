@@ -31,3 +31,5 @@ When the instance is powered off, no requests will be answered.
 ## Power and billing
 
 Pay Per PocketBase billing is **per instance**, whether the instance is powered on or off. Powering an instance off stops it from answering requests, but it doesn't free up room for another instance. To make room, delete an instance or [add another](/pricing).
+
+If you have more instances than your plan includes, for example after your plan goes down, only as many as your plan includes can be powered on. To power one on, power another off first, or [add instances](/pricing). See [When your plan goes down](/docs/limits#when-your-plan-goes-down).
