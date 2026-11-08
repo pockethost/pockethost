@@ -144,17 +144,28 @@ describe('CLI deploy over the deploy API', () => {
     await expect(deploy({ instanceName: 'nope' })).rejects.toThrow(/Instance 'nope' not found/)
   })
 
-  it('a CLI deploy without node_modules leaves the instance node_modules alone', async () => {
+  it('a CLI deploy with --no-node-modules leaves the instance node_modules alone', async () => {
     // e.g. packages installed by the old server-side `bun install`, with a .bin symlink.
     mkdirSync(dirname(instFile('node_modules/old/index.js')), { recursive: true })
     writeFileSync(instFile('node_modules/old/index.js'), 'server-installed')
     mkdirSync(instFile('node_modules/.bin'), { recursive: true })
     symlinkSync('../old/index.js', instFile('node_modules/.bin/old'))
     projectFile('pb_hooks/main.pb.js', 'routerAdd(2)')
-    const r = await deploy()
+    const r = await deploy({ nodeModules: false })
     expect(r).toMatchObject({ writtenCount: 1, deletedCount: 0 })
     expect(readFileSync(instFile('node_modules/old/index.js'), 'utf8')).toBe('server-installed')
     expect(readlinkSync(instFile('node_modules/.bin/old'))).toBe('../old/index.js')
+  })
+
+  it('a project with a package.json but no dependencies empties the instance node_modules', async () => {
+    // Continues from the previous test: node_modules/old is still on the instance.
+    const logs: string[] = []
+    // Nothing else changed: moving the symlinked node_modules aside alone counts as a change and stops the instance.
+    const r = await deploy({ log: (m) => logs.push(m) })
+    expect(r).toMatchObject({ nothingChanged: false, replacedNodeModules: true, restarted: true })
+    expect(existsSync(instFile('node_modules/old'))).toBe(false)
+    expect(existsSync(instFile('node_modules/.bin'))).toBe(false)
+    expect(logs.some((l) => l.includes('any on the server will be removed'))).toBe(true)
   })
 
   it('CLI and server agree on the code set', () => {

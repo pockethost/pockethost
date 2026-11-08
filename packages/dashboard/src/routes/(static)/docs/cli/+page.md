@@ -2,6 +2,7 @@
 title: PocketHost CLI
 description: Install and use the pockethost CLI to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
 ---
+
 # PocketHost CLI
 
 **`pockethost`** is the PocketHost command-line tool for deploying local PocketBase project files to your instance, managing the files on it, and tailing instance logs.
@@ -60,35 +61,35 @@ pockethost logs my-instance
 
 ## Commands
 
-| Command | Purpose |
-| ------- | ------- |
-| `pockethost login [token]` | Save a personal access token on this computer |
-| `pockethost token [set\|clear\|status]` | Save, remove, or check the token |
-| `pockethost logout` | Remove the saved token from this computer |
-| `pockethost info` (`whoami`) | Show the token, linked instance, and SFTP key status |
-| `pockethost list` (`ls`) | List the instances your token can reach |
-| `pockethost link [instance]` | Link this directory to an instance (writes `.pockethostconfig`) |
-| `pockethost dev [instance]` | Watch local files and deploy on change |
-| `pockethost deploy [instance]` | Deploy once |
-| `pockethost files [path]` | List files on the instance |
-| `pockethost pull [paths...]` | Download instance files into this folder |
-| `pockethost upload <local> [remote]` | Upload a file or folder to the instance |
-| `pockethost rm <paths...>` | Delete files on the instance |
-| `pockethost sftp [instance]` | Interactive SFTP session (retired February 6, 2027) |
-| `pockethost logs [instance]` | Tail instance logs |
-| `pockethost show [instance]` | Show power, URLs, domain, version and settings |
-| `pockethost power on\|off [instance]` | Power an instance on or off |
-| `pockethost rename <new-name> [instance]` | Rename an instance (its URL changes) |
-| `pockethost version <version> [instance]` | Change the PocketBase version |
-| `pockethost versions` | List the PocketBase versions you can run |
-| `pockethost domain set\|clear` | Set or remove a custom domain |
-| `pockethost dev-mode on\|off [instance]` | Turn dev mode on or off |
-| `pockethost admin-sync on\|off [instance]` | Turn admin sync on or off |
-| `pockethost auto-vacuum on\|off [instance]` | Turn auto-vacuum on or off |
-| `pockethost secrets list\|set\|unset` | Manage secrets (environment variables) |
-| `pockethost webhooks list\|add\|rm` | Manage scheduled webhooks |
-| `pockethost create [name]` | Create an instance |
-| `pockethost delete <instance>` | Delete an instance and its data |
+| Command                                     | Purpose                                                         |
+| ------------------------------------------- | --------------------------------------------------------------- |
+| `pockethost login [token]`                  | Save a personal access token on this computer                   |
+| `pockethost token [set\|clear\|status]`     | Save, remove, or check the token                                |
+| `pockethost logout`                         | Remove the saved token from this computer                       |
+| `pockethost info` (`whoami`)                | Show the token, linked instance, and SFTP key status            |
+| `pockethost list` (`ls`)                    | List the instances your token can reach                         |
+| `pockethost link [instance]`                | Link this directory to an instance (writes `.pockethostconfig`) |
+| `pockethost dev [instance]`                 | Watch local files and deploy on change                          |
+| `pockethost deploy [instance]`              | Deploy once                                                     |
+| `pockethost files [path]`                   | List files on the instance                                      |
+| `pockethost pull [paths...]`                | Download instance files into this folder                        |
+| `pockethost upload <local> [remote]`        | Upload a file or folder to the instance                         |
+| `pockethost rm <paths...>`                  | Delete files on the instance                                    |
+| `pockethost sftp [instance]`                | Interactive SFTP session (retired February 6, 2027)             |
+| `pockethost logs [instance]`                | Tail instance logs                                              |
+| `pockethost show [instance]`                | Show power, URLs, domain, version and settings                  |
+| `pockethost power on\|off [instance]`       | Power an instance on or off                                     |
+| `pockethost rename <new-name> [instance]`   | Rename an instance (its URL changes)                            |
+| `pockethost version <version> [instance]`   | Change the PocketBase version                                   |
+| `pockethost versions`                       | List the PocketBase versions you can run                        |
+| `pockethost domain set\|clear`              | Set or remove a custom domain                                   |
+| `pockethost dev-mode on\|off [instance]`    | Turn dev mode on or off                                         |
+| `pockethost admin-sync on\|off [instance]`  | Turn admin sync on or off                                       |
+| `pockethost auto-vacuum on\|off [instance]` | Turn auto-vacuum on or off                                      |
+| `pockethost secrets list\|set\|unset`       | Manage secrets (environment variables)                          |
+| `pockethost webhooks list\|add\|rm`         | Manage scheduled webhooks                                       |
+| `pockethost create [name]`                  | Create an instance                                              |
+| `pockethost delete <instance>`              | Delete an instance and its data                                 |
 
 `dev` and `deploy` accept:
 
@@ -112,12 +113,12 @@ Default **excludes**: `pb_data/**`.
 
 Four commands work with the files on your instance over HTTPS, using the same token as `deploy`. They reach `pb_hooks`, `pb_migrations`, `pb_public` and other `pb_*` folders, `pb_data`, `node_modules`, `package.json`, `bun.lock(b)` and `patches/`. They use the linked instance, or pass `-I <instance>`.
 
-| Command | What it does |
-| ------- | ------------ |
-| `pockethost files [path] [-r]` | List a folder (`-r` for everything below it). `--json` for scripts |
-| `pockethost pull [paths...]` | Download into the current folder. With no paths, everything except `pb_data` and `node_modules`. `--data` adds `pb_data`, `-d <dir>` picks another folder, `-n` shows what would download |
-| `pockethost upload <local> [remote]` | Upload a file or folder. The remote path defaults to the same relative path |
-| `pockethost rm <paths...> [-r]` | Delete files. `-r` deletes a folder and everything in it |
+| Command                              | What it does                                                                                                                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pockethost files [path] [-r]`       | List a folder (`-r` for everything below it). `--json` for scripts                                                                                                                        |
+| `pockethost pull [paths...]`         | Download into the current folder. With no paths, everything except `pb_data` and `node_modules`. `--data` adds `pb_data`, `-d <dir>` picks another folder, `-n` shows what would download |
+| `pockethost upload <local> [remote]` | Upload a file or folder. The remote path defaults to the same relative path                                                                                                               |
+| `pockethost rm <paths...> [-r]`      | Delete files. `-r` deletes a folder and everything in it                                                                                                                                  |
 
 Reading needs any token for the instance. `upload` and `rm` need write access.
 
@@ -156,7 +157,7 @@ Large files are uploaded in pieces, so a big `data.db` works. If your settings a
 
 ### Packages (`node_modules`)
 
-PocketHost doesn't run `npm install`. When your `package.json` has `dependencies`, `pockethost deploy` ships your production `node_modules` instead: the packages in `dependencies` and everything they need, never `devDependencies`. Install locally first, then deploy:
+PocketHost doesn't run `npm install`. When your project has a `package.json`, `pockethost deploy` ships your production `node_modules` instead: the packages in `dependencies` and everything they need, never `devDependencies`. Install locally first, then deploy:
 
 ```bash
 npm install
@@ -165,7 +166,7 @@ pockethost deploy
 
 It works with npm, pnpm, Bun and workspaces. Symlinks are followed, so your instance gets plain files. A workspace package ships only the files its `files` field publishes. Run `pockethost deploy --dry-run` to see the list. Only changed files upload, so later deploys are quick.
 
-Requires CLI 4.2 or later. `--no-node-modules` leaves the instance's `node_modules` as it is.
+Requires CLI 4.2 or later. The instance's `node_modules` ends up matching what you shipped, so a package you remove (even the last one) is removed there too. `--no-node-modules` leaves the instance's `node_modules` as it is.
 
 ### Remove a migration that won't run
 
@@ -253,7 +254,7 @@ Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can b
 
 `pb_data`, `.git*` files, and anything else outside `pb_*` folders, `package.json`, `bun.lock(b)`, `patches/` and `node_modules` are never touched.
 
-PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied as plain files, and the CLI ships your production `node_modules` with the deploy (see [Packages](#packages-node_modules)). A deploy without packages, from an older CLI or with `--no-node-modules`, leaves the instance's `node_modules` alone.
+PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied as plain files, and the CLI ships your production `node_modules` with the deploy (see [Packages](#packages-node_modules)). A deploy from a project without a `package.json`, from an older CLI or with `--no-node-modules` leaves the instance's `node_modules` alone.
 
 **Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, run [`pockethost pull`](#start-from-whats-on-your-instance) first.
 
@@ -272,13 +273,13 @@ Run `pockethost info` to see the key's fingerprint and whether it's on your acco
 
 With `--sftp`, the CLI connects to:
 
-| Setting | Value |
-| ------- | ----- |
-| Host | `ftp.pockethost.io` |
-| Port | `2222` |
-| Protocol | SFTP |
-| Username | Your PocketHost email |
-| Auth | The CLI's SSH key |
+| Setting          | Value                             |
+| ---------------- | --------------------------------- |
+| Host             | `ftp.pockethost.io`               |
+| Port             | `2222`                            |
+| Protocol         | SFTP                              |
+| Username         | Your PocketHost email             |
+| Auth             | The CLI's SSH key                 |
 | Remote directory | `{instanceName}/` (instance root) |
 
 Sync is incremental. The CLI writes `.ftp-deploy-sync-state.json` at the instance root to track what changed. Do not delete that file unless you want a full resync.
@@ -289,13 +290,13 @@ Use **`pockethost sftp`** for an interactive session with the same credentials, 
 
 Override saved config without editing files:
 
-| Variable | Purpose |
-| -------- | ------- |
-| `POCKETHOST_TOKEN` | Personal access token (CI); overrides the saved one |
-| `POCKETHOST_INSTANCE_NAME` | Default instance name |
-| `POCKETHOST_MOTHERSHIP_URL` | Mothership API URL (default production) |
-| `POCKETHOST_HOME` | Config folder for the saved token and SSH key |
-| `POCKETHOST_PROJECT_DIR` | Project folder (default: found from the current directory) |
+| Variable                    | Purpose                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| `POCKETHOST_TOKEN`          | Personal access token (CI); overrides the saved one        |
+| `POCKETHOST_INSTANCE_NAME`  | Default instance name                                      |
+| `POCKETHOST_MOTHERSHIP_URL` | Mothership API URL (default production)                    |
+| `POCKETHOST_HOME`           | Config folder for the saved token and SSH key              |
+| `POCKETHOST_PROJECT_DIR`    | Project folder (default: found from the current directory) |
 
 `POCKETHOST_INSTANCE_NAME` takes precedence over `.pockethostconfig`. The older `PHIO_*` names still work with a warning.
 

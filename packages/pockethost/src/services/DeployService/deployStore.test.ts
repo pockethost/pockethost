@@ -225,6 +225,32 @@ describe('root node_modules', () => {
     expect(readlinkSync(join(instanceDir, 'node_modules/.bin/old'))).toBe('../old/index.js')
   })
 
+  it('empties node_modules when the client manages it but ships no packages', async () => {
+    put('node_modules/old/index.js', 'old')
+    put('node_modules/@s/x/index.js', 'x')
+    const store = createDeployStore(storeDir, instanceDir)
+    const manifest = await manifestOf(store, { 'pb_hooks/main.pb.js': 'hook' })
+    const r = await store.apply(manifest, await store.stage(manifest, { nodeModules: true }))
+    expect(r).toMatchObject({
+      written: ['pb_hooks/main.pb.js'],
+      deleted: ['node_modules/@s/x/index.js', 'node_modules/old/index.js'],
+      replacedNodeModules: false,
+    })
+    expect(readdirSync(join(instanceDir, 'node_modules'))).toEqual([])
+  })
+
+  it('replaces a symlinked node_modules when the client manages it but ships no packages', async () => {
+    put('node_modules/old/index.js', 'old')
+    mkdirSync(join(instanceDir, 'node_modules/.bin'), { recursive: true })
+    symlinkSync('../old/index.js', join(instanceDir, 'node_modules/.bin/old'))
+    const store = createDeployStore(storeDir, instanceDir)
+    const manifest = await manifestOf(store, { 'pb_hooks/main.pb.js': 'hook' })
+    const r = await store.apply(manifest, await store.stage(manifest, { nodeModules: true }))
+    expect(r.replacedNodeModules).toBe(true)
+    expect(has('node_modules')).toBe(false)
+    expect(read('pb_hooks/main.pb.js')).toBe('hook')
+  })
+
   it('recognises unchanged node_modules files by hash and cleans up stale ones', async () => {
     put('node_modules/keep/index.js', 'keep')
     put('node_modules/stale/index.js', 'stale')

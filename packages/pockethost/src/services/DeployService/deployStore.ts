@@ -12,8 +12,10 @@ import { isCodePath, isCodeRoot, NODE_MODULES_DIR, type Manifest } from './codeS
  *     <root>/manifests/<id>.json      manifest of each successful deploy
  *     <root>/tmp/                     staging + backup dirs for an in-flight deploy
  *
- * The root `node_modules` is managed only by deploys whose manifest contains `node_modules/` paths (CLIs that ship the
- * production dependency tree). Other deploys leave it exactly as it is.
+ * The root `node_modules` is managed only by deploys that say so (`nodeModules: true`, sent by CLIs that ship the
+ * production dependency tree, even when it is empty) or whose manifest contains `node_modules/` paths. A managed
+ * node_modules ends up exactly as the manifest describes, so packages no longer shipped are removed. Other deploys
+ * (older CLIs, `--no-node-modules`) leave it exactly as it is.
  */
 export type DeployStore = ReturnType<typeof createDeployStore>
 
@@ -59,8 +61,14 @@ export type DeployPlan = {
 
 const isNodeModulesPath = (p: string) => p.split('/')[0] === NODE_MODULES_DIR
 
-/** True when this deploy manages the root node_modules (the manifest ships at least one file in it). */
-export const managesNodeModules = (manifest: Manifest) => Object.keys(manifest).some(isNodeModulesPath)
+export type DeployOptions = {
+  /** The client manages the root node_modules: anything there that the manifest doesn't list is removed. */
+  nodeModules?: boolean
+}
+
+/** True when this deploy manages the root node_modules (the client says so, or the manifest ships files in it). */
+export const managesNodeModules = (manifest: Manifest, opts: DeployOptions = {}) =>
+  opts.nodeModules === true || Object.keys(manifest).some(isNodeModulesPath)
 
 export type CurrentScan = {
   /** Code-set files on disk. */
@@ -172,11 +180,12 @@ export const createDeployStore = (root: string, instanceDir: string) => {
   }
 
   /** The code-set files on disk that a deploy of `manifest` compares against (node_modules only if it manages it). */
-  const scanCurrent = async (manifest: Manifest = {}) => (await scan(managesNodeModules(manifest))).files
+  const scanCurrent = async (manifest: Manifest = {}, opts: DeployOptions = {}) =>
+    (await scan(managesNodeModules(manifest, opts))).files
 
   /** Hashes the client is missing: not in the blob store and not anywhere in the current code set. */
-  const findMissing = async (manifest: Manifest) => {
-    const current = await scanCurrent(manifest)
+  const findMissing = async (manifest: Manifest, opts: DeployOptions = {}) => {
+    const current = await scanCurrent(manifest, opts)
     const onDisk = new Set([...current.values()].map((f) => f.hash))
     const missing = new Set<string>()
     for (const hash of Object.values(manifest)) {
@@ -189,8 +198,8 @@ export const createDeployStore = (root: string, instanceDir: string) => {
    * Copies every file that must change into a staging dir and verifies its hash. Nothing in the instance dir is
    * touched. Throws MissingBlobsError if a needed file is neither uploaded nor on disk.
    */
-  const stage = async (manifest: Manifest) => {
-    const { files: onDisk, replaceNodeModules } = await scan(managesNodeModules(manifest))
+  const stage = async (manifest: Manifest, opts: DeployOptions = {}) => {
+    const { files: onDisk, replaceNodeModules } = await scan(managesNodeModules(manifest, opts))
     // When node_modules is replaced wholesale, every file in it is written fresh and nothing in it is deleted one by one.
     const current = replaceNodeModules ? new Map([...onDisk].filter(([rel]) => !isNodeModulesPath(rel))) : onDisk
     const plan = planDeploy(manifest, current)

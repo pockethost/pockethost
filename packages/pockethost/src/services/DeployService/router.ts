@@ -5,7 +5,7 @@ import { fileAccessSuspension } from '../InstanceFileAccess/suspension'
 import { DeployAuthError, type DeployAuth } from './auth'
 import { BundleError, decodeBundle } from './bundle'
 import { ManifestError, validateManifest, type Manifest } from './codeSet'
-import { DeployConflictError, MissingBlobsError, type DeployStore } from './deployStore'
+import { DeployConflictError, MissingBlobsError, type DeployOptions, type DeployStore } from './deployStore'
 import { createFilesRouter, FileApiError } from './filesRouter'
 
 export const DEPLOY_API_PREFIX = '/_ph/deploy/v1'
@@ -56,6 +56,9 @@ export class DeployHttpError extends Error {
 }
 
 const clip = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '')
+
+/** `nodeModules: true` means the client manages the root node_modules, even when it ships no packages. */
+const deployOptions = (body: any): DeployOptions => ({ nodeModules: body?.nodeModules === true })
 
 /** The edge sits behind Cloudflare and the firewall proxy, so `req.ip` is loopback. */
 const clientIp = (req: Request) =>
@@ -173,7 +176,7 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
     handle(async (req, res) => {
       const { store } = await authorize(req, true)
       const manifest = validateManifest(req.body?.files)
-      const missing = await store.findMissing(manifest)
+      const missing = await store.findMissing(manifest, deployOptions(req.body))
       dbg(`check: ${Object.keys(manifest).length} files, ${missing.length} missing`)
       res.json({ missing })
     })
@@ -218,8 +221,13 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
       const result = await lock(instance.id, async () => {
         await store.cleanTmp()
         // Slow work (copying, hashing) happens here, before the instance is touched.
-        const staged = await store.stage(manifest)
-        const changed = [...staged.plan.toWrite, ...staged.plan.toDelete]
+        const staged = await store.stage(manifest, deployOptions(req.body))
+        // Moving an old node_modules aside is a change too (it needs a stop), even when no file in it is listed.
+        const changed = [
+          ...staged.plan.toWrite,
+          ...staged.plan.toDelete,
+          ...(staged.replaceNodeModules ? ['node_modules'] : []),
+        ]
         const nothingChanged = changed.length === 0
         // Static files are served straight from disk and each rename is atomic, so pb_public-only deploys skip the
         // restart. Anything else (hooks, migrations, package.json, node_modules) is applied while PocketBase is stopped.

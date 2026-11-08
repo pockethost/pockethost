@@ -1,8 +1,8 @@
 import { execFileSync } from 'child_process'
-import { lstatSync } from 'fs'
+import { existsSync, lstatSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { globSync } from 'glob'
-import { sep } from 'path'
+import { join, sep } from 'path'
 import prettyBytes from 'pretty-bytes'
 import { gzipSync } from 'zlib'
 import { version } from '../../package.json'
@@ -11,11 +11,7 @@ import { isCodePath } from './codeSet'
 import { INSTANCE_URL } from './constants'
 import { mergeDeployExcludes } from './deployIncludes'
 import { batchBySize, encodeBundle, sha256 } from './deployBundle'
-import {
-  collectNodeModules,
-  hasRuntimeDependencies,
-  type NodeModulesResult,
-} from './nodeModules'
+import { collectNodeModules, type NodeModulesResult } from './nodeModules'
 import { resolveDeployCredential, type DeployCredential } from './token'
 
 export const DEPLOY_API_PREFIX = '/_ph/deploy/v1'
@@ -36,7 +32,10 @@ export type DeployApiOptions = {
   include: string[]
   exclude: string[]
   verbose?: boolean
-  /** Ship the production node_modules tree (see nodeModules.ts). Default: when package.json has dependencies. */
+  /**
+   * Ship the production node_modules tree (see nodeModules.ts) and let the server manage the instance's root
+   * node_modules, removing packages no longer shipped. Default: when the project has a package.json.
+   */
   nodeModules?: boolean
   commit?: string
   message?: string
@@ -109,7 +108,8 @@ export const collectLocalFiles = async (
     })
   }
   let nodeModules: NodeModulesResult | null = null
-  if (options.nodeModules ?? hasRuntimeDependencies(cwd)) {
+  // With a package.json the deploy owns node_modules, even with no dependencies (so removed packages are cleaned up).
+  if (options.nodeModules ?? existsSync(join(cwd, 'package.json'))) {
     nodeModules = collectNodeModules(cwd)
     for (const f of nodeModules.files) {
       const data = await readFile(f.source)
@@ -136,7 +136,9 @@ export const assertNodeModulesComplete = (nm: NodeModulesResult | null) => {
 export const describeNodeModules = (nm: NodeModulesResult | null) => {
   if (!nm) return []
   const lines = [
-    `📦 node_modules: ${nm.packages.length} package(s), ${nm.files.length} file(s)`,
+    nm.packages.length === 0
+      ? `📦 node_modules: no packages (any on the server will be removed)`
+      : `📦 node_modules: ${nm.packages.length} package(s), ${nm.files.length} file(s)`,
   ]
   if (nm.missing.length > 0) {
     lines.push(
@@ -248,8 +250,8 @@ export const createDeployClient = (
         token: string | null
         scopes: string[]
       }>('GET', '/whoami'),
-    check: (files: Record<string, string>) =>
-      call<{ missing: string[] }>('POST', '/check', { files }),
+    check: (files: Record<string, string>, nodeModules = false) =>
+      call<{ missing: string[] }>('POST', '/check', { files, nodeModules }),
     upload: (bundle: Buffer) =>
       call<{ received: number; stored: number }>(
         'POST',
@@ -317,11 +319,14 @@ export const deployViaApi = async (opts: DeployApiOptions) => {
     uploadedBytes += bytes
   }
 
-  const { missing } = await client.check(manifest)
+  // Tells the server this deploy owns the root node_modules, so packages that are no longer shipped get removed.
+  const managesNodeModules = nodeModules !== null
+  const { missing } = await client.check(manifest, managesNodeModules)
   await upload(missing)
 
   const commitBody = {
     files: manifest,
+    nodeModules: managesNodeModules,
     commit: opts.commit ?? detectCommit(cwd),
     message: opts.message ?? '',
     source: detectSource(),

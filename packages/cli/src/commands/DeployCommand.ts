@@ -18,9 +18,12 @@ export const DeployCommand = () => {
     .option(`-m, --message <message>`, `Note to record with this deploy`)
     .option(
       `--node-modules`,
-      `Ship the production node_modules tree (default when package.json has dependencies)`
+      `Ship the production node_modules tree and remove packages no longer used (default with a package.json)`
     )
-    .option(`--no-node-modules`, `Don't ship node_modules`)
+    .option(
+      `--no-node-modules`,
+      `Don't ship node_modules; leave the instance's node_modules alone`
+    )
     .option(
       `--out <dir>`,
       `Write the deploy set to a local folder instead of deploying`

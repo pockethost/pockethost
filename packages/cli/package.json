@@ -1,6 +1,6 @@
 {
   "name": "pockethost",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "The PocketHost CLI: deploy, sync, and tail logs for your PocketHost instances",
   "repository": {
     "type": "git",

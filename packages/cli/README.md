@@ -117,10 +117,11 @@ Older project files (`.phioconfig`, `package.json` → `pockethost.instanceName`
 3. Commit: the server swaps the file set in atomically (stopping the instance when anything outside `pb_public`
    changes) and starts the instance again.
 
-PocketHost doesn't run `npm install`. Instead, when `package.json` has `dependencies`, the CLI ships your production
+PocketHost doesn't run `npm install`. Instead, when your project has a `package.json`, the CLI ships your production
 `node_modules` with the deploy: the packages in `dependencies` and everything they need, never `devDependencies`.
 It works with npm, pnpm, Bun and workspaces, and follows symlinks, so the instance gets plain files. Install first
-(`npm install` or similar), then deploy. `--no-node-modules` leaves the instance's `node_modules` alone.
+(`npm install` or similar), then deploy. The instance's `node_modules` ends up matching what you shipped, so packages
+you remove (even the last one) are removed there too. `--no-node-modules` leaves the instance's `node_modules` alone.
 
 Only `pb_*` folders (never `pb_data`), `package.json`, `bun.lock(b)`, `patches/` and the production `node_modules` are
 deployed. Files in those folders on the instance that aren't in your project are removed. `.git*` files are never
@@ -160,13 +161,13 @@ Customer docs: https://pockethost.io/docs/cli
 
 ## Environment variables
 
-| Variable | Purpose |
-| -------- | ------- |
-| `POCKETHOST_TOKEN` | Personal access token (CI); overrides the saved one |
-| `POCKETHOST_INSTANCE_NAME` | Override linked instance name |
-| `POCKETHOST_MOTHERSHIP_URL` | Override mothership API URL |
-| `POCKETHOST_HOME` | Override config directory |
-| `POCKETHOST_PROJECT_DIR` | Override project root detection |
+| Variable                    | Purpose                                             |
+| --------------------------- | --------------------------------------------------- |
+| `POCKETHOST_TOKEN`          | Personal access token (CI); overrides the saved one |
+| `POCKETHOST_INSTANCE_NAME`  | Override linked instance name                       |
+| `POCKETHOST_MOTHERSHIP_URL` | Override mothership API URL                         |
+| `POCKETHOST_HOME`           | Override config directory                           |
+| `POCKETHOST_PROJECT_DIR`    | Override project root detection                     |
 
 Environment variables take precedence over `.pockethostconfig`. The old `PHIO_*` names still work (with a deprecation
 warning) and will be removed in a future major version.

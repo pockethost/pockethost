@@ -2,6 +2,7 @@
 title: Deploy from CI
 description: Deploy a PocketBase project to PocketHost from GitHub Actions or any CI with a personal access token and the pockethost CLI
 ---
+
 # Deploy from CI
 
 Point your CI at a PocketHost instance and every push deploys your `pb_hooks`, `pb_migrations`, `pb_public`, and packages. You need two things:
@@ -87,7 +88,7 @@ What gets deployed:
 
 - `pb_hooks/`, `pb_migrations/`, `pb_public/`, and other top-level `pb_*` folders
 - `package.json`, `bun.lock`, `bun.lockb`, and `patches/`
-- your production `node_modules/`, when `package.json` has `dependencies` (see [npm packages](#npm-packages))
+- your production `node_modules/`, when there's a `package.json` (see [npm packages](#npm-packages))
 
 What never gets touched:
 
@@ -99,7 +100,7 @@ What never gets touched:
 
 ### npm packages
 
-PocketHost doesn't run `npm install`. Instead, `pockethost deploy` (CLI 4.2 or later) ships your production `node_modules` when `package.json` has `dependencies`: the packages in `dependencies` and everything they need, never `devDependencies`. In CI, install before you deploy (`npm ci` or `bun install`). See [Packages](/docs/cli#packages-node_modules).
+PocketHost doesn't run `npm install`. Instead, `pockethost deploy` (CLI 4.2 or later) ships your production `node_modules` when there's a `package.json`: the packages in `dependencies` and everything they need, never `devDependencies`. In CI, install before you deploy (`npm ci` or `bun install`). See [Packages](/docs/cli#packages-node_modules).
 
 PocketBase's JavaScript engine has no Node.js built-ins, so packages that use them (`fs`, `crypto`, `Buffer`) won't run there. Packages that only ship ES modules won't load either, since it only understands CommonJS. For one of those, bundle it into a single file in `pb_hooks` with a bundler such as esbuild (`--bundle --format=cjs --platform=neutral`) and `require()` that file.
 

@@ -2,6 +2,14 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.2.1
+
+### Patch Changes
+
+- Removing a package (even the last one) now removes it from the instance. With a `package.json`, `deploy` and `dev`
+  tell PocketHost that the deploy owns `node_modules`, so whatever isn't shipped is cleaned up.
+  `--no-node-modules` still leaves the instance's `node_modules` alone.
+
 ## 4.2.0
 
 ### Minor Changes
