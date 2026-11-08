@@ -222,7 +222,7 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
         const changed = [...staged.plan.toWrite, ...staged.plan.toDelete]
         const nothingChanged = changed.length === 0
         // Static files are served straight from disk and each rename is atomic, so pb_public-only deploys skip the
-        // restart. Anything else (hooks, migrations, packages) is applied while PocketBase is stopped.
+        // restart. Anything else (hooks, migrations, package.json, node_modules) is applied while PocketBase is stopped.
         const needsRestart = changed.some((p) => !p.startsWith('pb_public/'))
 
         let applied
@@ -289,6 +289,7 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
         deletedCount: applied.deleted.length,
         unchanged: applied.unchanged,
         totalBytes: applied.totalBytes,
+        replacedNodeModules: applied.replacedNodeModules,
         nothingChanged,
         wasRunning,
         restarted,

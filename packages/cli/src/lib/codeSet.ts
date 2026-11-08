@@ -9,10 +9,12 @@ export const isCodePath = (p: string) => {
     return false
   const segs = p.split('/')
   if (segs.some((s) => s === '' || s === '.' || s === '..')) return false
-  if (segs.some((s) => s === 'node_modules' || s.startsWith('.git')))
-    return false
+  if (segs.some((s) => s.startsWith('.git'))) return false
   const [first] = segs
   if (!first) return false
+  // Root node_modules at any depth; node_modules anywhere else is never deployed.
+  if (first === 'node_modules') return segs.length > 1
+  if (segs.includes('node_modules')) return false
   if (segs.length === 1) {
     return (
       ROOT_CODE_FILES.includes(first) ||

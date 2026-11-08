@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'crypto'
 import { createReadStream, existsSync } from 'fs'
 import { copyFile, lstat, mkdir, readdir, readFile, rename, rm, rmdir, unlink, writeFile } from 'fs/promises'
 import { dirname, join, relative, sep } from 'path'
-import { isCodePath, isCodeRoot, type Manifest } from './codeSet'
+import { isCodePath, isCodeRoot, NODE_MODULES_DIR, type Manifest } from './codeSet'
 
 /**
  * Per-instance deploy storage on the cell, outside the instance directory (so SFTP never sees it) but on the same
@@ -11,6 +11,9 @@ import { isCodePath, isCodeRoot, type Manifest } from './codeSet'
  *     <root>/blobs/<aa>/<sha256>      content-addressed file store (kept for history/rollback)
  *     <root>/manifests/<id>.json      manifest of each successful deploy
  *     <root>/tmp/                     staging + backup dirs for an in-flight deploy
+ *
+ * The root `node_modules` is managed only by deploys whose manifest contains `node_modules/` paths (CLIs that ship the
+ * production dependency tree). Other deploys leave it exactly as it is.
  */
 export type DeployStore = ReturnType<typeof createDeployStore>
 
@@ -44,12 +47,30 @@ export type ApplyResult = {
   deleted: string[]
   unchanged: number
   totalBytes: number
+  /** The old root node_modules was moved aside as a whole (it held symlinks or files a deploy can't represent). */
+  replacedNodeModules: boolean
 }
 
 export type DeployPlan = {
   toWrite: string[]
   toDelete: string[]
   unchanged: number
+}
+
+const isNodeModulesPath = (p: string) => p.split('/')[0] === NODE_MODULES_DIR
+
+/** True when this deploy manages the root node_modules (the manifest ships at least one file in it). */
+export const managesNodeModules = (manifest: Manifest) => Object.keys(manifest).some(isNodeModulesPath)
+
+export type CurrentScan = {
+  /** Code-set files on disk. */
+  files: Map<string, CurrentFile>
+  /**
+   * Set when the deploy manages node_modules and the existing root node_modules can't be diffed file by file (it is a
+   * symlink, or holds symlinks, `.git*` entries or special files, e.g. left by `bun install`). The whole folder is then
+   * moved to the backup dir and rebuilt from the manifest. `files` still lists its regular files as copy sources.
+   */
+  replaceNodeModules: boolean
 }
 
 /** Pure: what has to change on disk to make `current` match `manifest`. */
@@ -106,38 +127,56 @@ export const createDeployStore = (root: string, instanceDir: string) => {
   }
 
   /**
-   * Walks the code set currently in the instance directory. Symlinks are refused: the deploy API never follows or
-   * writes through them.
+   * Walks the code set currently in the instance directory. Symlinks in the code set are refused: the deploy API never
+   * follows or writes through them. The root node_modules is walked only when `withNodeModules` is set; there, anything
+   * a deploy can't represent marks the whole folder for replacement instead of failing (see CurrentScan).
    */
-  const scanCurrent = async (): Promise<Map<string, CurrentFile>> => {
-    const out = new Map<string, CurrentFile>()
-    if (!existsSync(instanceDir)) return out
+  const scan = async (withNodeModules: boolean): Promise<CurrentScan> => {
+    const files = new Map<string, CurrentFile>()
+    let replaceNodeModules = false
+    if (!existsSync(instanceDir)) return { files, replaceNodeModules }
     const walk = async (dir: string) => {
       for (const name of await readdir(dir)) {
         const fsPath = join(dir, name)
         const rel = relative(instanceDir, fsPath).split(sep).join('/')
-        if (dir === instanceDir && !isCodeRoot(name)) continue
+        const inNodeModules = isNodeModulesPath(rel)
+        if (dir === instanceDir && !isCodeRoot(name) && !(withNodeModules && name === NODE_MODULES_DIR)) continue
         const st = await lstat(fsPath)
+        if (inNodeModules) {
+          if (st.isFile() && isCodePath(rel)) {
+            files.set(rel, { fsPath, size: st.size, hash: await hashWithCache(fsPath, st.size, st.mtimeMs) })
+          } else if (st.isDirectory() && isCodePath(`${rel}/x`)) {
+            await walk(fsPath)
+          } else if (rel === NODE_MODULES_DIR && st.isFile()) {
+            // A stray file named node_modules: apply() moves it aside when the first package dir is created.
+          } else {
+            replaceNodeModules = true
+          }
+          continue
+        }
         if (st.isSymbolicLink()) {
           if (isCodePath(rel)) throw new DeployConflictError(`${rel} is a symlink; remove it over SFTP and redeploy`)
           continue
         }
         if (st.isDirectory()) {
-          // Preserved dirs (node_modules, .git*) are never walked into.
+          // .git* dirs (and node_modules outside the root) are never walked into.
           if (isCodePath(`${rel}/x`)) await walk(fsPath)
           continue
         }
         if (!st.isFile() || !isCodePath(rel)) continue
-        out.set(rel, { fsPath, size: st.size, hash: await hashWithCache(fsPath, st.size, st.mtimeMs) })
+        files.set(rel, { fsPath, size: st.size, hash: await hashWithCache(fsPath, st.size, st.mtimeMs) })
       }
     }
     await walk(instanceDir)
-    return out
+    return { files, replaceNodeModules }
   }
+
+  /** The code-set files on disk that a deploy of `manifest` compares against (node_modules only if it manages it). */
+  const scanCurrent = async (manifest: Manifest = {}) => (await scan(managesNodeModules(manifest))).files
 
   /** Hashes the client is missing: not in the blob store and not anywhere in the current code set. */
   const findMissing = async (manifest: Manifest) => {
-    const current = await scanCurrent()
+    const current = await scanCurrent(manifest)
     const onDisk = new Set([...current.values()].map((f) => f.hash))
     const missing = new Set<string>()
     for (const hash of Object.values(manifest)) {
@@ -151,10 +190,12 @@ export const createDeployStore = (root: string, instanceDir: string) => {
    * touched. Throws MissingBlobsError if a needed file is neither uploaded nor on disk.
    */
   const stage = async (manifest: Manifest) => {
-    const current = await scanCurrent()
+    const { files: onDisk, replaceNodeModules } = await scan(managesNodeModules(manifest))
+    // When node_modules is replaced wholesale, every file in it is written fresh and nothing in it is deleted one by one.
+    const current = replaceNodeModules ? new Map([...onDisk].filter(([rel]) => !isNodeModulesPath(rel))) : onDisk
     const plan = planDeploy(manifest, current)
     const byHash = new Map<string, string>()
-    for (const f of current.values()) byHash.set(f.hash, f.fsPath)
+    for (const f of onDisk.values()) byHash.set(f.hash, f.fsPath)
 
     const stagingDir = join(tmpDir, tmpName('stage'))
     await mkdir(stagingDir, { recursive: true })
@@ -177,7 +218,7 @@ export const createDeployStore = (root: string, instanceDir: string) => {
       await rm(stagingDir, { recursive: true, force: true })
       throw e
     }
-    return { plan, stagingDir, current }
+    return { plan, stagingDir, current, replaceNodeModules }
   }
 
   /**
@@ -186,7 +227,7 @@ export const createDeployStore = (root: string, instanceDir: string) => {
    * PocketBase never sees a half-applied file set.
    */
   const apply = async (manifest: Manifest, staged: Awaited<ReturnType<typeof stage>>): Promise<ApplyResult> => {
-    const { plan, stagingDir } = staged
+    const { plan, stagingDir, replaceNodeModules } = staged
     const backupDir = join(tmpDir, tmpName('backup'))
     const undo: (() => Promise<void>)[] = []
 
@@ -243,6 +284,8 @@ export const createDeployStore = (root: string, instanceDir: string) => {
 
     try {
       await mkdir(instanceDir, { recursive: true })
+      // The old node_modules goes to the backup dir in one rename; undo renames it back.
+      if (replaceNodeModules) await moveToBackup(NODE_MODULES_DIR)
       for (const rel of plan.toDelete) await moveToBackup(rel)
       await pruneEmptyDirs(plan.toDelete)
 
@@ -280,6 +323,7 @@ export const createDeployStore = (root: string, instanceDir: string) => {
       deleted: plan.toDelete,
       unchanged: plan.unchanged,
       totalBytes,
+      replacedNodeModules: replaceNodeModules,
     }
   }
 

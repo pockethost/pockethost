@@ -213,4 +213,37 @@ describe('deploy router', () => {
     expect(deps.recordDeploy).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }))
     expect(readFileSync(instFile('pb_public/blocker/node_modules/x.js'), 'utf8')).toBe('x')
   })
+
+  it('deploys a root node_modules with a restart and rejects pb_hooks/node_modules', async () => {
+    const files = { 'node_modules/marked/lib/marked.cjs': sha('marked') }
+    await api('post', '/blobs')
+      .set('Content-Type', 'application/octet-stream')
+      .send(gzipSync(encodeBundle([{ data: Buffer.from('marked') }])))
+    const res = await api('post', '/commit').send({ files })
+    expect(res.status).toBe(200)
+    expect(res.body).toMatchObject({ writtenCount: 1, wasRunning: true, restarted: true, replacedNodeModules: false })
+    expect(deps.withInstanceStopped).toHaveBeenCalledTimes(1)
+    expect(readFileSync(instFile('node_modules/marked/lib/marked.cjs'), 'utf8')).toBe('marked')
+
+    // A second deploy without the package deletes it; a deploy with no node_modules paths leaves the rest alone.
+    const b = { 'node_modules/a/node_modules/b/index.js': sha('b') }
+    await api('post', '/blobs')
+      .set('Content-Type', 'application/octet-stream')
+      .send(gzipSync(encodeBundle([{ data: Buffer.from('b') }])))
+    const second = await api('post', '/commit').send({ files: b })
+    expect(second.body).toMatchObject({ writtenCount: 1, deletedCount: 1, restarted: true })
+    expect(existsSync(instFile('node_modules/marked'))).toBe(false)
+    ;(deps.withInstanceStopped as any).mockClear()
+    await api('post', '/blobs')
+      .set('Content-Type', 'application/octet-stream')
+      .send(gzipSync(encodeBundle([{ data: Buffer.from('hi') }])))
+    const third = await api('post', '/commit').send({ files: { 'pb_public/index.html': sha('hi') } })
+    expect(third.body).toMatchObject({ writtenCount: 1, deletedCount: 0, restarted: false })
+    expect(deps.withInstanceStopped).not.toHaveBeenCalled()
+    expect(readFileSync(instFile('node_modules/a/node_modules/b/index.js'), 'utf8')).toBe('b')
+
+    const nested = await api('post', '/check').send({ files: { 'pb_hooks/node_modules/x.js': sha('x') } })
+    expect(nested.status).toBe(400)
+    expect(nested.body.message).toMatch(/pb_hooks\/node_modules\/x.js is outside the deployable set/)
+  })
 })

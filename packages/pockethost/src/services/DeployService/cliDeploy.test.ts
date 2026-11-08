@@ -3,7 +3,17 @@
  * controller. Keeps the client and server halves of the protocol in step.
  */
 import express from 'express'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  rmSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from 'fs'
 import type { AddressInfo } from 'net'
 import { tmpdir } from 'os'
 import { dirname, join } from 'path'
@@ -132,6 +142,19 @@ describe('CLI deploy over the deploy API', () => {
 
   it('reports an unknown instance clearly', async () => {
     await expect(deploy({ instanceName: 'nope' })).rejects.toThrow(/Instance 'nope' not found/)
+  })
+
+  it('a CLI deploy without node_modules leaves the instance node_modules alone', async () => {
+    // e.g. packages installed by the old server-side `bun install`, with a .bin symlink.
+    mkdirSync(dirname(instFile('node_modules/old/index.js')), { recursive: true })
+    writeFileSync(instFile('node_modules/old/index.js'), 'server-installed')
+    mkdirSync(instFile('node_modules/.bin'), { recursive: true })
+    symlinkSync('../old/index.js', instFile('node_modules/.bin/old'))
+    projectFile('pb_hooks/main.pb.js', 'routerAdd(2)')
+    const r = await deploy()
+    expect(r).toMatchObject({ writtenCount: 1, deletedCount: 0 })
+    expect(readFileSync(instFile('node_modules/old/index.js'), 'utf8')).toBe('server-installed')
+    expect(readlinkSync(instFile('node_modules/.bin/old'))).toBe('../old/index.js')
   })
 
   it('CLI and server agree on the code set', () => {

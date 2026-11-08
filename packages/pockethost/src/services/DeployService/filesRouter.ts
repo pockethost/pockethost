@@ -4,7 +4,7 @@ import { lstat, mkdir, readdir, realpath, rename, rm, stat } from 'fs/promises'
 import { dirname, join, relative, sep } from 'path'
 import { pipeline } from 'stream/promises'
 import type { InstanceFields } from '../../common'
-import { DATA_DIR, isCodePath, isSafeRelativePath, PATCHES_DIR } from './codeSet'
+import { DATA_DIR, isCodePath, isSafeRelativePath, NODE_MODULES_DIR, PATCHES_DIR } from './codeSet'
 
 /**
  * File access over HTTPS, the replacement for SFTP: list, download, upload (chunked) and delete files inside an
@@ -28,11 +28,12 @@ export class FileApiError extends Error {
 
 export type FileEntry = { path: string; isDirectory: boolean; size: number; mtime: number }
 
-export const NODE_MODULES_DIR = 'node_modules'
+export { NODE_MODULES_DIR }
 
 /**
  * True when `p` is a path the file API may touch: the code set, `pb_data`, and `node_modules` (at the root or inside a
- * code folder). Deploys never touch `node_modules`, so this is how packages get onto an instance. `.git*` stays out.
+ * code folder). Deploys only manage the root `node_modules` when the CLI ships it, so this is the other way packages
+ * get onto an instance. `.git*` stays out.
  */
 export const isFileApiPath = (p: string) => {
   if (!isSafeRelativePath(p)) return false
