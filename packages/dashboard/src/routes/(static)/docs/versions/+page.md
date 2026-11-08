@@ -2,9 +2,16 @@
 title: Changing PocketBase Versions
 description: Learn how to upgrade and downgrade your Pocketbase version in Pockethost
 ---
+
 # Changing PocketBase Versions
 
-PocketHost supports the latest minor release of each PocketBase version (e.g., `0.16.*`), and you can update your instance to stay on the latest release. When changing PocketBase versions, whether upgrading or downgrading, it’s important to take precautions to ensure the stability of your instance and the integrity of your data.
+PocketHost runs the latest patch of each PocketBase minor release from **0.23 on** (for example `0.41.*`), and you can change your instance's version to stay current. When changing PocketBase versions, whether upgrading or downgrading, it’s important to take precautions to ensure the stability of your instance and the integrity of your data.
+
+## PocketBase 0.22 and older
+
+PocketBase 0.22 and older can't be picked for new instances or version changes. Instances already on them keep running until **February 6, 2027**. On that date, any instance still on 0.22 or older is suspended and archived, and its owner gets a download link by email. Archives are deleted after 180 days. See [the announcement](/blog/pocketbase-022-sunset) for details, including upgrade help for paid plans.
+
+Moving from 0.22 or older to 0.23 or later is a bigger step than other upgrades. PocketBase migrates your data on its own, but 0.23 rewrote the JavaScript hooks API, so custom `pb_hooks` need updating. Follow PocketBase's [0.23 upgrade guide](https://pocketbase.io/v023upgrade/jsvm/) and test on a second instance first, as described below.
 
 ## Upgrade Strategy
 
@@ -24,7 +31,7 @@ For most cases, automatic upgrades are possible by simply switching to the lates
 1. [Back up your instance](/docs/backup-restore).  
    ![](2024-10-06-15-31-47.png)
 2. [Power off your instance](/docs/power). The version picker is disabled while the instance is on.
-3. Change to the latest supported version in the PocketHost dashboard (e.g., `0.16.*`).  
+3. Change to the latest supported version in the PocketHost dashboard (e.g., `0.41.*`).  
    ![](version-change.png)
 4. Power the instance back on.
 

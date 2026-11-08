@@ -1,6 +1,8 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import AlertBar from '$components/AlertBar.svelte'
+  import LegacySunsetCallout from '$components/LegacySunsetCallout.svelte'
+  import { isLegacyPocketBaseVersion } from '$lib/legacySunset'
   import TabbedFeatureLayout from '$components/TabbedFeatureLayout.svelte'
   import InstanceDevModeBadge from '$components/InstanceDevModeBadge.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
@@ -203,6 +205,9 @@
     {/snippet}
 
     {#snippet alerts()}
+      {#if isLegacyPocketBaseVersion($instance.version)}
+        <LegacySunsetCallout version={$instance.version} instanceId={$instance.id} />
+      {/if}
       {#if isShuttingDown}
         <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
       {:else if isFullyOff}

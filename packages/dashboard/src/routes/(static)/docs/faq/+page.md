@@ -86,7 +86,9 @@ You can set up S3 storage just like with a standalone PocketBase instance, thoug
 
 ### What versions of PocketBase do you support, and how do I upgrade?
 
-We support all versions of PocketBase. New versions are picked up automatically, and your instance will be upgraded with patch releases. However, upgrades across major versions are locked by default. Contact us if you wish to perform a major upgrade.
+We support PocketBase 0.23 and later. New releases are picked up automatically, and your instance gets patch releases within its minor version (for example, `0.41.*` always runs the latest `0.41` patch). To move to a newer minor version, power off your instance and [change its version](/docs/versions).
+
+PocketBase 0.22 and older can't be picked anymore, and instances still on them will be suspended and archived on February 6, 2027. See [the announcement](/blog/pocketbase-022-sunset).
 
 ### Can I host custom PocketBase binaries or a custom Node.js backend?
 

@@ -1,5 +1,5 @@
 import { mkLog } from '$util/Logger'
-import { listVersions } from '$util/versions'
+import { listSelectableVersions } from '$util/versions'
 import { isAvailable } from '../../signup/isAvailable'
 import { resolveInstanceCaller } from '../lib/instanceCaller'
 import { assertCanCreateInstance } from '../lib/instanceLimits'
@@ -14,7 +14,7 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
   log(`TOP OF POST`)
   let data = new DynamicModel({
     subdomain: '',
-    version: listVersions()[0],
+    version: listSelectableVersions()[0],
   }) as { subdomain?: string; version?: string }
 
   log(`before bind`)

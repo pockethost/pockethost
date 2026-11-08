@@ -25,6 +25,12 @@ onRecordCreate((e) => {
   e.next()
 }, 'instances')
 
+/** New instances must use a selectable (0.23+) version */
+onRecordCreate((e) => {
+  require(`${__hooks}/mothership`).BeforeCreate_version(e)
+  e.next()
+}, 'instances')
+
 /** Validate instance version */
 onRecordUpdate((e) => {
   require(`${__hooks}/mothership`).BeforeUpdate_version(e)

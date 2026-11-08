@@ -814,8 +814,37 @@ const readPocketbaseVersions = () => {
 		return [];
 	}
 };
-/** Minor wildcard versions (e.g. `0.22.*`) from mothership settings */
+/**
+* Every minor wildcard version (e.g. `0.22.*`) from mothership settings, including legacy ones. Edges need the full
+* catalog to keep running existing legacy instances, so don't filter this one.
+*/
 const listVersions = () => readPocketbaseVersions().map((entry) => entry.range);
+/**
+* Oldest PocketBase minor that new instances and version changes may use. 0.22 and older are being sunset; existing
+* instances on them keep running until the cutoff.
+*/
+const MIN_SELECTABLE_POCKETBASE_VERSION = {
+	major: 0,
+	minor: 23
+};
+/** Whether a range like `0.23.*` (or a full version) is at or above the selectable floor. */
+const isSelectableVersion = (range) => {
+	const match = /^(\d+)\.(\d+)(?:\.|$)/.exec(range.trim());
+	if (!match) return false;
+	const major = Number(match[1]);
+	const minor = Number(match[2]);
+	const min = MIN_SELECTABLE_POCKETBASE_VERSION;
+	return major > min.major || major === min.major && minor >= min.minor;
+};
+/** Versions a user may pick for a new instance or a version change. */
+const listSelectableVersions = () => listVersions().filter(isSelectableVersion);
+/** Error message for a version that isn't selectable, or null when it's fine. */
+const selectableVersionError = (version, selectable) => {
+	if (typeof version !== "string" || !version) return `A PocketBase version is required. Version must be one of: ${selectable.join(", ")}`;
+	if (!isSelectableVersion(version)) return `PocketBase ${version} is no longer supported for new instances or version changes. Use 0.23 or later.`;
+	if (selectable.length && !selectable.includes(version)) return `Invalid version ${version}. Version must be one of: ${selectable.join(", ")}`;
+	return null;
+};
 
 //#endregion
 //#region src/lib/handlers/signup/isAvailable.ts
@@ -963,7 +992,7 @@ const HandleInstanceCreate = (e) => {
 	log(`TOP OF POST`);
 	let data = new DynamicModel({
 		subdomain: "",
-		version: listVersions()[0]
+		version: listSelectableVersions()[0]
 	});
 	log(`before bind`);
 	e.bindBody(data);
@@ -1292,6 +1321,20 @@ const BeforeCreate_autoVacuum = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/instance/model/BeforeCreate_version.ts
+/** New instances must use a selectable (0.23+) version, whichever path creates them. */
+const BeforeCreate_version = (e) => {
+	const log = mkLog(`BeforeCreate_version`);
+	const record = e.record;
+	if (!record) return;
+	const msg = selectableVersionError(record.get("version"), listSelectableVersions());
+	if (msg) {
+		log(`[ERROR] ${msg}`);
+		throw new BadRequestError(msg);
+	}
+};
+
+//#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_cname.ts
 const BeforeUpdate_cname = (e) => {
 	const log = mkLog(`BeforeUpdate_cname`);
@@ -1321,16 +1364,15 @@ const BeforeUpdate_cname = (e) => {
 
 //#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_version.ts
+/** A version change must land on a selectable (0.23+) version. Instances that keep their version are not checked. */
 const BeforeUpdate_version = (e) => {
 	const log = mkLog(`BeforeUpdate_version`);
 	const record = e.record;
 	if (!record) return;
 	const version = record.get("version");
 	if (version === record.original().get("version")) return;
-	const versions = listVersions();
-	if (!versions.length) return;
-	if (!versions.includes(version)) {
-		const msg = `Invalid version ${version}. Version must be one of: ${versions.join(", ")}`;
+	const msg = selectableVersionError(version, listSelectableVersions());
+	if (msg) {
 		log(`[ERROR] ${msg}`);
 		throw new BadRequestError(msg);
 	}
@@ -5677,15 +5719,16 @@ const HandleUserTrustedIpsGet = (e) => {
 
 //#endregion
 //#region src/lib/handlers/versions/api/HandleVersionsRequest.ts
-/** Return a list of available PocketBase versions */
+/** PocketBase versions a user may pick (0.23+). Legacy versions still run but are not offered. */
 const HandleVersionsRequest = (e) => {
-	return e.json(200, { versions: listVersions() });
+	return e.json(200, { versions: listSelectableVersions() });
 };
 
 //#endregion
 exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
 exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
+exports.BeforeCreate_version = BeforeCreate_version;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
