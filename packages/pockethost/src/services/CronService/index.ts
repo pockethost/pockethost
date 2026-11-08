@@ -104,7 +104,9 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
       job.start()
       newJobs.add(job)
       if (catchUp && isCatchUpDue(webhook.value, webhook.lastFired?.timestamp, Date.now())) {
-        info(`Catching up missed webhook ${webhook.endpoint.split(`?`)[0]} (${webhook.value}) for instance ${instance.id}`)
+        info(
+          `Catching up missed webhook ${webhook.endpoint.split(`?`)[0]} (${webhook.value}) for instance ${instance.id}`
+        )
         fire()
       }
     })
