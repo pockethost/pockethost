@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Older Backups Move to Cold Storage',
+    path: '/blog/backup-cold-storage',
+    description:
+      'PocketHost now keeps your most recent PocketBase backup on disk. Older ones move to cold storage with a download link left in their place for 180 days.',
+    date: 'Nov 8, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Deploy From GitHub Actions With API Tokens',
     path: '/blog/deploy-from-ci',
     description:

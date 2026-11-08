@@ -18,6 +18,19 @@ PocketBase has a simple backup and restore feature available directly from the a
 
 However, if your instance becomes unresponsive or the admin interface is inaccessible, you may need to use alternative methods for backing up and restoring.
 
+## Older Backups Move to Cold Storage
+
+PocketHost keeps your **most recent backup** on disk. Once a day, older backups move to cold storage.
+
+In the PocketBase Backups list, each moved backup is replaced by a text file with the same name plus `.txt`, for example `pb_backup_20261101.zip.txt`.
+
+- **To get one back**: download the `.txt` file from the Backups list and open it. It contains a download link for the original zip.
+- **To restore it**: download the zip from that link, then in the PocketBase admin go to **Settings > Backups**, upload the zip, and restore it.
+- **How long**: moved backups are kept for **180 days**. After that they're deleted and the link stops working.
+- **Restoring the `.txt` file itself does nothing.** It isn't a backup, so PocketBase leaves your data as it is.
+
+Backups that you send to your own S3 storage aren't moved. If you want to keep every backup, [configure S3 backups](/docs/s3) in the PocketBase admin.
+
 ## Backup and Restore via SFTP
 
 If the admin panel’s backup and restore feature is unavailable or your instance is unresponsive, you can manually back up your data via [SFTP](/docs/ftp). This allows you to access all PocketBase files, including the database and uploads, so you can create manual backups and restore them if necessary.

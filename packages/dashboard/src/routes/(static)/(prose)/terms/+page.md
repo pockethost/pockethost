@@ -2,7 +2,7 @@
 
 # Terms of Service
 
-**Last Modified Date: November 7, 2026**
+**Last Modified Date: November 8, 2026**
 
 Welcome to PocketHost! These Terms of Service ("Terms") govern your access to and use of PocketHost's services, so please read them carefully.
 
@@ -48,6 +48,14 @@ PocketHost achieves economies of scale through dynamic management of resources. 
 If we notice that your app is consistently using so many resources that it is starting to affect the experience of other users, or if it is starting to cost significantly more than you are paying, we will reach out to you to discuss the situation. Obviously, anything taken to the extreme is impractical—for example, creating one billion projects will prompt a conversation with us.
 
 Our ethos is centered around supporting indie developers and hackers. We actively avoid the utility hosting provider model with metered usage. We encourage you to keep this in mind and be a good citizen of our platform, and we will reciprocate the courtesy.
+
+### 5.2 PocketBase Backups
+
+- **Most Recent Backup Stays**: For each instance, we keep the most recent PocketBase backup file (`pb_data/backups`) on our servers.
+- **Older Backups Move to Cold Storage**: We move older backup files to cold storage. A small text file with the same name plus `.txt` takes each one's place. It contains a link to download the original.
+- **Retention**: We keep backups in cold storage for **180 days** after they move, then delete them. Download links stop working at that point.
+- **Your Own Storage**: Backups you send to your own S3-compatible storage are not affected.
+- **Changes**: We may change how many backups stay on our servers, or the retention period, with notice on our blog or by email.
 
 ## 6. User Content and Acceptable Use
 

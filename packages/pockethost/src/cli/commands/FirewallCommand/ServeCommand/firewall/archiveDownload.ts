@@ -1,4 +1,4 @@
-import { Logger, verifyArchiveLink } from '@'
+import { Logger, verifyArchiveLink, verifyBackupLink } from '@'
 import { RequestHandler } from 'express'
 
 export type ArchiveDownloadDeps = {
@@ -6,6 +6,8 @@ export type ArchiveDownloadDeps = {
   host: string
   secret: () => string
   presign: (instanceId: string) => Promise<string>
+  /** Iceboxed backup zips (`/_ph/backup/:instanceId/:zipName`). Omit to pass those requests through. */
+  presignBackup?: (instanceId: string, zipName: string) => Promise<string>
   now?: () => number
   logger: Logger
 }
@@ -26,6 +28,7 @@ export const createArchiveDownloadMiddleware = ({
   host,
   secret,
   presign,
+  presignBackup,
   now = Date.now,
   logger,
 }: ArchiveDownloadDeps): RequestHandler => {
@@ -37,30 +40,57 @@ export const createArchiveDownloadMiddleware = ({
       .send(MESSAGES[status] ?? MESSAGES[500])
   }
 
-  return (req, res, next) => {
-    const match = req.method === `GET` && req.hostname === host ? /^\/_ph\/archive\/([^/]+)$/.exec(req.path) : null
-    if (!match) {
-      next()
-      return
-    }
-    const instanceId = match[1]!
-
-    const check = verifyArchiveLink(instanceId, req.query.exp, req.query.sig, secret(), now())
-    if (!check.ok) {
-      info(`rejected ${instanceId}: ${check.reason}`)
-      fail(res, check.status)
-      return
-    }
-
-    presign(instanceId)
+  const redirect = (res: Parameters<RequestHandler>[1], label: string, signed: Promise<string>) =>
+    signed
       .then((url) => {
-        info(`download ${instanceId}`)
+        info(`download ${label}`)
         res.redirect(302, url)
       })
       .catch((e) => {
         const missing = /not found|doesn't exist|404/i.test(`${e}`)
-        if (!missing) error(`presign failed for ${instanceId}`, e)
+        if (!missing) error(`presign failed for ${label}`, e)
         fail(res, missing ? 404 : 500)
       })
+
+  return (req, res, next) => {
+    if (req.method !== `GET` || req.hostname !== host) {
+      next()
+      return
+    }
+
+    const archive = /^\/_ph\/archive\/([^/]+)$/.exec(req.path)
+    if (archive) {
+      const instanceId = archive[1]!
+      const check = verifyArchiveLink(instanceId, req.query.exp, req.query.sig, secret(), now())
+      if (!check.ok) {
+        info(`rejected ${instanceId}: ${check.reason}`)
+        fail(res, check.status)
+        return
+      }
+      redirect(res, instanceId, presign(instanceId))
+      return
+    }
+
+    const backup = presignBackup ? /^\/_ph\/backup\/([^/]+)\/([^/]+)$/.exec(req.path) : null
+    if (backup) {
+      const instanceId = backup[1]!
+      let zipName: string
+      try {
+        zipName = decodeURIComponent(backup[2]!)
+      } catch {
+        fail(res, 400)
+        return
+      }
+      const check = verifyBackupLink(instanceId, zipName, req.query.exp, req.query.sig, secret(), now())
+      if (!check.ok) {
+        info(`rejected backup ${instanceId}/${zipName}: ${check.reason}`)
+        fail(res, check.status)
+        return
+      }
+      redirect(res, `${instanceId}/${zipName}`, presignBackup!(instanceId, zipName))
+      return
+    }
+
+    next()
   }
 }

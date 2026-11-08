@@ -10,8 +10,10 @@ import {
   PH_ARCHIVE_LINK_ORIGIN,
   PH_ARCHIVE_LINK_SECRET,
   PH_ARCHIVE_REMOTE,
+  PH_BACKUP_ICEBOX_REMOTE,
   PH_DISABLE_FIREWALL_RATE_LIMIT,
   PH_FIREWALL_DAEMON_GRACE_MS,
+  presignBackupZip,
   presignInstanceArchive,
   SSL_CERT,
   SSL_KEY,
@@ -117,6 +119,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
       host: new URL(PH_ARCHIVE_LINK_ORIGIN()).hostname,
       secret: PH_ARCHIVE_LINK_SECRET,
       presign: (instanceId) => presignInstanceArchive(PH_ARCHIVE_REMOTE(), instanceId),
+      presignBackup: (instanceId, zipName) => presignBackupZip(PH_BACKUP_ICEBOX_REMOTE(), instanceId, zipName),
       logger,
     })
   )

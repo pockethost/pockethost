@@ -1,4 +1,4 @@
-import { ARCHIVE_DEFAULTS, logger } from '@'
+import { ARCHIVE_DEFAULTS, BACKUP_ICEBOX_DEFAULTS, logger } from '@'
 import { Command } from 'commander'
 
 const int = (v: string) => parseInt(v, 10)
@@ -47,6 +47,35 @@ export const ArchiveCommand = () => {
         })
       }
     )
+
+  cmd
+    .command(`backups`)
+    .description(
+      `Keep each instance's newest PocketBase backup on disk; move older zips to object storage behind a .zip.txt link`
+    )
+    .option(`--apply`, `Actually move zips (default is a dry run)`, false)
+    .option(`--retention-days <days>`, `Days to keep moved zips`, int, BACKUP_ICEBOX_DEFAULTS.retentionDays)
+    .option(
+      `--min-age-minutes <n>`,
+      `Skip zips modified more recently than this`,
+      int,
+      BACKUP_ICEBOX_DEFAULTS.minAgeMinutes
+    )
+    .option(`--max-gb <gb>`, `Max GB to move per run`, int, 50)
+    .option(`--concurrency <n>`, `Uploads running at once`, int, 4)
+    .option(`--instance <id>`, `Only this instance`)
+    .action(async ({ apply, retentionDays, minAgeMinutes, maxGb, concurrency, instance }) => {
+      logger().context({ cli: 'edge:archive:backups' })
+      const { archiveBackups } = await import('./archiveBackups')
+      await archiveBackups({
+        apply,
+        retentionDays,
+        minAgeMinutes,
+        maxBytes: maxGb * 1024 ** 3,
+        concurrency,
+        instanceId: instance,
+      })
+    })
 
   cmd
     .command(`restore <instanceId>`)
