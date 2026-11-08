@@ -1,6 +1,6 @@
-import { listVersions } from '$util/versions'
+import { listSelectableVersions } from '$util/versions'
 
-/** Return a list of available PocketBase versions */
+/** PocketBase versions a user may pick (0.23+). Legacy versions still run but are not offered. */
 export const HandleVersionsRequest = (e: core.RequestEvent) => {
-  return e.json(200, { versions: listVersions() })
+  return e.json(200, { versions: listSelectableVersions() })
 }

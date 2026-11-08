@@ -32,7 +32,7 @@ Every request passes through Cloudflare and then PocketHost's edge before it rea
 
 ## Stock PocketBase binaries
 
-You choose a PocketBase version per instance and can [change it](/docs/versions) while the instance is powered off. Custom Go builds aren't supported. See [Custom Binaries](/docs/custom-binaries). Extend PocketBase with [JavaScript hooks](/docs/js) and [Admin UI Extensions](/docs/admin-extensions) instead.
+You choose a PocketBase version (0.23 or later) per instance and can [change it](/docs/versions) while the instance is powered off. Custom Go builds aren't supported. See [Custom Binaries](/docs/custom-binaries). Extend PocketBase with [JavaScript hooks](/docs/js) and [Admin UI Extensions](/docs/admin-extensions) instead.
 
 ## Files and deploys
 

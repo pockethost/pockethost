@@ -5,6 +5,7 @@
   import VersionPicker from './VersionPicker.svelte'
   import { versions } from '$src/util/stores'
   import { isInstanceFullyOff } from '$util/instancePower'
+  import { LEGACY_SUNSET_DATE } from '$lib/legacySunset'
 
   $: ({ id, version } = $instance)
   $: isFullyOff = isInstanceFullyOff($instance)
@@ -12,18 +13,9 @@
 
   const minorVersion = (v: string) => Number(v.split('.')[1] ?? 0)
 
-  const crossesV23Boundary = (from: string, to: string) => {
-    const fromMinor = minorVersion(from)
-    const toMinor = minorVersion(to)
-    return (fromMinor <= 22 && toMinor >= 23) || (fromMinor >= 23 && toMinor <= 22)
-  }
-
   const confirmVersionChangeMessage = (from: string, to: string) => {
-    if (crossesV23Boundary(from, to)) {
-      if (minorVersion(to) >= 23) {
-        return `v0.23+ rewrites PocketBase JSVM APIs. Back up first and review any custom pb_hooks before upgrading.\n\nChange version to ${to}?`
-      }
-      return `Downgrading across the v0.23 boundary is not supported by PocketBase and may break your instance.\n\nChange version to ${to}?`
+    if (minorVersion(from) <= 22 && minorVersion(to) >= 23) {
+      return `v0.23+ rewrites PocketBase JSVM APIs. Back up first and review any custom pb_hooks before upgrading.\n\nChange version to ${to}?`
     }
     return `Are you sure you want to change the version to ${to}?`
   }
@@ -83,7 +75,8 @@
         <wa-icon slot="icon" name="triangle-exclamation"></wa-icon>
         <p>
           PocketBase <strong>v0.23+</strong> changes the JSVM API. Custom <code>pb_hooks</code> written for v0.22 or
-          earlier may need updates before you upgrade.
+          earlier may need updates before you upgrade. Versions 0.22 and older can't be selected anymore, and instances
+          still on them will be suspended and archived on {LEGACY_SUNSET_DATE}.
           <a href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0" class="text-primary"
             >Review the v0.23 release notes</a
           >.
@@ -96,12 +89,13 @@
     <p>
       We recommend you <strong>do a full backup</strong>
       before making a change. We support the latest patch of
-      <a href="https://ganigeorgiev.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase.
+      <a href="https://github.com/pocketbase/pocketbase/releases" class="text-primary">every minor release</a> of PocketBase
+      from 0.23 on.
     </p>
   </svelte:fragment>
 
   <form class="flex change-version-form-container-query gap-4" onsubmit={handleSave}>
-    <VersionPicker bind:selectedVersion versions={$versions} disabled={!isFullyOff} />
+    <VersionPicker bind:selectedVersion versions={$versions} currentVersion={version} disabled={!isFullyOff} />
     <wa-button type="submit" variant="danger" disabled={!isFullyOff || isButtonDisabled}>Change Version</wa-button>
   </form>
 </FeatureTab>

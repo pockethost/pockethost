@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Service Update: PocketBase 0.22 and Older Retire February 6, 2027',
+    path: '/blog/pocketbase-022-sunset',
+    description:
+      'New instances now need PocketBase 0.23 or later. Instances still on 0.22 or older are suspended and archived on February 6, 2027. Paid plans get help upgrading.',
+    date: 'Nov 8, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Service Update: SFTP Sunset and CLI Upgrade',
     path: '/blog/sftp-sunset',
     description:
