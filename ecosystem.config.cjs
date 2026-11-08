@@ -57,5 +57,12 @@ module.exports = {
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
       script: 'pnpm prod:cli edge archive backups --apply --max-gb 50',
     },
+    {
+      // Measures each instance folder with du and writes each owner's total to users.volume_storage_used for the
+      // account page's Disk storage meter. Display only; nothing is enforced.
+      name: `edge-disk-usage`,
+      restart_delay: 60 * 60 * 1000 * 24, // 1 day
+      script: 'pnpm prod:cli edge disk-usage',
+    },
   ],
 }

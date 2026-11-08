@@ -112,7 +112,7 @@ Legacy plans come with a large instance allowance (250 or more). Their storage i
 
 **Store PocketBase app data, not everything.** PocketHost hosts PocketBase apps, not files in general. What you keep here should be part of a PocketBase app you run: its database, uploads, hooks, backups, and frontend. Bulk files your app doesn't use, such as media mirrors, data dumps, or scraper output, belong with an object storage or static hosting provider. See section 6.2 of the [Terms of Service](/terms).
 
-See [Account](/account) for your usage meter.
+See [Account](/account) for your usage meter. Usage is measured once a day, so recent changes can take up to a day to show.
 
 ## Prohibited Content
 
