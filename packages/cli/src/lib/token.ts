@@ -93,6 +93,13 @@ export type InstanceSummary = {
   status: string
   power: boolean
   version: string
+  /** Settings below are returned by mothership versions that support instance commands. */
+  dev?: boolean
+  syncAdmin?: boolean
+  autoVacuum?: boolean
+  /** Secret names only; values never come back over a token. */
+  secretNames?: string[]
+  webhooks?: { endpoint: string; value: string }[]
 }
 
 /** The instances this token can reach. */

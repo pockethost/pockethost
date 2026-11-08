@@ -10,6 +10,7 @@ import {
 } from './commands/FilesCommand'
 import { DevCommand } from './commands/DevCommand'
 import { InfoCommand } from './commands/InfoCommand'
+import { instanceCommands } from './commands/InstanceCommands'
 import { LinkCommand } from './commands/LinkCommand'
 import { ListCommand } from './commands/ListCommand'
 import { LoginCommand } from './commands/LoginCommand'
@@ -23,7 +24,7 @@ ensureProjectRoot()
 program
   .name(`pockethost`)
   .version(version)
-  .description(`Deploy, sync, and tail logs for your PocketHost instances`)
+  .description(`Deploy, sync, tail logs and manage your PocketHost instances`)
   .addCommand(LoginCommand())
   .addCommand(TokenCommand())
   .addCommand(LogsCommand())
@@ -38,6 +39,8 @@ program
   .addCommand(SftpCommand())
   .addCommand(LogoutCommand())
   .addCommand(InfoCommand())
+
+for (const command of instanceCommands()) program.addCommand(command)
 
 // Add error handling
 program.exitOverride()

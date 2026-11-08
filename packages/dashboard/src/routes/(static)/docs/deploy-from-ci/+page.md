@@ -87,20 +87,23 @@ What gets deployed:
 
 - `pb_hooks/`, `pb_migrations/`, `pb_public/`, and other top-level `pb_*` folders
 - `package.json`, `bun.lock`, `bun.lockb`, and `patches/`
+- your production `node_modules/`, when `package.json` has `dependencies` (see [npm packages](#npm-packages))
 
 What never gets touched:
 
 - `pb_data/` (your database and uploaded files)
-- `node_modules/` and `.git*` files
+- `.git*` files
 - anything else at the instance root
 
 **Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project are removed on deploy. If you've edited hooks over SFTP, copy those changes into your repo before the first CI deploy.
 
 ### npm packages
 
-PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied like any other file, and a `node_modules` folder already on your instance is left alone. Most npm packages can't run inside PocketBase's JavaScript engine anyway, since it has no Node.js built-ins. If your hooks use a package that does work there, bundle it into a single file in `pb_hooks` with a bundler such as esbuild (`--bundle --format=cjs --platform=neutral`) and `require()` that file.
+PocketHost doesn't run `npm install`. Instead, `pockethost deploy` (CLI 4.2 or later) ships your production `node_modules` when `package.json` has `dependencies`: the packages in `dependencies` and everything they need, never `devDependencies`. In CI, install before you deploy (`npm ci` or `bun install`). See [Packages](/docs/cli#packages-node_modules).
 
-PocketHost used to run `bun install` automatically when `package.json` or `bun.lock` changed. It doesn't anymore. If your project relies on that (for example a PocketPages app), its current `node_modules` keeps working. To change dependencies, bundle them into `pb_hooks`, or install locally and upload `node_modules` over SFTP.
+PocketBase's JavaScript engine has no Node.js built-ins, so packages that use them (`fs`, `crypto`, `Buffer`) won't run there. Packages that only ship ES modules won't load either, since it only understands CommonJS. For one of those, bundle it into a single file in `pb_hooks` with a bundler such as esbuild (`--bundle --format=cjs --platform=neutral`) and `require()` that file.
+
+PocketHost used to run `bun install` automatically when `package.json` or `bun.lock` changed. It doesn't anymore. If your project relies on that (for example a PocketPages app), its current `node_modules` keeps working until your next deploy with CLI 4.2, which replaces it with the packages you installed locally.
 
 Each deploy is recorded with its time, file count, and commit SHA. The CLI sends `$GITHUB_SHA` automatically. Pass `--commit <sha>` or `-m "<note>"` to set them yourself.
 

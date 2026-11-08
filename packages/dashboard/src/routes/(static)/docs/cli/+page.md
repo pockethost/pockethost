@@ -76,15 +76,29 @@ pockethost logs my-instance
 | `pockethost rm <paths...>` | Delete files on the instance |
 | `pockethost sftp [instance]` | Interactive SFTP session (retired February 6, 2027) |
 | `pockethost logs [instance]` | Tail instance logs |
+| `pockethost show [instance]` | Show power, URLs, domain, version and settings |
+| `pockethost power on\|off [instance]` | Power an instance on or off |
+| `pockethost rename <new-name> [instance]` | Rename an instance (its URL changes) |
+| `pockethost version <version> [instance]` | Change the PocketBase version |
+| `pockethost versions` | List the PocketBase versions you can run |
+| `pockethost domain set\|clear` | Set or remove a custom domain |
+| `pockethost dev-mode on\|off [instance]` | Turn dev mode on or off |
+| `pockethost admin-sync on\|off [instance]` | Turn admin sync on or off |
+| `pockethost auto-vacuum on\|off [instance]` | Turn auto-vacuum on or off |
+| `pockethost secrets list\|set\|unset` | Manage secrets (environment variables) |
+| `pockethost webhooks list\|add\|rm` | Manage scheduled webhooks |
+| `pockethost create [name]` | Create an instance |
+| `pockethost delete <instance>` | Delete an instance and its data |
 
 `dev` and `deploy` accept:
 
 - `-v, --verbose`: list every uploaded, changed, and deleted file
 - `-i, --include <patterns...>`: extra include globs (comma-separated values work)
 - `-e, --exclude <patterns...>`: extra exclude globs
+- `--no-node-modules`: don't ship `node_modules` (see [Packages](#packages-node_modules))
 - `--sftp`: sync over SFTP with your SSH key instead of HTTPS (retired February 6, 2027)
 
-`deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically.
+`deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically. `--dry-run` lists what would be deployed without deploying, and `--out <dir>` writes the deploy set to a local folder so you can inspect exactly what your instance would receive.
 
 Default **includes**: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
 
@@ -142,12 +156,16 @@ Large files are uploaded in pieces, so a big `data.db` works. If your settings a
 
 ### Packages (`node_modules`)
 
-Deploys never touch `node_modules`, and PocketHost doesn't run `npm install`. Either bundle packages into `pb_hooks` (see [npm packages](/docs/deploy-from-ci#npm-packages)) or install locally and upload the folder:
+PocketHost doesn't run `npm install`. When your `package.json` has `dependencies`, `pockethost deploy` ships your production `node_modules` instead: the packages in `dependencies` and everything they need, never `devDependencies`. Install locally first, then deploy:
 
 ```bash
 npm install
-pockethost upload node_modules
+pockethost deploy
 ```
+
+It works with npm, pnpm, Bun and workspaces. Symlinks are followed, so your instance gets plain files. A workspace package ships only the files its `files` field publishes. Run `pockethost deploy --dry-run` to see the list. Only changed files upload, so later deploys are quick.
+
+Requires CLI 4.2 or later. `--no-node-modules` leaves the instance's `node_modules` as it is.
 
 ### Remove a migration that won't run
 
@@ -173,6 +191,27 @@ When a project is linked, the session opens in your instance directory (`{subdom
 The CLI runs your system's **`sftp`** client when it is on `PATH` (OpenSSH on macOS/Linux, optional Windows OpenSSH). If `sftp` is missing, it prints the full command to run manually. See **[SFTP File Access](/docs/ftp)** for client setup on every platform.
 
 This is file access only (`ls`, `cd`, `get`, `put`, and the rest). There is no remote shell or `exec`.
+
+## Managing instances
+
+Everything the dashboard does to an instance has a command, using the same token as `deploy`. Commands use the linked instance unless you name one. `secrets` and `webhooks` take `-I <instance>`.
+
+```bash
+pockethost show                      # power, URLs, domain, version, settings
+pockethost power on
+pockethost power off --wait          # wait until it has stopped
+pockethost versions
+pockethost version 0.41.* --cycle
+pockethost domain set api.example.com --cycle
+pockethost secrets set STRIPE_KEY    # prompts for the value
+pockethost webhooks add /api/cron "*/5 * * * *"
+```
+
+**Settings that need the instance off.** Renaming, changing the version or custom domain, and switching dev mode, admin sync or auto-vacuum only work while the instance is powered off, same as in the dashboard. Add `--cycle` and the CLI powers it off, waits for it to stop, applies the change and powers it back on.
+
+**Secrets.** `secrets set KEY=value` changes only the secrets you name. Give just `KEY` to type the value at a prompt, so it stays out of your shell history. `secrets list` shows names only. Values are never sent back to the CLI. Secrets reach your instance as environment variables the next time it starts.
+
+**Creating and deleting.** `pockethost create [name]` picks a random available name if you don't give one, and `--link` links the current folder to it. It needs a token for all instances. `pockethost delete <instance>` needs the instance powered off and asks you to type its name, unless you pass `--yes`.
 
 ## Linking an instance (`.pockethostconfig`)
 
@@ -203,7 +242,7 @@ The CLI signs in with a personal access token (`ph_pat_…`) only. Every command
 1. **`POCKETHOST_TOKEN`** environment variable
 2. The token saved by **`pockethost login`** (or `pockethost token set`)
 
-Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can be limited to specific instances, can be read-only, and can be revoked at any time. `list`, `link`, and `logs` work with any token; `deploy` and `dev` need write access. The CLI only ever sees the instances its token can reach. For CI, see **[Deploy from CI](/docs/deploy-from-ci)**.
+Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can be limited to specific instances, can be read-only, and can be revoked at any time. `list`, `link`, `show` and `logs` work with any token. `deploy`, `dev` and the [instance commands](#managing-instances) need write access, and `create` needs a token for all instances. The CLI only ever sees the instances its token can reach. For CI, see **[Deploy from CI](/docs/deploy-from-ci)**.
 
 ## How deploys work
 
@@ -212,9 +251,9 @@ Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can b
 3. Only those files are uploaded, compressed.
 4. PocketHost swaps the new file set in all at once. If anything outside `pb_public` changed, the instance is stopped for the swap and started again. Changes to `pb_public` alone go live without a restart.
 
-`pb_data`, `node_modules`, `.git*` files, and anything else outside `pb_*` folders, `package.json`, `bun.lock(b)`, and `patches/` are never touched.
+`pb_data`, `.git*` files, and anything else outside `pb_*` folders, `package.json`, `bun.lock(b)`, `patches/` and `node_modules` are never touched.
 
-PocketHost doesn't install npm packages: `package.json`, `bun.lock`, and `patches/` are copied as plain files, with `--sftp` too. To use an npm package in your hooks, bundle it into a single file in `pb_hooks` (for example with esbuild) and `require()` it. See **[npm packages](/docs/deploy-from-ci#npm-packages)**.
+PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied as plain files, and the CLI ships your production `node_modules` with the deploy (see [Packages](#packages-node_modules)). A deploy without packages, from an older CLI or with `--no-node-modules`, leaves the instance's `node_modules` alone.
 
 **Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, run [`pockethost pull`](#start-from-whats-on-your-instance) first.
 

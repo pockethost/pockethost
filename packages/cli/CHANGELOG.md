@@ -2,6 +2,21 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.2.0
+
+### Minor Changes
+
+- Manage instances from the CLI, with the same token you deploy with: `show`, `power on|off`, `rename`, `version`,
+  `versions`, `domain set|clear`, `dev-mode`, `admin-sync`, `auto-vacuum`, `secrets list|set|unset`,
+  `webhooks list|add|rm`, `create` and `delete`. Settings that need the instance off take `--cycle` to power it off,
+  apply the change and power it back on. The token needs write access, and `create` needs a token for all instances.
+- `deploy` and `dev` ship your production `node_modules` when `package.json` has `dependencies`: the packages in
+  `dependencies` and what they need, never `devDependencies`. Works with npm, pnpm, Bun and workspaces, and follows
+  symlinks so the instance gets plain files. `--no-node-modules` turns it off.
+- `deploy --dry-run` lists what would be deployed, and `deploy --out <dir>` writes it to a local folder.
+- Links to API tokens and SSH keys point at `pockethost.io/account/…` (the old `app.pockethost.io` links landed on the
+  home page).
+
 ## 4.1.0
 
 ### Minor Changes

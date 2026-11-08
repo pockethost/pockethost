@@ -11,7 +11,7 @@ export const toc: BlogTocEntry[] = [
     title: 'Service Update: SFTP Sunset and CLI Upgrade',
     path: '/blog/sftp-sunset',
     description:
-      'PocketHost is retiring SFTP file access on February 6, 2027. The pockethost CLI now does everything SFTP did over HTTPS with your API token: deploy, browse, pull, upload and delete files.',
+      'PocketHost is retiring SFTP file access on February 6, 2027. The pockethost CLI now does everything SFTP did over HTTPS with your API token, ships your node_modules with each deploy, and manages your instances like the dashboard does.',
     date: 'Nov 8, 2026',
     author: 'capn',
   },

@@ -1,6 +1,6 @@
 # pockethost: the PocketHost CLI
 
-Deploy, sync, and tail logs for your [PocketHost](https://pockethost.io) instances.
+Deploy, sync, tail logs and manage your [PocketHost](https://pockethost.io) instances.
 
 Install globally (Node.js 20+):
 
@@ -37,6 +37,22 @@ pockethost upload <local> [remote]
 pockethost rm <paths...>
 pockethost sftp [instance]   # shuts down Feb 6, 2027
 pockethost logs [instance]
+
+# Instances (same as the dashboard)
+pockethost show [instance]
+pockethost power on|off [instance]
+pockethost rename <new-name> [instance]
+pockethost version <version> [instance]
+pockethost versions
+pockethost domain set <host> [instance]
+pockethost domain clear [instance]
+pockethost dev-mode on|off [instance]
+pockethost admin-sync on|off [instance]
+pockethost auto-vacuum on|off [instance]
+pockethost secrets list|set|unset
+pockethost webhooks list|add|rm
+pockethost create [name]
+pockethost delete <instance>
 ```
 
 - **`pockethost dev`**: watch local changes and deploy them
@@ -50,12 +66,28 @@ pockethost logs [instance]
 - **`pockethost sftp`**: interactive SFTP session. SFTP shuts down on February 6, 2027
 - **`pockethost logs`**: tail instance logs
 
-`dev` and `deploy` accept `-v/--verbose`, `-i/--include`, `-e/--exclude`, and `--sftp` (sync over SFTP instead of
-HTTPS). `deploy` also takes `--commit <sha>` and `-m/--message <note>`.
+`dev` and `deploy` accept `-v/--verbose`, `-i/--include`, `-e/--exclude`, `--no-node-modules`, and `--sftp` (sync
+over SFTP instead of HTTPS). `deploy` also takes `--commit <sha>`, `-m/--message <note>`, `--dry-run` (list what would
+be deployed) and `--out <dir>` (write the deploy set to a local folder instead of deploying).
 
 Default includes: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
 
 Default excludes: `pb_data/**`.
+
+## Managing instances
+
+Everything the dashboard does to an instance has a command. They use the linked instance unless you name one
+(`secrets` and `webhooks` take `-I <instance>`).
+
+- **`show`**: power, URLs, domain, version, settings, secret names and webhooks (`--json` for scripts)
+- **`power on|off`**: `off --wait` waits until the instance has stopped
+- **`rename`**, **`version`**, **`domain set|clear`**, **`dev-mode`**, **`admin-sync`**, **`auto-vacuum`**: these need
+  the instance powered off. Add `--cycle` to power it off, apply the change and power it back on in one step
+- **`secrets set KEY=value…`**: changes only the secrets you name. Give just `KEY` to type the value at a prompt so it
+  stays out of your shell history. `secrets list` shows names only, never values
+- **`webhooks add <endpoint> "<cron>"`**, **`webhooks rm <endpoint>`**, **`webhooks list`**
+- **`create [name]`**: a random available name if you don't give one. `--link` links this folder to it
+- **`delete <instance>`**: the instance must be powered off. Asks you to type its name unless you pass `--yes`
 
 ## Configuration
 
@@ -85,11 +117,14 @@ Older project files (`.phioconfig`, `package.json` → `pockethost.instanceName`
 3. Commit: the server swaps the file set in atomically (stopping the instance when anything outside `pb_public`
    changes) and starts the instance again.
 
-PocketHost doesn't install npm packages. `package.json`, `bun.lock(b)` and `patches/` are copied as plain files. Bundle
-any npm code your hooks need into `pb_hooks`.
+PocketHost doesn't run `npm install`. Instead, when `package.json` has `dependencies`, the CLI ships your production
+`node_modules` with the deploy: the packages in `dependencies` and everything they need, never `devDependencies`.
+It works with npm, pnpm, Bun and workspaces, and follows symlinks, so the instance gets plain files. Install first
+(`npm install` or similar), then deploy. `--no-node-modules` leaves the instance's `node_modules` alone.
 
-Only `pb_*` folders (never `pb_data`), `package.json`, `bun.lock(b)` and `patches/` are deployed. Files in those folders
-on the instance that aren't in your project are removed. `node_modules` and `.git*` are never touched.
+Only `pb_*` folders (never `pb_data`), `package.json`, `bun.lock(b)`, `patches/` and the production `node_modules` are
+deployed. Files in those folders on the instance that aren't in your project are removed. `.git*` files are never
+touched.
 
 ## Authentication
 
@@ -98,9 +133,9 @@ The CLI signs in with a personal access token (`ph_pat_…`) only. Every command
 1. `POCKETHOST_TOKEN`
 2. the token saved by `pockethost login` (or `pockethost token set`)
 
-Create tokens under [Account → API Tokens](https://app.pockethost.io/account/tokens). A token sees only the instances
-you give it; `list`, `link` and `logs` need read access, `deploy` and `dev` need write access. Email/password login
-was removed in 4.0.
+Create tokens under [Account → API Tokens](https://pockethost.io/account/tokens). A token sees only the instances
+you give it. `list`, `link`, `show` and `logs` work with any token. `deploy`, `dev` and the instance commands need
+write access, and `create` needs a token for all instances. Email/password login was removed in 4.0.
 
 Deploy from GitHub Actions:
 
@@ -117,7 +152,7 @@ Docs: https://pockethost.io/docs/deploy-from-ci
 `pockethost dev --sftp`, `pockethost deploy --sftp` and `pockethost sftp` use **SFTP** (`ftp.pockethost.io:2222`)
 with an Ed25519 key stored under `POCKETHOST_HOME` (default `~/.config/pockethost/`), created on first use. Tokens
 can't add SSH keys, so add the public key (`pockethost_deploy_ed25519.pub`) under
-[Account → Keys](https://app.pockethost.io/account/keys) once; the CLI prints it if it's missing. Keys you registered
+[Account → Keys](https://pockethost.io/account/keys) once; the CLI prints it if it's missing. Keys you registered
 with an earlier version (`PocketHost CLI` or `Phio`) keep working. `pockethost info` shows whether the key is on your
 account.
 
