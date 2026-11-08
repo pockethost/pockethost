@@ -3,9 +3,11 @@ description: Read MEMORY.md before substantive work; update it in the same chang
 alwaysApply: true
 ---
 
+> Internal docs live in the private sister repo `pockethost/pockethost-support`, checked out next to this one (`../pockethost-support` from the repo root). Commit and push changes there; never copy them into this public repo.
+
 # MEMORY.md — read first, update always
 
-[MEMORY.md](MEMORY.md) is the living source of truth for PocketHost architecture. Agents must **use** it for context and **maintain** it as work proceeds.
+[MEMORY.md](../pockethost-support/MEMORY.md) is the living source of truth for PocketHost architecture. Agents must **use** it for context and **maintain** it as work proceeds.
 
 ## Read (start of task)
 
@@ -16,7 +18,7 @@ Before planning or coding on CLI commands, mothership/edge/firewall services, in
 
 ## Update (before marking done)
 
-Update MEMORY.md in the **same commit/PR** when you change anything in the table below. Do not defer.
+Update MEMORY.md (private repo) alongside the change, before you call it done, when you change anything in the table below. Do not defer.
 
 | Area | Examples |
 |------|----------|

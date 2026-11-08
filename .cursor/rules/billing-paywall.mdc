@@ -61,4 +61,4 @@ Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**,
 - `common/subscriptionLimits.ts` still has the old DB/file split constants for the account page meters. They predate the disk storage policy and nothing populates usage.
 - Feature gates: prefer active hosting entitlement, not bare `subscription !== 'free'`, unless blocking lapsed accounts only.
 
-Read [MEMORY.md](MEMORY.md) Billing section when touching pricing, limits, dashboard paywalls, or Lemon Squeezy flows.
+Read [MEMORY.md](../pockethost-support/MEMORY.md) Billing section when touching pricing, limits, dashboard paywalls, or Lemon Squeezy flows.

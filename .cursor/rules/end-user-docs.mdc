@@ -19,7 +19,7 @@ Blog posts, `/docs`, dashboard copy, and marketing are for people who host Pocke
 - "If you self-host" or "Self-hosters" sections, CLI previews, or a self-hosting doc page.
 - Operator recovery steps (quarantine `mv`, `sqlite3 VACUUM` on the node, `pnpm dev:cli`).
 
-Internal notes (`MEMORY.md`, contributor skills) may name those commands. Do not paste them into blog posts or docs.
+Internal notes (`../pockethost-support/MEMORY.md`, contributor skills) may name those commands. Do not paste them into blog posts or docs.
 
 ## Terminology
 

@@ -31,7 +31,7 @@ Parse `/commit` or a plain **commit** request the same way.
 
 ## Backlog cull
 
-Before staging and committing, reconcile [backlog.md](backlog.md) against repo history. The backlog often drifts out of sync with what has actually shipped.
+Before staging and committing, reconcile the backlog (`../pockethost-support/plans/backlog.md`, private repo) against repo history. The backlog often drifts out of sync with what has actually shipped.
 
 1. Read **Backlog** and **Icebox** for rows that look done, duplicated, or stale (e.g. `Done (branch)`, `Partially done`, old blockers).
 2. Cross-check against history:
@@ -43,7 +43,7 @@ Before staging and committing, reconcile [backlog.md](backlog.md) against repo h
    - Delete duplicate rows
    - Update stale Notes (branch-only "done" now on main, partial work completed, blockers cleared)
    - Drop superseded rows or move abandoned spikes to **Icebox** with a short note
-4. Stage `backlog.md` with the related feature/fix commit when the cull is tied to that work. Otherwise use a standalone `chore: cull backlog` commit.
+4. Commit the backlog change in the private `../pockethost-support` repo (for example `chore: cull backlog`) and push it there. Never stage it in this public repo.
 
 Spot-check obvious matches — do not block on a full audit. If nothing needs updating, skip.
 

@@ -14,7 +14,7 @@ PocketHost is a **multi-tenant PocketBase hosting platform** (monorepo). Core pi
 
 Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, pnpm workspaces.
 
-Read [MEMORY.md](MEMORY.md) before substantive architectural work.
+Read [MEMORY.md](../pockethost-support/MEMORY.md) before substantive architectural work.
 
 Billing: **Pay Per PocketBase** ($9.99/mo, $59.99/yr, $149.99 LTD per slot). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
 

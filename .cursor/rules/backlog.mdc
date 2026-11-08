@@ -3,9 +3,11 @@ description: Capture dev goals in backlog.md; rank by feasibility, deps, and use
 alwaysApply: true
 ---
 
+> Internal docs live in the private sister repo `pockethost/pockethost-support`, checked out next to this one (`../pockethost-support` from the repo root). Commit and push changes there; never copy them into this public repo.
+
 # backlog.md — capture and prioritization
 
-[backlog.md](backlog.md) is the product/platform backlog. [MEMORY.md](MEMORY.md) is architecture — do not duplicate it here.
+[backlog.md](../pockethost-support/plans/backlog.md) is the product/platform backlog. [MEMORY.md](../pockethost-support/MEMORY.md) is architecture — do not duplicate it here.
 
 There is no "in progress" section — work is pulled from the backlog on request.
 
