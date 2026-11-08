@@ -1,6 +1,6 @@
 ---
 description: Pre-push hook runs check:push — run before push or PR-ready
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Pre-push gate

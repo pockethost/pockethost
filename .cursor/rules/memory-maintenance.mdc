@@ -1,6 +1,6 @@
 ---
 description: Read MEMORY.md before substantive work; update it in the same change set when architecture shifts
-alwaysApply: true
+alwaysApply: false
 ---
 
 # MEMORY.md — read first, update always

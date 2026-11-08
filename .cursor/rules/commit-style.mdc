@@ -1,6 +1,6 @@
 ---
 description: On commit requests, follow skill commit — no improvised workflow
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Commits

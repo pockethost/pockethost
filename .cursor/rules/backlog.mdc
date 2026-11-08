@@ -1,6 +1,6 @@
 ---
 description: Capture dev goals in backlog.md; rank by feasibility, deps, and user value
-alwaysApply: true
+alwaysApply: false
 ---
 
 # backlog.md — capture and prioritization

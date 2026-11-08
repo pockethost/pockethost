@@ -1,6 +1,6 @@
 ---
 description: PocketHost billing model — hard paywall, Pay Per PocketBase
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Billing and paywall

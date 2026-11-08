@@ -1,5 +1,6 @@
 ---
-alwaysApply: true
+description: PocketHost monorepo context, style, and agent guardrails
+alwaysApply: false
 ---
 
 # Project Context

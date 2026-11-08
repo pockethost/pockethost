@@ -1,6 +1,6 @@
 ---
 description: Ship user-facing features with blog posts, not semver release notes
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Feature announcements
