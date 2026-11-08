@@ -1,32 +1,28 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate(
-  (db) => {
-    const dao = new Dao(db)
-    const collection = dao.findCollectionByNameOrId('etae8tuiaxl6xfv')
+  (app) => {
+    const collection = app.findCollectionByNameOrId('etae8tuiaxl6xfv')
 
-    collection.schema.addField(
-      new SchemaField({
-        system: false,
+    collection.fields.add(
+      new BoolField({
+        hidden: false,
         id: 'k8m2vacu',
         name: 'autoVacuum',
-        type: 'bool',
-        required: false,
         presentable: false,
-        unique: false,
-        options: {},
+        required: false,
+        system: false,
       })
     )
 
-    dao.saveCollection(collection)
+    app.save(collection)
 
-    db.newQuery('UPDATE instances SET autoVacuum = {:v}').bind({ v: true }).execute()
+    app.db().newQuery('UPDATE instances SET autoVacuum = {:v}').bind({ v: true }).execute()
   },
-  (db) => {
-    const dao = new Dao(db)
-    const collection = dao.findCollectionByNameOrId('etae8tuiaxl6xfv')
+  (app) => {
+    const collection = app.findCollectionByNameOrId('etae8tuiaxl6xfv')
 
-    collection.schema.removeField('k8m2vacu')
+    collection.fields.removeById('k8m2vacu')
 
-    return dao.saveCollection(collection)
+    app.save(collection)
   }
 )

@@ -509,20 +509,20 @@ migrate(
     return app.importCollections(snapshot, false)
   },
   (app) => {
+    // Dependents first: several views select from verified_users.
     for (const name of [
-      'verified_users',
       'subscribed_users',
       'unverified_users',
       'duplicate_emails',
       'growth_by_day',
       'user_growth_by_month',
       'stats',
+      'verified_users',
     ]) {
       try {
         const collection = app.findCollectionByNameOrId(name)
         app.delete(collection)
       } catch (_) {}
     }
-    return true
   }
 )
