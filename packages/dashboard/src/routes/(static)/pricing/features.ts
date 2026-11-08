@@ -5,9 +5,9 @@ export const highlights = [
     description: 'Static assets cached at the edge, DDoS protection included.',
   },
   {
-    icon: 'folder-open',
-    title: 'SFTP access',
-    description: 'Deploy hooks, migrations, and files over SFTP.',
+    icon: 'rocket',
+    title: 'Push to deploy',
+    description: 'Deploy from GitHub Actions or the CLI with a scoped API token. SFTP too.',
   },
   {
     icon: 'link',

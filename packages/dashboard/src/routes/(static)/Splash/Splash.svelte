@@ -42,7 +42,7 @@
       icon: 'bolt',
       title: 'Zero Config',
       description:
-        'With PocketHost, batteries are included. You get a database, SSL, authentication, cloud functions, SFTP access, and high concurrency all in one stop.',
+        'With PocketHost, batteries are included. You get a database, SSL, authentication, cloud functions, push-to-deploy from CI, SFTP access, and high concurrency all in one stop.',
     },
   ]
 

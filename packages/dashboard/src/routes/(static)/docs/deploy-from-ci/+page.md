@@ -100,6 +100,8 @@ What never gets touched:
 
 PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied like any other file, and a `node_modules` folder already on your instance is left alone. Most npm packages can't run inside PocketBase's JavaScript engine anyway, since it has no Node.js built-ins. If your hooks use a package that does work there, bundle it into a single file in `pb_hooks` with a bundler such as esbuild (`--bundle --format=cjs --platform=neutral`) and `require()` that file.
 
+PocketHost used to run `bun install` automatically when `package.json` or `bun.lock` changed. It doesn't anymore. If your project relies on that (for example a PocketPages app), its current `node_modules` keeps working. To change dependencies, bundle them into `pb_hooks`, or install locally and upload `node_modules` over SFTP.
+
 Each deploy is recorded with its time, file count, and commit SHA. The CLI sends `$GITHUB_SHA` automatically. Pass `--commit <sha>` or `-m "<note>"` to set them yourself.
 
 ## Other CI systems

@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Deploy From GitHub Actions With API Tokens',
+    path: '/blog/deploy-from-ci',
+    description:
+      'Create a scoped API token, add one workflow step, and every push deploys. Uploads only what changed and swaps it in all at once.',
+    date: 'Nov 8, 2026',
+    author: 'capn',
+  },
+  {
     title: 'One Storage Number: Disk Storage',
     path: '/blog/disk-storage',
     description:

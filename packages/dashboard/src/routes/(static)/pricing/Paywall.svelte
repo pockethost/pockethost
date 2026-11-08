@@ -17,7 +17,7 @@
     'Storage adds to your account pool, shared across every PocketBase you run',
     'Cloudflare CDN and DDoS protection',
     'Unmetered bandwidth and CPU (fair use)',
-    'SFTP file access',
+    'Deploy from CI or the CLI, plus SFTP file access',
   ]
   const sharedFeatures = [trialFeature, ...slotFeatures]
 </script>
