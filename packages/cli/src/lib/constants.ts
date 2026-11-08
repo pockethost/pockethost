@@ -118,6 +118,4 @@ export const INSTANCE_URL = (name: string) => {
 
 /** Personal access token (`ph_pat_…`) from the environment, e.g. a CI secret. */
 export const TOKEN = () => envVar('TOKEN') ?? ''
-export const USERNAME = () => envVar('USERNAME') ?? ''
-export const PASSWORD = () => envVar('PASSWORD') ?? ''
 export const INSTANCE_NAME = () => envVar('INSTANCE_NAME') ?? ''

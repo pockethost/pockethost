@@ -1,64 +1,38 @@
 import { select } from '@inquirer/prompts'
 import { Command } from 'commander'
 import { saveInstanceName } from '../lib/defaultInstanceId'
-import { InstanceFields } from '../lib/InstanceFields'
-import { getClient, getInstanceBySubdomainCnameOrId } from './../lib/getClient'
+import { findInstance, formatInstance, listInstances } from '../lib/token'
 
 export const link = async (instanceName: string) => {
-  saveInstanceName(instanceName)
-  const instance = await getInstanceBySubdomainCnameOrId(instanceName)
-  if (!instance) {
-    return
-  }
+  const instance = await findInstance(instanceName)
+  saveInstanceName(instance.subdomain)
   return instance
 }
 
 export const linkWithUserInput = async () => {
-  const client = await getClient()
-  const instances = await client
-    .collection(`instances`)
-    .getFullList<InstanceFields>()
-
+  const instances = await listInstances()
   if (instances.length === 0) {
-    console.error(
-      `No instances found. If this seems wrong, use 'pockethost login' to log in, then try again.`
-    )
+    console.error(`No instances found for this token.`)
     return
   }
-
-  while (true) {
-    const instanceName = await select({
-      message: `Choose the instance you'd like to link`,
-      choices: instances
-        .sort((a, b) => a.subdomain.localeCompare(b.subdomain))
-        .map((instance) => ({
-          name: `${instance.subdomain} (${instance.id}) ${
-            instance.cname ? `(${instance.cname})` : ''
-          } (${instance.status.toUpperCase()})`,
-          value: instance.subdomain,
-        })),
-    })
-    const instance = await link(instanceName)
-    if (!instance) {
-      console.error(`Instance not found`)
-      continue
-    }
-    console.log(`Linked ${instance.subdomain}`)
-    break
-  }
+  const instanceName = await select({
+    message: `Choose the instance you'd like to link`,
+    choices: instances.map((instance) => ({
+      name: formatInstance(instance),
+      value: instance.subdomain,
+    })),
+  })
+  const instance = await link(instanceName)
+  console.log(`Linked ${instance.subdomain}`)
 }
 
 export const LinkCommand = () => {
   return new Command(`link`)
     .argument(`[instance]`, `Instance name or ID`)
     .description(`Link a local directory to a remote instance`)
-    .action(async (_anyName) => {
-      if (_anyName) {
-        const instance = await link(_anyName)
-        if (!instance) {
-          console.error(`Instance ${_anyName} not found`)
-          process.exit(1)
-        }
+    .action(async (anyName?: string) => {
+      if (anyName) {
+        const instance = await link(anyName)
         console.log(`Linked ${instance.subdomain}`)
         return
       }

@@ -55,8 +55,8 @@
 <FeatureTab title="API Tokens" documentation="/docs/deploy-from-ci" bind:errorMessage {successMessage} successFlash>
   <svelte:fragment slot="summary">
     <p>
-      Personal access tokens let the <code>pockethost</code> CLI deploy without your password or an SSH key, which is what
-      CI needs. Give each token only the instances it needs, and revoke it here if it leaks.
+      The <code>pockethost</code> CLI signs in with a personal access token, on your computer and in CI. Give each token only
+      the instances it needs, and revoke it here if it leaks.
     </p>
   </svelte:fragment>
 
@@ -76,7 +76,8 @@
         <p class="font-semibold">Token "{created.label}" created. Copy it now: you won't see it again.</p>
         <CopyField text={created.token} />
         <p class="text-sm text-white/70">
-          Save it as a CI secret named <code>POCKETHOST_TOKEN</code>, or run <code>pockethost token set</code> on your machine.
+          Paste it into <code>pockethost login</code> on your machine, or save it as a CI secret named
+          <code>POCKETHOST_TOKEN</code>.
         </p>
         <wa-button size="s" appearance="outline" onclick={() => (created = null)}>Done</wa-button>
       </div>

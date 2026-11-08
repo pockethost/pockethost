@@ -1,60 +1,46 @@
-import { input, password } from '@inquirer/prompts'
+import { spawn } from 'child_process'
 import { Command } from 'commander'
-import { config } from '../lib/config'
-import { USERNAME } from '../lib/constants'
-import { login } from './../lib/getClient'
+import { TOKENS_URL } from '../lib/token'
 import { saveToken } from './TokenCommand'
 
-const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+/** Best effort: open the tokens page in the default browser. Silent when there is no desktop (SSH, CI). */
+const openBrowser = (url: string) => {
+  const [cmd, args] =
+    process.platform === 'darwin'
+      ? ['open', [url]]
+      : process.platform === 'win32'
+        ? ['cmd', ['/c', 'start', '', url]]
+        : ['xdg-open', [url]]
+  try {
+    const child = spawn(cmd, args as string[], {
+      stdio: 'ignore',
+      detached: true,
+    })
+    child.on('error', () => {})
+    child.unref()
+  } catch {
+    // ignore
+  }
+}
 
 export const loginWithUserInput = async () => {
-  if (USERNAME()) {
-    throw new Error(
-      'Cannot login with username and password if POCKETHOST_USERNAME is set'
-    )
-  }
-
-  while (true) {
-    const email = await input({
-      message: 'Enter your pockethost.io email address',
-      default: config('email'),
-      validate: (input: string) => {
-        if (!isValidEmail(input)) {
-          return 'Invalid email address'
-        }
-        return true
-      },
-    })
-
-    const pw = await password({
-      message: 'Enter your pockethost.io password',
-    })
-
-    config(`email`, email)
-
-    try {
-      const authStore = await login(email, pw)
-
-      config(`pb_auth`, authStore.exportToCookie())
-    } catch (e) {
-      console.error(
-        `There was an error logging in. Please try again or go to https://pockethost.io to reset your password. (${e})`
-      )
-      continue
-    }
-
-    break
-  }
-  console.log(`Logged in!`)
+  console.log(`The PocketHost CLI signs in with a personal access token.`)
+  console.log(
+    `Create one at ${TOKENS_URL} (opening it in your browser), then paste it here.`
+  )
+  openBrowser(TOKENS_URL)
+  await saveToken()
 }
 
 export const LoginCommand = () =>
   new Command('login')
-    .description(`Log in to PocketHost (email/password, or --token)`)
-    .option(`--token [token]`, `Log in with a personal access token instead`)
-    .action(async (opts: { token?: string | boolean }) => {
-      if (opts.token !== undefined) {
-        await saveToken(typeof opts.token === 'string' ? opts.token : undefined)
+    .description(`Save a personal access token for this computer`)
+    .argument('[token]', 'Token (ph_pat_…); prompts when omitted')
+    .option(`--token <token>`, `Same as passing the token as an argument`)
+    .action(async (token: string | undefined, opts: { token?: string }) => {
+      const given = token ?? opts.token
+      if (given) {
+        await saveToken(given)
         return
       }
       await loginWithUserInput()

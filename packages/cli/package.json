@@ -1,6 +1,6 @@
 {
   "name": "pockethost",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "description": "The PocketHost CLI: deploy, sync, and tail logs for your PocketHost instances",
   "repository": {
     "type": "git",
@@ -56,7 +56,6 @@
     "glob": "^13.0.6",
     "multimatch": "^8.0.0",
     "ora": "^9.4.0",
-    "pocketbase": "^0.27.0",
     "pretty-bytes": "^7.1.0",
     "pretty-ms": "^9.3.0",
     "tsx": "^4.22.4",

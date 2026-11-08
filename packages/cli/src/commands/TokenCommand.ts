@@ -6,11 +6,11 @@ import {
   describeToken,
   isPat,
   maskToken,
+  legacyLoginHint,
   savedToken,
   tokenWhoami,
+  TOKENS_URL,
 } from '../lib/token'
-
-const TOKENS_URL = 'https://app.pockethost.io/account/tokens'
 
 /** Verifies a token with PocketHost and saves it to the config folder. */
 export const saveToken = async (raw?: string) => {
@@ -28,7 +28,13 @@ export const saveToken = async (raw?: string) => {
   }
   const who = await tokenWhoami(token)
   config('token', token)
+  config('pb_auth', '')
   console.log(`Saved token ${describeToken(who)}`)
+  if (TOKEN() && TOKEN().trim() !== token) {
+    console.log(
+      `Note: POCKETHOST_TOKEN is set in your environment and takes precedence over the saved token.`
+    )
+  }
 }
 
 export const showTokenStatus = async () => {
@@ -36,7 +42,7 @@ export const showTokenStatus = async () => {
   const token = env || savedToken()
   if (!token) {
     console.log(
-      `No token. Set POCKETHOST_TOKEN or run 'pockethost token set'. Create one at ${TOKENS_URL}`
+      `Not logged in. Run 'pockethost login', or set POCKETHOST_TOKEN in CI. Create a token at ${TOKENS_URL}.${legacyLoginHint()}`
     )
     return
   }
@@ -53,7 +59,7 @@ export const showTokenStatus = async () => {
 
 export const TokenCommand = () =>
   new Command('token')
-    .description(`Manage the personal access token used for deploys`)
+    .description(`Show, save or remove the personal access token the CLI uses`)
     .addCommand(
       new Command('set')
         .argument('[token]', 'Token (ph_pat_…); prompts when omitted')

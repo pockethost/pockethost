@@ -5,11 +5,10 @@ import Bottleneck from 'bottleneck'
 import { watch } from 'chokidar'
 import { Command } from 'commander'
 import multimatch from 'multimatch'
-import { ensureDeployKey } from '../lib/deployKey'
 import { PROJECT_CONFIG_FILE } from '../lib/constants'
 import { SFTP_HOST, SFTP_PORT } from '../lib/sftpConnection'
-import { ensureLoggedIn } from '../lib/ensureLoggedIn'
-import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
+import { sftpCredentials } from '../lib/sftpAuth'
+import { findInstance } from '../lib/token'
 import { savedInstanceName } from './../lib/defaultInstanceId'
 import { createDeployClient, deployViaApi } from '../lib/deployApi'
 import { resolveDeployCredential } from '../lib/token'
@@ -51,12 +50,8 @@ export const watchAndDeploy = async (
 
   const subdomain = await (async () => {
     if (sftp) {
-      await ensureLoggedIn()
-      try {
-        return (await getInstanceBySubdomainCnameOrId(instanceName)).subdomain
-      } catch (error) {
-        throw new Error(`Instance ${instanceName} not found`)
-      }
+      await sftpCredentials()
+      return (await findInstance(instanceName)).subdomain
     }
     // Fail fast on a bad token or instance name before watching.
     const { instance } = await createDeployClient(
@@ -123,20 +118,14 @@ export async function deployMyCode(
   return deployMyCodeOverSftp(instanceName, include, exclude, verbose)
 }
 
-/** Legacy SFTP sync (`--sftp`). Needs an email/password login and registers an SSH deploy key. */
+/** SFTP sync (`--sftp`). Uses the CLI's SSH key, which must already be on your account (Account → Keys). */
 async function deployMyCodeOverSftp(
   instanceName: string,
   include: string[],
   exclude: string[],
   verbose: boolean
 ) {
-  await ensureLoggedIn()
-  const client = await getClient()
-  const { privateKeyPath } = await ensureDeployKey(client)
-  const email = client.authStore.record?.email
-  if (!email) {
-    throw new Error(`You must be logged in first. Use 'pockethost login'`)
-  }
+  const { email, privateKeyPath } = await sftpCredentials()
 
   console.log(`🚚 Deploy started for ${instanceName}`)
   const args: IFtpDeployArguments = {

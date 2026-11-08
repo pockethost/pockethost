@@ -12,14 +12,24 @@ That's it. No password in CI, no SSH key, no `known_hosts` dance. Full walkthrou
 
 Head to **[Account → API Tokens](/account/tokens)** and create one. Each token:
 
-- can **deploy**, or only **read**
+- can **deploy**, or only **read** (list instances and tail logs)
 - works on **all your instances** or **just the ones you pick**
 - expires after 30 days, 90 days, a year, or never
 - can be revoked any time, and stops working within about 30 seconds
 
 You see the token once, when you create it. PocketHost keeps only a hash. Tokens start with `ph_pat_`, so a leaked one is easy to search for. A token can deploy, but it can't delete instances, touch billing, manage keys or other tokens, or log in to the dashboard.
 
-On your own machine, `pockethost token set` saves one so you never type a password either.
+### The CLI signs in with tokens, everywhere
+
+Tokens aren't just for CI. They're now the only way the `pockethost` CLI signs in. On your own machine, `pockethost login` opens the tokens page in your browser and saves the token you paste, so the CLI never sees your password. Every command uses the token: `deploy`, `dev`, `list`, `link`, and `logs`. That means CI can tail logs after a deploy too:
+
+```yaml
+- run: npx pockethost@latest logs my-app -n 50
+  env:
+    POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
+```
+
+The CLI only sees the instances its token can reach, so a token for one project can't list or touch the others.
 
 ### Deploys got faster
 
@@ -55,6 +65,10 @@ Every deploy is recorded with its time, file count, and commit SHA (picked up fr
 
 ### Upgrading
 
-You need CLI **3.1.0** or newer. `npx pockethost@latest` always gets it; global installs can run `npm install -g pockethost`. Email/password login still works, and `--sftp` brings back the old sync if you need it.
+You need CLI **4.0.0** or newer. `npx pockethost@latest` always gets it; global installs can run `npm install -g pockethost`.
+
+- **On your machine:** run `pockethost login` once. A login saved by an older version no longer works.
+- **In CI:** replace `POCKETHOST_USERNAME`/`POCKETHOST_PASSWORD` with a `POCKETHOST_TOKEN` secret.
+- **`--sftp` and `pockethost sftp`** still work. The CLI no longer adds its SSH key to your account for you, so add it under **[Account → Keys](/account/keys)** once. If it's missing, the CLI prints the line to paste. Keys you already have keep working.
 
 Questions or rough edges? Tell me on [Discord](https://discord.gg/nVTxCMEcGT).

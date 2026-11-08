@@ -1,9 +1,9 @@
 import { config } from './config'
-import { MOTHERSHIP_URL, TOKEN, USERNAME } from './constants'
-import { getClient } from './getClient'
+import { envVar, MOTHERSHIP_URL, TOKEN } from './constants'
 
 export const PAT_PREFIX = 'ph_pat_'
 const PAT_RE = /^ph_pat_[a-z0-9]{15}_[0-9A-Za-z]{43}$/
+export const TOKENS_URL = 'https://app.pockethost.io/account/tokens'
 
 export const isPat = (v: string) => PAT_RE.test(v.trim())
 
@@ -13,33 +13,59 @@ export const maskToken = (token: string) =>
 
 export type DeployCredential = {
   token: string
-  kind: 'pat' | 'login'
   /** Where it came from, for messages */
-  source: string
+  source: 'POCKETHOST_TOKEN' | 'saved token'
 }
 
 export const savedToken = () => config('token') || ''
 
-/**
- * Picks the credential for the deploy API: POCKETHOST_TOKEN, then a saved token, then the email/password login
- * (POCKETHOST_USERNAME/PASSWORD or `pockethost login`). Tokens never need a password or SSH key, so they work on
- * fresh CI runners.
- */
+/** Explains what changed for people upgrading from 3.x, who may still have a password set up. */
+export const legacyLoginHint = () => {
+  if (envVar('USERNAME') || envVar('PASSWORD')) {
+    return ` POCKETHOST_USERNAME/POCKETHOST_PASSWORD are no longer used: the CLI signs in with a token only. Replace them with POCKETHOST_TOKEN.`
+  }
+  if (config('pb_auth')) {
+    return ` Email/password login was removed in CLI 4.0, so your old login no longer works. Run 'pockethost login' to switch to a token.`
+  }
+  return ''
+}
+
+/** The personal access token every command uses: POCKETHOST_TOKEN, then the one saved by `pockethost login`. */
 export const resolveDeployCredential = async (): Promise<DeployCredential> => {
   const env = TOKEN().trim()
-  if (env) return { token: env, kind: 'pat', source: 'POCKETHOST_TOKEN' }
+  if (env) return { token: env, source: 'POCKETHOST_TOKEN' }
   const saved = savedToken().trim()
-  if (saved && !USERNAME())
-    return { token: saved, kind: 'pat', source: 'saved token' }
-
-  const client = await getClient()
-  if (client.authStore.isValid && client.authStore.token) {
-    const email = (client.authStore.record?.email as string) || 'login'
-    return { token: client.authStore.token, kind: 'login', source: email }
-  }
+  if (saved) return { token: saved, source: 'saved token' }
   throw new Error(
-    `Not authenticated. Set POCKETHOST_TOKEN (create a token at https://app.pockethost.io/account/tokens), run 'pockethost token set', or run 'pockethost login'.`
+    `Not logged in. Run 'pockethost login', or set POCKETHOST_TOKEN in CI. Create a token at ${TOKENS_URL}.${legacyLoginHint()}`
   )
+}
+
+const mothershipGet = async <T>(
+  path: string,
+  token: string,
+  query: Record<string, string> = {}
+): Promise<T> => {
+  const url = new URL(MOTHERSHIP_URL(path))
+  for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v)
+  let res: Response
+  try {
+    res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+  } catch (e) {
+    throw new Error(`Could not reach PocketHost: ${(e as Error).message}`)
+  }
+  const body = (await res.json().catch(() => ({}))) as T & {
+    message?: string
+  }
+  if (!res.ok) {
+    const msg = body.message || `HTTP ${res.status}`
+    throw new Error(
+      res.status === 401
+        ? `Token rejected: ${msg} Create a new one at ${TOKENS_URL}.`
+        : msg
+    )
+  }
+  return body
 }
 
 export type TokenWhoami = {
@@ -49,20 +75,52 @@ export type TokenWhoami = {
   scopes: string[]
   instances: { id: string; subdomain: string }[] | null
   expires: string
+  /** Present only when a fingerprint was sent */
+  sshKey?: { label: string } | null
 }
 
-export const tokenWhoami = async (token: string): Promise<TokenWhoami> => {
-  const res = await fetch(MOTHERSHIP_URL('/api/pat/whoami'), {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  const body = (await res.json().catch(() => ({}))) as TokenWhoami & {
-    message?: string
-  }
-  if (!res.ok) {
-    throw new Error(body.message || `Token check failed (HTTP ${res.status})`)
-  }
-  return body
+export const tokenWhoami = (token: string, fingerprint?: string) =>
+  mothershipGet<TokenWhoami>(
+    '/api/pat/whoami',
+    token,
+    fingerprint ? { fingerprint } : {}
+  )
+
+export type InstanceSummary = {
+  id: string
+  subdomain: string
+  cname: string
+  status: string
+  power: boolean
+  version: string
 }
+
+/** The instances this token can reach. */
+export const listInstances = async (cred?: DeployCredential) => {
+  const { token } = cred ?? (await resolveDeployCredential())
+  const { instances } = await mothershipGet<{ instances: InstanceSummary[] }>(
+    '/api/pat/instances',
+    token
+  )
+  return instances
+}
+
+/** Finds an instance by ID, subdomain or custom domain among the ones this token can reach. */
+export const findInstance = async (search: string, cred?: DeployCredential) => {
+  const s = search.trim().toLowerCase()
+  const instance = (await listInstances(cred)).find(
+    (i) => i.id === search || i.subdomain === s || (!!i.cname && i.cname === s)
+  )
+  if (!instance) {
+    throw new Error(
+      `Instance '${search}' not found, or your token can't access it.`
+    )
+  }
+  return instance
+}
+
+export const formatInstance = (i: InstanceSummary) =>
+  `${i.subdomain} (${i.id})${i.cname ? ` (${i.cname})` : ''} (${(i.status || (i.power ? 'on' : 'off')).toUpperCase()})`
 
 export const describeToken = (w: TokenWhoami) => {
   const scope = w.instances

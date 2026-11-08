@@ -24,3 +24,7 @@ routerAdd(
 routerAdd('GET', '/api/pat/whoami', (e) => {
   return require(`${__hooks}/mothership`).HandlePatWhoami(e)
 })
+
+routerAdd('GET', '/api/pat/instances', (e) => {
+  return require(`${__hooks}/mothership`).HandlePatInstances(e)
+})
