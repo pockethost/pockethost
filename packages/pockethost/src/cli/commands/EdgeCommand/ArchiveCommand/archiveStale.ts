@@ -1,5 +1,6 @@
 import {
   ARCHIVE_DEFAULTS,
+  ARCHIVE_REASON_SUPPORT,
   DISCORD_ALERT_CHANNEL_URL,
   INSTANCES_ROOT,
   InstanceFields,
@@ -411,6 +412,91 @@ const postDiscord = async (content: string) => {
     headers: { 'Content-Type': `application/json` },
     body: JSON.stringify({ content }),
   }).catch(() => {})
+}
+
+/* ---------- Single instance ---------- */
+
+export type ArchiveInstanceOptions = {
+  apply?: boolean
+  retentionDays?: number
+  /** How long to wait for the edge daemon to stop the instance after suspending it. */
+  stopTimeoutMs?: number
+}
+
+/**
+ * Archive one instance on any plan (e.g. a fair-use case), the same way the stale job does: suspend, wait for it to
+ * stop, upload, verify, delete local data. No email is sent; the signed download link is printed so it can go in a
+ * personal reply. The daily stale job's expiry pass deletes the archive after the retention period.
+ */
+export const archiveInstance = async (
+  instanceId: string,
+  { apply = false, retentionDays = ARCHIVE_DEFAULTS.retentionDays, stopTimeoutMs = 60_000 }: ArchiveInstanceOptions = {}
+) => {
+  const { info } = logger().create(`archiveInstance`)
+  const mode = apply ? `APPLY` : `DRY RUN`
+  const remote = PH_ARCHIVE_REMOTE()
+  const linkSecret = PH_ARCHIVE_LINK_SECRET()
+  if (!linkSecret) throw new Error(`PH_ARCHIVE_LINK_SECRET (or PH_SECRET) must be set to sign download links`)
+
+  const pb = await connect()
+  const instance = await pb.collection(`instances`).getOne<Candidate>(instanceId, { expand: `uid` })
+  if (isArchivedSuspension(instance.suspension))
+    throw new Error(`${instance.subdomain} (${instanceId}) is already archived`)
+  const dir = mkInstanceDataPath(instanceId)
+  if (!existsSync(dir)) throw new Error(`${dir} does not exist; nothing to archive`)
+
+  const bytes = await dirSizeBytes(dir)
+  const owner = instance.expand?.uid
+  const label = `${instance.subdomain} (${instanceId}, ${formatBytes(bytes)}, owner ${owner?.email ?? instance.uid}, plan ${owner?.subscription ?? `?`})`
+  const deleteDate = new Date(Date.now() + retentionDays * MS_PER_DAY)
+  info(`[${mode}] ${label} -> ${remote}, archive kept until ${fmtDate(deleteDate)}`)
+  if (!apply) return
+
+  const revert = () =>
+    pb
+      .collection(`instances`)
+      .update(instanceId, { suspension: instance.suspension })
+      .catch((e) => logger().create(`archiveInstance`).error(`could not reset suspension for ${instanceId}`, e))
+
+  await pb.collection(`instances`).update(instanceId, {
+    suspension: pushSuspension(
+      mkArchivedSuspension(deleteDate, { reason: ARCHIVE_REASON_SUPPORT }),
+      instance.suspension
+    ),
+  })
+  info(`Suspended; waiting for it to stop`)
+
+  // A suspended instance is stopped by the edge daemon once the change reaches it through the mothership mirror.
+  const deadline = Date.now() + stopTimeoutMs
+  await sleep(SUSPENSION_SETTLE_MS)
+  while ((await listRunningInstanceContainers()).some((c) => c.instanceId === instanceId)) {
+    if (Date.now() > deadline) {
+      await revert()
+      throw new Error(`${instanceId} is still running after ${stopTimeoutMs}ms; suspension reverted`)
+    }
+    await sleep(2000)
+  }
+
+  try {
+    const digest = await uploadInstanceArchive(resolve(INSTANCES_ROOT()), instanceId, remote)
+    await verifyInstanceArchive(remote, instanceId, digest)
+    rmSync(dir, { recursive: true, force: true })
+    const link = mkArchiveDownloadUrl(
+      PH_ARCHIVE_LINK_ORIGIN(),
+      instanceId,
+      Math.floor(deleteDate.getTime() / 1000),
+      linkSecret
+    )
+    const line = `[archive-instance] archived ${label} -> ${formatBytes(digest.bytes)} compressed`
+    info(line)
+    info(`Download link (works until ${fmtDate(deleteDate)}):\n${link}`)
+    info(`Restore with: pnpm prod:cli edge archive restore ${instanceId}`)
+    await postDiscord(line)
+  } catch (e) {
+    await revert()
+    await deleteInstanceArchive(remote, instanceId).catch(() => {})
+    throw e
+  }
 }
 
 /* ---------- Restore ---------- */

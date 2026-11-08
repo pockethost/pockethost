@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ARCHIVE_REASON_SUPPORT,
   MS_PER_DAY,
   isArchiveExpired,
   isArchivedSuspension,
@@ -63,6 +64,12 @@ describe(`suspension text`, () => {
     expect(mkArchivedSuspension(d)).not.toMatch(/email/i)
     expect(mkArchivedSuspension(d)).toContain(`Contact support before 2027-05-05`)
     expect(mkArchivedSuspension(d, { emailed: true })).toMatch(/email/i)
+    expect(mkArchivedSuspension(d)).toContain(`after 12 months of inactivity`)
+    const support = mkArchivedSuspension(d, { reason: ARCHIVE_REASON_SUPPORT })
+    expect(support).toContain(`archived by PocketHost support.`)
+    expect(support).not.toMatch(/inactivity/)
+    expect(isArchivedSuspension(support)).toBe(true)
+    expect(mkArchiveExpiredSuspension()).not.toMatch(/inactivity/)
   })
   it(`includes the deletion date`, () => {
     expect(mkArchivedSuspension(new Date(`2027-05-05T12:00:00Z`))).toContain(`2027-05-05`)

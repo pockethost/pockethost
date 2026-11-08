@@ -78,6 +78,19 @@ export const ArchiveCommand = () => {
     })
 
   cmd
+    .command(`instance <instanceId>`)
+    .description(
+      `Archive one instance on any plan: suspend, upload, verify, delete local data, and print a signed download link (no email)`
+    )
+    .option(`--apply`, `Actually archive (default is a dry run)`, false)
+    .option(`--retention-days <days>`, `Days to keep the archive`, int, ARCHIVE_DEFAULTS.retentionDays)
+    .action(async (instanceId: string, { apply, retentionDays }) => {
+      logger().context({ cli: 'edge:archive:instance' })
+      const { archiveInstance } = await import('./archiveStale')
+      await archiveInstance(instanceId, { apply, retentionDays })
+    })
+
+  cmd
     .command(`restore <instanceId>`)
     .description(`Restore an archived instance's data and clear its suspension`)
     .action(async (instanceId: string) => {
