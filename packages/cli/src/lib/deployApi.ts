@@ -11,19 +11,33 @@ import { isCodePath } from './codeSet'
 import { INSTANCE_URL } from './constants'
 import { mergeDeployExcludes } from './deployIncludes'
 import { batchBySize, encodeBundle, sha256 } from './deployBundle'
+import {
+  collectNodeModules,
+  hasRuntimeDependencies,
+  type NodeModulesResult,
+} from './nodeModules'
 import { resolveDeployCredential, type DeployCredential } from './token'
 
 export const DEPLOY_API_PREFIX = '/_ph/deploy/v1'
 /** Raw bytes per upload request (gzip makes it smaller; Cloudflare allows 100 MB). */
 export const UPLOAD_BATCH_BYTES = 32 * 1024 * 1024
 
-export type LocalFile = { path: string; hash: string; size: number }
+export type LocalFile = {
+  /** Logical path relative to the instance root */
+  path: string
+  hash: string
+  size: number
+  /** Absolute path of the real file on disk (differs from `path` for node_modules entries) */
+  source: string
+}
 
 export type DeployApiOptions = {
   instanceName: string
   include: string[]
   exclude: string[]
   verbose?: boolean
+  /** Ship the production node_modules tree (see nodeModules.ts). Default: when package.json has dependencies. */
+  nodeModules?: boolean
   commit?: string
   message?: string
   cwd?: string
@@ -58,12 +72,13 @@ export class DeployApiError extends Error {
 
 /**
  * Lists local files with the same include/exclude rules as the SFTP deploy (plus dotfiles; `.git*` and node_modules
- * stay excluded), then hashes them.
+ * stay excluded), then hashes them. With `nodeModules`, also adds the production node_modules tree as plain files.
  */
 export const collectLocalFiles = async (
   include: string[],
   exclude: string[],
-  cwd = process.cwd()
+  cwd = process.cwd(),
+  options: { nodeModules?: boolean } = {}
 ) => {
   const matches = globSync(include, {
     ignore: mergeDeployExcludes(excludeDefaults, exclude),
@@ -86,9 +101,51 @@ export const collectLocalFiles = async (
       skipped.push(path)
       continue
     }
-    files.push({ path, size: st.size, hash: sha256(await readFile(abs)) })
+    files.push({
+      path,
+      size: st.size,
+      hash: sha256(await readFile(abs)),
+      source: abs,
+    })
   }
-  return { files, skipped }
+  let nodeModules: NodeModulesResult | null = null
+  if (options.nodeModules ?? hasRuntimeDependencies(cwd)) {
+    nodeModules = collectNodeModules(cwd)
+    for (const f of nodeModules.files) {
+      const data = await readFile(f.source)
+      files.push({
+        path: f.path,
+        size: data.length,
+        hash: sha256(data),
+        source: f.source,
+      })
+    }
+  }
+  return { files, skipped, nodeModules }
+}
+
+export const assertNodeModulesComplete = (nm: NodeModulesResult | null) => {
+  if (nm && nm.missing.length > 0) {
+    throw new Error(
+      `Not deploying: ${nm.missing.length} required package(s) are missing from node_modules`
+    )
+  }
+}
+
+/** One-line summary of the node_modules part of a deploy set, plus a warning for missing packages. */
+export const describeNodeModules = (nm: NodeModulesResult | null) => {
+  if (!nm) return []
+  const lines = [
+    `📦 node_modules: ${nm.packages.length} package(s), ${nm.files.length} file(s)`,
+  ]
+  if (nm.missing.length > 0) {
+    lines.push(
+      `⚠️  ${nm.missing.length} required package(s) not installed: ${nm.missing
+        .map((m) => `${m.name} (required by ${m.requiredBy})`)
+        .join(', ')}. Run your package manager's install first.`
+    )
+  }
+  return lines
 }
 
 const detectCommit = (cwd: string) => {
@@ -215,11 +272,14 @@ export const deployViaApi = async (opts: DeployApiOptions) => {
   const cred = await resolveDeployCredential()
   const client = createDeployClient(opts.instanceName, cred)
 
-  const { files, skipped } = await collectLocalFiles(
+  const { files, skipped, nodeModules } = await collectLocalFiles(
     opts.include,
     opts.exclude,
-    cwd
+    cwd,
+    { nodeModules: opts.nodeModules }
   )
+  for (const line of describeNodeModules(nodeModules)) log(line)
+  assertNodeModulesComplete(nodeModules)
   if (skipped.length > 0) {
     log(
       `⚠️  Skipping ${skipped.length} file(s) outside the deployable set (pb_* except pb_data, package.json, bun.lock(b), patches/)${opts.verbose ? `: ${skipped.join(', ')}` : ''}`
@@ -242,9 +302,7 @@ export const deployViaApi = async (opts: DeployApiOptions) => {
     const bytes = toSend.reduce((n, f) => n + f.size, 0)
     log(`⬆️  Uploading ${toSend.length} file(s) (${prettyBytes(bytes)})`)
     for (const batch of batchBySize(toSend, UPLOAD_BATCH_BYTES)) {
-      const buffers = await Promise.all(
-        batch.map((f) => readFile(`${cwd}/${f.path}`))
-      )
+      const buffers = await Promise.all(batch.map((f) => readFile(f.source)))
       for (let i = 0; i < batch.length; i++) {
         if (sha256(buffers[i]!) !== batch[i]!.hash) {
           throw new Error(

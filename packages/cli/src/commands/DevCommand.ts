@@ -97,7 +97,12 @@ export async function deployMyCode(
   include: string[],
   exclude: string[],
   verbose: boolean,
-  extra: { sftp?: boolean; commit?: string; message?: string } = {}
+  extra: {
+    sftp?: boolean
+    commit?: string
+    message?: string
+    nodeModules?: boolean
+  } = {}
 ) {
   if (!instanceName) {
     throw new Error(
@@ -110,6 +115,7 @@ export async function deployMyCode(
       include,
       exclude,
       verbose,
+      nodeModules: extra.nodeModules,
       commit: extra.commit,
       message: extra.message,
     })
