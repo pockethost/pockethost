@@ -12,13 +12,13 @@ import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { compare, parse, prerelease, rcompare, valid } from 'semver'
+import { rcompare, valid } from 'semver'
+import { fetchUpstreamVersions, findMissingVersions } from '../src/services/PocketBaseBinaryService/upstream'
 
 const MANIFEST_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
   '../src/services/PocketBaseBinaryService/versions.json'
 )
-const UPSTREAM_GIT_REFS = 'https://ganigeorgiev.com/git/pocketbase/pocketbase/info/refs?service=git-upload-pack'
 const PLATFORMS = ['linux_amd64', 'linux_arm64'] as const
 const HOST_ORDER = ['gani', 'github'] as const
 
@@ -89,32 +89,9 @@ const add = async (versions: string[]) => {
   }
 }
 
-const upstreamVersions = async () => {
-  const res = await fetch(UPSTREAM_GIT_REFS)
-  if (!res.ok) throw new Error(`GET ${UPSTREAM_GIT_REFS} failed (${res.status})`)
-  const tags = new Set<string>()
-  for (const [, tag] of (await res.text()).matchAll(/refs\/tags\/v([^\s^]+)/g)) {
-    const version = parse(tag)
-    if (version && !prerelease(version)) tags.add(version.format())
-  }
-  return [...tags].sort(compare)
-}
-
-/** Upstream releases newer than everything the manifest has for the same minor. */
+/** Upstream releases the manifest is missing. */
 const check = async () => {
-  const known = Object.keys(readManifest().versions)
-  const newestKnownByMinor = new Map<string, string>()
-  for (const version of known) {
-    const key = version.split('.').slice(0, 2).join('.')
-    const current = newestKnownByMinor.get(key)
-    if (!current || compare(version, current) > 0) newestKnownByMinor.set(key, version)
-  }
-  const newestKnown = known.sort(rcompare)[0]
-
-  const missing = (await upstreamVersions()).filter((version) => {
-    const current = newestKnownByMinor.get(version.split('.').slice(0, 2).join('.'))
-    return current ? compare(version, current) > 0 : !newestKnown || compare(version, newestKnown) > 0
-  })
+  const missing = findMissingVersions(Object.keys(readManifest().versions), await fetchUpstreamVersions())
 
   if (!missing.length) {
     console.log('Manifest is up to date with upstream tags.')

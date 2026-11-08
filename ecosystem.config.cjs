@@ -23,6 +23,12 @@ module.exports = {
       script: 'pnpm prod:cli pocketbase update',
     },
     {
+      // Alerts DISCORD_ALERT_CHANNEL_URL when upstream has releases missing from versions.json.
+      name: `pocketbase-check`,
+      restart_delay: 60 * 60 * 1000 * 24, // 1 day
+      script: 'pnpm prod:cli pocketbase check',
+    },
+    {
       name: `health-check`,
       restart_delay: 60 * 1000, // 1 minute
       script: 'pnpm prod:cli health check',
