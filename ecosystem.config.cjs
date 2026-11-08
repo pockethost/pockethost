@@ -64,5 +64,12 @@ module.exports = {
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
       script: 'pnpm prod:cli edge disk-usage',
     },
+    {
+      // Accounts running more instances than their plan includes get a warning email; 24 hours later the least
+      // recently used extras are powered off. Hourly, so the power-off lands close to the 24-hour mark. ~5s per run.
+      name: `edge-over-limit`,
+      restart_delay: 60 * 60 * 1000, // 1 hour
+      script: 'pnpm prod:cli edge over-limit --apply',
+    },
   ],
 }
