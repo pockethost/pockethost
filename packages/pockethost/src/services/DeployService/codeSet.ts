@@ -44,10 +44,6 @@ export const isCodePath = (p: string) => {
   return first.startsWith('pb_') || first === PATCHES_DIR
 }
 
-/** True when changing this path should trigger `bun install`. */
-export const isPackagePath = (p: string) =>
-  (ROOT_CODE_FILES as readonly string[]).includes(p) || p.startsWith(`${PATCHES_DIR}/`)
-
 export type Manifest = Record<string, string>
 
 export class ManifestError extends Error {}

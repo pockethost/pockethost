@@ -1,8 +1,7 @@
 import { InstanceFields, Logger, PocketBase, UserFields, ensureInstanceDirectoryStructure } from '@'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
-import { dirname, isAbsolute, join, normalize, resolve, sep } from 'path'
+import { isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
-import { checkBun } from './bunSideEffects'
 import { InstanceVfsUserError, assertInstanceContext, isExpectedVfsClientError, isVfsNotFoundError } from './errors'
 import * as fsAsync from './fs-async'
 import { POWERED_OFF_ONLY } from './guards'
@@ -251,9 +250,7 @@ export class InstanceVfs {
     stream.once('close', () => {
       const virtualPath = join(this.cwd, fileName)
       dbg(`write(${virtualPath}) closing`)
-      stream.end(() => {
-        checkBun(instance, virtualPath, dirname(fsPath), logger)
-      })
+      stream.end()
     })
     return {
       stream,

@@ -143,9 +143,11 @@ Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can d
 1. The CLI collects the files matched by the include/exclude globs and hashes them.
 2. It sends the list to `https://<instance>.pockethost.io`, and PocketHost replies with the files it doesn't have yet.
 3. Only those files are uploaded, compressed.
-4. PocketHost swaps the new file set in all at once. If hooks, migrations, or packages changed, the instance is stopped for the swap and started again. Changes to `pb_public` alone go live without a restart. If `package.json`, `bun.lock`, or `patches/` changed, `bun install` runs first.
+4. PocketHost swaps the new file set in all at once. If anything outside `pb_public` changed, the instance is stopped for the swap and started again. Changes to `pb_public` alone go live without a restart.
 
 `pb_data`, `node_modules`, `.git*` files, and anything else outside `pb_*` folders, `package.json`, `bun.lock(b)`, and `patches/` are never touched.
+
+PocketHost doesn't install npm packages: `package.json`, `bun.lock`, and `patches/` are copied as plain files, with `--sftp` too. To use an npm package in your hooks, bundle it into a single file in `pb_hooks` (for example with esbuild) and `require()` it. See **[npm packages](/docs/deploy-from-ci#npm-packages)**.
 
 **Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, copy them into your project first.
 

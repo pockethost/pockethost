@@ -73,8 +73,11 @@ Older project files (`.phioconfig`, `package.json` → `pockethost.instanceName`
 
 1. Send a manifest of `{ path: sha256 }` for the matched files.
 2. Upload only the files the server is missing, as one gzip bundle per ~32 MB.
-3. Commit: the server swaps the file set in atomically (stopping the instance when hooks, migrations or packages
-   change), runs `bun install` if package files changed, and starts the instance again.
+3. Commit: the server swaps the file set in atomically (stopping the instance when anything outside `pb_public`
+   changes) and starts the instance again.
+
+PocketHost doesn't install npm packages. `package.json`, `bun.lock(b)` and `patches/` are copied as plain files. Bundle
+any npm code your hooks need into `pb_hooks`.
 
 Only `pb_*` folders (never `pb_data`), `package.json`, `bun.lock(b)` and `patches/` are deployed. Files in those folders
 on the instance that aren't in your project are removed. `node_modules` and `.git*` are never touched.

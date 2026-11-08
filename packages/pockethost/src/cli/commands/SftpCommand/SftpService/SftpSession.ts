@@ -1,7 +1,6 @@
 import { InstanceFields, Logger } from '@'
 import { open, stat } from 'fs/promises'
 import ssh2 from 'ssh2'
-import { checkBun } from '../../../../services/InstanceFileAccess'
 import { isExpectedVfsClientError, isVfsNotFoundError } from '../../../../services/InstanceFileAccess/errors'
 import { InstanceVfs, VfsEntry } from '../../../../services/InstanceFileAccess/InstanceVfs'
 
@@ -247,9 +246,6 @@ export const attachSftpSession = (sftp: SFTPWrapper, vfs: InstanceVfs, logger: L
       state.fh
         .close()
         .then(() => {
-          if (state.isWrite && state.instance) {
-            checkBun(state.instance, state.virtualPath, state.fsPath, logger)
-          }
           sftp.status(reqid, STATUS_CODE.OK)
         })
         .catch((err) => {

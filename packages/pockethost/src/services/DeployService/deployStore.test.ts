@@ -90,7 +90,6 @@ describe('createDeployStore', () => {
     expect(r.written.sort()).toEqual(['pb_hooks/copy-of-keep.pb.js', 'pb_hooks/new.pb.js', 'pb_public/index.html'])
     expect(r.deleted.sort()).toEqual(['pb_hooks/old.pb.js', 'pb_public/sub/dir/page.html'])
     expect(r.unchanged).toBe(1)
-    expect(r.packagesChanged).toBe(false)
     expect(read('pb_hooks/new.pb.js')).toBe('new')
     expect(read('pb_hooks/copy-of-keep.pb.js')).toBe('keep')
     expect(existsSync(join(instanceDir, 'pb_hooks/old.pb.js'))).toBe(false)
@@ -112,14 +111,6 @@ describe('createDeployStore', () => {
     await store.apply(manifest, await store.stage(manifest))
     expect(read('pb_public/a/index.html')).toBe('x')
     expect(read('pb_public/b')).toBe('x')
-  })
-
-  it('flags package changes', async () => {
-    const store = createDeployStore(storeDir, instanceDir)
-    await store.putBlob(sha('{}'), Buffer.from('{}'))
-    const manifest = { 'package.json': sha('{}') }
-    const r = await store.apply(manifest, await store.stage(manifest))
-    expect(r.packagesChanged).toBe(true)
   })
 
   it('throws MissingBlobsError and leaves the instance untouched', async () => {

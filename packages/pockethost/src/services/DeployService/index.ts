@@ -1,7 +1,6 @@
 import { ClientResponseError } from 'pocketbase'
 import { DATA_ROOT, LoggerService, mkInstanceDataPath, mkSingleton, MOTHERSHIP_URL, PocketBase } from '../..'
 import type { InstanceFields, PatVerifyResult, SingletonBaseConfig } from '../../common'
-import { runBunInstall } from '../InstanceFileAccess/bunSideEffects'
 import { instanceService } from '../InstanceService'
 import { MothershipAdminClientService } from '../MothershipAdminClientService'
 import { MothershipMirrorService } from '../MothershipMirrorService'
@@ -69,7 +68,6 @@ export const DeployService = mkSingleton(async (config: SingletonBaseConfig) => 
     storeFor,
     withInstanceStopped: async (instance, fn) => (await instanceService()).withInstanceStopped(instance.id, fn),
     startInstance: async (instance) => (await instanceService()).startInstance(instance.id),
-    bunInstall: (instance) => runBunInstall(instance, mkInstanceDataPath(instance.id), logger),
     recordDeploy: async (input) => (await client.client.collection('deploys').create(input)).id,
     logger,
   })

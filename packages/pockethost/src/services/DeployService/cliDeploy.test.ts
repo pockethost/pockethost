@@ -53,7 +53,6 @@ beforeAll(async () => {
       storeFor: (i) => createDeployStore(join(root, 'deploys', i.id), join(root, 'instances', i.id)),
       withInstanceStopped: async (_i, fn) => ({ result: await fn(), wasRunning: true }),
       startInstance,
-      bunInstall: async () => {},
       recordDeploy,
       logger,
     })
@@ -100,7 +99,7 @@ describe('CLI deploy over the deploy API', () => {
     writeFileSync(instFile('pb_data/data.db'), 'REMOTE DB')
 
     const first = await deploy()
-    expect(first).toMatchObject({ writtenCount: 5, deletedCount: 0, restarted: true, packagesChanged: true })
+    expect(first).toMatchObject({ writtenCount: 5, deletedCount: 0, restarted: true })
     expect(readFileSync(instFile('pb_public/.well-known/security.txt'), 'utf8')).toBe('contact')
     expect(existsSync(instFile('pb_public/.gitignore'))).toBe(false)
     expect(readFileSync(instFile('pb_hooks/main.pb.js'), 'utf8')).toBe('routerAdd()')

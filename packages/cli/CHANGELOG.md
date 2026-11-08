@@ -8,7 +8,7 @@ Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
 - `deploy` and `dev` now upload over HTTPS instead of SFTP. The CLI sends a list of file hashes, uploads only the
   files PocketHost doesn't have yet (compressed), and PocketHost swaps the new set in all at once, restarting the
-  instance when hooks, migrations or packages changed. Files in the deployed folders that aren't in your project are
+  instance when anything outside `pb_public` changed. Files in the deployed folders that aren't in your project are
   removed. Dotfiles (for example `pb_public/.well-known/`) are now deployed; `.git*` and `node_modules` stay excluded.
 - Personal access tokens: set `POCKETHOST_TOKEN`, or run `pockethost token set` / `pockethost login --token`. Deploys
   need no password or SSH key, so CI works on fresh runners (previously a new runner generated a new deploy key that
@@ -17,6 +17,9 @@ Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 - `deploy --commit <sha>` and `-m/--message <note>` are recorded with each deploy (`$GITHUB_SHA` is used
   automatically).
 - `--sftp` on `deploy` and `dev` keeps the previous SFTP sync.
+- PocketHost no longer runs `bun install` when `package.json`, `bun.lock(b)` or `patches/` change (over SFTP or the
+  deploy API). Those files are copied as-is, and an existing `node_modules` on the instance is left alone. Bundle npm
+  code your hooks need into `pb_hooks`.
 
 ## 3.0.0
 

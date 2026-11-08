@@ -38,7 +38,6 @@ export type DeployRouterDeps = {
     fn: () => Promise<T>
   ) => Promise<{ result: T; wasRunning: boolean }>
   startInstance: (instance: InstanceFields) => Promise<void>
-  bunInstall: (instance: InstanceFields) => Promise<void>
   recordDeploy: (input: DeployRecordInput) => Promise<string | undefined>
   logger: Logger
 }
@@ -225,13 +224,7 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
           if (!needsRestart) {
             applied = await store.apply(manifest, staged)
           } else {
-            const out = await deps.withInstanceStopped(instance, async () => {
-              const r = await store.apply(manifest, staged)
-              if (r.packagesChanged) {
-                await deps.bunInstall(instance).catch((e) => warn(`bun install failed for ${instance.id}`, e))
-              }
-              return r
-            })
+            const out = await deps.withInstanceStopped(instance, () => store.apply(manifest, staged))
             applied = out.result
             wasRunning = out.wasRunning
           }
@@ -290,7 +283,6 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
         unchanged: applied.unchanged,
         totalBytes: applied.totalBytes,
         nothingChanged,
-        packagesChanged: applied.packagesChanged,
         wasRunning,
         restarted,
         startError,

@@ -42,7 +42,6 @@ beforeEach(() => {
     storeFor: (i) => createDeployStore(join(root, 'deploys', i.id), join(root, 'instances', i.id)),
     withInstanceStopped: vi.fn(async (_i, fn) => ({ result: await fn(), wasRunning: true })),
     startInstance: vi.fn(async () => {}),
-    bunInstall: vi.fn(async () => {}),
     recordDeploy: vi.fn(async () => 'dep123'),
     logger,
   }
@@ -83,14 +82,12 @@ describe('deploy router', () => {
       deployId: 'dep123',
       writtenCount: 2,
       deletedCount: 1,
-      packagesChanged: true,
       wasRunning: true,
       restarted: true,
     })
     expect(readFileSync(instFile('pb_hooks/main.pb.js'), 'utf8')).toBe('main')
     expect(existsSync(instFile('pb_hooks/old.pb.js'))).toBe(false)
     expect(readFileSync(instFile('pb_data/data.db'), 'utf8')).toBe('db')
-    expect(deps.bunInstall).toHaveBeenCalledTimes(1)
     expect(deps.startInstance).toHaveBeenCalledTimes(1)
     expect(deps.recordDeploy).toHaveBeenCalledWith(
       expect.objectContaining({

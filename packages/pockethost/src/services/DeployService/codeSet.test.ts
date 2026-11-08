@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isCodePath, isPackagePath, ManifestError, validateManifest } from './codeSet'
+import { isCodePath, ManifestError, validateManifest } from './codeSet'
 
 const h = 'a'.repeat(64)
 
@@ -54,14 +54,5 @@ describe('validateManifest', () => {
 
   it('rejects a path that is both a file and a directory', () => {
     expect(() => validateManifest({ 'pb_public/a': h, 'pb_public/a/b.html': h })).toThrow(/both a file and a directory/)
-  })
-})
-
-describe('isPackagePath', () => {
-  it('flags package files', () => {
-    expect(isPackagePath('package.json')).toBe(true)
-    expect(isPackagePath('bun.lock')).toBe(true)
-    expect(isPackagePath('patches/x.patch')).toBe(true)
-    expect(isPackagePath('pb_hooks/package.json')).toBe(false)
   })
 })

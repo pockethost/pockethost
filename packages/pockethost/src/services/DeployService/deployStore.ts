@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'crypto'
 import { createReadStream, existsSync } from 'fs'
 import { copyFile, lstat, mkdir, readdir, readFile, rename, rm, rmdir, unlink, writeFile } from 'fs/promises'
 import { dirname, join, relative, sep } from 'path'
-import { isCodePath, isCodeRoot, isPackagePath, type Manifest } from './codeSet'
+import { isCodePath, isCodeRoot, type Manifest } from './codeSet'
 
 /**
  * Per-instance deploy storage on the cell, outside the instance directory (so SFTP never sees it) but on the same
@@ -44,7 +44,6 @@ export type ApplyResult = {
   deleted: string[]
   unchanged: number
   totalBytes: number
-  packagesChanged: boolean
 }
 
 export type DeployPlan = {
@@ -276,13 +275,11 @@ export const createDeployStore = (root: string, instanceDir: string) => {
       totalBytes += st?.size ?? 0
     }
 
-    const changed = [...plan.toWrite, ...plan.toDelete]
     return {
       written: plan.toWrite,
       deleted: plan.toDelete,
       unchanged: plan.unchanged,
       totalBytes,
-      packagesChanged: changed.some(isPackagePath),
     }
   }
 

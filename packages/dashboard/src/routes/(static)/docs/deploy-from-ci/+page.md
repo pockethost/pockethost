@@ -81,8 +81,7 @@ If your project has a `.pockethostconfig` (from `pockethost link`), you can leav
 
 1. The CLI hashes your project files and sends the list to your instance.
 2. PocketHost replies with the files it doesn't already have, and the CLI uploads only those, compressed.
-3. PocketHost swaps the new file set in all at once. When hooks, migrations, or packages changed, it stops the instance for the swap and starts it again, so PocketBase never runs a half-updated set of hooks. Changes to `pb_public` alone go live without a restart.
-4. If `package.json`, `bun.lock`, or `patches/` changed, PocketHost runs `bun install` before the instance starts.
+3. PocketHost swaps the new file set in all at once. When anything outside `pb_public` changed, it stops the instance for the swap and starts it again, so PocketBase never runs a half-updated set of hooks. Changes to `pb_public` alone go live without a restart.
 
 What gets deployed:
 
@@ -96,6 +95,10 @@ What never gets touched:
 - anything else at the instance root
 
 **Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project are removed on deploy. If you've edited hooks over SFTP, copy those changes into your repo before the first CI deploy.
+
+### npm packages
+
+PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied like any other file, and a `node_modules` folder already on your instance is left alone. Most npm packages can't run inside PocketBase's JavaScript engine anyway, since it has no Node.js built-ins. If your hooks use a package that does work there, bundle it into a single file in `pb_hooks` with a bundler such as esbuild (`--bundle --format=cjs --platform=neutral`) and `require()` that file.
 
 Each deploy is recorded with its time, file count, and commit SHA. The CLI sends `$GITHUB_SHA` automatically. Pass `--commit <sha>` or `-m "<note>"` to set them yourself.
 

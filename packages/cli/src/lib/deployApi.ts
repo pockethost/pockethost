@@ -41,7 +41,6 @@ export type CommitResult = {
   unchanged: number
   totalBytes: number
   nothingChanged: boolean
-  packagesChanged: boolean
   wasRunning: boolean
   restarted: boolean
   startError?: string

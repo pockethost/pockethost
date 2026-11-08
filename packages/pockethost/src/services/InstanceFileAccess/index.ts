@@ -1,5 +1,4 @@
 export * from './auth'
-export * from './bunSideEffects'
 export * from './errors'
 export * from './fs-async'
 export * from './guards'
