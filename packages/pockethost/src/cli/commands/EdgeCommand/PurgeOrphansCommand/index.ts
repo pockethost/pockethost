@@ -3,7 +3,9 @@ import { Command } from 'commander'
 
 export const PurgeOrphansCommand = () => {
   const cmd = new Command(`purge-orphans`)
-    .description(`Quarantine instance data with no mothership record, then delete after a retention period`)
+    .description(
+      `Quarantine instance data with no mothership record, then delete after a retention period. Also deletes iceboxed backup zips of deleted instances once their quarantine is gone`
+    )
     .option('--dry-run', `Report actions without moving or removing data`, false)
     .option(
       '--quarantine-days <days>',

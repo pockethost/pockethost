@@ -6,8 +6,12 @@ import {
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
+  PH_BACKUP_ICEBOX_REMOTE,
+  deleteBackupIceboxObject,
+  listBackupIcebox,
   logger,
   mkInstanceDataPath,
+  type IceboxObject,
 } from '@'
 import { existsSync, globSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'fs'
 import { basename, dirname, join, resolve } from 'path'
@@ -28,6 +32,35 @@ export const parseQuarantineName = (name: string): { id: string; quarantinedAt: 
 
 export const isQuarantineExpired = (quarantinedAtMs: number, nowMs: number, quarantineDays: number) =>
   nowMs - quarantinedAtMs >= quarantineDays * MS_PER_DAY
+
+export type IceboxOrphanPlan = {
+  /** Stored zips whose instance is gone and has no live quarantine. */
+  toDelete: IceboxObject[]
+  /** Instance ids whose zips wait because their local data is still in quarantine. */
+  heldIds: string[]
+}
+
+/**
+ * Backup icebox zips whose instance no longer exists in the mothership. While the instance's local data is still in
+ * quarantine (or is being quarantined this run), its zips wait too, so undoing a deletion brings the old backups back.
+ */
+export const planIceboxOrphans = (
+  objects: IceboxObject[],
+  instanceIds: ReadonlySet<string>,
+  heldInQuarantine: ReadonlySet<string>
+): IceboxOrphanPlan => {
+  const toDelete: IceboxObject[] = []
+  const held = new Set<string>()
+  for (const o of objects) {
+    if (instanceIds.has(o.instanceId)) continue
+    if (heldInQuarantine.has(o.instanceId)) {
+      held.add(o.instanceId)
+      continue
+    }
+    toDelete.push(o)
+  }
+  return { toDelete, heldIds: [...held] }
+}
 
 export const findInstanceDataDirs = (): string[] => {
   const instancesRoot = resolve(INSTANCES_ROOT())
@@ -89,13 +122,16 @@ const listQuarantineEntries = (
 export type PurgeOrphanInstanceDataOptions = {
   dryRun?: boolean
   quarantineDays?: number
+  /** Rclone remote holding iceboxed backup zips. Empty string skips the icebox sweep. */
+  iceboxRemote?: string
 }
 
 export const purgeOrphanInstanceData = async ({
   dryRun = false,
   quarantineDays = 30,
+  iceboxRemote = PH_BACKUP_ICEBOX_REMOTE(),
 }: PurgeOrphanInstanceDataOptions = {}) => {
-  const { dbg, info, warn } = logger().create('purgeOrphanInstanceData')
+  const { dbg, info, warn, error } = logger().create('purgeOrphanInstanceData')
   const instancesRoot = resolve(INSTANCES_ROOT())
   const quarantineRoot = resolve(INSTANCES_QUARANTINE_ROOT())
   const nowMs = Date.now()
@@ -104,7 +140,7 @@ export const purgeOrphanInstanceData = async ({
 
   if (instanceIds.length === 0) {
     warn(`Mothership returned zero instances. Aborting without touching disk.`)
-    return { quarantined: 0, expired: 0 }
+    return { quarantined: 0, expired: 0, iceboxDeleted: 0 }
   }
 
   const validPaths = new Set(instanceIds.map((id) => resolve(mkInstanceDataPath(id))))
@@ -200,12 +236,66 @@ export const purgeOrphanInstanceData = async ({
     }
   }
 
+  /* ---------- Backup icebox orphans ---------- */
+
+  let iceboxDeleted = 0
+  let iceboxDeletedBytes = 0
+  let iceboxHeld = 0
+
+  if (!iceboxRemote) {
+    info(`Backup icebox: no remote configured, skipping`)
+  } else {
+    let objects: IceboxObject[] | null = null
+    try {
+      objects = await listBackupIcebox(iceboxRemote)
+    } catch (e) {
+      error(`Backup icebox: could not list ${iceboxRemote}, skipping`, e)
+    }
+    if (objects) {
+      // Unexpired quarantine entries, plus dirs quarantined (or, in a dry run, about to be) this run.
+      const heldInQuarantine = new Set([
+        ...quarantineEntries
+          .filter(({ parsed }) => !isQuarantineExpired(parsed.quarantinedAt, nowMs, quarantineDays))
+          .map(({ parsed }) => parsed.id),
+        ...orphanDirs.map((dir) => basename(dir)),
+      ])
+      const plan = planIceboxOrphans(objects, new Set(instanceIds), heldInQuarantine)
+      iceboxHeld = plan.heldIds.length
+      info(`Backup icebox: ${iceboxRemote} (${objects.length} stored zip${objects.length === 1 ? '' : 's'})`)
+      for (const id of plan.heldIds) {
+        info(`  held (local data still in quarantine): ${id}`)
+      }
+      if (plan.toDelete.length === 0) {
+        info(`No orphan backup icebox zips to delete`)
+      }
+      for (const o of plan.toDelete) {
+        const label = `${o.instanceId}/${o.zipName} (${formatBytes(o.size)})`
+        if (dryRun) {
+          info(`  would delete: ${label}`)
+          iceboxDeleted++
+          iceboxDeletedBytes += o.size
+          continue
+        }
+        try {
+          await deleteBackupIceboxObject(iceboxRemote, o.instanceId, o.zipName)
+          iceboxDeleted++
+          iceboxDeletedBytes += o.size
+          info(`  deleted: ${label}`)
+        } catch (e) {
+          warn(`Failed to delete orphan backup icebox zip ${o.instanceId}/${o.zipName}`, e)
+        }
+      }
+    }
+  }
+
   info(`Summary:`)
   info(`  mothership instances: ${instanceIds.length}`)
   info(`  kept: ${keptDirs.length}`)
   info(`  orphaned: ${orphanDirs.length}`)
   info(`  quarantined: ${quarantined}`)
   info(`  expired: ${expired}`)
+  info(`  icebox held: ${iceboxHeld}`)
+  info(`  icebox ${dryRun ? 'would delete' : 'deleted'}: ${iceboxDeleted} (${formatBytes(iceboxDeletedBytes)})`)
   if (dryRun) {
     info(`  would quarantine bytes: ${formatBytes(quarantineBytes)}`)
     info(`  would free from expiry: ${formatBytes(freedBytes)}`)
@@ -214,5 +304,5 @@ export const purgeOrphanInstanceData = async ({
     info(`  freed from expiry: ${formatBytes(freedBytes)}`)
   }
 
-  return { quarantined, expired }
+  return { quarantined, expired, iceboxDeleted }
 }
