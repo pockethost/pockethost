@@ -12,6 +12,7 @@ import {
 import Bottleneck from 'bottleneck'
 import { CronJob } from 'cron'
 import { MothershipMirrorService } from '../MothershipMirrorService'
+import { isCatchUpDue } from './catchUp'
 
 export type CronServiceConfig = SingletonBaseConfig & {}
 
@@ -43,7 +44,8 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
     }
   }
 
-  const upsertInstance = async (instance: InstanceFields) => {
+  /** `catchUp` is set only on startup: a webhook that missed a run while the daemon was down fires once now. */
+  const upsertInstance = async (instance: InstanceFields, catchUp = false) => {
     removeJobsForInstanceId(instance.id)
     const newJobs = new Set<CronJob>()
     const { webhooks } = instance
@@ -58,51 +60,53 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
     webhooks.forEach((webhook) => {
       if (!webhook.value) return
       dbg(`Creating new job for webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
-      const job = new CronJob(
-        webhook.value, // cronTime
-        () => {
-          dbg(`Firing webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
-          limiter.schedule(async () => {
-            const url = mkInstanceUrl(instance, ...webhook.endpoint.split('/').filter(Boolean))
-            dbg(`Firing webhook ${url}`)
-            try {
-              const response = await fetch(url, {})
-              const body = await response.text()
+      const fire = () => {
+        dbg(`Firing webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
+        limiter.schedule(async () => {
+          const url = mkInstanceUrl(instance, ...webhook.endpoint.split('/').filter(Boolean))
+          dbg(`Firing webhook ${url}`)
+          try {
+            const response = await fetch(url, {})
+            const body = await response.text()
 
-              // fetch only throws for network errors, not HTTP error status codes
-              // so 404, 500, etc. will be handled here without throwing
-              webhook.lastFired = {
-                timestamp: Date.now(),
-                response: {
-                  status: response.status,
-                  body: body,
-                },
-              }
-
-              if (!response.ok) {
-                dbg(`Webhook ${url} returned status ${response.status}: ${body}`)
-                userInstanceLogger.error(`Webhook ${webhook.endpoint} returned HTTP ${response.status}: ${body}`)
-              }
-            } catch (e) {
-              // This catch block only handles network errors (connection failed, etc.)
-              webhook.lastFired = {
-                timestamp: Date.now(),
-                response: {
-                  status: 500,
-                  body: e instanceof Error ? e.message : String(e),
-                },
-              }
-              error(`Network error firing webhook ${url}: ${e}`)
+            // fetch only throws for network errors, not HTTP error status codes
+            // so 404, 500, etc. will be handled here without throwing
+            webhook.lastFired = {
+              timestamp: Date.now(),
+              response: {
+                status: response.status,
+                body: body,
+              },
             }
-            dbg(`Updating instance ${instance.id} with webhooks`, instance.webhooks)
-            client.updateInstance(instance.id, {
-              webhooks: instance.webhooks,
-            })
+
+            if (!response.ok) {
+              dbg(`Webhook ${url} returned status ${response.status}: ${body}`)
+              userInstanceLogger.error(`Webhook ${webhook.endpoint} returned HTTP ${response.status}: ${body}`)
+            }
+          } catch (e) {
+            // This catch block only handles network errors (connection failed, etc.)
+            webhook.lastFired = {
+              timestamp: Date.now(),
+              response: {
+                status: 500,
+                body: e instanceof Error ? e.message : String(e),
+              },
+            }
+            error(`Network error firing webhook ${url}: ${e}`)
+          }
+          dbg(`Updating instance ${instance.id} with webhooks`, instance.webhooks)
+          client.updateInstance(instance.id, {
+            webhooks: instance.webhooks,
           })
-        }
-      )
+        })
+      }
+      const job = new CronJob(webhook.value, fire)
       job.start()
       newJobs.add(job)
+      if (catchUp && isCatchUpDue(webhook.value, webhook.lastFired?.timestamp, Date.now())) {
+        info(`Catching up missed webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
+        fire()
+      }
     })
     jobs.set(instance.id, newJobs)
     dbg(`Created ${newJobs.size} jobs for instance ${instance.id}`)
@@ -122,7 +126,7 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
 
   dbg(`Upserting instances`)
   for (const instance of mirror.getInstances()) {
-    upsertInstance(instance)
+    upsertInstance(instance, true)
   }
 
   return {}
