@@ -23,7 +23,7 @@ const minorKey = (version: string) => version.split('.').slice(0, 2).join('.')
 
 /**
  * Upstream releases the manifest is missing: newer than everything known for the same minor, or a new minor newer than
- * anything known. Older patches and long-gone minors are ignored.
+ * anything known. Returns only the newest missing patch per minor; older patches and long-gone minors are ignored.
  */
 export const findMissingVersions = (known: string[], upstream: string[]) => {
   const newestByMinor = new Map<string, string>()
@@ -33,9 +33,12 @@ export const findMissingVersions = (known: string[], upstream: string[]) => {
   }
   const newestKnown = [...known].sort(rcompare)[0]
 
-  return upstream.filter((version) => {
+  const missing = new Map<string, string>()
+  for (const version of upstream) {
     const current = newestByMinor.get(minorKey(version))
-    if (current) return compare(version, current) > 0
-    return !newestKnown || compare(version, newestKnown) > 0
-  })
+    const isMissing = current ? compare(version, current) > 0 : !newestKnown || compare(version, newestKnown) > 0
+    const pending = missing.get(minorKey(version))
+    if (isMissing && (!pending || compare(version, pending) > 0)) missing.set(minorKey(version), version)
+  }
+  return [...missing.values()].sort(compare)
 }

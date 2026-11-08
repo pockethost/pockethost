@@ -25,6 +25,10 @@ describe('findMissingVersions', () => {
     ])
   })
 
+  it('returns only the newest missing patch per minor', () => {
+    expect(findMissingVersions(known, ['0.41.2', '0.41.3', '0.42.0', '0.42.1'])).toEqual(['0.41.3', '0.42.1'])
+  })
+
   it('ignores older patches and minors we never listed', () => {
     expect(findMissingVersions(known, ['0.22.10', '0.30.1', '0.41.0'])).toEqual([])
   })
