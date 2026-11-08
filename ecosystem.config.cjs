@@ -52,9 +52,8 @@ module.exports = {
     },
     {
       // Keeps each instance's newest PocketBase backup zip on disk and moves older ones to IDrive behind a .zip.txt
-      // link. Off until the first manual runs are done: `pm2 start edge-archive-backups` to enable.
+      // link. Max 50 GB per daily run.
       name: `edge-archive-backups`,
-      autostart: false,
       restart_delay: 60 * 60 * 1000 * 24, // 1 day
       script: 'pnpm prod:cli edge archive backups --apply --max-gb 50',
     },
