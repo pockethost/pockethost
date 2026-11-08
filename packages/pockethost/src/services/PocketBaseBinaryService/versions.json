@@ -1,0 +1,295 @@
+{
+  "hosts": {
+    "gani": "https://ganigeorgiev.com/meta/pocketbase/pocketbase/download/v{version}/{file}",
+    "github": "https://github.com/pocketbase/pocketbase/releases/download/v{version}/{file}"
+  },
+  "versions": {
+    "0.41.1": {
+      "host": "gani",
+      "sha256": {
+        "linux_amd64": "7504ec99a85fe405fc9941b4d94bdea20733b53707c8251b66fd0daa1444347e",
+        "linux_arm64": "341a249f97f4ff1ba8dfff81d357eb281cd346fbddae8b6ea43193f0647e036d"
+      }
+    },
+    "0.40.6": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "0e1f609158ed945f809f8a02ae012aa0427129c66ebb63c1aee76f2c0309373f",
+        "linux_arm64": "d22c66ceb67ca92b7d767f36d826e848a276bcfa3c197ead20bf87c42208984f"
+      }
+    },
+    "0.39.11": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "08b9fcda0d5fd42cb315dc15a36dfa121c993855bd635f01d347c31b4328ec34",
+        "linux_arm64": "8c785618840df7ebba795fdf4eba33a5fed64ac5307ad8023b955b4ebb82048b"
+      }
+    },
+    "0.38.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "3749cf7e85b00027f3fb92494037e154aa023276246a101cd0592260b94ad1c3",
+        "linux_arm64": "a621c816c27ac7d030bad63e280c4b0238f3c381974d043e130914498bf8a1e6"
+      }
+    },
+    "0.37.5": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "8faf6fc372604c62a20450daadbbe83b090e191a9784ff0eb1fb361d288fdb98",
+        "linux_arm64": "b27e7011c937833c368ff6307b046496ee0e342cc29dbe3a1e63a3be753c0d17"
+      }
+    },
+    "0.36.9": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "514441ad69eeba4e5da6e4728dae7483c6e5328b109fed9c67f66909a006fb5a",
+        "linux_arm64": "97f8f2337a1041b54153d63c4eea02df1bca4b4e68907052c0ab9ce89a0df855"
+      }
+    },
+    "0.35.1": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "b55bc3a76ad2ad98490e5043aa5421ac32d3efa58f5166b2ae996709f8f885ce",
+        "linux_arm64": "1f00918d8f4c80aa088fb50157276a5a95254e4541666d951dd8ccc88fc3afbc"
+      }
+    },
+    "0.34.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "a469d8ad8e6bd571b50841d63cd8b5c2e79d66552f9749221fd20ce497ade027",
+        "linux_arm64": "180cc6b9005f188556ecbd6180ae28ac1156bc80a1d7d40057fbda457aa717e7"
+      }
+    },
+    "0.33.0": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "e7e8b11856392566a667f68baacd5ceab4572c4b11f2a79d269c247e95f6a3c1",
+        "linux_arm64": "dfe5076c455f59fd231ff2035ddd5b071bb9bcc9325d9e8f9f1d4f2652f9724b"
+      }
+    },
+    "0.32.0": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "039ea04b9f5dc3b4ab5b49eed36c8b5444c3e507aac307ee067d2f5a55550edd",
+        "linux_arm64": "4458bf74d72b0a88ab2efa43ac08c2c237837bf2cfb2b783164d6f58e30eb018"
+      }
+    },
+    "0.31.0": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "d3474eb8c492bbf5bee78395847f9549ab9331f5c581859da9d8b890c8d7769b",
+        "linux_arm64": "e7c998914ae36ce409b74345006c56a541ea842ecb5dde686536f016fc14fcc4"
+      }
+    },
+    "0.30.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "d62a9247e775c59fa1ef5154f43a0bd868c6bfb2bcee5cdeef05cf14f657bc83",
+        "linux_arm64": "5716c6f02c8f8bdd10912f32c8fc3a5b613b0c8c858b3063597ac30a19e1ae78"
+      }
+    },
+    "0.29.3": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "c0c4ef56b74a17c469b74c00c40d90ec20b6fd33cd45bf1f9993fbf86f03c695",
+        "linux_arm64": "2caee88941e2d571acc2c51e0f0a6c247f07de16a7524019e4808be56cadb9bd"
+      }
+    },
+    "0.28.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "44161d9e8838d3226fee7f2a857b8033f642ace1f3486a1125b99fd6b8b08532",
+        "linux_arm64": "2386604f93b28f10a47cc447659c48b6bb9314ac84b1b3146271c1e183e56b44"
+      }
+    },
+    "0.27.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "a82b12ed56d17f12127baa3c4b43b3a67b6fdf45890f09e952a8631c85a114a1",
+        "linux_arm64": "41b5236a037532cdfee676e39651c6938d9b2f4fb41c89ce194f89759f6d65db"
+      }
+    },
+    "0.26.6": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "f4d9ad15dbadae3905d8404abed5c772d5c8b1c9563741c91adefb9f14b8201e",
+        "linux_arm64": "0758d9fe0ba054c0ca9e6a5c9425e9fe9044159ccbfa5fa4946f7d14bcbf01f1"
+      }
+    },
+    "0.25.9": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "64f5e755e71d14f3356bf9a125a8fcc60e621ed678ba70cc7d315af0b2b9c2ae",
+        "linux_arm64": "2a21424e6e8b92b4a02e82ba59d84385379657d354ca96cf76458cf1bfb99dde"
+      }
+    },
+    "0.24.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "2f04ffb19edc8d0bd80c35aa6738baf0aad0e863cc8c2a78405247d1db2d9def",
+        "linux_arm64": "b96b73433e94b1e18d899501b51cb7f6272ee63da7736ff46936f45fa4a04c39"
+      }
+    },
+    "0.23.12": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "af00ee3cb6c3575075bee4e2adb86ab6878598fda30e79b15f89f948c602aacc",
+        "linux_arm64": "f5a77bd6ec046bd374f8cac77586af899212796bab96d3ed7f9df4d67a741a44"
+      }
+    },
+    "0.22.58": {
+      "host": "gani",
+      "sha256": {
+        "linux_amd64": "2b2fe6fd92c2565780863addb5398f197b95fa3d79917836e30b9eb59a3770e4",
+        "linux_arm64": "8703f50823010cbd3299b10336fedcbe053c1eba6f7e7823bda7d1509826a3fa"
+      }
+    },
+    "0.21.3": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "f68b64b5926017d0ad167f962fa87eccf3ab39829e624942a3728007416ed9e6",
+        "linux_arm64": "333b06a33cc37ca3c8e468da69df9c01b51b4adaecbc78b61dddffe3af59b4da"
+      }
+    },
+    "0.20.7": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "de3aceb194e5e766f4a785c4c471c6c8857536e207d2266f06f0788cbbf6a096",
+        "linux_arm64": "1f076974448641cfa3282323235039b401842a55a65589928d19e40ff21335af"
+      }
+    },
+    "0.19.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "2464c605a815d5a595a5e9c52ca0270b09e512c568cdf7c42545e48faaee1714",
+        "linux_arm64": "da7141f2e167fd5b68747b6f2e37ec5300504d829f01f2dbb2b594309668ed2b"
+      }
+    },
+    "0.18.10": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "ed5bc902bb6f867dec2176d38aecf8a12108b79a2cf8f268c5c56eafecb752d4",
+        "linux_arm64": "25131b53f84157f01f7eac51b86ba3bf5757a1299d913698ba029f07543fd27a"
+      }
+    },
+    "0.17.7": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "1e600ca2683c6ac5aeece79de0f56d71322dfe7d3bd14639579ac22bb00a9f91",
+        "linux_arm64": "4d04a7c514c64b90b45096578294e1cf12538ef893cbcfe20ae93514293de36d"
+      }
+    },
+    "0.16.10": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "a362d4d7f9a710f1918f2cb6e78fe967af24ed4a595efc9c7fc548a59faadc34",
+        "linux_arm64": "b2b04a4b5b6f7a1d63c46cad4131529fc3cf8f34021269387c2d951c4fc66957"
+      }
+    },
+    "0.15.3": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "c7f3772ece1599f8632b13158fdf33839d9ca1498b0ac4eabd70e98c33daba0a",
+        "linux_arm64": "998d2c4bf89fdb2149f77baf9b1965cac7723c5dd8f1192fd57d674dc24eda8d"
+      }
+    },
+    "0.14.5": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "f4ed59e814ddbf468fd0173e28dd97bbd8644d57aa836f874bd5ff6d7237593d",
+        "linux_arm64": "559f4139154e32bb04003899c26c1b8d9ff33adb0878170febf916fb94f5c7e4"
+      }
+    },
+    "0.13.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "08a85cdc8a9df3b3583295644c8853bc645db37f976a9aa3620ea224debf3472",
+        "linux_arm64": "88583edf6c47b749a10bb587233b08d613fe9c4866ab41f0c9b633c5b83fb46f"
+      }
+    },
+    "0.12.3": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "8e7f1f2ff454f05b8663f3b599cc3700f2dc1e3a6c6fc8e84b08f247b8d495a4",
+        "linux_arm64": "f7e72d9a25d6b6907141bf1dfc5ec0fc90cd71cb5a6b31a9476cab0b36e34798"
+      }
+    },
+    "0.11.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "141f5619481d66426371befdd8ceacc9a96cb18f527a2695f0d1c01487e2e028",
+        "linux_arm64": "239f23018a10ffebe72b3e9bae24f5ead172bb15760f8c494b30271493a156f9"
+      }
+    },
+    "0.10.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "1eac8a83924b5370029a4deb081a54d2a960904f9c640ff8130bd0f666263b6c",
+        "linux_arm64": "44bedd8eafa5d3461265d5b2b52485d121006f3d52f2fae79528859e8bf0fbe0"
+      }
+    },
+    "0.9.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "433a7891670532990a799b6df8ccbffc35cb4dc308f032971132caf480b4a523",
+        "linux_arm64": "e1d61f0bc9042ff0516d3d6e7d6f1d334d888d666c36c52a70708ae123aab321"
+      }
+    },
+    "0.8.0": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "c1b6631ba4a58d29e42bc441107f17db0d20c939cf1e6dc6e3882130cd0660e1",
+        "linux_arm64": "06c2a79b56459475d6bb148d52d1114f389e886ef1d50f624f57c9efb2752e14"
+      }
+    },
+    "0.7.10": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "8928f731ff5cf840c179466b253735f5be21d161204ed2b1d1b8c387b9f56e09",
+        "linux_arm64": "383ecc1beff7af07ca2e11d4337a390fc6074c9cc0684c45135c9572dcec1f89"
+      }
+    },
+    "0.6.0": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "5ea897017c6da2665f72b346b5819d0498a274a150d1c383b969fe89775909af",
+        "linux_arm64": "b9fa80057cf28f4c91078645f75ee5d37a10599ea30e26fbf5e6754909b41c43"
+      }
+    },
+    "0.5.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "2bdaf8ad7505047b3dc59ca36d7aaed6c808d6565e58534655cd41babcea66f0",
+        "linux_arm64": "1233bac88d93c06b5f637df4acb54ae074e3d4a46accf9701be58646c5770234"
+      }
+    },
+    "0.4.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "b03f5ae316619fd417018dfca5d9bdf6131213f0007d5f523b2dc41240329190",
+        "linux_arm64": "3084201fdd7e31c8047901494ff903e3c622a6d4f972c93086a46ae3b01e22e5"
+      }
+    },
+    "0.3.4": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "cdf413313c6480b76aa1fab00d558759041da31d024b9b1ac6593bc23bd9e38c",
+        "linux_arm64": "f0613f46429c857b473cb9dc8e7a559adc6a375ca77bd668c78bf1b8b471eb64"
+      }
+    },
+    "0.2.8": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "f9681e47a10a5fea480a847cae0ad0ccecaef88c4a4e0135141fc5ec0d7ce0fc",
+        "linux_arm64": "f28720c73cb7473a3e6101eb85bfcffe2382e38a3baee68dc09946f2acecd317"
+      }
+    },
+    "0.1.2": {
+      "host": "github",
+      "sha256": {
+        "linux_amd64": "03a4e87ba8566778572cced1b6b3456133697c75bd8936ce9e921cf8648b8b5e",
+        "linux_arm64": "d52a3f9d7cfb893b4624272dba73c18e48dd8e1d103df67df49152b9c8570662"
+      }
+    }
+  }
+}

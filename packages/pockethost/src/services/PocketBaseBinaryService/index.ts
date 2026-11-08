@@ -2,13 +2,14 @@ import { LoggerService, mkSingleton, PH_ALLOWED_POCKETBASE_SEMVER, PH_POCKETBASE
 import { chmodSync, existsSync, readdirSync, rmSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { spawn, type ChildProcess } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { join } from 'path'
 import { compare, valid } from 'semver'
 import { spawnPocketBaseContainer } from './dockerSpawn'
 import { extractPocketBaseZip } from './extractZip'
 import { maxSatisfyingVersionFromList } from './maxSatisfyingVersion'
-import { mkAssetName, mkAssetSuffix, mkBinaryName, mkContainerPlatform, needsContainerRuntime } from './platform'
-import { fetchPocketBaseReleases, findReleaseAsset, latestPerMinor } from './releases'
+import { mkAssetSuffix, mkBinaryName, mkContainerPlatform, needsContainerRuntime } from './platform'
+import { findRelease, latestPerMinor, manifestVersions } from './releases'
 import { mkVersionCatalog, mkVersionCatalogFromPatches, syncMothershipVersions } from './syncMothershipVersions'
 
 export type PocketBaseBinaryServiceConfig = SingletonBaseConfig
@@ -48,24 +49,14 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
     return resolved
   }
 
-  const downloadVersion = async (version: string, releases: Awaited<ReturnType<typeof fetchPocketBaseReleases>>) => {
+  const downloadVersion = async (version: string) => {
     const binPath = getBinaryPath(version)
     if (existsSync(binPath)) {
       dbg(`Already downloaded ${version}`)
       return binPath
     }
 
-    const tag = version.startsWith('v') ? version : `v${version}`
-    const release = releases.find((entry) => entry.tag_name.toLowerCase() === tag.toLowerCase())
-    if (!release) {
-      throw new Error(`Release not found for PocketBase ${version}`)
-    }
-
-    const assetName = mkAssetName(version, platform)
-    const asset = findReleaseAsset(release, assetName)
-    if (!asset) {
-      throw new Error(`Asset ${assetName} not found for PocketBase ${version}`)
-    }
+    const { url, assetName, sha256 } = findRelease(version, platform)
 
     const versionDir = PH_POCKETBASE_ROOT(version, assetSuffix)
     const tmpDir = PH_POCKETBASE_ROOT(`.tmp`, version)
@@ -74,11 +65,17 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
     info(`Downloading PocketBase ${version} (${assetSuffix})`)
     await mkdir(tmpDir, { recursive: true })
 
-    const res = await fetch(asset.browser_download_url)
+    const res = await fetch(url)
     if (!res.ok) {
-      throw new Error(`Download failed for PocketBase ${version} (${res.status})`)
+      throw new Error(`Download failed for PocketBase ${version} (${res.status} ${url})`)
     }
-    await writeFile(zipPath, Buffer.from(await res.arrayBuffer()))
+    const zip = Buffer.from(await res.arrayBuffer())
+    const actual = createHash('sha256').update(zip).digest('hex')
+    if (actual !== sha256) {
+      rmSync(tmpDir, { recursive: true, force: true })
+      throw new Error(`Checksum mismatch for ${assetName}: expected ${sha256}, got ${actual} (${url})`)
+    }
+    await writeFile(zipPath, zip)
 
     await mkdir(versionDir, { recursive: true })
     await extractPocketBaseZip(zipPath, versionDir, binaryName)
@@ -97,24 +94,22 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
   }
 
   const downloadAll = async () => {
-    const releases = await fetchPocketBaseReleases()
-    const targets = latestPerMinor(releases, PH_ALLOWED_POCKETBASE_SEMVER())
+    const targets = latestPerMinor(manifestVersions(), PH_ALLOWED_POCKETBASE_SEMVER())
     info(`Downloading ${targets.length} PocketBase versions (${assetSuffix})`)
 
     for (const version of targets) {
-      await downloadVersion(version.format(), releases)
+      await downloadVersion(version.format())
     }
 
     return targets.map((version) => version.format())
   }
 
   const freshen = async () => {
-    const releases = await fetchPocketBaseReleases()
-    const targets = latestPerMinor(releases, PH_ALLOWED_POCKETBASE_SEMVER())
+    const targets = latestPerMinor(manifestVersions(), PH_ALLOWED_POCKETBASE_SEMVER())
 
     info(`Updating ${targets.length} PocketBase versions (${assetSuffix})`)
     for (const version of targets) {
-      await downloadVersion(version.format(), releases)
+      await downloadVersion(version.format())
     }
 
     await syncMothershipVersions(mkVersionCatalog(targets))
@@ -124,8 +119,7 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
     const version = resolveVersion(versionRange)
     const binPath = getBinaryPath(version)
     if (!existsSync(binPath)) {
-      const releases = await fetchPocketBaseReleases()
-      await downloadVersion(version, releases)
+      await downloadVersion(version)
     }
     return getBinaryPath(version)
   }

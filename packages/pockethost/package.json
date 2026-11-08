@@ -22,7 +22,8 @@
   "scripts": {
     "check:types": "tsc --noEmit ",
     "dev": "NODE_ENV=development node --experimental-eventsource --import tsx ./src/cli/index.ts",
-    "start": "node --experimental-eventsource --import tsx ./src/cli/index.ts"
+    "start": "node --experimental-eventsource --import tsx ./src/cli/index.ts",
+    "pb:versions": "node --import tsx ./scripts/pocketbase-versions.ts"
   },
   "dependencies": {
     "ajv": "^8.20.0",
