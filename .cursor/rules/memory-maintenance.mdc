@@ -3,8 +3,6 @@ description: Read MEMORY.md before substantive work; update it in the same chang
 alwaysApply: true
 ---
 
-> Internal docs live in the private sister repo `pockethost/pockethost-support`, checked out next to this one (`../pockethost-support` from the repo root). Commit and push changes there; never copy them into this public repo.
-
 # MEMORY.md — read first, update always
 
 [MEMORY.md](../pockethost-support/MEMORY.md) is the living source of truth for PocketHost architecture. Agents must **use** it for context and **maintain** it as work proceeds.
