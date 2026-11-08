@@ -1,8 +1,8 @@
 import { fetchEventSource } from '../lib/fetchEventSource.js'
 import { Command } from 'commander'
 import { savedInstanceName } from '../lib/defaultInstanceId'
-import { ensureLoggedIn } from '../lib/ensureLoggedIn'
-import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
+import { createDeployClient } from '../lib/deployApi'
+import { resolveDeployCredential } from '../lib/token'
 
 export enum StreamNames {
   StdOut = 'stdout',
@@ -39,14 +39,14 @@ const watchInstanceLog = async (
   let isAborting = false
   let retryTimeout: ReturnType<typeof setTimeout> | null = null
 
-  await ensureLoggedIn()
-  const client = await getClient()
-
-  try {
-    await getInstanceBySubdomainCnameOrId(instanceName)
-  } catch (e) {
-    throw new Error(`Instance "${instanceName}" not found.`)
+  if (!instanceName) {
+    throw new Error(
+      `No instance name given and none linked. Use 'pockethost logs <instance>' or 'pockethost link <instance>'.`
+    )
   }
+  // Fails fast with a clear message on a bad token or instance name.
+  const api = createDeployClient(instanceName, await resolveDeployCredential())
+  await api.whoami()
 
   // Function to clear any pending timeouts
   const clearPendingTimeouts = () => {
@@ -70,20 +70,10 @@ const watchInstanceLog = async (
         return
       }
 
-      const url = `https://${instanceName}.pockethost.io/logs`
-      const body = {
-        instanceId: instanceName,
-        n: nInitial,
-        auth: client.authStore.exportToCookie(),
-      }
-
-      fetchEventSource(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      fetchEventSource(`${api.base}/logs?n=${nInitial}`, {
+        method: 'GET',
+        headers: api.headers,
         openWhenHidden: true,
-        body: JSON.stringify(body),
         onmessage: (event: EventSourceMessage) => {
           if (isAborting) return
           try {
@@ -96,16 +86,17 @@ const watchInstanceLog = async (
         onopen: async (response: Response) => {
           if (!response.ok) {
             const error = `Failed to open log stream: ${response.status} ${response.statusText}`
+            isAborting = true
             reject(new Error(error))
+            // Throwing stops fetchEventSource from retrying.
+            throw new Error(error)
           }
         },
         onerror: (e: Error) => {
-          if (isAborting) return
-          console.error(`Log stream error: ${e}`)
-
-          // Clear any existing timeout before setting a new one
-          clearPendingTimeouts()
-          retryTimeout = setTimeout(continuallyFetchFromEventSource, 100)
+          // Throwing stops fetchEventSource; returning a number makes it retry after that many ms.
+          if (isAborting) throw e
+          console.error(`Log stream error: ${e}. Retrying...`)
+          return 1000
         },
         onclose: () => {
           if (isAborting) return

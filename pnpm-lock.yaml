@@ -82,9 +82,6 @@ importers:
       ora:
         specifier: ^9.4.0
         version: 9.4.0
-      pocketbase:
-        specifier: ^0.27.0
-        version: 0.27.0
       pretty-bytes:
         specifier: ^7.1.0
         version: 7.1.0

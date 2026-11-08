@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import express from 'express'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import http from 'http'
 import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import request from 'supertest'
@@ -138,6 +139,49 @@ describe('deploy router', () => {
       .send({ files: {} })
     expect(scoped.status).toBe(404)
     expect((await api('get', '/whoami', 'ro')).status).toBe(200)
+  })
+
+  it('streams logs to read-only tokens and stops tailing on disconnect', async () => {
+    const unsub = vi.fn()
+    deps.tailLogs = vi.fn((_i, n, onEntry) => {
+      onEntry({ message: `first of ${n}`, stream: 'stdout', time: 't1' })
+      onEntry({ message: 'second', stream: 'stderr', time: 't2' })
+      return unsub
+    })
+    const logsApp = express()
+    logsApp.use(DEPLOY_API_PREFIX, createDeployRouter(deps))
+    const server = logsApp.listen(0)
+    const port = (server.address() as { port: number }).port
+    const open = (token: string) =>
+      new Promise<http.IncomingMessage>((resolve, reject) => {
+        const req = http.get(
+          { port, path: `${DEPLOY_API_PREFIX}/logs?n=5`, headers: { Host: host, Authorization: `Bearer ${token}` } },
+          resolve
+        )
+        req.on('error', reject)
+      })
+    try {
+      const denied = await open('stranger')
+      expect(denied.statusCode).toBe(404)
+      denied.resume()
+
+      const res = await open('ro')
+      expect(res.statusCode).toBe(200)
+      expect(res.headers['content-type']).toContain('text/event-stream')
+      let text = ''
+      await new Promise<void>((resolve) =>
+        res.on('data', (chunk) => {
+          text += chunk
+          if (text.includes('second')) resolve()
+        })
+      )
+      expect(text).toContain('event: log\ndata: {"message":"first of 5"')
+      res.destroy()
+      await vi.waitFor(() => expect(unsub).toHaveBeenCalled())
+    } finally {
+      server.closeAllConnections()
+      server.close()
+    }
   })
 
   it('rejects unknown hosts, suspended accounts, pb_data paths and junk uploads', async () => {

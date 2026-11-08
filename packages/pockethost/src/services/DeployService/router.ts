@@ -39,6 +39,8 @@ export type DeployRouterDeps = {
   ) => Promise<{ result: T; wasRunning: boolean }>
   startInstance: (instance: InstanceFields) => Promise<void>
   recordDeploy: (input: DeployRecordInput) => Promise<string | undefined>
+  /** Replays the last `linesBack` log entries, then follows new ones. Returns an unsubscribe function. */
+  tailLogs?: (instance: InstanceFields, linesBack: number, onEntry: (entry: unknown) => void) => () => void
   logger: Logger
 }
 
@@ -287,6 +289,34 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
         restarted,
         startError,
       })
+    })
+  )
+
+  /** `GET /logs?n=100`: server-sent events, one `log` event per entry. Any token that can reach the instance may read. */
+  router.get(
+    '/logs',
+    handle(async (req, res) => {
+      const { instance } = await authorize(req, false)
+      if (!deps.tailLogs) throw new DeployHttpError(404, `Logs are not available here`)
+      const n = Math.min(Math.max(parseInt(`${req.query.n ?? '100'}`, 10) || 0, 0), 1000)
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=UTF-8',
+        Connection: 'keep-alive',
+        'Cache-Control': 'no-store',
+        'X-Accel-Buffering': 'no',
+      })
+      res.flushHeaders?.()
+      const unsub = deps.tailLogs(instance, n, (entry) => {
+        res.write(`event: log\ndata: ${JSON.stringify(entry)}\n\n`)
+      })
+      // Comment lines keep idle connections open through proxies.
+      const ping = setInterval(() => res.write(`: ping\n\n`), 25_000)
+      await new Promise<void>((resolve) => {
+        res.on('close', resolve)
+        res.on('error', resolve)
+      })
+      clearInterval(ping)
+      unsub()
     })
   )
 

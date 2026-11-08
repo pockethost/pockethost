@@ -16,7 +16,7 @@ No password, SSH key, or saved login is needed, so it works on fresh CI runners.
 Go to **[Account → API Tokens](/account/tokens)** and click **Create token**:
 
 - **Name**: something you'll recognize later, like `GitHub Actions`.
-- **Access**: **Deploy + read**. Read-only tokens can't deploy.
+- **Access**: **Deploy + read**. Read-only tokens can list instances and tail logs, but can't deploy.
 - **Instances**: pick only the instances this pipeline deploys to, or **All instances**.
 - **Expiry**: 90 days is the default. You can pick 30 days, 1 year, or no expiry.
 

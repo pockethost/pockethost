@@ -118,6 +118,10 @@ export const createDeployClient = (
   cred: DeployCredential
 ) => {
   const base = `${INSTANCE_URL(instanceName)}${DEPLOY_API_PREFIX}`
+  const headers = {
+    Authorization: `Bearer ${cred.token}`,
+    'User-Agent': `pockethost-cli/${version}`,
+  }
 
   const call = async <T>(
     method: 'GET' | 'POST',
@@ -130,8 +134,7 @@ export const createDeployClient = (
       res = await fetch(`${base}${path}`, {
         method,
         headers: {
-          Authorization: `Bearer ${cred.token}`,
-          'User-Agent': `pockethost-cli/${version}`,
+          ...headers,
           ...(raw
             ? { 'Content-Type': 'application/octet-stream' }
             : body !== undefined
@@ -169,7 +172,7 @@ export const createDeployClient = (
       if (res.status === 404) {
         throw new DeployApiError(
           404,
-          `Instance '${instanceName}' not found, or ${cred.kind === 'pat' ? 'this token cannot access it' : 'it is not yours'}.`,
+          `Instance '${instanceName}' not found, or this token cannot access it.`,
           json
         )
       }
@@ -180,6 +183,7 @@ export const createDeployClient = (
 
   return {
     base,
+    headers,
     whoami: () =>
       call<{
         instance: { id: string; subdomain: string }
@@ -225,7 +229,7 @@ export const deployViaApi = async (opts: DeployApiOptions) => {
   const byHash = new Map(files.map((f) => [f.hash, f]))
 
   log(
-    `🚚 Deploying ${files.length} files to ${opts.instanceName} (${cred.kind === 'pat' ? `token from ${cred.source}` : `login ${cred.source}`})`
+    `🚚 Deploying ${files.length} files to ${opts.instanceName} (token from ${cred.source})`
   )
 
   let uploadedCount = 0

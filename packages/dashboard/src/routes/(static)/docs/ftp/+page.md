@@ -221,7 +221,7 @@ FTPS on port 21 has been removed. Use SFTP with an Ed25519 key. See [FTPS offici
 
 ## Automated deploy (CLI and CI)
 
-For day-to-day development, use the **[PocketHost CLI](/docs/cli)** to link a project, watch local files, and sync over SFTP:
+For day-to-day development, use the **[PocketHost CLI](/docs/cli)** to link a project, watch local files, and deploy them:
 
 ```bash
 pockethost login
@@ -229,6 +229,6 @@ pockethost link my-instance
 pockethost dev
 ```
 
-The CLI manages its own Ed25519 deploy key (labeled **`PocketHost CLI`** under Account → Keys). You do not need a separate key for it unless you want scoped CI access.
+The CLI signs in with a personal access token and deploys over HTTPS, so it needs no SSH key. For `pockethost sftp` and `--sftp`, it keeps its own Ed25519 key; add that key under **[Account → Keys](/account/keys)** once (the CLI prints it if it's missing).
 
-For GitHub Actions, run **`pockethost deploy`** with `POCKETHOST_USERNAME` / `POCKETHOST_PASSWORD` secrets (see [PocketHost CLI](/docs/cli)), or use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) over SFTP on port 2222 with an Ed25519 private key.
+For GitHub Actions, run **`pockethost deploy`** with a `POCKETHOST_TOKEN` secret (see [Deploy from CI](/docs/deploy-from-ci)), or use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) over SFTP on port 2222 with an Ed25519 private key.

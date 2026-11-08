@@ -432,6 +432,31 @@ const verifyPat = (raw, ip) => {
 };
 
 //#endregion
+//#region src/lib/handlers/apiTokens/api/HandlePatInstances.ts
+/**
+* GET /api/pat/instances with `Authorization: Bearer ph_pat_…`. Lists the token owner's instances that the token can
+* reach, for `pockethost list` and `pockethost link`.
+*/
+const HandlePatInstances = (e) => {
+	const outcome = verifyPat(bearerToken(e.request?.header.get("Authorization")), e.realIP());
+	if (!outcome.ok) return e.json(outcome.status, {
+		status: outcome.status,
+		message: outcome.message
+	});
+	const { result, user } = outcome;
+	const allowed = result.instanceIds === null ? null : new Set(result.instanceIds);
+	const instances = $app.findRecordsByFilter("instances", "uid = {:uid}", "subdomain", 0, 0, { uid: user.id }).filter((r) => !!r && (allowed === null || allowed.has(r.id))).map((r) => ({
+		id: r.id,
+		subdomain: r.getString("subdomain"),
+		cname: r.getString("cname"),
+		status: r.getString("status"),
+		power: r.getBool("power"),
+		version: r.getString("version")
+	}));
+	return e.json(200, { instances });
+};
+
+//#endregion
 //#region src/lib/handlers/apiTokens/api/HandlePatVerify.ts
 /** POST /api/pat/verify (superuser). Body: `{ token, ip? }`. Used by edge services; the token is never logged. */
 const HandlePatVerify = (e) => {
@@ -446,7 +471,11 @@ const HandlePatVerify = (e) => {
 
 //#endregion
 //#region src/lib/handlers/apiTokens/api/HandlePatWhoami.ts
-/** GET /api/pat/whoami with `Authorization: Bearer ph_pat_…`. Lets the CLI show who a token belongs to. */
+/**
+* GET /api/pat/whoami with `Authorization: Bearer ph_pat_…`. Lets the CLI show who a token belongs to. With
+* `?fingerprint=SHA256:…` it also says whether that SSH key is registered on the account (label only), so `pockethost
+* sftp` can explain a missing key before SFTP rejects it. A token can never add SSH keys.
+*/
 const HandlePatWhoami = (e) => {
 	const outcome = verifyPat(bearerToken(e.request?.header.get("Authorization")), e.realIP());
 	if (!outcome.ok) return e.json(outcome.status, {
@@ -465,13 +494,24 @@ const HandlePatWhoami = (e) => {
 			return null;
 		}
 	}).filter((v) => !!v);
+	const fingerprint = `${e.request?.url?.query().get("fingerprint") ?? ""}`.trim();
+	let sshKey = null;
+	if (fingerprint) try {
+		sshKey = { label: $app.findFirstRecordByFilter("ssh_keys", "user = {:user} && fingerprint = {:fp}", {
+			user: user.id,
+			fp: fingerprint
+		}).getString("label") };
+	} catch {
+		sshKey = null;
+	}
 	return e.json(200, {
 		email: user.getString("email"),
 		label: result.label,
 		hint: token.getString("hint"),
 		scopes: result.scopes,
 		instances,
-		expires: token.getString("expires")
+		expires: token.getString("expires"),
+		...fingerprint ? { sshKey } : {}
 	});
 };
 
@@ -5496,6 +5536,7 @@ exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
 exports.HandleMirrorData = HandleMirrorData;
 exports.HandleMirrorSync = HandleMirrorSync;
 exports.HandleOutpostUnsubscribe = HandleOutpostUnsubscribe;
+exports.HandlePatInstances = HandlePatInstances;
 exports.HandlePatVerify = HandlePatVerify;
 exports.HandlePatWhoami = HandlePatWhoami;
 exports.HandleProcessNotification = HandleProcessNotification;

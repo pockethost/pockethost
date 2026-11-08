@@ -1,26 +1,19 @@
 import { Command } from 'commander'
-import { ensureLoggedIn } from '../lib/ensureLoggedIn'
-import { getClient } from './../lib/getClient'
-import { InstanceFields } from './../lib/InstanceFields'
+import { formatInstance, listInstances } from '../lib/token'
 
 export const ListCommand = () => {
   return new Command(`list`)
     .alias(`ls`)
-    .description(`List your instances`)
+    .description(`List the instances your token can reach`)
     .action(async () => {
-      await ensureLoggedIn()
-      const client = await getClient()
-      const instances = await client
-        .collection(`instances`)
-        .getFullList<InstanceFields>()
-      instances
-        .sort((a, b) => a.subdomain.localeCompare(b.subdomain))
-        .forEach((instance) => {
-          console.log(
-            `- ${instance.subdomain} (${instance.id}) ${
-              instance.cname ? `(${instance.cname})` : ''
-            } (${instance.status.toUpperCase()})`
-          )
-        })
+      const instances = await listInstances()
+      if (instances.length === 0) {
+        console.log(
+          `No instances. Your token may be limited to instances you no longer have.`
+        )
+        return
+      }
+      for (const instance of instances)
+        console.log(`- ${formatInstance(instance)}`)
     })
 }

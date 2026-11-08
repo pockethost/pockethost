@@ -1,6 +1,5 @@
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'fs'
 import { generateKeyPairSync, type KeyObject } from 'crypto'
-import type PocketBase from 'pocketbase'
 import { CLI_HOME, DEPLOY_KEY_FILE } from './constants'
 import {
   fingerprintForPublicKey,
@@ -11,12 +10,8 @@ import {
   pkcs8Ed25519ToOpenSshPrivateKeyPem,
 } from '../../vendor/ftp-deploy/sshPrivateKey'
 
-const SSH_KEYS_COLLECTION = 'ssh_keys'
 export const DEPLOY_KEY_LABEL = 'PocketHost CLI'
-/** Label used by phio (< 3.0). Still matched so upgrading doesn't register a second key. */
-const LEGACY_DEPLOY_KEY_LABEL = 'Phio'
-const DEPLOY_KEY_FILTER = (userId: string) =>
-  `user=${JSON.stringify(userId)} && (label=${JSON.stringify(DEPLOY_KEY_LABEL)} || label=${JSON.stringify(LEGACY_DEPLOY_KEY_LABEL)})`
+export const SSH_KEYS_URL = 'https://app.pockethost.io/account/keys'
 
 const PRIVATE_KEY_FILE = DEPLOY_KEY_FILE
 const PUBLIC_KEY_FILE = `${DEPLOY_KEY_FILE}.pub`
@@ -109,163 +104,17 @@ const ensureLocalKeyPair = () => {
   }
 }
 
-const publicKeysMatch = (localPublicKey: string, remotePublicKey: string) => {
-  const local = parseSshEd25519PublicKey(localPublicKey)
-  const remote = parseSshEd25519PublicKey(remotePublicKey)
-  return local.normalized === remote.normalized
-}
-
-export type DeployKeyRemoteStatus =
-  | 'not_checked'
-  | 'missing'
-  | 'registered'
-  | 'mismatch'
-
-export type DeployKeyStatus = {
-  local: 'missing' | 'present'
-  privateKeyPath: string
-  publicKeyPath: string
-  fingerprint?: string
-  remote: DeployKeyRemoteStatus
-}
-
-const readLocalDeployKey = () => {
-  const { privateKeyPath, publicKeyPath } = getDeployKeyPaths()
-  if (!existsSync(privateKeyPath) || !existsSync(publicKeyPath)) {
-    return { local: 'missing' as const, privateKeyPath, publicKeyPath }
-  }
-
-  const publicKey = readFileSync(publicKeyPath, 'utf8').trim()
+/**
+ * The local Ed25519 key `pockethost sftp` and `--sftp` use, under the config folder. Created on first use. The CLI
+ * cannot register it on your account (tokens can't add SSH keys); add the public key under Account → Keys once.
+ */
+export const ensureLocalDeployKey = () => {
+  const { privateKeyPath, publicKeyPath, publicKey } = ensureLocalKeyPair()
   const parsed = parseSshEd25519PublicKey(publicKey)
   return {
-    local: 'present' as const,
     privateKeyPath,
     publicKeyPath,
     publicKey: parsed.normalized,
     fingerprint: fingerprintForPublicKey(parsed.normalized),
-  }
-}
-
-/** Read-only deploy key status. Does not generate keys or register remotely. */
-export const getDeployKeyStatus = async (
-  client?: PocketBase
-): Promise<DeployKeyStatus> => {
-  const localKey = readLocalDeployKey()
-  if (localKey.local === 'missing') {
-    return {
-      local: 'missing',
-      privateKeyPath: localKey.privateKeyPath,
-      publicKeyPath: localKey.publicKeyPath,
-      remote: client?.authStore.isValid ? 'missing' : 'not_checked',
-    }
-  }
-
-  let remote: DeployKeyRemoteStatus = client?.authStore.isValid
-    ? 'missing'
-    : 'not_checked'
-  if (client?.authStore.isValid) {
-    const userId = client.authStore.record?.id
-    if (userId) {
-      try {
-        const remoteKey = await client
-          .collection(SSH_KEYS_COLLECTION)
-          .getFirstListItem(DEPLOY_KEY_FILTER(userId))
-        remote = publicKeysMatch(localKey.publicKey, remoteKey.public_key)
-          ? 'registered'
-          : 'mismatch'
-      } catch {
-        remote = 'missing'
-      }
-    }
-  }
-
-  return {
-    local: 'present',
-    privateKeyPath: localKey.privateKeyPath,
-    publicKeyPath: localKey.publicKeyPath,
-    fingerprint: localKey.fingerprint,
-    remote,
-  }
-}
-
-export const formatDeployKeyRemoteStatus = (remote: DeployKeyRemoteStatus) => {
-  switch (remote) {
-    case 'registered':
-      return 'registered (matches local)'
-    case 'missing':
-      return 'not registered (created on deploy)'
-    case 'mismatch':
-      return 'mismatch with local key'
-    case 'not_checked':
-      return 'not checked'
-  }
-}
-
-/**
- * Ensures a local Ed25519 deploy key exists under CLI_HOME and that Account → Keys
- * has a matching "PocketHost CLI" (or pre-3.0 "Phio") entry. Creates the remote key on first run.
- */
-export const ensureDeployKey = async (client: PocketBase) => {
-  const userId = client.authStore.record?.id
-  if (!userId) {
-    throw new Error(`You must be logged in first. Use 'pockethost login'`)
-  }
-
-  const { privateKeyPath, publicKeyPath, publicKey } = ensureLocalKeyPair()
-  const parsed = parseSshEd25519PublicKey(publicKey)
-  const fingerprint = fingerprintForPublicKey(parsed.normalized)
-
-  let remoteKey: { id: string; label: string; public_key: string } | undefined
-  try {
-    remoteKey = await client
-      .collection(SSH_KEYS_COLLECTION)
-      .getFirstListItem(DEPLOY_KEY_FILTER(userId))
-  } catch {
-    remoteKey = undefined
-  }
-
-  if (remoteKey) {
-    if (!publicKeysMatch(parsed.normalized, remoteKey.public_key)) {
-      throw new Error(
-        `Account key "${remoteKey.label}" does not match the local key in ${CLI_HOME()}. ` +
-          `Update it at https://pockethost.io/account/keys or delete ${PUBLIC_KEY_FILE} to regenerate locally.`
-      )
-    }
-    return {
-      privateKeyPath,
-      publicKeyPath,
-      publicKey: parsed.normalized,
-      fingerprint,
-    }
-  }
-
-  try {
-    await client.collection(SSH_KEYS_COLLECTION).create({
-      label: DEPLOY_KEY_LABEL,
-      public_key: parsed.normalized,
-      fingerprint,
-      all_instances: true,
-      instances: [],
-      user: userId,
-    })
-    console.log(
-      `Registered SFTP deploy key "${DEPLOY_KEY_LABEL}" under Account → Keys`
-    )
-  } catch (error) {
-    const message = `${error}`
-    if (message.includes('fingerprint') || message.includes('unique')) {
-      throw new Error(
-        `This deploy key is already registered under a different label. ` +
-          `Add or rename a key labeled "${DEPLOY_KEY_LABEL}" at https://pockethost.io/account/keys.`
-      )
-    }
-    throw error
-  }
-
-  return {
-    privateKeyPath,
-    publicKeyPath,
-    publicKey: parsed.normalized,
-    fingerprint,
   }
 }

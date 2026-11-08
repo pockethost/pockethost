@@ -1,10 +1,9 @@
 import { spawn, spawnSync } from 'child_process'
 import { Command } from 'commander'
-import { ensureDeployKey } from '../lib/deployKey'
 import { PROJECT_CONFIG_FILE } from '../lib/constants'
 import { savedInstanceName } from '../lib/defaultInstanceId'
-import { ensureLoggedIn } from '../lib/ensureLoggedIn'
-import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
+import { sftpCredentials } from '../lib/sftpAuth'
+import { findInstance } from '../lib/token'
 import {
   formatSftpCommand,
   SFTP_HOST,
@@ -29,12 +28,8 @@ const resolveRemoteDir = async (instanceName?: string) => {
     return ''
   }
 
-  try {
-    const instance = await getInstanceBySubdomainCnameOrId(name)
-    return `${instance.subdomain}/`
-  } catch {
-    throw new Error(`Instance ${name} not found`)
-  }
+  const instance = await findInstance(name)
+  return `${instance.subdomain}/`
 }
 
 export const openSftpSession = async (
@@ -47,13 +42,7 @@ export const openSftpSession = async (
     )
   }
 
-  await ensureLoggedIn()
-  const client = await getClient()
-  const { privateKeyPath } = await ensureDeployKey(client)
-  const email = client.authStore.record?.email
-  if (!email) {
-    throw new Error(`You must be logged in first. Use 'pockethost login'`)
-  }
+  const { email, privateKeyPath } = await sftpCredentials()
 
   const connection: SftpConnection = {
     host: SFTP_HOST,

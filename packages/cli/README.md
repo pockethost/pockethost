@@ -16,14 +16,14 @@ npm install -g pockethost
 npm rm -g phio && npm i -g pockethost
 ```
 
-Everything carries over on first run: your login and deploy key are copied from phio's config folder (`~/.config/phio-nodejs` on Linux), `.phioconfig` is
+Your deploy key is copied from phio's config folder (`~/.config/phio-nodejs` on Linux), `.phioconfig` is
 renamed to `.pockethostconfig` (commit it), and the `PHIO_*` environment variables keep working with a warning until
 you rename them to `POCKETHOST_*`.
 
 ## Commands
 
 ```bash
-pockethost login             # or: pockethost login --token
+pockethost login [token]     # save a personal access token
 pockethost token [set|clear|status]
 pockethost logout
 pockethost info          # alias: pockethost whoami
@@ -37,7 +37,8 @@ pockethost logs [instance]
 
 - **`pockethost dev`**: watch local changes and deploy them
 - **`pockethost deploy`**: deploy once
-- **`pockethost token`**: save, clear, or check a personal access token
+- **`pockethost login`**: open Account → API Tokens and save the token you paste
+- **`pockethost token`**: save, clear, or check the token
 - **`pockethost sftp`**: interactive SFTP session (uses system `sftp` when available)
 - **`pockethost logs`**: tail instance logs
 
@@ -84,13 +85,16 @@ on the instance that aren't in your project are removed. `node_modules` and `.gi
 
 ## Authentication
 
-`deploy` and `dev` use, in order:
+The CLI signs in with a personal access token (`ph_pat_…`) only. Every command uses, in order:
 
-1. `POCKETHOST_TOKEN` (a personal access token, `ph_pat_…`)
-2. a token saved with `pockethost token set` (or `pockethost login --token`)
-3. your email/password login (`pockethost login`, or `POCKETHOST_USERNAME`/`POCKETHOST_PASSWORD`)
+1. `POCKETHOST_TOKEN`
+2. the token saved by `pockethost login` (or `pockethost token set`)
 
-Create tokens under Account → API Tokens in the dashboard. Deploy from GitHub Actions:
+Create tokens under [Account → API Tokens](https://app.pockethost.io/account/tokens). A token sees only the instances
+you give it; `list`, `link` and `logs` need read access, `deploy` and `dev` need write access. Email/password login
+was removed in 4.0.
+
+Deploy from GitHub Actions:
 
 ```yaml
 - run: npx pockethost@latest deploy myapp-${{ github.ref_name }}
@@ -100,12 +104,14 @@ Create tokens under Account → API Tokens in the dashboard. Deploy from GitHub 
 
 Docs: https://pockethost.io/docs/deploy-from-ci
 
-## Deploy key (`--sftp` and `pockethost sftp`)
+## SSH key (`--sftp` and `pockethost sftp`)
 
-`pockethost dev --sftp`, `pockethost deploy --sftp` and `pockethost sftp` use **SFTP** (`ftp.pockethost.io:2222`) using an Ed25519 deploy key
-stored under `POCKETHOST_HOME` (default `~/.config/pockethost/`). The CLI auto-registers a **`PocketHost CLI`** key
-under Account → Keys on first use (an existing **`Phio`** key from phio is reused). Run `pockethost info` to inspect
-key status.
+`pockethost dev --sftp`, `pockethost deploy --sftp` and `pockethost sftp` use **SFTP** (`ftp.pockethost.io:2222`)
+with an Ed25519 key stored under `POCKETHOST_HOME` (default `~/.config/pockethost/`), created on first use. Tokens
+can't add SSH keys, so add the public key (`pockethost_deploy_ed25519.pub`) under
+[Account → Keys](https://app.pockethost.io/account/keys) once; the CLI prints it if it's missing. Keys you registered
+with an earlier version (`PocketHost CLI` or `Phio`) keep working. `pockethost info` shows whether the key is on your
+account.
 
 Customer docs: https://pockethost.io/docs/cli
 
@@ -113,16 +119,14 @@ Customer docs: https://pockethost.io/docs/cli
 
 | Variable | Purpose |
 | -------- | ------- |
-| `POCKETHOST_TOKEN` | Personal access token for `deploy`/`dev` (CI) |
-| `POCKETHOST_USERNAME` | Override saved email (non-interactive login) |
-| `POCKETHOST_PASSWORD` | Override saved password |
+| `POCKETHOST_TOKEN` | Personal access token (CI); overrides the saved one |
 | `POCKETHOST_INSTANCE_NAME` | Override linked instance name |
 | `POCKETHOST_MOTHERSHIP_URL` | Override mothership API URL |
 | `POCKETHOST_HOME` | Override config directory |
 | `POCKETHOST_PROJECT_DIR` | Override project root detection |
 
 Environment variables take precedence over `.pockethostconfig`. The old `PHIO_*` names still work (with a deprecation
-warning) and will be removed in the next major version.
+warning) and will be removed in a future major version.
 
 ## Development (monorepo)
 

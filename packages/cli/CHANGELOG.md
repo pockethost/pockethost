@@ -2,6 +2,22 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.0.0
+
+### Major Changes
+
+- The CLI signs in with a personal access token only. Email/password login is gone: `pockethost login` opens
+  Account → API Tokens and saves the token you paste (`pockethost login <token>` works too), and
+  `POCKETHOST_USERNAME`/`POCKETHOST_PASSWORD` are ignored with a message pointing to `POCKETHOST_TOKEN`. A login saved
+  by 3.x no longer works; run `pockethost login` once.
+- `list`, `link` and `logs` work with a token and show only the instances the token can reach. `logs` streams over
+  the instance's HTTPS endpoint, so it works from CI.
+- `sftp`, `deploy --sftp` and `dev --sftp` no longer register an SSH key for you, because tokens can't add SSH keys.
+  Add the CLI's public key under Account → Keys once; the CLI prints it when it's missing. Keys registered by earlier
+  versions keep working.
+- `info` shows the token, linked instance and whether the SFTP key is on your account.
+- Dropped the `pocketbase` dependency.
+
 ## 3.1.0
 
 ### Minor Changes

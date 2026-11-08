@@ -7,6 +7,7 @@ const writeJSONSync = (path: string, data: unknown) =>
   writeFileSync(path, JSON.stringify(data), 'utf8')
 
 export type Config = {
+  /** Pre-4.0 email/password login. Read only to explain the upgrade; logout clears it. */
   email: string
   pb_auth: string
   /** Saved personal access token (`pockethost token set`) */
