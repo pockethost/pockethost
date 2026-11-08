@@ -2,11 +2,21 @@ import { type InstanceWebhookCollection } from '$common'
 import { ensureCustomHostname } from '$util/cloudflare'
 import { mkLog, StringKvLookup } from '$util/Logger'
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
+import { isAvailable } from '../../signup/isAvailable'
+import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
+import { applySecretsPatch, instanceNameError, invalidSecretKey } from '../lib/instancePolicy'
 
+/**
+ * PUT /api/instance/{id}. Called by the dashboard (JWT) and by the CLI with a personal access token that has write
+ * access to the instance. Besides the full `secrets` map, accepts `secretsPatch` (`{ KEY: value | null }`) so a token
+ * can change one secret without reading the others.
+ */
 export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   const log = mkLog(`PUT:instance`)
 
   log(`TOP OF PUT`)
+  const id = e.request.pathValue('id')
+  const caller = resolveInstanceCaller(e, { kind: 'instance', instanceId: id })
 
   let data = new DynamicModel({
     id: '',
@@ -15,6 +25,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       power: null,
       version: null,
       secrets: null,
+      secretsPatch: null,
       webhooks: null,
       syncAdmin: null,
       autoVacuum: null,
@@ -28,6 +39,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       power: boolean | null
       version: string | null
       secrets: StringKvLookup | null
+      secretsPatch: Record<string, string | null> | null
       webhooks: InstanceWebhookCollection | null
       syncAdmin: boolean | null
       autoVacuum: boolean | null
@@ -42,10 +54,10 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   // This is necessary for destructuring to work correctly
   data = JSON.parse(JSON.stringify(data))
 
-  const id = e.request.pathValue('id')
   const {
-    fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname },
+    fields: { subdomain, power, version, secretsPatch, webhooks, syncAdmin, autoVacuum, dev, cname },
   } = data
+  let { secrets } = data.fields
 
   log(
     `vars`,
@@ -54,7 +66,9 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
       subdomain,
       power,
       version,
-      secrets,
+      // Names only: never log secret values.
+      secrets: secrets === null ? null : Object.keys(secrets),
+      secretsPatch: secretsPatch === null ? null : Object.keys(secretsPatch),
       webhooks,
       syncAdmin,
       autoVacuum,
@@ -63,15 +77,25 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
     })
   )
 
-  const record = $app.findRecordById('instances', id)
-  const authRecord = e.auth
-  log(`authRecord`, JSON.stringify(authRecord))
+  const record = findOwnedInstance(caller, id)
+  log(`caller`, JSON.stringify(caller))
 
-  if (!authRecord) {
-    throw new Error(`Expected authRecord here`)
+  if (secretsPatch !== null) {
+    if (secrets !== null) throw new BadRequestError(`Send either secrets or secretsPatch, not both.`)
+    const current = (JSON.parse(record.getString('secrets') || 'null') ?? {}) as Record<string, string>
+    secrets = applySecretsPatch(current, secretsPatch)
   }
-  if (record.get('uid') !== authRecord.id) {
-    throw new BadRequestError(`Not authorized`)
+  if (secrets !== null) {
+    const bad = invalidSecretKey(Object.keys(secrets))
+    if (bad !== null) {
+      throw new BadRequestError(`Invalid secret name ${bad}: use A-Z, 0-9 and _, starting with a letter.`)
+    }
+  }
+
+  if (subdomain !== null && subdomain !== record.getString('subdomain')) {
+    const nameError = instanceNameError(subdomain)
+    if (nameError) throw new BadRequestError(nameError)
+    if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`)
   }
 
   // Check if CNAME changed and handle Cloudflare

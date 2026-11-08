@@ -1,14 +1,14 @@
 import { mkLog } from '$util/Logger'
 import { listVersions } from '$util/versions'
+import { isAvailable } from '../../signup/isAvailable'
+import { resolveInstanceCaller } from '../lib/instanceCaller'
+import { instanceNameError } from '../lib/instancePolicy'
 
+/** POST /api/instance. Dashboard (JWT) or a personal access token for all instances with write access. */
 export const HandleInstanceCreate = (e: core.RequestEvent) => {
   const log = mkLog(`POST:instance`)
-  const authRecord = e.auth
-  log(`authRecord`, JSON.stringify(authRecord))
-
-  if (!authRecord) {
-    throw new Error(`Expected authRecord here`)
-  }
+  const caller = resolveInstanceCaller(e, { kind: 'create' })
+  log(`caller`, JSON.stringify(caller))
 
   log(`TOP OF POST`)
   let data = new DynamicModel({
@@ -32,10 +32,13 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
   if (!subdomain) {
     throw new BadRequestError(`Subdomain is required when creating an instance.`)
   }
+  const nameError = instanceNameError(subdomain)
+  if (nameError) throw new BadRequestError(nameError)
+  if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`)
 
   const collection = $app.findCollectionByNameOrId('instances')
   const record = new Record(collection)
-  record.set('uid', authRecord.id)
+  record.set('uid', caller.userId)
   record.set('subdomain', subdomain)
   record.set('power', true)
   record.set('status', 'idle')

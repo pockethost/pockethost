@@ -99,15 +99,19 @@ cronAdd("edges-stale", "* * * * *", () => {
 
 //#endregion
 //#region src/lib/handlers/instance/hooks.ts
+/**
+* Instance endpoints accept a dashboard session (JWT) or a personal access token, so they don't use
+* `$apis.requireAuth()`. Each handler authenticates with `resolveInstanceCaller` (instance/lib/instanceCaller.ts).
+*/
 routerAdd("PUT", "/api/instance/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceUpdate(e);
-}, $apis.requireAuth());
+});
 routerAdd("POST", "/api/instance", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceCreate(e);
-}, $apis.requireAuth());
+});
 routerAdd("DELETE", "/api/instance/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceDelete(e);
-}, $apis.requireAuth());
+});
 routerAdd("POST", "/api/instances/runtime/reset", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstancesRuntimeReset(e);
 }, $apis.requireSuperuserAuth());

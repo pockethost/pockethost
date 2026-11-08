@@ -1,5 +1,7 @@
 import { mkLog } from '$util/Logger'
+import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
 
+/** DELETE /api/instance/{id}. Dashboard (JWT) or a personal access token with write access to the instance. */
 export const HandleInstanceDelete = (e: core.RequestEvent) => {
   const log = mkLog(`DELETE:instance`)
 
@@ -23,20 +25,9 @@ export const HandleInstanceDelete = (e: core.RequestEvent) => {
     })
   )
 
-  const authRecord = e.auth
-  log(`authRecord`, JSON.stringify(authRecord))
-
-  if (!authRecord) {
-    throw new BadRequestError(`Expected authRecord here`)
-  }
-
-  const record = $app.findRecordById('instances', id)
-  if (!record) {
-    throw new BadRequestError(`Instance ${id} not found.`)
-  }
-  if (record.get('uid') !== authRecord.id) {
-    throw new BadRequestError(`Not authorized`)
-  }
+  const caller = resolveInstanceCaller(e, { kind: 'instance', instanceId: id })
+  const record = findOwnedInstance(caller, id)
+  log(`caller`, JSON.stringify(caller))
 
   if (record.getString('status').toLowerCase() !== 'idle') {
     throw new BadRequestError(`Instance must be shut down first.`)

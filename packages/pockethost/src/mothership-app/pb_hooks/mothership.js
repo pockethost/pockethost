@@ -433,9 +433,16 @@ const verifyPat = (raw, ip) => {
 
 //#endregion
 //#region src/lib/handlers/apiTokens/api/HandlePatInstances.ts
+const parseJson = (raw) => {
+	try {
+		return JSON.parse(raw || "null");
+	} catch {
+		return null;
+	}
+};
 /**
 * GET /api/pat/instances with `Authorization: Bearer ph_pat_…`. Lists the token owner's instances that the token can
-* reach, for `pockethost list` and `pockethost link`.
+* reach, for `pockethost list`, `link` and `show`.
 */
 const HandlePatInstances = (e) => {
 	const outcome = verifyPat(bearerToken(e.request?.header.get("Authorization")), e.realIP());
@@ -451,7 +458,15 @@ const HandlePatInstances = (e) => {
 		cname: r.getString("cname"),
 		status: r.getString("status"),
 		power: r.getBool("power"),
-		version: r.getString("version")
+		version: r.getString("version"),
+		dev: r.getBool("dev"),
+		syncAdmin: r.getBool("syncAdmin"),
+		autoVacuum: r.getBool("autoVacuum"),
+		secretNames: Object.keys(parseJson(r.getString("secrets")) ?? {}).sort(),
+		webhooks: (parseJson(r.getString("webhooks")) ?? []).map((w) => ({
+			endpoint: w.endpoint,
+			value: w.value
+		}))
 	}));
 	return e.json(200, { instances });
 };
@@ -803,12 +818,91 @@ const readPocketbaseVersions = () => {
 const listVersions = () => readPocketbaseVersions().map((entry) => entry.range);
 
 //#endregion
+//#region src/lib/handlers/signup/isAvailable.ts
+const isAvailable = (slug) => {
+	try {
+		$app.findFirstRecordByData("instances", "subdomain", slug);
+		return false;
+	} catch {
+		return true;
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/instance/lib/instancePolicy.ts
+/** Pure: whether a verified token may perform a write. Null when allowed. */
+const patDenial = (grant, need) => {
+	if (!grant.scopes.includes("write")) return {
+		status: 403,
+		message: `This token is read-only. Create a token with write access to change instances.`
+	};
+	if (need.kind === "create") return grant.instanceIds === null ? null : {
+		status: 403,
+		message: `Only a token for all instances can create instances. This token is limited to specific instances.`
+	};
+	if (grant.instanceIds !== null && !grant.instanceIds.includes(need.instanceId)) return {
+		status: 404,
+		message: `Instance not found, or this token cannot access it.`
+	};
+	return null;
+};
+/** Pure: applies a `{ KEY: value | null }` patch to a secrets map (null removes the key). */
+const applySecretsPatch = (current, patch) => {
+	const next = { ...current ?? {} };
+	for (const [key, value] of Object.entries(patch)) if (value === null) delete next[key];
+	else next[key] = value;
+	return next;
+};
+const SECRET_KEY_PATTERN = /^[A-Z][A-Z0-9_]*$/;
+/** Pure: validates secret keys. Returns the first bad key, or null. */
+const invalidSecretKey = (keys) => keys.find((k) => !SECRET_KEY_PATTERN.test(k)) ?? null;
+/** Same rule as GET /api/signup?name=… */
+const INSTANCE_NAME_PATTERN = /^[a-z][a-z0-9-]{2,39}$/;
+/** Pure: why an instance name is invalid, or null. */
+const instanceNameError = (name) => INSTANCE_NAME_PATTERN.test(name) ? null : `Instance name must begin with a letter, be between 3-40 characters, and can only contain a-z, 0-9, and hyphen (-).`;
+
+//#endregion
+//#region src/lib/handlers/instance/lib/instanceCaller.ts
+const deny = (status, message) => {
+	if (status === 401) throw new UnauthorizedError(message);
+	if (status === 403) throw new ForbiddenError(message);
+	throw new NotFoundError(message);
+};
+const resolveInstanceCaller = (e, need) => {
+	if (e.auth) return {
+		userId: e.auth.id,
+		via: "jwt"
+	};
+	const raw = bearerToken(e.request?.header.get("Authorization"));
+	if (!raw) return deny(401, `Sign in to the dashboard or send a personal access token.`);
+	const outcome = verifyPat(raw, e.realIP());
+	if (!outcome.ok) return deny(outcome.status, outcome.message);
+	const denial = patDenial(outcome.result, need);
+	if (denial) return deny(denial.status, denial.message);
+	return {
+		userId: outcome.user.id,
+		via: "pat"
+	};
+};
+/** Loads an instance the caller owns. Missing and not-owned look the same to tokens. */
+const findOwnedInstance = (caller, id) => {
+	let record;
+	try {
+		record = $app.findRecordById("instances", id);
+	} catch {
+		record = void 0;
+	}
+	if (!record || record.getString("uid") !== caller.userId) return deny(404, `Instance not found, or you cannot access it.`);
+	return record;
+};
+
+//#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceCreate.ts
+/** POST /api/instance. Dashboard (JWT) or a personal access token for all instances with write access. */
 const HandleInstanceCreate = (e) => {
 	const log = mkLog(`POST:instance`);
-	const authRecord = e.auth;
-	log(`authRecord`, JSON.stringify(authRecord));
-	if (!authRecord) throw new Error(`Expected authRecord here`);
+	const caller = resolveInstanceCaller(e, { kind: "create" });
+	log(`caller`, JSON.stringify(caller));
 	log(`TOP OF POST`);
 	let data = new DynamicModel({
 		subdomain: "",
@@ -821,9 +915,12 @@ const HandleInstanceCreate = (e) => {
 	const { subdomain, version } = data;
 	log(`vars`, JSON.stringify({ subdomain }));
 	if (!subdomain) throw new BadRequestError(`Subdomain is required when creating an instance.`);
+	const nameError = instanceNameError(subdomain);
+	if (nameError) throw new BadRequestError(nameError);
+	if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
 	const collection = $app.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
-	record.set("uid", authRecord.id);
+	record.set("uid", caller.userId);
 	record.set("subdomain", subdomain);
 	record.set("power", true);
 	record.set("status", "idle");
@@ -837,6 +934,7 @@ const HandleInstanceCreate = (e) => {
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceDelete.ts
+/** DELETE /api/instance/{id}. Dashboard (JWT) or a personal access token with write access to the instance. */
 const HandleInstanceDelete = (e) => {
 	const log = mkLog(`DELETE:instance`);
 	log(`TOP OF DELETE`);
@@ -846,12 +944,12 @@ const HandleInstanceDelete = (e) => {
 	data = JSON.parse(JSON.stringify(data));
 	const id = e.request.pathValue("id");
 	log(`vars`, JSON.stringify({ id }));
-	const authRecord = e.auth;
-	log(`authRecord`, JSON.stringify(authRecord));
-	if (!authRecord) throw new BadRequestError(`Expected authRecord here`);
-	const record = $app.findRecordById("instances", id);
-	if (!record) throw new BadRequestError(`Instance ${id} not found.`);
-	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
+	const caller = resolveInstanceCaller(e, {
+		kind: "instance",
+		instanceId: id
+	});
+	const record = findOwnedInstance(caller, id);
+	log(`caller`, JSON.stringify(caller));
 	if (record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be shut down first.`);
 	$app.delete(record);
 	return e.json(200, { status: "ok" });
@@ -887,9 +985,19 @@ const removeEmptyKeys = (obj) => Object.fromEntries(Object.entries(obj).filter((
 
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceUpdate.ts
+/**
+* PUT /api/instance/{id}. Called by the dashboard (JWT) and by the CLI with a personal access token that has write
+* access to the instance. Besides the full `secrets` map, accepts `secretsPatch` (`{ KEY: value | null }`) so a token
+* can change one secret without reading the others.
+*/
 const HandleInstanceUpdate = (e) => {
 	const log = mkLog(`PUT:instance`);
 	log(`TOP OF PUT`);
+	const id = e.request.pathValue("id");
+	const caller = resolveInstanceCaller(e, {
+		kind: "instance",
+		instanceId: id
+	});
 	let data = new DynamicModel({
 		id: "",
 		fields: {
@@ -897,6 +1005,7 @@ const HandleInstanceUpdate = (e) => {
 			power: null,
 			version: null,
 			secrets: null,
+			secretsPatch: null,
 			webhooks: null,
 			syncAdmin: null,
 			autoVacuum: null,
@@ -907,25 +1016,36 @@ const HandleInstanceUpdate = (e) => {
 	e.bindBody(data);
 	log(`After bind`);
 	data = JSON.parse(JSON.stringify(data));
-	const id = e.request.pathValue("id");
-	const { fields: { subdomain, power, version, secrets, webhooks, syncAdmin, autoVacuum, dev, cname } } = data;
+	const { fields: { subdomain, power, version, secretsPatch, webhooks, syncAdmin, autoVacuum, dev, cname } } = data;
+	let { secrets } = data.fields;
 	log(`vars`, JSON.stringify({
 		id,
 		subdomain,
 		power,
 		version,
-		secrets,
+		secrets: secrets === null ? null : Object.keys(secrets),
+		secretsPatch: secretsPatch === null ? null : Object.keys(secretsPatch),
 		webhooks,
 		syncAdmin,
 		autoVacuum,
 		dev,
 		cname
 	}));
-	const record = $app.findRecordById("instances", id);
-	const authRecord = e.auth;
-	log(`authRecord`, JSON.stringify(authRecord));
-	if (!authRecord) throw new Error(`Expected authRecord here`);
-	if (record.get("uid") !== authRecord.id) throw new BadRequestError(`Not authorized`);
+	const record = findOwnedInstance(caller, id);
+	log(`caller`, JSON.stringify(caller));
+	if (secretsPatch !== null) {
+		if (secrets !== null) throw new BadRequestError(`Send either secrets or secretsPatch, not both.`);
+		secrets = applySecretsPatch(JSON.parse(record.getString("secrets") || "null") ?? {}, secretsPatch);
+	}
+	if (secrets !== null) {
+		const bad = invalidSecretKey(Object.keys(secrets));
+		if (bad !== null) throw new BadRequestError(`Invalid secret name ${bad}: use A-Z, 0-9 and _, starting with a letter.`);
+	}
+	if (subdomain !== null && subdomain !== record.getString("subdomain")) {
+		const nameError = instanceNameError(subdomain);
+		if (nameError) throw new BadRequestError(nameError);
+		if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
+	}
 	const oldCname = record.getString("cname").trim();
 	const newCname = cname !== null ? cname.trim() : null;
 	const cnameChanged = newCname !== null && oldCname !== newCname;
@@ -1124,7 +1244,10 @@ const BeforeUpdate_cname = (e) => {
 		const result = new DynamicModel({ id: "" });
 		if ((() => {
 			try {
-				$app.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result);
+				$app.db().newQuery(`select id from instances where cname = {:cname} and id <> {:id}`).bind({
+					cname: newCname,
+					id
+				}).one(result);
 			} catch (e) {
 				return false;
 			}
@@ -2972,17 +3095,6 @@ const error = (fieldName, slug, description, extra) => new ApiError(500, descrip
 	[fieldName]: new ValidationError(slug, description),
 	...extra
 });
-
-//#endregion
-//#region src/lib/handlers/signup/isAvailable.ts
-const isAvailable = (slug) => {
-	try {
-		$app.findFirstRecordByData("instances", "subdomain", slug);
-		return false;
-	} catch {
-		return true;
-	}
-};
 
 //#endregion
 //#region src/lib/handlers/signup/random-words/wordList.ts

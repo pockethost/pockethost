@@ -1,9 +1,17 @@
 import { bearerToken } from '$common/pat'
 import { verifyPat } from '../lib/verifyPat'
 
+const parseJson = <T>(raw: string): T | null => {
+  try {
+    return JSON.parse(raw || 'null') as T | null
+  } catch {
+    return null
+  }
+}
+
 /**
  * GET /api/pat/instances with `Authorization: Bearer ph_pat_…`. Lists the token owner's instances that the token can
- * reach, for `pockethost list` and `pockethost link`.
+ * reach, for `pockethost list`, `link` and `show`.
  */
 export const HandlePatInstances = (e: core.RequestEvent) => {
   const outcome = verifyPat(bearerToken(e.request?.header.get('Authorization')), e.realIP())
@@ -22,6 +30,15 @@ export const HandlePatInstances = (e: core.RequestEvent) => {
       status: r!.getString('status'),
       power: r!.getBool('power'),
       version: r!.getString('version'),
+      dev: r!.getBool('dev'),
+      syncAdmin: r!.getBool('syncAdmin'),
+      autoVacuum: r!.getBool('autoVacuum'),
+      // Names only: a token can set secrets but never read their values back.
+      secretNames: Object.keys(parseJson<Record<string, string>>(r!.getString('secrets')) ?? {}).sort(),
+      webhooks: (parseJson<{ endpoint: string; value: string }[]>(r!.getString('webhooks')) ?? []).map((w) => ({
+        endpoint: w.endpoint,
+        value: w.value,
+      })),
     }))
   return e.json(200, { instances })
 }

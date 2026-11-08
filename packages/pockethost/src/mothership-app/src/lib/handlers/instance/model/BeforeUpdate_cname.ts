@@ -16,7 +16,11 @@ export const BeforeUpdate_cname = (e: core.RecordUpdateEvent) => {
 
     const inUse = (() => {
       try {
-        $app.db().newQuery(`select id from instances where cname='${newCname}' and id <> '${id}'`).one(result)
+        $app
+          .db()
+          .newQuery(`select id from instances where cname = {:cname} and id <> {:id}`)
+          .bind({ cname: newCname, id })
+          .one(result)
       } catch (e) {
         return false
       }
