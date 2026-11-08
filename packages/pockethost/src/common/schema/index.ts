@@ -1,3 +1,4 @@
+export * from './ApiToken'
 export * from './Instance'
 export * from './InstanceLog'
 export * from './Rest'

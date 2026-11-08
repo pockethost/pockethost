@@ -1,3 +1,4 @@
+export * from './DeployService'
 export * from './EdgeHeartbeatService'
 export * from './EdgeTrafficStats'
 export * from './ensureDevTlsCerts'

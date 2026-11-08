@@ -272,6 +272,210 @@ const handleLivePlatformUserUpdate = (e) => {
 };
 
 //#endregion
+//#region ../common/pat.ts
+/**
+* Personal access tokens (PATs). Format: `ph_pat_<id>_<secret>`.
+*
+* - `id` is the 15-character `api_tokens` record ID, used for lookup.
+* - `secret` is 43 base62 characters (~256 bits). Only `sha256(secret)` is stored.
+*
+* Pure helpers only: this file is bundled into the mothership JSVM, so no Node imports.
+*/
+const PAT_PREFIX = "ph_pat_";
+const PAT_SECRET_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const PAT_RE = /^ph_pat_([a-z0-9]{15})_([0-9A-Za-z]{43})$/;
+const formatPat = (id, secret) => `${PAT_PREFIX}${id}_${secret}`;
+const parsePat = (raw) => {
+	if (typeof raw !== "string") return null;
+	const m = PAT_RE.exec(raw.trim());
+	if (!m) return null;
+	return {
+		id: m[1],
+		secret: m[2]
+	};
+};
+/** Last 4 characters of the secret, shown in lists as `ph_pat_…abcd`. */
+const patHint = (secret) => secret.slice(-4);
+/** Reads `Authorization: Bearer <token>`. Returns the token or null. */
+const bearerToken = (authorization) => {
+	if (!authorization) return null;
+	const m = /^Bearer\s+(.+)$/i.exec(authorization.trim());
+	return m ? m[1].trim() : null;
+};
+/** True when an ISO/PB date string is set and in the past. */
+const patExpired = (expires, nowMs) => {
+	if (!expires || !expires.trim()) return false;
+	const t = Date.parse(expires.replace(" ", "T"));
+	if (Number.isNaN(t)) return false;
+	return t <= nowMs;
+};
+
+//#endregion
+//#region src/lib/handlers/apiTokens/api/HandleApiTokenCreate.ts
+/**
+* POST /api/tokens (JWT auth only). Body: `{ label, scopes?, all_instances?, instances?, expires? }`. Returns the token
+* once; only its sha256 is stored.
+*/
+const HandleApiTokenCreate = (e) => {
+	const auth = e.auth;
+	if (!auth) throw new UnauthorizedError("Authentication required.");
+	const body = e.requestInfo().body || {};
+	const label = typeof body.label === "string" ? body.label.trim() : "";
+	if (!label) throw new BadRequestError("Label is required.");
+	if (label.length > 100) throw new BadRequestError(`Label must be at most ${100} characters.`);
+	const rawScopes = Array.isArray(body.scopes) ? body.scopes : ["read", "write"];
+	const scopes = /* @__PURE__ */ new Set();
+	for (const s of rawScopes) {
+		if (s !== "read" && s !== "write") throw new BadRequestError(`Unknown scope: ${s}`);
+		scopes.add(s);
+	}
+	if (scopes.has("write")) scopes.add("read");
+	if (scopes.size === 0) throw new BadRequestError("Choose at least one scope.");
+	const allInstances = body.all_instances === true;
+	const instanceIds = Array.isArray(body.instances) ? [...new Set(body.instances.filter((v) => typeof v === "string"))] : [];
+	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
+	if (!allInstances) for (const id of instanceIds) {
+		let instance;
+		try {
+			instance = $app.findRecordById("instances", id);
+		} catch {
+			throw new BadRequestError("One or more selected instances were not found.");
+		}
+		if (instance.getString("uid") !== auth.id) throw new BadRequestError("One or more selected instances are not owned by you.");
+	}
+	let expires = "";
+	if (typeof body.expires === "string" && body.expires.trim()) {
+		const t = Date.parse(body.expires.trim());
+		if (Number.isNaN(t)) throw new BadRequestError("Invalid expiry date.");
+		if (t <= Date.now()) throw new BadRequestError("Expiry must be in the future.");
+		expires = new Date(t).toISOString();
+	}
+	if ($app.findRecordsByFilter("api_tokens", "user = {:user}", "", 0, 0, { user: auth.id }).length >= 20) throw new BadRequestError(`You can have at most ${20} tokens. Revoke one first.`);
+	const secret = $security.randomStringWithAlphabet(43, PAT_SECRET_ALPHABET);
+	const record = new Record($app.findCollectionByNameOrId("api_tokens"));
+	record.set("user", auth.id);
+	record.set("label", label);
+	record.set("secret_hash", $security.sha256(secret));
+	record.set("hint", patHint(secret));
+	record.set("scopes", [...scopes]);
+	record.set("all_instances", allInstances);
+	record.set("instances", allInstances ? [] : instanceIds);
+	record.set("expires", expires);
+	$app.save(record);
+	return e.json(200, {
+		token: formatPat(record.id, secret),
+		record: {
+			id: record.id,
+			label,
+			hint: record.getString("hint"),
+			scopes: [...scopes],
+			all_instances: allInstances,
+			instances: allInstances ? [] : instanceIds,
+			expires: record.getString("expires"),
+			created: record.getString("created")
+		}
+	});
+};
+
+//#endregion
+//#region src/lib/handlers/apiTokens/lib/verifyPat.ts
+const TOUCH_INTERVAL_MS = 6e4;
+const invalid = () => ({
+	ok: false,
+	status: 401,
+	message: "Invalid or expired token."
+});
+/** Looks up a PAT, checks the hash in constant time, expiry and account suspension. */
+const verifyPat = (raw, ip) => {
+	const parsed = parsePat(raw);
+	if (!parsed) return invalid();
+	let token;
+	try {
+		token = $app.findRecordById("api_tokens", parsed.id);
+	} catch {
+		return invalid();
+	}
+	if (!$security.equal(token.getString("secret_hash"), $security.sha256(parsed.secret))) return invalid();
+	if (patExpired(token.getString("expires"), Date.now())) return invalid();
+	let user;
+	try {
+		user = $app.findRecordById("users", token.getString("user"));
+	} catch {
+		return invalid();
+	}
+	const suspension = user.getString("suspension").trim();
+	if (suspension) return {
+		ok: false,
+		status: 403,
+		message: suspension
+	};
+	const lastUsed = Date.parse(token.getString("last_used").replace(" ", "T"));
+	if (Number.isNaN(lastUsed) || Date.now() - lastUsed > TOUCH_INTERVAL_MS) try {
+		token.set("last_used", new DateTime());
+		if (ip) token.set("last_used_ip", `${ip}`.slice(0, 64));
+		$app.unsafeWithoutHooks().save(token);
+	} catch {}
+	const scopes = (token.getStringSlice("scopes") || []).filter((s) => s === "read" || s === "write");
+	const instanceIds = token.getBool("all_instances") ? null : [...token.getStringSlice("instances") || []];
+	return {
+		ok: true,
+		token,
+		user,
+		result: {
+			tokenId: token.id,
+			userId: user.id,
+			label: token.getString("label"),
+			scopes,
+			instanceIds
+		}
+	};
+};
+
+//#endregion
+//#region src/lib/handlers/apiTokens/api/HandlePatVerify.ts
+/** POST /api/pat/verify (superuser). Body: `{ token, ip? }`. Used by edge services; the token is never logged. */
+const HandlePatVerify = (e) => {
+	const body = e.requestInfo().body || {};
+	const outcome = verifyPat(body.token, typeof body.ip === "string" ? body.ip : void 0);
+	if (!outcome.ok) return e.json(outcome.status, {
+		status: outcome.status,
+		message: outcome.message
+	});
+	return e.json(200, outcome.result);
+};
+
+//#endregion
+//#region src/lib/handlers/apiTokens/api/HandlePatWhoami.ts
+/** GET /api/pat/whoami with `Authorization: Bearer ph_pat_…`. Lets the CLI show who a token belongs to. */
+const HandlePatWhoami = (e) => {
+	const outcome = verifyPat(bearerToken(e.request?.header.get("Authorization")), e.realIP());
+	if (!outcome.ok) return e.json(outcome.status, {
+		status: outcome.status,
+		message: outcome.message
+	});
+	const { result, token, user } = outcome;
+	const instances = result.instanceIds === null ? null : result.instanceIds.map((id) => {
+		try {
+			const r = $app.findRecordById("instances", id);
+			return {
+				id: r.id,
+				subdomain: r.getString("subdomain")
+			};
+		} catch {
+			return null;
+		}
+	}).filter((v) => !!v);
+	return e.json(200, {
+		email: user.getString("email"),
+		label: result.label,
+		hint: token.getString("hint"),
+		scopes: result.scopes,
+		instances,
+		expires: token.getString("expires")
+	});
+};
+
+//#endregion
 //#region src/lib/util/cloudflare.ts
 const DEAD_STATUSES = [
 	"moved",
@@ -5271,6 +5475,7 @@ exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
+exports.HandleApiTokenCreate = HandleApiTokenCreate;
 exports.HandleCustomHostnameRegister = HandleCustomHostnameRegister;
 exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
@@ -5291,6 +5496,8 @@ exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
 exports.HandleMirrorData = HandleMirrorData;
 exports.HandleMirrorSync = HandleMirrorSync;
 exports.HandleOutpostUnsubscribe = HandleOutpostUnsubscribe;
+exports.HandlePatVerify = HandlePatVerify;
+exports.HandlePatWhoami = HandlePatWhoami;
 exports.HandleProcessNotification = HandleProcessNotification;
 exports.HandleProcessSingleNotification = HandleProcessSingleNotification;
 exports.HandleSesError = HandleSesError;
@@ -5333,3 +5540,4 @@ exports.refreshPublicStats = refreshPublicStats;
 exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;
 exports.sendLiveViewStatsToClient = sendLiveViewStatsToClient;
 exports.sweepCustomHostnames = sweepCustomHostnames;
+exports.verifyPat = verifyPat;

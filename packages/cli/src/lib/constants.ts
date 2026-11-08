@@ -105,6 +105,19 @@ export const MOTHERSHIP_URL = (...paths: string[]) => {
   return url.toString()
 }
 
+/**
+ * Base URL of an instance (`https://<name>.pockethost.io`). The deploy API lives on the instance's own host so the
+ * ingress delivers it to whichever node owns the instance. A name with a dot is treated as a custom domain.
+ */
+export const INSTANCE_URL = (name: string) => {
+  const m = new URL(MOTHERSHIP_URL())
+  const apex = m.hostname.split('.').slice(1).join('.')
+  const host = name.includes('.') ? name : `${name}.${apex}`
+  return `${m.protocol}//${host}${m.port ? `:${m.port}` : ''}`
+}
+
+/** Personal access token (`ph_pat_…`) from the environment, e.g. a CI secret. */
+export const TOKEN = () => envVar('TOKEN') ?? ''
 export const USERNAME = () => envVar('USERNAME') ?? ''
 export const PASSWORD = () => envVar('PASSWORD') ?? ''
 export const INSTANCE_NAME = () => envVar('INSTANCE_NAME') ?? ''

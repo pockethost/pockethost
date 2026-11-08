@@ -1,12 +1,12 @@
 ---
 title: PocketHost CLI
-description: Install and use the pockethost CLI to link, watch, deploy, browse files, and tail logs for PocketHost instances over SFTP
+description: Install and use the pockethost CLI to link, watch, deploy, browse files, and tail logs for PocketHost instances
 ---
 # PocketHost CLI
 
-**`pockethost`** is the PocketHost command-line tool for syncing local PocketBase project files to your instance and tailing instance logs.
+**`pockethost`** is the PocketHost command-line tool for deploying local PocketBase project files to your instance and tailing instance logs.
 
-Deploy and watch mode use **SFTP on port 2222** with an Ed25519 deploy key. The CLI creates and registers that key for you on first use.
+`deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. Sign in with your email and password, or use a **personal access token** (best for CI). SFTP sync is still available with `--sftp`.
 
 ## Install
 
@@ -39,9 +39,9 @@ pockethost link my-instance
 pockethost dev
 ```
 
-1. **`pockethost login`**: sign in with your PocketHost email and password.
+1. **`pockethost login`**: sign in with your PocketHost email and password. Or run `pockethost token set` with a token from **[Account → API Tokens](/account/tokens)**.
 2. **`pockethost link <instance>`**: save the default instance to `.pockethostconfig` in the current directory.
-3. **`pockethost dev`**: watch local changes and sync them to the remote instance.
+3. **`pockethost dev`**: watch local changes and deploy them to the instance.
 
 For a one-shot upload without watching:
 
@@ -60,21 +60,25 @@ pockethost logs my-instance
 
 | Command | Purpose |
 | ------- | ------- |
-| `pockethost login` | Sign in to PocketHost |
-| `pockethost logout` | Clear saved session |
-| `pockethost info` (`whoami`) | Show login, linked instance, and deploy key status |
+| `pockethost login` | Sign in to PocketHost (`--token` to sign in with a token) |
+| `pockethost token [set\|clear\|status]` | Save, remove, or check a personal access token |
+| `pockethost logout` | Clear saved session and token |
+| `pockethost info` (`whoami`) | Show login or token, linked instance, and deploy key status |
 | `pockethost list` (`ls`) | List instances on your account |
 | `pockethost link [instance]` | Link this directory to an instance (writes `.pockethostconfig`) |
-| `pockethost dev [instance]` | Watch local files and sync on change |
-| `pockethost deploy [instance]` | One-shot sync to remote |
+| `pockethost dev [instance]` | Watch local files and deploy on change |
+| `pockethost deploy [instance]` | Deploy once |
 | `pockethost sftp [instance]` | Interactive SFTP session to instance files |
 | `pockethost logs [instance]` | Tail instance logs |
 
 `dev` and `deploy` accept:
 
-- `-v, --verbose`: verbose sync output
+- `-v, --verbose`: list every uploaded, changed, and deleted file
 - `-i, --include <patterns...>`: extra include globs (comma-separated values work)
 - `-e, --exclude <patterns...>`: extra exclude globs
+- `--sftp`: sync over SFTP with the deploy key instead of HTTPS
+
+`deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically.
 
 Default **includes**: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
 
@@ -122,9 +126,32 @@ Older projects may still have one of:
 
 The CLI migrates these to `.pockethostconfig` automatically the first time it reads them and removes the old entry.
 
-## Deploy key (SFTP auth)
+## Authentication
 
-The CLI does not use your PocketHost password for file sync. On `login`, `info`, and before each `dev`, `deploy`, or `sftp`, it:
+`deploy` and `dev` use the first of these that is set:
+
+1. **`POCKETHOST_TOKEN`** environment variable (a personal access token, `ph_pat_…`)
+2. A token saved with **`pockethost token set`** (or `pockethost login --token`)
+3. Your email/password login (`pockethost login`, or `POCKETHOST_USERNAME` + `POCKETHOST_PASSWORD`)
+
+Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can deploy (or only read), can be limited to specific instances, and can be revoked at any time. Tokens are the simplest choice for CI: see **[Deploy from CI](/docs/deploy-from-ci)**.
+
+`pockethost list` and `pockethost logs` still need an email/password login.
+
+## How deploys work
+
+1. The CLI collects the files matched by the include/exclude globs and hashes them.
+2. It sends the list to `https://<instance>.pockethost.io`, and PocketHost replies with the files it doesn't have yet.
+3. Only those files are uploaded, compressed.
+4. PocketHost swaps the new file set in all at once. If hooks, migrations, or packages changed, the instance is stopped for the swap and started again. Changes to `pb_public` alone go live without a restart. If `package.json`, `bun.lock`, or `patches/` changed, `bun install` runs first.
+
+`pb_data`, `node_modules`, `.git*` files, and anything else outside `pb_*` folders, `package.json`, `bun.lock(b)`, and `patches/` are never touched.
+
+**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, copy them into your project first.
+
+## Deploy key (SFTP mode)
+
+With `--sftp`, and for `pockethost sftp`, the CLI uses an Ed25519 deploy key instead of your password. On `login`, `info`, and before each `--sftp` deploy or `sftp` session, it:
 
 1. Generates or loads an Ed25519 keypair in its config folder (`~/.config/pockethost/` on Linux, your OS config folder elsewhere):
    - `pockethost_deploy_ed25519` (private key)
@@ -136,9 +163,9 @@ Run `pockethost info` to inspect deploy key paths, fingerprint, and remote regis
 
 If the remote key does not match your local key, delete the local key files to regenerate, or update the key in the dashboard. See **[Account access keys](/blog/account-access-keys)** for scoped keys in CI.
 
-## How sync works
+## How SFTP sync works (`--sftp`)
 
-The CLI connects to:
+With `--sftp`, the CLI connects to:
 
 | Setting | Value |
 | ------- | ----- |
@@ -159,6 +186,7 @@ Override saved config without editing files:
 
 | Variable | Purpose |
 | -------- | ------- |
+| `POCKETHOST_TOKEN` | Personal access token for `deploy` and `dev` (best for CI) |
 | `POCKETHOST_USERNAME` | PocketHost email (non-interactive login) |
 | `POCKETHOST_PASSWORD` | PocketHost password (with `POCKETHOST_USERNAME`) |
 | `POCKETHOST_INSTANCE_NAME` | Default instance name |
@@ -170,7 +198,7 @@ Override saved config without editing files:
 
 ## CI example
 
-Use env-based login and a linked instance name in CI:
+Create a token at **[Account → API Tokens](/account/tokens)**, save it as the `POCKETHOST_TOKEN` repository secret, and deploy:
 
 ```yaml
 on:
@@ -189,15 +217,11 @@ jobs:
 
       - name: Deploy to PocketHost
         env:
-          POCKETHOST_USERNAME: ${{ secrets.POCKETHOST_EMAIL }}
-          POCKETHOST_PASSWORD: ${{ secrets.POCKETHOST_PASSWORD }}
-          POCKETHOST_INSTANCE_NAME: my-instance
-        run: |
-          npm install -g pockethost
-          pockethost deploy -v
+          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
+        run: npx pockethost@latest deploy my-instance
 ```
 
-Store your PocketHost email and password as repository secrets. The CLI registers its deploy key on first deploy.
+See **[Deploy from CI](/docs/deploy-from-ci)** for per-branch instances and more detail. `POCKETHOST_USERNAME`/`POCKETHOST_PASSWORD` still work if you prefer them.
 
 For GitHub Actions that already use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action), use SFTP on port 2222 with an Ed25519 private key. FTPS on port 21 is off. See **[FTPS officially sunset](/blog/ftps-officially-sunset)**.
 
@@ -207,11 +231,19 @@ For GitHub Actions that already use [SamKirkland/FTP-Deploy-Action](https://gith
 
 Run `pockethost link <instance>` in your project directory, or pass the instance name on the command line.
 
-### Deploy key mismatch
+### `Authentication failed` or `Not authenticated`
+
+Check `pockethost token status`. If the token was revoked or expired, create a new one at **[Account → API Tokens](/account/tokens)**. Without a token, run `pockethost login`.
+
+### `Instance '…' not found, or this token cannot access it`
+
+Check the instance name, and that the token's instance list includes it.
+
+### Deploy key mismatch (`--sftp`)
 
 The **`PocketHost CLI`** (or **`Phio`**) key in **[Account → Keys](/account/keys)** must match `pockethost_deploy_ed25519.pub` in the CLI's config folder. Delete the local key files and run `pockethost info` or `pockethost deploy` to regenerate and re-register.
 
-### Permission denied (publickey) during deploy
+### Permission denied (publickey) during `--sftp` deploy
 
 Confirm you are logged in (`pockethost login` or `POCKETHOST_USERNAME`/`POCKETHOST_PASSWORD`), then run `pockethost info` to verify the deploy key is registered.
 

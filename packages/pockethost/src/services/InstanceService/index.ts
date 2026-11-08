@@ -76,6 +76,13 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   const instanceApiSlots: { [_: InstanceId]: InstanceApiSlot } = {}
   const instanceFieldLimiters: { [_: InstanceId]: Bottleneck } = {}
   const instanceGeneration: { [_: InstanceId]: number } = {}
+  /** Held while a deploy swaps an instance's files; requests wait so PocketBase never starts on a half-applied set. */
+  const deployLocks = new Map<InstanceId, Promise<void>>()
+  const waitForDeployLock = async (id: InstanceId) => {
+    while (deployLocks.has(id)) {
+      await deployLocks.get(id)
+    }
+  }
   const gatewayPending: { [_: InstanceId]: number } = {}
 
   const bumpGatewayPending = (id: InstanceId) => {
@@ -580,6 +587,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       }
     }
 
+    if (deployLocks.has(instance.id)) {
+      dbg(`Waiting for deploy on ${instance.id}`)
+      await waitForDeployLock(instance.id)
+    }
+
     const lifetime = trackRequestLifetime(res, bumpGatewayPending(instance.id))
 
     try {
@@ -602,5 +614,49 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
   setInstanceTrafficReady(true)
   instanceServiceLogger.info(`Instance traffic ready`)
 
-  return {}
+  /**
+   * Stops the instance if it is running, runs `fn`, then releases it. New requests wait until `fn` settles. Used by the
+   * deploy API to swap code while PocketBase is down.
+   */
+  const withInstanceStopped = async <T>(
+    id: InstanceId,
+    fn: () => Promise<T>
+  ): Promise<{ result: T; wasRunning: boolean }> => {
+    await waitForDeployLock(id)
+    let release!: () => void
+    deployLocks.set(
+      id,
+      new Promise<void>((resolve) => {
+        release = resolve
+      })
+    )
+    try {
+      let wasRunning = false
+      const slot = instanceApiSlots[id]
+      if (slot) {
+        const api = slot.api ?? (await slot.promise.catch(() => undefined))
+        if (api) {
+          wasRunning = !api.isLowering()
+          dbg(`Stopping ${id} for deploy`)
+          api.shutdown()
+          await api.whenLowered()
+        }
+      }
+      const result = await fn()
+      return { result, wasRunning }
+    } finally {
+      deployLocks.delete(id)
+      release()
+    }
+  }
+
+  /** Starts an instance (if needed) and waits until it is healthy. */
+  const startInstance = async (id: InstanceId) => {
+    const instance = await mirror.getInstance(id)
+    if (!instance) throw new Error(`Instance ${id} not found`)
+    await waitForDeployLock(id)
+    await ensureInstanceApi(instance, `deploy`)
+  }
+
+  return { withInstanceStopped, startInstance }
 })

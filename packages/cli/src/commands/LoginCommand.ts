@@ -3,6 +3,7 @@ import { Command } from 'commander'
 import { config } from '../lib/config'
 import { USERNAME } from '../lib/constants'
 import { login } from './../lib/getClient'
+import { saveToken } from './TokenCommand'
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
@@ -49,6 +50,12 @@ export const loginWithUserInput = async () => {
 
 export const LoginCommand = () =>
   new Command('login')
-    .description(`Log in to PocketHost`)
-    .helpOption(false)
-    .action(loginWithUserInput)
+    .description(`Log in to PocketHost (email/password, or --token)`)
+    .option(`--token [token]`, `Log in with a personal access token instead`)
+    .action(async (opts: { token?: string | boolean }) => {
+      if (opts.token !== undefined) {
+        await saveToken(typeof opts.token === 'string' ? opts.token : undefined)
+        return
+      }
+      await loginWithUserInput()
+    })

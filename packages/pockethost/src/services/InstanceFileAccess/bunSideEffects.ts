@@ -90,3 +90,9 @@ const launchBunInstall = (() => {
     delete runCache[cwd]
   }
 })()
+
+/** Runs `bun install` in an instance directory and waits for it (used by the deploy API). */
+export const runBunInstall = async (instance: InstanceFields, cwd: string, logger: Logger) => {
+  logger.info(`Deploy changed package files, running bun install`)
+  await launchBunInstall(instance, '/', cwd, logger)
+}

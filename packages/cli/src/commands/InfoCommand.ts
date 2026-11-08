@@ -5,15 +5,27 @@ import {
   formatDeployKeyRemoteStatus,
   getDeployKeyStatus,
 } from '../lib/deployKey'
-import { CLI_HOME } from '../lib/constants'
+import { CLI_HOME, TOKEN } from '../lib/constants'
+import { savedToken } from '../lib/token'
+import { showTokenStatus } from './TokenCommand'
 import { savedInstanceName } from '../lib/defaultInstanceId'
 import { resolveAuthStatus } from '../lib/getClient'
 
 export const showInfo = async () => {
+  const token = TOKEN() || savedToken()
+  if (token) {
+    console.log(`Config root: ${CLI_HOME()}`)
+    console.log(`Instance: ${savedInstanceName() || '(not linked)'}`)
+    await showTokenStatus()
+    return
+  }
+
   const auth = await resolveAuthStatus()
 
   if (auth.state !== 'authenticated') {
-    console.log(`Not logged in. Run 'pockethost login'.`)
+    console.log(
+      `Not logged in. Run 'pockethost login', or set POCKETHOST_TOKEN / run 'pockethost token set'.`
+    )
     return
   }
 

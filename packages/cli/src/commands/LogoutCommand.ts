@@ -3,7 +3,8 @@ import { config } from '../lib/config'
 
 export const logout = async () => {
   config(`pb_auth`, '')
-  console.log(`Logged out!`)
+  config(`token`, '')
+  console.log(`Logged out! (saved login and token removed)`)
 }
 
 export const LogoutCommand = () =>

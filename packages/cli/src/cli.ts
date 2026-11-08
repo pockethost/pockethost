@@ -10,6 +10,7 @@ import { LoginCommand } from './commands/LoginCommand'
 import { LogoutCommand } from './commands/LogoutCommand'
 import { LogsCommand } from './commands/LogsCommand'
 import { SftpCommand } from './commands/SftpCommand'
+import { TokenCommand } from './commands/TokenCommand'
 
 ensureProjectRoot()
 
@@ -18,6 +19,7 @@ program
   .version(version)
   .description(`Deploy, sync, and tail logs for your PocketHost instances`)
   .addCommand(LoginCommand())
+  .addCommand(TokenCommand())
   .addCommand(LogsCommand())
   .addCommand(DevCommand())
   .addCommand(ListCommand())

@@ -2,6 +2,22 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 3.1.0
+
+### Minor Changes
+
+- `deploy` and `dev` now upload over HTTPS instead of SFTP. The CLI sends a list of file hashes, uploads only the
+  files PocketHost doesn't have yet (compressed), and PocketHost swaps the new set in all at once, restarting the
+  instance when hooks, migrations or packages changed. Files in the deployed folders that aren't in your project are
+  removed. Dotfiles (for example `pb_public/.well-known/`) are now deployed; `.git*` and `node_modules` stay excluded.
+- Personal access tokens: set `POCKETHOST_TOKEN`, or run `pockethost token set` / `pockethost login --token`. Deploys
+  need no password or SSH key, so CI works on fresh runners (previously a new runner generated a new deploy key that
+  didn't match the registered `PocketHost CLI` key).
+- New `pockethost token [set|clear|status]`. `info` shows the token in use. `logout` also removes a saved token.
+- `deploy --commit <sha>` and `-m/--message <note>` are recorded with each deploy (`$GITHUB_SHA` is used
+  automatically).
+- `--sftp` on `deploy` and `dev` keeps the previous SFTP sync.
+
 ## 3.0.0
 
 ### Major Changes

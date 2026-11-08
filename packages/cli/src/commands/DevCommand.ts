@@ -11,6 +11,8 @@ import { SFTP_HOST, SFTP_PORT } from '../lib/sftpConnection'
 import { ensureLoggedIn } from '../lib/ensureLoggedIn'
 import { getClient, getInstanceBySubdomainCnameOrId } from '../lib/getClient'
 import { savedInstanceName } from './../lib/defaultInstanceId'
+import { createDeployClient, deployViaApi } from '../lib/deployApi'
+import { resolveDeployCredential } from '../lib/token'
 import {
   DEFAULT_EXCLUDES,
   DEFAULT_INCLUDES,
@@ -24,6 +26,10 @@ export type DeployOptions = {
   include: string[]
   exclude: string[]
   verbose: boolean
+  /** Use the legacy SFTP sync instead of the deploy API */
+  sftp?: boolean
+  commit?: string
+  message?: string
 }
 
 export const watchAndDeploy = async (
@@ -40,25 +46,32 @@ export const watchAndDeploy = async (
     )
   }
   console.log(`Dev mode`)
-  await ensureLoggedIn()
 
-  const { include, exclude, verbose } = options
-  // console.log({ include, exclude })
+  const { include, exclude, verbose, sftp } = options
 
-  const instance = await (async () => {
-    try {
-      return await getInstanceBySubdomainCnameOrId(instanceName)
-    } catch (error) {
-      throw new Error(`Instance ${instanceName} not found`)
+  const subdomain = await (async () => {
+    if (sftp) {
+      await ensureLoggedIn()
+      try {
+        return (await getInstanceBySubdomainCnameOrId(instanceName)).subdomain
+      } catch (error) {
+        throw new Error(`Instance ${instanceName} not found`)
+      }
     }
+    // Fail fast on a bad token or instance name before watching.
+    const { instance } = await createDeployClient(
+      instanceName,
+      await resolveDeployCredential()
+    ).whoami()
+    return instanceName.includes('.') ? instanceName : instance.subdomain
   })()
 
   const limiter = new Bottleneck({ maxConcurrent: 1 })
   const upload = debounce(
     () =>
       limiter.schedule(() =>
-        deployMyCode(instance.subdomain, include, exclude, verbose).catch(
-          console.error
+        deployMyCode(subdomain, include, exclude, verbose, { sftp }).catch(
+          (e) => console.error(`Deploy failed: ${e.message ?? e}`)
         )
       ),
     200
@@ -85,6 +98,33 @@ export const watchAndDeploy = async (
 }
 
 export async function deployMyCode(
+  instanceName: string,
+  include: string[],
+  exclude: string[],
+  verbose: boolean,
+  extra: { sftp?: boolean; commit?: string; message?: string } = {}
+) {
+  if (!instanceName) {
+    throw new Error(
+      `No instance name provided and none was found in ${PROJECT_CONFIG_FILE}. Use 'pockethost link <instance>'`
+    )
+  }
+  if (!extra.sftp) {
+    await deployViaApi({
+      instanceName,
+      include,
+      exclude,
+      verbose,
+      commit: extra.commit,
+      message: extra.message,
+    })
+    return
+  }
+  return deployMyCodeOverSftp(instanceName, include, exclude, verbose)
+}
+
+/** Legacy SFTP sync (`--sftp`). Needs an email/password login and registers an SSH deploy key. */
+async function deployMyCodeOverSftp(
   instanceName: string,
   include: string[],
   exclude: string[],
@@ -118,8 +158,9 @@ export async function deployMyCode(
 export const DevCommand = () => {
   return new Command('dev')
     .argument(`[instanceName]`, `Instance name`, savedInstanceName())
-    .description(`Watch for local modifications and sync to remote`)
+    .description(`Watch for local modifications and deploy them`)
     .option(`-v, --verbose`, `Verbose output`)
+    .option(`--sftp`, `Sync over SFTP instead of the deploy API`)
     .option(
       '-i, --include <include...>',
       'Files to include in the sync',

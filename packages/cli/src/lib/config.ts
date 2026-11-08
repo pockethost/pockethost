@@ -9,6 +9,8 @@ const writeJSONSync = (path: string, data: unknown) =>
 export type Config = {
   email: string
   pb_auth: string
+  /** Saved personal access token (`pockethost token set`) */
+  token: string
 }
 export function config<T extends keyof Config>(
   k: T,

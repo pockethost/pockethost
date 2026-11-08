@@ -1,4 +1,5 @@
 import {
+  DeployService,
   discordAlert,
   EdgeHeartbeatService,
   instanceService,
@@ -52,6 +53,8 @@ export async function daemon({ logger }: DaemonOptions) {
   await EdgeHeartbeatService({ logger })
 
   await realtimeLog({ logger })
+  // Mounted before instanceService so /_ph/deploy/* is never proxied to the instance.
+  await DeployService({ logger })
   await instanceService({
     instanceApiCheckIntervalMs: 50,
     instanceApiTimeoutMs: 5000,

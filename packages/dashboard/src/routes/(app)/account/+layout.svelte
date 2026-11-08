@@ -6,6 +6,7 @@
   $: pathname = $page.url.pathname
   $: isAccountActive = pathname === '/account' || pathname === '/account/'
   $: isKeysActive = pathname.startsWith('/account/keys')
+  $: isTokensActive = pathname.startsWith('/account/tokens')
   $: isTrustedIpsActive = pathname.startsWith('/account/trusted-ips')
 
   $: sections = [
@@ -13,6 +14,7 @@
       items: [
         { href: '/account', label: 'Account', icon: 'user', isActive: isAccountActive },
         { href: '/account/keys', label: 'Keys', icon: 'key', isActive: isKeysActive },
+        { href: '/account/tokens', label: 'API Tokens', icon: 'code', isActive: isTokensActive },
         {
           href: '/account/trusted-ips',
           label: 'Trusted IPs',
