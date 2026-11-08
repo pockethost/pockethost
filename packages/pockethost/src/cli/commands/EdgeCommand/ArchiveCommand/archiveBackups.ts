@@ -21,7 +21,7 @@ import {
 import { existsSync } from 'fs'
 import { chown, open, readdir, rename, rm, stat, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { formatBytes, mapLimit } from './archiveStale'
+import { formatBytes, mapLimit } from '../edgeUtils'
 
 export type ArchiveBackupsOptions = {
   apply: boolean

@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { ArchiveCommand } from './ArchiveCommand'
 import { DaemonCommand } from './DaemonCommand'
+import { DiskUsageCommand } from './DiskUsageCommand'
 import { FtpCommand } from './FtpCommand'
 import { PurgeOrphansCommand } from './PurgeOrphansCommand'
 import { VacuumCommand } from './VacuumCommand'
@@ -16,6 +17,7 @@ export const EdgeCommand = () => {
     .addCommand(PurgeOrphansCommand())
     .addCommand(ArchiveCommand())
     .addCommand(VacuumCommand())
+    .addCommand(DiskUsageCommand())
     .addCommand(DaemonCommand())
     .addCommand(FtpCommand())
     .action(() => {

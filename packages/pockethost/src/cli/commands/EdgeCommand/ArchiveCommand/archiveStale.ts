@@ -4,12 +4,7 @@ import {
   DISCORD_ALERT_CHANNEL_URL,
   INSTANCES_ROOT,
   InstanceFields,
-  LoggerService,
-  MOTHERSHIP_ADMIN_PASSWORD,
-  MOTHERSHIP_ADMIN_USERNAME,
-  MOTHERSHIP_URL,
   MS_PER_DAY,
-  MothershipAdminClientService,
   PH_ARCHIVE_LINK_ORIGIN,
   PH_ARCHIVE_LINK_SECRET,
   PH_ARCHIVE_REMOTE,
@@ -35,57 +30,20 @@ import {
   uploadInstanceArchive,
   verifyInstanceArchive,
 } from '@'
-import { execFile } from 'child_process'
 import { existsSync, rmSync } from 'fs'
 import { resolve } from 'path'
-import { promisify } from 'util'
+import { connectMothership as connect, dirSizeBytes, formatBytes, mapLimit } from '../edgeUtils'
 import { ARCHIVE_EMAIL_TEMPLATE } from './emailTemplate'
 
-const execFileAsync = promisify(execFile)
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
 /** Time for the suspension to reach the edge daemon through the mothership mirror. */
 const SUSPENSION_SETTLE_MS = 5000
 
-export const formatBytes = (bytes: number): string => {
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
-  return `${(bytes / 1024 ** 3).toFixed(2)} GB`
-}
-
 const pbDate = (ms: number) => new Date(ms).toISOString().replace(`T`, ` `)
-
-const dirSizeBytes = async (dir: string) => {
-  const { stdout } = await execFileAsync(`nice`, [`-n`, `19`, `du`, `-sk`, dir])
-  return parseInt(stdout.split(`\t`)[0] ?? `0`, 10) * 1024
-}
-
-const connect = async () => {
-  const { client } = await MothershipAdminClientService({
-    url: MOTHERSHIP_URL(),
-    username: MOTHERSHIP_ADMIN_USERNAME(),
-    password: MOTHERSHIP_ADMIN_PASSWORD(),
-    logger: LoggerService(),
-  })
-  return client.client as PocketBase
-}
 
 type Candidate = InstanceFields & { expand: { uid: UserFields } }
 type Sized = { instance: Candidate; bytes: number }
-
-/** Run `fn` over `items` with at most `limit` in flight; results keep input order. */
-export const mapLimit = async <T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> => {
-  const results = new Array<R>(items.length)
-  let next = 0
-  const worker = async () => {
-    while (next < items.length) {
-      const i = next++
-      results[i] = await fn(items[i]!)
-    }
-  }
-  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker))
-  return results
-}
 
 export type ArchiveStaleOptions = {
   apply?: boolean

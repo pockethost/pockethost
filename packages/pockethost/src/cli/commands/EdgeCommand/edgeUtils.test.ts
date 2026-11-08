@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mapLimit } from './archiveStale'
+import { mapLimit, parseDuKilobytes } from './edgeUtils'
 
 describe(`mapLimit`, () => {
   it(`keeps order and never exceeds the limit`, async () => {
@@ -17,5 +17,15 @@ describe(`mapLimit`, () => {
   })
   it(`handles an empty list`, async () => {
     expect(await mapLimit([], 4, async (x) => x)).toEqual([])
+  })
+})
+
+describe(`parseDuKilobytes`, () => {
+  it(`reads the kilobyte column as bytes`, () => {
+    expect(parseDuKilobytes(`1234\t/some/dir\n`)).toBe(1234 * 1024)
+  })
+  it(`returns null for empty or garbage output`, () => {
+    expect(parseDuKilobytes(``)).toBeNull()
+    expect(parseDuKilobytes(`du: cannot access`)).toBeNull()
   })
 })
