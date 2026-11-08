@@ -324,6 +324,7 @@ export const createDeployStore = (root: string, instanceDir: string) => {
   const cleanTmp = () => rm(tmpDir, { recursive: true, force: true })
 
   return {
+    instanceDir,
     blobPath,
     hasBlob,
     putBlob,

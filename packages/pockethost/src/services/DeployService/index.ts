@@ -14,6 +14,7 @@ export * from './auth'
 export * from './bundle'
 export * from './codeSet'
 export * from './deployStore'
+export * from './filesRouter'
 export * from './router'
 
 export const DEPLOY_DATA_ROOT = (...paths: string[]) => DATA_ROOT('deploys', ...paths)

@@ -2,6 +2,7 @@
   import CodeSample from '$components/CodeSample.svelte'
   import FeatureTab from '$components/FeatureTab.svelte'
   import SshKeyAddForm from '$components/SshKeyAddForm.svelte'
+  import SftpSunsetCallout from '$components/SftpSunsetCallout.svelte'
   import { sshKeysForInstance } from '$lib/ssh/instanceAccess'
   import { sshKeyScopeLabel } from '$lib/ssh/sshKeyScopeLabel'
   import { FTP_HOST, SFTP_COMMAND, SFTP_PORT } from '$lib/appEnv'
@@ -69,6 +70,7 @@
 {:else}
   <FeatureTab title="SFTP File Access" documentation="/docs/ftp" bind:errorMessage {successMessage} successFlash>
     <svelte:fragment slot="summary">
+      <SftpSunsetCallout />
       {#if instanceKeys.length === 0}
         <p>
           No SSH key on your account can access <strong>{$instance.subdomain}</strong> yet. Generate a key on your machine,

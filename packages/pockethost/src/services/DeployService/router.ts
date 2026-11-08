@@ -6,6 +6,7 @@ import { DeployAuthError, type DeployAuth } from './auth'
 import { BundleError, decodeBundle } from './bundle'
 import { ManifestError, validateManifest, type Manifest } from './codeSet'
 import { DeployConflictError, MissingBlobsError, type DeployStore } from './deployStore'
+import { createFilesRouter, FileApiError } from './filesRouter'
 
 export const DEPLOY_API_PREFIX = '/_ph/deploy/v1'
 /** Compressed upload limit per request. Cloudflare caps bodies at 100 MB. */
@@ -124,6 +125,10 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
         if (res.headersSent) return next(e)
         if (e instanceof DeployHttpError) {
           res.status(e.status).json({ status: e.status, message: e.message, ...e.extra })
+          return
+        }
+        if (e instanceof FileApiError) {
+          res.status(e.status).json({ status: e.status, message: e.message })
           return
         }
         if (e instanceof ManifestError || e instanceof BundleError) {
@@ -289,6 +294,18 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
         restarted,
         startError,
       })
+    })
+  )
+
+  router.use(
+    '/files',
+    createFilesRouter({
+      authorize: async (req, needWrite) => {
+        const { instance, store } = await authorize(req, needWrite)
+        return { instance, instanceDir: store.instanceDir }
+      },
+      lock,
+      handle,
     })
   )
 

@@ -1,12 +1,14 @@
 ---
 title: PocketHost CLI
-description: Install and use the pockethost CLI to link, watch, deploy, browse files, and tail logs for PocketHost instances
+description: Install and use the pockethost CLI to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
 ---
 # PocketHost CLI
 
-**`pockethost`** is the PocketHost command-line tool for deploying local PocketBase project files to your instance and tailing instance logs.
+**`pockethost`** is the PocketHost command-line tool for deploying local PocketBase project files to your instance, managing the files on it, and tailing instance logs.
 
-`deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. The CLI signs in with a **personal access token**, on your computer and in CI alike. SFTP sync is still available with `--sftp`.
+`deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. The CLI signs in with a **personal access token**, on your computer and in CI alike.
+
+> **SFTP shuts down on February 6, 2027.** `pockethost sftp` and `--sftp` stop working then. Use `deploy`/`dev` for code and the [file commands](#files) for everything else. See [SFTP shuts down February 6, 2027](/blog/sftp-sunset).
 
 ## Install
 
@@ -68,7 +70,11 @@ pockethost logs my-instance
 | `pockethost link [instance]` | Link this directory to an instance (writes `.pockethostconfig`) |
 | `pockethost dev [instance]` | Watch local files and deploy on change |
 | `pockethost deploy [instance]` | Deploy once |
-| `pockethost sftp [instance]` | Interactive SFTP session to instance files |
+| `pockethost files [path]` | List files on the instance |
+| `pockethost pull [paths...]` | Download instance files into this folder |
+| `pockethost upload <local> [remote]` | Upload a file or folder to the instance |
+| `pockethost rm <paths...>` | Delete files on the instance |
+| `pockethost sftp [instance]` | Interactive SFTP session (shuts down February 6, 2027) |
 | `pockethost logs [instance]` | Tail instance logs |
 
 `dev` and `deploy` accept:
@@ -76,7 +82,7 @@ pockethost logs my-instance
 - `-v, --verbose`: list every uploaded, changed, and deleted file
 - `-i, --include <patterns...>`: extra include globs (comma-separated values work)
 - `-e, --exclude <patterns...>`: extra exclude globs
-- `--sftp`: sync over SFTP with your SSH key instead of HTTPS
+- `--sftp`: sync over SFTP with your SSH key instead of HTTPS (shuts down February 6, 2027)
 
 `deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically.
 
@@ -88,7 +94,71 @@ Default **excludes**: `pb_data/**`.
 
 - `--print`: print the underlying `sftp` command instead of running it (useful when OpenSSH client tools are not installed)
 
+## Files
+
+Four commands work with the files on your instance over HTTPS, using the same token as `deploy`. They reach `pb_hooks`, `pb_migrations`, `pb_public` and other `pb_*` folders, `pb_data`, `node_modules`, `package.json`, `bun.lock(b)` and `patches/`. They use the linked instance, or pass `-I <instance>`.
+
+| Command | What it does |
+| ------- | ------------ |
+| `pockethost files [path] [-r]` | List a folder (`-r` for everything below it). `--json` for scripts |
+| `pockethost pull [paths...]` | Download into the current folder. With no paths, everything except `pb_data` and `node_modules`. `--data` adds `pb_data`, `-d <dir>` picks another folder, `-n` shows what would download |
+| `pockethost upload <local> [remote]` | Upload a file or folder. The remote path defaults to the same relative path |
+| `pockethost rm <paths...> [-r]` | Delete files. `-r` deletes a folder and everything in it |
+
+Reading needs any token for the instance. `upload` and `rm` need write access.
+
+**`pb_data` needs the instance powered off**, for reading and writing. Power it off in the dashboard, run the command, then power it back on.
+
+`pull` skips files that haven't changed since your last pull, so running it again is quick.
+
+### Start from what's on your instance
+
+If your instance has files that aren't in a local project yet (say you've been editing over SFTP), pull them before your first deploy:
+
+```bash
+mkdir my-app && cd my-app
+pockethost link my-instance
+pockethost pull
+pockethost deploy
+```
+
+`deploy` removes files on the instance that aren't in your project, so pulling first means nothing gets lost.
+
+### Download a copy of your data
+
+```bash
+pockethost pull --data pb_data
+```
+
+### Move an existing `pb_data` in
+
+Power off the instance, then:
+
+```bash
+pockethost upload ./pb_data
+```
+
+Large files are uploaded in pieces, so a big `data.db` works. If your settings are encrypted, add `PB_ENCRYPTION_KEY` first. See [Encrypted settings](/docs/encryption).
+
+### Packages (`node_modules`)
+
+Deploys never touch `node_modules`, and PocketHost doesn't run `npm install`. Either bundle packages into `pb_hooks` (see [npm packages](/docs/deploy-from-ci#npm-packages)) or install locally and upload the folder:
+
+```bash
+npm install
+pockethost upload node_modules
+```
+
+### Remove a migration that won't run
+
+```bash
+pockethost files pb_migrations
+pockethost rm pb_migrations/1700000000_bad.js
+```
+
 ## Interactive SFTP (`pockethost sftp`)
+
+> SFTP shuts down on February 6, 2027. Use the [file commands](#files) instead.
 
 Browse and edit instance files in an interactive SFTP session. It uses the CLI's SSH key, the same one as `--sftp` (see **[SSH key](#ssh-key-sftp)**).
 
@@ -146,7 +216,7 @@ Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can b
 
 PocketHost doesn't install npm packages: `package.json`, `bun.lock`, and `patches/` are copied as plain files, with `--sftp` too. To use an npm package in your hooks, bundle it into a single file in `pb_hooks` (for example with esbuild) and `require()` it. See **[npm packages](/docs/deploy-from-ci#npm-packages)**.
 
-**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, copy them into your project first.
+**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, run [`pockethost pull`](#start-from-whats-on-your-instance) first.
 
 ## SSH key (SFTP)
 

@@ -25,7 +25,7 @@ PocketBase encrypts the settings the next time they're saved, for example when y
 
 ## Importing a database that's already encrypted
 
-If you're moving a `pb_data` folder whose settings were encrypted elsewhere, add `PB_ENCRYPTION_KEY` with **the same key you used before** before you start the instance. Then upload your data over [SFTP](/docs/ftp).
+If you're moving a `pb_data` folder whose settings were encrypted elsewhere, add `PB_ENCRYPTION_KEY` with **the same key you used before** before you start the instance. Then upload your data with `pockethost upload ./pb_data` (see [PocketHost CLI](/docs/cli#move-an-existing-pb_data-in)).
 
 ## Keep the key
 

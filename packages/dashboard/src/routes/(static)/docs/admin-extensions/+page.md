@@ -17,7 +17,7 @@ Customer instances on PocketHost need PocketBase **≥0.37**. The mothership con
 
 ## Directory layout
 
-Place extension assets next to your hooks. PocketHost mounts both via [SFTP](/docs/ftp) or the [PocketHost CLI](/docs/cli):
+Place extension assets next to your hooks. Deploy both with the [PocketHost CLI](/docs/cli):
 
 ```
 pb_hooks/
@@ -86,7 +86,7 @@ Use `app.pb` for data access. It inherits superuser auth from the admin session.
 
 ## Deploy on PocketHost
 
-1. Upload `pb_hooks/*.pb.js` and `pb_admin_ext/**` together via SFTP or the PocketHost CLI.
+1. Upload `pb_hooks/*.pb.js` and `pb_admin_ext/**` together with `pockethost deploy`.
 2. Restart the instance (or mothership) so hook registration loads cleanly.
 3. Open the admin UI (`/_/`), sign in as superuser, and check for your header link.
 
@@ -174,6 +174,6 @@ Admin UI extensions are **experimental** in PocketBase as of 0.37–0.39. Expect
 ## Related docs
 
 - [Extending via JS](/docs/js) — JSVM hooks (server-side, not admin SPA)
-- [SFTP File Access](/docs/ftp) — upload hooks and extension files
+- [PocketHost CLI](/docs/cli) for deploying hooks and extension files
 - [PocketHost CLI](/docs/cli) — deploy hooks and sibling directories
 - [Publishing Static Assets](/docs/static-assets) — Cloudflare caching for `pb_public`

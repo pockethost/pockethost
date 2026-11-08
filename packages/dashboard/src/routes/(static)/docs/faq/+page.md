@@ -24,7 +24,7 @@ PocketHost exists so you can run PocketBase projects without standing up servers
 
 Development priorities are driven by personal and community needs, and contributions from everyone are encouraged.
 
-You can always export your instance over SFTP and run PocketBase on your own hardware.
+You can always export your instance with `pockethost pull --data` and run PocketBase on your own hardware.
 
 ## Data, Privacy, and Security
 
@@ -34,21 +34,21 @@ pockethost.io and PocketHost are highly stable, with over 99.964% uptime (see [S
 
 ### How often does my data get backed up?
 
-PocketHost makes every effort to protect your data, but we recommend keeping your own backups. Use PocketBase's built-in backup tools in the admin panel, or download your files anytime over SFTP. See [Backup and Restore](/docs/backup-restore).
+PocketHost makes every effort to protect your data, but we recommend keeping your own backups. Use PocketBase's built-in backup tools in the admin panel, or download your files anytime with `pockethost pull --data`. See [Backup and Restore](/docs/backup-restore).
 
 ### Is my data safe and secure?
 
 Yes, your data on pockethost.io is as secure as it would be on your own server. It may be more so, given that our infrastructure is rigorously tested. Access to the pockethost.io infrastructure is secured via SSH with RSA-2048 encryption.
 
-While the data volume is not encrypted at the OS level (see [#143](https://github.com/benallfree/pockethost/issues/143) for details), the VPS itself is encrypted by Digital Ocean. You can always back up and download your data via [SFTP](/docs/ftp) using an SSH key registered in your account.
+While the data volume is not encrypted at the OS level (see [#143](https://github.com/benallfree/pockethost/issues/143) for details), the VPS itself is encrypted by Digital Ocean. You can always back up and download your data with `pockethost pull --data`.
 
 ### Can I import data into PocketHost?
 
-Yes, data import is possible via [SFTP](/docs/ftp/).
+Yes. Power off the instance and run `pockethost upload ./pb_data`. See [PocketHost CLI](/docs/cli#move-an-existing-pb_data-in).
 
 ### How do I migrate away from PocketHost and host PocketBase on my own?
 
-You can use the SFTP feature to download and transfer all your data.
+Run `pockethost pull --data` to download all your data. See [PocketHost CLI](/docs/cli#files).
 
 If you set a `PB_ENCRYPTION_KEY` secret, take the key with you and start PocketBase with `--encryptionEnv=PB_ENCRYPTION_KEY`. Without it, PocketBase can't read your settings. See [Settings Encryption](/docs/encryption).
 

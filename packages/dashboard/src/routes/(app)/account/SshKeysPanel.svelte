@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SftpSunsetCallout from '$components/SftpSunsetCallout.svelte'
   import FeatureTab from '$components/FeatureTab.svelte'
   import SshKeyAddForm from '$components/SshKeyAddForm.svelte'
   import { sshKeyScopeLabel } from '$lib/ssh/sshKeyScopeLabel'
@@ -56,6 +57,7 @@
 
 <FeatureTab title="SFTP SSH Keys" documentation="/docs/ftp" bind:errorMessage {successMessage} successFlash>
   <svelte:fragment slot="summary">
+    <SftpSunsetCallout />
     <p>
       SFTP uses Ed25519 keys only. Username is your PocketHost email. Generate a key on your machine, then add it here.
       PocketHost stores the public key only, like GitHub.
