@@ -1985,6 +1985,25 @@ migrate(
       },
     ]
 
+    // A fresh PocketBase (v0.23+) bootstraps its own `users` collection with
+    // id `_pb_users_auth_`. Ours keeps the legacy id `systemprofiles0`, and
+    // importCollections matches by id, so the import would try to create a
+    // second `users` and fail on the unique name. Drop the empty default first.
+    // Existing databases already have `systemprofiles0` and skip this.
+    try {
+      const existing = app.findCollectionByNameOrId('users')
+      if (existing.id !== 'systemprofiles0') {
+        const total = app.countRecords(existing.id)
+        if (total > 0) {
+          throw new Error(`users collection ${existing.id} has ${total} records; refusing to replace it`)
+        }
+        app.delete(existing)
+      }
+    } catch (e) {
+      if (String(e).includes('refusing to replace')) throw e
+      // No `users` collection: nothing to clear.
+    }
+
     return app.importCollections(snapshot, false)
   },
   (app) => {

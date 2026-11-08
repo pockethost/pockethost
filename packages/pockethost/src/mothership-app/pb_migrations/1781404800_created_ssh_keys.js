@@ -1,118 +1,99 @@
-/// <reference path="../src/types/types.d.ts" />
+/// <reference path="../pb_data/types.d.ts" />
 migrate(
-  (db) => {
-    const collection = new Collection({
-      id: 'n4sshkeys9v1k2m',
-      created: '2026-06-13 12:00:00.000Z',
-      updated: '2026-06-13 12:00:00.000Z',
-      name: 'ssh_keys',
-      type: 'base',
-      system: false,
-      schema: [
-        {
-          system: false,
-          id: 'skuser01',
-          name: 'user',
-          type: 'relation',
-          required: true,
-          presentable: false,
-          unique: false,
-          options: {
-            collectionId: 'systemprofiles0',
-            cascadeDelete: true,
-            minSelect: null,
-            maxSelect: 1,
-            displayFields: ['email'],
-          },
-        },
-        {
-          system: false,
-          id: 'sklabel1',
-          name: 'label',
-          type: 'text',
-          required: true,
-          presentable: true,
-          unique: false,
-          options: {
-            min: 1,
-            max: 100,
-            pattern: '',
-          },
-        },
-        {
-          system: false,
-          id: 'skpubkey',
-          name: 'public_key',
-          type: 'text',
-          required: true,
-          presentable: false,
-          unique: false,
-          options: {
-            min: 40,
-            max: 500,
-            pattern: '^ssh-ed25519 ',
-          },
-        },
-        {
-          system: false,
-          id: 'skfprint',
-          name: 'fingerprint',
-          type: 'text',
-          required: true,
-          presentable: false,
-          unique: false,
-          options: {
-            min: 10,
-            max: 100,
-            pattern: '^SHA256:',
-          },
-        },
-        {
-          system: false,
-          id: 'skallins',
-          name: 'all_instances',
-          type: 'bool',
-          required: false,
-          presentable: false,
-          unique: false,
-          options: {},
-        },
-        {
-          system: false,
-          id: 'skinstds',
-          name: 'instances',
-          type: 'relation',
-          required: false,
-          presentable: false,
-          unique: false,
-          options: {
-            collectionId: 'etae8tuiaxl6xfv',
-            cascadeDelete: false,
-            minSelect: null,
-            maxSelect: null,
-            displayFields: ['subdomain'],
-          },
-        },
-      ],
-      indexes: [
-        'CREATE INDEX `idx_ssh_keys_user` ON `ssh_keys` (`user`)',
-        'CREATE INDEX `idx_ssh_keys_fingerprint` ON `ssh_keys` (`fingerprint`)',
-        'CREATE UNIQUE INDEX `idx_ssh_keys_user_fingerprint` ON `ssh_keys` (`user`, `fingerprint`)',
-      ],
-      listRule: 'user = @request.auth.id',
-      viewRule: 'user = @request.auth.id',
-      createRule: '@request.auth.id != "" && user = @request.auth.id',
-      updateRule: 'user = @request.auth.id',
-      deleteRule: 'user = @request.auth.id',
-      options: {},
+  (app) => {
+    const base = { hidden: false, presentable: false, system: false }
+    const text = (id, name, extra = {}) => ({
+      ...base,
+      autogeneratePattern: '',
+      id,
+      max: 0,
+      min: 0,
+      name,
+      pattern: '',
+      primaryKey: false,
+      required: false,
+      type: 'text',
+      ...extra,
     })
 
-    return Dao(db).saveCollection(collection)
+    app.save(
+      new Collection({
+        id: 'n4sshkeys9v1k2m',
+        name: 'ssh_keys',
+        type: 'base',
+        system: false,
+        fields: [
+          {
+            autogeneratePattern: '[a-z0-9]{15}',
+            hidden: false,
+            id: 'text3208210256',
+            max: 15,
+            min: 15,
+            name: 'id',
+            pattern: '^[a-z0-9]+$',
+            presentable: false,
+            primaryKey: true,
+            required: true,
+            system: true,
+            type: 'text',
+          },
+          {
+            ...base,
+            cascadeDelete: true,
+            collectionId: 'systemprofiles0',
+            id: 'skuser01',
+            maxSelect: 1,
+            minSelect: 0,
+            name: 'user',
+            required: true,
+            type: 'relation',
+          },
+          text('sklabel1', 'label', { required: true, presentable: true, min: 1, max: 100 }),
+          text('skpubkey', 'public_key', { required: true, min: 40, max: 500, pattern: '^ssh-ed25519 ' }),
+          text('skfprint', 'fingerprint', { required: true, min: 10, max: 100, pattern: '^SHA256:' }),
+          { ...base, id: 'skallins', name: 'all_instances', required: false, type: 'bool' },
+          {
+            ...base,
+            cascadeDelete: false,
+            collectionId: 'etae8tuiaxl6xfv',
+            id: 'skinstds',
+            maxSelect: 2147483647,
+            minSelect: 0,
+            name: 'instances',
+            required: false,
+            type: 'relation',
+          },
+          {
+            ...base,
+            id: 'autodate2990389176',
+            name: 'created',
+            onCreate: true,
+            onUpdate: false,
+            type: 'autodate',
+          },
+          {
+            ...base,
+            id: 'autodate3332085495',
+            name: 'updated',
+            onCreate: true,
+            onUpdate: true,
+            type: 'autodate',
+          },
+        ],
+        indexes: [
+          'CREATE INDEX `idx_ssh_keys_user` ON `ssh_keys` (`user`)',
+          'CREATE INDEX `idx_ssh_keys_fingerprint` ON `ssh_keys` (`fingerprint`)',
+          'CREATE UNIQUE INDEX `idx_ssh_keys_user_fingerprint` ON `ssh_keys` (`user`, `fingerprint`)',
+        ],
+        listRule: 'user = @request.auth.id',
+        viewRule: 'user = @request.auth.id',
+        createRule: '@request.auth.id != "" && user = @request.auth.id',
+        updateRule: 'user = @request.auth.id',
+        deleteRule: 'user = @request.auth.id',
+      })
+    )
   },
-  (db) => {
-    const dao = new Dao(db)
-    const collection = dao.findCollectionByNameOrId('n4sshkeys9v1k2m')
-
-    return dao.deleteCollection(collection)
+  (app) => {
+    app.delete(app.findCollectionByNameOrId('n4sshkeys9v1k2m'))
   }
 )
