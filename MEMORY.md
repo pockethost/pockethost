@@ -1,6 +1,6 @@
 # PocketHost — agent memory
 
-Living architecture reference for agents. Current state only; update in the same change set when you change any area below. **3.0 launch sequencing:** [ROADMAP.md](ROADMAP.md). **Task backlog:** [backlog.md](backlog.md).
+Living architecture reference for agents. Current state only; update in the same change set when you change any area below. **3.0 launch sequencing:** [ROADMAP.md](ROADMAP.md). **Task backlog:** `plans/backlog.md` in the private pockethost-support repo.
 
 ## Monorepo
 
@@ -131,5 +131,5 @@ Prod: `ecosystem.config.cjs` via PM2. Runbook: `docs/production.md`. `setup.sh` 
 
 ## Active threads
 
-- **PocketHost 3.0 post-launch:** Jul 2026 checkout live ($9.99 / $59.99 / $149.99 per slot). Top open work: **LS slot upgrade/downgrade**, **powered-on cap enforcement**, **pooled storage enforcement**. See [ROADMAP.md](ROADMAP.md) and [backlog.md](backlog.md).
+- **PocketHost 3.0 post-launch:** Jul 2026 checkout live ($9.99 / $59.99 / $149.99 per slot). Top open work: **LS slot upgrade/downgrade**, **powered-on cap enforcement**, **pooled storage enforcement**. See [ROADMAP.md](ROADMAP.md) and backlog: `plans/backlog.md` in the private pockethost-support repo.
 - **Mothership v0.39 follow-up:** cutover shipped 2026-06-16. Fix forward on webhooks, stats views, mail, and edge cases. Port guide: `.cursor/skills/pocketbase-jsvm/v023-upgrade.md`.

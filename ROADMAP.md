@@ -2,7 +2,7 @@
 
 **North star:** **July 1, 2026** — new Pay Per PocketBase pricing live for **new** purchases. **Existing accounts unchanged** that day. Everything else ships incrementally on **`main`**.
 
-Task detail: [backlog.md](backlog.md) · Architecture: [MEMORY.md](MEMORY.md) · Public summary: [/3.0](https://pockethost.io/3.0)
+Task detail: `plans/backlog.md` in the private pockethost-support repo · Architecture: [MEMORY.md](MEMORY.md) · Public summary: [/3.0](https://pockethost.io/3.0)
 
 **Pricing model (target, Jul 2026):** **Pay Per PocketBase** per slot — **$9/mo**, **$59/yr**, or **$149 lifetime** (hard paywall, 7-day trial on monthly). Each slot adds **250 MB DB data** + **10 GB file storage** (pooled on the account) and allows **one powered-on** PocketBase. Create unlimited instance records. Only power on as many as your paid slots allow. No Pro/Agency tiers. No free hosting tier.
 
