@@ -1,9 +1,10 @@
 import {
+  DAEMON_PORT,
   InstanceFields,
   InstanceId,
   InstanceLogWriter,
   LoggerService,
-  mkInstanceUrl,
+  mkInstanceHostname,
   mkSingleton,
   MothershipAdminClientService,
   PH_DISABLE_INSTANCE_WEBHOOKS,
@@ -13,6 +14,10 @@ import Bottleneck from 'bottleneck'
 import { CronJob } from 'cron'
 import { MothershipMirrorService } from '../MothershipMirrorService'
 import { isCatchUpDue } from './catchUp'
+import { daemonRequest } from './daemonRequest'
+
+/** How long one webhook call may run. Long enough for a backup; the open request keeps the instance awake. */
+const WEBHOOK_TIMEOUT_MS = 30 * 60 * 1000
 
 export type CronServiceConfig = SingletonBaseConfig & {}
 
@@ -30,7 +35,8 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
 
   const { client } = await MothershipAdminClientService()
 
-  const limiter = new Bottleneck({ maxConcurrent: 10 })
+  // Calls can now run for up to WEBHOOK_TIMEOUT_MS, so leave room for a few long ones without holding up the rest.
+  const limiter = new Bottleneck({ maxConcurrent: 50 })
   const jobs: Map<InstanceId, Set<CronJob>> = new Map()
 
   const removeJobsForInstanceId = (instanceId: InstanceId) => {
@@ -63,36 +69,37 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
       const fire = () => {
         dbg(`Firing webhook ${webhook.endpoint} (${webhook.value}) for instance ${instance.id}`)
         limiter.schedule(async () => {
-          const url = mkInstanceUrl(instance, ...webhook.endpoint.split('/').filter(Boolean))
-          dbg(`Firing webhook ${url}`)
+          const path = `/${webhook.endpoint.split('/').filter(Boolean).join('/')}`
+          const host = mkInstanceHostname(instance)
+          // Query strings can carry secrets, so logs show the path only.
+          const logPath = path.split('?')[0]
+          dbg(`Firing webhook ${host}${logPath}`)
           try {
-            const response = await fetch(url, {})
-            const body = await response.text()
+            const { status, body } = await daemonRequest({
+              port: DAEMON_PORT(),
+              host,
+              path,
+              timeoutMs: WEBHOOK_TIMEOUT_MS,
+            })
 
-            // fetch only throws for network errors, not HTTP error status codes
-            // so 404, 500, etc. will be handled here without throwing
             webhook.lastFired = {
               timestamp: Date.now(),
-              response: {
-                status: response.status,
-                body: body,
-              },
+              response: { status, body },
             }
 
-            if (!response.ok) {
-              dbg(`Webhook ${url} returned status ${response.status}: ${body}`)
-              userInstanceLogger.error(`Webhook ${webhook.endpoint} returned HTTP ${response.status}: ${body}`)
+            if (status < 200 || status >= 300) {
+              dbg(`Webhook ${host}${logPath} returned status ${status}: ${body}`)
+              userInstanceLogger.error(`Webhook ${webhook.endpoint} returned HTTP ${status}: ${body}`)
             }
           } catch (e) {
-            // This catch block only handles network errors (connection failed, etc.)
+            // Connection failures and timeouts
+            const message = e instanceof Error ? e.message : String(e)
             webhook.lastFired = {
               timestamp: Date.now(),
-              response: {
-                status: 500,
-                body: e instanceof Error ? e.message : String(e),
-              },
+              response: { status: 500, body: message },
             }
-            error(`Network error firing webhook ${url}: ${e}`)
+            error(`Error firing webhook ${host}${logPath}: ${message}`)
+            userInstanceLogger.error(`Webhook ${webhook.endpoint} failed: ${message}`)
           }
           dbg(`Updating instance ${instance.id} with webhooks`, instance.webhooks)
           client.updateInstance(instance.id, {

@@ -263,5 +263,6 @@ routerAdd('GET', '/api/webhooks/backup', (e) => {
 ## Limitations
 
 - Concurrent webhook executions may be limited
+- Each webhook call can run for up to 30 minutes. The instance stays awake until your route responds, so long jobs like backups can finish
 - Webhooks may not run exactly at the time specified, depending on system load and instance state
 - Webhooks are triggered by PocketHost's scheduling system, not your instance's internal clock
