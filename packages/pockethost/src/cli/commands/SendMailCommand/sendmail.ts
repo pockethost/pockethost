@@ -8,6 +8,7 @@ import {
   MOTHERSHIP_URL,
   TEST_EMAIL,
 } from '../../..'
+import { canReceiveBulkMail, type BulkMailRow } from './canReceiveBulkMail'
 
 const TBL_SENT_MESSAGES = `sent_messages`
 const SEND_INTERVAL_MS = 100
@@ -22,12 +23,6 @@ function myParseInt(value: string) {
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-type BulkMailUser = UserFields & { unsubscribe?: boolean | number }
-
-function canReceiveBulkMail(user: BulkMailUser): boolean {
-  return Boolean(user.verified) && !Boolean(user.unsubscribe)
-}
 
 export const SendMailCommand = () =>
   new Command(`send`)
@@ -92,9 +87,9 @@ export const SendMailCommand = () =>
         fields: `user`,
       })
       const sentUserIds = new Set(sentRecords.map((r) => r.user))
-      const eligible = candidates.filter((u) => !sentUserIds.has(u.id) && canReceiveBulkMail(u as BulkMailUser))
+      const eligible = candidates.filter((u) => !sentUserIds.has(u.id) && canReceiveBulkMail(u as BulkMailRow))
       const skippedSuppressed = candidates.filter(
-        (u) => !sentUserIds.has(u.id) && !canReceiveBulkMail(u as BulkMailUser)
+        (u) => !sentUserIds.has(u.id) && !canReceiveBulkMail(u as BulkMailRow)
       ).length
       const users = eligible.slice(0, limit)
 

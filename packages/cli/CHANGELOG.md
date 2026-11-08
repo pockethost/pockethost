@@ -2,6 +2,21 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.1.0
+
+### Minor Changes
+
+- New file commands that work over HTTPS with your token, replacing SFTP:
+  - `pockethost files [path] [-r]` lists files on the instance.
+  - `pockethost pull [paths...]` downloads files into the current folder (everything except `pb_data` by default;
+    `--data` includes it, and `node_modules` is skipped unless you name it). Files that haven't changed since the last
+    pull are skipped.
+  - `pockethost upload <local> [remote]` uploads a file or folder, for example an existing `pb_data` or your
+    `node_modules` (deploys never touch `node_modules`). Large files go up in 32 MB chunks, eight files at a time.
+  - `pockethost rm <paths...> [-r]` deletes files, for example a migration that keeps the instance from starting.
+  - Add `-I <instance>` to target an instance other than the linked one. `pb_data` needs the instance powered off.
+- `pockethost sftp`, `deploy --sftp` and `dev --sftp` print a notice: SFTP shuts down on February 6, 2027.
+
 ## 4.0.0
 
 ### Major Changes

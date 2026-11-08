@@ -12,7 +12,7 @@ The first step is to [create a PocketHost account](https://pockethost.io/get-sta
 
 - **Sign Up**: Visit [pockethost.io/get-started](https://pockethost.io/get-started).
 - **Email Verification**: Click the link in the confirmation email. You can't use instances until your email is verified. Unverified accounts and their instances are deleted after **7 days**.
-- **Changing your email**: Go to [Account → Change email](/account/change-email), enter the new address, and confirm from the new inbox with your current password. Your old email stays active until you confirm. Your [SFTP username](/docs/ftp) follows your account email.
+- **Changing your email**: Go to [Account → Change email](/account/change-email), enter the new address, and confirm from the new inbox with your current password. Your old email stays active until you confirm. 
 
 ## 2. Choose an Instance Name
 
@@ -47,16 +47,20 @@ PocketHost provides a user-friendly dashboard to manage your instances.
   - View instance status and resource usage.
   - Configure settings and access logs.
 
-## 5. Managing instance files (SFTP)
+## 5. Managing instance files
 
-For hooks, migrations, and backups, use **SFTP** with an Ed25519 SSH key.
+Use the **[PocketHost CLI](/docs/cli)** for hooks, migrations, static files, and backups:
 
-1. Create a key with `ssh-keygen -t ed25519` and register the public key under **[Account → Keys](/account/keys)**.
-2. Connect to `ftp.pockethost.io` on port **2222** with your email as the username and your private key.
+```bash
+npm install -g pockethost
+pockethost login
+pockethost link my-instance
+pockethost dev
+```
 
-FTPS on port 21 has been removed. See **[SFTP File Access](/docs/ftp)** for macOS, Windows, Linux, and client-specific instructions.
+`pockethost dev` deploys your project as you save. `pockethost files`, `pull`, `upload` and `rm` handle everything else, including `pb_data`. See **[Files](/docs/cli#files)**.
 
-For watch-and-deploy from your project directory, use the **[PocketHost CLI](/docs/cli)** (`pockethost link`, `pockethost dev`, `pockethost deploy`).
+SFTP shuts down on February 6, 2027. See [SFTP shuts down February 6, 2027](/blog/sftp-sunset).
 
 ---
 
@@ -66,7 +70,7 @@ Now that you're set up, read [How PocketHost Works](/docs/how-it-works) to see w
 
 - **Configure Your Database**: Set up collections and records in the admin UI.
 - **Integrate with Your App**: Connect your PocketBase instance to your web or mobile application.
-- **Deploy Updates**: Use the [PocketHost CLI](/docs/cli), [SFTP](/docs/ftp), or the admin UI to manage your instance files.
+- **Deploy Updates**: Use the [PocketHost CLI](/docs/cli) or the admin UI to manage your instance files.
 
 ---
 

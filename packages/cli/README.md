@@ -31,7 +31,11 @@ pockethost list          # alias: pockethost ls
 pockethost link [instance]
 pockethost dev [instance]
 pockethost deploy [instance]
-pockethost sftp [instance]
+pockethost files [path]
+pockethost pull [paths...]
+pockethost upload <local> [remote]
+pockethost rm <paths...>
+pockethost sftp [instance]   # shuts down Feb 6, 2027
 pockethost logs [instance]
 ```
 
@@ -39,7 +43,11 @@ pockethost logs [instance]
 - **`pockethost deploy`**: deploy once
 - **`pockethost login`**: open Account → API Tokens and save the token you paste
 - **`pockethost token`**: save, clear, or check the token
-- **`pockethost sftp`**: interactive SFTP session (uses system `sftp` when available)
+- **`pockethost files`**: list files on the instance (`-r` for everything below a folder)
+- **`pockethost pull`**: download instance files into this folder (`--data` includes `pb_data`)
+- **`pockethost upload`**: upload a file or folder, such as an existing `pb_data`
+- **`pockethost rm`**: delete files on the instance
+- **`pockethost sftp`**: interactive SFTP session. SFTP shuts down on February 6, 2027
 - **`pockethost logs`**: tail instance logs
 
 `dev` and `deploy` accept `-v/--verbose`, `-i/--include`, `-e/--exclude`, and `--sftp` (sync over SFTP instead of

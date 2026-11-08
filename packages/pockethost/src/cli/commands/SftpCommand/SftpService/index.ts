@@ -100,7 +100,8 @@ export const sftpService = mkSingleton(async (config: SftpConfig) => {
             .catch(() => ctx.reject(['publickey']))
         })
         .on('ready', () => {
-          dbg(`Client authenticated`, { username, keyId: state.auth?.key.id })
+          // Info level so we can see who still uses SFTP before it shuts down (Feb 6, 2027).
+          info(`SFTP login`, { username, keyId: state.auth?.key.id })
           client.on('session', (accept) => {
             const session = accept()
             const endClient = () => client.end()

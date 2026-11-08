@@ -4,6 +4,8 @@ description: Access PocketBase instance files over SFTP with Ed25519 SSH keys on
 ---
 # SFTP File Access
 
+> **SFTP shuts down on February 6, 2027.** Move to the [PocketHost CLI](/docs/cli): `pockethost deploy` for code, and `pockethost files`, `pull`, `upload` and `rm` for everything else. See [SFTP shuts down February 6, 2027](/blog/sftp-sunset).
+
 PocketHost provides **SFTP** access to your instance files. Use it to upload hooks, migrations, and backups.
 
 Authentication is **Ed25519 SSH keys only**. There is no password login on SFTP. Manage keys under **[Account → Keys](/account/keys)** in the dashboard.

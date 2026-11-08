@@ -2,6 +2,12 @@ import { program } from 'commander'
 import { version } from '../package.json'
 import { ensureProjectRoot } from './lib/projectRoot'
 import { DeployCommand } from './commands/DeployCommand'
+import {
+  FilesCommand,
+  PullCommand,
+  RmCommand,
+  UploadCommand,
+} from './commands/FilesCommand'
 import { DevCommand } from './commands/DevCommand'
 import { InfoCommand } from './commands/InfoCommand'
 import { LinkCommand } from './commands/LinkCommand'
@@ -25,6 +31,10 @@ program
   .addCommand(ListCommand())
   .addCommand(LinkCommand())
   .addCommand(DeployCommand())
+  .addCommand(FilesCommand())
+  .addCommand(PullCommand())
+  .addCommand(UploadCommand())
+  .addCommand(RmCommand())
   .addCommand(SftpCommand())
   .addCommand(LogoutCommand())
   .addCommand(InfoCommand())
