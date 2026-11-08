@@ -1,10 +1,9 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
   import {
-    DB_STORAGE_MB_PER_INSTANCE,
-    FILE_STORAGE_GB_PER_INSTANCE,
+    DISK_STORAGE_GB_PER_PAID_INSTANCE,
+    diskStorageLimit,
     PLAN_NAMES,
-    subscriptionStorageLimits,
     SubscriptionInterval,
     SubscriptionType,
   } from '@pockethost/server/common'
@@ -17,18 +16,16 @@
     $userStore?.subscription_interval === SubscriptionInterval.Month
 
   $: instanceCount = $userStore?.subscription_quantity ?? 0
-  $: storageLimits = subscriptionStorageLimits(instanceCount)
-  $: perInstanceLabel = instanceCount === 1 ? 'instance' : 'instances'
-  $: volumeUsedBytes = $userStore?.volume_storage_used ?? 0
-  $: objectUsedBytes = $userStore?.object_storage_used ?? 0
-  $: volumeSubline =
-    instanceCount > 0
-      ? `Pooled across instances · ${DB_STORAGE_MB_PER_INSTANCE} MB × ${instanceCount} ${perInstanceLabel}`
-      : 'Upgrade to add storage'
-  $: objectSubline =
-    instanceCount > 0
-      ? `Pooled across instances · ${FILE_STORAGE_GB_PER_INSTANCE} GB × ${instanceCount} ${perInstanceLabel}`
-      : 'Upgrade to add storage'
+  $: paidInstances = $userSubscriptionType === SubscriptionType.Premium ? instanceCount : 0
+  $: diskLimit = diskStorageLimit($userSubscriptionType, paidInstances)
+  // Everything on PocketHost's servers counts toward one pooled number.
+  $: diskUsedBytes = ($userStore?.volume_storage_used ?? 0) + ($userStore?.object_storage_used ?? 0)
+  $: diskSubline =
+    diskLimit.basis === 'legacy'
+      ? `Pooled across instances · flat ${diskLimit.gb} GB for ${PLAN_NAMES[$userSubscriptionType]} plans`
+      : diskLimit.basis === 'per-instance'
+        ? `Pooled across instances · ${DISK_STORAGE_GB_PER_PAID_INSTANCE} GB × ${paidInstances} paid ${paidInstances === 1 ? 'instance' : 'instances'}`
+        : `${diskLimit.gb} GB without paid instances · each paid instance adds ${DISK_STORAGE_GB_PER_PAID_INSTANCE} GB`
 </script>
 
 <svelte:head>
@@ -76,25 +73,15 @@
               </dd>
             </div>
             <div class="account-stat account-stat--wide account-stat--meter">
-              <dt>DB storage</dt>
+              <dt>Disk storage</dt>
               <dd>
                 <StorageMeter
-                  label="DB storage"
-                  usedBytes={volumeUsedBytes}
-                  limitBytes={storageLimits.volumeBytes}
-                  subline={volumeSubline}
+                  label="Disk storage"
+                  usedBytes={diskUsedBytes}
+                  limitBytes={diskLimit.bytes}
+                  subline={diskSubline}
                 />
-              </dd>
-            </div>
-            <div class="account-stat account-stat--wide account-stat--meter">
-              <dt>File storage</dt>
-              <dd>
-                <StorageMeter
-                  label="File storage"
-                  usedBytes={objectUsedBytes}
-                  limitBytes={storageLimits.objectBytes}
-                  subline={objectSubline}
-                />
+                <a href="/docs/limits#disk-storage" class="account-stat-link">What counts</a>
               </dd>
             </div>
           </dl>
