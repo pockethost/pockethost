@@ -8,7 +8,7 @@ description: Install and use the pockethost CLI to link, watch, deploy, browse, 
 
 `deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. The CLI signs in with a **personal access token**, on your computer and in CI alike.
 
-> **SFTP shuts down on February 6, 2027.** `pockethost sftp` and `--sftp` stop working then. Use `deploy`/`dev` for code and the [file commands](#files) for everything else. See [SFTP shuts down February 6, 2027](/blog/sftp-sunset).
+> **PocketHost is retiring SFTP file access on February 6, 2027.** `pockethost sftp` and `--sftp` stop working then. Use `deploy`/`dev` for code and the [file commands](#files) for everything else. See [Service update: SFTP sunset and CLI upgrade](/blog/sftp-sunset).
 
 ## Install
 
@@ -74,7 +74,7 @@ pockethost logs my-instance
 | `pockethost pull [paths...]` | Download instance files into this folder |
 | `pockethost upload <local> [remote]` | Upload a file or folder to the instance |
 | `pockethost rm <paths...>` | Delete files on the instance |
-| `pockethost sftp [instance]` | Interactive SFTP session (shuts down February 6, 2027) |
+| `pockethost sftp [instance]` | Interactive SFTP session (retired February 6, 2027) |
 | `pockethost logs [instance]` | Tail instance logs |
 
 `dev` and `deploy` accept:
@@ -82,7 +82,7 @@ pockethost logs my-instance
 - `-v, --verbose`: list every uploaded, changed, and deleted file
 - `-i, --include <patterns...>`: extra include globs (comma-separated values work)
 - `-e, --exclude <patterns...>`: extra exclude globs
-- `--sftp`: sync over SFTP with your SSH key instead of HTTPS (shuts down February 6, 2027)
+- `--sftp`: sync over SFTP with your SSH key instead of HTTPS (retired February 6, 2027)
 
 `deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically.
 
@@ -158,7 +158,7 @@ pockethost rm pb_migrations/1700000000_bad.js
 
 ## Interactive SFTP (`pockethost sftp`)
 
-> SFTP shuts down on February 6, 2027. Use the [file commands](#files) instead.
+> SFTP is being retired on February 6, 2027. Use the [file commands](#files) instead.
 
 Browse and edit instance files in an interactive SFTP session. It uses the CLI's SSH key, the same one as `--sftp` (see **[SSH key](#ssh-key-sftp)**).
 

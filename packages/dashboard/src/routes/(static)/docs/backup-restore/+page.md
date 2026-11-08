@@ -33,7 +33,7 @@ Backups that you send to your own S3 storage aren't moved. If you want to keep e
 
 ## Backup and Restore with the CLI
 
-If the admin panel’s backup and restore feature is unavailable or your instance is unresponsive, you can manually back up your data with the [PocketHost CLI](/docs/cli#files). Power off the instance, then run `pockethost pull --data pb_data` to download the database and uploads. To restore, run `pockethost upload ./pb_data`. [SFTP](/docs/ftp) works too until it shuts down on February 6, 2027.
+If the admin panel’s backup and restore feature is unavailable or your instance is unresponsive, you can manually back up your data with the [PocketHost CLI](/docs/cli#files). Power off the instance, then run `pockethost pull --data pb_data` to download the database and uploads. To restore, run `pockethost upload ./pb_data`. [SFTP](/docs/ftp) works too until it is retired on February 6, 2027.
 
 ## S3 and Scheduled Backups
 

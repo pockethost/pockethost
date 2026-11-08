@@ -60,7 +60,7 @@ pockethost dev
 
 `pockethost dev` deploys your project as you save. `pockethost files`, `pull`, `upload` and `rm` handle everything else, including `pb_data`. See **[Files](/docs/cli#files)**.
 
-SFTP shuts down on February 6, 2027. See [SFTP shuts down February 6, 2027](/blog/sftp-sunset).
+SFTP file access is being retired on February 6, 2027. See [Service update: SFTP sunset and CLI upgrade](/blog/sftp-sunset).
 
 ---
 

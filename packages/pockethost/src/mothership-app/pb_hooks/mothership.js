@@ -2687,7 +2687,10 @@ const HandleMailSend = (e) => {
 	data = JSON.parse(JSON.stringify(data));
 	log(`bind parsed`, JSON.stringify(data));
 	const { to, subject, body } = data;
-	try {
+	const testEmail = `${process.env.TEST_EMAIL || ""}`.trim().toLowerCase();
+	const isTestRecipient = !!testEmail && `${to}`.trim().toLowerCase() === testEmail;
+	if (isTestRecipient) log(`${to} is TEST_EMAIL, skipping recipient checks`);
+	else try {
 		const skipReason = mailRecipientSkipReason($app.findFirstRecordByData("users", "email", to));
 		if (skipReason) {
 			log(`skipped ${to}: ${skipReason}`);
@@ -2705,7 +2708,7 @@ const HandleMailSend = (e) => {
 			name: $app.settings().meta.senderName
 		},
 		to: [{ address: to }],
-		bcc: [process.env.TEST_EMAIL].filter((e) => !!e).map((e) => ({ address: e })),
+		bcc: [process.env.TEST_EMAIL].filter((e) => !!e && !isTestRecipient).map((e) => ({ address: e })),
 		subject,
 		html: body
 	});

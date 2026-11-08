@@ -23,15 +23,23 @@ export const HandleMailSend = (e: core.RequestEvent) => {
 
   const { to, subject, body } = data
 
-  try {
-    const user = $app.findFirstRecordByData('users', 'email', to)
-    const skipReason = mailRecipientSkipReason(user)
-    if (skipReason) {
-      log(`skipped ${to}: ${skipReason}`)
-      return e.json(200, { status: 'skipped', reason: skipReason })
+  const testEmail = `${process.env.TEST_EMAIL || ''}`.trim().toLowerCase()
+  const isTestRecipient = !!testEmail && `${to}`.trim().toLowerCase() === testEmail
+
+  // TEST_EMAIL always gets mail (bulk-mail test runs go there), even if that account is unsubscribed or unverified.
+  if (isTestRecipient) {
+    log(`${to} is TEST_EMAIL, skipping recipient checks`)
+  } else {
+    try {
+      const user = $app.findFirstRecordByData('users', 'email', to)
+      const skipReason = mailRecipientSkipReason(user)
+      if (skipReason) {
+        log(`skipped ${to}: ${skipReason}`)
+        return e.json(200, { status: 'skipped', reason: skipReason })
+      }
+    } catch (_e) {
+      log(`no user record for ${to}, sending anyway`)
     }
-  } catch (_e) {
-    log(`no user record for ${to}, sending anyway`)
   }
 
   const email = new MailerMessage({
@@ -40,7 +48,8 @@ export const HandleMailSend = (e: core.RequestEvent) => {
       name: $app.settings().meta.senderName,
     },
     to: [{ address: to }],
-    bcc: [process.env.TEST_EMAIL].filter((e): e is string => !!e).map((e) => ({ address: e })),
+    // Copy TEST_EMAIL on real sends; a test send already goes to it.
+    bcc: [process.env.TEST_EMAIL].filter((e): e is string => !!e && !isTestRecipient).map((e) => ({ address: e })),
     subject: subject,
     html: body,
   })

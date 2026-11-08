@@ -1,4 +1,6 @@
-**SFTP shuts down on February 6, 2027.** That's 90 days from today. Everything you do over SFTP now has a replacement in the [PocketHost CLI](/docs/cli), and it works with the same API token you already use to deploy.
+Quick service update: **PocketHost is retiring SFTP file access on February 6, 2027**, 90 days from today. Your instances, data, domains and everything else keep running exactly as they do now. Only the way you move files changes.
+
+Everything you do over SFTP now has a replacement in the [PocketHost CLI](/docs/cli), and it works with the same API token you already use to deploy.
 
 ```bash
 npm install -g pockethost@latest
@@ -53,6 +55,6 @@ SFTP means SSH keys to manage, a separate port, a separate server process and a 
 
 - **Today**: the file commands are live in CLI 4.1. `pockethost sftp` and `--sftp` print a notice with the date.
 - **January 2027**: one more reminder by email to anyone still connecting over SFTP.
-- **February 6, 2027**: port 2222 closes. SSH keys under **[Account → Keys](/account/keys)** stop doing anything, and we'll remove that page.
+- **February 6, 2027**: SFTP is retired and port 2222 closes. SSH keys under **[Account → Keys](/account/keys)** stop doing anything, and we'll remove that page.
 
 If you hit something SFTP did that the CLI doesn't, tell me on [Discord](https://discord.gg/nVTxCMEcGT) or reply to the email. I'd rather add a command now than find out in February.

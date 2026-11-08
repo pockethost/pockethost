@@ -16,4 +16,4 @@ Each PocketHost instance is assigned a permanent UUID, and a unique subdomain th
 
 Custom domains are supported on paid accounts, and we manage SSL certificates for you. Learn more about setting up custom domains [here](/docs/custom-domain).
 
-For direct file access, use the [PocketHost CLI](/docs/cli#files): `pockethost files`, `pull`, `upload` and `rm`. [SFTP](/docs/ftp) shuts down on February 6, 2027.
+For direct file access, use the [PocketHost CLI](/docs/cli#files): `pockethost files`, `pull`, `upload` and `rm`. [SFTP](/docs/ftp) is being retired on February 6, 2027.

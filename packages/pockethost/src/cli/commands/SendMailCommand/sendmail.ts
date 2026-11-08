@@ -114,6 +114,8 @@ export const SendMailCommand = () =>
         }
       }
 
+      let sent = 0
+      let skipped = 0
       for (let i = 0; i < users.length; i++) {
         const user = users[i]!
         const recipient = user.email
@@ -125,16 +127,17 @@ export const SendMailCommand = () =>
           info(`Sending to ${user.email}`)
         }
 
+        let res: { status?: string; reason?: string } | undefined
         try {
           await auth(async () => {
-            const res = (await client.send(`/api/mail`, {
+            res = (await client.send(`/api/mail`, {
               method: 'POST',
               body: {
                 to: user.email,
                 subject,
                 body: `${body}<hr/>[[<a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
               },
-            })) as { status?: string }
+            })) as { status?: string; reason?: string }
 
             if (confirm && (res?.status === 'ok' || res?.status === 'skipped')) {
               await recordSent(user.id)
@@ -145,10 +148,17 @@ export const SendMailCommand = () =>
           throw new Error(`Failed sending to ${recipient}: ${detail}`)
         }
 
-        info(`Sent`)
+        if (res?.status === 'skipped') {
+          info(`Skipped by the mothership (${res.reason ?? 'no reason given'})`)
+          skipped++
+        } else {
+          info(`Sent`)
+          sent++
+        }
 
         if (i < users.length - 1) {
           await sleep(SEND_INTERVAL_MS)
         }
       }
+      info(`Done: ${sent} sent, ${skipped} skipped by the mothership`)
     })

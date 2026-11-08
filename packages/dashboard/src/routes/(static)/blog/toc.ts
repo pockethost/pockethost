@@ -8,10 +8,10 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
-    title: 'SFTP Shuts Down February 6, 2027',
+    title: 'Service Update: SFTP Sunset and CLI Upgrade',
     path: '/blog/sftp-sunset',
     description:
-      'In 90 days PocketHost turns off SFTP. The pockethost CLI now does everything SFTP did over HTTPS with your API token: deploy, browse, pull, upload and delete files.',
+      'PocketHost is retiring SFTP file access on February 6, 2027. The pockethost CLI now does everything SFTP did over HTTPS with your API token: deploy, browse, pull, upload and delete files.',
     date: 'Nov 8, 2026',
     author: 'capn',
   },
