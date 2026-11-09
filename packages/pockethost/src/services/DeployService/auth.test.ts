@@ -23,6 +23,28 @@ describe('createDeployAuthResolver', () => {
     expect(verifyPat).toHaveBeenCalledTimes(2)
   })
 
+  it('re-verifies on a fresh resolve once the entry is old enough', async () => {
+    let t = 0
+    const verifyPat = vi
+      .fn()
+      .mockResolvedValueOnce({ tokenId: 't', userId: 'u1', label: 'CI', scopes: ['read'], instanceIds: ['i1'] })
+      .mockResolvedValueOnce({ tokenId: 't', userId: 'u1', label: 'CI', scopes: ['read'], instanceIds: ['i1', 'i2'] })
+    const r = createDeployAuthResolver({
+      verifyPat,
+      verifyJwt: vi.fn(),
+      now: () => t,
+      ttlMs: 30_000,
+      freshMinAgeMs: 2000,
+    })
+    await r.resolve(`Bearer ${pat}`)
+    t = 1000
+    expect((await r.resolve(`Bearer ${pat}`, undefined, { fresh: true })).instanceIds).toEqual(['i1'])
+    expect(verifyPat).toHaveBeenCalledTimes(1)
+    t = 2500
+    expect((await r.resolve(`Bearer ${pat}`, undefined, { fresh: true })).instanceIds).toEqual(['i1', 'i2'])
+    expect(verifyPat).toHaveBeenCalledTimes(2)
+  })
+
   it('caches auth failures but not infrastructure errors', async () => {
     const verifyPat = vi.fn(async () => {
       throw new DeployAuthError(401, 'bad')

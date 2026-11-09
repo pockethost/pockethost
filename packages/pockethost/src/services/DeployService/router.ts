@@ -29,7 +29,7 @@ export type DeployRecordInput = {
 }
 
 export type DeployRouterDeps = {
-  resolveAuth: (authorization: string | undefined, ip?: string) => Promise<DeployAuth>
+  resolveAuth: (authorization: string | undefined, ip?: string, opts?: { fresh?: boolean }) => Promise<DeployAuth>
   getInstanceByHost: (host: string) => Promise<InstanceFields | undefined>
   getUser: (id: string) => Promise<{ suspension?: string | null } | undefined>
   storeFor: (instance: InstanceFields) => DeployStore
@@ -100,12 +100,22 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
     const instance = await deps.getInstanceByHost(host)
     if (!instance) throw new DeployHttpError(404, `${host} not found`)
 
-    let auth: DeployAuth
-    try {
-      auth = await deps.resolveAuth(req.headers.authorization, clientIp(req))
-    } catch (e) {
-      if (e instanceof DeployAuthError) throw new DeployHttpError(e.status, e.message)
-      throw e
+    const resolve = async (fresh: boolean) => {
+      try {
+        return await deps.resolveAuth(req.headers.authorization, clientIp(req), { fresh })
+      } catch (e) {
+        if (e instanceof DeployAuthError) throw new DeployHttpError(e.status, e.message)
+        throw e
+      }
+    }
+    let auth = await resolve(false)
+    // The token's instances may have just been edited in the dashboard: re-check before refusing.
+    if (
+      auth.via === 'pat' &&
+      instance.uid === auth.userId &&
+      !instanceAllowedByScope(auth, instance.id, instance.uid)
+    ) {
+      auth = await resolve(true)
     }
 
     // Same answer for "not yours" and "not in token scope" so tokens can't probe instance names.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   expiryFromDays,
+  sortBySubdomain,
   tokenAccessLabel,
   tokenExpiryLabel,
   tokenLastUsedLabel,
@@ -22,6 +23,26 @@ describe('api token labels', () => {
     expect(tokenScopeLabel({ all_instances: true, instances: [] }, byId)).toBe('All instances')
     expect(tokenScopeLabel({ all_instances: false, instances: ['a', 'b'] }, byId)).toBe('alpha, beta')
     expect(tokenScopeLabel({ all_instances: false, instances: ['zz'] }, byId)).toBe('1 instance')
+  })
+
+  it('sorts instance names alphabetically, ignoring case', () => {
+    const byId = {
+      a: { subdomain: 'pocketpages-daisyui' },
+      b: { subdomain: 'Pocketpages-auth' },
+      c: { subdomain: 'docs' },
+      d: { subdomain: 'pocketpages' },
+    } as any
+    expect(tokenScopeLabel({ all_instances: false, instances: ['a', 'b', 'c', 'd'] }, byId)).toBe(
+      'docs, pocketpages, Pocketpages-auth, pocketpages-daisyui'
+    )
+    expect(
+      sortBySubdomain([
+        { subdomain: 'beta' },
+        { subdomain: 'Alpha' },
+        { subdomain: 'app10' },
+        { subdomain: 'app9' },
+      ]).map((i) => i.subdomain)
+    ).toEqual(['Alpha', 'app9', 'app10', 'beta'])
   })
 
   it('labels expiry and last use', () => {

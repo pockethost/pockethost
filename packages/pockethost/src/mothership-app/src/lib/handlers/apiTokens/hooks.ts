@@ -13,6 +13,15 @@ routerAdd(
 )
 
 routerAdd(
+  'PATCH',
+  '/api/tokens/{id}',
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleApiTokenUpdate(e)
+  },
+  $apis.requireAuth('users')
+)
+
+routerAdd(
   'POST',
   '/api/pat/verify',
   (e) => {

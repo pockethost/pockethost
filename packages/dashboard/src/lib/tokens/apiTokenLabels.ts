@@ -13,6 +13,12 @@ export const DEFAULT_EXPIRY_DAYS = 90
 export const expiryFromDays = (days: number, now = Date.now()) =>
   days > 0 ? new Date(now + days * 24 * 60 * 60 * 1000).toISOString() : ''
 
+/** Case-insensitive, by subdomain. Returns a new array. */
+export const sortBySubdomain = <T extends Pick<InstanceFields, 'subdomain'>>(instances: T[]): T[] =>
+  [...instances].sort((a, b) =>
+    (a.subdomain ?? '').localeCompare(b.subdomain ?? '', undefined, { sensitivity: 'base', numeric: true })
+  )
+
 export const tokenAccessLabel = (token: Pick<ApiTokenFields, 'scopes'>) =>
   token.scopes?.includes('write') ? 'Deploy + read' : 'Read only'
 
@@ -21,7 +27,9 @@ export const tokenScopeLabel = (
   instancesById: Record<RecordId, InstanceFields>
 ) => {
   if (token.all_instances) return 'All instances'
-  const names = (token.instances ?? []).map((id) => instancesById[id]?.subdomain).filter((n): n is string => !!n)
+  const names = sortBySubdomain(
+    (token.instances ?? []).map((id) => instancesById[id]).filter((i): i is InstanceFields => !!i?.subdomain)
+  ).map((i) => i.subdomain)
   if (names.length === 0) {
     const count = token.instances?.length ?? 0
     return count === 1 ? '1 instance' : `${count} instances`

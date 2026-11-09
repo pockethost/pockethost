@@ -6,6 +6,7 @@ import {
   PAT_SECRET_LENGTH,
   patHint,
 } from '$common/pat'
+import { parseInstanceScope } from '../lib/parseInstanceScope'
 
 /**
  * POST /api/tokens (JWT auth only). Body: `{ label, scopes?, all_instances?, instances?, expires? }`. Returns the token
@@ -32,26 +33,7 @@ export const HandleApiTokenCreate = (e: core.RequestEvent) => {
   if (scopes.has('write')) scopes.add('read')
   if (scopes.size === 0) throw new BadRequestError('Choose at least one scope.')
 
-  const allInstances = body.all_instances === true
-  const instanceIds = Array.isArray(body.instances)
-    ? [...new Set(body.instances.filter((v): v is string => typeof v === 'string'))]
-    : []
-  if (!allInstances && instanceIds.length === 0) {
-    throw new BadRequestError('Select at least one instance or choose all instances.')
-  }
-  if (!allInstances) {
-    for (const id of instanceIds) {
-      let instance: core.Record
-      try {
-        instance = $app.findRecordById('instances', id)
-      } catch {
-        throw new BadRequestError('One or more selected instances were not found.')
-      }
-      if (instance.getString('uid') !== auth.id) {
-        throw new BadRequestError('One or more selected instances are not owned by you.')
-      }
-    }
-  }
+  const { allInstances, instanceIds } = parseInstanceScope(body, auth.id)
 
   let expires = ''
   if (typeof body.expires === 'string' && body.expires.trim()) {

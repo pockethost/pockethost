@@ -141,6 +141,30 @@ describe('deploy router', () => {
     expect((await api('get', '/whoami', 'ro')).status).toBe(200)
   })
 
+  it('re-verifies a cached token before refusing an out-of-scope instance', async () => {
+    const stale: DeployAuth = {
+      userId: 'user1',
+      scopes: ['read', 'write'],
+      instanceIds: ['inst1'],
+      via: 'pat',
+      tokenLabel: 'CI',
+    }
+    const widened: DeployAuth = { ...stale, instanceIds: ['inst1', 'inst2'] }
+    const resolveAuth = vi.fn(async (_a: string | undefined, _ip?: string, opts?: { fresh?: boolean }) =>
+      opts?.fresh ? widened : stale
+    )
+    const app2 = express()
+    app2.use(DEPLOY_API_PREFIX, createDeployRouter({ ...deps, resolveAuth }))
+    const res = await request(app2)
+      .post(`${DEPLOY_API_PREFIX}/check`)
+      .set('Host', 'other.pockethost.test')
+      .set('Authorization', 'Bearer good')
+      .send({ files: {} })
+    expect(res.status).toBe(200)
+    expect(resolveAuth).toHaveBeenCalledTimes(2)
+    expect(resolveAuth.mock.calls[1]![2]).toEqual({ fresh: true })
+  })
+
   it('streams logs to read-only tokens and stops tailing on disconnect', async () => {
     const unsub = vi.fn()
     deps.tailLogs = vi.fn((_i, n, onEntry) => {

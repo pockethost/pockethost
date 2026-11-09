@@ -311,6 +311,35 @@ const patExpired = (expires, nowMs) => {
 };
 
 //#endregion
+//#region src/lib/handlers/apiTokens/lib/parseInstanceScope.ts
+/**
+* Validates `{ all_instances, instances }` from a token create/update body. Every listed instance must exist and be
+* owned by `userId`; at least one is required unless `all_instances` is true.
+*/
+const parseInstanceScope = (body, userId) => {
+	const allInstances = body.all_instances === true;
+	const instanceIds = Array.isArray(body.instances) ? [...new Set(body.instances.filter((v) => typeof v === "string"))] : [];
+	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
+	if (allInstances) return {
+		allInstances,
+		instanceIds: []
+	};
+	for (const id of instanceIds) {
+		let instance;
+		try {
+			instance = $app.findRecordById("instances", id);
+		} catch {
+			throw new BadRequestError("One or more selected instances were not found.");
+		}
+		if (instance.getString("uid") !== userId) throw new BadRequestError("One or more selected instances are not owned by you.");
+	}
+	return {
+		allInstances,
+		instanceIds
+	};
+};
+
+//#endregion
 //#region src/lib/handlers/apiTokens/api/HandleApiTokenCreate.ts
 /**
 * POST /api/tokens (JWT auth only). Body: `{ label, scopes?, all_instances?, instances?, expires? }`. Returns the token
@@ -331,18 +360,7 @@ const HandleApiTokenCreate = (e) => {
 	}
 	if (scopes.has("write")) scopes.add("read");
 	if (scopes.size === 0) throw new BadRequestError("Choose at least one scope.");
-	const allInstances = body.all_instances === true;
-	const instanceIds = Array.isArray(body.instances) ? [...new Set(body.instances.filter((v) => typeof v === "string"))] : [];
-	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
-	if (!allInstances) for (const id of instanceIds) {
-		let instance;
-		try {
-			instance = $app.findRecordById("instances", id);
-		} catch {
-			throw new BadRequestError("One or more selected instances were not found.");
-		}
-		if (instance.getString("uid") !== auth.id) throw new BadRequestError("One or more selected instances are not owned by you.");
-	}
+	const { allInstances, instanceIds } = parseInstanceScope(body, auth.id);
 	let expires = "";
 	if (typeof body.expires === "string" && body.expires.trim()) {
 		const t = Date.parse(body.expires.trim());
@@ -375,6 +393,34 @@ const HandleApiTokenCreate = (e) => {
 			created: record.getString("created")
 		}
 	});
+};
+
+//#endregion
+//#region src/lib/handlers/apiTokens/api/HandleApiTokenUpdate.ts
+/**
+* PATCH /api/tokens/{id} (JWT auth only). Body: `{ all_instances, instances }`. Changes which instances a token can
+* reach. The secret, label, scopes and expiry are untouched, so CI secrets holding the token keep working.
+*/
+const HandleApiTokenUpdate = (e) => {
+	const auth = e.auth;
+	if (!auth) throw new UnauthorizedError("Authentication required.");
+	const id = e.request.pathValue("id");
+	let record;
+	try {
+		record = $app.findRecordById("api_tokens", id);
+	} catch {
+		throw new NotFoundError("Token not found.");
+	}
+	if (record.getString("user") !== auth.id) throw new NotFoundError("Token not found.");
+	const { allInstances, instanceIds } = parseInstanceScope(e.requestInfo().body || {}, auth.id);
+	record.set("all_instances", allInstances);
+	record.set("instances", instanceIds);
+	$app.save(record);
+	return e.json(200, { record: {
+		id: record.id,
+		all_instances: allInstances,
+		instances: instanceIds
+	} });
 };
 
 //#endregion
@@ -5733,6 +5779,7 @@ exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleApiTokenCreate = HandleApiTokenCreate;
+exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
 exports.HandleCustomHostnameRegister = HandleCustomHostnameRegister;
 exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
@@ -5788,6 +5835,7 @@ exports.initLiveViewStatsAtBoot = initLiveViewStatsAtBoot;
 exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.normalizeInstanceStatus = normalizeInstanceStatus;
+exports.parseInstanceScope = parseInstanceScope;
 exports.readTrustedIpsFromRecord = readTrustedIpsFromRecord;
 exports.reasonToDelete = reasonToDelete;
 exports.recountLivePlatformStats = recountLivePlatformStats;

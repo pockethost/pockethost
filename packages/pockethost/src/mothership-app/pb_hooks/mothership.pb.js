@@ -65,6 +65,9 @@ onRecordAfterDeleteSuccess((e) => {
 routerAdd("POST", "/api/tokens", (e) => {
 	return require(`${__hooks}/mothership`).HandleApiTokenCreate(e);
 }, $apis.requireAuth("users"));
+routerAdd("PATCH", "/api/tokens/{id}", (e) => {
+	return require(`${__hooks}/mothership`).HandleApiTokenUpdate(e);
+}, $apis.requireAuth("users"));
 routerAdd("POST", "/api/pat/verify", (e) => {
 	return require(`${__hooks}/mothership`).HandlePatVerify(e);
 }, $apis.requireSuperuserAuth());

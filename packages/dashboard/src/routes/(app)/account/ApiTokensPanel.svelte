@@ -15,6 +15,7 @@
   let showCreateForm = false
   let created: { token: string; label: string } | null = null
   let confirmRevokeId = ''
+  let editingId = ''
 
   const loadTokens = async () => {
     loading = true
@@ -36,6 +37,20 @@
     created = e.detail
     showCreateForm = false
     successMessage = ''
+    await loadTokens()
+  }
+
+  const startEdit = (id: string) => {
+    errorMessage = ''
+    successMessage = ''
+    confirmRevokeId = ''
+    showCreateForm = false
+    editingId = id
+  }
+
+  const handleUpdated = async (e: CustomEvent<{ label: string }>) => {
+    editingId = ''
+    successMessage = `Token "${e.detail.label}" updated.`
     await loadTokens()
   }
 
@@ -119,18 +134,31 @@
               </wa-button>
             </div>
           {:else}
-            <wa-button
-              variant="danger"
-              size="s"
-              appearance="outline"
-              class="shrink-0 sm:opacity-70 sm:group-hover:opacity-100"
-              onclick={() => (confirmRevokeId = token.id)}
-            >
-              <wa-icon slot="start" name="trash"></wa-icon>
-              Revoke
-            </wa-button>
+            <div class="flex shrink-0 gap-2 sm:opacity-70 sm:group-hover:opacity-100">
+              <wa-button
+                variant="neutral"
+                size="s"
+                appearance="outline"
+                onclick={() => (editingId === token.id ? (editingId = '') : startEdit(token.id))}
+              >
+                <wa-icon slot="start" name="pen"></wa-icon>
+                Edit
+              </wa-button>
+              <wa-button variant="danger" size="s" appearance="outline" onclick={() => (confirmRevokeId = token.id)}>
+                <wa-icon slot="start" name="trash"></wa-icon>
+                Revoke
+              </wa-button>
+            </div>
           {/if}
         </div>
+        {#if editingId === token.id}
+          <div>
+            <ApiTokenCreateForm {token} bind:errorMessage on:updated={handleUpdated} />
+            <div class="mt-3">
+              <wa-button variant="neutral" appearance="plain" onclick={() => (editingId = '')}>Cancel</wa-button>
+            </div>
+          </div>
+        {/if}
       {/each}
     </div>
   {/if}
@@ -142,7 +170,13 @@
         <wa-button variant="neutral" appearance="plain" onclick={() => (showCreateForm = false)}> Cancel </wa-button>
       </div>
     {:else}
-      <wa-button variant="brand" onclick={() => (showCreateForm = true)}>
+      <wa-button
+        variant="brand"
+        onclick={() => {
+          editingId = ''
+          showCreateForm = true
+        }}
+      >
         <wa-icon slot="start" name="plus"></wa-icon>
         Create token
       </wa-button>

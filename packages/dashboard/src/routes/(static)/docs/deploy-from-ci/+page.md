@@ -18,7 +18,7 @@ Go to **[Account → API Tokens](/account/tokens)** and click **Create token**:
 
 - **Name**: something you'll recognize later, like `GitHub Actions`.
 - **Access**: **Deploy + read**. Read-only tokens can list instances and tail logs, but can't deploy.
-- **Instances**: pick only the instances this pipeline deploys to, or **All instances**.
+- **Instances**: pick only the instances this pipeline deploys to, or **All instances**. You can change this later with **Edit**; the token stays the same, so you don't need to update your CI secret.
 - **Expiry**: 90 days is the default. You can pick 30 days, 1 year, or no expiry.
 
 Copy the token (`ph_pat_…`) right away. PocketHost stores only a hash of it, so it is shown once.
@@ -130,7 +130,7 @@ Create a token with **Deploy + read** access.
 
 ### `Instance '…' not found, or this token cannot access it.`
 
-Check the instance name, and that the token's instance list includes it.
+Check the instance name, and that the token's instance list includes it. To add an instance, click **Edit** on the token at **[Account → API Tokens](/account/tokens)**.
 
 ### `… is outside the deployable set`
 
