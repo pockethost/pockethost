@@ -6,6 +6,7 @@ import {
   LEGACY_EDGE_ID,
   Logger,
   PH_EDGE_ID,
+  PH_EDGE_REGION,
   PH_FIREWALL_DAEMON_GRACE_RETRY_MS,
 } from '@'
 import type { Request, RequestHandler, Response } from 'express'
@@ -55,6 +56,23 @@ export const decideRoute = (
   return { kind: 'remote', edge: owner }
 }
 
+/** Response headers showing which edge a request entered at and which edge it resolved to. */
+export const EDGE_HEADERS = {
+  edgeName: 'X-PocketHost-Edge-Name',
+  edgeRegion: 'X-PocketHost-Edge-Region',
+  originName: 'X-PocketHost-Origin-Name',
+  originRegion: 'X-PocketHost-Origin-Region',
+} as const
+
+type EdgeLabel = { name: string; region: string }
+
+/** Pure: the four routing headers. `origin` is omitted when the owner edge is unknown. */
+export const edgeHeaders = (entry: EdgeLabel, origin: EdgeLabel | undefined): Record<string, string> => ({
+  [EDGE_HEADERS.edgeName]: entry.name,
+  [EDGE_HEADERS.edgeRegion]: entry.region,
+  ...(origin ? { [EDGE_HEADERS.originName]: origin.name, [EDGE_HEADERS.originRegion]: origin.region } : {}),
+})
+
 const IDEMPOTENT = new Set(['GET', 'HEAD', 'OPTIONS'])
 
 /**
@@ -88,6 +106,9 @@ type RoutedRequest = Request & { phEdgeId?: string; phEdgeTarget?: string; phNex
 export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: Logger): RequestHandler => {
   const { dbg, info, error } = logger.create(`firewall:edge-routing`)
   const myEdgeId = PH_EDGE_ID()
+  const me: EdgeLabel = { name: myEdgeId, region: PH_EDGE_REGION() }
+  const label = (edge: EdgeFields | undefined): EdgeLabel | undefined =>
+    edge && { name: edge.edge_id, region: edge.region || '' }
   const agent = new http.Agent({ keepAlive: true, maxSockets: 512 })
   /** Edges with a recent connection failure: requests wait for a health check before being proxied. */
   const suspect = new Set<string>()
@@ -165,6 +186,13 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
     if (isHealthProbePath(req.path)) return next()
     const instance = await mirror.getInstanceByHost(req.hostname)
     const decision = decideRoute(instance, mirror, myEdgeId, Date.now())
+    const origin =
+      decision.kind === 'local'
+        ? me
+        : decision.kind === 'remote'
+          ? label(decision.edge)
+          : label(decision.edgeId ? mirror.getEdge(decision.edgeId) : undefined)
+    res.set(edgeHeaders(me, origin))
     if (decision.kind === 'local') return next()
     if (decision.kind === 'unavailable') {
       dbg(`${req.hostname}: ${decision.reason}`)

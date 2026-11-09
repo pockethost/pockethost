@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { EdgeFields } from '../../../../../common'
-import { decideRoute } from './edgeRouting'
+import { decideRoute, edgeHeaders } from './edgeRouting'
 
 const NOW = Date.parse('2026-11-09T19:00:00Z')
 const seen = (secondsAgo: number) => new Date(NOW - secondsAgo * 1000).toISOString().replace('T', ' ')
@@ -61,5 +61,23 @@ describe('decideRoute', () => {
     expect(decideRoute({ edge: 'E_AMS' }, mirrorWith([sfo, mkEdge('E_AMS', 'ams-1', 29)]), 'sfo', NOW).kind).toBe(
       'remote'
     )
+  })
+})
+
+describe('edgeHeaders', () => {
+  it('reports the entry edge and the edge the request resolved to', () => {
+    expect(edgeHeaders({ name: 'ams-1', region: 'ams' }, { name: 'sfo', region: 'sfo' })).toEqual({
+      'X-PocketHost-Edge-Name': 'ams-1',
+      'X-PocketHost-Edge-Region': 'ams',
+      'X-PocketHost-Origin-Name': 'sfo',
+      'X-PocketHost-Origin-Region': 'sfo',
+    })
+  })
+
+  it('leaves out the origin when the owner edge is unknown', () => {
+    expect(edgeHeaders({ name: 'sfo', region: 'sfo' }, undefined)).toEqual({
+      'X-PocketHost-Edge-Name': 'sfo',
+      'X-PocketHost-Edge-Region': 'sfo',
+    })
   })
 })
