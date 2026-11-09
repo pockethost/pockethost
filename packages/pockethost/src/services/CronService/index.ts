@@ -1,12 +1,15 @@
 import {
+  BACKUP_TOKEN_HEADER,
   DAEMON_PORT,
   InstanceFields,
   InstanceId,
   InstanceLogWriter,
   LoggerService,
+  mkBackupToken,
   mkInstanceHostname,
   mkSingleton,
   MothershipAdminClientService,
+  PH_BACKUP_TOKEN_SECRET,
   PH_DISABLE_INSTANCE_WEBHOOKS,
   SingletonBaseConfig,
 } from '@'
@@ -80,6 +83,10 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
               host,
               path,
               timeoutMs: WEBHOOK_TIMEOUT_MS,
+              // Every webhook carries the instance's backup token, so pointing one at /api/ph/backup schedules backups.
+              headers: PH_BACKUP_TOKEN_SECRET()
+                ? { [BACKUP_TOKEN_HEADER]: mkBackupToken(instance.id, PH_BACKUP_TOKEN_SECRET()) }
+                : {},
             })
 
             webhook.lastFired = {

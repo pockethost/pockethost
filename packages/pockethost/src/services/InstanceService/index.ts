@@ -12,11 +12,13 @@ import {
   isSystemError,
   isUserError,
   LoggerService,
+  mkBackupToken,
   mkContainerHomePath,
   mkInstanceUrl,
   mkSingleton,
   MothershipAdminClientService,
   now,
+  PH_BACKUP_TOKEN_SECRET,
   PocketbaseService,
   proxyService,
   setInstanceTrafficReady,
@@ -277,6 +279,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
             ...instance.secrets,
             PH_APP_NAME: instance.subdomain,
             PH_INSTANCE_URL: mkInstanceUrl(instance),
+            // After the customer's secrets, so a secret with the same name can't replace it.
+            ...(PH_BACKUP_TOKEN_SECRET()
+              ? { PH_BACKUP_TOKEN: mkBackupToken(instance.id, PH_BACKUP_TOKEN_SECRET()) }
+              : {}),
           },
           version,
           logger: systemInstanceLogger,

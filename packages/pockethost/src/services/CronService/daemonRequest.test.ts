@@ -27,6 +27,18 @@ describe('daemonRequest', () => {
     expect(r).toEqual({ status: 201, body: 'foo.pockethost.io /api/job?x=1' })
   })
 
+  it('sends extra headers, but never lets them replace Host', async () => {
+    const port = await listen((req, res) => res.end(`${req.headers.host} ${req.headers['x-ph-backup-token']}`))
+    const r = await daemonRequest({
+      port,
+      host: 'foo.pockethost.io',
+      path: '/',
+      timeoutMs: 5000,
+      headers: { 'x-ph-backup-token': 'tok', host: 'evil.example' },
+    })
+    expect(r.body).toBe('foo.pockethost.io tok')
+  })
+
   it('waits for slow responses within the timeout', async () => {
     const port = await listen((_req, res) => {
       setTimeout(() => res.end('done'), 300)

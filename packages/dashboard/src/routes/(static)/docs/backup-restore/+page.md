@@ -44,46 +44,26 @@ Here's why it works this way, and why everybody comes out ahead:
 
 ## Schedule backups with a webhook
 
-This runs PocketBase's own backup job, so it uses your backup settings: your S3 bucket, and the **Max @auto backups** setting that removes old backups. It needs **PocketBase 0.24 or newer**. On an older version, [change versions](/docs/versions) first.
+PocketHost adds a backup route to every instance: `/api/ph/backup`. Point a webhook at it, and PocketHost runs a backup on your schedule, waking your instance if needed. It uses your backup settings: your S3 bucket, and the **Max @auto backups** setting that removes old backups. It works on every PocketBase version PocketHost runs.
 
 **1. Set up backups in the PocketBase admin.** Go to **Settings > Backups**.
 
-- Turn on **automatic backups** and enter any schedule, such as `0 3 * * *`. PocketBase only creates its backup job when a schedule is set. The webhook is what runs it on time.
+- Turn on **automatic backups** and enter any schedule, such as `0 3 * * *`. This shows the **Max @auto backups** setting. The webhook is what runs backups on time.
 - Set **Max @auto backups** to how many you want to keep.
 - Turn on **S3 storage** and connect your versioned bucket.
 
-**2. Add a secret token.** Create a [secret](/docs/secrets) named `BACKUP_WEBHOOK_TOKEN` with a long random value. Power your instance off and on so it picks up the new secret.
+**2. Add the webhook.** In your instance dashboard, open **Webhooks** and add:
 
-**3. Add the route.** Save this as `pb_hooks/backup.pb.js`:
-
-```javascript
-routerAdd('GET', '/api/webhooks/backup', (e) => {
-  if (e.request.url.query().get('token') !== $os.getenv('BACKUP_WEBHOOK_TOKEN')) {
-    return e.json(401, { error: 'Unauthorized' })
-  }
-
-  // PocketBase's own scheduled backup job
-  const job = $app.cron().jobs().find((j) => j.id() === '__pbAutoBackup__')
-  if (!job) {
-    return e.json(400, { error: 'Set a backup schedule in Settings > Backups first' })
-  }
-
-  job.run() // creates the backup, then removes the oldest beyond Max @auto backups
-  return e.json(200, { ok: true })
-})
-```
-
-**4. Add the webhook.** In your instance dashboard, open **Webhooks** and add:
-
-- **API Endpoint**: `/api/webhooks/backup?token=YOUR_TOKEN`
+- **API Endpoint**: `/api/ph/backup`
 - **Schedule**: `0 3 * * *` (daily at 3:00 UTC), or whatever suits you
 
-**5. Test it.** Open `https://YOUR_INSTANCE.pockethost.io/api/webhooks/backup?token=YOUR_TOKEN` in your browser. You should see `{"ok":true}` and a new backup in **Settings > Backups**.
+**3. Check the first run.** After the schedule comes around, the dashboard shows the webhook's last response, such as `{"ok":true,"name":"@auto_pb_backup_ph_20261110030000.zip","removed":1}`, and the new backup appears in **Settings > Backups**. If the response is `Unauthorized`, power your instance off and on once so it picks up its backup token.
 
 ### Good to know
 
 - **Writes wait while a backup runs.** PocketBase pauses database writes while it builds the backup, then they continue. Reads aren't affected. Backups are quick when your uploads live in S3, because then the backup is only the database.
-- **You might occasionally see an extra backup.** If your instance happens to be awake at the schedule you set in step 1, PocketBase runs the job itself too. **Max @auto backups** removes the extra one.
+- **Only your webhooks can start a backup.** The route needs a token that PocketHost gives your instance and sends with each of its webhooks. Anyone else gets `Unauthorized`.
+- **You might occasionally see an extra backup.** If your instance happens to be awake at the schedule you set in step 1, PocketBase runs its own backup too. **Max @auto backups** removes the extra one.
 - **Check on it now and then.** The dashboard shows each webhook's last run and response. Look in **Settings > Backups** from time to time to confirm new backups are arriving.
 
 ## Restore from the admin

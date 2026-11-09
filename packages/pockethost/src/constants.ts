@@ -276,6 +276,9 @@ export const PH_BACKUP_ICEBOX_REMOTE = () =>
 /** HMAC key for archive download links. Falls back to PH_SECRET. */
 export const PH_ARCHIVE_LINK_SECRET = () =>
   env.get('PH_ARCHIVE_LINK_SECRET').asString() || env.get('PH_SECRET').asString() || ''
+/** HMAC key for per-instance backup tokens (`PH_BACKUP_TOKEN`). Falls back to PH_SECRET. Empty disables the tokens. */
+export const PH_BACKUP_TOKEN_SECRET = () =>
+  env.get('PH_BACKUP_TOKEN_SECRET').asString() || env.get('PH_SECRET').asString() || ''
 /** Public origin serving `/_ph/archive/:id` (the firewall, on the mothership host). */
 export const PH_ARCHIVE_LINK_ORIGIN = () =>
   env.get('PH_ARCHIVE_LINK_ORIGIN').asString() || `${_HTTP_PROTOCOL}//${_MOTHERSHIP_NAME}.${_APEX_DOMAIN}`

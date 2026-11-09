@@ -10,15 +10,17 @@ export type DaemonRequestOptions = {
   path: string
   /** Total time allowed for the whole response. */
   timeoutMs: number
+  /** Extra request headers. */
+  headers?: Record<string, string>
 }
 
 /**
  * GETs a path on an instance through the local daemon, skipping Cloudflare (which cuts proxied requests off at ~100s)
  * and the firewall. Uses node:http because fetch drops the Host header.
  */
-export const daemonRequest = ({ port, host, path, timeoutMs }: DaemonRequestOptions) =>
+export const daemonRequest = ({ port, host, path, timeoutMs, headers = {} }: DaemonRequestOptions) =>
   new Promise<DaemonResponse>((resolve, reject) => {
-    const req = http.request({ host: '127.0.0.1', port, path, method: 'GET', headers: { host } }, (res) => {
+    const req = http.request({ host: '127.0.0.1', port, path, method: 'GET', headers: { ...headers, host } }, (res) => {
       const chunks: Buffer[] = []
       res.on('data', (chunk: Buffer) => chunks.push(chunk))
       res.on('end', () => {
