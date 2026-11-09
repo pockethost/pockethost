@@ -11,6 +11,10 @@ export const BACKUP_ICEBOX_DEFAULTS = {
   retentionDays: 180,
   /** Zips modified this recently may still be being written by PocketBase. */
   minAgeMinutes: 60,
+  /** A stored zip whose stub is gone waits this long in the trash before it's deleted. */
+  trashDays: 14,
+  /** Stored zips uploaded more recently than this are never orphans. Their stub may not be written yet. */
+  orphanMinAgeHours: 24,
 } as const
 
 export const ICEBOX_STUB_SUFFIX = `.txt`
@@ -27,6 +31,9 @@ export const iceboxStubName = (zipName: string) => `${zipName}${ICEBOX_STUB_SUFF
 
 export const backupIceboxObjectPath = (remote: string, instanceId: string, zipName: string) =>
   `${remote.replace(/\/+$/, '')}/${instanceId}/${zipName}`
+
+/** Stored zips whose stub is gone are moved here first, keeping `<instanceId>/<zipName>`. */
+export const backupIceboxTrashRemote = (remote: string) => `${remote.replace(/\/+$/, '')}-trash`
 
 export type BackupFile = { name: string; mtimeMs: number; size: number }
 
@@ -84,6 +91,72 @@ export const mkIceboxStub = (opts: {
 
 export const isIceboxStub = (name: string, firstLine: string) =>
   name.endsWith(`.zip${ICEBOX_STUB_SUFFIX}`) && firstLine.trim() === ICEBOX_STUB_MARKER
+
+/** The link expiry signed into a stub, in seconds since the epoch, or null if the stub has none. */
+export const iceboxStubExpSec = (content: string) => {
+  const m = content.match(/[?&]exp=(\d+)/)
+  return m ? Number(m[1]) : null
+}
+
+/** What one instance's backups folder holds. Only instances whose folder was read successfully are listed. */
+export type LocalBackups = {
+  /** ZipName -> the stub's mtime, for our stubs only. */
+  stubs: Map<string, number>
+  /** Zip names still on disk. */
+  zips: Set<string>
+}
+
+export type IceboxObject = {
+  instanceId: string
+  zipName: string
+  size: number
+  /** When it was uploaded. */
+  modTimeMs: number
+  /** The zip's mtime on disk before upload, which rclone keeps as metadata. */
+  origMtimeMs: number | null
+}
+
+export type IceboxCleanupPlan = {
+  /** Past retention, counted from upload. */
+  expire: IceboxObject[]
+  /** Stub and zip are both gone from a folder we could read, so nothing points at it any more. */
+  orphans: IceboxObject[]
+  /** Stubs whose mtime should match the original zip's, so PocketBase prunes them in their real order. */
+  touch: { instanceId: string; zipName: string; mtimeMs: number }[]
+}
+
+/**
+ * Decides what happens to each stored zip. An instance missing from `local` (its folder is gone or unreadable) never
+ * has orphans: a lost volume must not take its cold copies with it. Those zips only expire.
+ */
+export const planIceboxCleanup = (opts: {
+  local: Map<string, LocalBackups>
+  objects: IceboxObject[]
+  nowMs: number
+  retentionMs: number
+  orphanMinAgeMs: number
+}): IceboxCleanupPlan => {
+  const plan: IceboxCleanupPlan = { expire: [], orphans: [], touch: [] }
+  for (const o of opts.objects) {
+    if (opts.nowMs - o.modTimeMs >= opts.retentionMs) {
+      plan.expire.push(o)
+      continue
+    }
+    const dir = opts.local.get(o.instanceId)
+    if (!dir) continue
+    const stubMtimeMs = dir.stubs.get(o.zipName)
+    if (stubMtimeMs !== undefined) {
+      if (o.origMtimeMs !== null && Math.abs(stubMtimeMs - o.origMtimeMs) >= 1000) {
+        plan.touch.push({ instanceId: o.instanceId, zipName: o.zipName, mtimeMs: o.origMtimeMs })
+      }
+      continue
+    }
+    if (dir.zips.has(o.zipName)) continue
+    if (opts.nowMs - o.modTimeMs < opts.orphanMinAgeMs) continue
+    plan.orphans.push(o)
+  }
+  return plan
+}
 
 /* Signed links: same scheme as instance archives, with the zip name in the signed payload. */
 

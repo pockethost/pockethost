@@ -3,11 +3,15 @@ import {
   backupIceboxObjectPath,
   backupLinkExpSec,
   ICEBOX_STUB_MARKER,
+  IceboxObject,
+  iceboxStubExpSec,
   isBackupZipName,
   isIceboxStub,
+  LocalBackups,
   mkBackupDownloadUrl,
   mkIceboxStub,
   planBackupIcebox,
+  planIceboxCleanup,
   verifyBackupLink,
 } from './backupIcebox'
 
@@ -123,5 +127,69 @@ describe(`backup links`, () => {
 describe(`backupIceboxObjectPath`, () => {
   it(`joins remote, instance and zip`, () => {
     expect(backupIceboxObjectPath(`r:bucket/backup-icebox/`, ID, `a.zip`)).toBe(`r:bucket/backup-icebox/${ID}/a.zip`)
+  })
+})
+
+describe(`iceboxStubExpSec`, () => {
+  it(`reads the expiry signed into the stub's link`, () => {
+    const url = mkBackupDownloadUrl(`https://x.io`, ID, `a.zip`, 1_800_000_000, SECRET)
+    const stub = mkIceboxStub({ zipName: `a.zip`, url, iceboxedAtMs: NOW, expSec: 1_800_000_000, retentionDays: 180 })
+    expect(iceboxStubExpSec(stub)).toBe(1_800_000_000)
+  })
+  it(`returns null without a link`, () => {
+    expect(iceboxStubExpSec(`${ICEBOX_STUB_MARKER}\nno link`)).toBeNull()
+  })
+})
+
+describe(`planIceboxCleanup`, () => {
+  const DAY = 24 * HOUR
+  const OTHER = `otherinstance01`
+  const obj = (zipName: string, uploadedDaysAgo: number, origMtimeMs: number | null = NOW - 30 * DAY, id = ID) =>
+    ({ instanceId: id, zipName, size: 1, modTimeMs: NOW - uploadedDaysAgo * DAY, origMtimeMs }) as IceboxObject
+  const dir = (stubs: Record<string, number>, zips: string[] = []): LocalBackups => ({
+    stubs: new Map(Object.entries(stubs)),
+    zips: new Set(zips),
+  })
+  const run = (local: Map<string, LocalBackups>, objects: IceboxObject[]) =>
+    planIceboxCleanup({ local, objects, nowMs: NOW, retentionMs: 180 * DAY, orphanMinAgeMs: DAY })
+
+  it(`re-dates a stub to the original zip mtime`, () => {
+    const orig = NOW - 30 * DAY
+    const plan = run(new Map([[ID, dir({ 'a.zip': NOW - 2 * DAY })]]), [obj(`a.zip`, 2, orig)])
+    expect(plan.touch).toEqual([{ instanceId: ID, zipName: `a.zip`, mtimeMs: orig }])
+    expect(plan.orphans).toEqual([])
+  })
+
+  it(`leaves a stub that already has the right mtime, or when the original is unknown`, () => {
+    const orig = NOW - 30 * DAY
+    const plan = run(new Map([[ID, dir({ 'a.zip': orig + 400, 'b.zip': NOW })]]), [
+      obj(`a.zip`, 2, orig),
+      obj(`b.zip`, 2, null),
+    ])
+    expect(plan.touch).toEqual([])
+  })
+
+  it(`orphans a stored zip whose stub and zip are gone`, () => {
+    const plan = run(new Map([[ID, dir({})]]), [obj(`a.zip`, 2)])
+    expect(plan.orphans.map((o) => o.zipName)).toEqual([`a.zip`])
+  })
+
+  it(`keeps a stored zip while the zip itself is still on disk`, () => {
+    expect(run(new Map([[ID, dir({}, [`a.zip`])]]), [obj(`a.zip`, 2)]).orphans).toEqual([])
+  })
+
+  it(`never orphans a zip uploaded within the last day`, () => {
+    expect(run(new Map([[ID, dir({})]]), [obj(`a.zip`, 0.5)]).orphans).toEqual([])
+  })
+
+  it(`never orphans zips of an instance whose folder could not be read`, () => {
+    expect(run(new Map([[ID, dir({})]]), [obj(`a.zip`, 2, null, OTHER)]).orphans).toEqual([])
+  })
+
+  it(`expires zips past retention, whether or not a stub exists`, () => {
+    const plan = run(new Map([[ID, dir({ 'a.zip': NOW })]]), [obj(`a.zip`, 181), obj(`b.zip`, 200, null, OTHER)])
+    expect(plan.expire.map((o) => o.zipName)).toEqual([`a.zip`, `b.zip`])
+    expect(plan.touch).toEqual([])
+    expect(plan.orphans).toEqual([])
   })
 })

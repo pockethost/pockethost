@@ -1,7 +1,7 @@
 import { execFile } from 'child_process'
 import { basename, dirname } from 'path'
 import { promisify } from 'util'
-import { backupIceboxObjectPath } from './backupIcebox'
+import { backupIceboxObjectPath, backupIceboxTrashRemote, IceboxObject } from './backupIcebox'
 
 /**
  * Backup icebox storage through rclone (production uses IDrive e2). Zips are already compressed, so they're copied
@@ -37,25 +37,50 @@ export const verifyBackupZip = async (localPath: string, remote: string, instanc
   ])
 }
 
-export type IceboxObject = { instanceId: string; zipName: string; size: number; modTimeMs: number }
-
+/** Lists stored zips with their upload time and, when rclone recorded it, the zip's original mtime. */
 export const listBackupIcebox = async (remote: string): Promise<IceboxObject[]> => {
   try {
-    // --use-server-modtime: upload time, not the zip's original mtime (which rclone preserves as metadata). Retention
-    // counts from the upload.
-    const { stdout } = await execFileAsync(`rclone`, [`lsjson`, `-R`, `--files-only`, `--use-server-modtime`, remote], {
-      maxBuffer: 256 * 1024 * 1024,
-    })
-    const rows = JSON.parse(stdout) as Array<{ Path: string; Size: number; ModTime: string }>
+    // --use-server-modtime: ModTime is the upload time, so retention counts from the upload. -M adds the original
+    // mtime, which rclone keeps as metadata.
+    const { stdout } = await execFileAsync(
+      `rclone`,
+      [`lsjson`, `-R`, `--files-only`, `--use-server-modtime`, `-M`, remote],
+      { maxBuffer: 256 * 1024 * 1024 }
+    )
+    const rows = JSON.parse(stdout) as Array<{
+      Path: string
+      Size: number
+      ModTime: string
+      Metadata?: { mtime?: string }
+    }>
     return rows.flatMap((r) => {
       const [instanceId, zipName, ...rest] = r.Path.split(`/`)
       if (!instanceId || !zipName || rest.length) return []
-      return [{ instanceId, zipName, size: r.Size, modTimeMs: Date.parse(r.ModTime) }]
+      const orig = r.Metadata?.mtime ? Date.parse(r.Metadata.mtime) : NaN
+      return [
+        {
+          instanceId,
+          zipName,
+          size: r.Size,
+          modTimeMs: Date.parse(r.ModTime),
+          origMtimeMs: Number.isFinite(orig) ? orig : null,
+        },
+      ]
     })
   } catch (e) {
     if (`${e}`.includes(`directory not found`)) return []
     throw e
   }
+}
+
+/** Moves a stored zip to the trash remote, keeping its path. */
+export const trashBackupIceboxObject = async (remote: string, instanceId: string, zipName: string) => {
+  await execFileAsync(`rclone`, [
+    `moveto`,
+    ...S3_FLAGS,
+    backupIceboxObjectPath(remote, instanceId, zipName),
+    backupIceboxObjectPath(backupIceboxTrashRemote(remote), instanceId, zipName),
+  ])
 }
 
 export const deleteBackupIceboxObject = async (remote: string, instanceId: string, zipName: string) => {

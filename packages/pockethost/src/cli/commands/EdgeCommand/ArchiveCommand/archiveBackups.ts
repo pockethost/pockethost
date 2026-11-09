@@ -2,24 +2,30 @@ import {
   BACKUP_ICEBOX_DEFAULTS,
   BackupFile,
   INSTANCES_ROOT,
+  LocalBackups,
   LoggerService,
   MS_PER_DAY,
   PH_ARCHIVE_LINK_ORIGIN,
   PH_ARCHIVE_LINK_SECRET,
   PH_BACKUP_ICEBOX_REMOTE,
+  backupIceboxTrashRemote,
   backupLinkExpSec,
   deleteBackupIceboxObject,
+  iceboxStubExpSec,
   iceboxStubName,
+  isBackupZipName,
   isIceboxStub,
   listBackupIcebox,
   mkBackupDownloadUrl,
   mkIceboxStub,
   planBackupIcebox,
+  planIceboxCleanup,
+  trashBackupIceboxObject,
   uploadBackupZip,
   verifyBackupZip,
 } from '@'
 import { existsSync } from 'fs'
-import { chown, open, readdir, rename, rm, stat, writeFile } from 'fs/promises'
+import { chown, open, readdir, rename, rm, stat, utimes, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { formatBytes, mapLimit } from '../edgeUtils'
 
@@ -38,16 +44,21 @@ type Item = { instanceId: string; dir: string; file: BackupFile }
 
 const INSTANCE_ID_RE = /^[a-z0-9]{15}$/
 
-const readFirstLine = async (path: string) => {
+/** Stubs are under 2 KB. Reading only the head keeps a large customer `.zip.txt` file cheap. */
+const readHead = async (path: string, bytes = 4096) => {
   const fh = await open(path, `r`)
   try {
-    const buf = Buffer.alloc(64)
-    const { bytesRead } = await fh.read(buf, 0, 64, 0)
-    return buf.subarray(0, bytesRead).toString(`utf8`).split(`\n`)[0] ?? ``
+    const buf = Buffer.alloc(bytes)
+    const { bytesRead } = await fh.read(buf, 0, bytes, 0)
+    return buf.subarray(0, bytesRead).toString(`utf8`)
   } finally {
     await fh.close()
   }
 }
+
+/** Refuse to trash more than this share of all stored zips in one run. Something is wrong if that many look orphaned. */
+const MAX_ORPHAN_SHARE = 0.5
+const ORPHAN_GUARD_MIN = 20
 
 const listBackupDir = async (dir: string) => {
   const entries = await readdir(dir, { withFileTypes: true })
@@ -62,7 +73,14 @@ const listBackupDir = async (dir: string) => {
 
 /**
  * `edge archive backups`: keep each instance's newest PocketBase backup zip on disk and move the older ones to object
- * storage, leaving a `.zip.txt` stub with a signed download link. Also deletes stubs and stored zips past retention.
+ * storage, leaving a `.zip.txt` stub with a signed download link.
+ *
+ * Each stub's mtime is set to the original zip's, because PocketBase counts `@auto_` stubs toward Max @auto backups and
+ * removes the oldest by mtime. With the upload time instead, stubs would outrank real zips and PocketBase would delete
+ * the real ones first.
+ *
+ * Also deletes stubs and stored zips past retention, and trashes stored zips whose stub and zip are both gone (the
+ * customer or PocketBase removed it). Trashed zips are deleted after `trashDays`.
  */
 export const archiveBackups = async ({
   apply,
@@ -72,6 +90,7 @@ export const archiveBackups = async ({
   concurrency = 4,
   instanceId,
 }: ArchiveBackupsOptions) => {
+  const { trashDays, orphanMinAgeHours } = BACKUP_ICEBOX_DEFAULTS
   const { info, warn, error } = LoggerService().create(`archiveBackups`)
   const root = INSTANCES_ROOT()
   const remote = PH_BACKUP_ICEBOX_REMOTE()
@@ -90,6 +109,7 @@ export const archiveBackups = async ({
   const ids = instanceId ? [instanceId] : (await readdir(root)).filter((n) => INSTANCE_ID_RE.test(n))
   const work: Item[] = []
   const expiredStubs: string[] = []
+  const local = new Map<string, LocalBackups>()
   let scanned = 0
   let keptBytes = 0
   for (const id of ids) {
@@ -106,12 +126,39 @@ export const archiveBackups = async ({
     const plan = planBackupIcebox(files, nowMs, minAgeMinutes * 60_000)
     keptBytes += plan.keep?.size ?? 0
     for (const file of plan.icebox) work.push({ instanceId: id, dir, file })
+    const backups: LocalBackups = { stubs: new Map(), zips: new Set() }
     for (const f of files) {
-      if (!f.name.endsWith(`.zip.txt`) || nowMs - f.mtimeMs < retentionMs) continue
+      if (isBackupZipName(f.name)) backups.zips.add(f.name)
+      if (!f.name.endsWith(`.zip.txt`)) continue
       const path = join(dir, f.name)
-      if (isIceboxStub(f.name, await readFirstLine(path).catch(() => ``))) expiredStubs.push(path)
+      const head = await readHead(path).catch(() => ``)
+      if (!isIceboxStub(f.name, head.split(`\n`)[0] ?? ``)) continue
+      backups.stubs.set(f.name.slice(0, -`.txt`.length), f.mtimeMs)
+      // The stub's mtime is the original backup time, so expiry comes from the link it holds.
+      const expSec = iceboxStubExpSec(head)
+      if (expSec === null) warn(`  stub without a link expiry: ${id}/${f.name}`)
+      else if (nowMs >= expSec * 1000) expiredStubs.push(path)
     }
+    local.set(id, backups)
   }
+
+  // Listed before this run uploads anything, so a zip whose stub isn't written yet can't look orphaned.
+  const objects = (await listBackupIcebox(remote)).filter((o) => !instanceId || o.instanceId === instanceId)
+  const cleanup = planIceboxCleanup({
+    local,
+    objects,
+    nowMs,
+    retentionMs,
+    orphanMinAgeMs: orphanMinAgeHours * 3_600_000,
+  })
+  const orphanGuardTripped =
+    cleanup.orphans.length > ORPHAN_GUARD_MIN && cleanup.orphans.length > objects.length * MAX_ORPHAN_SHARE
+  if (orphanGuardTripped) {
+    warn(`${cleanup.orphans.length} of ${objects.length} stored zips look orphaned. Not trashing any; check this run.`)
+  }
+  const trashRemote = backupIceboxTrashRemote(remote)
+  const trashed = (await listBackupIcebox(trashRemote)).filter((o) => !instanceId || o.instanceId === instanceId)
+  const trashExpired = trashed.filter((o) => nowMs - o.modTimeMs >= trashDays * MS_PER_DAY)
 
   work.sort((a, b) => b.file.size - a.file.size)
   const selected: Item[] = []
@@ -127,12 +174,28 @@ export const archiveBackups = async ({
       `keep ${formatBytes(keptBytes)} on disk; ${work.length - selected.length} zips over the cap wait for the next run; ` +
       `${expiredStubs.length} expired stubs`
   )
+  info(
+    `cold storage: ${objects.length} stored zips, ${cleanup.expire.length} past retention, ` +
+      `${cleanup.orphans.length} orphaned, ${cleanup.touch.length} stubs to re-date; ` +
+      `${trashed.length} in trash, ${trashExpired.length} past ${trashDays}d`
+  )
+  for (const o of cleanup.orphans.slice(0, 20)) info(`  orphan ${o.instanceId}/${o.zipName} ${formatBytes(o.size)}`)
+  if (cleanup.orphans.length > 20) info(`  ...and ${cleanup.orphans.length - 20} more orphans`)
   for (const item of selected.slice(0, 20)) {
     info(`  ${item.instanceId}/${item.file.name} ${formatBytes(item.file.size)}`)
   }
   if (selected.length > 20) info(`  ...and ${selected.length - 20} more`)
 
-  const summary = { iceboxed: 0, bytes: 0, failed: 0, stubsDeleted: 0, objectsDeleted: 0 }
+  const summary = {
+    iceboxed: 0,
+    bytes: 0,
+    failed: 0,
+    stubsDeleted: 0,
+    objectsDeleted: 0,
+    stubsRedated: 0,
+    orphansTrashed: 0,
+    trashDeleted: 0,
+  }
 
   if (apply) {
     /* ---------- Icebox pass ---------- */
@@ -154,6 +217,7 @@ export const archiveBackups = async ({
         const stubPath = join(dir, iceboxStubName(file.name))
         const tmpPath = `${stubPath}.tmp-icebox`
         await writeFile(tmpPath, mkIceboxStub({ zipName: file.name, url, iceboxedAtMs, expSec, retentionDays }))
+        await utimes(tmpPath, new Date(), new Date(file.mtimeMs))
         const dirStat = await stat(dir)
         await chown(tmpPath, dirStat.uid, dirStat.gid).catch(() => {})
         await rename(tmpPath, stubPath)
@@ -176,20 +240,43 @@ export const archiveBackups = async ({
         .then(() => summary.stubsDeleted++)
         .catch((e) => error(`  could not delete stub ${path}`, e))
     }
-    if (!instanceId) {
-      const objects = await listBackupIcebox(remote)
-      for (const o of objects) {
-        if (nowMs - o.modTimeMs < retentionMs) continue
-        await deleteBackupIceboxObject(remote, o.instanceId, o.zipName)
-          .then(() => summary.objectsDeleted++)
-          .catch((e) => error(`  could not delete ${o.instanceId}/${o.zipName}`, e))
-      }
+    for (const o of cleanup.expire) {
+      await deleteBackupIceboxObject(remote, o.instanceId, o.zipName)
+        .then(() => summary.objectsDeleted++)
+        .catch((e) => error(`  could not delete ${o.instanceId}/${o.zipName}`, e))
+    }
+
+    /* ---------- Stub dates ---------- */
+    for (const t of cleanup.touch) {
+      const path = join(root, t.instanceId, `pb_data`, `backups`, iceboxStubName(t.zipName))
+      await utimes(path, new Date(), new Date(t.mtimeMs))
+        .then(() => summary.stubsRedated++)
+        .catch((e) => error(`  could not re-date ${path}`, e))
+    }
+
+    /* ---------- Orphans and trash ---------- */
+    if (!orphanGuardTripped) {
+      await mapLimit(cleanup.orphans, concurrency, async (o) => {
+        await trashBackupIceboxObject(remote, o.instanceId, o.zipName)
+          .then(() => {
+            summary.orphansTrashed++
+            info(`  trashed orphan ${o.instanceId}/${o.zipName}`)
+          })
+          .catch((e) => error(`  could not trash ${o.instanceId}/${o.zipName}`, e))
+      })
+    }
+    for (const o of trashExpired) {
+      await deleteBackupIceboxObject(trashRemote, o.instanceId, o.zipName)
+        .then(() => summary.trashDeleted++)
+        .catch((e) => error(`  could not delete trash ${o.instanceId}/${o.zipName}`, e))
     }
   }
 
   info(
     `[${mode}] done: ${summary.iceboxed} iceboxed (${formatBytes(summary.bytes)} freed), ${summary.failed} failed, ` +
-      `${summary.stubsDeleted} stubs and ${summary.objectsDeleted} stored zips expired`
+      `${summary.stubsDeleted} stubs and ${summary.objectsDeleted} stored zips expired, ` +
+      `${summary.stubsRedated} stubs re-dated, ${summary.orphansTrashed} orphans trashed, ` +
+      `${summary.trashDeleted} trashed zips deleted`
   )
   return summary
 }
