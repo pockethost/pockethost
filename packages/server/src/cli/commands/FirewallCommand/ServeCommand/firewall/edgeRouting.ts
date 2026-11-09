@@ -57,6 +57,12 @@ export const decideRoute = (
 
 const IDEMPOTENT = new Set(['GET', 'HEAD', 'OPTIONS'])
 
+/**
+ * An unreachable edge often drops packets instead of refusing, so a connect would hang for minutes. Give up on the
+ * connect (only the connect: long responses such as realtime streams are not limited) and let the hold logic retry.
+ */
+const CONNECT_TIMEOUT_MS = 3000
+
 const sendEdgeUnavailable = (res: Response) => {
   if (res.headersSent || res.writableEnded) return
   res.set('Retry-After', '10')
@@ -115,6 +121,17 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
     on: {
       proxyReq: (proxyReq) => {
         proxyReq.setHeader('x-ph-forwarded-by', myEdgeId)
+        proxyReq.once('socket', (socket) => {
+          if (!socket.connecting) return
+          const timer = setTimeout(() => {
+            const err = Object.assign(new Error(`connect ETIMEDOUT after ${CONNECT_TIMEOUT_MS}ms`), {
+              code: 'ETIMEDOUT',
+            })
+            proxyReq.destroy(err)
+          }, CONNECT_TIMEOUT_MS)
+          socket.once('connect', () => clearTimeout(timer))
+          socket.once('close', () => clearTimeout(timer))
+        })
       },
       proxyRes: (proxyRes, _req, res) => {
         rewriteProxiedCorsHeaders(proxyRes, res)
