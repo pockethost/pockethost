@@ -20,7 +20,7 @@ Update MEMORY.md (private repo) alongside the change, before you call it done, w
 
 | Area | Examples |
 |------|----------|
-| Monorepo layout | `packages/pockethost`, `packages/dashboard`, `packages/cli`, `packages/pockethost-instance`, mothership-app workspace |
+| Monorepo layout | `packages/server`, `packages/dashboard`, `packages/cli`, `packages/pockethost-instance`, mothership-app workspace |
 | CLI surface | `pockethost` subcommands (`mothership`, `firewall`, `edge`, `serve`, `pocketbase`, `health`, `mail`) |
 | Runtime roles | Mothership (control plane), edge daemon (instance spawner), firewall (reverse proxy + rate limits) |
 | Instance model | `Instance` schema, Docker lifecycle, port pool, volume paths under `DATA_ROOT` |

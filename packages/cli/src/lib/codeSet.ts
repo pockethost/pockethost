@@ -1,5 +1,5 @@
 /**
- * Mirror of the server's deploy code set (packages/pockethost/src/services/DeployService/codeSet.ts). Files outside it
+ * Mirror of the server's deploy code set (packages/server/src/services/DeployService/codeSet.ts). Files outside it
  * are skipped with a warning instead of failing the whole deploy.
  */
 const ROOT_CODE_FILES = ['package.json', 'bun.lock', 'bun.lockb']

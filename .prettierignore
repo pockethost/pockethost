@@ -9,6 +9,6 @@ build
 _site
 forks
 
-packages/pockethost/src/mothership-app/pb_hooks
+packages/server/src/mothership-app/pb_hooks
 **/types.d.ts
 .claude

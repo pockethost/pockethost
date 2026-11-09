@@ -3,9 +3,9 @@ description: pockethost customer CLI (formerly phio) — compatibility, docs, an
 globs:
   - packages/cli/**
   - packages/dashboard/src/routes/(static)/docs/cli/**
-  - packages/pockethost/src/services/InstanceFileAccess/**
-  - packages/pockethost/src/cli/commands/EdgeCommand/FtpCommand/**
-  - packages/pockethost/src/cli/commands/SftpCommand/**
+  - packages/server/src/services/InstanceFileAccess/**
+  - packages/server/src/cli/commands/EdgeCommand/FtpCommand/**
+  - packages/server/src/cli/commands/SftpCommand/**
 ---
 
 # Customer CLI compatibility

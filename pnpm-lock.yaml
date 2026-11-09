@@ -112,7 +112,7 @@ importers:
         version: https://codeload.github.com/pockethost/fetch-event-source/tar.gz/ebe3b7122647b48b93fd11effbbfb915d98956b0
       '@pockethost/server':
         specifier: workspace:^
-        version: link:../pockethost
+        version: link:../server
       '@sveltejs/adapter-static':
         specifier: ^3.0.10
         version: 3.0.10(@sveltejs/kit@2.65.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0)))(svelte@5.56.3)(typescript@6.0.3)(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(tsx@4.22.4)(yaml@2.9.0)))
@@ -165,7 +165,7 @@ importers:
         specifier: ^4.100.0
         version: 4.100.0
 
-  packages/pockethost:
+  packages/server:
     dependencies:
       ajv:
         specifier: ^8.20.0
@@ -273,7 +273,7 @@ importers:
 
   packages/pockethost-instance: {}
 
-  packages/pockethost/src/mothership-app:
+  packages/server/src/mothership-app:
     devDependencies:
       tsdown:
         specifier: ^0.22.2

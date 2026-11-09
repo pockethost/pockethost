@@ -88,13 +88,13 @@ routerAdd('POST', '/api/instance', (c) => {
 }, $apis.requireRecordAuth())
 ```
 
-Reference: `packages/pockethost/src/mothership-app/pb_hooks/mothership.pb.js`
+Reference: `packages/server/src/mothership-app/pb_hooks/mothership.pb.js`
 
 ## Instance admin sync — v22 vs v23 (this repo)
 
 Compare side-by-side:
 
-- Both APIs in one file: `packages/pockethost/src/instance-app/pb_hooks/_ph_lib.js` `adminSync` (≤ v0.22: `$app.onBeforeServe`, `$app.dao()`, `_admins`; ≥ v0.23: `onBootstrap`, `e.app`, `_superusers`)
+- Both APIs in one file: `packages/server/src/instance-app/pb_hooks/_ph_lib.js` `adminSync` (≤ v0.22: `$app.onBeforeServe`, `$app.dao()`, `_admins`; ≥ v0.23: `onBootstrap`, `e.app`, `_superusers`)
 
 ≥ v0.23 example:
 
@@ -119,7 +119,7 @@ onBootstrap((e) => {
 })
 ```
 
-Reference: `packages/pockethost/src/instance-app/pb_hooks/_ph_admin_sync.pb.js`
+Reference: `packages/server/src/instance-app/pb_hooks/_ph_admin_sync.pb.js`
 
 ## Cron job
 

@@ -7,11 +7,11 @@ alwaysApply: false
 
 PocketHost is a **multi-tenant PocketBase hosting platform** (monorepo). Core pieces:
 
-- **`packages/pockethost`**: Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
+- **`packages/server`**: Node CLI and services (mothership, edge daemon, firewall, instance lifecycle)
 - **`packages/dashboard`**: SvelteKit marketing site and user docs
 - **`packages/pockethost-instance`**: Docker image for per-instance PocketBase containers
 - **`packages/cli`**: Customer CLI, npm `pockethost` (formerly `phio`; SFTP deploy). See `.cursor/skills/pockethost-cli/SKILL.md`
-- **`packages/pockethost/src/mothership-app`**: PocketBase control-plane app (hooks, migrations, handler APIs)
+- **`packages/server/src/mothership-app`**: PocketBase control-plane app (hooks, migrations, handler APIs)
 
 Stack: TypeScript (ESM), Commander CLI, Express, Docker, PocketBase JS client, pnpm workspaces.
 
@@ -19,13 +19,13 @@ Read [MEMORY.md](../pockethost-support/MEMORY.md) before substantive architectur
 
 Billing: **Pay Per PocketBase** ($9.99/mo, $59.99/yr, $149.99 LTD per slot). See [.cursor/rules/billing-paywall.mdc](.cursor/rules/billing-paywall.mdc) before pricing, limits, or paywall copy.
 
-Mothership hook code (`packages/pockethost/src/mothership-app/src/lib/handlers/`) runs in PocketBase Goja JSVM after tsdown bundling. Read [.cursor/rules/mothership-hooks.mdc](.cursor/rules/mothership-hooks.mdc) before adding imports or shared helpers.
+Mothership hook code (`packages/server/src/mothership-app/src/lib/handlers/`) runs in PocketBase Goja JSVM after tsdown bundling. Read [.cursor/rules/mothership-hooks.mdc](.cursor/rules/mothership-hooks.mdc) before adding imports or shared helpers.
 
 # Programming Style
 
 - Prefer factory functions that return an API object instead of classes (`createX`, `mkX`). Matches existing code.
 - Prefer early returns
-- Match surrounding file conventions (imports via `@` alias in `packages/pockethost`)
+- Match surrounding file conventions (imports via `@` alias in `packages/server`)
 
 # Punctuation (customer copy and docs)
 

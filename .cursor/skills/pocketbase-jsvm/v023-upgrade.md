@@ -6,7 +6,7 @@ v0.39 uses the same post-v0.23 JSVM. Do not mix ≤ v0.22 and ≥ v0.23 APIs in 
 
 ## PocketHost mothership port checklist
 
-1. Bump `MOTHERSHIP_SEMVER` to `0.39.*` in `packages/pockethost/src/constants.ts`.
+1. Bump `MOTHERSHIP_SEMVER` to `0.39.*` in `packages/server/src/constants.ts`.
 2. Regenerate `mothership-app/src/types/types.d.ts` from PB 0.39 `pb_data/types.d.ts`.
 3. Port all TS under `mothership-app/src/lib/handlers/` → rebuild with `pnpm --filter pockethost-mothership-app build`.
 4. Verify CI: `pnpm check:mothership-hooks`.
@@ -14,7 +14,7 @@ v0.39 uses the same post-v0.23 JSVM. Do not mix ≤ v0.22 and ≥ v0.23 APIs in 
 6. Bump npm `pocketbase` SDK; replace `client.admins` with `collection('_superusers').authWithPassword`.
 7. Do **not** widen `PH_ALLOWED_POCKETBASE_SEMVER` in the mothership-only PR.
 
-**Pre-stage on 0.22 (already on `main`):** legacy SQL views dropped via `1781606600_dropped_sql_views` — no cutover-day `sqlite3` preupgrade step. Dual admin auth in `packages/pockethost/src/common/adminAuth.ts`.
+**Pre-stage on 0.22 (already on `main`):** legacy SQL views dropped via `1781606600_dropped_sql_views` — no cutover-day `sqlite3` preupgrade step. Dual admin auth in `packages/server/src/common/adminAuth.ts`.
 
 ## Port order
 

@@ -10,7 +10,7 @@
 ## Mothership layout
 
 ```
-packages/pockethost/src/mothership-app/
+packages/server/src/mothership-app/
   pb_hooks/                    ← tsdown output (generated)
     mothership.pb.js
   pb_admin_ext/                ← static extension trees (hand-maintained)

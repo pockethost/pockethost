@@ -11,7 +11,7 @@ description: >-
 
 `packages/cli/` is the **customer CLI** in this monorepo, published to npm as **`pockethost`** (≥3.0). Before 3.0 it
 was published as `phio` (npm `phio` is deprecated). The hosting stack is the private workspace package
-`@pockethost/server` (`packages/pockethost/`), which is never published.
+`@pockethost/server` (`packages/server/`), which is never published.
 
 - Dev: `pnpm dev:cli-client -- …` or `pnpm --filter pockethost dev -- …` (tsx, from source)
 - Build: `pnpm --filter pockethost build` → `dist/cli.js` (esbuild bundle, `#!/usr/bin/env node`, Node >=20).
@@ -86,7 +86,7 @@ Mismatch (remote key ≠ local `.pub`) throws with a link to `/account/keys`. De
 - **Includes:** `pb_*`, `package.json`, `bun.lock(b)`, `patches/**`
 - **Excludes:** `pb_data/**`
 
-Server-side: `findSshKeyByPublicKey()` in `packages/pockethost/src/services/InstanceFileAccess/sshKeyAuth.ts` +
+Server-side: `findSshKeyByPublicKey()` in `packages/server/src/services/InstanceFileAccess/sshKeyAuth.ts` +
 scoped `InstanceVfs` (same VFS as legacy FTPS).
 
 ### Deploy sync state file
@@ -118,6 +118,6 @@ When changing **any** of these server areas, verify the CLI still works:
 
 ## Related server code
 
-- Shared VFS: `packages/pockethost/src/services/InstanceFileAccess/`
-- SFTP adapter: `packages/pockethost/src/cli/commands/SftpCommand/`
-- Legacy FTPS adapter: `packages/pockethost/src/cli/commands/EdgeCommand/FtpCommand/FtpService/PhFs.ts`
+- Shared VFS: `packages/server/src/services/InstanceFileAccess/`
+- SFTP adapter: `packages/server/src/cli/commands/SftpCommand/`
+- Legacy FTPS adapter: `packages/server/src/cli/commands/EdgeCommand/FtpCommand/FtpService/PhFs.ts`

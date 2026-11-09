@@ -1,12 +1,12 @@
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 
-const pockethostSrc = resolve(__dirname, 'packages/pockethost/src')
+const pockethostSrc = resolve(__dirname, 'packages/server/src')
 
 export default defineConfig({
   test: {
     include: [
-      'packages/pockethost/src/**/*.test.ts',
+      'packages/server/src/**/*.test.ts',
       'packages/cli/src/**/*.test.ts',
       'packages/dashboard/src/**/*.test.ts',
     ],

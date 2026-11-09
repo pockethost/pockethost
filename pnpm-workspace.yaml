@@ -1,6 +1,6 @@
 packages:
   - 'packages/*'
-  - 'packages/pockethost/src/mothership-app'
+  - 'packages/server/src/mothership-app'
 
 patchedDependencies:
   tail: patches/tail.patch

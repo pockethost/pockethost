@@ -5,7 +5,7 @@
 The SDK is re-exported from a single entry point:
 
 ```ts
-// packages/pockethost/src/common/pocketbase.ts
+// packages/server/src/common/pocketbase.ts
 import PocketBase, { BaseAuthStore, ClientResponseError, type AuthModel } from 'pocketbase'
 export { AuthModel, BaseAuthStore, ClientResponseError, PocketBase, UnsubscribeFunc }
 ```
@@ -50,7 +50,7 @@ const createInstance = mkRest(
 await createInstance({ subdomain: 'my-app', version: '0.22.0' })
 ```
 
-Reference: `packages/pockethost/src/common/pocketbase-client-helpers/RestHelper.ts`
+Reference: `packages/server/src/common/pocketbase-client-helpers/RestHelper.ts`
 
 ## Mothership vs instance URLs
 

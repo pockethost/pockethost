@@ -43,7 +43,7 @@ Ask the user before committing unless they already asked to commit.
 ## What we stopped doing
 
 - Batch release blog posts listing everything in a semver (`pockethost-2-3-0-release` style) — historical only; don't add new ones
-- Updating `packages/pockethost/CHANGELOG.md` or `docs/production.md` gitbook releases as the primary announcement path
+- Updating `packages/server/CHANGELOG.md` or `docs/production.md` gitbook releases as the primary announcement path
 - Treating `pnpm version --patch` as a comms milestone
 
 `CHANGELOG.md` may still exist for package history; **the blog is the customer-facing changelog.**

@@ -8,7 +8,7 @@ echo $MOTHERSHIP_ROOT
 
 rm -rf $MOTHERSHIP_ROOT/pb_data
 
-./packages/pockethost/scripts/live-sync.sh
+./packages/server/scripts/live-sync.sh
 
 export PH_HOME=$(pwd)/.pockethost
 

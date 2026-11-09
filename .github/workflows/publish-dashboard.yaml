@@ -5,13 +5,13 @@ on:
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
-      - packages/pockethost/src/common/**
+      - packages/server/src/common/**
   pull_request_target:
     types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**
-      - packages/pockethost/src/common/**
+      - packages/server/src/common/**
 
 env:
   PUBLIC_APEX_DOMAIN: ${{ vars.PUBLIC_APEX_DOMAIN }}
@@ -46,7 +46,7 @@ jobs:
           PATHS=(
             .github/workflows/publish-dashboard.yaml
             packages/dashboard
-            packages/pockethost/src/common
+            packages/server/src/common
           )
 
           if [ "${{ github.event_name }}" = "pull_request_target" ]; then

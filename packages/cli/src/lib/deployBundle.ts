@@ -2,7 +2,7 @@ import { createHash } from 'crypto'
 
 /**
  * Upload bundle for the deploy API: "PHB1" + repeated [32-byte sha256][uint32 BE length][bytes], gzipped by the
- * caller. Must match packages/pockethost/src/services/DeployService/bundle.ts.
+ * caller. Must match packages/server/src/services/DeployService/bundle.ts.
  */
 export const BUNDLE_MAGIC = Buffer.from('PHB1')
 

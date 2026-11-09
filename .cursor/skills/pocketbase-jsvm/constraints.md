@@ -68,7 +68,7 @@ Goja behavioral quirks (`toString`, json byte arrays, no function hoisting, erro
 
 TypeScript handlers compile with **tsdown** into `pb_hooks/mothership.js` and run in Goja — not Node.
 
-- Shared hook logic lives in `packages/pockethost/src/common/` — must be **JSVM-safe**.
+- Shared hook logic lives in `packages/server/src/common/` — must be **JSVM-safe**.
 - Import via `$common/<file>` subpaths (`"$common/*": ["../common/*"]` in mothership tsconfig). Avoid runtime `$common` barrel imports.
 - After hook changes: `pnpm --filter pockethost-mothership-app build` — **zero** `[UNRESOLVED_IMPORT]` warnings.
 

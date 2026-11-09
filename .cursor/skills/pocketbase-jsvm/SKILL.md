@@ -22,7 +22,7 @@ PocketBase embeds a **Goja** JavaScript engine for server-side extensions. Code 
 |---|---------|---------|
 | **Overview** | [old/js-overview](https://pocketbase.io/old/docs/js-overview/) | [js-overview](https://pocketbase.io/docs/js-overview/) |
 | **API reference** | [old/jsvm](https://pocketbase.io/old/jsvm/) | [jsvm](https://pocketbase.io/jsvm/) |
-| **Typings (PocketHost)** | `packages/pockethost/src/instance-app/types/types.d.ts` (0.22 API) | `pb_data/types.d.ts` on instance; PocketHost templates in `instance-app/` (one set for every version) |
+| **Typings (PocketHost)** | `packages/server/src/instance-app/types/types.d.ts` (0.22 API) | `pb_data/types.d.ts` on instance; PocketHost templates in `instance-app/` (one set for every version) |
 | **Record access** | `$app.dao().findRecordById(...)` | `$app.findRecordById(...)` |
 | **Startup hook** | `$app.onBeforeServe().add((e) => { ... })` or `onAfterBootstrap` | `onBootstrap((e) => { e.next(); ... })` |
 | **Custom routes** | `(c) =>`, `c.pathParam('id')`, path `/api/foo/:id` | `(e) =>`, `e.request.pathValue('id')`, path `/api/foo/{id}` |
@@ -230,8 +230,8 @@ const log = mkLog('main')
 ## PocketHost specifics
 
 - User hooks: upload to `pb_hooks/` via FTP; changes restart the instance.
-- Instance templates: `packages/pockethost/src/instance-app/`, one set for every version. Files detect the API at runtime (`typeof onBootstrap`, migration arg type). See `pb_hooks/_ph_lib.js` `adminSync` for a side-by-side API diff.
-- Mothership hooks (≥ v0.23 / v0.39): `packages/pockethost/src/mothership-app/pb_hooks/` — port guide in [v023-upgrade.md](v023-upgrade.md). **Source** is `src/lib/handlers/`; see [.cursor/rules/mothership-hooks.mdc](../../rules/mothership-hooks.mdc)
+- Instance templates: `packages/server/src/instance-app/`, one set for every version. Files detect the API at runtime (`typeof onBootstrap`, migration arg type). See `pb_hooks/_ph_lib.js` `adminSync` for a side-by-side API diff.
+- Mothership hooks (≥ v0.23 / v0.39): `packages/server/src/mothership-app/pb_hooks/` — port guide in [v023-upgrade.md](v023-upgrade.md). **Source** is `src/lib/handlers/`; see [.cursor/rules/mothership-hooks.mdc](../../rules/mothership-hooks.mdc)
 - Typings: `instance-app/types/types.d.ts` (legacy instances); `mothership-app/src/types/types.d.ts` (control plane)
 - PocketHost sandbox may restrict `$os` — avoid OS-level calls.
 
@@ -239,7 +239,7 @@ const log = mkLog('main')
 
 Handlers compile with **tsdown** into `pb_hooks/mothership.js` and run in **Goja**, not Node.
 
-1. Shared hook logic lives in `packages/pockethost/src/common/` — must be **JSVM-safe** (sync, no Node/browser APIs).
+1. Shared hook logic lives in `packages/server/src/common/` — must be **JSVM-safe** (sync, no Node/browser APIs).
 2. Import via `$common/<file>` subpaths (tsconfig `"$common/*": ["../common/*"]`). Avoid runtime imports from the `$common` barrel.
 3. After build, confirm **no** `[UNRESOLVED_IMPORT]` warnings — unresolved imports break validation silently at runtime.
 

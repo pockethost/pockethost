@@ -6,12 +6,12 @@ Repo-specific integration points. Generic LS docs are in the other reference fil
 
 | Concern | Path |
 |---------|------|
-| Product ids | `packages/pockethost/src/common/lemonSqueezy.ts` |
-| Checkout API | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts` |
-| Cancel API | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts` |
-| Webhook handler | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts` |
-| Route registration | `packages/pockethost/src/mothership-app/src/lib/handlers/lemon/hooks.ts` |
-| Env constants | `packages/pockethost/src/constants.ts` → `LS_WEBHOOK_SECRET`, `LS_API_KEY`, `LS_STORE_ID` |
+| Product ids | `packages/server/src/common/lemonSqueezy.ts` |
+| Checkout API | `packages/server/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts` |
+| Cancel API | `packages/server/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts` |
+| Webhook handler | `packages/server/src/mothership-app/src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts` |
+| Route registration | `packages/server/src/mothership-app/src/lib/handlers/lemon/hooks.ts` |
+| Env constants | `packages/server/src/constants.ts` → `LS_WEBHOOK_SECRET`, `LS_API_KEY`, `LS_STORE_ID` |
 | Dashboard checkout client | `packages/dashboard/src/util/lemonsqueezy.ts` |
 | Signup/pricing CTAs | `packages/dashboard/src/routes/(static)/pricing/SignupBox.svelte`, `CTAButton.svelte` |
 | Billing portal link | `packages/dashboard/src/routes/(app)/account/+page.svelte` |
@@ -112,14 +112,14 @@ old webhook audit records where checkout `custom_data.user_id` tied an LS email 
 - Guard rails: an empty store-wide subscription listing aborts the run; if more than `maxReductions` (default 25) users
   would lose slots, all drops are held and reported.
 - Not run by cron. The ops health check runs a dry run once a day and reports gains/drops for approval. Apply with
-  `packages/pockethost/scripts/mothership-reconcile-apply.sh [--max-reductions N | <user_id>]`; read-only queries with
-  `packages/pockethost/scripts/mothership-api.sh`.
+  `packages/server/scripts/mothership-reconcile-apply.sh [--max-reductions N | <user_id>]`; read-only queries with
+  `packages/server/scripts/mothership-api.sh`.
 - Give a customer slots back: add a `billing_items` row (`provider`/`kind` `manual`, `external_id` e.g. `grant:<id>`,
   `sku`, `quantity`, `status` `active`), then reconcile that user.
 
 ## Product / variant allowlist
 
-Shared constants: `packages/pockethost/src/common/lemonSqueezy.ts`
+Shared constants: `packages/server/src/common/lemonSqueezy.ts`
 
 Handler key format: `{product_id}-{variant_id}`
 
