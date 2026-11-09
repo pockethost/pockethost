@@ -92,6 +92,15 @@ cronAdd("cloudflare-hostnames", "17 4 * * *", () => {
 });
 
 //#endregion
+//#region src/lib/handlers/downloads/hooks.ts
+routerAdd("GET", "/_ph/archive/{id}", (e) => {
+	return require(`${__hooks}/mothership`).HandleArchiveDownload(e);
+});
+routerAdd("GET", "/_ph/backup/{id}/{zip}", (e) => {
+	return require(`${__hooks}/mothership`).HandleBackupDownload(e);
+});
+
+//#endregion
 //#region src/lib/handlers/edge/hooks.ts
 routerAdd("POST", "/api/edge/heartbeat", (e) => {
 	return require(`${__hooks}/mothership`).HandleEdgeHeartbeat(e);

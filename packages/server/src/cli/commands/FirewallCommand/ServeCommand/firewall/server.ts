@@ -7,14 +7,8 @@ import {
   Logger,
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
-  PH_ARCHIVE_LINK_ORIGIN,
-  PH_ARCHIVE_LINK_SECRET,
-  PH_ARCHIVE_REMOTE,
-  PH_BACKUP_ICEBOX_REMOTE,
   PH_DISABLE_FIREWALL_RATE_LIMIT,
   PH_FIREWALL_DAEMON_GRACE_MS,
-  presignBackupZip,
-  presignInstanceArchive,
   SSL_CERT,
   SSL_KEY,
 } from '@'
@@ -26,7 +20,6 @@ import http from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import https from 'https'
 import type { Socket } from 'net'
-import { createArchiveDownloadMiddleware } from './archiveDownload'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware, type VhostUpgradeHandler } from './createVhostProxyMiddleware'
 import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
@@ -112,17 +105,6 @@ export const firewall = async ({ logger }: FirewallOptions) => {
       })
     )
   }
-
-  // Signed download links from the instance-archived email (see `edge archive stale`).
-  app.use(
-    createArchiveDownloadMiddleware({
-      host: new URL(PH_ARCHIVE_LINK_ORIGIN()).hostname,
-      secret: PH_ARCHIVE_LINK_SECRET,
-      presign: (instanceId) => presignInstanceArchive(PH_ARCHIVE_REMOTE(), instanceId),
-      presignBackup: (instanceId, zipName) => presignBackupZip(PH_BACKUP_ICEBOX_REMOTE(), instanceId, zipName),
-      logger,
-    })
-  )
 
   const graceMs = PH_FIREWALL_DAEMON_GRACE_MS()
   if (graceMs > 0) {

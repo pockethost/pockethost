@@ -1,6 +1,7 @@
 export * from './adminPlugins'
 export * from './apiTokens'
 export * from './cloudflare'
+export * from './downloads'
 export * from './edge'
 export * from './instance'
 export * from './lemon'

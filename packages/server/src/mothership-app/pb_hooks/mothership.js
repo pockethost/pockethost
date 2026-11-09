@@ -791,6 +791,406 @@ const HandleCustomHostnamesSweep = (e) => {
 };
 
 //#endregion
+//#region src/lib/util/downloadLinks.ts
+const INSTANCE_ID_RE = /^[a-z0-9]{15}$/;
+const ZIP_NAME_RE = /^[A-Za-z0-9_.@-]{1,200}\.zip$/;
+const B64URL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const isInstanceId = (id) => INSTANCE_ID_RE.test(id);
+const isBackupZipName = (name) => ZIP_NAME_RE.test(name) && !name.includes("..");
+/** Hex digest to unpadded base64url (what node's `digest('base64url')` returns). */
+const hexToBase64Url = (hex) => {
+	const bytes = [];
+	for (let i = 0; i + 1 < hex.length; i += 2) bytes.push(parseInt(hex.slice(i, i + 2), 16));
+	let out = "";
+	for (let i = 0; i < bytes.length; i += 3) {
+		const n = bytes[i] << 16 | (bytes[i + 1] ?? 0) << 8 | (bytes[i + 2] ?? 0);
+		out += B64URL[n >> 18 & 63] + B64URL[n >> 12 & 63];
+		if (i + 1 < bytes.length) out += B64URL[n >> 6 & 63];
+		if (i + 2 < bytes.length) out += B64URL[n & 63];
+	}
+	return out;
+};
+/** Length-checked comparison that looks at every character. */
+const sameString = (a, b) => {
+	if (a.length !== b.length) return false;
+	let diff = 0;
+	for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+	return diff === 0;
+};
+const check = (payload, expRaw, sigRaw, secret, nowMs, hmacHex) => {
+	if (typeof expRaw !== "string" || typeof sigRaw !== "string" || !/^\d+$/.test(expRaw)) return {
+		ok: false,
+		status: 400,
+		reason: "malformed link"
+	};
+	if (!sameString(hexToBase64Url(hmacHex(`${payload}:${expRaw}`, secret)), sigRaw)) return {
+		ok: false,
+		status: 403,
+		reason: "invalid signature"
+	};
+	if (nowMs > Number(expRaw) * 1e3) return {
+		ok: false,
+		status: 410,
+		reason: "link expired"
+	};
+	return { ok: true };
+};
+const verifyArchiveLink = (instanceId, expRaw, sigRaw, secret, nowMs, hmacHex) => {
+	if (!secret) return {
+		ok: false,
+		status: 403,
+		reason: "link signing is not configured"
+	};
+	if (!isInstanceId(instanceId)) return {
+		ok: false,
+		status: 400,
+		reason: "bad instance id"
+	};
+	return check(`archive:${instanceId}`, expRaw, sigRaw, secret, nowMs, hmacHex);
+};
+const verifyBackupLink = (instanceId, zipName, expRaw, sigRaw, secret, nowMs, hmacHex) => {
+	if (!secret) return {
+		ok: false,
+		status: 403,
+		reason: "link signing is not configured"
+	};
+	if (!isInstanceId(instanceId)) return {
+		ok: false,
+		status: 400,
+		reason: "bad instance id"
+	};
+	if (!isBackupZipName(zipName)) return {
+		ok: false,
+		status: 400,
+		reason: "bad backup name"
+	};
+	return check(`backup:${instanceId}/${zipName}`, expRaw, sigRaw, secret, nowMs, hmacHex);
+};
+const DOWNLOAD_MESSAGES = {
+	400: "This download link is malformed.",
+	403: "This download link is not valid.",
+	404: "This archive is no longer available.",
+	410: "This download link has expired, and the archive has been deleted.",
+	500: "Something went wrong preparing your download. Please try again or contact support."
+};
+
+//#endregion
+//#region src/lib/util/s3Presign.ts
+/**
+* Presigned S3 GET URLs (AWS Signature V4, query-string auth), runnable in PocketBase's goja VM: no node APIs.
+*
+* PocketBase's `$security` covers the text hashing (`sha256`), but SigV4's signing-key chain HMACs with the previous
+* step's raw 32-byte digest as the key, and `$security.hs256` only accepts string keys (goja passes them to Go as
+* UTF-8, which mangles bytes above 0x7f). So the four chained HMACs use the small byte-level SHA-256 below.
+*/
+const K = [
+	1116352408,
+	1899447441,
+	3049323471,
+	3921009573,
+	961987163,
+	1508970993,
+	2453635748,
+	2870763221,
+	3624381080,
+	310598401,
+	607225278,
+	1426881987,
+	1925078388,
+	2162078206,
+	2614888103,
+	3248222580,
+	3835390401,
+	4022224774,
+	264347078,
+	604807628,
+	770255983,
+	1249150122,
+	1555081692,
+	1996064986,
+	2554220882,
+	2821834349,
+	2952996808,
+	3210313671,
+	3336571891,
+	3584528711,
+	113926993,
+	338241895,
+	666307205,
+	773529912,
+	1294757372,
+	1396182291,
+	1695183700,
+	1986661051,
+	2177026350,
+	2456956037,
+	2730485921,
+	2820302411,
+	3259730800,
+	3345764771,
+	3516065817,
+	3600352804,
+	4094571909,
+	275423344,
+	430227734,
+	506948616,
+	659060556,
+	883997877,
+	958139571,
+	1322822218,
+	1537002063,
+	1747873779,
+	1955562222,
+	2024104815,
+	2227730452,
+	2361852424,
+	2428436474,
+	2756734187,
+	3204031479,
+	3329325298
+];
+const rotr = (x, n) => x >>> n | x << 32 - n;
+/** UTF-8 bytes of a JS string (no TextEncoder in goja). */
+const utf8 = (s) => {
+	const out = [];
+	for (let i = 0; i < s.length; i++) {
+		let c = s.charCodeAt(i);
+		if (c >= 55296 && c <= 56319 && i + 1 < s.length) {
+			const d = s.charCodeAt(i + 1);
+			if (d >= 56320 && d <= 57343) {
+				c = 65536 + (c - 55296 << 10) + (d - 56320);
+				i++;
+			}
+		}
+		if (c < 128) out.push(c);
+		else if (c < 2048) out.push(192 | c >> 6, 128 | c & 63);
+		else if (c < 65536) out.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
+		else out.push(240 | c >> 18, 128 | c >> 12 & 63, 128 | c >> 6 & 63, 128 | c & 63);
+	}
+	return out;
+};
+const toHex = (bytes) => {
+	let s = "";
+	for (const b of bytes) s += (b < 16 ? "0" : "") + b.toString(16);
+	return s;
+};
+/** SHA-256 of a byte array, as bytes. */
+const sha256Bytes = (msg) => {
+	const h = [
+		1779033703,
+		3144134277,
+		1013904242,
+		2773480762,
+		1359893119,
+		2600822924,
+		528734635,
+		1541459225
+	];
+	const bitLen = msg.length * 8;
+	const data = msg.slice();
+	data.push(128);
+	while (data.length % 64 !== 56) data.push(0);
+	const hi = Math.floor(bitLen / 4294967296);
+	data.push(hi >>> 24 & 255, hi >>> 16 & 255, hi >>> 8 & 255, hi & 255);
+	data.push(bitLen >>> 24 & 255, bitLen >>> 16 & 255, bitLen >>> 8 & 255, bitLen & 255);
+	const w = new Array(64);
+	for (let off = 0; off < data.length; off += 64) {
+		for (let i = 0; i < 16; i++) {
+			const j = off + i * 4;
+			w[i] = (data[j] << 24 | data[j + 1] << 16 | data[j + 2] << 8 | data[j + 3]) >>> 0;
+		}
+		for (let i = 16; i < 64; i++) {
+			const a = w[i - 15];
+			const b = w[i - 2];
+			const s0 = rotr(a, 7) ^ rotr(a, 18) ^ a >>> 3;
+			const s1 = rotr(b, 17) ^ rotr(b, 19) ^ b >>> 10;
+			w[i] = w[i - 16] + s0 + w[i - 7] + s1 >>> 0;
+		}
+		let [a, b, c, d, e, f, g, hh] = h;
+		for (let i = 0; i < 64; i++) {
+			const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+			const ch = e & f ^ ~e & g;
+			const t1 = hh + S1 + ch + K[i] + w[i] >>> 0;
+			const t2 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + (a & b ^ a & c ^ b & c) >>> 0;
+			hh = g;
+			g = f;
+			f = e;
+			e = d + t1 >>> 0;
+			d = c;
+			c = b;
+			b = a;
+			a = t1 + t2 >>> 0;
+		}
+		h[0] = h[0] + a >>> 0;
+		h[1] = h[1] + b >>> 0;
+		h[2] = h[2] + c >>> 0;
+		h[3] = h[3] + d >>> 0;
+		h[4] = h[4] + e >>> 0;
+		h[5] = h[5] + f >>> 0;
+		h[6] = h[6] + g >>> 0;
+		h[7] = h[7] + hh >>> 0;
+	}
+	const out = [];
+	for (const x of h) out.push(x >>> 24 & 255, x >>> 16 & 255, x >>> 8 & 255, x & 255);
+	return out;
+};
+/** HMAC-SHA256 with a byte key, as bytes. */
+const hmacBytes = (key, msg) => {
+	let k = key.length > 64 ? sha256Bytes(key) : key.slice();
+	while (k.length < 64) k.push(0);
+	const inner = k.map((b) => b ^ 54).concat(msg);
+	return sha256Bytes(k.map((b) => b ^ 92).concat(sha256Bytes(inner)));
+};
+/** RFC 3986 encoding as SigV4 wants it (encodeURIComponent leaves !'()* alone). */
+const uriEncode = (s, keepSlash = false) => {
+	const enc = encodeURIComponent(s).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+	return keepSlash ? enc.replace(/%2F/g, "/") : enc;
+};
+const amzDate = (ms) => {
+	const iso = new Date(ms).toISOString();
+	return iso.slice(0, 4) + iso.slice(5, 7) + iso.slice(8, 13) + iso.slice(14, 16) + iso.slice(17, 19) + "Z";
+};
+/** Presigned URL (GET by default), valid for `expiresSec` from `nowMs`. */
+const presignUrl = (p) => {
+	const endpoint = p.endpoint.replace(/\/+$/, "");
+	const host = endpoint.replace(/^https?:\/\//, "");
+	const canonicalUri = uriEncode("/" + (p.bucket ? `${p.bucket}/` : "") + p.key.replace(/^\/+/, ""), true);
+	const datetime = amzDate(p.nowMs);
+	const date = datetime.slice(0, 8);
+	const scope = `${date}/${p.region}/s3/aws4_request`;
+	const query = [
+		["X-Amz-Algorithm", "AWS4-HMAC-SHA256"],
+		["X-Amz-Credential", `${p.accessKeyId}/${scope}`],
+		["X-Amz-Date", datetime],
+		["X-Amz-Expires", String(p.expiresSec)],
+		["X-Amz-SignedHeaders", "host"]
+	].map(([k, v]) => [uriEncode(k), uriEncode(v)]).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0).map(([k, v]) => `${k}=${v}`).join("&");
+	const canonicalRequest = [
+		p.method ?? "GET",
+		canonicalUri,
+		query,
+		`host:${host}`,
+		"",
+		"host",
+		"UNSIGNED-PAYLOAD"
+	].join("\n");
+	const stringToSign = [
+		"AWS4-HMAC-SHA256",
+		datetime,
+		scope,
+		p.sha256Hex(canonicalRequest)
+	].join("\n");
+	let signingKey = hmacBytes(utf8(`AWS4${p.secretAccessKey}`), utf8(date));
+	for (const part of [
+		p.region,
+		"s3",
+		"aws4_request"
+	]) signingKey = hmacBytes(signingKey, utf8(part));
+	return `${endpoint}${canonicalUri}?${query}&X-Amz-Signature=${toHex(hmacBytes(signingKey, utf8(stringToSign)))}`;
+};
+/** `remote:bucket/prefix` (rclone-style, as in PH_ARCHIVE_REMOTE) to bucket + key prefix. */
+const parseRemote = (remote) => {
+	const [bucket, ...rest] = (remote.includes(":") ? remote.slice(remote.indexOf(":") + 1) : remote).replace(/^\/+|\/+$/g, "").split("/");
+	return {
+		bucket: bucket ?? "",
+		prefix: rest.join("/")
+	};
+};
+
+//#endregion
+//#region src/lib/handlers/downloads/api/downloadHelpers.ts
+const env = (key, fallback = "") => $os.getenv(key) || fallback;
+const linkSecret = () => env("PH_ARCHIVE_LINK_SECRET") || env("PH_SECRET");
+const hmacHex = (text, secret) => $security.hs256(text, secret);
+/** Where archives and cold-stored backups live (same `remote:bucket/prefix` settings the edge jobs use). */
+const archiveLocation = () => parseRemote(env("PH_ARCHIVE_REMOTE", "sfo-2-data:sfo-2-data/archive"));
+const backupLocation = () => parseRemote(env("PH_BACKUP_ICEBOX_REMOTE", "sfo-2-data:sfo-2-data/backup-icebox"));
+const sendFailure = (e, status) => e.string(status, DOWNLOAD_MESSAGES[status] ?? DOWNLOAD_MESSAGES[500]);
+/**
+* Checks the object exists (signed HEAD), then redirects to a 1-hour signed GET URL, so the file never streams through
+* PocketHost. Credentials: PH_DOWNLOADS_S3_ENDPOINT, PH_DOWNLOADS_S3_ACCESS_KEY, PH_DOWNLOADS_S3_SECRET,
+* PH_DOWNLOADS_S3_REGION (default us-east-1).
+*/
+const redirectToObject = (e, label, bucket, key) => {
+	const log = mkLog(`downloads`);
+	const endpoint = env("PH_DOWNLOADS_S3_ENDPOINT");
+	const accessKeyId = env("PH_DOWNLOADS_S3_ACCESS_KEY");
+	const secretAccessKey = env("PH_DOWNLOADS_S3_SECRET");
+	if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+		log(`downloads storage is not configured`);
+		return sendFailure(e, 500);
+	}
+	const base = {
+		endpoint: /^https?:\/\//.test(endpoint) ? endpoint : `https://${endpoint}`,
+		region: env("PH_DOWNLOADS_S3_REGION", "us-east-1"),
+		accessKeyId,
+		secretAccessKey,
+		bucket,
+		key,
+		nowMs: Date.now(),
+		sha256Hex: (text) => $security.sha256(text)
+	};
+	try {
+		const head = $http.send({
+			url: presignUrl({
+				...base,
+				method: "HEAD",
+				expiresSec: 60
+			}),
+			method: "HEAD",
+			timeout: 15
+		});
+		if (head.statusCode === 404) return sendFailure(e, 404);
+		if (head.statusCode < 200 || head.statusCode >= 300) {
+			log(`storage check failed for ${label}: HTTP ${head.statusCode}`);
+			return sendFailure(e, 500);
+		}
+	} catch (err) {
+		log(`storage check failed for ${label}: ${err}`);
+		return sendFailure(e, 500);
+	}
+	log(`download ${label}`);
+	return e.redirect(302, presignUrl({
+		...base,
+		method: "GET",
+		expiresSec: 3600
+	}));
+};
+
+//#endregion
+//#region src/lib/handlers/downloads/api/HandleArchiveDownload.ts
+/** GET /_ph/archive/{id}?exp=&sig= : signed link from the instance-archived email. */
+const HandleArchiveDownload = (e) => {
+	const log = mkLog(`downloads:archive`);
+	const instanceId = e.request.pathValue("id");
+	const q = e.request.url.query();
+	const check = verifyArchiveLink(instanceId, q.get("exp"), q.get("sig"), linkSecret(), Date.now(), hmacHex);
+	if (!check.ok) {
+		log(`rejected ${instanceId}: ${check.reason}`);
+		return sendFailure(e, check.status);
+	}
+	const { bucket, prefix } = archiveLocation();
+	return redirectToObject(e, instanceId, bucket, `${prefix ? prefix + "/" : ""}${instanceId}.tar.zst`);
+};
+
+//#endregion
+//#region src/lib/handlers/downloads/api/HandleBackupDownload.ts
+/** GET /_ph/backup/{id}/{zip}?exp=&sig= : signed link from a cold-storage `.zip.txt` stub. */
+const HandleBackupDownload = (e) => {
+	const log = mkLog(`downloads:backup`);
+	const instanceId = e.request.pathValue("id");
+	const zipName = e.request.pathValue("zip");
+	const q = e.request.url.query();
+	const check = verifyBackupLink(instanceId, zipName, q.get("exp"), q.get("sig"), linkSecret(), Date.now(), hmacHex);
+	if (!check.ok) {
+		log(`rejected backup ${instanceId}/${zipName}: ${check.reason}`);
+		return sendFailure(e, check.status);
+	}
+	const { bucket, prefix } = backupLocation();
+	return redirectToObject(e, `${instanceId}/${zipName}`, bucket, `${prefix ? prefix + "/" : ""}${instanceId}/${zipName}`);
+};
+
+//#endregion
 //#region src/lib/handlers/edge/api/HandleEdgeHeartbeat.ts
 const HandleEdgeHeartbeat = (e) => {
 	const { body } = e.requestInfo();
@@ -5780,6 +6180,8 @@ exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleApiTokenCreate = HandleApiTokenCreate;
 exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
+exports.HandleArchiveDownload = HandleArchiveDownload;
+exports.HandleBackupDownload = HandleBackupDownload;
 exports.HandleCustomHostnameRegister = HandleCustomHostnameRegister;
 exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
