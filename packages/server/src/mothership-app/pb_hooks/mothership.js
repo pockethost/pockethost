@@ -3530,7 +3530,7 @@ const mkNotificationProcessor = (log, app, test = false) => (notificationRec) =>
 				const params = {
 					url,
 					method: "POST",
-					body: JSON.stringify({ content: subject }),
+					body: JSON.stringify({ content: `${subject} (${to})` }),
 					headers: { "content-type": "application/json" },
 					timeout: 5
 				};

@@ -63,7 +63,8 @@ export const mkNotificationProcessor =
             url,
             method: 'POST',
             body: JSON.stringify({
-              content: subject,
+              // The stream channel is private, so include who it was.
+              content: `${subject} (${to})`,
             }),
             headers: { 'content-type': 'application/json' },
             timeout: 5, // in seconds
