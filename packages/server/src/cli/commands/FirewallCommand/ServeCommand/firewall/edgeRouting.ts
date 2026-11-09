@@ -87,11 +87,12 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
   const suspect = new Set<string>()
 
   /** Wait until the owner answers its health check. False once it has been silent past the healthy window. */
-  const holdFor = async (edgeId: string, req: Request) => {
+  const holdFor = async (edgeId: string, req: Request, res: Response) => {
     const retryMs = Math.max(250, PH_FIREWALL_DAEMON_GRACE_RETRY_MS())
     let logged = false
     for (;;) {
-      if (req.destroyed) return false
+      // `req.destroyed` is already true once a GET's empty body is read; watch the client connection instead.
+      if (res.writableEnded || res.destroyed || req.socket?.destroyed) return false
       const owner = mirror.getEdge(edgeId)
       if (!owner || !isEdgeHealthy(owner, Date.now())) return false
       if (await isEdgeReachable(owner.internal_url, retryMs)) {
@@ -133,7 +134,7 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
           sendEdgeUnavailable(response)
           return
         }
-        void holdFor(r.phEdgeId, r).then((ok) => {
+        void holdFor(r.phEdgeId, r, response).then((ok) => {
           if (!ok) return sendEdgeUnavailable(response)
           const owner = mirror.getEdge(r.phEdgeId!)
           r.phEdgeTarget = owner?.internal_url
@@ -153,7 +154,7 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
       return sendEdgeUnavailable(res)
     }
     const { edge } = decision
-    if (suspect.has(edge.id) && !(await holdFor(edge.id, req))) return sendEdgeUnavailable(res)
+    if (suspect.has(edge.id) && !(await holdFor(edge.id, req, res))) return sendEdgeUnavailable(res)
     const r = req as RoutedRequest
     r.phEdgeId = edge.id
     r.phEdgeTarget = mirror.getEdge(edge.id)?.internal_url ?? edge.internal_url
