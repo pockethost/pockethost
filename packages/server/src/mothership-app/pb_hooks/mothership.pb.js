@@ -147,11 +147,6 @@ onRecordUpdate((e) => {
 	require(`${__hooks}/mothership`).BeforeUpdate_region(e);
 	e.next();
 }, "instances");
-/** Customers never see which edge runs their instance */
-onRecordEnrich((e) => {
-	require(`${__hooks}/mothership`).Enrich_hideEdge(e);
-	e.next();
-}, "instances");
 /** Validate cname */
 onRecordUpdate((e) => {
 	require(`${__hooks}/mothership`).BeforeUpdate_cname(e);

@@ -76,7 +76,5 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
 
   $app.save(record)
 
-  // The response goes to the customer: region yes, edge never.
-  record.hide('edge')
   return e.json(200, { instance: record })
 }

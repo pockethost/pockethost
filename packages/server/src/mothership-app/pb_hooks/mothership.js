@@ -1498,7 +1498,6 @@ const HandleInstanceCreate = (e) => {
 	record.set("syncAdmin", true);
 	record.set("autoVacuum", true);
 	$app.save(record);
-	record.hide("edge");
 	return e.json(200, { instance: record });
 };
 
@@ -1870,13 +1869,6 @@ const BeforeUpdate_version = (e) => {
 		log(`[ERROR] ${msg}`);
 		throw new BadRequestError(msg);
 	}
-};
-
-//#endregion
-//#region src/lib/handlers/instance/model/Enrich_hideEdge.ts
-/** Customers see the region, never the edge. Superusers (the edges' mirror, operators) still see `edge`. */
-const Enrich_hideEdge = (e) => {
-	if (!e.requestInfo?.auth?.isSuperuser()) e.record?.hide("edge");
 };
 
 //#endregion
@@ -6240,7 +6232,6 @@ exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_region = BeforeUpdate_region;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
-exports.Enrich_hideEdge = Enrich_hideEdge;
 exports.HandleApiTokenCreate = HandleApiTokenCreate;
 exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
 exports.HandleArchiveDownload = HandleArchiveDownload;
