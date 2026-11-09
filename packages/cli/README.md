@@ -135,8 +135,9 @@ The CLI signs in with a personal access token (`ph_pat_…`) only. Every command
 2. the token saved by `pockethost login` (or `pockethost token set`)
 
 Create tokens under [Account → API Tokens](https://pockethost.io/account/tokens). A token sees only the instances
-you give it. `list`, `link`, `show` and `logs` work with any token. `deploy`, `dev` and the instance commands need
-write access, and `create` needs a token for all instances. Email/password login was removed in 4.0.
+you give it. You can change those instances later with the token's **Edit** button; the token itself stays the same.
+`list`, `link`, `show` and `logs` work with any token. `deploy`, `dev` and the instance commands need write access,
+and `create` needs a token for all instances. Email/password login was removed in 4.0.
 
 Deploy from GitHub Actions:
 

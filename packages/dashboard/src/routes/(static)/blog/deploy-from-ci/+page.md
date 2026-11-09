@@ -14,6 +14,7 @@ Head to **[Account → API Tokens](/account/tokens)** and create one. Each token
 
 - can **deploy**, or only **read** (list instances and tail logs)
 - works on **all your instances** or **just the ones you pick**
+- can be pointed at different instances later with **Edit**, without replacing the token
 - expires after 30 days, 90 days, a year, or never
 - can be revoked any time, and stops working within about 30 seconds
 
@@ -57,7 +58,7 @@ Name the target after the branch and every branch gets its own PocketBase:
     POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
 ```
 
-Create `myapp-main` and `myapp-staging`, give the token access to both, and pushes to each branch land in the right place.
+Create `myapp-main` and `myapp-staging`, give the token access to both, and pushes to each branch land in the right place. Spin up a new branch instance later? Add it to the same token with **Edit**. The token doesn't change, so your CI secret stays put.
 
 ### Deploy history
 
