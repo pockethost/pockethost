@@ -144,6 +144,10 @@ export const createSettings = () => ({
       .asString()
   ),
   PH_EDGE_HEARTBEAT_MS: mkNumber(10_000),
+  /** Region this edge serves, reported in its heartbeat. */
+  PH_EDGE_REGION: mkString(env.get('PH_EDGE_REGION').default('sfo').asString()),
+  /** URL other edges use to reach this edge's daemon over the private network, e.g. `http://10.88.0.2:8080`. */
+  PH_EDGE_INTERNAL_URL: mkString(env.get('PH_EDGE_INTERNAL_URL').default('').asString()),
 
   INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
 
@@ -258,6 +262,8 @@ export const PH_SFTP_HOST_KEY = () => settings().PH_SFTP_HOST_KEY
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 export const PH_EDGE_ID = () => settings().PH_EDGE_ID
 export const PH_EDGE_HEARTBEAT_MS = () => settings().PH_EDGE_HEARTBEAT_MS
+export const PH_EDGE_REGION = () => settings().PH_EDGE_REGION
+export const PH_EDGE_INTERNAL_URL = () => settings().PH_EDGE_INTERNAL_URL
 
 export const INSTANCE_APP_ROOT = (...paths: string[]) => join(settings().INSTANCE_APP_ROOT, ...paths)
 export const INSTANCE_APP_HOOK_DIR = (...paths: string[]) => INSTANCE_APP_ROOT(`pb_hooks`, ...paths)
@@ -369,6 +375,8 @@ export const logConstants = () => {
     EDGE_APEX_DOMAIN,
     PH_EDGE_ID,
     PH_EDGE_HEARTBEAT_MS,
+    PH_EDGE_REGION,
+    PH_EDGE_INTERNAL_URL,
     INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(),
     DISCORD_HEALTH_CHANNEL_URL,
     DISCORD_ALERT_CHANNEL_URL,

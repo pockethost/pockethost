@@ -19,7 +19,10 @@ export const HandleEdgeHeartbeat = (e: core.RequestEvent) => {
   }
 
   record.set('last_seen', new Date().toISOString())
-  record.set('status', 'online')
+  // A clean shutdown reports `offline`, so other edges stop routing to it at once.
+  record.set('status', body?.status === 'offline' ? 'offline' : 'online')
+  if (typeof body?.region === 'string' && body.region) record.set('region', body.region)
+  if (typeof body?.internal_url === 'string') record.set('internal_url', body.internal_url)
   record.set('stats', stats)
   $app.save(record)
 

@@ -1,10 +1,13 @@
 import {
+  asyncExitHook,
   flushEdgeTrafficStatsWindow,
   getEdgeTrafficStatsSnapshot,
   LoggerService,
   mkSingleton,
   PH_EDGE_HEARTBEAT_MS,
   PH_EDGE_ID,
+  PH_EDGE_INTERNAL_URL,
+  PH_EDGE_REGION,
   SingletonBaseConfig,
 } from '@'
 import { MothershipAdminClientService } from '../MothershipAdminClientService'
@@ -19,7 +22,7 @@ export const EdgeHeartbeatService = mkSingleton(async (config: EdgeHeartbeatServ
   const edgeId = PH_EDGE_ID()
   const intervalMs = PH_EDGE_HEARTBEAT_MS()
 
-  const push = async () => {
+  const push = async (status: 'online' | 'offline' = 'online') => {
     const stats = getEdgeTrafficStatsSnapshot()
     flushEdgeTrafficStatsWindow()
 
@@ -29,6 +32,10 @@ export const EdgeHeartbeatService = mkSingleton(async (config: EdgeHeartbeatServ
         body: {
           edge_id: edgeId,
           label: edgeId,
+          // Other edges route to this one through the mothership mirror, using these two fields.
+          region: PH_EDGE_REGION(),
+          internal_url: PH_EDGE_INTERNAL_URL(),
+          status,
           stats,
         },
       })
@@ -43,6 +50,12 @@ export const EdgeHeartbeatService = mkSingleton(async (config: EdgeHeartbeatServ
   }, intervalMs)
 
   void push()
+
+  // A clean shutdown tells the other edges right away, so they stop holding requests for this one.
+  asyncExitHook(async () => {
+    clearInterval(timer)
+    await push('offline')
+  }, 3000)
 
   return {
     stop: () => clearInterval(timer),

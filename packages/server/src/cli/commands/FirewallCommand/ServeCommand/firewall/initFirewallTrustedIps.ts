@@ -40,5 +40,6 @@ export const initFirewallTrustedIps = async (logger: Logger) => {
     logger.create(`firewall`).info(`Operator trusted IPs: ${globalTrustedIps.join(', ')}`)
   }
 
-  return resolver
+  // The mirror also carries the edge list for routing requests to the edge that runs each instance.
+  return Object.assign(resolver, { mirror })
 }

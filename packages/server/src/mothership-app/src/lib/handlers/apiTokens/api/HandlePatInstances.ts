@@ -30,6 +30,7 @@ export const HandlePatInstances = (e: core.RequestEvent) => {
       status: r!.getString('status'),
       power: r!.getBool('power'),
       version: r!.getString('version'),
+      region: r!.getString('region'),
       dev: r!.getBool('dev'),
       syncAdmin: r!.getBool('syncAdmin'),
       autoVacuum: r!.getBool('autoVacuum'),

@@ -531,6 +531,11 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       return
     }
     logger.breadcrumb(`i:${instance.id}`)
+    // Each instance runs on exactly one edge. Firewalls forward to the owner; a daemon never starts someone else's.
+    if (!mirror.isMine(instance)) {
+      res.status(421).end(`${host} is served by another PocketHost edge`)
+      return
+    }
     const owner = await mirror.getUser(instance.uid)
     if (!owner) {
       throw new Error(`Instance owner is invalid`)

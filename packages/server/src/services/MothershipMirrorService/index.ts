@@ -1,12 +1,15 @@
 import {
   createEvent,
   EDGE_APEX_DOMAIN,
+  EdgeFields,
   ensureInstanceDirectoryStructure,
   InstanceFields,
   InstanceId,
   InstanceStatus,
+  isInstanceOnEdge,
   LoggerService,
   mkSingleton,
+  PH_EDGE_ID,
   PH_MIRROR_DRIFT_CHECK_MS,
   PH_MIRROR_STALL_MS,
   PocketBase,
@@ -30,6 +33,8 @@ export type MirrorSyncOptions = {
 export type MirrorDumpResponse = {
   users: UserFields[]
   instances: InstanceFields[]
+  /** Missing from motherships older than edge routing. */
+  edges?: EdgeFields[]
 }
 
 export type MirrorSyncResponse = MirrorDumpResponse & {
@@ -59,6 +64,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     instancesByCanonicalSubdomain: { [_: string]: InstanceFields }
     instancesBySubdomain: { [_: string]: InstanceFields }
     instancesByCname: { [_: string]: InstanceFields }
+    edgesById: { [_: string]: EdgeFields }
   } = {
     users: {},
     instancesById: {},
@@ -66,6 +72,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     instancesByCanonicalSubdomain: {},
     instancesBySubdomain: {},
     instancesByCname: {},
+    edgesById: {},
   }
 
   const upsertInstance = (record: InstanceFields) => {
@@ -115,10 +122,19 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     }
   }
 
+  /** Edges are tiny and change on every heartbeat; the latest record simply wins. */
+  const upsertEdge = (record: EdgeFields) => {
+    mirror.edgesById[record.id] = record
+  }
+
   /** Realtime/resync records skipped because the mirror already held a newer version (out-of-order delivery). */
   let staleSkipped = 0
 
-  const applyMirrorDump = (users: UserFields[], instances: InstanceFields[]) => {
+  const applyMirrorDump = (users: UserFields[], instances: InstanceFields[], edges?: EdgeFields[]) => {
+    if (edges) {
+      mirror.edgesById = {}
+      edges.forEach(upsertEdge)
+    }
     // The dump is built before it is sent; a realtime event may have delivered a newer version meanwhile.
     users.forEach((user) => {
       if (isOlderThanMirrored(mirror.users[user.id], user)) return void staleSkipped++
@@ -164,6 +180,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     const {
       users,
       instances: mirrorInstances,
+      edges,
       updated,
     } = await client.send<MirrorSyncResponse>(`/api/mirror`, {
       method: `POST`,
@@ -178,7 +195,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
         findMirrorDrift((id) => mirror.users[id], users, cutoff)
       )
     }
-    applyMirrorDump(users, mirrorInstances)
+    applyMirrorDump(users, mirrorInstances, edges)
     initialSyncDone = true
     dbg(`synced mirror: ${mirrorInstances.length} instances, ${users.length} users, ${updated} live`)
   }
@@ -247,6 +264,12 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
           deleteInstance(record.id)
           fireInstanceDeleted(record.id)
         }
+      }),
+
+      client.collection(`edges`).subscribe<EdgeFields>(`*`, (e) => {
+        lastRealtimeAt = Date.now()
+        if (e.action === `delete`) delete mirror.edgesById[e.record.id]
+        else upsertEdge(e.record)
       }),
 
       client.collection(`users`).subscribe<UserFields>(`*`, (e) => {
@@ -362,6 +385,19 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     syncMirror,
     whenReady,
     getInstances: () => Object.values(mirror.instancesById),
+    /** Every known edge, as last reported by the mothership. */
+    getEdges: () => Object.values(mirror.edgesById),
+    getEdge: (id: string): EdgeFields | undefined => mirror.edgesById[id],
+    /** Whether this node (PH_EDGE_ID) is the edge that runs `instance`. */
+    isMine: (instance: { edge?: string }) =>
+      isInstanceOnEdge(
+        instance,
+        Object.values(mirror.edgesById).find((edge) => edge.edge_id === PH_EDGE_ID()),
+        PH_EDGE_ID()
+      ),
+    /** The edge record for a PH_EDGE_ID, e.g. this node's own record. */
+    getEdgeByEdgeId: (edgeId: string): EdgeFields | undefined =>
+      Object.values(mirror.edgesById).find((edge) => edge.edge_id === edgeId),
     getUsers: () => Object.values(mirror.users),
   }
   return api

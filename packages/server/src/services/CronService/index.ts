@@ -56,6 +56,8 @@ export const CronService = mkSingleton(async (config: Partial<CronServiceConfig>
   /** `catchUp` is set only on startup: a webhook that missed a run while the daemon was down fires once now. */
   const upsertInstance = async (instance: InstanceFields, catchUp = false) => {
     removeJobsForInstanceId(instance.id)
+    // Webhooks run on the edge that runs the instance.
+    if (!mirror.isMine(instance)) return
     const newJobs = new Set<CronJob>()
     const { webhooks } = instance
     if (!webhooks) {

@@ -505,6 +505,7 @@ const HandlePatInstances = (e) => {
 		status: r.getString("status"),
 		power: r.getBool("power"),
 		version: r.getString("version"),
+		region: r.getString("region"),
 		dev: r.getBool("dev"),
 		syncAdmin: r.getBool("syncAdmin"),
 		autoVacuum: r.getBool("autoVacuum"),
@@ -1207,7 +1208,9 @@ const HandleEdgeHeartbeat = (e) => {
 		record.set("label", typeof body?.label === "string" ? body.label : edgeId);
 	}
 	record.set("last_seen", (/* @__PURE__ */ new Date()).toISOString());
-	record.set("status", "online");
+	record.set("status", body?.status === "offline" ? "offline" : "online");
+	if (typeof body?.region === "string" && body.region) record.set("region", body.region);
+	if (typeof body?.internal_url === "string") record.set("internal_url", body.internal_url);
 	record.set("stats", stats);
 	$app.save(record);
 	return e.json(200, {
@@ -1302,6 +1305,23 @@ const isAvailable = (slug) => {
 		return true;
 	}
 };
+
+//#endregion
+//#region src/lib/handlers/instance/lib/edgePlacement.ts
+/** How long an edge may go without a heartbeat before it can't take new instances. Same window the firewalls use. */
+const EDGE_HEALTHY_WINDOW_MS = 3e4;
+const seenAt = (raw) => Date.parse(String(raw).replace(" ", "T"));
+const isEdgeHealthyAt = (edge, nowMs) => {
+	if (edge.status === "offline" || !edge.last_seen) return false;
+	const seen = seenAt(edge.last_seen);
+	return !Number.isNaN(seen) && nowMs - seen <= 3e4;
+};
+/**
+* The edge a new instance in `region` goes to: a healthy edge in that region with the fewest instances (ties by id, so
+* the choice is stable). Undefined when the region has no healthy edge.
+*/
+const pickEdgeForRegion = (edges, instanceCounts, region, nowMs) => edges.filter((edge) => edge.region === region && isEdgeHealthyAt(edge, nowMs)).sort((a, b) => (instanceCounts[a.id] ?? 0) - (instanceCounts[b.id] ?? 0) || (a.id < b.id ? -1 : 1))[0];
+const isRegionName = (region) => /^[a-z][a-z0-9-]{1,31}$/.test(region);
 
 //#endregion
 //#region src/lib/handlers/instance/lib/instancePolicy.ts
@@ -1438,19 +1458,33 @@ const HandleInstanceCreate = (e) => {
 	log(`TOP OF POST`);
 	let data = new DynamicModel({
 		subdomain: "",
-		version: listSelectableVersions()[0]
+		version: listSelectableVersions()[0],
+		region: "sfo"
 	});
 	log(`before bind`);
 	e.bindBody(data);
 	log(`after bind`);
 	data = JSON.parse(JSON.stringify(data));
 	const { subdomain, version } = data;
+	const region = String(data.region || "sfo").trim();
 	log(`vars`, JSON.stringify({ subdomain }));
 	if (!subdomain) throw new BadRequestError(`Subdomain is required when creating an instance.`);
 	const nameError = instanceNameError(subdomain);
 	if (nameError) throw new BadRequestError(nameError);
 	if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
 	assertCanCreateInstance(caller.userId);
+	if (!isRegionName(region)) throw new BadRequestError(`Unknown region ${region}.`);
+	const edges = $app.findRecordsByFilter("edges", "region = {:region}", "", 0, 0, { region }).filter((r) => !!r).map((r) => ({
+		id: r.id,
+		region: r.getString("region"),
+		status: r.getString("status"),
+		last_seen: r.getString("last_seen")
+	}));
+	if (edges.length === 0) throw new BadRequestError(`Unknown region ${region}.`);
+	const counts = {};
+	for (const edge of edges) counts[edge.id] = $app.countRecords("instances", $dbx.hashExp({ edge: edge.id }));
+	const edge = pickEdgeForRegion(edges, counts, region, Date.now());
+	if (!edge) throw new BadRequestError(`The ${region} region is temporarily unavailable. Please try again in a minute.`);
 	const collection = $app.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
 	record.set("uid", caller.userId);
@@ -1458,10 +1492,13 @@ const HandleInstanceCreate = (e) => {
 	record.set("power", true);
 	record.set("status", "idle");
 	record.set("version", version);
+	record.set("region", region);
+	record.set("edge", edge.id);
 	record.set("dev", true);
 	record.set("syncAdmin", true);
 	record.set("autoVacuum", true);
 	$app.save(record);
+	record.hide("edge");
 	return e.json(200, { instance: record });
 };
 
@@ -1809,6 +1846,17 @@ const BeforeUpdate_cname = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/instance/model/BeforeUpdate_region.ts
+/** A region is chosen once, at creation. It never changes afterwards (moves between edges keep the region). */
+const BeforeUpdate_region = (e) => {
+	const record = e.record;
+	if (!record) return;
+	const before = String(record.original().get("region") || "");
+	const after = String(record.get("region") || "");
+	if (before && after !== before) throw new BadRequestError(`An instance's region can't be changed after it is created.`);
+};
+
+//#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_version.ts
 /** A version change must land on a selectable (0.23+) version. Instances that keep their version are not checked. */
 const BeforeUpdate_version = (e) => {
@@ -1822,6 +1870,13 @@ const BeforeUpdate_version = (e) => {
 		log(`[ERROR] ${msg}`);
 		throw new BadRequestError(msg);
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/instance/model/Enrich_hideEdge.ts
+/** Customers see the region, never the edge. Superusers (the edges' mirror, operators) still see `edge`. */
+const Enrich_hideEdge = (e) => {
+	if (!e.requestInfo?.auth?.isSuperuser()) e.record?.hide("edge");
 };
 
 //#endregion
@@ -3418,10 +3473,16 @@ const HandleMetaUpdateAtBoot = (_e) => {
 //#endregion
 //#region src/lib/handlers/mirror/lib/buildMirrorDump.ts
 const exportRecord = (record) => record.publicExport();
+/** Instances carry their edge for routing; `edge` is hidden from customers, so add it back explicitly. */
+const exportInstance = (record) => ({
+	...record.publicExport(),
+	edge: record.getString("edge")
+});
 const buildMirrorDump = (app) => {
 	return {
 		users: app.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord),
-		instances: app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportRecord)
+		instances: app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportInstance),
+		edges: app.findAllRecords(`edges`).filter((r) => !!r).map(exportRecord)
 	};
 };
 
@@ -6176,8 +6237,10 @@ exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeCreate_version = BeforeCreate_version;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
+exports.BeforeUpdate_region = BeforeUpdate_region;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
+exports.Enrich_hideEdge = Enrich_hideEdge;
 exports.HandleApiTokenCreate = HandleApiTokenCreate;
 exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
 exports.HandleArchiveDownload = HandleArchiveDownload;

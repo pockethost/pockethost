@@ -23,6 +23,7 @@ import type { Socket } from 'net'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware, type VhostUpgradeHandler } from './createVhostProxyMiddleware'
 import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
+import { createEdgeRoutingMiddleware } from './edgeRouting'
 import { initFirewallTrustedIps } from './initFirewallTrustedIps'
 import { createInstanceCorsMiddleware, rewriteProxiedCorsHeaders } from './instanceCors'
 import { createRateLimiterMiddleware } from './rate-limiter'
@@ -143,6 +144,12 @@ export const firewall = async ({ logger }: FirewallOptions) => {
     },
   })
 
+  // Instances on other edges are proxied to their edge before the local daemon (and its grace) is involved.
+  if (trustedIpResolver) {
+    app.use(createEdgeRoutingMiddleware(trustedIpResolver.mirror, logger))
+  } else {
+    info(`Edge routing disabled: it needs the mothership mirror, which starts with firewall rate limiting`)
+  }
   app.use(createDaemonGraceMiddleware(logger))
   app.use((req, res, next) => {
     const method = req.method
