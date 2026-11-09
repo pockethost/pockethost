@@ -87,8 +87,13 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     if (record.cname) {
       mirror.instancesByCname[record.cname] = record
     }
-    // Users are applied before instances in a dump, so the owner is normally known here.
-    if (shouldEnsureInstanceDirectories(record, mirror.users[record.uid])) {
+    // Users and edges are applied before instances in a dump, so the owner and this edge are normally known here.
+    // Only the edge that runs an instance keeps its folder.
+    const myEdge = Object.values(mirror.edgesById).find((edge) => edge.edge_id === PH_EDGE_ID())
+    if (
+      isInstanceOnEdge(record, myEdge, PH_EDGE_ID()) &&
+      shouldEnsureInstanceDirectories(record, mirror.users[record.uid])
+    ) {
       ensureInstanceDirectoryStructure(record.id, logger)
     }
   }
