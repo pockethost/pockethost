@@ -96,13 +96,15 @@ In extreme cases, if the issue cannot be resolved and it negatively impacts othe
 
 ## When your plan goes down
 
-If your plan goes down (a subscription ends, or you lower the number of instances) and you have more instances running than it now includes:
+If your plan goes down (one of your subscriptions ends, or you lower the number of instances) and you have more instances running than it now includes:
 
 - **We email you, and you have 24 hours to choose.** In your [dashboard](/dashboard), power off or delete the instances you don't need, or [add instances](/pricing) to your plan.
 - **After 24 hours, we power off the extras.** We pick the instances you've used least recently, until the number running matches your plan.
 - **Nothing is deleted.** A powered-off instance keeps all of its data, and you can power it back on whenever your plan has room.
 
 While you have more instances than your plan includes, you can't create new ones, and only as many as your plan includes can be powered on. To change which ones run, power one off, then power another on.
+
+If your plan ends completely, so it doesn't include any instances, your instances stop running right away and we email you once. There's nothing to choose, so nothing is powered off and nothing is deleted. [Add instances to your plan](/pricing) and they start again, just as you left them.
 
 ## Disk storage
 

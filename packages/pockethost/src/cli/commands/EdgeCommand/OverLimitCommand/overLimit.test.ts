@@ -12,3 +12,18 @@ describe('over-limit email helpers', () => {
     )
   })
 })
+
+describe('over-limit email templates', () => {
+  it('only uses lowercase placeholders', async () => {
+    const t = await import('./emailTemplates')
+    for (const tpl of [
+      t.OVER_LIMIT_WARNING_TEMPLATE,
+      t.OVER_LIMIT_POWERED_OFF_TEMPLATE,
+      t.SUBSCRIPTION_LAPSED_TEMPLATE,
+    ]) {
+      for (const [, name] of `${tpl.subject}${tpl.body_html}`.matchAll(/\{\$(\w+)\}/g)) {
+        expect(name).toBe(name!.toLowerCase())
+      }
+    }
+  })
+})
