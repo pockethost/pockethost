@@ -114,7 +114,10 @@ export const planOverLimit = <T extends LimitInstance>(
 export type LapseStep =
   /** Nothing to do. */
   | { kind: 'ok' }
-  /** The plan just dropped to 0 with instances still set to run: record `lapsed_since` and tell the owner. */
+  /**
+   * The plan just dropped to 0 with instances still set to run, and the account has paid before: record `lapsed_since`
+   * and tell the owner.
+   */
   | { kind: 'notify' }
   /** The account has instances in its plan again: clear `lapsed_since`. */
   | { kind: 'clear' }
@@ -122,12 +125,13 @@ export type LapseStep =
 /**
  * The other half of a plan going down: no instances left in the plan at all. There's nothing to choose, so there's no
  * grace period and no power change. The daemon already refuses to run anything on the account, and every instance comes
- * back as-is when the owner subscribes again. The sweep only sends one email per lapse.
+ * back as-is when the owner subscribes again. The sweep only sends one email per lapse. Accounts that never paid
+ * (`paidBefore` false: no billing history) never had a subscription to end, so they're left alone.
  */
-export const planLapse = (user: LimitUser, owned: LimitInstance[]): LapseStep => {
+export const planLapse = (user: LimitUser, owned: LimitInstance[], paidBefore: boolean): LapseStep => {
   const allowance = instanceAllowance(user)
   const marked = parseSince(user.lapsed_since) !== null
   if (allowance > 0) return marked ? { kind: 'clear' } : { kind: 'ok' }
-  if (marked || poweredOnInstances(owned).length === 0) return { kind: 'ok' }
+  if (marked || !paidBefore || poweredOnInstances(owned).length === 0) return { kind: 'ok' }
   return { kind: 'notify' }
 }

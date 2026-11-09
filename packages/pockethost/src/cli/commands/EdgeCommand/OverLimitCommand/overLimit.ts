@@ -18,7 +18,7 @@ import {
 } from './emailTemplates'
 
 type SweepInstance = LimitInstance & { uid: string; subdomain: string }
-type SweepUser = LimitUser & { id: string; suspension?: string }
+type SweepUser = LimitUser & { id: string; suspension?: string; paidBefore?: boolean }
 
 export type OverLimitOptions = {
   /** Write changes and send email. Default is a dry run. */
@@ -57,7 +57,8 @@ export const instanceList = (instances: { subdomain: string }[]) =>
  * `users.over_limit_since`. Once that is older than the grace period, the least recently updated extras are powered off
  * and the owner is emailed again. Accounts back within their plan have the marker cleared. Accounts with no instances
  * in their plan get no grace or power change (the daemon already won't run them); they get one "your instances have
- * stopped" email per lapse, tracked by `users.lapsed_since`. Logs ids and counts only.
+ * stopped" email per lapse, tracked by `users.lapsed_since`, but only if they've paid before (any `billing_items` row).
+ * Logs ids and counts only.
  */
 export const sweepOverLimit = async ({
   apply = false,
@@ -117,7 +118,7 @@ export const sweepOverLimit = async ({
 
   for (const user of users) {
     const owned = byOwner.get(user.id) ?? []
-    const lapse = user.suspension ? ({ kind: `ok` } as const) : planLapse(user, owned)
+    const lapse = user.suspension ? ({ kind: `ok` } as const) : planLapse(user, owned, !!user.paidBefore)
     if (lapse.kind !== `ok`) {
       const label = `${user.id} (running ${poweredOnInstances(owned).length})`
       try {
@@ -227,13 +228,11 @@ const listUsers = async (
   const rest: SweepUser[] = []
   try {
     rest.push(
-      ...(await pb
-        .collection(`users`)
-        .getFullList<SweepUser>({
-          fields,
-          filter: `over_limit_since != "" && subscription_quantity <= 0`,
-          batch: 1000,
-        }))
+      ...(await pb.collection(`users`).getFullList<SweepUser>({
+        fields,
+        filter: `over_limit_since != "" && subscription_quantity <= 0`,
+        batch: 1000,
+      }))
     )
     const pending = ownersWithPowerOn.filter((id) => !seen.has(id))
     for (let i = 0; i < pending.length; i += 50) {
@@ -249,6 +248,14 @@ const listUsers = async (
   } catch (e) {
     // Before the users.over_limit_since / lapsed_since migrations have run.
     warn(`could not list users with no plan (are the migrations applied?): ${(e as Error).message}`)
+  }
+  if (rest.length > 0) {
+    const payers = new Set(
+      (await pb.collection(`billing_items`).getFullList<{ user: string }>({ fields: `user`, batch: 1000 })).map(
+        (r) => r.user
+      )
+    )
+    for (const u of rest) u.paidBefore = payers.has(u.id)
   }
   for (const u of rest) {
     if (seen.has(u.id)) continue

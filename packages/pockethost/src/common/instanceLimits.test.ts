@@ -130,30 +130,34 @@ describe('planLapse', () => {
   const allOff = [inst(`b`, false, `2026-11-02`)]
 
   it('notifies when the plan drops to 0 with instances set to run', () => {
-    expect(planLapse({ subscription_quantity: 0 }, on)).toEqual({ kind: 'notify' })
+    expect(planLapse({ subscription_quantity: 0 }, on, true)).toEqual({ kind: 'notify' })
   })
 
   it('notifies only once per lapse', () => {
-    expect(planLapse({ subscription_quantity: 0, lapsed_since: `2026-11-08 00:00:00.000Z` }, on)).toEqual({
+    expect(planLapse({ subscription_quantity: 0, lapsed_since: `2026-11-08 00:00:00.000Z` }, on, true)).toEqual({
       kind: 'ok',
     })
   })
 
+  it('leaves accounts that never paid alone', () => {
+    expect(planLapse({ subscription_quantity: 0 }, on, false)).toEqual({ kind: 'ok' })
+  })
+
   it('stays quiet when nothing is set to run', () => {
-    expect(planLapse({ subscription_quantity: 0 }, allOff)).toEqual({ kind: 'ok' })
-    expect(planLapse({ subscription_quantity: 0 }, [])).toEqual({ kind: 'ok' })
+    expect(planLapse({ subscription_quantity: 0 }, allOff, true)).toEqual({ kind: 'ok' })
+    expect(planLapse({ subscription_quantity: 0 }, [], true)).toEqual({ kind: 'ok' })
   })
 
   it('ignores archived instances', () => {
-    expect(planLapse({ subscription_quantity: 0 }, [{ ...on[0]!, suspension: `Archived: old` }])).toEqual({
+    expect(planLapse({ subscription_quantity: 0 }, [{ ...on[0]!, suspension: `Archived: old` }], true)).toEqual({
       kind: 'ok',
     })
   })
 
   it('clears the marker once the plan includes instances again', () => {
-    expect(planLapse({ subscription_quantity: 1, lapsed_since: `2026-11-08 00:00:00.000Z` }, on)).toEqual({
+    expect(planLapse({ subscription_quantity: 1, lapsed_since: `2026-11-08 00:00:00.000Z` }, on, true)).toEqual({
       kind: 'clear',
     })
-    expect(planLapse({ subscription_quantity: 1 }, on)).toEqual({ kind: 'ok' })
+    expect(planLapse({ subscription_quantity: 1 }, on, true)).toEqual({ kind: 'ok' })
   })
 })
