@@ -38,3 +38,5 @@ By storing files in S3, your PocketBase instance becomes far more **portable**. 
 ## Important Backup Consideration
 
 Be aware that **PocketBase backups do NOT include storage files** that have been moved to S3. When creating a backup, only the local database and file system are included. You’ll need to manage S3-stored files separately to ensure complete backup coverage.
+
+Turn on **versioning** in your bucket so deleted or replaced files can be recovered. See [Backups and Data Protection](/docs/backup-restore#why-your-own-versioned-s3-bucket).

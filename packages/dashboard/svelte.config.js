@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-static'
 import { mdsvex } from 'mdsvex'
 import { mdsvexHighlight } from './src/lib/mdsvexHighlight.js'
+import { rehypeHeadingIds } from './src/lib/rehypeHeadingIds.js'
 import { rehypeRouteImages, remarkRouteImages } from './src/lib/remarkRouteImages.js'
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -10,7 +11,7 @@ const config = {
     mdsvex({
       extensions: ['.svx', '.md'],
       remarkPlugins: [remarkRouteImages],
-      rehypePlugins: [rehypeRouteImages],
+      rehypePlugins: [rehypeRouteImages, rehypeHeadingIds],
       highlight: {
         highlighter: mdsvexHighlight,
         optimise: true,

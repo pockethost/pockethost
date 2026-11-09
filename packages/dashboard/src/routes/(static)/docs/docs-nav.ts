@@ -31,7 +31,7 @@ export const docsNav: DocNavSection[] = [
       { slug: 'cli', title: 'PocketHost CLI' },
       { slug: 'deploy-from-ci', title: 'Deploy from CI' },
       { slug: 'static-assets', title: 'Static Assets' },
-      { slug: 'backup-restore', title: 'Backup & Restore' },
+      { slug: 'backup-restore', title: 'Backups & Data Protection' },
     ],
   },
   {

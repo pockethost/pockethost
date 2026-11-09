@@ -78,7 +78,7 @@ PocketHost instances may enter **hibernation** during inactivity. They wake on t
 
 ### Important Caveats
 
-- **Scheduled Tasks and Backups**: Automated backups may fail if the instance is hibernated at the scheduled time. Waking the instance on a schedule does not replay missed intervals. See [webhooks](/docs/webhooks) for scheduled tasks that survive hibernation.
+- **Scheduled Tasks and Backups**: PocketBase's built-in scheduler (`cronAdd` and the schedule in **Settings > Backups**) only runs while your instance is awake. Use [webhooks](/docs/webhooks) for scheduled work, including [scheduled backups](/docs/backup-restore#schedule-backups-with-a-webhook).
 - **Instance Waking**: The first request after hibernation may experience a delay while the instance restarts.
 
 ## Usage Limits

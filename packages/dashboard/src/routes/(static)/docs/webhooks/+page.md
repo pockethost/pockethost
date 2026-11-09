@@ -5,9 +5,9 @@ description: Learn how to use Pockethost webhooks to schedule reliable API calls
 
 # Webhooks
 
-Webhooks allow you to schedule API calls to your PocketBase instance at specific times, replacing the need for external cron job schedulers. This feature enables automated tasks like data cleanup, backups, notifications, and integrations with external services.
+Webhooks allow you to schedule API calls to your PocketBase instance at specific times, replacing the need for external cron job schedulers. This feature enables automated tasks like data cleanup, notifications, integrations with external services, and [scheduled backups](/docs/backup-restore#schedule-backups-with-a-webhook).
 
-> **Important**: Webhooks replace PocketBase's built-in [cron job scheduling](https://pocketbase.io/docs/js-jobs-scheduling/) (`cronAdd`) on PocketHost. While `cronAdd` works in standard PocketBase deployments, it becomes unreliable on PocketHost due to instance hibernation. Scheduled webhooks will always execute reliably, even when your instance is hibernated. See [How PocketHost Works](/docs/how-it-works).
+> **Important**: Webhooks replace PocketBase's built-in [cron job scheduling](https://pocketbase.io/docs/js-jobs-scheduling/) (`cronAdd`) on PocketHost. `cronAdd` runs inside PocketBase, so on PocketHost it only fires while your instance is awake. Scheduled webhooks run even when your instance is hibernated. To learn why PocketHost schedules work this way, see [How scheduled work runs on PocketHost](/docs/backup-restore#how-scheduled-work-runs-on-pockethost).
 
 ## Overview
 
@@ -22,10 +22,10 @@ All webhooks execute in **UTC time**. Make sure to adjust your cron schedules ac
 
 On PocketHost, webhooks provide several advantages over PocketBase's built-in `cronAdd`:
 
-- **Reliability**: Webhooks execute even when your instance is hibernated
-- **Consistency**: No dependency on your instance's uptime
-- **Scalability**: Handled by PocketHost's infrastructure, not your instance
-- **Monitoring**: Better visibility into execution status and failures
+- **Runs while you sleep**: Webhooks run even when your instance is hibernated
+- **Survives restarts**: Your schedule lives in PocketHost, not in your instance, so restarts, deploys, and version changes don't affect it
+- **Easy to test**: Each job is an ordinary route you can call by hand
+- **Visible**: The dashboard shows each webhook's last run and response
 
 ## Configuration
 
@@ -204,7 +204,7 @@ For secure webhooks, include authentication in your endpoints:
 routerAdd('GET', '/api/webhooks/secure', (e) => {
   const token = e.request.url.query().get('token')
 
-  if (token !== process.env.WEBHOOK_SECRET) {
+  if (token !== $os.getenv('WEBHOOK_SECRET')) {
     return e.json(401, { error: 'Unauthorized' })
   }
 

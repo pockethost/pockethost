@@ -19,7 +19,7 @@ See [Limits](/docs/limits#hibernation) for details.
 
 ## Use webhooks for scheduled jobs, not `cronAdd`
 
-`cronAdd` only fires while the instance happens to be awake, so on PocketHost it misses runs. Use [Webhooks](/docs/webhooks) instead. PocketHost calls a route on your instance on your schedule and wakes it if needed.
+PocketBase's built-in scheduler runs inside your instance, so `cronAdd` only fires while the instance happens to be awake. On PocketHost the schedule lives in the platform instead. [Webhooks](/docs/webhooks) call a route on your instance on your schedule and wake it if needed. See [How scheduled work runs on PocketHost](/docs/backup-restore#how-scheduled-work-runs-on-pockethost) for why, and for [scheduled backups](/docs/backup-restore#schedule-backups-with-a-webhook).
 
 ## Requests go through the edge first
 
