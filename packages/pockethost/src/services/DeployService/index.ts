@@ -1,5 +1,16 @@
+import { globSync } from 'fs'
+import { basename, join } from 'path'
 import { ClientResponseError } from 'pocketbase'
-import { DATA_ROOT, LoggerService, mkInstanceDataPath, mkSingleton, MOTHERSHIP_URL, PocketBase } from '../..'
+import {
+  DATA_ROOT,
+  INSTANCE_APP_HOOK_DIR,
+  INSTANCE_APP_MIGRATIONS_DIR,
+  LoggerService,
+  mkInstanceDataPath,
+  mkSingleton,
+  MOTHERSHIP_URL,
+  PocketBase,
+} from '../..'
 import type { InstanceFields, PatVerifyResult, SingletonBaseConfig } from '../../common'
 import { InstanceLogReader } from '../InstanceLoggerService'
 import { instanceService } from '../InstanceService'
@@ -53,11 +64,16 @@ export const DeployService = mkSingleton(async (config: SingletonBaseConfig) => 
     },
   })
 
+  // Same files InstanceService bind-mounts into every container (see extraBinds there).
+  const platformPaths = new Set([
+    ...globSync(join(INSTANCE_APP_HOOK_DIR(), '*.js')).map((f) => `pb_hooks/${basename(f)}`),
+    ...globSync(join(INSTANCE_APP_MIGRATIONS_DIR(), '*.js')).map((f) => `pb_migrations/${basename(f)}`),
+  ])
   const stores = new Map<string, DeployStore>()
   const storeFor = (instance: InstanceFields) => {
     let store = stores.get(instance.id)
     if (!store) {
-      store = createDeployStore(DEPLOY_DATA_ROOT(instance.id), mkInstanceDataPath(instance.id))
+      store = createDeployStore(DEPLOY_DATA_ROOT(instance.id), mkInstanceDataPath(instance.id), { platformPaths })
       stores.set(instance.id, store)
     }
     return store

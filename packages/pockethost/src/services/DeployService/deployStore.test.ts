@@ -66,6 +66,23 @@ describe('createDeployStore', () => {
     expect(current.get('package.json')!.hash).toBe(sha('{}'))
   })
 
+  it('leaves platform bind-mount placeholders alone', async () => {
+    put('pb_hooks/_ph_backup.pb.js', '')
+    put('pb_migrations/1699198734_pockethost_defaults.js', '')
+    put('pb_hooks/old.pb.js', 'old')
+    const store = createDeployStore(storeDir, instanceDir, {
+      platformPaths: new Set(['pb_hooks/_ph_backup.pb.js', 'pb_migrations/1699198734_pockethost_defaults.js']),
+    })
+    expect([...(await store.scanCurrent()).keys()]).toEqual(['pb_hooks/old.pb.js'])
+
+    await store.putBlob(sha('new'), Buffer.from('new'))
+    const manifest = { 'pb_hooks/new.pb.js': sha('new') }
+    const r = await store.apply(manifest, await store.stage(manifest))
+    expect(r.deleted).toEqual(['pb_hooks/old.pb.js'])
+    expect(has('pb_hooks/_ph_backup.pb.js')).toBe(true)
+    expect(has('pb_migrations/1699198734_pockethost_defaults.js')).toBe(true)
+  })
+
   it('reports only hashes that are neither on disk nor uploaded', async () => {
     put('pb_hooks/a.pb.js', 'A')
     const store = createDeployStore(storeDir, instanceDir)

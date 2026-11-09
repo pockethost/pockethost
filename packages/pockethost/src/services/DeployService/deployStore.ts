@@ -93,7 +93,17 @@ export const planDeploy = (manifest: Manifest, current: Map<string, { hash: stri
   return { toWrite: toWrite.sort(), toDelete: toDelete.sort(), unchanged }
 }
 
-export const createDeployStore = (root: string, instanceDir: string) => {
+export type DeployStoreOptions = {
+  /**
+   * Code-set paths PocketHost bind-mounts into the container read-only (`instance-app` hooks and migrations, e.g.
+   * `pb_hooks/_ph_backup.pb.js`). Docker leaves an empty placeholder file at each one in the instance dir. They aren't
+   * the customer's files, so a deploy never compares against them or deletes them.
+   */
+  platformPaths?: ReadonlySet<string>
+}
+
+export const createDeployStore = (root: string, instanceDir: string, storeOpts: DeployStoreOptions = {}) => {
+  const platformPaths = storeOpts.platformPaths ?? new Set<string>()
   const blobsDir = join(root, 'blobs')
   const manifestsDir = join(root, 'manifests')
   const tmpDir = join(root, 'tmp')
@@ -171,7 +181,7 @@ export const createDeployStore = (root: string, instanceDir: string) => {
           if (isCodePath(`${rel}/x`)) await walk(fsPath)
           continue
         }
-        if (!st.isFile() || !isCodePath(rel)) continue
+        if (!st.isFile() || !isCodePath(rel) || platformPaths.has(rel)) continue
         files.set(rel, { fsPath, size: st.size, hash: await hashWithCache(fsPath, st.size, st.mtimeMs) })
       }
     }
