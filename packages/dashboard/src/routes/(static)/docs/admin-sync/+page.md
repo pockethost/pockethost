@@ -27,3 +27,5 @@ If admin login fails after such a launch, or you changed your pockethost.io pass
 ![](admin-sync-off.png)
 
 When Admin Sync is disabled, your pockethost.io credentials will no longer be copied to your instance in future launches.
+
+Admin Sync runs from a small hook PocketHost adds to every instance. See [What PocketHost Adds](/docs/whats-added).

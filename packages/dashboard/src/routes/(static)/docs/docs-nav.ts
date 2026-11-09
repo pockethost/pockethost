@@ -41,6 +41,7 @@ export const docsNav: DocNavSection[] = [
       { slug: 'encryption', title: 'Settings Encryption' },
       { slug: 'cors', title: 'CORS Origins' },
       { slug: 'admin-sync', title: 'Admin Sync' },
+      { slug: 'whats-added', title: 'What PocketHost Adds' },
       { slug: 'dev-mode', title: 'Dev Mode' },
     ],
   },
