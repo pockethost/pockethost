@@ -128,7 +128,7 @@ In the Cloudflare dashboard for your zone, add a **Cache Rule**:
 Scope to your hostname when possible (mothership or instance custom domain):
 
 ```
-(http.host eq "pockethost-central.pockethost.io") and (
+(http.host eq "mothership.pockethost.io") and (
   (http.request.uri.path eq "/_/extensions.js") or
   (http.request.uri.path wildcard r"/_/extensions/*")
 )

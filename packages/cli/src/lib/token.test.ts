@@ -81,9 +81,7 @@ describe('findInstance', () => {
       /not found, or your token can't access it/
     )
     const [url, init] = fetchMock.mock.calls[0] as unknown as [URL, RequestInit]
-    expect(`${url}`).toBe(
-      'https://pockethost-central.pockethost.io/api/pat/instances'
-    )
+    expect(`${url}`).toBe('https://mothership.pockethost.io/api/pat/instances')
     expect((init.headers as Record<string, string>).Authorization).toBe(
       'Bearer env-pat'
     )
@@ -117,7 +115,7 @@ describe('INSTANCE_URL', () => {
     expect(INSTANCE_URL('myapp')).toBe('https://myapp.pockethost.io')
     expect(INSTANCE_URL('app.example.com')).toBe('https://app.example.com')
     process.env.POCKETHOST_MOTHERSHIP_URL =
-      'http://pockethost-central.pockethost.lvh.me:8080'
+      'http://mothership.pockethost.lvh.me:8080'
     expect(INSTANCE_URL('myapp')).toBe('http://myapp.pockethost.lvh.me:8080')
   })
 })

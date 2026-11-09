@@ -99,7 +99,7 @@ export const CLI_HOME = (...paths: string[]) => {
 
 export const MOTHERSHIP_URL = (...paths: string[]) => {
   const url = new URL(
-    envVar('MOTHERSHIP_URL') ?? `https://pockethost-central.pockethost.io`
+    envVar('MOTHERSHIP_URL') ?? `https://mothership.pockethost.io`
   )
   url.pathname = join(url.pathname, ...paths)
   return url.toString()

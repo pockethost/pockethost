@@ -2,6 +2,14 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.2.2
+
+### Patch Changes
+
+- The CLI talks to `https://mothership.pockethost.io` by default (PocketHost's API has a new name). The old
+  `pockethost-central.pockethost.io` keeps working, so older versions are unaffected. `POCKETHOST_MOTHERSHIP_URL`
+  still overrides it.
+
 ## 4.2.1
 
 ### Patch Changes

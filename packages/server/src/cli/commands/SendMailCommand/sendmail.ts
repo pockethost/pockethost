@@ -135,7 +135,7 @@ export const SendMailCommand = () =>
               body: {
                 to: user.email,
                 subject,
-                body: `${body}<hr/>[[<a href="https://pockethost-central.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
+                body: `${body}<hr/>[[<a href="https://mothership.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
               },
             })) as { status?: string; reason?: string }
 

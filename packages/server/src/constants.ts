@@ -67,7 +67,7 @@ export const _HTTP_PROTOCOL = env
   .get('HTTP_PROTOCOL')
   .default(_IS_DEV ? 'http:' : 'https:')
   .asString()
-export const _MOTHERSHIP_NAME = env.get('MOTHERSHIP_NAME').default('pockethost-central').asString()
+export const _MOTHERSHIP_NAME = env.get('MOTHERSHIP_NAME').default('mothership').asString()
 
 export const _MOTHERSHIP_APP_ROOT = (...paths: string[]) =>
   join(env.get('PH_MOTHERSHIP_APP_ROOT').default(join(__dirname, 'mothership-app')).asString(), ...paths)

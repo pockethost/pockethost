@@ -36,7 +36,7 @@ Use **HTTPS** in the browser (secure context for Web Crypto, cookies, etc.):
 
 - `https://pockethost.lvh.me` — marketing/blog + dashboard (apex)
 - `https://app.pockethost.lvh.me` — dashboard (app subdomain)
-- `https://pockethost-central.pockethost.lvh.me` — mothership API
+- `https://mothership.pockethost.lvh.me` — mothership API
 - `https://*.pockethost.lvh.me` — instance workers (fall-through to edge daemon)
 
 Do **not** use `http://pockethost.lvh.me:5174` for normal dev. That bypasses the firewall and is not a secure context.

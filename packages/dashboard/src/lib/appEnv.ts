@@ -14,8 +14,7 @@ export const PUBLIC_APP_URL = import.meta.env.PUBLIC_APP_URL || `https://${PUBLI
 export const PUBLIC_HTTP_PROTOCOL = import.meta.env.PUBLIC_HTTP_PROTOCOL || `https:`
 
 // The complete URL to the mothership
-export const PUBLIC_MOTHERSHIP_URL =
-  import.meta.env.PUBLIC_MOTHERSHIP_URL || `https://pockethost-central.${PUBLIC_APEX_DOMAIN}`
+export const PUBLIC_MOTHERSHIP_URL = import.meta.env.PUBLIC_MOTHERSHIP_URL || `https://mothership.${PUBLIC_APEX_DOMAIN}`
 
 // Whether we are in debugging mode - default TRUE
 export const PUBLIC_DEBUG = parseBoolean(import.meta.env.PUBLIC_DEBUG || 'true')
