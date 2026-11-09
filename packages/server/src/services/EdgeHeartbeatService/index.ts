@@ -51,11 +51,11 @@ export const EdgeHeartbeatService = mkSingleton(async (config: EdgeHeartbeatServ
 
   void push()
 
-  // A clean shutdown tells the other edges right away, so they stop holding requests for this one.
+  // A shutdown just stops heartbeats. A restart is the common case, and other edges hold requests through it; an edge
+  // that stays silent past the healthy window (30 s) is treated as down.
   asyncExitHook(async () => {
     clearInterval(timer)
-    await push('offline')
-  }, 3000)
+  }, 1000)
 
   return {
     stop: () => clearInterval(timer),

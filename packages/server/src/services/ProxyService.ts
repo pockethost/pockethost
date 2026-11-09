@@ -120,6 +120,16 @@ export const proxyService = mkSingleton(
 
     server.use('/_api/daemon', apiRouter)
 
+    // Until instances can be served (mirror loaded, instance routes mounted), drop the connection instead of answering
+    // 404. Firewalls treat a dropped connection as "daemon restarting" and hold the request until the health check is ok.
+    server.use((req, _res, next) => {
+      if (!instanceTrafficReady) {
+        req.socket.destroy()
+        return
+      }
+      next()
+    })
+
     // Default locals
     server.use((req, res, next) => {
       const host = req.headers.host
