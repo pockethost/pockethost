@@ -44,6 +44,7 @@ export type UserFields<TExtra = {}> = BaseFields & {
   object_storage_used: number
   /** When the over-limit sweep first saw more instances running than the plan includes. Empty when within it. */
   over_limit_since?: string
+  lapsed_since?: string
   /** Account-level IPs trusted for higher firewall rate limits. */
   trusted_ips?: string[] | null
   suspension: string
