@@ -34,9 +34,8 @@ export type FirewallOptions = {
 export const firewall = async ({ logger }: FirewallOptions) => {
   const { dbg, info, error } = logger.create(`firewall`)
 
-  const PROD_ROUTES = {
-    [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
-  }
+  // In production the mothership is reached through its own Cloudflare Tunnel, never through an edge firewall.
+  const PROD_ROUTES: Record<string, string> = {}
   const DEV_ROUTES = {
     [`mail.${APEX_DOMAIN()}`]: `http://localhost:${1080}`,
     [`${MOTHERSHIP_NAME()}.${APEX_DOMAIN()}`]: `http://localhost:${MOTHERSHIP_PORT()}`,
