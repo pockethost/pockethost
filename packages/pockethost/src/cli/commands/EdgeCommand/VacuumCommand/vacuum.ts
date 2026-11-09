@@ -1,4 +1,5 @@
 import {
+  DATA_ROOT,
   DISCORD_HEALTH_CHANNEL_URL,
   INSTANCES_ROOT,
   IS_DEV,
@@ -16,9 +17,10 @@ import {
 } from '@'
 import Bottleneck from 'bottleneck'
 import { execFileSync, execSync } from 'child_process'
-import { existsSync, globSync, statSync, statfsSync } from 'fs'
+import { existsSync, globSync, mkdirSync, statSync, statfsSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import { assertVacuumClientReady, lockInstance, unlockInstance } from './edgeVacuumClient'
+import { checkVacuumBudget } from './vacuumBudget'
 
 const INSTANCE_DB_NAMES = [`data`, `logs`] as const
 
@@ -81,28 +83,44 @@ const formatExecError = (e: unknown): string => {
   return lines.join(` | `) || err.message || String(e)
 }
 
-const hasDiskBudget = (dbPath: string): { ok: boolean; detail?: string } => {
+/**
+ * Where SQLite writes VACUUM's temporary copy. Without this it uses /var/tmp, which is on the (small) root disk, not
+ * the data volume: on 2026-11-09 one vacuum's 17.6 GB temp file took root to 92%. Keeping it next to the data means the
+ * budget check below measures the disk that actually fills.
+ */
+const vacuumTmpDir = (): string => {
+  const dir = DATA_ROOT(`tmp`, `vacuum`)
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+const hasDiskBudget = (dbPath: string, tmpDir: string): { ok: boolean; detail?: string } => {
   const size = fileSizeBytes(dbPath)
   if (size === 0) return { ok: false, detail: `missing` }
 
-  const free = freeDiskBytes(dbPath)
-  if (free === undefined) return { ok: true }
-  if (free >= size) return { ok: true }
+  const free = freeDiskBytes(tmpDir)
+  const budget = checkVacuumBudget(size, free)
+  if (budget.ok) return { ok: true }
 
   return {
     ok: false,
-    detail: `need ${formatBytes(size)} free, have ${formatBytes(free)}`,
+    detail: `need ${formatBytes(budget.neededBytes)} free, have ${formatBytes(free ?? 0)}`,
   }
 }
 
 export const vacuumSqliteFile = async (dbPath: string): Promise<VacuumResult> => {
   const beforeBytes = fileSizeBytes(dbPath)
-  const disk = hasDiskBudget(dbPath)
+  const tmpDir = vacuumTmpDir()
+  const disk = hasDiskBudget(dbPath, tmpDir)
   if (!disk.ok) {
     return { path: dbPath, beforeBytes, afterBytes: beforeBytes, skipped: disk.detail }
   }
 
-  execFileSync(`sqlite3`, [dbPath, `PRAGMA wal_checkpoint(TRUNCATE); VACUUM;`], { encoding: `utf8`, stdio: `pipe` })
+  execFileSync(`sqlite3`, [dbPath, `PRAGMA wal_checkpoint(TRUNCATE); VACUUM;`], {
+    encoding: `utf8`,
+    stdio: `pipe`,
+    env: { ...process.env, SQLITE_TMPDIR: tmpDir },
+  })
 
   return { path: dbPath, beforeBytes, afterBytes: fileSizeBytes(dbPath) }
 }
