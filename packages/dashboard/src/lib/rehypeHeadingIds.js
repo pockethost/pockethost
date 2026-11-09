@@ -1,8 +1,7 @@
 // @ts-nocheck
 import { visit } from 'unist-util-visit'
 
-const textOf = (node) =>
-  node.type === 'text' ? node.value : (node.children || []).map(textOf).join('')
+const textOf = (node) => (node.type === 'text' ? node.value : (node.children || []).map(textOf).join(''))
 
 /** `## Disk storage` → `disk-storage`, matching GitHub-style anchors. */
 export const slugify = (text) =>
