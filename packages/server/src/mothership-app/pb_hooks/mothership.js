@@ -2249,6 +2249,28 @@ const isRecurringSku = (sku) => {
 	return interval === "month" || interval === "year";
 };
 /** Map an LS subscription to a billing item. Undefined for unmapped variants. */
+/**
+* Whether an LS subscription resource carries its product and variant. During checkout LS sends an early
+* `subscription_updated` for the new subscription with product, variant and order still null; the full subscription
+* must be fetched (or the event skipped) instead of treating it as an unknown variant.
+*/
+const isCompleteLsSubscription = (sub) => !!sub && !!sub.attributes?.product_id && !!sub.attributes?.variant_id;
+/** LS dispute events (chargebacks): alerted, not applied to billing. */
+const isLsDisputeEvent = (eventName) => !!eventName && eventName.startsWith("dispute_");
+/** One-line Discord summary of an LS dispute event, from whatever fields the payload carries. */
+const lsDisputeSummary = (eventName, data) => {
+	const a = data?.attributes || {};
+	const amount = typeof a.amount === "number" ? `${(a.amount / 100).toFixed(2)} ${`${a.currency || ""}`.toUpperCase()}`.trim() : a.amount_formatted || "";
+	return [
+		`Lemon Squeezy ${eventName.replace("_", " ")}`,
+		data?.id !== void 0 ? `#${data.id}` : "",
+		a.order_id ? `order ${a.order_id}` : "",
+		amount,
+		a.status ? `status ${a.status}` : "",
+		a.reason ? `reason: ${a.reason}` : "",
+		a.user_email ? `(${a.user_email})` : ""
+	].filter(Boolean).join(" · ");
+};
 const billingItemFromLsSubscription = (sub) => {
 	const attrs = sub.attributes || {};
 	const entitlement = entitlementFromPvId(pvIdOf(attrs), attrs.first_subscription_item?.quantity || 1);
@@ -3311,7 +3333,12 @@ const HandleLemonSqueezySale = (e) => {
 		/** Resolve the LS subscriptions this event is about, plus a lifetime order item if any. */
 		const resolveResources = () => {
 			switch (context.type) {
-				case `subscriptions`: return { subscriptions: [payload.data] };
+				case `subscriptions`: {
+					const sub = payload.data;
+					if (isCompleteLsSubscription(sub)) return { subscriptions: [sub] };
+					const full = lsSubscription(sub.id);
+					return { subscriptions: isCompleteLsSubscription(full) ? [full] : [] };
+				}
 				case `subscription-invoices`: return { subscriptions: [lsSubscription(attrs.subscription_id)] };
 				case `orders`: {
 					const order = payload.data;
@@ -3329,6 +3356,23 @@ const HandleLemonSqueezySale = (e) => {
 				default: return { subscriptions: [] };
 			}
 		};
+		if (isLsDisputeEvent(context.event_name)) {
+			const summary = lsDisputeSummary(context.event_name, payload.data);
+			const url = process.env.DISCORD_STREAM_CHANNEL_URL;
+			if (url) try {
+				$http.send({
+					url,
+					method: `POST`,
+					body: JSON.stringify({ content: `:warning: ${summary}` }),
+					headers: { "content-type": `application/json` },
+					timeout: 5
+				});
+			} catch (err) {
+				log(`dispute discord alert failed`, `${err}`);
+			}
+			audit(`LS`, `${summary}.`, context);
+			return e.json(200, { status: `ok` });
+		}
 		if (![
 			`subscriptions`,
 			`subscription-invoices`,
@@ -3338,6 +3382,10 @@ const HandleLemonSqueezySale = (e) => {
 			return e.json(200, { status: `ignored` });
 		}
 		const { subscriptions, order } = resolveResources();
+		if (context.type === `subscriptions` && !subscriptions.length) {
+			audit(`LS`, `Skipped ${context.event_name}: subscription ${context.resource_id} not complete yet.`, context);
+			return e.json(200, { status: `ignored` });
+		}
 		const first = subscriptions[0];
 		const firstAttrs = first?.attributes || {};
 		context.product_name = order?.product_name || firstAttrs.product_name || attrs.product_name || ``;

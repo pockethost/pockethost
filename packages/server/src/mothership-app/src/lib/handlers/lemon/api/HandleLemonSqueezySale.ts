@@ -1,6 +1,9 @@
 import {
   billingItemFromLsOrder,
+  isCompleteLsSubscription,
+  isLsDisputeEvent,
   isRecurringLsOrder,
+  lsDisputeSummary,
   type BillingItem,
   type LsOrderResource,
   type LsSubscriptionResource,
@@ -79,8 +82,14 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     /** Resolve the LS subscriptions this event is about, plus a lifetime order item if any. */
     const resolveResources = (): { subscriptions: LsSubscriptionResource[]; order?: BillingItem } => {
       switch (context.type) {
-        case `subscriptions`:
-          return { subscriptions: [payload.data as LsSubscriptionResource] }
+        case `subscriptions`: {
+          const sub = payload.data as LsSubscriptionResource
+          if (isCompleteLsSubscription(sub)) return { subscriptions: [sub] }
+          // During checkout LS sends an early subscription_updated with product/variant/order still null. Read the
+          // subscription as LS has it now; if it is still incomplete, subscription_created will follow with it.
+          const full = lsSubscription(sub.id)
+          return { subscriptions: isCompleteLsSubscription(full) ? [full] : [] }
+        }
         case `subscription-invoices`:
           return { subscriptions: [lsSubscription(attrs.subscription_id)] }
         case `orders`: {
@@ -101,12 +110,37 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       }
     }
 
+    if (isLsDisputeEvent(context.event_name)) {
+      // Chargebacks: billing follows from the order/subscription events; here someone needs to know.
+      const summary = lsDisputeSummary(context.event_name!, payload.data)
+      const url = process.env.DISCORD_STREAM_CHANNEL_URL
+      if (url) {
+        try {
+          $http.send({
+            url,
+            method: `POST`,
+            body: JSON.stringify({ content: `:warning: ${summary}` }),
+            headers: { 'content-type': `application/json` },
+            timeout: 5,
+          })
+        } catch (err) {
+          log(`dispute discord alert failed`, `${err}`)
+        }
+      }
+      audit(`LS`, `${summary}.`, context)
+      return e.json(200, { status: `ok` })
+    }
+
     if (![`subscriptions`, `subscription-invoices`, `orders`].includes(context.type)) {
       audit(`LS`, `Ignored unsupported event ${context.event_name} (${context.type}).`, context)
       return e.json(200, { status: `ignored` })
     }
 
     const { subscriptions, order } = resolveResources()
+    if (context.type === `subscriptions` && !subscriptions.length) {
+      audit(`LS`, `Skipped ${context.event_name}: subscription ${context.resource_id} not complete yet.`, context)
+      return e.json(200, { status: `ignored` })
+    }
     const first = subscriptions[0]
     const firstAttrs = (first?.attributes || {}) as Record<string, any>
     context.product_name = order?.product_name || firstAttrs.product_name || attrs.product_name || ``

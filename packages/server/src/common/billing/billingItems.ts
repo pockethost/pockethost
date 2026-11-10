@@ -185,6 +185,39 @@ export type LsOrderResource = {
 }
 
 /** Map an LS subscription to a billing item. Undefined for unmapped variants. */
+/**
+ * Whether an LS subscription resource carries its product and variant. During checkout LS sends an early
+ * `subscription_updated` for the new subscription with product, variant and order still null; the full subscription
+ * must be fetched (or the event skipped) instead of treating it as an unknown variant.
+ */
+export const isCompleteLsSubscription = (sub: LsSubscriptionResource | undefined): boolean =>
+  !!sub && !!sub.attributes?.product_id && !!sub.attributes?.variant_id
+
+/** LS dispute events (chargebacks): alerted, not applied to billing. */
+export const isLsDisputeEvent = (eventName: string | undefined) => !!eventName && eventName.startsWith('dispute_')
+
+/** One-line Discord summary of an LS dispute event, from whatever fields the payload carries. */
+export const lsDisputeSummary = (
+  eventName: string,
+  data: { id?: string | number; attributes?: Record<string, any> } | undefined
+) => {
+  const a = data?.attributes || {}
+  const amount =
+    typeof a.amount === 'number'
+      ? `${(a.amount / 100).toFixed(2)} ${`${a.currency || ''}`.toUpperCase()}`.trim()
+      : a.amount_formatted || ''
+  const parts = [
+    `Lemon Squeezy ${eventName.replace('_', ' ')}`,
+    data?.id !== undefined ? `#${data.id}` : '',
+    a.order_id ? `order ${a.order_id}` : '',
+    amount,
+    a.status ? `status ${a.status}` : '',
+    a.reason ? `reason: ${a.reason}` : '',
+    a.user_email ? `(${a.user_email})` : '',
+  ]
+  return parts.filter(Boolean).join(' · ')
+}
+
 export const billingItemFromLsSubscription = (sub: LsSubscriptionResource): BillingItem | undefined => {
   const attrs = sub.attributes || {}
   const pvId = pvIdOf(attrs)
