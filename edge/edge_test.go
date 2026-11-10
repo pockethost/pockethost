@@ -397,3 +397,31 @@ func TestLoadEnvFileInlineComments(t *testing.T) {
 		t.Fatalf("got %q %q %q", os.Getenv("A_PORT"), os.Getenv("B_URL"), os.Getenv("C"))
 	}
 }
+
+func TestHostClaimsFollowNodePriority(t *testing.T) {
+	s := NewSource(testCfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	owner := userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1}
+	s.loadDumpLocked(&dump{
+		Users: []userRec{owner},
+		Instances: []instanceRec{
+			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", Updated: "1"},
+			// subdomain equal to the other instance's id: the subdomain wins that host
+			{ID: "bbbbbbbbbbbbbbb", Subdomain: "aaaaaaaaaaaaaaa", UID: "u1", Power: true, Edge: "E_SGP", Updated: "1"},
+			// two claims on one custom domain: the most recently updated wins
+			{ID: "ccccccccccccccc", Subdomain: "c-old", Cname: "dup.example.com", UID: "u1", Power: true, Edge: "E_SGP", Updated: "1"},
+			{ID: "ddddddddddddddd", Subdomain: "d-new", Cname: "dup.example.com", UID: "u1", Power: true, Edge: "E_SGP", Updated: "2"},
+		},
+		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}},
+	})
+	s.diffLocked(context.Background(), nil)
+	hostsOf := func(id string) string { return strings.Join(s.emitted[id].Hosts, ",") }
+	if got := hostsOf("aaaaaaaaaaaaaaa"); got != "shop.pockethost.io" {
+		t.Errorf("a keeps its subdomain only: %s", got)
+	}
+	if got := hostsOf("bbbbbbbbbbbbbbb"); got != "aaaaaaaaaaaaaaa.pockethost.io,bbbbbbbbbbbbbbb.pockethost.io" {
+		t.Errorf("b wins a's id host through its subdomain: %s", got)
+	}
+	if strings.Contains(hostsOf("ccccccccccccccc"), "dup.example.com") || !strings.Contains(hostsOf("ddddddddddddddd"), "dup.example.com") {
+		t.Errorf("custom domain should go to the newer instance: c=%s d=%s", hostsOf("ccccccccccccccc"), hostsOf("ddddddddddddddd"))
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,6 +28,7 @@ type Source struct {
 	myEdge    string
 	logins    map[string]loginCache      // by user id
 	emitted   map[string]pocker.Instance // what Pocker currently has
+	claims    map[string]string          // host -> instance id, by the Node edge's priority (cname > subdomain > id)
 	lastDrift time.Time
 
 	out chan pocker.Change
@@ -45,7 +47,7 @@ func NewSource(cfg Config, log *slog.Logger) *Source {
 	return &Source{
 		cfg: cfg, c: newClient(cfg.MothershipURL, cfg.AdminUser, cfg.AdminPassword), log: log,
 		users: map[string]userRec{}, instances: map[string]instanceRec{}, edges: map[string]edgeRec{},
-		logins: map[string]loginCache{}, emitted: map[string]pocker.Instance{},
+		logins: map[string]loginCache{}, emitted: map[string]pocker.Instance{}, claims: map[string]string{},
 		out: make(chan pocker.Change, 256),
 	}
 }
@@ -79,6 +81,7 @@ func (s *Source) loadDumpLocked(d *dump) {
 		s.edges[e.ID] = e
 	}
 	s.resolveMyEdgeLocked()
+	s.rebuildClaimsLocked()
 }
 
 func (s *Source) resolveMyEdgeLocked() bool {
@@ -120,7 +123,61 @@ func (s *Source) computeLocked(ctx context.Context, id string) (pocker.Instance,
 	if u, ok := s.users[inst.UID]; ok {
 		owner = &u
 	}
-	return mapInstance(s.cfg, inst, owner, s.myEdge, s.ownerLoginLocked(ctx))
+	p, ok := mapInstance(s.cfg, inst, owner, s.myEdge, s.ownerLoginLocked(ctx))
+	if ok {
+		// keep only the hosts this instance wins (two instances can claim one name, e.g. a subdomain equal to
+		// another instance's id)
+		kept := p.Hosts[:0]
+		for _, h := range p.Hosts {
+			if s.claims[h] == id {
+				kept = append(kept, h)
+			}
+		}
+		p.Hosts = kept
+	}
+	return p, ok
+}
+
+// rebuildClaimsLocked decides which instance owns each host: a custom domain beats a subdomain, which beats
+// <id>.<apex>; between equals, the most recently updated instance wins. Returns the ids whose hosts changed.
+func (s *Source) rebuildClaimsLocked() map[string]bool {
+	type claim struct {
+		id, updated string
+		rank        int
+	}
+	best := map[string]claim{}
+	offer := func(host string, c claim) {
+		if b, ok := best[host]; !ok || c.rank > b.rank || c.rank == b.rank && (c.updated > b.updated || c.updated == b.updated && c.id < b.id) {
+			best[host] = c
+		}
+	}
+	for id, inst := range s.instances {
+		if c := strings.ToLower(strings.TrimSpace(inst.Cname)); c != "" {
+			offer(c, claim{id, inst.Updated, 3})
+		}
+		if inst.Subdomain != "" {
+			offer(inst.Subdomain+"."+s.cfg.ApexDomain, claim{id, inst.Updated, 2})
+		}
+		offer(id+"."+s.cfg.ApexDomain, claim{id, inst.Updated, 1})
+	}
+	changed := map[string]bool{}
+	next := make(map[string]string, len(best))
+	for h, c := range best {
+		next[h] = c.id
+		if s.claims[h] != c.id {
+			changed[c.id] = true
+			if prev := s.claims[h]; prev != "" {
+				changed[prev] = true
+			}
+		}
+	}
+	for h, id := range s.claims {
+		if _, ok := next[h]; !ok {
+			changed[id] = true
+		}
+	}
+	s.claims = next
+	return changed
 }
 
 // diffLocked recomputes the given instance ids (nil = all) and returns the changes against what Pocker has.
@@ -251,7 +308,13 @@ func (s *Source) applyEvent(ctx context.Context, ev realtimeEvent) {
 		} else {
 			s.instances[r.ID] = r
 		}
-		changes = s.diffLocked(ctx, []string{r.ID})
+		ids := []string{r.ID}
+		for id := range s.rebuildClaimsLocked() {
+			if id != r.ID {
+				ids = append(ids, id)
+			}
+		}
+		changes = s.diffLocked(ctx, ids)
 	case "users/*", "users":
 		var r userRec
 		if json.Unmarshal(msg.Record, &r) != nil || r.ID == "" {
@@ -331,6 +394,9 @@ func (s *Source) driftLoop(ctx context.Context) {
 				s.users[r.ID] = r
 				ids = append(ids, s.instanceIDsOfLocked(r.ID)...)
 			}
+		}
+		for id := range s.rebuildClaimsLocked() {
+			ids = append(ids, id)
 		}
 		changes := s.diffLocked(ctx, ids)
 		s.lastDrift = started

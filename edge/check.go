@@ -31,7 +31,7 @@ func Check(ctx context.Context, cfg Config) (*CheckReport, error) {
 		if u, ok := s.users[inst.UID]; ok {
 			owner = &u
 		}
-		p, ok := mapInstance(cfg, inst, owner, s.myEdge, nil) // no owner-login fetches
+		p, ok := mapInstance(cfg, inst, owner, s.myEdge, nil) // no owner-login fetches; host claims don't matter here
 		if !ok {
 			rep.NotServed++
 			continue
