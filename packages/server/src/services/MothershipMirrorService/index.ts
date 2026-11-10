@@ -27,6 +27,7 @@ import {
   toPbDate,
   type MirrorDrift,
 } from './drift'
+import { retryUntilSuccess } from './retry'
 
 export type MirrorLiveInstance = {
   id: InstanceId
@@ -270,26 +271,34 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   }
 
   let bootSyncDone = false
+  let bootSyncInFlight: Promise<void> | undefined
   let resolveReady!: () => void
-  let rejectReady!: (reason: unknown) => void
-  const whenReady = new Promise<void>((resolve, reject) => {
+  /** Resolves once the boot sync succeeds. It never rejects: the boot sync retries until the mothership answers. */
+  const whenReady = new Promise<void>((resolve) => {
     resolveReady = resolve
-    rejectReady = reject
   })
 
+  /**
+   * First full sync. Retries with backoff (1s doubling to 30s) until it succeeds, so an edge that starts while the
+   * mothership is down or erroring (e.g. mid-deploy) becomes ready on its own once it answers, instead of staying
+   * stuck.
+   */
   const bootSync = async (options: MirrorSyncOptions = {}) => {
     if (bootSyncDone) {
       return syncMirror(options)
     }
-    bootSyncDone = true
-    try {
-      await syncMirror(options)
-      resolveReady()
-    } catch (e) {
-      bootSyncDone = false
-      rejectReady(e)
-      throw e
+    if (!bootSyncInFlight) {
+      bootSyncInFlight = retryUntilSuccess(() => syncMirror(options), {
+        onError: (e, attempt, nextDelayMs) =>
+          error(`Mirror boot sync failed (attempt ${attempt}); retrying in ${Math.round(nextDelayMs / 1000)}s`, {
+            error: `${e}`,
+          }),
+      }).then(() => {
+        bootSyncDone = true
+        resolveReady()
+      })
     }
+    return bootSyncInFlight
   }
 
   /** Time of the last realtime message from the mothership, used to detect a stalled or blind stream. */
