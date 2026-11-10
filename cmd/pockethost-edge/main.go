@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -74,7 +75,7 @@ func main() {
 		source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
 		srv.Source = source
 		srv.SetupApp = edge.Setup(ecfg)
-		srv.Wrap = stats.Middleware
+		srv.Wrap = func(h http.Handler) http.Handler { return edge.NodeCompat(stats.Middleware(h)) }
 		slog.Info("pockethost-edge: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
 	}
 	if err := srv.Run(ctx); err != nil {

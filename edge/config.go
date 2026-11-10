@@ -51,6 +51,8 @@ func LoadEnvFile(path string) error {
 		v = strings.TrimSpace(v)
 		if len(v) >= 2 && (v[0] == '"' && v[len(v)-1] == '"' || v[0] == '\'' && v[len(v)-1] == '\'') {
 			v = v[1 : len(v)-1]
+		} else if i := strings.Index(v, " #"); i >= 0 {
+			v = strings.TrimSpace(v[:i]) // inline comment on an unquoted value
 		}
 		if _, set := os.LookupEnv(k); !set {
 			_ = os.Setenv(k, v)

@@ -309,6 +309,14 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		t.Errorf("backup with token: %d %s", c, b)
 	}
 
+	// the Node firewall's daemon health check
+	srvCompat := NodeCompat(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte(r.URL.Path)) }))
+	rec := httptest.NewRecorder()
+	srvCompat.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, DaemonHealthPath, nil))
+	if rec.Body.String() != pocker.HealthPath {
+		t.Errorf("daemon health path should map to Pocker's health, got %q", rec.Body.String())
+	}
+
 	// placement and blocked rules
 	if c, b := call("GET", "blog.pockethost.io", "/api/health", "", nil); c != 421 || !strings.Contains(b, "another PocketHost edge") {
 		t.Errorf("other edge: %d %s", c, b)
@@ -374,4 +382,18 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	// deleted instance: gone
 	f.push("instances", "delete", moved)
 	waitFor("deleted instance gone", func() bool { c, _ := call("GET", "blog.pockethost.io", "/api/health", "", nil); return c == 404 })
+}
+
+func TestLoadEnvFileInlineComments(t *testing.T) {
+	p := filepath.Join(t.TempDir(), ".env")
+	_ = os.WriteFile(p, []byte("A_PORT=8080 # FIXME 80\nB_URL=\"http://x # not a comment\"\n# whole line\nC=plain\n"), 0o644)
+	for _, k := range []string{"A_PORT", "B_URL", "C"} {
+		_ = os.Unsetenv(k)
+	}
+	if err := LoadEnvFile(p); err != nil {
+		t.Fatal(err)
+	}
+	if os.Getenv("A_PORT") != "8080" || os.Getenv("B_URL") != "http://x # not a comment" || os.Getenv("C") != "plain" {
+		t.Fatalf("got %q %q %q", os.Getenv("A_PORT"), os.Getenv("B_URL"), os.Getenv("C"))
+	}
 }
