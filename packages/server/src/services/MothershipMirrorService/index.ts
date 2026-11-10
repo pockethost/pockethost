@@ -10,6 +10,7 @@ import {
   LoggerService,
   mkSingleton,
   PH_EDGE_ID,
+  PH_MIRROR_CATCHUP_MAX_GAP_MS,
   PH_MIRROR_DRIFT_CHECK_MS,
   PH_MIRROR_STALL_MS,
   PocketBase,
@@ -18,7 +19,14 @@ import {
   UserFields,
   UserId,
 } from '@'
-import { findMirrorDrift, isOlderThanMirrored, toPbDate, type MirrorDrift } from './drift'
+import {
+  findDeletedIds,
+  findMirrorDrift,
+  isOlderThanMirrored,
+  reconnectPlan,
+  toPbDate,
+  type MirrorDrift,
+} from './drift'
 
 export type MirrorLiveInstance = {
   id: InstanceId
@@ -205,6 +213,62 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     dbg(`synced mirror: ${mirrorInstances.length} instances, ${users.length} users, ${updated} live`)
   }
 
+  /** When the realtime stream last dropped (undefined while connected). */
+  let disconnectedAt: number | undefined
+
+  /**
+   * Brings the mirror up to date after a realtime reconnect without a full dump: fetch the instances and users that
+   * changed since the stream dropped (plus the small edges list), and drop instances the mothership no longer has
+   * (deletes missed during the gap) using an id-only list. A gap longer than PH_MIRROR_CATCHUP_MAX_GAP_MS falls back to
+   * a full sync. `instances` (the daemon's live instances) are reported to the mothership without asking for a dump.
+   */
+  const catchUp = async (options: MirrorSyncOptions = {}) => {
+    const gapStart = Math.min(disconnectedAt ?? lastRealtimeAt, lastRealtimeAt)
+    disconnectedAt = undefined
+    const now = Date.now()
+    if (!initialSyncDone || reconnectPlan(gapStart, now, PH_MIRROR_CATCHUP_MAX_GAP_MS()) === 'full') {
+      info(`Mirror: full resync (gap ${Math.round((now - gapStart) / 1000)}s)`)
+      return syncMirror(options)
+    }
+
+    const live = options.instances ?? []
+    if (live.length > 0) {
+      await client.send(`/api/mirror`, { method: `POST`, body: { instances: live, dump: false } })
+    }
+
+    const filter = client.filter(`updated >= {:from}`, { from: toPbDate(gapStart - DRIFT_GRACE_MS) })
+    const [instances, users, edges, instanceIds] = await Promise.all([
+      client.collection(`instances`).getFullList<InstanceFields>({ filter, batch: 500 }),
+      client.collection(`users`).getFullList<UserFields>({ filter, batch: 500 }),
+      client.collection(`edges`).getFullList<EdgeFields>({ batch: 500 }),
+      client.collection(`instances`).getFullList<{ id: string }>({ fields: `id`, batch: 1000 }),
+    ])
+
+    const cutoff = toPbDate(Date.now() - DRIFT_GRACE_MS)
+    applyDrift(
+      `reconnect`,
+      findMirrorDrift((id) => mirror.instancesById[id], instances, cutoff),
+      findMirrorDrift((id) => mirror.users[id], users, cutoff)
+    )
+
+    mirror.edgesById = {}
+    edges.forEach(upsertEdge)
+
+    const deleted = findDeletedIds(
+      Object.keys(mirror.instancesById),
+      instanceIds.map((r) => r.id)
+    )
+    for (const id of deleted) {
+      warn(`Mirror drift (reconnect): deleted instance ${id}`)
+      deleteInstance(id)
+      fireInstanceDeleted(id)
+    }
+
+    info(
+      `Mirror caught up after reconnect (gap ${Math.round((now - gapStart) / 1000)}s): ${instances.length} instance(s), ${users.length} user(s) changed, ${deleted.length} deleted`
+    )
+  }
+
   let bootSyncDone = false
   let resolveReady!: () => void
   let rejectReady!: (reason: unknown) => void
@@ -235,6 +299,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
   // Fires on server closes (PocketBase force-closes every SSE connection after 30 min, or 5 min idle), mothership
   // restarts, and our own forced reconnects. Messages published while disconnected are lost; the resync below catches up.
   client.realtime.onDisconnect = (activeSubscriptions) => {
+    disconnectedAt ??= Date.now()
     info(`Realtime disconnected (${activeSubscriptions.length} active subscriptions)`)
   }
 
@@ -247,7 +312,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
           info(`Realtime connected`)
           return
         }
-        info(`Realtime reconnected; resyncing mirror`)
+        info(`Realtime reconnected; catching up`)
         fireResynced(undefined)
       }),
 
@@ -388,6 +453,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     onResynced,
     bootSync,
     syncMirror,
+    catchUp,
     whenReady,
     getInstances: () => Object.values(mirror.instancesById),
     /** Every known edge, as last reported by the mothership. */

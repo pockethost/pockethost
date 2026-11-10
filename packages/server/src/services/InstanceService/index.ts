@@ -197,7 +197,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
 
   mirror.onResynced(() => {
     getLiveInstances()
-      .then((instances) => mirror.syncMirror({ instances }))
+      .then((instances) => mirror.catchUp({ instances }))
       .catch((e) => {
         error(`Error syncing mirror after mothership reconnect`, { e })
       })

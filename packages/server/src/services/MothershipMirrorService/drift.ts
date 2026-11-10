@@ -48,3 +48,13 @@ export const findMirrorDrift = <T extends MirroredRecord>(
     if (mirrored.updated >= record.updated) return []
     return [{ record, kind: 'stale', changedKeys: changedKeys(mirrored, record) }]
   })
+
+/** How a reconnect brings the mirror up to date: only what changed during a short gap, a full dump after a long one. */
+export const reconnectPlan = (gapStartMs: number, nowMs: number, maxGapMs: number): 'incremental' | 'full' =>
+  maxGapMs > 0 && nowMs - gapStartMs <= maxGapMs ? 'incremental' : 'full'
+
+/** Ids the mirror holds that the mothership no longer has (deleted while the realtime stream was down). */
+export const findDeletedIds = (mirroredIds: Iterable<string>, currentIds: Iterable<string>): string[] => {
+  const current = new Set(currentIds)
+  return [...mirroredIds].filter((id) => !current.has(id))
+}

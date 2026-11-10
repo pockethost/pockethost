@@ -3541,6 +3541,7 @@ const HandleMirrorSync = (e) => {
 	const liveInstances = Array.isArray(body.instances) ? body.instances : [];
 	const updated = applyLiveInstances($app, liveInstances);
 	if (body.resetIdle || updated > 0) refreshAndBroadcastLivePlatformStats();
+	if (body.dump === false) return e.json(200, { updated });
 	return e.json(200, {
 		...buildMirrorDump($app),
 		updated

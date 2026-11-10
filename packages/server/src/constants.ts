@@ -97,6 +97,8 @@ export const createSettings = () => ({
   PH_MIRROR_DRIFT_CHECK_MS: mkNumber(60 * 1000),
   /** Force a realtime reconnect when no mothership event has arrived for this long while the mothership has changes. */
   PH_MIRROR_STALL_MS: mkNumber(10 * 60 * 1000),
+  /** A realtime gap up to this long is caught up incrementally; longer gaps (and boot) get a full mirror dump. */
+  PH_MIRROR_CATCHUP_MAX_GAP_MS: mkNumber(10 * 60 * 1000),
   PH_CONTAINER_STOP_TIMEOUT_SEC: mkNumber(5),
   PH_CONTAINER_NOFILE_SOFT: mkNumber(_PH_CONTAINER_NOFILE_SOFT),
   PH_CONTAINER_NOFILE_HARD: mkNumber(_PH_CONTAINER_NOFILE_HARD),
@@ -213,6 +215,7 @@ export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
 export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
 export const PH_MIRROR_DRIFT_CHECK_MS = () => settings().PH_MIRROR_DRIFT_CHECK_MS
 export const PH_MIRROR_STALL_MS = () => settings().PH_MIRROR_STALL_MS
+export const PH_MIRROR_CATCHUP_MAX_GAP_MS = () => settings().PH_MIRROR_CATCHUP_MAX_GAP_MS
 export const PH_CONTAINER_STOP_TIMEOUT_SEC = () => settings().PH_CONTAINER_STOP_TIMEOUT_SEC
 export const PH_CONTAINER_NOFILE_SOFT = () => settings().PH_CONTAINER_NOFILE_SOFT
 export const PH_CONTAINER_NOFILE_HARD = () => settings().PH_CONTAINER_NOFILE_HARD
@@ -341,6 +344,7 @@ export const logConstants = () => {
     PH_CONTAINER_LAUNCH_WARN_MS,
     PH_MIRROR_DRIFT_CHECK_MS,
     PH_MIRROR_STALL_MS,
+    PH_MIRROR_CATCHUP_MAX_GAP_MS,
     PH_CONTAINER_STOP_TIMEOUT_SEC,
     PH_CONTAINER_NOFILE_SOFT,
     PH_CONTAINER_NOFILE_HARD,

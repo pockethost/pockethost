@@ -17,5 +17,10 @@ export const HandleMirrorSync = (e: core.RequestEvent) => {
     refreshAndBroadcastLivePlatformStats()
   }
 
+  // `dump: false`: an edge reporting its live instances after a reconnect; it catches up on its own, incrementally.
+  if (body.dump === false) {
+    return e.json(200, { updated })
+  }
+
   return e.json(200, { ...buildMirrorDump($app), updated })
 }

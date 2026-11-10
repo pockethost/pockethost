@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { changedKeys, findMirrorDrift, isOlderThanMirrored, toPbDate } from './drift'
+import { changedKeys, findDeletedIds, findMirrorDrift, isOlderThanMirrored, reconnectPlan, toPbDate } from './drift'
 
 type Rec = { id: string; updated: string; power?: boolean; secrets?: Record<string, string>; status?: string }
 
@@ -75,5 +75,22 @@ describe('isOlderThanMirrored', () => {
   it('accepts when either side has no timestamp', () => {
     expect(isOlderThanMirrored({ id: 'a', updated: '' }, { id: 'a', updated: T0 })).toBe(false)
     expect(isOlderThanMirrored({ id: 'a', updated: T1 }, { id: 'a', updated: '' })).toBe(false)
+  })
+})
+
+describe('reconnectPlan', () => {
+  it('catches up incrementally after a short gap and fully after a long one', () => {
+    expect(reconnectPlan(1_000, 61_000, 10 * 60_000)).toBe('incremental')
+    expect(reconnectPlan(0, 10 * 60_000, 10 * 60_000)).toBe('incremental')
+    expect(reconnectPlan(0, 10 * 60_000 + 1, 10 * 60_000)).toBe('full')
+    expect(reconnectPlan(1_000, 2_000, 0)).toBe('full') // disabled
+  })
+})
+
+describe('findDeletedIds', () => {
+  it('returns mirrored ids the mothership no longer has', () => {
+    expect(findDeletedIds(['a', 'b', 'c'], ['a', 'c', 'd'])).toEqual(['b'])
+    expect(findDeletedIds([], ['a'])).toEqual([])
+    expect(findDeletedIds(['a'], [])).toEqual(['a'])
   })
 })
