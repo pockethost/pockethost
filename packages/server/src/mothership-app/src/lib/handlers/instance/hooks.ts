@@ -37,9 +37,9 @@ onRecordUpdate((e) => {
   e.next()
 }, 'instances')
 
-/** Region is fixed at creation */
-onRecordUpdate((e) => {
-  require(`${__hooks}/mothership`).BeforeUpdate_region(e)
+/** Only superusers move an instance to another edge (its region is the edge's region) */
+onRecordUpdateRequest((e) => {
+  require(`${__hooks}/mothership`).BeforeUpdateRequest_edge(e)
   e.next()
 }, 'instances')
 

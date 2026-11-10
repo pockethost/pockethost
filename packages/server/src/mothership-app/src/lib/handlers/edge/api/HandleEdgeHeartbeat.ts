@@ -21,10 +21,28 @@ export const HandleEdgeHeartbeat = (e: core.RequestEvent) => {
   record.set('last_seen', new Date().toISOString())
   // A clean shutdown reports `offline`, so other edges stop routing to it at once.
   record.set('status', body?.status === 'offline' ? 'offline' : 'online')
-  if (typeof body?.region === 'string' && body.region) record.set('region', body.region)
+  if (typeof body?.region === 'string' && /^[a-z][a-z0-9-]{1,14}$/.test(body.region)) {
+    ensureRegion(body.region)
+    record.set('region', body.region)
+  }
   if (typeof body?.internal_url === 'string') record.set('internal_url', body.internal_url)
   record.set('stats', stats)
   $app.save(record)
 
   return e.json(200, { ok: true, id: record.id })
+}
+
+/**
+ * A region reported by an edge for the first time gets a record named after its slug; superusers set the name and
+ * country in the admin.
+ */
+const ensureRegion = (slug: string) => {
+  try {
+    $app.findRecordById('regions', slug)
+  } catch {
+    const r = new Record($app.findCollectionByNameOrId('regions'))
+    r.set('id', slug)
+    r.set('name', slug)
+    $app.save(r)
+  }
 }

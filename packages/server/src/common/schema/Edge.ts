@@ -12,7 +12,7 @@ export type EdgeFields = BaseFields & {
   /** Stable name the edge reports (PH_EDGE_ID), e.g. `sfo`, `ams-1`. */
   edge_id: string
   label: string
-  /** Region the edge serves, e.g. `sfo`, `ams`. Customers pick a region; the mothership picks the edge. */
+  /** Region the edge serves: the slug (= id) of a `regions` record, e.g. `sfo`, `ams`. */
   region: string
   /** Where other edges reach this edge's daemon over the private network, e.g. `http://10.88.0.3:8080`. */
   internal_url: string

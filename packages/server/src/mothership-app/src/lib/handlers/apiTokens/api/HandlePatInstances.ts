@@ -20,6 +20,8 @@ export const HandlePatInstances = (e: core.RequestEvent) => {
   }
   const { result, user } = outcome
   const allowed = result.instanceIds === null ? null : new Set(result.instanceIds)
+  const edgeRegion: Record<string, string> = {}
+  for (const edge of $app.findAllRecords('edges')) if (edge) edgeRegion[edge.id] = edge.getString('region')
   const instances = $app
     .findRecordsByFilter('instances', 'uid = {:uid}', 'subdomain', 0, 0, { uid: user.id })
     .filter((r) => !!r && (allowed === null || allowed.has(r.id)))
@@ -30,7 +32,7 @@ export const HandlePatInstances = (e: core.RequestEvent) => {
       status: r!.getString('status'),
       power: r!.getBool('power'),
       version: r!.getString('version'),
-      region: r!.getString('region'),
+      region: edgeRegion[r!.getString('edge')] || 'sfo',
       dev: r!.getBool('dev'),
       syncAdmin: r!.getBool('syncAdmin'),
       autoVacuum: r!.getBool('autoVacuum'),

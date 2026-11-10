@@ -498,6 +498,8 @@ const HandlePatInstances = (e) => {
 	});
 	const { result, user } = outcome;
 	const allowed = result.instanceIds === null ? null : new Set(result.instanceIds);
+	const edgeRegion = {};
+	for (const edge of $app.findAllRecords("edges")) if (edge) edgeRegion[edge.id] = edge.getString("region");
 	const instances = $app.findRecordsByFilter("instances", "uid = {:uid}", "subdomain", 0, 0, { uid: user.id }).filter((r) => !!r && (allowed === null || allowed.has(r.id))).map((r) => ({
 		id: r.id,
 		subdomain: r.getString("subdomain"),
@@ -505,7 +507,7 @@ const HandlePatInstances = (e) => {
 		status: r.getString("status"),
 		power: r.getBool("power"),
 		version: r.getString("version"),
-		region: r.getString("region"),
+		region: edgeRegion[r.getString("edge")] || "sfo",
 		dev: r.getBool("dev"),
 		syncAdmin: r.getBool("syncAdmin"),
 		autoVacuum: r.getBool("autoVacuum"),
@@ -1209,7 +1211,10 @@ const HandleEdgeHeartbeat = (e) => {
 	}
 	record.set("last_seen", (/* @__PURE__ */ new Date()).toISOString());
 	record.set("status", body?.status === "offline" ? "offline" : "online");
-	if (typeof body?.region === "string" && body.region) record.set("region", body.region);
+	if (typeof body?.region === "string" && /^[a-z][a-z0-9-]{1,14}$/.test(body.region)) {
+		ensureRegion(body.region);
+		record.set("region", body.region);
+	}
 	if (typeof body?.internal_url === "string") record.set("internal_url", body.internal_url);
 	record.set("stats", stats);
 	$app.save(record);
@@ -1217,6 +1222,20 @@ const HandleEdgeHeartbeat = (e) => {
 		ok: true,
 		id: record.id
 	});
+};
+/**
+* A region reported by an edge for the first time gets a record named after its slug; superusers set the name and
+* country in the admin.
+*/
+const ensureRegion = (slug) => {
+	try {
+		$app.findRecordById("regions", slug);
+	} catch {
+		const r = new Record($app.findCollectionByNameOrId("regions"));
+		r.set("id", slug);
+		r.set("name", slug);
+		$app.save(r);
+	}
 };
 
 //#endregion
@@ -1474,6 +1493,11 @@ const HandleInstanceCreate = (e) => {
 	if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
 	assertCanCreateInstance(caller.userId);
 	if (!isRegionName(region)) throw new BadRequestError(`Unknown region ${region}.`);
+	try {
+		$app.findRecordById("regions", region);
+	} catch {
+		throw new BadRequestError(`Unknown region ${region}.`);
+	}
 	const edges = $app.findRecordsByFilter("edges", "region = {:region}", "", 0, 0, { region }).filter((r) => !!r).map((r) => ({
 		id: r.id,
 		region: r.getString("region"),
@@ -1492,7 +1516,6 @@ const HandleInstanceCreate = (e) => {
 	record.set("power", true);
 	record.set("status", "idle");
 	record.set("version", version);
-	record.set("region", region);
 	record.set("edge", edge.id);
 	record.set("dev", true);
 	record.set("syncAdmin", true);
@@ -1845,17 +1868,6 @@ const BeforeUpdate_cname = (e) => {
 };
 
 //#endregion
-//#region src/lib/handlers/instance/model/BeforeUpdate_region.ts
-/** A region is chosen once, at creation. It never changes afterwards (moves between edges keep the region). */
-const BeforeUpdate_region = (e) => {
-	const record = e.record;
-	if (!record) return;
-	const before = String(record.original().get("region") || "");
-	const after = String(record.get("region") || "");
-	if (before && after !== before) throw new BadRequestError(`An instance's region can't be changed after it is created.`);
-};
-
-//#endregion
 //#region src/lib/handlers/instance/model/BeforeUpdate_version.ts
 /** A version change must land on a selectable (0.23+) version. Instances that keep their version are not checked. */
 const BeforeUpdate_version = (e) => {
@@ -1869,6 +1881,18 @@ const BeforeUpdate_version = (e) => {
 		log(`[ERROR] ${msg}`);
 		throw new BadRequestError(msg);
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/instance/model/BeforeUpdateRequest_edge.ts
+/**
+* Only superusers move an instance to another edge (and so another region) through the records API; customers' instance
+* updates never touch `edge`. Moving an instance does not move its data: it stays on the old edge's disk.
+*/
+const BeforeUpdateRequest_edge = (e) => {
+	const record = e.record;
+	if (!record || e.hasSuperuserAuth()) return;
+	if (record.getString("edge") !== record.original().getString("edge")) throw new ForbiddenError(`Only a superuser can move an instance to another edge.`);
 };
 
 //#endregion
@@ -6228,8 +6252,8 @@ exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
 exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeCreate_version = BeforeCreate_version;
+exports.BeforeUpdateRequest_edge = BeforeUpdateRequest_edge;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
-exports.BeforeUpdate_region = BeforeUpdate_region;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
 exports.HandleApiTokenCreate = HandleApiTokenCreate;

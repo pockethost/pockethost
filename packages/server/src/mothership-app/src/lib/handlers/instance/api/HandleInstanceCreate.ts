@@ -44,6 +44,11 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
 
   // The customer picks the region; the mothership picks the edge inside it.
   if (!isRegionName(region)) throw new BadRequestError(`Unknown region ${region}.`)
+  try {
+    $app.findRecordById('regions', region)
+  } catch {
+    throw new BadRequestError(`Unknown region ${region}.`)
+  }
   const edges: PlacementEdge[] = $app
     .findRecordsByFilter('edges', 'region = {:region}', '', 0, 0, { region })
     .filter((r): r is models.Record => !!r)
@@ -68,7 +73,6 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
   record.set('power', true)
   record.set('status', 'idle')
   record.set('version', version)
-  record.set('region', region)
   record.set('edge', edge.id)
   record.set('dev', true)
   record.set('syncAdmin', true)

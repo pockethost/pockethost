@@ -62,8 +62,6 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   idleTtl: number
   /** Operator-only. `{ ip_hourly?, instance_hourly?, ip_concurrent?, instance_concurrent? }` via mothership admin. */
   firewall?: InstanceFirewall | null
-  /** Region the customer chose at creation; never changes. Empty on records from before regions (treated as `sfo`). */
-  region?: string
   /** The one edge that runs this instance (edges record id). Chosen by the mothership; hidden from customers. */
   edge?: string
 } & TExtra
