@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { EdgeFields } from '../../../../../common'
-import { decideRoute, edgeHeaders } from './edgeRouting'
+import { createStaleEdgeProbe, decideRoute, edgeHeaders } from './edgeRouting'
 
 const NOW = Date.parse('2026-11-09T19:00:00Z')
 const seen = (secondsAgo: number) => new Date(NOW - secondsAgo * 1000).toISOString().replace('T', ' ')
@@ -79,5 +79,51 @@ describe('edgeHeaders', () => {
       'X-PocketHost-Edge-Name': 'sfo',
       'X-PocketHost-Edge-Region': 'sfo',
     })
+  })
+})
+
+describe('createStaleEdgeProbe', () => {
+  const edge = { id: 'E_AMS', internal_url: 'http://ams-1:8080' }
+
+  it('asks the edge directly and reuses the answer within the ttl', async () => {
+    let t = 0
+    let calls = 0
+    const probe = createStaleEdgeProbe(
+      async () => {
+        calls++
+        return true
+      },
+      5000,
+      () => t
+    )
+    expect(await probe(edge)).toBe(true)
+    t = 4999
+    expect(await probe(edge)).toBe(true)
+    expect(calls).toBe(1)
+    t = 5000
+    await probe(edge)
+    expect(calls).toBe(2)
+  })
+
+  it('shares one in-flight probe between concurrent callers', async () => {
+    let calls = 0
+    let release!: (v: boolean) => void
+    const probe = createStaleEdgeProbe(() => {
+      calls++
+      return new Promise<boolean>((r) => (release = r))
+    })
+    const a = probe(edge)
+    const b = probe(edge)
+    release(true)
+    expect(await Promise.all([a, b])).toEqual([true, true])
+    expect(calls).toBe(1)
+  })
+
+  it('treats a missing address or a failing probe as down', async () => {
+    const probe = createStaleEdgeProbe(async () => {
+      throw new Error('ECONNREFUSED')
+    })
+    expect(await probe({ id: 'E_X', internal_url: '' })).toBe(false)
+    expect(await probe(edge)).toBe(false)
   })
 })

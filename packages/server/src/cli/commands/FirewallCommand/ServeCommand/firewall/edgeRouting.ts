@@ -101,6 +101,32 @@ const isEdgeReachable = async (internalUrl: string, timeoutMs: number) => {
   }
 }
 
+/** How long a direct health probe of an edge may take (a fresh connection across regions costs ~2 RTT). */
+export const STALE_EDGE_PROBE_TIMEOUT_MS = 2000
+/** How long a probe result is reused, so a mirror hiccup costs one probe per edge, not one per request. */
+export const STALE_EDGE_PROBE_TTL_MS = 5000
+
+/**
+ * The mirror's heartbeat timestamp can lag (a burst of late realtime events, a slow mothership), which would make a
+ * live edge look down. Before failing fast on an edge the mirror calls silent, ask the edge itself. Results are cached
+ * per edge for `ttlMs`, and concurrent callers share one in-flight probe.
+ */
+export const createStaleEdgeProbe = (
+  probe: (internalUrl: string) => Promise<boolean>,
+  ttlMs = STALE_EDGE_PROBE_TTL_MS,
+  now: () => number = Date.now
+) => {
+  const cache = new Map<string, { at: number; result: Promise<boolean> }>()
+  return (edge: Pick<EdgeFields, 'id' | 'internal_url'>): Promise<boolean> => {
+    if (!edge.internal_url) return Promise.resolve(false)
+    const hit = cache.get(edge.id)
+    if (hit && now() - hit.at < ttlMs) return hit.result
+    const result = probe(edge.internal_url).catch(() => false)
+    cache.set(edge.id, { at: now(), result })
+    return result
+  }
+}
+
 type RoutedRequest = Request & { phEdgeId?: string; phEdgeTarget?: string; phNext?: (err?: unknown) => void }
 
 export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: Logger): RequestHandler => {
@@ -112,6 +138,15 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
   const agent = new http.Agent({ keepAlive: true, maxSockets: 512 })
   /** Edges with a recent connection failure: requests wait for a health check before being proxied. */
   const suspect = new Set<string>()
+  const isSilentEdgeAlive = createStaleEdgeProbe((url) => isEdgeReachable(url, STALE_EDGE_PROBE_TIMEOUT_MS))
+  /** Healthy per the mirror, or silent in the mirror but answering its own health check. */
+  const isOwnerAlive = async (owner: EdgeFields) => {
+    if (isEdgeHealthy(owner, Date.now())) return true
+    if (owner.status === 'offline') return false
+    const alive = await isSilentEdgeAlive(owner)
+    if (alive) dbg(`Edge ${owner.edge_id} is stale in the mirror but answers its health check`)
+    return alive
+  }
 
   /** Wait until the owner answers its health check. False once it has been silent past the healthy window. */
   const holdFor = async (edgeId: string, req: Request, res: Response) => {
@@ -121,7 +156,7 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
       // `req.destroyed` is already true once a GET's empty body is read; watch the client connection instead.
       if (res.writableEnded || res.destroyed || req.socket?.destroyed) return false
       const owner = mirror.getEdge(edgeId)
-      if (!owner || !isEdgeHealthy(owner, Date.now())) return false
+      if (!owner || !(await isOwnerAlive(owner))) return false
       if (await isEdgeReachable(owner.internal_url, retryMs)) {
         suspect.delete(edgeId)
         return true
@@ -194,11 +229,18 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
           : label(decision.edgeId ? mirror.getEdge(decision.edgeId) : undefined)
     res.set(edgeHeaders(me, origin))
     if (decision.kind === 'local') return next()
+    let edge: EdgeFields
     if (decision.kind === 'unavailable') {
-      dbg(`${req.hostname}: ${decision.reason}`)
-      return sendEdgeUnavailable(res)
+      // The mirror may only be behind: if the owner answers directly, route to it anyway.
+      const owner = decision.edgeId ? mirror.getEdge(decision.edgeId) : undefined
+      if (!owner?.internal_url || !(await isOwnerAlive(owner))) {
+        dbg(`${req.hostname}: ${decision.reason}`)
+        return sendEdgeUnavailable(res)
+      }
+      edge = owner
+    } else {
+      edge = decision.edge
     }
-    const { edge } = decision
     if (suspect.has(edge.id) && !(await holdFor(edge.id, req, res))) return sendEdgeUnavailable(res)
     const r = req as RoutedRequest
     r.phEdgeId = edge.id
