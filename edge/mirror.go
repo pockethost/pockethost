@@ -26,9 +26,11 @@ type Source struct {
 	instances map[string]instanceRec
 	edges     map[string]edgeRec
 	myEdge    string
-	logins    map[string]loginCache      // by user id
-	emitted   map[string]pocker.Instance // what Pocker currently has
-	claims    map[string]string          // host -> instance id, by the Node edge's priority (cname > subdomain > id)
+	logins    map[string]loginCache          // by user id
+	emitted   map[string]pocker.Instance     // what Pocker currently has
+	claims    map[string]string              // host -> winning instance id (cname > subdomain > id; newest wins ties)
+	cands     map[string]map[string]claim    // host -> instance id -> its claim on that host
+	byUID     map[string]map[string]struct{} // owner id -> instance ids
 	lastDrift time.Time
 
 	out chan pocker.Change
@@ -48,6 +50,7 @@ func NewSource(cfg Config, log *slog.Logger) *Source {
 		cfg: cfg, c: newClient(cfg.MothershipURL, cfg.AdminUser, cfg.AdminPassword), log: log,
 		users: map[string]userRec{}, instances: map[string]instanceRec{}, edges: map[string]edgeRec{},
 		logins: map[string]loginCache{}, emitted: map[string]pocker.Instance{}, claims: map[string]string{},
+		cands: map[string]map[string]claim{}, byUID: map[string]map[string]struct{}{},
 		out: make(chan pocker.Change, 256),
 	}
 }
@@ -73,15 +76,16 @@ func (s *Source) loadDumpLocked(d *dump) {
 		s.users[u.ID] = u
 	}
 	s.instances = make(map[string]instanceRec, len(d.Instances))
+	s.claims, s.cands, s.byUID = map[string]string{}, map[string]map[string]claim{}, map[string]map[string]struct{}{}
 	for _, i := range d.Instances {
-		s.instances[i.ID] = i
+		i := i
+		s.setInstanceLocked(i.ID, &i)
 	}
 	s.edges = make(map[string]edgeRec, len(d.Edges))
 	for _, e := range d.Edges {
 		s.edges[e.ID] = e
 	}
 	s.resolveMyEdgeLocked()
-	s.rebuildClaimsLocked()
 }
 
 func (s *Source) resolveMyEdgeLocked() bool {
@@ -138,45 +142,88 @@ func (s *Source) computeLocked(ctx context.Context, id string) (pocker.Instance,
 	return p, ok
 }
 
-// rebuildClaimsLocked decides which instance owns each host: a custom domain beats a subdomain, which beats
-// <id>.<apex>; between equals, the most recently updated instance wins. Returns the ids whose hosts changed.
-func (s *Source) rebuildClaimsLocked() map[string]bool {
-	type claim struct {
-		id, updated string
-		rank        int
+type claim struct {
+	id, updated string
+	rank        int // 3 custom domain, 2 subdomain, 1 <id>.<apex>
+}
+
+func (c claim) beats(o claim) bool {
+	return c.rank > o.rank || c.rank == o.rank && (c.updated > o.updated || c.updated == o.updated && c.id < o.id)
+}
+
+// claimsOf lists the hosts an instance claims and how strongly.
+func (s *Source) claimsOf(inst instanceRec) map[string]claim {
+	out := map[string]claim{inst.ID + "." + s.cfg.ApexDomain: {inst.ID, inst.Updated, 1}}
+	if inst.Subdomain != "" {
+		out[inst.Subdomain+"."+s.cfg.ApexDomain] = claim{inst.ID, inst.Updated, 2}
 	}
-	best := map[string]claim{}
-	offer := func(host string, c claim) {
-		if b, ok := best[host]; !ok || c.rank > b.rank || c.rank == b.rank && (c.updated > b.updated || c.updated == b.updated && c.id < b.id) {
-			best[host] = c
-		}
+	if c := strings.ToLower(strings.TrimSpace(inst.Cname)); c != "" {
+		out[c] = claim{inst.ID, inst.Updated, 3}
 	}
-	for id, inst := range s.instances {
-		if c := strings.ToLower(strings.TrimSpace(inst.Cname)); c != "" {
-			offer(c, claim{id, inst.Updated, 3})
+	return out
+}
+
+// setInstanceLocked records an instance version (nil = deleted), keeping the owner index and host claims current.
+// It returns the instances whose hosts changed (besides the instance itself), for recomputation. Work is
+// proportional to the instance's own hosts, not to the number of instances.
+func (s *Source) setInstanceLocked(id string, next *instanceRec) map[string]bool {
+	affected := map[string]bool{}
+	if prev, ok := s.instances[id]; ok {
+		if ids := s.byUID[prev.UID]; ids != nil {
+			delete(ids, id)
+			if len(ids) == 0 {
+				delete(s.byUID, prev.UID)
+			}
 		}
-		if inst.Subdomain != "" {
-			offer(inst.Subdomain+"."+s.cfg.ApexDomain, claim{id, inst.Updated, 2})
+		for h := range s.claimsOf(prev) {
+			if c := s.cands[h]; c != nil {
+				delete(c, id)
+				if len(c) == 0 {
+					delete(s.cands, h)
+				}
+			}
+			affected[h] = true
 		}
-		offer(id+"."+s.cfg.ApexDomain, claim{id, inst.Updated, 1})
+		delete(s.instances, id)
+	}
+	if next != nil {
+		s.instances[id] = *next
+		if s.byUID[next.UID] == nil {
+			s.byUID[next.UID] = map[string]struct{}{}
+		}
+		s.byUID[next.UID][id] = struct{}{}
+		for h, c := range s.claimsOf(*next) {
+			if s.cands[h] == nil {
+				s.cands[h] = map[string]claim{}
+			}
+			s.cands[h][id] = c
+			affected[h] = true
+		}
 	}
 	changed := map[string]bool{}
-	next := make(map[string]string, len(best))
-	for h, c := range best {
-		next[h] = c.id
-		if s.claims[h] != c.id {
-			changed[c.id] = true
-			if prev := s.claims[h]; prev != "" {
+	for h := range affected {
+		prev := s.claims[h]
+		var best claim
+		found := false
+		for _, c := range s.cands[h] {
+			if !found || c.beats(best) {
+				best, found = c, true
+			}
+		}
+		if !found {
+			delete(s.claims, h)
+		} else {
+			s.claims[h] = best.id
+		}
+		if prev != s.claims[h] {
+			if prev != "" && prev != id {
 				changed[prev] = true
+			}
+			if found && best.id != id {
+				changed[best.id] = true
 			}
 		}
 	}
-	for h, id := range s.claims {
-		if _, ok := next[h]; !ok {
-			changed[id] = true
-		}
-	}
-	s.claims = next
 	return changed
 }
 
@@ -303,16 +350,15 @@ func (s *Source) applyEvent(ctx context.Context, ev realtimeEvent) {
 		if json.Unmarshal(msg.Record, &r) != nil || r.ID == "" {
 			break
 		}
+		var others map[string]bool
 		if msg.Action == "delete" {
-			delete(s.instances, r.ID)
+			others = s.setInstanceLocked(r.ID, nil)
 		} else {
-			s.instances[r.ID] = r
+			others = s.setInstanceLocked(r.ID, &r)
 		}
 		ids := []string{r.ID}
-		for id := range s.rebuildClaimsLocked() {
-			if id != r.ID {
-				ids = append(ids, id)
-			}
+		for id := range others {
+			ids = append(ids, id)
 		}
 		changes = s.diffLocked(ctx, ids)
 	case "users/*", "users":
@@ -345,16 +391,9 @@ func (s *Source) applyEvent(ctx context.Context, ev realtimeEvent) {
 }
 
 func (s *Source) instanceIDsOfLocked(uid string) []string {
-	var ids []string
-	for id, inst := range s.instances {
-		if inst.UID == uid {
-			ids = append(ids, id)
-		}
-	}
-	for id := range s.emitted {
-		if _, ok := s.instances[id]; !ok {
-			ids = append(ids, id)
-		}
+	ids := make([]string, 0, len(s.byUID[uid]))
+	for id := range s.byUID[uid] {
+		ids = append(ids, id)
 	}
 	return ids
 }
@@ -384,7 +423,9 @@ func (s *Source) driftLoop(ctx context.Context) {
 		for _, raw := range insts {
 			var r instanceRec
 			if json.Unmarshal(raw, &r) == nil && r.ID != "" {
-				s.instances[r.ID] = r
+				for id := range s.setInstanceLocked(r.ID, &r) {
+					ids = append(ids, id)
+				}
 				ids = append(ids, r.ID)
 			}
 		}
@@ -394,9 +435,6 @@ func (s *Source) driftLoop(ctx context.Context) {
 				s.users[r.ID] = r
 				ids = append(ids, s.instanceIDsOfLocked(r.ID)...)
 			}
-		}
-		for id := range s.rebuildClaimsLocked() {
-			ids = append(ids, id)
 		}
 		changes := s.diffLocked(ctx, ids)
 		s.lastDrift = started
