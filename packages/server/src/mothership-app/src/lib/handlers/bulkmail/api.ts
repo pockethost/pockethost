@@ -55,7 +55,7 @@ export const HandleBulkMailGetSettings = (e: core.RequestEvent) => e.json(200, s
 export const HandleBulkMailSaveSettings = (e: core.RequestEvent) => {
   const cur = getSettings()
   const b = body(e)
-  for (const k of ['fromName', 'fromAddress', 'postalAddress', 'unsubscribeMailto'] as const) {
+  for (const k of ['postalAddress', 'unsubscribeMailto'] as const) {
     if (typeof b[k] === 'string') cur[k] = b[k].trim()
   }
   if (Array.isArray(b.snsTopicArns)) cur.snsTopicArns = b.snsTopicArns.filter((v: any) => typeof v === 'string' && v)

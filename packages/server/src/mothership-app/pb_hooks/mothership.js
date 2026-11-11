@@ -842,8 +842,6 @@ const bulkMailLimits = () => {
 };
 const getSettings = (app = $app) => {
 	const s = {
-		fromName: "",
-		fromAddress: "",
 		postalAddress: "",
 		unsubscribeMailto: "",
 		snsTopicArns: [],
@@ -1012,13 +1010,8 @@ const campaign = (id) => {
 	}
 };
 const fromAddress = (c) => {
-	const s = getSettings();
 	let name = c.getString("from_name");
 	let address = c.getString("from_address");
-	if (!address) {
-		address = s.fromAddress;
-		name = name || s.fromName;
-	}
 	if (!address) {
 		address = $app.settings().meta.senderAddress;
 		name = name || $app.settings().meta.senderName;
@@ -1416,12 +1409,7 @@ const HandleBulkMailGetSettings = (e) => e.json(200, settingsResponse());
 const HandleBulkMailSaveSettings = (e) => {
 	const cur = getSettings();
 	const b = body(e);
-	for (const k of [
-		"fromName",
-		"fromAddress",
-		"postalAddress",
-		"unsubscribeMailto"
-	]) if (typeof b[k] === "string") cur[k] = b[k].trim();
+	for (const k of ["postalAddress", "unsubscribeMailto"]) if (typeof b[k] === "string") cur[k] = b[k].trim();
 	if (Array.isArray(b.snsTopicArns)) cur.snsTopicArns = b.snsTopicArns.filter((v) => typeof v === "string" && v);
 	if (typeof b.webhookSecret === "string" && b.webhookSecret) cur.webhookSecret = b.webhookSecret;
 	saveSettings(cur);

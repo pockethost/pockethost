@@ -39,8 +39,6 @@ export const bulkMailLimits = () => {
 // --- settings (_params "bulkmail", same JSON as CE) ------------------------------------------------------------
 
 export type BulkMailSettings = {
-  fromName: string
-  fromAddress: string
   postalAddress: string
   unsubscribeMailto: string
   snsTopicArns: string[]
@@ -50,8 +48,6 @@ export type BulkMailSettings = {
 
 export const getSettings = (app: typeof $app = $app): BulkMailSettings => {
   const s: BulkMailSettings = {
-    fromName: '',
-    fromAddress: '',
     postalAddress: '',
     unsubscribeMailto: '',
     snsTopicArns: [],
@@ -233,14 +229,10 @@ const campaign = (id: string) => {
   }
 }
 
+// The campaign's sender, else the app's (Settings > Mail), as in CE.
 const fromAddress = (c: core.Record) => {
-  const s = getSettings()
   let name = c.getString('from_name')
   let address = c.getString('from_address')
-  if (!address) {
-    address = s.fromAddress
-    name = name || s.fromName
-  }
   if (!address) {
     address = $app.settings().meta.senderAddress
     name = name || $app.settings().meta.senderName
