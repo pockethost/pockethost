@@ -4,6 +4,13 @@
     "github": "https://github.com/pocketbase/pocketbase/releases/download/v{version}/{file}"
   },
   "versions": {
+    "0.42.0": {
+      "host": "gani",
+      "sha256": {
+        "linux_amd64": "cd3439e7740e9b82e4ee947130ff3d1e7a66ef8d8bd219308fc1fa7b38bfdacc",
+        "linux_arm64": "89cb6b8fff020bf905a7087576c341bd9b04d5a728ac2575b7d7ac50cdd93e7a"
+      }
+    },
     "0.41.1": {
       "host": "gani",
       "sha256": {
@@ -135,6 +142,13 @@
       "sha256": {
         "linux_amd64": "af00ee3cb6c3575075bee4e2adb86ab6878598fda30e79b15f89f948c602aacc",
         "linux_arm64": "f5a77bd6ec046bd374f8cac77586af899212796bab96d3ed7f9df4d67a741a44"
+      }
+    },
+    "0.22.59": {
+      "host": "gani",
+      "sha256": {
+        "linux_amd64": "49938c8e27b4aa8803de4f8cdad60a1f87aeb1d80e89dacd826cfe0b0b7174b3",
+        "linux_arm64": "80386332dea5f26cdc3488dfa66146c850b68effcb9c23f9fbd578727886130e"
       }
     },
     "0.22.58": {
