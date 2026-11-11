@@ -100,6 +100,12 @@
               icon: 'clock',
               isActive: sectionActive('webhooks'),
             },
+            {
+              href: `${base}/backups`,
+              label: 'Backups',
+              icon: 'database',
+              isActive: sectionActive('backups'),
+            },
             { href: `${base}/logs`, label: 'Logs', icon: 'scroll', isActive: sectionActive('logs') },
             { href: `${base}/ftp`, label: 'SFTP', icon: 'folder-open', isActive: sectionActive('ftp') },
             {

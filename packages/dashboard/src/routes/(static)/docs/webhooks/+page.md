@@ -5,7 +5,9 @@ description: Learn how to use Pockethost webhooks to schedule reliable API calls
 
 # Webhooks
 
-Webhooks allow you to schedule API calls to your PocketBase instance at specific times, replacing the need for external cron job schedulers. This feature enables automated tasks like data cleanup, notifications, integrations with external services, and [scheduled backups](/docs/backup-restore#schedule-backups-with-a-webhook).
+Webhooks allow you to schedule API calls to your PocketBase instance at specific times, replacing the need for external cron job schedulers. This feature enables automated tasks like data cleanup, notifications, and integrations with external services.
+
+For scheduled backups, use the **Backups** page in your instance dashboard instead. It sets up the backup webhook for you, and that webhook appears there rather than in your Webhooks list. See [Schedule backups](/docs/backup-restore#schedule-backups).
 
 > **Important**: Webhooks replace PocketBase's built-in [cron job scheduling](https://pocketbase.io/docs/js-jobs-scheduling/) (`cronAdd`) on PocketHost. `cronAdd` runs inside PocketBase, so on PocketHost it only fires while your instance is awake. Scheduled webhooks run even when your instance is hibernated. To learn why PocketHost schedules work this way, see [How scheduled work runs on PocketHost](/docs/backup-restore#how-scheduled-work-runs-on-pockethost).
 

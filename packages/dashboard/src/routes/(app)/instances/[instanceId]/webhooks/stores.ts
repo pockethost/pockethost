@@ -46,6 +46,7 @@ function createItems(initialItems: CronArray) {
     delete: (name: string) => {
       return update((n) => {
         const index = n.findIndex((item) => item.endpoint === name)
+        if (index < 0) return n
         n = [...n.slice(0, index), ...n.slice(index + 1)]
         return formatInput(n)
       })

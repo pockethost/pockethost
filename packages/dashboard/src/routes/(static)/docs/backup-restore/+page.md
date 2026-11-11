@@ -11,7 +11,7 @@ PocketHost makes every effort to protect your data, but you should always keep y
 
 1. **Store file uploads in your own S3 bucket, with versioning turned on.**
 2. **Send PocketBase backups to your own S3 bucket, with versioning turned on.** It can be the same bucket or a different one.
-3. **Schedule backups with a [webhook](/docs/webhooks)** so they run on schedule, even while your instance is hibernating.
+3. **Turn on scheduled backups** in your instance dashboard under **Backups**, so they run on schedule, even while your instance is hibernating.
 4. **Restore a backup once** on a spare instance, so you know it works before you need it.
 
 The rest of this page explains why, and how to set each one up.
@@ -42,29 +42,26 @@ Here's why it works this way, and why everybody comes out ahead:
 - **You can see what happened.** The dashboard shows when each webhook last ran and what your route returned. Failures also go to your instance's [logs](/docs/logs).
 - **Long jobs can finish.** Each webhook call can run for up to 30 minutes. Your instance stays awake until your route responds.
 
-## Schedule backups with a webhook
+## Schedule backups
 
-PocketHost adds a backup route to every instance: `/api/ph/backup`. Point a webhook at it, and PocketHost runs a backup on your schedule, waking your instance if needed. It uses your backup settings: your S3 bucket, and the **Max @auto backups** setting that removes old backups. It works on every PocketBase version PocketHost runs.
+Open your instance dashboard and go to **Backups**. Choose how often, then turn on **Scheduled backups**. PocketHost runs each backup on time, waking your instance if needed. Each instance gets its own time of day, so backups are spread out.
 
-**1. Set up backups in the PocketBase admin.** Go to **Settings > Backups**.
+Backups use your settings in the PocketBase admin, so set those up first. Go to **Settings > Backups**:
 
-- Turn on **automatic backups** and enter any schedule, such as `0 3 * * *`. This shows the **Max @auto backups** setting. The webhook is what runs backups on time.
+- Turn on **automatic backups** and enter any schedule, such as `0 3 * * *`. This shows the **Max @auto backups** setting. PocketHost is what runs backups on time.
 - Set **Max @auto backups** to how many you want to keep.
 - Turn on **S3 storage** and connect your versioned bucket.
 
-**2. Add the webhook.** In your instance dashboard, open **Webhooks** and add:
+After the first scheduled time, the Backups page shows when the last backup ran and its name, and the new backup appears in **Settings > Backups**. If it says `Unauthorized`, power your instance off and on once so it picks up its backup token.
 
-- **API Endpoint**: `/api/ph/backup`
-- **Schedule**: `0 3 * * *` (daily at 3:00 UTC), or whatever suits you
-
-**3. Check the first run.** After the schedule comes around, the dashboard shows the webhook's last response, such as `{"ok":true,"name":"@auto_pb_backup_ph_20261110030000.zip","removed":1}`, and the new backup appears in **Settings > Backups**. If the response is `Unauthorized`, power your instance off and on once so it picks up its backup token.
+Under the hood, the Backups page is a [webhook](/docs/webhooks) that calls `/api/ph/backup`, a route PocketHost adds to every instance. It works on every PocketBase version PocketHost runs.
 
 ### Good to know
 
 - **Writes wait while a backup runs.** PocketBase pauses database writes while it builds the backup, then they continue. Reads aren't affected. Backups are quick when your uploads live in S3, because then the backup is only the database.
 - **Only your webhooks can start a backup.** The route needs a token that PocketHost gives your instance and sends with each of its webhooks. Anyone else gets `Unauthorized`.
 - **You might occasionally see an extra backup.** If your instance happens to be awake at the schedule you set in step 1, PocketBase runs its own backup too. **Max @auto backups** removes the extra one.
-- **Check on it now and then.** The dashboard shows each webhook's last run and response. Look in **Settings > Backups** from time to time to confirm new backups are arriving.
+- **Check on it now and then.** The Backups page shows the last run. Look in **Settings > Backups** from time to time to confirm new backups are arriving.
 
 ## Restore from the admin
 

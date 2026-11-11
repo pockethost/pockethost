@@ -6,10 +6,12 @@
   import { client } from '$src/pocketbase-client/index.js'
   import { instance } from '../store.js'
   import { items } from './stores.js'
+  import { isBackupWebhook, withSavedBackupWebhook } from '$lib/backupWebhook'
 
   const validateWebhookEndpoint = (endpoint: string): boolean => {
     if (!endpoint || endpoint.length === 0) return false
     if (!endpoint.startsWith('/')) return false
+    if (isBackupWebhook(endpoint)) return false
     if (endpoint.includes('://') || endpoint.includes('://')) return false
     if (endpoint.includes('http://') || endpoint.includes('https://')) return false
 
@@ -53,7 +55,7 @@
       await client().updateInstance({
         id: $instance.id,
         fields: {
-          webhooks: $items,
+          webhooks: withSavedBackupWebhook($items, $instance.webhooks),
         },
       })
 
@@ -95,7 +97,8 @@
           <div class="mt-1">
             <span class="text-error text-sm">
               API endpoints must be valid paths starting with / (e.g., <code>/api/webhooks/my-webhook</code> or
-              <code>/api/cron?token=abc</code>). Do not include protocol or host.
+              <code>/api/cron?token=abc</code>). Do not include protocol or host. To schedule backups, use the
+              <a class="underline" href="../backups">Backups</a> page.
             </span>
           </div>
         {/if}

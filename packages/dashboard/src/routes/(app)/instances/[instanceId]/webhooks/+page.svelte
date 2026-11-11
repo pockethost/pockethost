@@ -6,6 +6,7 @@
   import { instance } from '../store'
   import WebhooksInner from './Inner.svelte'
   import { items } from './stores'
+  import { isBackupWebhook } from '$lib/backupWebhook'
 
   assertExists($instance, `Expected instance here`)
   const { subdomain } = $instance
@@ -13,9 +14,12 @@
   $: {
     const { webhooks } = $instance
     items.clear()
-    ;(webhooks ?? []).forEach((hook) => {
-      items.upsert(hook)
-    })
+    // Scheduled backups are managed on the Backups page
+    ;(webhooks ?? [])
+      .filter((hook) => !isBackupWebhook(hook.endpoint))
+      .forEach((hook) => {
+        items.upsert(hook)
+      })
   }
 
   $: code =

@@ -19,7 +19,7 @@ See [Limits](/docs/limits#hibernation) for details.
 
 ## Use webhooks for scheduled jobs, not `cronAdd`
 
-PocketBase's built-in scheduler runs inside your instance, so `cronAdd` only fires while the instance happens to be awake. On PocketHost the schedule lives in the platform instead. [Webhooks](/docs/webhooks) call a route on your instance on your schedule and wake it if needed. See [How scheduled work runs on PocketHost](/docs/backup-restore#how-scheduled-work-runs-on-pockethost) for why, and for [scheduled backups](/docs/backup-restore#schedule-backups-with-a-webhook).
+PocketBase's built-in scheduler runs inside your instance, so `cronAdd` only fires while the instance happens to be awake. On PocketHost the schedule lives in the platform instead. [Webhooks](/docs/webhooks) call a route on your instance on your schedule and wake it if needed. See [How scheduled work runs on PocketHost](/docs/backup-restore#how-scheduled-work-runs-on-pockethost) for why, and for [scheduled backups](/docs/backup-restore#schedule-backups).
 
 ## Requests go through the edge first
 
@@ -40,11 +40,11 @@ There is no shell. Get files onto your instance with the [PocketHost CLI](/docs/
 
 ## Applying changes
 
-| Change | When it takes effect |
-| --- | --- |
-| Files in `pb_hooks` | Right away. PocketBase watches the folder and reloads. |
-| [Secrets](/docs/secrets) | The next time the instance starts. Power it off and on to apply now. |
-| [CORS Origins](/docs/cors) | Within seconds, no restart. |
+| Change                               | When it takes effect                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------- |
+| Files in `pb_hooks`                  | Right away. PocketBase watches the folder and reloads.                  |
+| [Secrets](/docs/secrets)             | The next time the instance starts. Power it off and on to apply now.    |
+| [CORS Origins](/docs/cors)           | Within seconds, no restart.                                             |
 | [PocketBase version](/docs/versions) | Power off first. You can't change the version while the instance is on. |
 
 ## What PocketHost runs for you

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
   import { items } from './stores'
+  import { withSavedBackupWebhook } from '$lib/backupWebhook'
   import { client } from '$src/pocketbase-client'
   import { instance } from '../store'
   import { logger } from '@pockethost/server/common'
@@ -34,7 +35,7 @@
     await client().updateInstance({
       id: $instance.id,
       fields: {
-        webhooks: $items,
+        webhooks: withSavedBackupWebhook($items, $instance.webhooks),
       },
     })
   }
