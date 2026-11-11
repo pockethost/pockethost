@@ -312,6 +312,9 @@ func (s *Source) Forward(w http.ResponseWriter, r *http.Request, inst pocker.Ins
 			},
 			ErrorHandler: func(_ http.ResponseWriter, _ *http.Request, err error) { failed = err },
 		}
+		if m, ok := r.Context().Value(forwardMarkKey{}).(*forwardMark); ok {
+			m.start, m.to = time.Now(), e.EdgeID // each attempt restarts the clock
+		}
 		proxy.ServeHTTP(w, r)
 		if failed == nil {
 			return
@@ -388,6 +391,32 @@ func (s *Source) edgeLabels(host string) (me, origin [2]string, ok bool) {
 	return me, origin, false
 }
 
+// forwardMark records the latest attempt to forward a request to its owner edge (set by Forward, read by Front).
+type forwardMark struct {
+	start time.Time
+	to    string
+}
+
+type forwardMarkKey struct{}
+
+// edgeTimingEntries is this edge's part of Server-Timing, after the entries from inside it (Pocker's origin and
+// wake, or the owner edge's whole list when forwarded), matching the Node edge:
+//   - fwd   (forwarded to the owner edge) time waiting on it, desc "me>owner"
+//   - edge  (served here) this edge's total, desc = edge name
+//   - entry (the request came from Cloudflare, not another edge) this edge's total, desc = edge name
+func edgeTimingEntries(me string, forwarded bool, mark *forwardMark, elapsed time.Duration, now time.Time) []pocker.TimingEntry {
+	var out []pocker.TimingEntry
+	if mark != nil && mark.to != "" {
+		out = append(out, pocker.TimingEntry{Name: "fwd", Dur: now.Sub(mark.start), Desc: me + ">" + mark.to})
+	} else {
+		out = append(out, pocker.TimingEntry{Name: "edge", Dur: elapsed, Desc: me})
+	}
+	if !forwarded {
+		out = append(out, pocker.TimingEntry{Name: "entry", Dur: elapsed, Desc: me})
+	}
+	return out
+}
+
 // FirewallHealthPath is what the load balancer monitor checks (the Node firewall's health route).
 const FirewallHealthPath = "/api/firewall/health"
 
@@ -396,6 +425,13 @@ const FirewallHealthPath = "/api/firewall/health"
 // happen in Pocker's Manager behind it.
 func (s *Source) Front(fw func() *pocker.Firewall, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		forwarded := r.Header.Get(ForwardedByHeader) != ""
+		mark := &forwardMark{}
+		r = r.WithContext(context.WithValue(r.Context(), forwardMarkKey{}, mark))
+		w = pocker.WithServerTiming(w, func() []pocker.TimingEntry {
+			return edgeTimingEntries(s.cfg.EdgeID, forwarded, mark, time.Since(start), time.Now())
+		})
 		w.Header().Set("X-Powered-By", PoweredBy)
 		if r.URL.Path == FirewallHealthPath {
 			openCORSHeaders(w, r)

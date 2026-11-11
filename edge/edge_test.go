@@ -248,6 +248,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("X-Powered-By", "PocketHost")
+		w.Header().Set("Server-Timing", `origin;dur=1.0, wake;dur=0.0, edge;dur=2.0;desc="sfo"`) // as the Node daemon sends
 		fmt.Fprintf(w, "sfo %s %s %s by=%s", r.Method, r.Host, r.URL.Path, r.Header.Get(ForwardedByHeader))
 	}))
 	defer sfoDaemon.Close()
@@ -385,6 +386,48 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		t.Errorf("edge headers: %v %v", res, err)
 	} else {
 		res.Body.Close()
+	}
+
+	// Server-Timing: inner entries first, then this edge's (fwd when forwarded, else edge; entry unless another edge sent it)
+	timing := func(host, path string, hdr map[string]string) string {
+		req, _ := http.NewRequest("GET", "http://"+addr+path, nil)
+		req.Host = host
+		for k, v := range hdr {
+			req.Header.Set(k, v)
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			t.Errorf("timing %s%s: %v", host, path, err)
+			return ""
+		}
+		_, _ = io.Copy(io.Discard, res.Body)
+		res.Body.Close()
+		var names []string
+		for _, part := range strings.Split(res.Header.Get("Server-Timing"), ",") {
+			fields := strings.Split(strings.TrimSpace(part), ";")
+			name := fields[0]
+			for _, f := range fields[1:] {
+				if d, ok := strings.CutPrefix(f, "desc="); ok {
+					name += "(" + strings.Trim(d, `"`) + ")"
+				}
+			}
+			names = append(names, name)
+		}
+		return strings.Join(names, ",")
+	}
+	for _, c := range []struct {
+		host, path string
+		hdr        map[string]string
+		want       string
+	}{
+		{"blog.pockethost.io", "/api/health", nil, "origin,wake,edge(sfo),fwd(sgp-1>sfo),entry(sgp-1)"},
+		{"shop.pockethost.io", "/api/health", nil, "origin,wake,edge(sgp-1),entry(sgp-1)"},
+		{"shop.pockethost.io", "/api/health", map[string]string{ForwardedByHeader: "sfo"}, "origin,wake,edge(sgp-1)"},
+		{"anything.example.com", FirewallHealthPath, nil, "edge(sgp-1),entry(sgp-1)"},
+	} {
+		if got := timing(c.host, c.path, c.hdr); got != c.want {
+			t.Errorf("Server-Timing %s%s %v = %s, want %s", c.host, c.path, c.hdr, got, c.want)
+		}
 	}
 
 	// the missed hourly backup webhook ran at start and its result went back to the mothership
