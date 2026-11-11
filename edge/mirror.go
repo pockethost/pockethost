@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pockerbase/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
 // Source is a pocker.InstanceSource backed by PocketHost's mothership mirror: a full dump at start and after every

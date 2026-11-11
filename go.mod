@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
-	github.com/pockerbase/pocketbase/ext/pocker v0.0.0-20261111125501-b530a7d22644
+	github.com/pockethost/pocketbase/ext/pocker v0.0.0-20261111132049-6e744a52d4ed
 	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.60.1
 )
@@ -39,7 +39,7 @@ require (
 	github.com/mholt/acmez/v3 v3.1.7 // indirect
 	github.com/miekg/dns v1.1.73 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
-	github.com/pockerbase/pocketbase/ext/sandbox v0.0.0-20261111125501-b530a7d22644 // indirect
+	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261111132049-6e744a52d4ed // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
@@ -60,7 +60,7 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-// PocketBase CE (github.com/pockerbase/pocketbase) keeps PocketBase's module path so upstream merges stay easy. This
+// PocketBase CE (github.com/pockethost/pocketbase) keeps PocketBase's module path so upstream merges stay easy. This
 // replace points the module at CE; ext/pocker and ext/sandbox are CE plugin modules in the same repo. Bump all three
 // together to pick up CE changes.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockerbase/pocketbase v0.0.2-0.20261111125501-b530a7d22644
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase v0.0.2-0.20261111132049-6e744a52d4ed

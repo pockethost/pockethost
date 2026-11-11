@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/cron"
-	"github.com/pockerbase/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/pocker"
 	_ "modernc.org/sqlite"
 )
 

@@ -1,10 +1,10 @@
 # pockethost/pocker (private)
 
 PocketHost's own build, on top of **PocketBase Community Edition**
-([pockerbase/pocketbase](https://github.com/pockerbase/pocketbase), public): PocketBase plus a few hooks, with the
-multitenant engine as the [`ext/pocker`](https://github.com/pockerbase/pocketbase/tree/main/ext/pocker) plugin (routing,
+([pockethost/pocketbase](https://github.com/pockethost/pocketbase), public): PocketBase plus a few hooks, with the
+multitenant engine as the [`ext/pocker`](https://github.com/pockethost/pocketbase/tree/main/ext/pocker) plugin (routing,
 SQLite authorizer, egress and memory controls, firewall, TLS, per-instance limits/secrets/access, YAML instance source)
-and the JS sandbox as [`ext/sandbox`](https://github.com/pockerbase/pocketbase/tree/main/ext/sandbox).
+and the JS sandbox as [`ext/sandbox`](https://github.com/pockethost/pocketbase/tree/main/ext/sandbox).
 
 Binaries: `pockethost` (the edge, below) and, later, `pockethost-mothership` (the mothership on PocketBase CE, once it
 can replace the Node mothership; no deadline).
@@ -30,15 +30,15 @@ When a feature here needs a new hook in CE, the hook goes into CE generically.
 merges stay easy), and requires the CE plugin modules it uses:
 
 ```
-require github.com/pockerbase/pocketbase/ext/pocker <version>
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockerbase/pocketbase <version>
+require github.com/pockethost/pocketbase/ext/pocker <version>
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase <version>
 ```
 
 Update to a newer CE commit (all three at the same commit):
 
 ```sh
-go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockerbase/pocketbase@<commit>
-go get github.com/pockerbase/pocketbase/ext/pocker@<commit> github.com/pockerbase/pocketbase/ext/sandbox@<commit>
+go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockethost/pocketbase@<commit>
+go get github.com/pockethost/pocketbase/ext/pocker@<commit> github.com/pockethost/pocketbase/ext/sandbox@<commit>
 go mod tidy
 ```
 
@@ -113,7 +113,7 @@ pb_root: /root/.pockethost/data/instances
 ## Build
 
 Go 1.27 (on sfo-2: `PATH=/root/sdk/go1.27.0/bin:$PATH GOTOOLCHAIN=local`). This repo is private:
-`GOPRIVATE=github.com/pockethost/*`.
+`GOPRIVATE=github.com/pockethost/pocker` (not `github.com/pockethost/*`: PocketBase CE, `github.com/pockethost/pocketbase`, is public and resolves through the module proxy).
 
 ```sh
 go build -o pockethost ./cmd/pockethost

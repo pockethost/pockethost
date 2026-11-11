@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/cron"
-	"github.com/pockerbase/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
 // Scheduled webhooks (the Node edge's CronService): each instance on this edge may list {endpoint, value} webhooks in

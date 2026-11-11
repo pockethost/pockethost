@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
-	"github.com/pockerbase/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
 // Setup adds PocketHost's platform features to each instance, in Go (pocker.Server.SetupApp). They replace the hooks

@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockerbase/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
 // TestWithPockerManager deploys to a real PocketBase app run by Pocker: hooks change after a restart, a broken hook is

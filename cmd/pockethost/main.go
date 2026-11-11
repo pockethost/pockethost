@@ -19,9 +19,9 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/pockerbase/pocketbase/ext/pocker"
 	"github.com/pockethost/pocker/deploy"
 	"github.com/pockethost/pocker/edge"
+	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
 func main() {
