@@ -18,7 +18,7 @@ import (
 	"syscall"
 	"time"
 
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 )
 
 // Any edge accepts any request (the load balancer sends visitors to the nearest edge). Each instance runs on exactly

@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/cron"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 	_ "modernc.org/sqlite"
 )
 

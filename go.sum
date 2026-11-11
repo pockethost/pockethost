@@ -11,8 +11,6 @@ github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lpr
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
-github.com/benallfree/pocker v0.0.0-20261111042257-221b1590651c h1:GV1NsparrSfezWHy8CSdsPrBPkCmi3nXpDfThXkHJr0=
-github.com/benallfree/pocker v0.0.0-20261111042257-221b1590651c/go.mod h1:QVueZGDaIasYkdvA2S5ooZKGAkcgq+fDg07Gb3BcZ/Q=
 github.com/caddyserver/certmagic v0.25.6 h1:vHMtFSLKTa6kuZz6w0SnRMpQ388tSkww8ye355BgAM4=
 github.com/caddyserver/certmagic v0.25.6/go.mod h1:xq6cRNimqW+Tv91XNc5lNHs2XYTsLhQhYiH01H4AySs=
 github.com/caddyserver/zerossl v0.1.6 h1:1yrhTx5DWi43wOJPQ+Y4mVl++EPmSqqT/4REW//lsas=
@@ -90,6 +88,12 @@ github.com/ncruces/go-strftime v1.1.0 h1:vtPmPWMkb539RGV9WpWT9EwJGvrOCKvMNI4obWL
 github.com/ncruces/go-strftime v1.1.0/go.mod h1:yVaq7iwCN09vHRrKBrrflXT0M9tTMG2KmZ9Fj7xeG/g=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/pockerbase/pocketbase v0.0.2-0.20261111125501-b530a7d22644 h1:NHbdeZCWmUwqRGJuXChoCVf/fydMh5YV+GkemPQ1/pI=
+github.com/pockerbase/pocketbase v0.0.2-0.20261111125501-b530a7d22644/go.mod h1:PBkQKVnCfL7Hi9MnXY9bJDME/sfEEbZ6VwAb+8xXQXE=
+github.com/pockerbase/pocketbase/ext/pocker v0.0.0-20261111125501-b530a7d22644 h1:Wku5uxiomKFhF1EgoFE3Qd3CwiwxQfp5sge24LhdYNo=
+github.com/pockerbase/pocketbase/ext/pocker v0.0.0-20261111125501-b530a7d22644/go.mod h1:kasY9K4+ZmQuGb1Z/eGeo3LOSa1GaUc+CMvqOYLZ1co=
+github.com/pockerbase/pocketbase/ext/sandbox v0.0.0-20261111125501-b530a7d22644 h1:4Ohd+iJtoklADy6qQEchbGWy/tQDgm07LnAmuDyAobU=
+github.com/pockerbase/pocketbase/ext/sandbox v0.0.0-20261111125501-b530a7d22644/go.mod h1:D2zxDzIga7r7C3nW9YI6f+xNmrOlJGi+A+3Gum1Y/Pc=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=

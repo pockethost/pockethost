@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 )
 
 type listSource []pocker.Instance

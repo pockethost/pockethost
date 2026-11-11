@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 )
 
 // InstanceEvent implements pocker.EventSink: instance status goes back to the mothership, like the Node edge did.

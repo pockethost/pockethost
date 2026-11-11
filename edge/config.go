@@ -7,7 +7,7 @@ import (
 	"bufio"
 
 	"fmt"
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 	"os"
 	"strconv"
 	"strings"

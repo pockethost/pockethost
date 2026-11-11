@@ -1,41 +1,49 @@
 # pockethost/pocker (private)
 
-PocketHost's edition of Pocker. **Pocker CE** ([benallfree/pocker](https://github.com/benallfree/pocker), public) is
-PocketBase plus the engine that hosts many instances in one process: routing, the JS sandbox, the SQLite authorizer,
-egress and memory controls, the firewall, TLS, per-instance limits/secrets/access, and the YAML instance source.
+PocketHost's own build, on top of **PocketBase Community Edition**
+([pockerbase/pocketbase](https://github.com/pockerbase/pocketbase), public): PocketBase plus a few hooks, with the
+multitenant engine as the [`ext/pocker`](https://github.com/pockerbase/pocketbase/tree/main/ext/pocker) plugin (routing,
+SQLite authorizer, egress and memory controls, firewall, TLS, per-instance limits/secrets/access, YAML instance source)
+and the JS sandbox as [`ext/sandbox`](https://github.com/pockerbase/pocketbase/tree/main/ext/sandbox).
+
+Binaries: `pockethost` (the edge, below) and, later, `pockethost-mothership` (the mothership on PocketBase CE, once it
+can replace the Node mothership; no deadline).
 
 This repo adds what PocketHost needs to run a business on it, as Go code that **imports CE** (not a fork):
 
 | Here (private) | Status |
 |---|---|
-| `cmd/pockethost-edge`: PocketHost's edge binary (`serve`, and `check` for a read-only mapping report) | done |
+| `cmd/pockethost`: PocketHost's edge binary (`serve`, and `check` for a read-only mapping report) | done |
 | `edge/`: adapter for today's mothership: mirror dump + realtime + drift poll, heartbeat with traffic stats, instance status (running/failed) | done |
 | `edge/`: platform features via `Server.SetupApp`: `/api/ph/backup`, app name/URL/sender defaults; owner login sync via CE superusers | done |
 | `deploy/`: the deploy API (`/_ph/deploy/v1`: whoami, check, blobs, commit, files, logs), wire-compatible with the Node edge so the `pockethost` CLI works unchanged | done |
 | `edge/`: the firewall (Node `firewall` in Go): TLS on 443 + redirect on 80, Cloudflare-only peers, `/api/firewall/health`, rate limits, CORS, any-edge forwarding with hold/retry, `X-PocketHost-Edge-*` headers | done |
 | `edge/`: scheduled webhooks (Node `CronService`), nightly vacuum (Node `edge vacuum` + vacuum lock) | done |
 | `deploy/`: the dashboard's live logs (`POST /logs`, Node `RealtimeLog`) | done |
-| Later: the mothership extension (billing, plans, mail, Discord, Cloudflare for SaaS) | later |
+| Later: `cmd/pockethost-mothership`, the mothership extension (billing, plans, mail, Discord, Cloudflare for SaaS) | later |
 
 When a feature here needs a new hook in CE, the hook goes into CE generically.
 
 ## CE dependency
 
 `go.mod` requires PocketBase's module path and replaces it with CE (CE keeps PocketBase's module path so its upstream
-merges stay easy):
+merges stay easy), and requires the CE plugin modules it uses:
 
 ```
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker <version>
+require github.com/pockerbase/pocketbase/ext/pocker <version>
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockerbase/pocketbase <version>
 ```
 
-Update to a newer CE commit:
+Update to a newer CE commit (all three at the same commit):
 
 ```sh
-go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/benallfree/pocker@<commit>
+go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockerbase/pocketbase@<commit>
+go get github.com/pockerbase/pocketbase/ext/pocker@<commit> github.com/pockerbase/pocketbase/ext/sandbox@<commit>
 go mod tidy
 ```
 
-For local work against a CE checkout, temporarily use `=> ../pocker` (don't commit it).
+For local work against a CE checkout, temporarily replace all three with `../pocker`, `../pocker/ext/pocker` and
+`../pocker/ext/sandbox` (don't commit it).
 
 ## Running against the mothership
 
@@ -45,8 +53,8 @@ directly or from `--env-file`. Instance folders are PocketHost's `DATA_ROOT/inst
 `pb_root: $PH_HOME/data/instances` in `pocker.yaml`.
 
 ```sh
-pockethost-edge check --env-file /root/pockethost/.env      # read-only: how the mirror maps for PH_EDGE_ID
-pockethost-edge serve --env-file .env --config pocker.yaml
+pockethost check --env-file /root/pockethost/.env      # read-only: how the mirror maps for PH_EDGE_ID
+pockethost serve --env-file .env --config pocker.yaml
 ```
 
 How records map (`edge/mapping.go`): hosts are `<subdomain>.<apex>`, `<id>.<apex>` and the custom domain;
@@ -108,8 +116,8 @@ Go 1.27 (on sfo-2: `PATH=/root/sdk/go1.27.0/bin:$PATH GOTOOLCHAIN=local`). This 
 `GOPRIVATE=github.com/pockethost/*`.
 
 ```sh
-go build -o pockethost-edge ./cmd/pockethost-edge
-./pockethost-edge serve --pbRoot ./pb_root --instances ./instances.yaml
+go build -o pockethost ./cmd/pockethost
+./pockethost serve --pbRoot ./pb_root --instances ./instances.yaml
 ```
 
 ## Rollout (see pockethost-support `plans/pocker-v2-design.md` and `plans/pocker-community-mothership.md`)

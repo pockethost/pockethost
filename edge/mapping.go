@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 )
 
 // Mothership records as the mirror exports them.

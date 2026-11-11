@@ -1,6 +1,6 @@
-// Command pockethost-edge is PocketHost's edge: Pocker CE plus PocketHost's providers and platform features.
+// Command pockethost is PocketHost's edge: Pocker CE plus PocketHost's providers and platform features.
 //
-//	pockethost-edge serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
+//	pockethost serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
 //
 // With MOTHERSHIP_URL set (directly or in --env-file, same names as the Node edge), instances come from PocketHost's
 // mothership mirror, the edge heartbeats and reports instance status, and every instance gets PocketHost's platform
@@ -19,7 +19,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockerbase/pocketbase/ext/pocker"
 	"github.com/pockethost/pocker/deploy"
 	"github.com/pockethost/pocker/edge"
 )
@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 	if len(os.Args) < 2 || os.Args[1] != "serve" {
-		fmt.Fprintln(os.Stderr, "usage: pockethost-edge serve [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]")
+		fmt.Fprintln(os.Stderr, "usage: pockethost serve [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]")
 		os.Exit(2)
 	}
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
@@ -44,14 +44,14 @@ func main() {
 
 	if *envFile != "" {
 		if err := edge.LoadEnvFile(*envFile); err != nil {
-			slog.Error("pockethost-edge: env file", "error", err)
+			slog.Error("pockethost: env file", "error", err)
 			os.Exit(1)
 		}
 	}
 
 	cfg, err := pocker.LoadConfig(*configPath)
 	if err != nil {
-		slog.Error("pockethost-edge: config", "error", err)
+		slog.Error("pockethost: config", "error", err)
 		os.Exit(1)
 	}
 	if *listen != "" {
@@ -71,7 +71,7 @@ func main() {
 	if os.Getenv("MOTHERSHIP_URL") != "" {
 		ecfg, err := edge.ConfigFromEnv()
 		if err != nil {
-			slog.Error("pockethost-edge: mothership config", "error", err)
+			slog.Error("pockethost: mothership config", "error", err)
 			os.Exit(1)
 		}
 		source := edge.NewSource(ecfg, slog.Default())
@@ -107,40 +107,40 @@ func main() {
 			return source.Front(firewall, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
 		}
 		if edge.WebhooksDisabled() {
-			slog.Info("pockethost-edge: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")
+			slog.Info("pockethost: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")
 		} else {
 			go source.NewScheduler(manager).Run(ctx)
 		}
 		vopts := edge.DefaultVacuumOptions()
 		vopts.Cron = *vacuumCron
 		go source.NewVacuumer(manager, vopts).Run(ctx)
-		slog.Info("pockethost-edge: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
+		slog.Info("pockethost: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
 	}
 	if err := srv.Run(ctx); err != nil {
-		slog.Error("pockethost-edge: serve", "error", err)
+		slog.Error("pockethost: serve", "error", err)
 		os.Exit(1)
 	}
 }
 
-// check: read-only mapping report against the mothership (pockethost-edge check --env-file .env).
+// check: read-only mapping report against the mothership (pockethost check --env-file .env).
 func check(args []string) {
 	fs := flag.NewFlagSet("check", flag.ExitOnError)
 	envFile := fs.String("env-file", "", "KEY=VALUE file (e.g. the edge's .env)")
 	_ = fs.Parse(args)
 	if *envFile != "" {
 		if err := edge.LoadEnvFile(*envFile); err != nil {
-			slog.Error("pockethost-edge: env file", "error", err)
+			slog.Error("pockethost: env file", "error", err)
 			os.Exit(1)
 		}
 	}
 	ecfg, err := edge.ConfigFromEnv()
 	if err != nil {
-		slog.Error("pockethost-edge: mothership config", "error", err)
+		slog.Error("pockethost: mothership config", "error", err)
 		os.Exit(1)
 	}
 	rep, err := edge.Check(context.Background(), ecfg)
 	if err != nil {
-		slog.Error("pockethost-edge: check", "error", err)
+		slog.Error("pockethost: check", "error", err)
 		os.Exit(1)
 	}
 	fmt.Println(rep)
