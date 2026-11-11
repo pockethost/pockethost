@@ -276,7 +276,7 @@ func (s *Source) Snapshot(ctx context.Context) ([]pocker.Instance, error) {
 	mine := 0
 	for _, inst := range s.emitted {
 		list = append(list, inst)
-		if inst.Blocked == nil || inst.Blocked.Status != http.StatusMisdirectedRequest {
+		if inst.Remote == "" {
 			mine++
 		}
 	}

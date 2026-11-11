@@ -40,7 +40,7 @@ func routeSource(t *testing.T, sfo edgeRec) *Source {
 }
 
 func forward(s *Source, inst pocker.Instance, method string, hdr map[string]string) *httptest.ResponseRecorder {
-	r := httptest.NewRequest(method, "http://away.pockethost.io/x", nil)
+	r := httptest.NewRequest(method, "https://Away.pockethost.io:8443/x", nil) // the owner gets the bare hostname
 	for k, v := range hdr {
 		r.Header.Set(k, v)
 	}
@@ -57,6 +57,10 @@ func TestForwardHealthAndStaleProbe(t *testing.T) {
 			return
 		}
 		hits.Add(1)
+		if r.Host != "away.pockethost.io" {
+			http.Error(w, "host "+r.Host, 404)
+			return
+		}
 		fmt.Fprintf(w, "ok %s xff=%s", r.Header.Get(ForwardedByHeader), r.Header.Get("X-Forwarded-For"))
 	}))
 	defer up.Close()
@@ -202,6 +206,9 @@ func TestFirewallFromEnv(t *testing.T) {
 		strings.Join(fw.TrustedProxies, ",") != "10.88.0.0/24,173.245.48.0/20,2400:cb00::/32" ||
 		strings.Join(fw.TrustedClients, ",") != "203.0.113.9,127.0.0.0/8,::1/128" {
 		t.Fatalf("%+v", fw)
+	}
+	if fw.RateLimitHeaderPrefix != "X-PocketHost-RateLimit" {
+		t.Errorf("header prefix: %q", fw.RateLimitHeaderPrefix)
 	}
 	if _, err := pocker.NewFirewall(fw); err != nil {
 		t.Fatal(err)

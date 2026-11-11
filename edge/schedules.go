@@ -119,8 +119,8 @@ func (sc *Scheduler) Run(ctx context.Context) {
 
 func (sc *Scheduler) ready() bool {
 	m := sc.manager()
-	if m == nil {
-		return false
+	if m == nil || !m.Ready() {
+		return false // a catch-up call now would only get "starting"
 	}
 	sc.s.mu.Lock()
 	defer sc.s.mu.Unlock()

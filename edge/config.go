@@ -106,7 +106,7 @@ func ConfigFromEnv() (Config, error) {
 // FirewallFromEnv adds the Node firewall's settings to Pocker's firewall config: IPCIDR_LIST (the peers allowed to
 // connect, i.e. Cloudflare) becomes allowed peers and trusted proxies (their CF-Connecting-IP is believed), and
 // PH_USER_PROXY_IPS becomes trusted clients. Loopback is always allowed and trusted (the edge's own scheduled calls
-// and health checks). The private network other edges forward from belongs in pocker.yaml's firewall.allow_cidrs.
+// and health checks), and rate-limit headers keep the Node firewall's X-PocketHost-RateLimit-* names. The private network other edges forward from belongs in pocker.yaml's firewall.allow_cidrs.
 func FirewallFromEnv(fw *pocker.FirewallConfig) {
 	csv := func(key string) []string {
 		var out []string
@@ -126,4 +126,7 @@ func FirewallFromEnv(fw *pocker.FirewallConfig) {
 	}
 	fw.TrustedClients = append(fw.TrustedClients, csv("PH_USER_PROXY_IPS")...)
 	fw.TrustedClients = append(fw.TrustedClients, "127.0.0.0/8", "::1/128")
+	if fw.RateLimitHeaderPrefix == "" {
+		fw.RateLimitHeaderPrefix = "X-PocketHost-RateLimit" // the Node firewall's header names
+	}
 }

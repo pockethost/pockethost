@@ -11,8 +11,8 @@ github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lpr
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
-github.com/benallfree/pocker v0.0.0-20261111014240-f45f20952465 h1:wgLwT8KEaxdx9JhTVdhotecCv0dWX2GzcLl9QUQIRN0=
-github.com/benallfree/pocker v0.0.0-20261111014240-f45f20952465/go.mod h1:QVueZGDaIasYkdvA2S5ooZKGAkcgq+fDg07Gb3BcZ/Q=
+github.com/benallfree/pocker v0.0.0-20261111015222-1cf5641558e5 h1:0TVS2YPmf+f/5MG7DU9UvwRcXs+c3gJpN573YuTVEu4=
+github.com/benallfree/pocker v0.0.0-20261111015222-1cf5641558e5/go.mod h1:QVueZGDaIasYkdvA2S5ooZKGAkcgq+fDg07Gb3BcZ/Q=
 github.com/caddyserver/certmagic v0.25.6 h1:vHMtFSLKTa6kuZz6w0SnRMpQ388tSkww8ye355BgAM4=
 github.com/caddyserver/certmagic v0.25.6/go.mod h1:xq6cRNimqW+Tv91XNc5lNHs2XYTsLhQhYiH01H4AySs=
 github.com/caddyserver/zerossl v0.1.6 h1:1yrhTx5DWi43wOJPQ+Y4mVl++EPmSqqT/4REW//lsas=

@@ -36,9 +36,11 @@ func Check(ctx context.Context, cfg Config) (*CheckReport, error) {
 			rep.NotServed++
 			continue
 		}
-		if p.Blocked == nil || p.Blocked.Status != http.StatusMisdirectedRequest {
-			rep.ThisEdge++
+		if p.Remote != "" {
+			rep.Blocked[http.StatusMisdirectedRequest]++ // forwarded to their edge
+			continue
 		}
+		rep.ThisEdge++
 		if p.Blocked != nil {
 			rep.Blocked[p.Blocked.Status]++
 		} else {

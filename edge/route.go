@@ -292,7 +292,7 @@ func (s *Source) Forward(w http.ResponseWriter, r *http.Request, inst pocker.Ins
 		proxy := &httputil.ReverseProxy{
 			Rewrite: func(pr *httputil.ProxyRequest) {
 				pr.SetURL(target)
-				pr.Out.Host = r.Host // the owner routes by Host
+				pr.Out.Host = host // the owner routes by Host (bare hostname: no port, no trailing dot)
 				pr.SetXForwarded()
 				pr.Out.Header.Set(ForwardedByHeader, s.cfg.EdgeID)
 			},
