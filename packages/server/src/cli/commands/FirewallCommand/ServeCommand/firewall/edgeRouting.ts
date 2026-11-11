@@ -5,13 +5,16 @@ import {
   isInstanceOnEdge,
   LEGACY_EDGE_ID,
   Logger,
+  msSince,
   PH_EDGE_ID,
   PH_EDGE_REGION,
   PH_FIREWALL_DAEMON_GRACE_RETRY_MS,
+  type TimingEntry,
 } from '@'
 import type { Request, RequestHandler, Response } from 'express'
-import http from 'http'
+import http, { type IncomingMessage } from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
+import { performance } from 'perf_hooks'
 import { isDaemonUnreachableError } from './daemonGrace'
 import { rewriteProxiedCorsHeaders } from './instanceCors'
 import { isHealthProbePath } from './rateLimiterPure'
@@ -72,6 +75,19 @@ export const edgeHeaders = (entry: EdgeLabel, origin: EdgeLabel | undefined): Re
   [EDGE_HEADERS.edgeRegion]: entry.region,
   ...(origin ? { [EDGE_HEADERS.originName]: origin.name, [EDGE_HEADERS.originRegion]: origin.region } : {}),
 })
+
+type ForwardMark = { phForward?: { start: number; to: string } }
+
+/** Records that `req` is being forwarded to edge `to` now (each attempt restarts the clock). */
+export const markForwardStart = (req: IncomingMessage, to: string, now = performance.now()) => {
+  ;(req as IncomingMessage & ForwardMark).phForward = { start: now, to }
+}
+
+/** The `fwd` Server-Timing entry for a forwarded request: time spent waiting on the owner edge. Empty if local. */
+export const forwardTiming = (req: IncomingMessage, myEdgeId: string, now = performance.now()): TimingEntry[] => {
+  const mark = (req as IncomingMessage & ForwardMark).phForward
+  return mark ? [{ name: 'fwd', dur: msSince(mark.start, now), desc: `${myEdgeId}>${mark.to}` }] : []
+}
 
 const IDEMPOTENT = new Set(['GET', 'HEAD', 'OPTIONS'])
 
@@ -175,8 +191,10 @@ export const createEdgeRoutingMiddleware = (mirror: EdgeRoutingMirror, logger: L
     xfwd: true,
     proxyTimeout: 0,
     on: {
-      proxyReq: (proxyReq) => {
+      proxyReq: (proxyReq, req) => {
         proxyReq.setHeader('x-ph-forwarded-by', myEdgeId)
+        const ownerId = (req as RoutedRequest).phEdgeId
+        markForwardStart(req, (ownerId && mirror.getEdge(ownerId)?.edge_id) || 'edge')
         proxyReq.once('socket', (socket) => {
           if (!socket.connecting) return
           const timer = setTimeout(() => {

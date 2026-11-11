@@ -1,6 +1,7 @@
+import type { IncomingMessage } from 'http'
 import { describe, expect, it } from 'vitest'
 import type { EdgeFields } from '../../../../../common'
-import { createStaleEdgeProbe, decideRoute, edgeHeaders } from './edgeRouting'
+import { createStaleEdgeProbe, decideRoute, edgeHeaders, forwardTiming, markForwardStart } from './edgeRouting'
 
 const NOW = Date.parse('2026-11-09T19:00:00Z')
 const seen = (secondsAgo: number) => new Date(NOW - secondsAgo * 1000).toISOString().replace('T', ' ')
@@ -125,5 +126,18 @@ describe('createStaleEdgeProbe', () => {
     })
     expect(await probe({ id: 'E_X', internal_url: '' })).toBe(false)
     expect(await probe(edge)).toBe(false)
+  })
+})
+
+describe('forwardTiming', () => {
+  it('is empty for a request served locally', () => {
+    expect(forwardTiming({} as IncomingMessage, 'sfo')).toEqual([])
+  })
+
+  it('reports the wait on the owner edge from the latest attempt', () => {
+    const req = {} as IncomingMessage
+    markForwardStart(req, 'sgp-1', 100)
+    markForwardStart(req, 'sgp-1', 200) // a retry restarts the clock
+    expect(forwardTiming(req, 'sfo', 250)).toEqual([{ name: 'fwd', dur: 50, desc: 'sfo>sgp-1' }])
   })
 })

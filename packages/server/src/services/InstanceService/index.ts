@@ -28,10 +28,12 @@ import {
   tryFetch,
   userError,
   VacuumLockService,
+  type InstanceTiming,
 } from '@'
 import Bottleneck from 'bottleneck'
 import { globSync } from 'fs'
 import { basename, join } from 'path'
+import { performance } from 'perf_hooks'
 import { AsyncReturnType } from 'type-fest'
 import { MothershipMirrorService, type MirrorLiveInstance } from '../MothershipMirrorService'
 import { shouldSkipInstanceFieldUpdate } from './instanceFieldUpdate'
@@ -598,7 +600,10 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
     const lifetime = trackRequestLifetime(res, bumpGatewayPending(instance.id))
 
     try {
+      const timing: InstanceTiming = { wakeStart: performance.now() }
+      res.locals.phTiming = timing
       const api = await ensureInstanceApi(instance, res.locals.requestId)
+      timing.readyAt = performance.now()
 
       if (!lifetime.begin(api.startRequest)) {
         dbg(`Client disconnected before instance was ready. ${res.locals.requestId}`)

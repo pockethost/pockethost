@@ -8,8 +8,10 @@ import {
   MOTHERSHIP_NAME,
   MOTHERSHIP_PORT,
   PH_DISABLE_FIREWALL_RATE_LIMIT,
+  PH_EDGE_ID,
   PH_FIREWALL_DAEMON_GRACE_MS,
   poweredByMiddleware,
+  serverTimingMiddleware,
   SSL_CERT,
   SSL_KEY,
 } from '@'
@@ -24,7 +26,7 @@ import type { Socket } from 'net'
 import { createIpWhitelistMiddleware } from './cidr'
 import { createVhostProxyMiddleware, type VhostUpgradeHandler } from './createVhostProxyMiddleware'
 import { createDaemonGraceMiddleware, createDaemonProxyErrorHandler } from './daemonGrace'
-import { createEdgeRoutingMiddleware } from './edgeRouting'
+import { createEdgeRoutingMiddleware, forwardTiming } from './edgeRouting'
 import { initFirewallTrustedIps } from './initFirewallTrustedIps'
 import { createInstanceCorsMiddleware, rewriteProxiedCorsHeaders } from './instanceCors'
 import { createRateLimiterMiddleware } from './rate-limiter'
@@ -50,6 +52,13 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   // Create Express app
   const app = express()
   app.disable('x-powered-by')
+  // First, so `entry` covers everything this edge does (rate limits, routing, holds). See common/serverTiming.ts.
+  app.use(
+    serverTimingMiddleware((req, _res, elapsedMs) => [
+      ...forwardTiming(req, PH_EDGE_ID()),
+      { name: 'entry', dur: elapsedMs, desc: PH_EDGE_ID() },
+    ])
+  )
   app.use(poweredByMiddleware)
 
   // The mothership mirror (needed for rate limits and per-instance CORS) is only started when rate limiting is on.

@@ -1,12 +1,14 @@
-import { corsMiddleware, poweredByMiddleware } from '@'
+import { corsMiddleware, msSince, poweredByMiddleware, serverTimingMiddleware, type TimingEntry } from '@'
 import express, { Request, Response } from 'express'
 import { createProxyServer, type ProxyServer } from 'httpxy'
+import { performance } from 'perf_hooks'
 import { AsyncReturnType } from 'type-fest'
 import {
   DAEMON_PORT,
   EdgeTrafficStatsSnapshot,
   Logger,
   LoggerService,
+  PH_EDGE_ID,
   SingletonBaseConfig,
   asyncExitHook,
   mkSingleton,
@@ -27,6 +29,25 @@ export type ProxyMiddleware = (
   },
   logger: Logger
 ) => boolean | Promise<boolean>
+
+/** Set by the instance handler: when it asked for the instance (`wakeStart`) and when it was ready (`readyAt`). */
+export type InstanceTiming = { wakeStart: number; readyAt?: number }
+
+/** Pure: this edge's Server-Timing entries (`origin`, `wake`, `edge`). See common/serverTiming.ts. */
+export const daemonTimingEntries = (
+  timing: InstanceTiming | undefined,
+  elapsedMs: number,
+  edgeName: string,
+  now: number
+): TimingEntry[] => [
+  ...(timing?.readyAt !== undefined
+    ? [
+        { name: 'origin', dur: msSince(timing.readyAt, now) },
+        { name: 'wake', dur: msSince(timing.wakeStart, timing.readyAt) },
+      ]
+    : []),
+  { name: 'edge', dur: elapsedMs, desc: edgeName },
+]
 
 export type ProxyServiceConfig = SingletonBaseConfig & {
   coreInternalUrl: string
@@ -106,6 +127,16 @@ export const proxyService = mkSingleton(
 
     const server = express()
     server.disable('x-powered-by')
+    server.use(
+      serverTimingMiddleware((_req, res, elapsedMs) =>
+        daemonTimingEntries(
+          (res as Response).locals?.phTiming as InstanceTiming | undefined,
+          elapsedMs,
+          PH_EDGE_ID(),
+          performance.now()
+        )
+      )
+    )
     server.use(poweredByMiddleware) // the daemon fulfills the request; the firewall in front passes it through
 
     server.use(corsMiddleware)
