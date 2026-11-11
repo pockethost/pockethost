@@ -423,8 +423,9 @@ const FirewallHealthPath = "/api/firewall/health"
 
 // Front is the edge's outer middleware (the Node firewall's job, in front of the instances): the load balancer
 // health route, the peer allowlist, and the edge routing headers. Instance routing, rate limits and forwarding
-// happen in Pocker's Manager behind it.
-func (s *Source) Front(fw *firewall.Firewall, next http.Handler) http.Handler {
+// happen in Pocker's Manager behind it. ready reports whether the Manager has loaded the instance list; until it
+// does, the health route answers 503 so the load balancer keeps traffic away (nil means always ready).
+func (s *Source) Front(fw *firewall.Firewall, ready func() bool, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		forwarded := r.Header.Get(ForwardedByHeader) != ""
@@ -437,6 +438,11 @@ func (s *Source) Front(fw *firewall.Firewall, next http.Handler) http.Handler {
 		if r.URL.Path == FirewallHealthPath {
 			openCORSHeaders(w, r)
 			w.Header().Set("Content-Type", "application/json")
+			if ready != nil && !ready() {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				_, _ = io.WriteString(w, `{"status":"starting","code":503}`)
+				return
+			}
 			_, _ = io.WriteString(w, `{"status":"firewall ok","code":200}`)
 			return
 		}

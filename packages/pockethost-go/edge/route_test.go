@@ -178,7 +178,8 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := s.Front(fw, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("in")) }))
+	ready := false
+	h := s.Front(fw, func() bool { return ready }, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("in")) }))
 	do := func(path, peer string) *httptest.ResponseRecorder {
 		r := httptest.NewRequest("GET", "http://away.pockethost.io"+path, nil)
 		r.RemoteAddr = peer + ":1234"
@@ -186,6 +187,10 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 		h.ServeHTTP(w, r)
 		return w
 	}
+	if w := do(FirewallHealthPath, "198.51.100.7"); w.Code != 503 || !strings.Contains(w.Body.String(), "starting") {
+		t.Fatalf("health before the instance list loads: %d %s", w.Code, w.Body.String())
+	}
+	ready = true
 	if w := do(FirewallHealthPath, "198.51.100.7"); w.Code != 200 || !strings.Contains(w.Body.String(), "firewall ok") {
 		t.Fatalf("health is open to any peer (the Node firewall's order): %d", w.Code)
 	}

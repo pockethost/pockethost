@@ -96,7 +96,7 @@ pb_root: /root/.pockethost/data/instances
 ```
 
 - **Firewall** (`edge/route.go`, `edge/config.go`): `IPCIDR_LIST` → allowed peers and trusted proxies,
-  `PH_USER_PROXY_IPS` → trusted clients. `/api/firewall/health` answers before the peer check (the LB monitor).
+  `PH_USER_PROXY_IPS` → trusted clients. `/api/firewall/health` answers before the peer check (the LB monitor): 503 `starting` until the instance list has loaded, then 200.
   Instances on other edges are `Remote` in Pocker: this edge's peer check, rate limits and CORS apply, then
   `Source.Forward` proxies to the owner edge's `internal_url` with `X-Ph-Forwarded-By`; a request that already has it
   gets 421 (no second hop). Owner healthy in the mirror (heartbeat within 30 s) or answering its health check → forward;
