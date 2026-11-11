@@ -11,8 +11,7 @@ This repo adds what PocketHost needs to run a business on it, as Go code that **
 | `cmd/pockethost-edge`: PocketHost's edge binary (`serve`, and `check` for a read-only mapping report) | done |
 | `edge/`: adapter for today's mothership: mirror dump + realtime + drift poll, heartbeat with traffic stats, instance status (running/failed) | done |
 | `edge/`: platform features via `Server.SetupApp`: `/api/ph/backup`, app name/URL/sender defaults; owner login sync via CE superusers | done |
-| Deploy API (`/_ph/deploy/v1`) used by the CLI | planned |
-| `/logs` streaming | planned |
+| `deploy/`: the deploy API (`/_ph/deploy/v1`: whoami, check, blobs, commit, files, logs), wire-compatible with the Node edge so the `pockethost` CLI works unchanged | done |
 | Vacuum lock | planned |
 | Scheduled webhooks | planned |
 | Later: the mothership extension (billing, plans, mail, Discord, Cloudflare for SaaS) | later |
@@ -54,6 +53,23 @@ How records map (`edge/mapping.go`): hosts are `<subdomain>.<apex>`, `<id>.<apex
 non-secret `PH_APP_NAME`, `PH_INSTANCE_URL`, `PH_APEX_DOMAIN` the Node edge always set; the owner's `trusted_ips` →
 `access.trusted_ips`; operator `firewall` → `limits.rate_limits`; `syncAdmin` → the owner as superuser; blocked in the
 Node edge's order: other edge 421, owner/instance suspension 403, unpaid 402, powered off 503, unverified 403.
+
+## Deploy API
+
+`deploy/` is a Go port of the Node edge's `DeployService` (same routes, JSON, errors, limits, code-set rules, PHB1
+bundles, store layout `DATA_ROOT/deploys/<id>`). Tokens are checked against the mothership (`/api/pat/verify`, or the
+user's own `auth-refresh` for a login JWT), cached 30 s; deploys are recorded in the `deploys` collection. A commit
+that changes anything outside `pb_public/` runs while Pocker holds the instance (`Manager.WithInstanceStopped`), then
+starts it again if it was running, so the CLI sees `startError` from a broken hook right away.
+
+Differences from the Node edge: an instance served by another edge gets 421; an oversized body gets a JSON 413; a
+symlink in the code set says "remove it and redeploy" (no SFTP). The deploy API sits in front of Pocker's own
+firewall checks (like the Node edge's, behind the Node firewall); fold it under the Go firewall when that replaces
+the Node one.
+
+Tests: `go test ./deploy/` includes `TestCLICompat`, which runs the `pockethost` CLI's own deploy and files code under
+bun against this API (needs bun and a pockethost checkout; `POCKETHOST_CLI_DIR`, default `/root/pockethost/packages/cli`),
+and `TestWithPockerManager`, which deploys to real PocketBase apps.
 
 ## Build
 

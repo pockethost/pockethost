@@ -2,7 +2,10 @@ module github.com/pockethost/pocker
 
 go 1.27
 
-require ganigeorgiev.com/pocketbase/pocketbase v0.41.1
+require (
+	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
+	golang.org/x/crypto v0.58.0
+)
 
 require (
 	ganigeorgiev.com/fexpr v0.7.0 // indirect
@@ -42,7 +45,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
@@ -58,4 +60,4 @@ require (
 
 // Pocker CE (benallfree/pocker) is PocketBase plus the Pocker engine; it keeps PocketBase's module path so upstream
 // merges stay easy. This replace points the module at CE. Bump it to pick up CE changes.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker v0.0.0-20261110162527-74ca4aa99a9b
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker v0.0.0-20261110234354-b44a67763531

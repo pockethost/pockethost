@@ -108,7 +108,7 @@ func (c *client) do(ctx context.Context, method, path string, in, out any) error
 				err = errRetry
 			case res.StatusCode >= 300:
 				b, _ := io.ReadAll(io.LimitReader(res.Body, 512))
-				err = fmt.Errorf("%s %s: %d %s", method, path, res.StatusCode, b)
+				err = &statusError{Method: method, Path: path, Status: res.StatusCode, Body: b}
 			case out != nil:
 				err = json.NewDecoder(res.Body).Decode(out)
 			}
@@ -121,6 +121,26 @@ func (c *client) do(ctx context.Context, method, path string, in, out any) error
 }
 
 var errRetry = errors.New("retry")
+
+// statusError is a non-2xx answer from the mothership.
+type statusError struct {
+	Method, Path string
+	Status       int
+	Body         []byte
+}
+
+func (e *statusError) Error() string {
+	return fmt.Sprintf("%s %s: %d %s", e.Method, e.Path, e.Status, e.Body)
+}
+
+// message is PocketBase's {"message": ...} from the body, if any.
+func (e *statusError) message() string {
+	var b struct {
+		Message string `json:"message"`
+	}
+	_ = json.Unmarshal(e.Body, &b)
+	return b.Message
+}
 
 // realtimeEvent is one message from PocketBase's realtime stream.
 type realtimeEvent struct {

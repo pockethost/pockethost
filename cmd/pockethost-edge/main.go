@@ -15,9 +15,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockethost/pocker/deploy"
 	"github.com/pockethost/pocker/edge"
 )
 
@@ -75,7 +77,19 @@ func main() {
 		source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
 		srv.Source = source
 		srv.SetupApp = edge.Setup(ecfg)
-		srv.Wrap = func(h http.Handler) http.Handler { return edge.NodeCompat(stats.Middleware(h)) }
+		deployAPI := deploy.New(deploy.Options{
+			Backend: source.DeployBackend(),
+			Instances: func() deploy.Instances {
+				if srv.Manager == nil {
+					return nil
+				}
+				return srv.Manager
+			},
+			PBRoot:        cfg.PBRoot,
+			DataRoot:      filepath.Join(filepath.Dir(filepath.Clean(cfg.PBRoot)), "deploys"), // DATA_ROOT/deploys, as on the Node edge
+			PlatformPaths: edge.PlatformPaths,
+		})
+		srv.Wrap = func(h http.Handler) http.Handler { return edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))) }
 		slog.Info("pockethost-edge: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
 	}
 	if err := srv.Run(ctx); err != nil {
