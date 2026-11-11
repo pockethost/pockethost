@@ -286,6 +286,16 @@ func TestAPIEndToEnd(t *testing.T) {
 		t.Fatalf("pb_public deploy: %s stops=%d", r.raw, f.mgr.stops)
 	}
 
+	// pb_pages-only (ext/pages rescans it): no stop either
+	r = f.deploy(map[string]string{"pb_hooks/main.pb.js": "routerAdd()", "pb_public/index.html": "<h1>v2</h1>", "pb_pages/index.ejs": "hi", "package.json": "{}"}, nil)
+	if r.status != 200 || f.mgr.stops != stops || r.body["restarted"] != false || num0(r.body["writtenCount"]) != 1 {
+		t.Fatalf("pb_pages deploy: %s stops=%d", r.raw, f.mgr.stops)
+	}
+	r = f.deploy(map[string]string{"pb_hooks/main.pb.js": "routerAdd()", "pb_public/index.html": "<h1>v2</h1>", "package.json": "{}"}, nil)
+	if r.status != 200 || f.mgr.stops != stops || r.body["restarted"] != false || num0(r.body["deletedCount"]) != 1 {
+		t.Fatalf("pb_pages removal: %s stops=%d", r.raw, f.mgr.stops)
+	}
+
 	// nothing changed: no record, deployId null
 	n := len(f.be.records)
 	r = f.deploy(map[string]string{"pb_hooks/main.pb.js": "routerAdd()", "pb_public/index.html": "<h1>v2</h1>", "package.json": "{}"}, nil)

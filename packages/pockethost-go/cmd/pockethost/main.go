@@ -20,6 +20,8 @@ import (
 	"syscall"
 
 	"github.com/pockethost/pocketbase/ext/firewall"
+	"github.com/pockethost/pocketbase/ext/pages"
+	"github.com/pockethost/pocketbase/ext/pages/pockerplugin"
 	"github.com/pockethost/pocketbase/ext/pitr"
 	"github.com/pockethost/pocketbase/ext/pocker"
 	"github.com/pockethost/pocketbase/ext/servertiming"
@@ -75,6 +77,7 @@ func main() {
 	fw.Adjust = func(c *firewall.Config, _ **firewall.RateLimits) { edge.FirewallFromEnv(c) } // after pocker.yaml, like before
 	srv.Plugins = []pocker.Plugin{servertiming.New(), fw}                                     // servertiming outermost: its header includes the edge's own hops
 	srv.Plugins = append(srv.Plugins, pitr.New(pitr.Config{}))                                // point-in-time restore, on for every instance (pocker.yaml `pitr:`, instance plugins.pitr)
+	srv.Plugins = append(srv.Plugins, pockerplugin.New(pages.Config{}))                       // PocketPages v1: serves an instance's pb_pages when it has one (instance plugins.pages.enabled: false turns it off)
 	if os.Getenv("MOTHERSHIP_URL") != "" {
 		ecfg, err := edge.ConfigFromEnv()
 		if err != nil {

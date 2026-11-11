@@ -4,10 +4,11 @@ go 1.27
 
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
-	github.com/pockethost/pocketbase/ext/firewall v0.0.0-20261111195605-2da5a9751ea6
-	github.com/pockethost/pocketbase/ext/pitr v0.0.0-20261111195605-2da5a9751ea6
-	github.com/pockethost/pocketbase/ext/pocker v0.0.0-20261111195605-2da5a9751ea6
-	github.com/pockethost/pocketbase/ext/servertiming v0.0.0-20261111195605-2da5a9751ea6
+	github.com/pockethost/pocketbase/ext/firewall v0.0.0-20261111235235-c4ea94a42144
+	github.com/pockethost/pocketbase/ext/pages v0.0.0-20261111235235-c4ea94a42144
+	github.com/pockethost/pocketbase/ext/pitr v0.0.0-20261111235235-c4ea94a42144
+	github.com/pockethost/pocketbase/ext/pocker v0.0.0-20261111235235-c4ea94a42144
+	github.com/pockethost/pocketbase/ext/servertiming v0.0.0-20261111235235-c4ea94a42144
 	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.60.1
 )
@@ -27,6 +28,7 @@ require (
 	github.com/dop251/goja v0.0.0-20261023121931-6ace4dde0b29 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20260212111938-1f56ff5bcf14 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
+	github.com/evanw/esbuild v0.28.2 // indirect
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
@@ -47,7 +49,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
-	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261111195605-2da5a9751ea6 // indirect
+	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261111235235-c4ea94a42144 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
@@ -60,6 +62,7 @@ require (
 	github.com/superfly/ltx v0.5.2 // indirect
 	github.com/tetratelabs/wazero v1.2.1 // indirect
 	github.com/wasilibs/go-re2 v1.3.0 // indirect
+	github.com/yuin/goldmark v1.8.7 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
@@ -76,4 +79,4 @@ require (
 // PocketBase CE (github.com/pockethost/pocketbase) keeps PocketBase's module path so upstream merges stay easy. This
 // replace points the module at CE; the ext/* requires are CE plugin modules in the same repo. Bump the replace and
 // every ext/* require to the same CE commit together.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase v0.0.2-0.20261111195605-2da5a9751ea6
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase v0.0.2-0.20261111235235-c4ea94a42144

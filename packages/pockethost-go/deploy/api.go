@@ -495,10 +495,11 @@ func (a *API) commit(w http.ResponseWriter, r *http.Request) error {
 		changed = append(changed, nodeModulesDir)
 	}
 	nothingChanged := len(changed) == 0
-	// static files are served from disk and each rename is atomic, so pb_public-only deploys skip the restart
+	// static files are served from disk and each rename is atomic, so pb_public-only deploys skip the restart; pages
+	// (ext/pages) rescans pb_pages on the next request, so pb_pages changes skip it too
 	needsRestart := false
 	for _, p := range changed {
-		if !strings.HasPrefix(p, "pb_public/") {
+		if !strings.HasPrefix(p, "pb_public/") && !strings.HasPrefix(p, "pb_pages/") {
 			needsRestart = true
 			break
 		}
