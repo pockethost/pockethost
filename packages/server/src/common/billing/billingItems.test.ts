@@ -6,15 +6,15 @@ import {
   INSTANCE_MONTHLY_PV_ID,
 } from '../lemonSqueezy'
 import {
-  isCompleteLsSubscription,
-  isLsDisputeEvent,
-  lsDisputeSummary,
   baselineItemFromUser,
   billingItemFromLsOrder,
   billingItemFromLsSubscription,
   isBillingItemActive,
+  isCompleteLsSubscription,
+  isLsDisputeEvent,
   isRecurringLsOrder,
   LAPSED_ENTITLEMENT,
+  lsDisputeSummary,
   reconcileEntitlement,
   type BillingItem,
 } from './billingItems'
@@ -265,7 +265,10 @@ describe('retired LS variants', () => {
 describe('isCompleteLsSubscription', () => {
   it('rejects the early checkout subscription_updated with null product and variant', () => {
     expect(
-      isCompleteLsSubscription({ id: 2673824, attributes: { product_id: null, variant_id: null, status: 'active' } as any })
+      isCompleteLsSubscription({
+        id: 2673824,
+        attributes: { product_id: null, variant_id: null, status: 'active' } as any,
+      })
     ).toBe(false)
     expect(isCompleteLsSubscription(undefined)).toBe(false)
   })
@@ -287,7 +290,9 @@ describe('LS disputes', () => {
         id: 42,
         attributes: { order_id: 9994001, amount: 999, currency: 'usd', status: 'needs_response', reason: 'fraudulent' },
       })
-    ).toBe('Lemon Squeezy dispute created · #42 · order 9994001 · 9.99 USD · status needs_response · reason: fraudulent')
+    ).toBe(
+      'Lemon Squeezy dispute created · #42 · order 9994001 · 9.99 USD · status needs_response · reason: fraudulent'
+    )
     expect(lsDisputeSummary('dispute_resolved', undefined)).toBe('Lemon Squeezy dispute resolved')
   })
 })
