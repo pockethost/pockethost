@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -29,7 +30,11 @@ func (a *API) logs(w http.ResponseWriter, r *http.Request) error {
 	if r.URL.Query().Get("n") == "" {
 		n = 100
 	}
-	n = min(max(n, 0), 1000)
+	return streamLog(w, r, c.dir, min(max(n, 0), 1000))
+}
+
+// streamLog writes <dir>/logs/exec.log as server-sent events until the client goes away.
+func streamLog(w http.ResponseWriter, r *http.Request, dir string, n int) error {
 	h := w.Header()
 	h.Set("Content-Type", "text/event-stream; charset=UTF-8")
 	h.Set("Connection", "keep-alive")
@@ -55,7 +60,7 @@ func (a *API) logs(w http.ResponseWriter, r *http.Request) error {
 		return true
 	}
 
-	path := filepath.Join(c.dir, "logs", "exec.log")
+	path := filepath.Join(dir, "logs", "exec.log")
 	t := &tailer{path: path}
 	for _, line := range t.start(n) {
 		if !send(line) {
@@ -189,4 +194,78 @@ func (t *tailer) poll() [][]byte {
 	}
 	t.partial = append([]byte{}, data[end+1:]...)
 	return bytes.Split(data[:end], []byte("\n"))
+}
+
+// dashboardLogs: POST /logs {instanceId, n, auth} with "Authorization: <PocketBase token>" is the dashboard's live log
+// view (the Node edge's RealtimeLog). The owner's login token may read; the body's instanceId (id or subdomain) must
+// be the instance the host names. CORS stays open: the dashboard calls it from its own origin.
+func (a *API) dashboardLogs(w http.ResponseWriter, r *http.Request) error {
+	host := hostOf(r)
+	inst, ok := a.opts.Backend.Lookup(host)
+	if !ok {
+		return errf(404, "%s not found", host)
+	}
+	var body struct {
+		InstanceID string `json:"instanceId"`
+		N          *int   `json:"n"`
+		Auth       string `json:"auth"`
+	}
+	b, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 64<<10))
+	if err != nil {
+		return err
+	}
+	if json.Unmarshal(b, &body) != nil || body.InstanceID == "" {
+		return errf(400, "instanceId required")
+	}
+	token := strings.TrimSpace(r.Header.Get("Authorization"))
+	if bearerToken(token) == "" && token != "" {
+		token = "Bearer " + token
+	}
+	if token == "" {
+		token = cookieToken(body.Auth)
+	}
+	auth, err := a.auth.resolve(r.Context(), token, clientIP(r), false)
+	if err != nil {
+		return err
+	}
+	if auth.Via == "pat" || inst.OwnerID != auth.UserID || (body.InstanceID != inst.ID && body.InstanceID != inst.Subdomain) {
+		return errf(404, "%s not found", host)
+	}
+	if inst.Elsewhere != "" {
+		return errf(http.StatusMisdirectedRequest, "%s", inst.Elsewhere)
+	}
+	n := 100
+	if body.N != nil {
+		n = min(max(*body.N, 0), 1000)
+	}
+	return streamLog(w, r, a.instanceDir(inst.ID), n)
+}
+
+// cookieToken reads the token from a PocketBase auth cookie ("pb_auth=<url-encoded JSON {token, ...}>; ...").
+func cookieToken(cookie string) string {
+	v := strings.TrimSpace(cookie)
+	if _, after, ok := strings.Cut(v, "="); ok && !strings.HasPrefix(v, "{") && !strings.HasPrefix(v, "%7B") {
+		v = after
+	}
+	v, _, _ = strings.Cut(v, ";")
+	if u, err := url.QueryUnescape(v); err == nil {
+		v = u
+	}
+	var c struct {
+		Token string `json:"token"`
+	}
+	if json.Unmarshal([]byte(v), &c) != nil || c.Token == "" {
+		return ""
+	}
+	return "Bearer " + c.Token
+}
+
+// openCORS is the permissive CORS the Node firewall gave edge routes.
+func openCORS(w http.ResponseWriter, r *http.Request) {
+	h := w.Header()
+	h.Set("Access-Control-Allow-Origin", "*")
+	h.Set("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS")
+	if v := r.Header.Get("Access-Control-Request-Headers"); v != "" {
+		h.Set("Access-Control-Allow-Headers", v)
+	}
 }

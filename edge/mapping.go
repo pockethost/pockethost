@@ -37,6 +37,8 @@ type instanceRec struct {
 	Firewall   json.RawMessage `json:"firewall"`
 	Edge       string          `json:"edge"`
 	Version    string          `json:"version"`
+	Webhooks   json.RawMessage `json:"webhooks"`
+	AutoVacuum *bool           `json:"autoVacuum"`
 	Updated    string          `json:"updated"`
 }
 
@@ -46,6 +48,7 @@ type edgeRec struct {
 	Region      string `json:"region"`
 	InternalURL string `json:"internal_url"`
 	Status      string `json:"status"`
+	LastSeen    string `json:"last_seen"`
 }
 
 // tokenInfo is the owner's login, for syncing it as the instance's superuser.
@@ -57,6 +60,17 @@ type tokenInfo struct {
 
 // legacyEdgeID owns instances that have no edge (they predate edges).
 const legacyEdgeID = "sfo"
+
+// remoteEdgePrefix marks pocker.Instance.Remote values: "edge:<edges record id>" or "edge:@<edge_id>" (legacy).
+const remoteEdgePrefix = "edge:"
+
+// ownerEdge names the edge that runs inst for Instance.Remote: its record id, or "@sfo" for instances without one.
+func ownerEdge(inst instanceRec) string {
+	if inst.Edge != "" {
+		return inst.Edge
+	}
+	return "@" + legacyEdgeID
+}
 
 // isMine reports whether the instance runs on this edge (myEdge is this edge's record id, possibly not known yet).
 func isMine(inst instanceRec, myEdge, myEdgeID string) bool {
@@ -179,8 +193,13 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 	}
 	host := p.Hosts[0]
 
+	secrets := stringMap(inst.Secrets)
+	p.Access.CORSOrigins = splitOrigins(secrets[secretCORS])
+	p.Access.TrustedIPs = stringList(owner.TrustedIPs)
+	p.Limits.RateLimits = rateLimits(inst.Firewall)
 	if !isMine(inst, myEdge, cfg.EdgeID) {
-		p.Blocked = &pocker.Blocked{Status: http.StatusMisdirectedRequest, Message: host + " is served by another PocketHost edge"}
+		// another edge runs it: Pocker applies this edge's firewall (rate limits, CORS) and forwards (Source.Forward)
+		p.Remote = remoteEdgePrefix + ownerEdge(inst)
 		return p, true
 	}
 	switch {
@@ -198,9 +217,7 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 		p.Blocked = &pocker.Blocked{Status: http.StatusForbidden, Message: fmt.Sprintf("Log in at %s to verify your account.", cfg.AppURL)}
 	}
 
-	secrets := stringMap(inst.Secrets)
 	p.EncryptionKey = secrets[secretEncryption]
-	p.Access.CORSOrigins = splitOrigins(secrets[secretCORS])
 	delete(secrets, secretEncryption)
 	delete(secrets, secretCORS)
 	// platform values the Node edge always set; customer code may read them (not sensitive)
@@ -209,8 +226,6 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 	secrets["PH_APEX_DOMAIN"] = cfg.ApexDomain
 	p.Secrets = secrets
 	p.Dev = inst.Dev
-	p.Access.TrustedIPs = stringList(owner.TrustedIPs)
-	p.Limits.RateLimits = rateLimits(inst.Firewall)
 	p.Private = map[string]string{"backup_token": backupToken(cfg.BackupTokenSecret, inst.ID), "subdomain": inst.Subdomain}
 
 	if inst.SyncAdmin && ownerLogin != nil {

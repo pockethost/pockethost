@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync/atomic"
 	"syscall"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
@@ -38,6 +39,7 @@ func main() {
 	listen := fs.String("listen", "", "listen address (overrides config)")
 	pbRoot := fs.String("pbRoot", "", "instance folders root (overrides config)")
 	instances := fs.String("instances", "", "instances YAML file (overrides config)")
+	vacuumCron := fs.String("vacuum-cron", edge.DefaultVacuumOptions().Cron, `nightly vacuum schedule (UTC cron, "off" to disable)`)
 	_ = fs.Parse(os.Args[2:])
 
 	if *envFile != "" {
@@ -77,19 +79,41 @@ func main() {
 		source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
 		srv.Source = source
 		srv.SetupApp = edge.Setup(ecfg)
+		srv.Forward = source.Forward
+		edge.FirewallFromEnv(&srv.Config.Firewall)
+		var running atomic.Pointer[pocker.Manager]
+		srv.OnStart = running.Store
+		manager := running.Load
 		deployAPI := deploy.New(deploy.Options{
 			Backend: source.DeployBackend(),
 			Instances: func() deploy.Instances {
-				if srv.Manager == nil {
-					return nil
+				if m := manager(); m != nil {
+					return m
 				}
-				return srv.Manager
+				return nil
 			},
 			PBRoot:        cfg.PBRoot,
 			DataRoot:      filepath.Join(filepath.Dir(filepath.Clean(cfg.PBRoot)), "deploys"), // DATA_ROOT/deploys, as on the Node edge
 			PlatformPaths: edge.PlatformPaths,
+			IsRemote:      source.IsRemote,
 		})
-		srv.Wrap = func(h http.Handler) http.Handler { return edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))) }
+		firewall := func() *pocker.Firewall {
+			if m := manager(); m != nil {
+				return m.Firewall()
+			}
+			return nil
+		}
+		srv.Wrap = func(h http.Handler) http.Handler {
+			return source.Front(firewall, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
+		}
+		if edge.WebhooksDisabled() {
+			slog.Info("pockethost-edge: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")
+		} else {
+			go source.NewScheduler(manager).Run(ctx)
+		}
+		vopts := edge.DefaultVacuumOptions()
+		vopts.Cron = *vacuumCron
+		go source.NewVacuumer(manager, vopts).Run(ctx)
 		slog.Info("pockethost-edge: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
 	}
 	if err := srv.Run(ctx); err != nil {

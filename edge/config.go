@@ -5,7 +5,9 @@ package edge
 
 import (
 	"bufio"
+
 	"fmt"
+	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
 	"os"
 	"strconv"
 	"strings"
@@ -99,4 +101,29 @@ func ConfigFromEnv() (Config, error) {
 		return c, fmt.Errorf("MOTHERSHIP_URL, MOTHERSHIP_ADMIN_USERNAME and MOTHERSHIP_ADMIN_PASSWORD are required")
 	}
 	return c, nil
+}
+
+// FirewallFromEnv adds the Node firewall's settings to Pocker's firewall config: IPCIDR_LIST (the peers allowed to
+// connect, i.e. Cloudflare) becomes allowed peers and trusted proxies (their CF-Connecting-IP is believed), and
+// PH_USER_PROXY_IPS becomes trusted clients. Loopback is always allowed and trusted (the edge's own scheduled calls
+// and health checks). The private network other edges forward from belongs in pocker.yaml's firewall.allow_cidrs.
+func FirewallFromEnv(fw *pocker.FirewallConfig) {
+	csv := func(key string) []string {
+		var out []string
+		for _, v := range strings.Split(os.Getenv(key), ",") {
+			if v = strings.TrimSpace(v); v != "" {
+				out = append(out, v)
+			}
+		}
+		return out
+	}
+	if cidrs := csv("IPCIDR_LIST"); len(cidrs) > 0 {
+		fw.AllowCIDRs = append(fw.AllowCIDRs, cidrs...)
+		fw.TrustedProxies = append(fw.TrustedProxies, cidrs...)
+	}
+	if len(fw.AllowCIDRs) > 0 {
+		fw.AllowCIDRs = append(fw.AllowCIDRs, "127.0.0.0/8", "::1/128")
+	}
+	fw.TrustedClients = append(fw.TrustedClients, csv("PH_USER_PROXY_IPS")...)
+	fw.TrustedClients = append(fw.TrustedClients, "127.0.0.0/8", "::1/128")
 }

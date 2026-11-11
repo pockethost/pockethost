@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -607,4 +608,77 @@ func TestAPILogsBeforeFileExists(t *testing.T) {
 		}
 	}
 	t.Fatal("no entry")
+}
+
+func TestDashboardLogs(t *testing.T) {
+	f := newAPIFixture(t)
+	f.put("logs/exec.log", `{"message":"one","stream":"stdout","time":"t1"}`+"\n"+`{"message":"two","stream":"stderr","time":"t2"}`+"\n")
+	post := func(auth, body string) (*http.Response, string) {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		req, _ := http.NewRequestWithContext(ctx, "POST", f.srv.URL+"/logs", strings.NewReader(body))
+		req.Host = "myapp.example.com"
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Origin", "https://app.pockethost.io")
+		if auth != "" {
+			req.Header.Set("Authorization", auth)
+		}
+		res, err := f.srv.Client().Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
+		sc := bufio.NewScanner(res.Body)
+		var data []string
+		for sc.Scan() && len(data) < 2 {
+			if line := sc.Text(); strings.HasPrefix(line, "data: ") {
+				data = append(data, strings.TrimPrefix(line, "data: "))
+			} else if !strings.HasPrefix(line, "event: ") && line != "" {
+				data = append(data, line)
+			}
+		}
+		return res, strings.Join(data, "|")
+	}
+
+	// the dashboard sends its raw PocketBase token, the instance id and n
+	res, got := post("jwt-user1", `{"instanceId":"inst1","n":2,"auth":"x"}`)
+	if res.StatusCode != 200 || res.Header.Get("Access-Control-Allow-Origin") != "*" || !strings.Contains(got, `"message":"one"`) || !strings.Contains(got, `"message":"two"`) {
+		t.Fatalf("token + id: %d %v %q", res.StatusCode, res.Header, got)
+	}
+	// the cookie alone works too; the subdomain names the instance as well
+	cookie := "pb_auth=" + url.QueryEscape(`{"token":"jwt-user1","model":{}}`) + "; Path=/"
+	if res, got := post("", `{"instanceId":"myapp","n":1,"auth":"`+strings.ReplaceAll(cookie, `"`, `\"`)+`"}`); res.StatusCode != 200 || !strings.Contains(got, `"two"`) {
+		t.Fatalf("cookie + subdomain: %d %q", res.StatusCode, got)
+	}
+	// a token for someone else, a PAT, another instance's id: not found
+	if res, _ := post("jwt-other", `{"instanceId":"inst1"}`); res.StatusCode != 401 {
+		t.Fatalf("bad token: %d", res.StatusCode)
+	}
+	if res, _ := post("Bearer "+testPAT, `{"instanceId":"inst1"}`); res.StatusCode != 404 {
+		t.Fatalf("PAT: %d", res.StatusCode)
+	}
+	if res, _ := post("jwt-user1", `{"instanceId":"other"}`); res.StatusCode != 404 {
+		t.Fatalf("other instance id: %d", res.StatusCode)
+	}
+
+	// preflight is answered here with open CORS
+	req, _ := http.NewRequest("OPTIONS", f.srv.URL+"/logs", nil)
+	req.Host = "myapp.example.com"
+	req.Header.Set("Origin", "https://app.pockethost.io")
+	req.Header.Set("Access-Control-Request-Headers", "authorization,content-type")
+	pre, err := f.srv.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pre.Body.Close()
+	if pre.StatusCode != 204 || pre.Header.Get("Access-Control-Allow-Headers") != "authorization,content-type" {
+		t.Fatalf("preflight: %d %v", pre.StatusCode, pre.Header)
+	}
+	// GET /logs is the instance's own route
+	req, _ = http.NewRequest("GET", f.srv.URL+"/logs", nil)
+	req.Host = "myapp.example.com"
+	if res, err := f.srv.Client().Do(req); err != nil || res.StatusCode != 299 {
+		t.Fatalf("GET /logs goes to the instance: %v %v", res, err)
+	}
 }

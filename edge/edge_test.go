@@ -16,10 +16,12 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/pocker"
+	"github.com/pockethost/pocker/deploy"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -70,12 +72,14 @@ func TestMapInstance(t *testing.T) {
 	}
 
 	// placement
-	if p, _ := mapInstance(testCfg, inst, owner, "E_OTHER", login); p.Blocked == nil || p.Blocked.Status != 421 || p.Secrets != nil {
+	// another edge's instance: forwarded after this edge's firewall, so it keeps rate limits and CORS, nothing else
+	if p, _ := mapInstance(testCfg, inst, owner, "E_OTHER", login); p.Remote != "edge:E_SGP" || p.Blocked != nil || p.Secrets != nil ||
+		p.Superusers != nil || p.Private != nil || p.Limits.RateLimits == nil || len(p.Access.CORSOrigins) == 0 {
 		t.Errorf("other edge: %+v", p)
 	}
 	legacy := inst
 	legacy.Edge = ""
-	if p, _ := mapInstance(testCfg, legacy, owner, "E_SGP", login); p.Blocked == nil || p.Blocked.Status != 421 {
+	if p, _ := mapInstance(testCfg, legacy, owner, "E_SGP", login); p.Remote != "edge:@sfo" {
 		t.Error("an instance without an edge belongs to sfo, not sgp-1")
 	}
 	sfo := testCfg
@@ -120,6 +124,7 @@ type fakeMothership struct {
 	statuses   []string
 	subscribed []string
 	hash       string
+	webhooks   []string // PATCHed webhooks fields
 }
 
 func (f *fakeMothership) handler() http.Handler {
@@ -154,10 +159,17 @@ func (f *fakeMothership) handler() http.Handler {
 		_, _ = w.Write([]byte(`{"updated":1}`))
 	}))
 	mux.HandleFunc("PATCH /api/collections/instances/records/{id}", auth(func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]string
+		var body map[string]json.RawMessage
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		f.mu.Lock()
-		f.statuses = append(f.statuses, r.PathValue("id")+"="+body["status"])
+		if st, ok := body["status"]; ok {
+			var v string
+			_ = json.Unmarshal(st, &v)
+			f.statuses = append(f.statuses, r.PathValue("id")+"="+v)
+		}
+		if wh, ok := body["webhooks"]; ok {
+			f.webhooks = append(f.webhooks, r.PathValue("id")+"="+string(wh))
+		}
 		f.mu.Unlock()
 		_, _ = w.Write([]byte(`{}`))
 	}))
@@ -224,13 +236,27 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	owner := userRec{ID: "u1", Email: "owner@example.com", Verified: true, SubscriptionQuantity: 1}
 	unpaidOwner := userRec{ID: "u2", Verified: true, SubscriptionQuantity: 0}
 	mine := instanceRec{ID: "mine1", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", SyncAdmin: true,
-		Secrets: raw(`{"API_KEY":"v1","PH_CORS_ORIGINS":"https://shop.example.com"}`)}
+		Secrets: raw(`{"API_KEY":"v1","PH_CORS_ORIGINS":"https://shop.example.com"}`),
+		// hourly backup that missed its last run while the edge was down: fires once at start
+		Webhooks: raw(fmt.Sprintf(`[{"endpoint":"api/ph/backup","value":"0 * * * *","lastFired":{"timestamp":%d}},{"endpoint":"/never","value":"0 0 1 1 *"}]`,
+			time.Now().Add(-3*time.Hour).UnixMilli()))}
+	// the edge that runs blog.pockethost.io (sfo): its daemon health and an echo
+	sfoDaemon := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == DaemonHealthPath {
+			_, _ = w.Write([]byte(`{"status":"ok"}`))
+			return
+		}
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		fmt.Fprintf(w, "sfo %s %s %s by=%s", r.Method, r.Host, r.URL.Path, r.Header.Get(ForwardedByHeader))
+	}))
+	defer sfoDaemon.Close()
 	f.d = dump{
 		Users: []userRec{owner, unpaidOwner},
 		Instances: []instanceRec{mine,
 			{ID: "elsewhere1", Subdomain: "blog", UID: "u1", Power: true, Edge: "E_SFO"},
 			{ID: "unpaid1", Subdomain: "cheap", UID: "u2", Power: true, Edge: "E_SGP"}},
-		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1", Region: "sgp"}, {ID: "E_SFO", EdgeID: "sfo", Region: "sfo"}},
+		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1", Region: "sgp"},
+			{ID: "E_SFO", EdgeID: "sfo", Region: "sfo", InternalURL: sfoDaemon.URL, LastSeen: time.Now().UTC().Format("2006-01-02 15:04:05.000Z")}},
 	}
 	ms := httptest.NewServer(f.handler())
 	defer ms.Close()
@@ -253,8 +279,17 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(hooksDir, "main.pb.js"), []byte(`routerAdd("GET", "/key", (e) => e.string(200, $os.getenv("API_KEY")))`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Wrap: stats.Middleware, Logger: logger,
-		OnEvent: func(e pocker.Event) {}}
+	var running atomic.Pointer[pocker.Manager]
+	fw := func() *pocker.Firewall {
+		if m := running.Load(); m != nil {
+			return m.Firewall()
+		}
+		return nil
+	}
+	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
+		Wrap:    func(h http.Handler) http.Handler { return source.Front(fw, NodeCompat(stats.Middleware(h))) },
+		OnEvent: func(e pocker.Event) {}, OnStart: running.Store}
+	go source.NewScheduler(running.Load).Run(ctx)
 	done := make(chan error, 1)
 	go func() { done <- srv.Run(ctx) }()
 	defer func() { cancel(); <-done }()
@@ -317,10 +352,49 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		t.Errorf("daemon health path should map to Pocker's health, got %q", rec.Body.String())
 	}
 
-	// placement and blocked rules
-	if c, b := call("GET", "blog.pockethost.io", "/api/health", "", nil); c != 421 || !strings.Contains(b, "another PocketHost edge") {
+	// placement: another edge's instance is forwarded to it, once
+	if c, b := call("GET", "blog.pockethost.io", "/api/health", "", nil); c != 200 || b != "sfo GET blog.pockethost.io /api/health by=sgp-1" {
 		t.Errorf("other edge: %d %s", c, b)
 	}
+	if c, b := call("GET", "blog.pockethost.io", "/api/health", "", map[string]string{ForwardedByHeader: "ams-1"}); c != 421 || !strings.Contains(b, "another PocketHost edge") {
+		t.Errorf("already forwarded: %d %s", c, b)
+	}
+	// the deploy API and the dashboard's log stream for another edge's instance go there too
+	deployAPI := deploy.New(deploy.Options{Backend: source.DeployBackend(), PBRoot: pcfg.PBRoot, DataRoot: t.TempDir(), IsRemote: source.IsRemote})
+	rec = httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "http://blog.pockethost.io/logs", strings.NewReader(`{}`))
+	deployAPI.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("next")) })).ServeHTTP(rec, req)
+	if rec.Body.String() != "next" {
+		t.Errorf("remote /logs should pass through: %q", rec.Body.String())
+	}
+	// load balancer health and the edge headers
+	if c, b := call("GET", "anything.example.com", FirewallHealthPath, "", nil); c != 200 || b != `{"status":"firewall ok","code":200}` {
+		t.Errorf("firewall health: %d %s", c, b)
+	}
+	hreq, _ := http.NewRequest("GET", "http://"+addr+"/api/health", nil)
+	hreq.Host = "blog.pockethost.io"
+	if res, err := client.Do(hreq); err != nil || res.Header.Get(HeaderEdgeName) != "sgp-1" || res.Header.Get(HeaderOriginName) != "sfo" || res.Header.Get(HeaderOriginRegion) != "sfo" {
+		t.Errorf("edge headers: %v %v", res, err)
+	} else {
+		res.Body.Close()
+	}
+
+	// the missed hourly backup webhook ran at start and its result went back to the mothership
+	waitFor("webhook result", func() bool {
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		for _, w := range f.webhooks {
+			if strings.HasPrefix(w, "mine1=") && strings.Contains(w, `"status":200`) && strings.Contains(w, "@auto_pb_backup_ph_") {
+				return true
+			}
+		}
+		return false
+	})
+	f.mu.Lock()
+	if len(f.webhooks) != 1 {
+		t.Errorf("only the missed webhook fires: %v", f.webhooks)
+	}
+	f.mu.Unlock()
 	if c, b := call("GET", "cheap.pockethost.io", "/api/health", "", nil); c != 402 || !strings.Contains(b, "upgrade") {
 		t.Errorf("unpaid: %d %s", c, b)
 	}

@@ -34,6 +34,9 @@ type Source struct {
 	lastDrift time.Time
 
 	out chan pocker.Change
+
+	routeInit sync.Once
+	rt        *router
 }
 
 type loginCache struct {

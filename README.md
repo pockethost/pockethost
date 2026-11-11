@@ -12,8 +12,9 @@ This repo adds what PocketHost needs to run a business on it, as Go code that **
 | `edge/`: adapter for today's mothership: mirror dump + realtime + drift poll, heartbeat with traffic stats, instance status (running/failed) | done |
 | `edge/`: platform features via `Server.SetupApp`: `/api/ph/backup`, app name/URL/sender defaults; owner login sync via CE superusers | done |
 | `deploy/`: the deploy API (`/_ph/deploy/v1`: whoami, check, blobs, commit, files, logs), wire-compatible with the Node edge so the `pockethost` CLI works unchanged | done |
-| Vacuum lock | planned |
-| Scheduled webhooks | planned |
+| `edge/`: the firewall (Node `firewall` in Go): TLS on 443 + redirect on 80, Cloudflare-only peers, `/api/firewall/health`, rate limits, CORS, any-edge forwarding with hold/retry, `X-PocketHost-Edge-*` headers | done |
+| `edge/`: scheduled webhooks (Node `CronService`), nightly vacuum (Node `edge vacuum` + vacuum lock) | done |
+| `deploy/`: the dashboard's live logs (`POST /logs`, Node `RealtimeLog`) | done |
 | Later: the mothership extension (billing, plans, mail, Discord, Cloudflare for SaaS) | later |
 
 When a feature here needs a new hook in CE, the hook goes into CE generically.
@@ -62,14 +63,44 @@ user's own `auth-refresh` for a login JWT), cached 30 s; deploys are recorded in
 that changes anything outside `pb_public/` runs while Pocker holds the instance (`Manager.WithInstanceStopped`), then
 starts it again if it was running, so the CLI sees `startError` from a broken hook right away.
 
-Differences from the Node edge: an instance served by another edge gets 421; an oversized body gets a JSON 413; a
-symlink in the code set says "remove it and redeploy" (no SFTP). The deploy API sits in front of Pocker's own
-firewall checks (like the Node edge's, behind the Node firewall); fold it under the Go firewall when that replaces
-the Node one.
+Differences from the Node edge: an oversized body gets a JSON 413; a symlink in the code set says "remove it and
+redeploy" (no SFTP). Requests for an instance on another edge are forwarded there. The deploy API and `/logs` sit
+behind the edge's peer check (`Source.Front`) but not its rate limits.
 
 Tests: `go test ./deploy/` includes `TestCLICompat`, which runs the `pockethost` CLI's own deploy and files code under
 bun against this API (needs bun and a pockethost checkout; `POCKETHOST_CLI_DIR`, default `/root/pockethost/packages/cli`),
 and `TestWithPockerManager`, which deploys to real PocketBase apps.
+
+## Firewall, webhooks, vacuum
+
+One process replaces both Node jobs (`firewall` + `edge-daemon`). `pocker.yaml` on an edge:
+
+```yaml
+listen: ":443"
+plain_listen: [":8080"]                      # WireGuard: other edges forward here (PH_EDGE_INTERNAL_URL)
+tls: { cert: /etc/letsencrypt/live/pockethost.io/fullchain.pem, key: /etc/letsencrypt/live/pockethost.io/privkey.pem, http_listen: ":80" }
+firewall:
+  allow_cidrs: [10.88.0.0/24]                # + IPCIDR_LIST (Cloudflare) and loopback from the env
+  trusted_proxies: [10.88.0.0/24]            # + IPCIDR_LIST: their CF-Connecting-IP is the client
+pb_root: /root/.pockethost/data/instances
+```
+
+- **Firewall** (`edge/route.go`, `edge/config.go`): `IPCIDR_LIST` → allowed peers and trusted proxies,
+  `PH_USER_PROXY_IPS` → trusted clients. `/api/firewall/health` answers before the peer check (the LB monitor).
+  Instances on other edges are `Remote` in Pocker: this edge's peer check, rate limits and CORS apply, then
+  `Source.Forward` proxies to the owner edge's `internal_url` with `X-Ph-Forwarded-By`; a request that already has it
+  gets 421 (no second hop). Owner healthy in the mirror (heartbeat within 30 s) or answering its health check → forward;
+  connect failures mark it suspect and GET/HEAD/OPTIONS are held and retried while it stays alive; otherwise 503.
+  Dropped from the Node firewall: the `x-pockethost-secret` allowlist bypass, `/api/_private/reset` (pm2 restart), the
+  daemon grace (one process now).
+- **Webhooks** (`edge/schedules.go`): each instance's `webhooks` (UTC cron, minute resolution; 6-field expressions
+  drop the seconds) fire in-process through the Manager with the backup token, 30 min timeout, 50 at a time; the
+  result goes to `lastFired`; a missed run fires once at start. `PH_DISABLE_INSTANCE_WEBHOOKS` turns them off.
+- **Vacuum** (`edge/vacuum.go`, `--vacuum-cron`, default `0 3 * * *` UTC): `data.db`/`logs.db` of this edge's instances
+  with `autoVacuum` on are checked read-only; one with ≥10% or ≥64 MiB free pages (up to 1 GiB) is compacted with
+  `VACUUM INTO` while `WithInstanceStopped` holds its requests, swapped in after `quick_check`, and the instance is
+  started again if it was running. Summary to `DISCORD_HEALTH_CHANNEL_URL` when set. No lock API: nothing outside the
+  process opens the files.
 
 ## Build
 

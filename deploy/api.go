@@ -79,7 +79,10 @@ type Options struct {
 	DataRoot string
 	// PlatformPaths are code-set paths that aren't the customer's: never compared or deleted.
 	PlatformPaths []string
-	Logger        *slog.Logger
+	// IsRemote, if set, reports hosts whose instance another edge runs: their requests go to next (which forwards
+	// them) instead of being answered here.
+	IsRemote func(host string) bool
+	Logger   *slog.Logger
 }
 
 // API serves /_ph/deploy/v1 on instance hosts.
@@ -105,11 +108,24 @@ func New(opts Options) *API {
 // Wrap routes deploy API requests to the API and everything else to next.
 func (a *API) Wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == Prefix || strings.HasPrefix(r.URL.Path, Prefix+"/") {
-			a.ServeHTTP(w, r)
+		isAPI := r.URL.Path == Prefix || strings.HasPrefix(r.URL.Path, Prefix+"/")
+		isLogs := r.URL.Path == "/logs" && (r.Method == http.MethodPost || r.Method == http.MethodOptions)
+		if (!isAPI && !isLogs) || (a.opts.IsRemote != nil && a.opts.IsRemote(hostOf(r))) {
+			next.ServeHTTP(w, r)
 			return
 		}
-		next.ServeHTTP(w, r)
+		if isLogs {
+			openCORS(w, r)
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			if err := a.dashboardLogs(w, r); err != nil {
+				a.fail(w, err)
+			}
+			return
+		}
+		a.ServeHTTP(w, r)
 	})
 }
 

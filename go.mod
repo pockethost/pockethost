@@ -5,6 +5,7 @@ go 1.27
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
 	golang.org/x/crypto v0.58.0
+	modernc.org/sqlite v1.60.1
 )
 
 require (
@@ -55,9 +56,8 @@ require (
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.60.1 // indirect
 )
 
 // Pocker CE (benallfree/pocker) is PocketBase plus the Pocker engine; it keeps PocketBase's module path so upstream
 // merges stay easy. This replace points the module at CE. Bump it to pick up CE changes.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker v0.0.0-20261110234354-b44a67763531
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker v0.0.0-20261111014240-f45f20952465
