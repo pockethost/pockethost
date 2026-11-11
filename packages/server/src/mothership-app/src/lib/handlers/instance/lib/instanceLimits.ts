@@ -1,4 +1,4 @@
-import { createLimitError, instanceAllowance, powerOnLimitError, type LimitInstance } from '$common/instanceLimits'
+import { allowanceParts, createLimitError, powerOnLimitError, type LimitInstance } from '$common/instanceLimits'
 
 /** Every instance the user owns, in the shape the limit rules need. */
 const ownedInstances = (uid: string): LimitInstance[] =>
@@ -9,8 +9,14 @@ const ownedInstances = (uid: string): LimitInstance[] =>
     updated: r.getString('updated'),
   }))
 
-const allowanceOf = (uid: string) =>
-  instanceAllowance({ subscription_quantity: $app.findRecordById('users', uid).getInt('subscription_quantity') })
+/** Paid + bonus instances (bonus only counts while at least one is paid). */
+const allowanceOf = (uid: string) => {
+  const user = $app.findRecordById('users', uid)
+  return allowanceParts({
+    subscription_quantity: user.getInt('subscription_quantity'),
+    bonus_instances: user.getInt('bonus_instances'),
+  })
+}
 
 /** 402 Payment Required: the plan doesn't include another instance. */
 const limitError = (message: string) => new ApiError(402, message, {})

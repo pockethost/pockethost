@@ -30,6 +30,8 @@ export type UserFields<TExtra = {}> = BaseFields & {
   subscription: SubscriptionType
   subscription_interval: SubscriptionInterval
   subscription_quantity: number
+  /** Bonus instances (sum of bonus_grants). Count only while subscription_quantity > 0 (see instanceAllowance). */
+  bonus_instances?: number
   /** Internal product catalog id. Empty until backfilled / first billing event. */
   product_sku?: ProductSku | ''
   /** Account billing state (not a product tier). */
