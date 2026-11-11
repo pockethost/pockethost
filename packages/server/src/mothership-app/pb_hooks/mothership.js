@@ -2348,6 +2348,63 @@ const isRecurringLsOrder = (order) => {
 };
 
 //#endregion
+//#region ../common/billing/loyalty.ts
+/**
+* Loyalty bonus instances (pockethost-support plans/loyalty-bonus-instances-plan.md, decided with Ben 2026-11-11).
+*
+* - Lifetime (`hosting.slot.lifetime`) and annual plans: 5 bonus instances while the purchase is active.
+* - Monthly plans: +1 at the 1st paid renewal, then +1 every 3rd (1, 2, 3, 4, 5 at renewals 1, 4, 7, 10, 13).
+* - Cancelling stops new renewals (so no more earning) but the subscription stays active until its paid period ends, and
+*   so does the bonus. Resuming keeps counting on the same subscription.
+* - When a subscription expires its renewals stop counting; with nothing active left the bonus is 0 and a new
+*   subscription starts from 0.
+*
+* The bonus is a pure function of the account's billing items and each subscription's paid renewal count, so it can be
+* recomputed after any webhook (or in a backfill) without counting events. JSVM-safe: plain data + sync functions.
+*/
+const LOYALTY_MAX_BONUS = 5;
+/** Plans that get the full bonus up front, while active. Legacy Flounder lifetime already has 250 instances. */
+const LOYALTY_UPFRONT_SKUS = ["hosting.slot.lifetime", "hosting.slot.recurring.year"];
+/** Monthly per-instance plans that earn by paid renewals. */
+const LOYALTY_MONTHLY_SKUS = ["hosting.slot.recurring.month", "hosting.slot.recurring.month.legacy"];
+/** Bonus earned by `renewals` paid monthly renewals: 0, then 1 at the 1st, +1 every 3rd after, capped at 5. */
+const bonusForRenewals = (renewals) => {
+	const n = Math.floor(renewals);
+	if (!(n >= 1)) return 0;
+	return Math.min(5, 1 + Math.floor((n - 1) / 3));
+};
+const isLs = (i) => i.provider === "lemonsqueezy" && i.quantity > 0;
+/** Active LS monthly subscriptions on the account (the ones whose paid renewals count). */
+const activeMonthlySubscriptionIds = (items, now) => items.filter((i) => isLs(i) && i.kind === "subscription" && LOYALTY_MONTHLY_SKUS.includes(i.sku)).filter((i) => isBillingItemActive(i, now)).map((i) => i.external_id);
+/** True when an active lifetime or annual purchase gives the full bonus (no renewal counts needed). */
+const hasUpfrontLoyalty = (items, now) => items.some((i) => isLs(i) && LOYALTY_UPFRONT_SKUS.includes(i.sku) && isBillingItemActive(i, now));
+/**
+* The account's loyalty bonus. `renewalsBySubscription` maps an LS subscription id to its paid renewal count; missing
+* ids count as 0.
+*/
+const loyaltyBonus = (items, renewalsBySubscription, now) => {
+	const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now);
+	const renewals = monthlySubscriptionIds.reduce((sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)), 0);
+	if (hasUpfrontLoyalty(items, now)) return {
+		bonus: 5,
+		basis: "upfront",
+		renewals,
+		monthlySubscriptionIds
+	};
+	const bonus = bonusForRenewals(renewals);
+	return {
+		bonus,
+		basis: bonus > 0 ? "renewals" : "none",
+		renewals,
+		monthlySubscriptionIds
+	};
+};
+/** The grant note customers see in the dashboard tooltip. */
+const loyaltyNote = (r) => r.basis === "upfront" ? `Loyalty bonus: ${5} instances with your annual or lifetime plan` : `Loyalty bonus: ${r.renewals} monthly renewal${r.renewals === 1 ? `` : `s`}`;
+/** A paid (not refunded) renewal invoice. Initial and plan-change invoices don't count. */
+const isPaidRenewalInvoice = (a) => !!a && a.billing_reason === "renewal" && a.status === "paid" && !a.refunded;
+
+//#endregion
 //#region src/lib/handlers/lemon/lib/lsApi.ts
 /** Overridable for local testing against a mock; production uses the real API. */
 const LS_API = process.env.LS_API_BASE || `https://api.lemonsqueezy.com/v1`;
@@ -2390,6 +2447,8 @@ const lsSubscriptionsByOrderId = (orderId) => lsListAll(`/subscriptions?filter[o
 const lsSubscription = (subscriptionId) => lsRequest(`GET`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
 /** Cancel at period end. Returns the updated subscription resource. */
 const lsCancelSubscription = (subscriptionId) => lsRequest(`DELETE`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
+/** Paid (not refunded) renewal invoices on one subscription. */
+const lsPaidRenewalCount = (subscriptionId) => lsListAll(`/subscription-invoices?filter[subscription_id]=${encodeURIComponent(`${subscriptionId}`)}`).filter((inv) => isPaidRenewalInvoice(inv.attributes)).length;
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/billingStore.ts
@@ -3329,6 +3388,65 @@ const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 };
 
 //#endregion
+//#region src/lib/handlers/lemon/lib/loyaltyStore.ts
+const GRANTS = `bonus_grants`;
+/** The account's one `loyalty` grant row, if any. */
+const findLoyaltyGrant = (app, userId) => {
+	try {
+		return app.findFirstRecordByFilter(GRANTS, `user = {:user} && source = 'loyalty'`, { user: userId });
+	} catch {
+		return;
+	}
+};
+/**
+* Recompute the account's loyalty bonus from its billing items and each active monthly subscription's paid renewal
+* count (read from Lemon Squeezy), and keep its single `loyalty` grant row in line: amount = bonus, removed at 0. The
+* `bonus_grants` hooks then recompute `users.bonus_instances`. Manual grants are never touched.
+*
+* `fetchRenewals` is injectable for the backfill's pacing (and tests); it defaults to the LS API.
+*/
+const syncLoyalty = (app, userId, options = {}) => {
+	const apply = options.apply ?? true;
+	const now = options.now ?? /* @__PURE__ */ new Date();
+	const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount;
+	const items = loadBillingItems(app, userId);
+	const renewals = {};
+	if (!hasUpfrontLoyalty(items, now)) for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id);
+	const result = loyaltyBonus(items, renewals, now);
+	const grant = findLoyaltyGrant(app, userId);
+	const before = grant ? grant.getInt(`amount`) : 0;
+	const note = loyaltyNote(result);
+	const changed = result.bonus !== before || result.bonus > 0 && grant?.getString(`note`) !== note;
+	if (apply && changed) if (result.bonus === 0) {
+		if (grant) app.delete(grant);
+	} else {
+		const rec = grant || new Record(app.findCollectionByNameOrId(GRANTS));
+		rec.set(`user`, userId);
+		rec.set(`source`, `loyalty`);
+		rec.set(`amount`, result.bonus);
+		rec.set(`note`, note);
+		app.save(rec);
+	}
+	return {
+		...result,
+		before,
+		changed
+	};
+};
+/**
+* Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
+* plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
+*/
+const loyaltyCandidateUserIds = (app) => {
+	const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `);
+	const rows = arrayOf(new DynamicModel({ user: "" }));
+	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
+       UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
+       ORDER BY user`).all(rows);
+	return rows.map((r) => `${r.user}`).filter(Boolean);
+};
+
+//#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
 /** Events that post to the lemon_cancel_discord channel. */
 const CANCEL_EVENTS = [
@@ -3462,10 +3580,19 @@ const HandleLemonSqueezySale = (e) => {
 		const { before, after } = reconcileUser($app, userRec);
 		context.slots_before = before;
 		context.slots_after = after;
+		try {
+			const loyalty = syncLoyalty($app, userRec.id);
+			context.bonus_before = loyalty.before;
+			context.bonus_after = loyalty.bonus;
+		} catch (err) {
+			context.bonus_error = `${err}`;
+			log(`loyalty sync failed`, `${err}`);
+		}
 		const notify = mkNotifier(log, $app);
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
 		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
-		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context);
+		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
+		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });
 	} catch (err) {
 		audit(`LS_ERR`, `${err}`, context);
@@ -3474,6 +3601,69 @@ const HandleLemonSqueezySale = (e) => {
 			error: `${err}`
 		});
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLoyaltyBackfill.ts
+/**
+* Superuser: `POST /api/loyalty/backfill` - recompute loyalty bonuses for existing customers. Dry run by default.
+*
+* - `apply=1` writes the `loyalty` grant rows.
+* - `user=<id>` one user.
+* - `offset`, `limit` (default 0, 40): one page of candidates, so a run stays well inside request timeouts and Lemon
+*   Squeezy's rate limit (each monthly subscription costs one invoices call, paced 250 ms apart). Call again with
+*   `next` until it is null.
+*/
+const HandleLoyaltyBackfill = (e) => {
+	const q = e.request.url.query();
+	const apply = q.get(`apply`) === `1`;
+	const onlyUser = q.get(`user`);
+	const offset = Math.max(0, Number(q.get(`offset`) || 0) || 0);
+	const limit = Math.min(200, Math.max(1, Number(q.get(`limit`) || 40) || 40));
+	const all = onlyUser ? [onlyUser] : loyaltyCandidateUserIds($app);
+	const page = all.slice(offset, offset + limit);
+	let lsCalls = 0;
+	const fetchRenewals = (subscriptionId) => {
+		if (lsCalls++ > 0) sleep(250);
+		return lsPaidRenewalCount(subscriptionId);
+	};
+	const changes = [];
+	const errors = [];
+	let unchanged = 0;
+	for (const user of page) try {
+		const r = syncLoyalty($app, user, {
+			apply,
+			fetchRenewals
+		});
+		if (r.changed) changes.push({
+			user,
+			before: r.before,
+			after: r.bonus,
+			basis: r.basis,
+			renewals: r.renewals
+		});
+		else unchanged++;
+	} catch (err) {
+		errors.push({
+			user,
+			error: `${err}`
+		});
+	}
+	const next = offset + page.length < all.length ? offset + page.length : null;
+	const report = {
+		mode: apply ? `apply` : `dry-run`,
+		total: all.length,
+		offset,
+		next,
+		unchanged,
+		changes,
+		errors
+	};
+	if (apply && (changes.length || errors.length)) mkAudit(mkLog(`loyalty-backfill`), $app)(`LS`, `Loyalty backfill (offset ${offset}): ${changes.length} changed, ${errors.length} errors.`, {
+		changes,
+		errors
+	});
+	return e.json(200, report);
 };
 
 //#endregion
@@ -6391,6 +6581,7 @@ exports.HandleLemonSqueezyCheckout = HandleLemonSqueezyCheckout;
 exports.HandleLemonSqueezyReconcile = HandleLemonSqueezyReconcile;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
+exports.HandleLoyaltyBackfill = HandleLoyaltyBackfill;
 exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;

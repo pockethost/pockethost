@@ -28,3 +28,12 @@ routerAdd(
   },
   $apis.requireSuperuserAuth()
 )
+
+routerAdd(
+  'POST',
+  '/api/loyalty/backfill',
+  (e) => {
+    return require(`${__hooks}/mothership`).HandleLoyaltyBackfill(e)
+  },
+  $apis.requireSuperuserAuth()
+)

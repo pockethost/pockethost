@@ -87,6 +87,7 @@ PocketHost limits are simple: **you pay per instance**.
 
 - **Instances**: You can have as many instances as you pay for, and all of them can run. Powered-off instances still count, so to make room for a new one, delete an instance or [add another](/pricing). Archived instances don't count. See [When your plan goes down](#when-your-plan-goes-down).
 - **Bonus instances**: Some accounts get extra instances on top of the ones they pay for. Your [account page](/account) shows them with a bonus badge (for example "4 allowed (2 paid + 2 bonus)"). Bonus instances work like paid ones and can all run, but they don't add disk storage, and they count only while you have at least one paid instance.
+  - **Loyalty bonus**: annual and lifetime plans get 5 bonus instances. Monthly plans earn them by renewing: 1 after your first renewal, then 1 more every 3 renewals, up to 5 (at renewals 1, 4, 7, 10 and 13). If you cancel, you keep them until your paid period ends. If your subscription ends, they go away, and a new subscription starts again from 0.
 - **Disk storage**: **10 GB per paid instance**, pooled across your account. Legacy plans get a flat 25 GB, and accounts with no paid instances get 1 GB. See [Disk storage](#disk-storage).
 
 We also monitor bandwidth, storage, and CPU under fair use. We think fair means using about the same resources as the average active app on the platform. See [Pricing Ethos](/docs/pricing-ethos) for how we balance scale and indie-friendly hosting.
