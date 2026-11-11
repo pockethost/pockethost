@@ -1,22 +1,18 @@
-import { ClientResponseError, PocketBase, UserFields, adminAuthWithPassword, logger, withAdminAuthRetry } from '@'
-import Database from 'better-sqlite3'
+import { ClientResponseError, PocketBase, adminAuthWithPassword, logger, withAdminAuthRetry } from '@'
 import { Command, InvalidArgumentError } from 'commander'
-import {
-  MOTHERSHIP_ADMIN_PASSWORD,
-  MOTHERSHIP_ADMIN_USERNAME,
-  MOTHERSHIP_DATA_DB,
-  MOTHERSHIP_URL,
-  TEST_EMAIL,
-} from '../../..'
-import { canReceiveBulkMail, type BulkMailRow } from './canReceiveBulkMail'
+import { MOTHERSHIP_ADMIN_PASSWORD, MOTHERSHIP_ADMIN_USERNAME, MOTHERSHIP_URL, TEST_EMAIL } from '../../..'
 
-const TBL_SENT_MESSAGES = `sent_messages`
-const SEND_INTERVAL_MS = 100
+/**
+ * Thin client of the mothership's bulk mail routes (PocketBase CE ext/bulkmail shape). The mothership resolves the
+ * audience, keeps the ledger and sends in the background; this command never reads the database file.
+ *
+ * Campaign ids: legacy campaign_messages kept their ids when they became _bulkmail_campaigns, so `mail send
+ * <messageId>` still works.
+ */
 
 function myParseInt(value: string) {
-  // parseInt takes a string and a radix
   const parsedValue = parseInt(value, 10)
-  if (isNaN(parsedValue)) {
+  if (isNaN(parsedValue) || parsedValue < 0) {
     throw new InvalidArgumentError('Not a number.')
   }
   return parsedValue
@@ -24,141 +20,81 @@ function myParseInt(value: string) {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+type Campaign = {
+  id: string
+  name: string
+  subject: string
+  status: string
+  status_reason: string
+  audience: unknown
+  queued: number
+  sent: number
+  skipped: number
+  failed: number
+}
+
+const progress = (c: Campaign) =>
+  `${c.status}: ${c.sent} sent, ${c.queued} queued, ${c.skipped} skipped, ${c.failed} failed${
+    c.status_reason ? ` (${c.status_reason})` : ''
+  }`
+
 export const SendMailCommand = () =>
   new Command(`send`)
-    .description(`Send a PocketHost bulk mail`)
-    .argument(`<messageId>`, `ID of the message to send`)
-    .option('--limit <number>', `Max messages to send`, myParseInt, 1)
+    .description(`Send a PocketHost bulk mail campaign (test send to TEST_EMAIL unless --confirm)`)
+    .argument(`<campaignId>`, `ID of the campaign (legacy message ids still work)`)
+    .option('--limit <number>', `Max new recipients to queue (0 = everyone in the audience)`, myParseInt, 1)
     .option('--confirm', `Really send messages`, false)
+    .option('--watch', `Follow progress until the mothership has sent everything queued`, false)
 
-    .action(async (messageId, { limit, confirm }) => {
+    .action(async (campaignId, { limit, confirm, watch }) => {
       logger().context({ cli: 'sendmail' })
-      const { dbg, info } = logger()
-
-      function interpolateString(template: string, dict: { [key: string]: string }): string {
-        return template.replace(/\{\$(\w+)\}/g, (match, key) => {
-          dbg({ match, key })
-          const lowerKey = key.toLowerCase()
-          return dict.hasOwnProperty(lowerKey) ? dict[lowerKey]! : match
-        })
-      }
-
-      dbg({ messageId, confirm, limit })
+      const { info } = logger()
 
       const adminEmail = MOTHERSHIP_ADMIN_USERNAME()
       const adminPassword = MOTHERSHIP_ADMIN_PASSWORD()
-
       info(MOTHERSHIP_URL())
 
       const client = new PocketBase(MOTHERSHIP_URL())
       await adminAuthWithPassword(client, adminEmail, adminPassword)
-
-      const message = await client.collection(`campaign_messages`).getOne(messageId, { expand: 'campaign' })
-      const { campaign } = message.expand || {}
-      dbg({ messageId, limit, message, campaign })
-
-      const vars: { [_: string]: string } = { messageId }
-      let subject: string
-      let body: string
-      let candidates: UserFields[]
-
-      const db = new Database(MOTHERSHIP_DATA_DB(), { readonly: true })
-      try {
-        for (const [k, sql] of Object.entries(campaign.vars)) {
-          const result = db.prepare(String(sql)).get() as { value: string }
-          vars[k.toLocaleLowerCase()] = result.value
-        }
-
-        dbg({ vars })
-        subject = interpolateString(message.subject, vars)
-        body = interpolateString(message.body, vars)
-
-        const audienceSql = `SELECT u.*
-    FROM (${campaign.usersQuery}) u
-     `
-        dbg(audienceSql)
-        candidates = db.prepare(audienceSql).all() as UserFields[]
-      } finally {
-        db.close()
-      }
-
-      const sentRecords = await client.collection(TBL_SENT_MESSAGES).getFullList({
-        filter: `campaign_message = "${messageId}"`,
-        fields: `user`,
-      })
-      const sentUserIds = new Set(sentRecords.map((r) => r.user))
-      const eligible = candidates.filter((u) => !sentUserIds.has(u.id) && canReceiveBulkMail(u as BulkMailRow))
-      const skippedSuppressed = candidates.filter(
-        (u) => !sentUserIds.has(u.id) && !canReceiveBulkMail(u as BulkMailRow)
-      ).length
-      const users = eligible.slice(0, limit)
-
-      info(
-        `${users.length} recipient(s) (${sentUserIds.size} already sent, ${skippedSuppressed} suppressed/unverified skipped)`
-      )
-
       const auth = <T>(fn: () => Promise<T>) => withAdminAuthRetry(client, adminEmail, adminPassword, fn)
-
-      const recordSent = async (userId: string) => {
+      const call = async <T>(path: string, body?: unknown): Promise<T> => {
         try {
-          await client.collection(TBL_SENT_MESSAGES).create({
-            user: userId,
-            campaign_message: messageId,
-          })
-        } catch (e) {
-          if (!(e instanceof ClientResponseError && e.status === 400)) throw e
-          const existing = await client.collection(TBL_SENT_MESSAGES).getList(1, 1, {
-            filter: `user = "${userId}" && campaign_message = "${messageId}"`,
-          })
-          if (existing.items.length === 0) throw e
-        }
-      }
-
-      let sent = 0
-      let skipped = 0
-      for (let i = 0; i < users.length; i++) {
-        const user = users[i]!
-        const recipient = user.email
-
-        if (!confirm) {
-          user.email = TEST_EMAIL()
-          info(`Sending to ${user.email} masking ${recipient}`)
-        } else {
-          info(`Sending to ${user.email}`)
-        }
-
-        let res: { status?: string; reason?: string } | undefined
-        try {
-          await auth(async () => {
-            res = (await client.send(`/api/mail`, {
-              method: 'POST',
-              body: {
-                to: user.email,
-                subject,
-                body: `${body}<hr/>[[<a href="https://mothership.pockethost.io/api/unsubscribe?e=${user.id}">unsub</a>]]`,
-              },
-            })) as { status?: string; reason?: string }
-
-            if (confirm && (res?.status === 'ok' || res?.status === 'skipped')) {
-              await recordSent(user.id)
-            }
-          })
+          return await auth(() => client.send(path, { method: 'POST', body }) as Promise<T>)
         } catch (e) {
           const detail = e instanceof ClientResponseError ? `${e.status}: ${e.message}` : String(e)
-          throw new Error(`Failed sending to ${recipient}: ${detail}`)
-        }
-
-        if (res?.status === 'skipped') {
-          info(`Skipped by the mothership (${res.reason ?? 'no reason given'})`)
-          skipped++
-        } else {
-          info(`Sent`)
-          sent++
-        }
-
-        if (i < users.length - 1) {
-          await sleep(SEND_INTERVAL_MS)
+          throw new Error(`${path}: ${detail}`)
         }
       }
-      info(`Done: ${sent} sent, ${skipped} skipped by the mothership`)
+      const load = () => auth(() => client.collection(`_bulkmail_campaigns`).getOne<Campaign>(campaignId))
+
+      const campaign = await load()
+      info(`Campaign ${campaign.id}: ${campaign.name}`)
+      info(`Subject: ${campaign.subject}`)
+      info(progress(campaign))
+
+      const count = await call<{ count: number; suppressed: number; sample: string[] }>(
+        `/api/bulkmail/audience/count`,
+        {
+          audience: campaign.audience,
+        }
+      )
+      info(`Audience: ${count.count} recipient(s), ${count.suppressed} suppressed`)
+
+      if (!confirm) {
+        const to = TEST_EMAIL()
+        await call(`/api/bulkmail/campaigns/${campaignId}/test`, { to })
+        info(`Test sent to ${to}. Add --confirm to send for real.`)
+        return
+      }
+
+      const started = await call<Campaign>(`/api/bulkmail/campaigns/${campaignId}/start`, { limit })
+      info(`Started (${limit ? `up to ${limit} new recipient(s)` : 'whole audience'}): ${progress(started)}`)
+      info(`The mothership sends in the background (a cron, every minute). Progress: ${MOTHERSHIP_URL()}/_/`)
+
+      while (watch) {
+        await sleep(10000)
+        const c = await load()
+        info(progress(c))
+        if (c.status !== 'sending' || c.queued === 0) break
+      }
     })

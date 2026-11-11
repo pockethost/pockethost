@@ -1,5 +1,6 @@
 import '../lib/handlers/adminPlugins/hooks'
 import '../lib/handlers/apiTokens/hooks'
+import '../lib/handlers/bulkmail/hooks'
 import '../lib/handlers/cloudflare/hooks'
 import '../lib/handlers/downloads/hooks'
 import '../lib/handlers/edge/hooks'

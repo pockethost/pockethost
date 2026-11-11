@@ -1,6 +1,7 @@
 import { mkLog } from '$util/Logger'
 import { suppressUserEmail } from '$util/mailRecipient'
 import { mkAudit } from '$util/mkAudit'
+import { suppress } from '../../bulkmail/engine'
 
 type SnsSubscriptionConfirmationEvent = {
   Type: 'SubscriptionConfirmation'
@@ -42,8 +43,18 @@ export const HandleSesError = (e: core.RequestEvent) => {
   const log = mkLog(`sns`)
   const audit = mkAudit(log, $app)
 
+  // the bulk mail suppression list (CE schema) first; its hook also sets users.unsubscribe
+  const suppressBulk = (emailAddress: string, reason: 'bounced' | 'complained') => {
+    try {
+      suppress(emailAddress, reason, 'ses')
+    } catch (e) {
+      log(`bulk mail suppression failed for ${emailAddress}: ${e}`)
+    }
+  }
+
   const processBounce = (emailAddress: string) => {
     log(`Processing bounce ${emailAddress}`)
+    suppressBulk(emailAddress, 'bounced')
     const extra = {
       email: emailAddress,
     } as { email: string; user?: string }
@@ -61,6 +72,7 @@ export const HandleSesError = (e: core.RequestEvent) => {
 
   const processComplaint = (emailAddress: string) => {
     log(`Processing complaint ${emailAddress}`)
+    suppressBulk(emailAddress, 'complained')
     const extra = {
       email: emailAddress,
     } as { email: string; user?: string }
