@@ -19,6 +19,7 @@ import {
   upsertBillingItem,
   upsertLsSubscription,
 } from '../lib/billingStore'
+import { syncLoyalty } from '../lib/loyaltyStore'
 import { lsSubscription, lsSubscriptionsByOrderId } from '../lib/lsApi'
 
 type LsWebhookPayload = {
@@ -40,6 +41,9 @@ type SaleContext = {
   slots_after?: number
   bootstrapped?: boolean
   stale_event_skipped?: boolean
+  bonus_before?: number
+  bonus_after?: number
+  bonus_error?: string
 }
 
 /** Events that post to the lemon_cancel_discord channel. */
@@ -201,6 +205,17 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     context.slots_before = before
     context.slots_after = after
 
+    // Loyalty bonus follows the same billing state (plus paid renewal counts from LS). A failure here must not fail the
+    // billing update: it is audited, and the next event or the backfill corrects it.
+    try {
+      const loyalty = syncLoyalty($app, userRec.id)
+      context.bonus_before = loyalty.before
+      context.bonus_after = loyalty.bonus
+    } catch (err) {
+      context.bonus_error = `${err}`
+      log(`loyalty sync failed`, `${err}`)
+    }
+
     const notify = mkNotifier(log, $app)
     if (context.event_name === `order_created`) {
       notify(`lemonbot`, `lemon_order_discord`, userRec.id, context)
@@ -208,7 +223,13 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context)
     }
 
-    audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context)
+    const bonusMsg =
+      context.bonus_before !== undefined && context.bonus_before !== context.bonus_after
+        ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.`
+        : context.bonus_error
+          ? ` Loyalty sync failed.`
+          : ``
+    audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context)
     return e.json(200, { status: 'ok' })
   } catch (err) {
     audit(`LS_ERR`, `${err}`, context)
