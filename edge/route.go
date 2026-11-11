@@ -48,8 +48,8 @@ const (
 	HeaderOriginRegion = "X-PocketHost-Origin-Region"
 )
 
-// PoweredBy is the X-Powered-By on every response this edge sends, so it names the stack that answered the client
-// (Node edges send "PocketHost"); a forwarded response loses the owner edge's value.
+// PoweredBy is the X-Powered-By on responses this edge fulfills (Node edges send "PocketHost"). A forwarded response
+// keeps the owner edge's value, so the header names who fulfilled the request, not the edge it entered at.
 const PoweredBy = "Pocker"
 
 // router holds the forwarding state: the transport to other edges, edges with a recent connection failure, and
@@ -302,7 +302,9 @@ func (s *Source) Forward(w http.ResponseWriter, r *http.Request, inst pocker.Ins
 			},
 			Transport: rt.transport,
 			ModifyResponse: func(res *http.Response) error {
-				res.Header.Del("X-Powered-By") // Front already set ours; the proxy would add the owner's next to it
+				if res.Header.Get("X-Powered-By") != "" {
+					w.Header().Del("X-Powered-By") // the owner fulfilled it: its value replaces ours (the proxy would add both)
+				}
 				if policy != nil {
 					policy.rewriteUpstream(res.Header)
 				}

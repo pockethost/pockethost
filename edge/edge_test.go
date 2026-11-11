@@ -247,7 +247,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 			return
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("X-Powered-By", "Express")
+		w.Header().Set("X-Powered-By", "PocketHost")
 		fmt.Fprintf(w, "sfo %s %s %s by=%s", r.Method, r.Host, r.URL.Path, r.Header.Get(ForwardedByHeader))
 	}))
 	defer sfoDaemon.Close()
@@ -372,10 +372,16 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	if c, b := call("GET", "anything.example.com", FirewallHealthPath, "", nil); c != 200 || b != `{"status":"firewall ok","code":200}` {
 		t.Errorf("firewall health: %d %s", c, b)
 	}
+	// a response this edge fulfills says Pocker; a forwarded one (below) keeps the owner edge's value
+	if res, err := client.Get("http://" + addr + FirewallHealthPath); err != nil || res.Header.Get("X-Powered-By") != PoweredBy {
+		t.Errorf("own response X-Powered-By: %v %v", res, err)
+	} else {
+		res.Body.Close()
+	}
 	hreq, _ := http.NewRequest("GET", "http://"+addr+"/api/health", nil)
 	hreq.Host = "blog.pockethost.io"
 	if res, err := client.Do(hreq); err != nil || res.Header.Get(HeaderEdgeName) != "sgp-1" || res.Header.Get(HeaderOriginName) != "sfo" || res.Header.Get(HeaderOriginRegion) != "sfo" ||
-		strings.Join(res.Header.Values("X-Powered-By"), ",") != PoweredBy {
+		strings.Join(res.Header.Values("X-Powered-By"), ",") != "PocketHost" {
 		t.Errorf("edge headers: %v %v", res, err)
 	} else {
 		res.Body.Close()
