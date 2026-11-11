@@ -12,3 +12,4 @@ forks
 packages/server/src/mothership-app/pb_hooks
 **/types.d.ts
 .claude
+packages/pockethost-go
