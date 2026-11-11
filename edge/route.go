@@ -18,6 +18,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
@@ -423,13 +424,13 @@ const FirewallHealthPath = "/api/firewall/health"
 // Front is the edge's outer middleware (the Node firewall's job, in front of the instances): the load balancer
 // health route, the peer allowlist, and the edge routing headers. Instance routing, rate limits and forwarding
 // happen in Pocker's Manager behind it.
-func (s *Source) Front(fw func() *pocker.Firewall, next http.Handler) http.Handler {
+func (s *Source) Front(fw *firewall.Firewall, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		forwarded := r.Header.Get(ForwardedByHeader) != ""
 		mark := &forwardMark{}
 		r = r.WithContext(context.WithValue(r.Context(), forwardMarkKey{}, mark))
-		w = pocker.WithServerTiming(w, func() []pocker.TimingEntry {
+		pocker.Timing(r.Context(), func() []pocker.TimingEntry { // reported by the servertiming plugin
 			return edgeTimingEntries(s.cfg.EdgeID, forwarded, mark, time.Since(start), time.Now())
 		})
 		w.Header().Set("X-Powered-By", PoweredBy)
@@ -439,7 +440,7 @@ func (s *Source) Front(fw func() *pocker.Firewall, next http.Handler) http.Handl
 			_, _ = io.WriteString(w, `{"status":"firewall ok","code":200}`)
 			return
 		}
-		if f := fw(); f != nil && !f.AllowPeer(r) {
+		if fw != nil && !fw.AllowPeer(r) {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}

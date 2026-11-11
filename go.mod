@@ -4,7 +4,9 @@ go 1.27
 
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
-	github.com/pockethost/pocketbase/ext/pocker v0.0.0-20261111132049-6e744a52d4ed
+	github.com/pockethost/pocketbase/ext/firewall v0.0.0-20261111133312-6d1ca0c4a1c0
+	github.com/pockethost/pocketbase/ext/pocker v0.0.0-20261111133312-6d1ca0c4a1c0
+	github.com/pockethost/pocketbase/ext/servertiming v0.0.0-20261111133312-6d1ca0c4a1c0
 	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.60.1
 )
@@ -14,8 +16,6 @@ require (
 	ganigeorgiev.com/pocketbase/dbx v1.13.0 // indirect
 	ganigeorgiev.com/pocketbase/ozzo-validation/v4 v4.4.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/caddyserver/certmagic v0.25.6 // indirect
-	github.com/caddyserver/zerossl v0.1.6 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/dlclark/regexp2/v2 v2.9.1 // indirect
 	github.com/domodwyer/mailyak/v3 v3.6.2 // indirect
@@ -31,23 +31,14 @@ require (
 	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
-	github.com/libdns/cloudflare v0.2.2 // indirect
-	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.16 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mholt/acmez/v3 v3.1.7 // indirect
-	github.com/miekg/dns v1.1.73 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
-	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261111132049-6e744a52d4ed // indirect
+	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261111133312-6d1ca0c4a1c0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/zeebo/blake3 v0.2.4 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.28.0 // indirect
-	go.uber.org/zap/exp v0.3.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
@@ -63,4 +54,4 @@ require (
 // PocketBase CE (github.com/pockethost/pocketbase) keeps PocketBase's module path so upstream merges stay easy. This
 // replace points the module at CE; ext/pocker and ext/sandbox are CE plugin modules in the same repo. Bump all three
 // together to pick up CE changes.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase v0.0.2-0.20261111132049-6e744a52d4ed
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase v0.0.2-0.20261111133312-6d1ca0c4a1c0

@@ -21,7 +21,9 @@ import (
 
 	"github.com/pockethost/pocker/deploy"
 	"github.com/pockethost/pocker/edge"
+	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/servertiming"
 )
 
 func main() {
@@ -68,6 +70,9 @@ func main() {
 	defer stop()
 
 	srv := &pocker.Server{Config: cfg}
+	fw := firewall.New()
+	fw.Adjust = func(c *firewall.Config, _ **firewall.RateLimits) { edge.FirewallFromEnv(c) } // after pocker.yaml, like before
+	srv.Plugins = []pocker.Plugin{servertiming.New(), fw}                                     // servertiming outermost: its header includes the edge's own hops
 	if os.Getenv("MOTHERSHIP_URL") != "" {
 		ecfg, err := edge.ConfigFromEnv()
 		if err != nil {
@@ -80,7 +85,6 @@ func main() {
 		srv.Source = source
 		srv.SetupApp = edge.Setup(ecfg)
 		srv.Forward = source.Forward
-		edge.FirewallFromEnv(&srv.Config.Firewall)
 		var running atomic.Pointer[pocker.Manager]
 		srv.OnStart = running.Store
 		manager := running.Load
@@ -97,14 +101,8 @@ func main() {
 			PlatformPaths: edge.PlatformPaths,
 			IsRemote:      source.IsRemote,
 		})
-		firewall := func() *pocker.Firewall {
-			if m := manager(); m != nil {
-				return m.Firewall()
-			}
-			return nil
-		}
 		srv.Wrap = func(h http.Handler) http.Handler {
-			return source.Front(firewall, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
+			return source.Front(fw, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
 		}
 		if edge.WebhooksDisabled() {
 			slog.Info("pockethost: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")

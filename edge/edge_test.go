@@ -21,7 +21,9 @@ import (
 	"time"
 
 	"github.com/pockethost/pocker/deploy"
+	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketbase/ext/servertiming"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -56,11 +58,12 @@ func TestMapInstance(t *testing.T) {
 	if p.EncryptionKey != "k32" || strings.Join(p.Access.CORSOrigins, ",") != "https://a.com,https://b.com" {
 		t.Errorf("explicit fields: key=%q cors=%v", p.EncryptionKey, p.Access.CORSOrigins)
 	}
-	if strings.Join(p.Access.TrustedIPs, ",") != "203.0.113.0/24" {
-		t.Errorf("owner trusted_ips: %v", p.Access.TrustedIPs)
+	fwc, _ := p.PluginConfig("firewall").(firewall.InstanceConfig)
+	if strings.Join(fwc.TrustedIPs, ",") != "203.0.113.0/24" {
+		t.Errorf("owner trusted_ips: %v", fwc.TrustedIPs)
 	}
-	if p.Limits.RateLimits == nil || p.Limits.RateLimits.IPHourly != 2000 || p.Limits.RateLimits.IPConcurrent != 0 || p.Limits.RateLimits.InstanceHourly != 0 {
-		t.Errorf("firewall overrides (positive integers only): %+v", p.Limits.RateLimits)
+	if fwc.RateLimits == nil || fwc.RateLimits.IPHourly != 2000 || fwc.RateLimits.IPConcurrent != 0 || fwc.RateLimits.InstanceHourly != 0 {
+		t.Errorf("firewall overrides (positive integers only): %+v", fwc.RateLimits)
 	}
 	if len(p.Superusers) != 1 || p.Superusers[0].Email != "o@x.com" || p.Superusers[0].ID != "u1" {
 		t.Errorf("admin sync: %+v", p.Superusers)
@@ -74,7 +77,7 @@ func TestMapInstance(t *testing.T) {
 	// placement
 	// another edge's instance: forwarded after this edge's firewall, so it keeps rate limits and CORS, nothing else
 	if p, _ := mapInstance(testCfg, inst, owner, "E_OTHER", login); p.Remote != "edge:E_SGP" || p.Blocked != nil || p.Secrets != nil ||
-		p.Superusers != nil || p.Private != nil || p.Limits.RateLimits == nil || len(p.Access.CORSOrigins) == 0 {
+		p.Superusers != nil || p.Private != nil || p.PluginConfig("firewall") == nil || len(p.Access.CORSOrigins) == 0 {
 		t.Errorf("other edge: %+v", p)
 	}
 	legacy := inst
@@ -282,13 +285,9 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		t.Fatal(err)
 	}
 	var running atomic.Pointer[pocker.Manager]
-	fw := func() *pocker.Firewall {
-		if m := running.Load(); m != nil {
-			return m.Firewall()
-		}
-		return nil
-	}
+	fw := firewall.New()
 	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
+		Plugins: []pocker.Plugin{servertiming.New(), fw},
 		Wrap:    func(h http.Handler) http.Handler { return source.Front(fw, NodeCompat(stats.Middleware(h))) },
 		OnEvent: func(e pocker.Event) {}, OnStart: running.Store}
 	go source.NewScheduler(running.Load).Run(ctx)

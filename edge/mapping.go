@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
@@ -130,7 +131,7 @@ func stringList(raw json.RawMessage) []string {
 }
 
 // rateLimits maps the operator's firewall overrides (positive integers only, as the Node firewall accepts them).
-func rateLimits(raw json.RawMessage) *pocker.RateLimits {
+func rateLimits(raw json.RawMessage) *firewall.RateLimits {
 	m := map[string]any{}
 	if len(raw) == 0 || string(raw) == "null" {
 		return nil
@@ -147,9 +148,9 @@ func rateLimits(raw json.RawMessage) *pocker.RateLimits {
 		}
 		return 0
 	}
-	r := &pocker.RateLimits{IPHourly: pos("ip_hourly"), InstanceHourly: pos("instance_hourly"),
+	r := &firewall.RateLimits{IPHourly: pos("ip_hourly"), InstanceHourly: pos("instance_hourly"),
 		IPConcurrent: pos("ip_concurrent"), InstanceConcurrent: pos("instance_concurrent")}
-	if *r == (pocker.RateLimits{}) {
+	if *r == (firewall.RateLimits{}) {
 		return nil
 	}
 	return r
@@ -195,8 +196,9 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 
 	secrets := stringMap(inst.Secrets)
 	p.Access.CORSOrigins = splitOrigins(secrets[secretCORS])
-	p.Access.TrustedIPs = stringList(owner.TrustedIPs)
-	p.Limits.RateLimits = rateLimits(inst.Firewall)
+	if fw := (firewall.InstanceConfig{RateLimits: rateLimits(inst.Firewall), TrustedIPs: stringList(owner.TrustedIPs)}); fw.RateLimits != nil || len(fw.TrustedIPs) > 0 {
+		p.Plugins = map[string]any{"firewall": fw} // owner's trusted IPs and the operator's rate-limit overrides
+	}
 	if !isMine(inst, myEdge, cfg.EdgeID) {
 		// another edge runs it: Pocker applies this edge's firewall (rate limits, CORS) and forwards (Source.Forward)
 		p.Remote = remoteEdgePrefix + ownerEdge(inst)
