@@ -9,6 +9,7 @@ import {
   MOTHERSHIP_PORT,
   PH_DISABLE_FIREWALL_RATE_LIMIT,
   PH_FIREWALL_DAEMON_GRACE_MS,
+  poweredByMiddleware,
   SSL_CERT,
   SSL_KEY,
 } from '@'
@@ -48,6 +49,8 @@ export const firewall = async ({ logger }: FirewallOptions) => {
 
   // Create Express app
   const app = express()
+  app.disable('x-powered-by')
+  app.use(poweredByMiddleware)
 
   // The mothership mirror (needed for rate limits and per-instance CORS) is only started when rate limiting is on.
   // Without it, every host keeps the permissive edge CORS.

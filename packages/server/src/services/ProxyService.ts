@@ -1,4 +1,4 @@
-import { corsMiddleware } from '@'
+import { corsMiddleware, poweredByMiddleware } from '@'
 import express, { Request, Response } from 'express'
 import { createProxyServer, type ProxyServer } from 'httpxy'
 import { AsyncReturnType } from 'type-fest'
@@ -105,6 +105,8 @@ export const proxyService = mkSingleton(
     })
 
     const server = express()
+    server.disable('x-powered-by')
+    server.use(poweredByMiddleware) // the daemon fulfills the request; the firewall in front passes it through
 
     server.use(corsMiddleware)
 
