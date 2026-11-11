@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocker/deploy"
 	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
 	"github.com/pockethost/pocketbase/ext/servertiming"
+	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"golang.org/x/crypto/bcrypt"
 )
 

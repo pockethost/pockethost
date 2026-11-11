@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/pockethost/pocker/deploy"
+	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 )
 
 func TestDeployBackend(t *testing.T) {

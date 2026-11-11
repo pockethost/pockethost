@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pockethost/pocker/deploy"
+	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 )
 
 // DeployBackend answers the deploy API's questions from the mirror and the mothership: which instance a host names,

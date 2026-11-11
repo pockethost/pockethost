@@ -1,4 +1,4 @@
-module github.com/pockethost/pocker
+module github.com/pockethost/pockethost/packages/pockethost-go
 
 go 1.27
 

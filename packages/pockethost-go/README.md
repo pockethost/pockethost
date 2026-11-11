@@ -1,4 +1,4 @@
-# pockethost/pocker (private)
+# pockethost-go
 
 PocketHost's own build, on top of **PocketBase Community Edition**
 ([pockethost/pocketbase](https://github.com/pockethost/pocketbase), public): PocketBase plus a few hooks, with the
@@ -9,9 +9,11 @@ and the JS sandbox as [`ext/sandbox`](https://github.com/pockethost/pocketbase/t
 Binaries: `pockethost` (the edge, below) and, later, `pockethost-mothership` (the mothership on PocketBase CE, once it
 can replace the Node mothership; no deadline).
 
-This repo adds what PocketHost needs to run a business on it, as Go code that **imports CE** (not a fork):
+This package adds what PocketHost needs to run a business on it, as Go code that **imports CE** (not a fork). It moved here
+from the former `pockethost/pocker` repo on 2026-11-11; the Node packages next to it retire as these binaries replace
+them.
 
-| Here (private) | Status |
+| Here | Status |
 |---|---|
 | `cmd/pockethost`: PocketHost's edge binary (`serve`, and `check` for a read-only mapping report) | done |
 | `edge/`: adapter for today's mothership: mirror dump + realtime + drift poll, heartbeat with traffic stats, instance status (running/failed) | done |
@@ -112,15 +114,14 @@ pb_root: /root/.pockethost/data/instances
 
 ## Build
 
-Go 1.27 (on sfo-2: `PATH=/root/sdk/go1.27.0/bin:$PATH GOTOOLCHAIN=local`). This repo is private:
-`GOPRIVATE=github.com/pockethost/pocker` (not `github.com/pockethost/*`: PocketBase CE, `github.com/pockethost/pocketbase`, is public and resolves through the module proxy).
+Go 1.27 (on sfo-2: `PATH=/root/sdk/go1.27.0/bin:$PATH GOTOOLCHAIN=local`), from this folder:
 
 ```sh
-go build -o pockethost ./cmd/pockethost
+CGO_ENABLED=0 go build -trimpath -o pockethost ./cmd/pockethost
 ./pockethost serve --pbRoot ./pb_root --instances ./instances.yaml
 ```
 
-## Rollout (see pockethost-support `plans/pocker-v2-design.md` and `plans/pocker-community-mothership.md`)
+## Rollout
 
 Edges first, mothership last: Pocker edges speak today's mothership protocol through the adapter here, so the
 mothership and the existing Node edges never need to learn anything new. Singapore is the first Pocker-only region.

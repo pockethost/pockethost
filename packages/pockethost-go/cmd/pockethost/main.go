@@ -19,11 +19,11 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/pockethost/pocker/deploy"
-	"github.com/pockethost/pocker/edge"
 	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
 	"github.com/pockethost/pocketbase/ext/servertiming"
+	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
+	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 )
 
 func main() {
