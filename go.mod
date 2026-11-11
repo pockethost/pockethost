@@ -60,4 +60,4 @@ require (
 
 // Pocker CE (benallfree/pocker) is PocketBase plus the Pocker engine; it keeps PocketBase's module path so upstream
 // merges stay easy. This replace points the module at CE. Bump it to pick up CE changes.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker v0.0.0-20261111015222-1cf5641558e5
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/benallfree/pocker v0.0.0-20261111015933-eb9b9d642d02
