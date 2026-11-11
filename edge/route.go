@@ -48,6 +48,10 @@ const (
 	HeaderOriginRegion = "X-PocketHost-Origin-Region"
 )
 
+// PoweredBy is the X-Powered-By on every response this edge sends; forwarded responses lose the owner's (Node edges
+// send "Express").
+const PoweredBy = "Pocker"
+
 // router holds the forwarding state: the transport to other edges, edges with a recent connection failure, and
 // cached health probes.
 type router struct {
@@ -298,6 +302,7 @@ func (s *Source) Forward(w http.ResponseWriter, r *http.Request, inst pocker.Ins
 			},
 			Transport: rt.transport,
 			ModifyResponse: func(res *http.Response) error {
+				res.Header.Del("X-Powered-By") // Front already set ours; the proxy would add the owner's next to it
 				if policy != nil {
 					policy.rewriteUpstream(res.Header)
 				}
@@ -389,6 +394,7 @@ const FirewallHealthPath = "/api/firewall/health"
 // happen in Pocker's Manager behind it.
 func (s *Source) Front(fw func() *pocker.Firewall, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", PoweredBy)
 		if r.URL.Path == FirewallHealthPath {
 			openCORSHeaders(w, r)
 			w.Header().Set("Content-Type", "application/json")

@@ -247,6 +247,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 			return
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("X-Powered-By", "Express")
 		fmt.Fprintf(w, "sfo %s %s %s by=%s", r.Method, r.Host, r.URL.Path, r.Header.Get(ForwardedByHeader))
 	}))
 	defer sfoDaemon.Close()
@@ -373,7 +374,8 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	}
 	hreq, _ := http.NewRequest("GET", "http://"+addr+"/api/health", nil)
 	hreq.Host = "blog.pockethost.io"
-	if res, err := client.Do(hreq); err != nil || res.Header.Get(HeaderEdgeName) != "sgp-1" || res.Header.Get(HeaderOriginName) != "sfo" || res.Header.Get(HeaderOriginRegion) != "sfo" {
+	if res, err := client.Do(hreq); err != nil || res.Header.Get(HeaderEdgeName) != "sgp-1" || res.Header.Get(HeaderOriginName) != "sfo" || res.Header.Get(HeaderOriginRegion) != "sfo" ||
+		strings.Join(res.Header.Values("X-Powered-By"), ",") != PoweredBy {
 		t.Errorf("edge headers: %v %v", res, err)
 	} else {
 		res.Body.Close()
