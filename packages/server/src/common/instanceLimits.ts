@@ -1,7 +1,8 @@
 /**
- * Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`), and all
- * of them may run. Archived instances don't count. Shared by the mothership (create / power-on checks, bundled into the
- * JSVM, so no Node imports here) and the edge over-limit sweep.
+ * Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`) plus its
+ * bonus instances (`users.bonus_instances`), and all of them may run. Bonus instances count only while the account has
+ * at least one paid instance. Archived instances don't count. Shared by the mothership (create / power-on checks,
+ * bundled into the JSVM, so no Node imports here) and the edge over-limit sweep.
  */
 
 /** Archived instances carry this prefix in `instances.suspension`. */
@@ -23,13 +24,30 @@ export type LimitInstance = {
 
 export type LimitUser = {
   subscription_quantity?: number | null
+  /** Sum of the account's bonus grants (manual or loyalty). Counts only while subscription_quantity > 0. */
+  bonus_instances?: number | null
   /** When the sweep first saw this account over its limit. Empty when it isn't. */
   over_limit_since?: string | null
   /** When the sweep emailed this account that its subscription ended and its instances stopped. Empty otherwise. */
   lapsed_since?: string | null
 }
 
-export const instanceAllowance = (user: LimitUser) => Math.max(0, Math.floor(user.subscription_quantity ?? 0))
+const plural = (n: number) => `${n} instance${n === 1 ? `` : `s`}`
+
+export type AllowanceParts = { paid: number; bonus: number; total: number }
+
+/** Paid and bonus instances. Bonus counts only while the account has at least one paid instance. */
+export const allowanceParts = (user: LimitUser): AllowanceParts => {
+  const paid = Math.max(0, Math.floor(user.subscription_quantity ?? 0))
+  const bonus = paid > 0 ? Math.max(0, Math.floor(user.bonus_instances ?? 0)) : 0
+  return { paid, bonus, total: paid + bonus }
+}
+
+export const instanceAllowance = (user: LimitUser) => allowanceParts(user).total
+
+/** "3 instances" or "3 instances (2 paid + 1 bonus)". */
+export const allowanceLabel = (parts: AllowanceParts) =>
+  parts.bonus > 0 ? `${plural(parts.total)} (${parts.paid} paid + ${parts.bonus} bonus)` : plural(parts.total)
 
 /** Instances that count toward the limit: everything except archived ones. */
 export const countedInstances = <T extends LimitInstance>(owned: T[]) =>
@@ -39,26 +57,31 @@ export const countedInstances = <T extends LimitInstance>(owned: T[]) =>
 export const poweredOnInstances = <T extends LimitInstance>(owned: T[]) =>
   countedInstances(owned).filter((i) => i.power)
 
-const plural = (n: number) => `${n} instance${n === 1 ? `` : `s`}`
-
 /** Error message when the account can't create another instance, or null when it can. */
-export const createLimitError = (owned: LimitInstance[], allowance: number): string | null => {
+export const createLimitError = (owned: LimitInstance[], allowance: number | AllowanceParts): string | null => {
+  const parts = typeof allowance === 'number' ? { paid: allowance, bonus: 0, total: allowance } : allowance
   const count = countedInstances(owned).length
-  if (count < allowance) return null
-  if (allowance === 0)
+  if (count < parts.total) return null
+  if (parts.total === 0)
     return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`
-  return `Your plan includes ${plural(allowance)} and you have ${count}. Delete or archive one, or add instances to your plan.`
+  return `Your plan includes ${allowanceLabel(parts)} and you have ${count}. Delete or archive one, or add instances to your plan.`
 }
 
 /**
  * Error message when `instanceId` can't be powered on, or null when it can. Only the other powered-on instances are
  * counted, so re-saving an instance that is already on never fails.
  */
-export const powerOnLimitError = (instanceId: string, owned: LimitInstance[], allowance: number): string | null => {
+export const powerOnLimitError = (
+  instanceId: string,
+  owned: LimitInstance[],
+  allowance: number | AllowanceParts
+): string | null => {
+  const parts = typeof allowance === 'number' ? { paid: allowance, bonus: 0, total: allowance } : allowance
   const othersOn = poweredOnInstances(owned).filter((i) => i.id !== instanceId).length
-  if (othersOn < allowance) return null
-  if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`
-  return `Your plan includes ${plural(allowance)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`
+  if (othersOn < parts.total) return null
+  if (parts.total === 0)
+    return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`
+  return `Your plan includes ${allowanceLabel(parts)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`
 }
 
 const updatedMs = (i: LimitInstance) => {

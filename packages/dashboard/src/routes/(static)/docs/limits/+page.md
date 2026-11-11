@@ -47,18 +47,18 @@ If traffic comes from a shared server IP, see [Trusted IPs](/docs/trusted-ips) o
 
 Every request through the PocketHost firewall (success or `429`) includes **`X-PocketHost-RateLimit-*`** headers with your current budget on **that edge**. Inspect them with browser devtools, `curl -i`, or your HTTP client.
 
-| Header | Meaning |
-| --- | --- |
-| `X-PocketHost-RateLimit-Ip-Hourly-Limit` | Per-IP hourly cap (API-weighted; see below) |
-| `X-PocketHost-RateLimit-Ip-Hourly-Remaining` | Budget left this hour for your client IP on this instance |
-| `X-PocketHost-RateLimit-Ip-Hourly-Reset` | Unix timestamp when the per-IP hourly window resets |
-| `X-PocketHost-RateLimit-Instance-Hourly-Limit` | Per-instance hourly cap |
-| `X-PocketHost-RateLimit-Instance-Hourly-Remaining` | Budget left this hour for the instance hostname |
-| `X-PocketHost-RateLimit-Instance-Hourly-Reset` | Unix timestamp when the per-instance hourly window resets |
-| `X-PocketHost-RateLimit-Ip-Concurrent-Limit` | Max simultaneous requests from your IP on this instance |
-| `X-PocketHost-RateLimit-Ip-Concurrent-Remaining` | Concurrent slots left (while the request is in flight) |
-| `X-PocketHost-RateLimit-Instance-Concurrent-Limit` | Max simultaneous requests for the instance |
-| `X-PocketHost-RateLimit-Instance-Concurrent-Remaining` | Instance concurrent slots left |
+| Header                                                 | Meaning                                                   |
+| ------------------------------------------------------ | --------------------------------------------------------- |
+| `X-PocketHost-RateLimit-Ip-Hourly-Limit`               | Per-IP hourly cap (API-weighted; see below)               |
+| `X-PocketHost-RateLimit-Ip-Hourly-Remaining`           | Budget left this hour for your client IP on this instance |
+| `X-PocketHost-RateLimit-Ip-Hourly-Reset`               | Unix timestamp when the per-IP hourly window resets       |
+| `X-PocketHost-RateLimit-Instance-Hourly-Limit`         | Per-instance hourly cap                                   |
+| `X-PocketHost-RateLimit-Instance-Hourly-Remaining`     | Budget left this hour for the instance hostname           |
+| `X-PocketHost-RateLimit-Instance-Hourly-Reset`         | Unix timestamp when the per-instance hourly window resets |
+| `X-PocketHost-RateLimit-Ip-Concurrent-Limit`           | Max simultaneous requests from your IP on this instance   |
+| `X-PocketHost-RateLimit-Ip-Concurrent-Remaining`       | Concurrent slots left (while the request is in flight)    |
+| `X-PocketHost-RateLimit-Instance-Concurrent-Limit`     | Max simultaneous requests for the instance                |
+| `X-PocketHost-RateLimit-Instance-Concurrent-Remaining` | Instance concurrent slots left                            |
 
 **Limit** and **Remaining** numbers use the same **API request weights** as the caps above (1,000 / 10,000 per hour, etc.). `/api/files/...` routes consume less budget, so file-heavy traffic can show higher **Remaining** than a naive request count would suggest.
 
@@ -86,6 +86,7 @@ PocketHost instances may enter **hibernation** during inactivity. They wake on t
 PocketHost limits are simple: **you pay per instance**.
 
 - **Instances**: You can have as many instances as you pay for, and all of them can run. Powered-off instances still count, so to make room for a new one, delete an instance or [add another](/pricing). Archived instances don't count. See [When your plan goes down](#when-your-plan-goes-down).
+- **Bonus instances**: Some accounts get extra instances on top of the ones they pay for. Your [account page](/account) shows them with a bonus badge (for example "4 allowed (2 paid + 2 bonus)"). Bonus instances work like paid ones and can all run, but they don't add disk storage, and they count only while you have at least one paid instance.
 - **Disk storage**: **10 GB per paid instance**, pooled across your account. Legacy plans get a flat 25 GB, and accounts with no paid instances get 1 GB. See [Disk storage](#disk-storage).
 
 We also monitor bandwidth, storage, and CPU under fair use. We think fair means using about the same resources as the average active app on the platform. See [Pricing Ethos](/docs/pricing-ethos) for how we balance scale and indie-friendly hosting.
@@ -110,11 +111,11 @@ If your plan ends completely, so it doesn't include any instances, your instance
 
 Disk storage is **everything your instances keep on PocketHost's servers**: databases, logs, `pb_public`, `pb_hooks`, backups, and file uploads stored locally. It's one number, pooled across all of your instances.
 
-| Plan | Disk storage |
-|---|---|
-| Pay Per PocketBase | **10 GB per paid instance** |
-| Flounder, Founder, and other legacy plans | **25 GB** total |
-| No paid instances | **1 GB** total |
+| Plan                                      | Disk storage                |
+| ----------------------------------------- | --------------------------- |
+| Pay Per PocketBase                        | **10 GB per paid instance** |
+| Flounder, Founder, and other legacy plans | **25 GB** total             |
+| No paid instances                         | **1 GB** total              |
 
 Legacy plans come with a large instance allowance (250 or more). Their storage is a flat 25 GB and doesn't grow with the number of instances.
 

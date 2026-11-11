@@ -1413,35 +1413,57 @@ const findOwnedInstance = (caller, id) => {
 //#endregion
 //#region ../common/instanceLimits.ts
 /**
-* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`), and all
-* of them may run. Archived instances don't count. Shared by the mothership (create / power-on checks, bundled into the
-* JSVM, so no Node imports here) and the edge over-limit sweep.
+* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`) plus its
+* bonus instances (`users.bonus_instances`), and all of them may run. Bonus instances count only while the account has
+* at least one paid instance. Archived instances don't count. Shared by the mothership (create / power-on checks,
+* bundled into the JSVM, so no Node imports here) and the edge over-limit sweep.
 */
 /** Archived instances carry this prefix in `instances.suspension`. */
 const ARCHIVED_SUSPENSION_PREFIX = `Archived:`;
 const isArchivedSuspension = (suspension) => !!suspension && suspension.startsWith(ARCHIVED_SUSPENSION_PREFIX);
-const instanceAllowance = (user) => Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
+/** Paid and bonus instances. Bonus counts only while the account has at least one paid instance. */
+const allowanceParts = (user) => {
+	const paid = Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+	const bonus = paid > 0 ? Math.max(0, Math.floor(user.bonus_instances ?? 0)) : 0;
+	return {
+		paid,
+		bonus,
+		total: paid + bonus
+	};
+};
+/** "3 instances" or "3 instances (2 paid + 1 bonus)". */
+const allowanceLabel = (parts) => parts.bonus > 0 ? `${plural(parts.total)} (${parts.paid} paid + ${parts.bonus} bonus)` : plural(parts.total);
 /** Instances that count toward the limit: everything except archived ones. */
 const countedInstances = (owned) => owned.filter((i) => !isArchivedSuspension(i.suspension));
 /** Counted instances that are powered on. */
 const poweredOnInstances = (owned) => countedInstances(owned).filter((i) => i.power);
-const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
 /** Error message when the account can't create another instance, or null when it can. */
 const createLimitError = (owned, allowance) => {
+	const parts = typeof allowance === "number" ? {
+		paid: allowance,
+		bonus: 0,
+		total: allowance
+	} : allowance;
 	const count = countedInstances(owned).length;
-	if (count < allowance) return null;
-	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
-	return `Your plan includes ${plural(allowance)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
+	if (count < parts.total) return null;
+	if (parts.total === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
+	return `Your plan includes ${allowanceLabel(parts)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
 };
 /**
 * Error message when `instanceId` can't be powered on, or null when it can. Only the other powered-on instances are
 * counted, so re-saving an instance that is already on never fails.
 */
 const powerOnLimitError = (instanceId, owned, allowance) => {
+	const parts = typeof allowance === "number" ? {
+		paid: allowance,
+		bonus: 0,
+		total: allowance
+	} : allowance;
 	const othersOn = poweredOnInstances(owned).filter((i) => i.id !== instanceId).length;
-	if (othersOn < allowance) return null;
-	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
-	return `Your plan includes ${plural(allowance)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
+	if (othersOn < parts.total) return null;
+	if (parts.total === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
+	return `Your plan includes ${allowanceLabel(parts)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
 };
 
 //#endregion
@@ -1453,7 +1475,14 @@ const ownedInstances = (uid) => $app.findRecordsByFilter("instances", "uid = {:u
 	suspension: r.getString("suspension"),
 	updated: r.getString("updated")
 }));
-const allowanceOf = (uid) => instanceAllowance({ subscription_quantity: $app.findRecordById("users", uid).getInt("subscription_quantity") });
+/** Paid + bonus instances (bonus only counts while at least one is paid). */
+const allowanceOf = (uid) => {
+	const user = $app.findRecordById("users", uid);
+	return allowanceParts({
+		subscription_quantity: user.getInt("subscription_quantity"),
+		bonus_instances: user.getInt("bonus_instances")
+	});
+};
 /** 402 Payment Required: the plan doesn't include another instance. */
 const limitError = (message) => new ApiError(402, message, {});
 /** Throws 402 when the user already owns every instance their plan includes (archived ones don't count). */
@@ -6145,6 +6174,43 @@ const HandleUserTokenRequest = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/user/model/bonusInstances.ts
+const log$1 = mkLog(`bonus-instances`);
+/** Recomputes `users.bonus_instances` from the user's `bonus_grants` (sum, floored at 0). */
+const recomputeBonusInstances = (uid) => {
+	if (!uid) return;
+	const row = new DynamicModel({ total: 0 });
+	$app.db().newQuery(`SELECT COALESCE(SUM(amount), 0) AS total FROM bonus_grants WHERE user = {:uid}`).bind({ uid }).one(row);
+	const total = Math.max(0, Math.floor(Number(row.total) || 0));
+	let user;
+	try {
+		user = $app.findRecordById("users", uid);
+	} catch {
+		return;
+	}
+	if (user.getInt("bonus_instances") === total) return;
+	user.set("bonus_instances", total);
+	$app.save(user);
+	log$1(`${uid}: bonus_instances = ${total}`);
+};
+/** After a grant is created, updated or deleted: recompute its user (and the previous user if it moved). */
+const AfterChange_bonusGrant = (e) => {
+	const uid = e.record?.getString("user") ?? "";
+	recomputeBonusInstances(uid);
+	const before = e.record?.original()?.getString("user") ?? "";
+	if (before && before !== uid) recomputeBonusInstances(before);
+};
+/**
+* Only superusers (and the grants hook) change bonus_instances. Production's users collection has no update rule, so
+* customers can't update their record at all; this guard keeps it that way even if that rule ever opens up.
+*/
+const BeforeUpdateRequest_guardBonusInstances = (e) => {
+	if (e.hasSuperuserAuth() || !e.record) return;
+	const stored = $app.findRecordById("users", e.record.id).getInt("bonus_instances");
+	if (e.record.getInt("bonus_instances") !== stored) e.record.set("bonus_instances", stored);
+};
+
+//#endregion
 //#region ../common/trustedIps.ts
 /** Max trusted IP entries per active account. */
 const TRUSTED_IPS_MAX = 5;
@@ -6298,11 +6364,13 @@ const HandleVersionsRequest = (e) => {
 };
 
 //#endregion
+exports.AfterChange_bonusGrant = AfterChange_bonusGrant;
 exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
 exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeCreate_version = BeforeCreate_version;
 exports.BeforeUpdateRequest_edge = BeforeUpdateRequest_edge;
+exports.BeforeUpdateRequest_guardBonusInstances = BeforeUpdateRequest_guardBonusInstances;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
@@ -6368,6 +6436,7 @@ exports.normalizeInstanceStatus = normalizeInstanceStatus;
 exports.parseInstanceScope = parseInstanceScope;
 exports.readTrustedIpsFromRecord = readTrustedIpsFromRecord;
 exports.reasonToDelete = reasonToDelete;
+exports.recomputeBonusInstances = recomputeBonusInstances;
 exports.recountLivePlatformStats = recountLivePlatformStats;
 exports.refreshAndBroadcastLivePlatformStats = refreshAndBroadcastLivePlatformStats;
 exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;
