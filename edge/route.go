@@ -48,8 +48,8 @@ const (
 	HeaderOriginRegion = "X-PocketHost-Origin-Region"
 )
 
-// PoweredBy is the X-Powered-By on every response this edge sends; forwarded responses lose the owner's (Node edges
-// send "Express").
+// PoweredBy is the X-Powered-By on every response this edge sends, so it names the stack that answered the client
+// (Node edges send "PocketHost"); a forwarded response loses the owner edge's value.
 const PoweredBy = "Pocker"
 
 // router holds the forwarding state: the transport to other edges, edges with a recent connection failure, and
