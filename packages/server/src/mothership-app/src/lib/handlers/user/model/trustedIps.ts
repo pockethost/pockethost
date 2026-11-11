@@ -46,21 +46,22 @@ const validateTrustedIpsForSubscription = (raw: unknown, subscription: string | 
 
 const bindTrustedIpsBody = (e: core.RequestEvent): { trusted_ips: unknown } => {
   const contentType = e.request.header.get(`Content-Type`) || `(none)`
-  const rawBody = readerToString(e.request.body)
-  log(`bindBody: content-type=${contentType} rawBody=${rawBody}`)
+  log(`bindBody: content-type=${contentType}`)
 
   let data = new DynamicModel({
     trusted_ips: [],
   }) as { trusted_ips: unknown }
 
-  e.bindBody(data)
-  log(`bindBody: after bind trusted_ips=${describeValue(data.trusted_ips)} typeof=${typeof data.trusted_ips}`)
+  // Don't read e.request.body before this (e.g. readerToString for logging): it drains the stream and
+  // bindBody then fails with EOF, so every save returned a generic 400.
+  try {
+    e.bindBody(data)
+  } catch (error) {
+    throw new BadRequestError(`Could not read trusted_ips from the request: ${clientErrorMessage(error)}`)
+  }
 
   data = JSON.parse(JSON.stringify(data))
-  log(`bindBody: after round-trip trusted_ips=${describeValue(data.trusted_ips)}`)
-
-  const requestInfoBody = e.requestInfo().body
-  log(`bindBody: requestInfo().body=${describeValue(requestInfoBody)}`)
+  log(`bindBody: trusted_ips=${describeValue(data.trusted_ips)}`)
 
   if (!(`trusted_ips` in data)) {
     throw new BadRequestError(`trusted_ips is required`)

@@ -6248,14 +6248,15 @@ const validateTrustedIpsForSubscription = (raw, subscription) => {
 	}
 };
 const bindTrustedIpsBody = (e) => {
-	log(`bindBody: content-type=${e.request.header.get(`Content-Type`) || `(none)`} rawBody=${readerToString(e.request.body)}`);
+	log(`bindBody: content-type=${e.request.header.get(`Content-Type`) || `(none)`}`);
 	let data = new DynamicModel({ trusted_ips: [] });
-	e.bindBody(data);
-	log(`bindBody: after bind trusted_ips=${describeValue(data.trusted_ips)} typeof=${typeof data.trusted_ips}`);
+	try {
+		e.bindBody(data);
+	} catch (error) {
+		throw new BadRequestError(`Could not read trusted_ips from the request: ${clientErrorMessage(error)}`);
+	}
 	data = JSON.parse(JSON.stringify(data));
-	log(`bindBody: after round-trip trusted_ips=${describeValue(data.trusted_ips)}`);
-	const requestInfoBody = e.requestInfo().body;
-	log(`bindBody: requestInfo().body=${describeValue(requestInfoBody)}`);
+	log(`bindBody: trusted_ips=${describeValue(data.trusted_ips)}`);
 	if (!(`trusted_ips` in data)) throw new BadRequestError(`trusted_ips is required`);
 	return data;
 };
