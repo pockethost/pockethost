@@ -47,6 +47,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
+	github.com/pockethost/pocketbase/ext/bulkmail v0.0.0-00010101000000-000000000000
 	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261111141838-5c1ccdc8efc4 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect

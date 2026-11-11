@@ -19,6 +19,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"github.com/pockethost/pocketbase/ext/bulkmail"
 	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pitr"
 	"github.com/pockethost/pocketbase/ext/pocker"
@@ -75,6 +76,7 @@ func main() {
 	fw.Adjust = func(c *firewall.Config, _ **firewall.RateLimits) { edge.FirewallFromEnv(c) } // after pocker.yaml, like before
 	srv.Plugins = []pocker.Plugin{servertiming.New(), fw}                                     // servertiming outermost: its header includes the edge's own hops
 	srv.Plugins = append(srv.Plugins, pitr.New(pitr.Config{}))                                // point-in-time restore, on for every instance (pocker.yaml `pitr:`, instance plugins.pitr)
+	srv.Plugins = append(srv.Plugins, bulkmail.New(bulkmail.Config{}))                        // bulk mail: Mail screens, campaigns to the instance's own users (pocker.yaml `bulkmail:`, instance plugins.bulkmail)
 	if os.Getenv("MOTHERSHIP_URL") != "" {
 		ecfg, err := edge.ConfigFromEnv()
 		if err != nil {
