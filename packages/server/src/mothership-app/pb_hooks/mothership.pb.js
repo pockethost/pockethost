@@ -1,12 +1,5 @@
 
 //#region src/lib/handlers/adminPlugins/hooks.ts
-$app.onServe().bindFunc((e) => {
-	e.uiExtensions.push({
-		name: "live",
-		fs: $os.dirFS(`${__hooks}/../pb_admin_ext/live`)
-	});
-	e.next();
-});
 onBootstrap((e) => {
 	e.next();
 	require(`${__hooks}/mothership`).initLiveViewStatsAtBoot();

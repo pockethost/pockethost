@@ -1,4 +1,5 @@
-// Command pockethost is PocketHost's edge: Pocker CE plus PocketHost's providers and platform features.
+// Command pockethost is PocketHost's edge: Pocker CE plus PocketHost's providers and platform features. It is also
+// the mothership (`pockethost mothership serve ...`, see mothership.go).
 //
 //	pockethost serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
 //
@@ -30,6 +31,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) >= 2 && os.Args[1] == "mothership" {
+		mothership(os.Args[2:])
+		return
+	}
 	if len(os.Args) >= 2 && os.Args[1] == "check" {
 		check(os.Args[2:])
 		return

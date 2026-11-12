@@ -1,10 +1,5 @@
-$app.onServe().bindFunc((e) => {
-  e.uiExtensions.push({
-    name: 'live',
-    fs: $os.dirFS(`${__hooks}/../pb_admin_ext/live`),
-  })
-  e.next()
-})
+// The `live` admin add-on (pb_admin_ext/live) is registered in Go by `pockethost mothership`, from files embedded in
+// the binary: the embedded hooks have no folder on disk to read it from.
 
 onBootstrap((e) => {
   e.next()
