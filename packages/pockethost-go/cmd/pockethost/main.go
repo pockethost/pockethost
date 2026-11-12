@@ -24,6 +24,8 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	ceedge "github.com/pockethost/pocketbase/ext/edge"
+
 	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pages"
 	"github.com/pockethost/pocketbase/ext/pages/pockerplugin"
@@ -127,7 +129,18 @@ func edgeServe(args []string) {
 		source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
 		srv.Source = source
 		srv.SetupApp = edge.Setup(ecfg)
-		srv.Forward = source.Forward
+		// Owner edges come from the mothership mirror; a config file `edges:` section adds static ones in front
+		// (ext/edgeroute forwards, configured the PocketHost way).
+		srv.Edges = source
+		if n := pocker.TopLevel(cfg.Doc(), "edges"); n != nil {
+			var static ceedge.StaticEdges
+			if err := n.Decode(&static); err != nil {
+				slog.Error("pockethost: edges", "error", err)
+				os.Exit(1)
+			}
+			srv.Edges = ceedge.MultiEdges{&static, source}
+		}
+		srv.EdgeRoute = edge.RouteConfig(slog.Default())
 		var running atomic.Pointer[pocker.Manager]
 		srv.OnStart = running.Store
 		manager := running.Load

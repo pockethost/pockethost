@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pockethost/pocketbase/ext/edgeroute"
+
 	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
@@ -36,7 +38,7 @@ type Source struct {
 	out chan pocker.Change
 
 	routeInit sync.Once
-	rt        *router
+	rt        *edgeroute.Router
 }
 
 type loginCache struct {

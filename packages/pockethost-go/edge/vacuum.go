@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -329,10 +330,15 @@ func (v *Vacuumer) report(ctx context.Context, sum VacuumSummary) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	res, err := probeClient.Do(req)
+	res, err := notifyClient.Do(req)
 	if err != nil {
 		v.s.log.Warn("pockethost: vacuum summary not posted", "error", err)
 		return
 	}
 	res.Body.Close()
 }
+
+// notifyClient posts the vacuum summary (its own transport, like every outbound call the edge makes for itself).
+var notifyClient = &http.Client{Transport: &http.Transport{
+	DialContext: (&net.Dialer{Timeout: 3 * time.Second}).DialContext, MaxIdleConnsPerHost: 2, IdleConnTimeout: 30 * time.Second,
+}}
