@@ -26,7 +26,6 @@ import (
 
 	ceedge "github.com/pockethost/pocketbase/ext/edge"
 
-	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pages"
 	"github.com/pockethost/pocketbase/ext/pages/pockerplugin"
 	"github.com/pockethost/pocketbase/ext/pitr"
@@ -113,11 +112,12 @@ func edgeServe(args []string) {
 	defer stop()
 
 	srv := &pocker.Server{Config: cfg}
-	fw := firewall.New()
-	fw.Adjust = func(c *firewall.Config, _ **firewall.RateLimits) { edge.FirewallFromEnv(c) } // after pocker.yaml, like before
-	srv.Plugins = []pocker.Plugin{servertiming.New(), fw}                                     // servertiming outermost: its header includes the edge's own hops
-	srv.Plugins = append(srv.Plugins, pitr.New(pitr.Config{}))                                // point-in-time restore, on for every instance (pocker.yaml `pitr:`, instance plugins.pitr)
-	srv.Plugins = append(srv.Plugins, pockerplugin.New(pages.Config{}))                       // PocketPages v1: serves an instance's pb_pages when it has one (instance plugins.pages.enabled: false turns it off)
+	fw := &ceedge.Firewall{}
+	fw.Adjust = func(c *ceedge.FirewallConfig, _ **ceedge.RateLimits) { edge.FirewallFromEnv(c) } // after pocker.yaml, like before
+	srv.Firewall = fw
+	srv.Plugins = []pocker.Plugin{servertiming.New()}                   // servertiming outermost: its header includes the edge's own hops
+	srv.Plugins = append(srv.Plugins, pitr.New(pitr.Config{}))          // point-in-time restore, on for every instance (pocker.yaml `pitr:`, instance plugins.pitr)
+	srv.Plugins = append(srv.Plugins, pockerplugin.New(pages.Config{})) // PocketPages v1: serves an instance's pb_pages when it has one (instance plugins.pages.enabled: false turns it off)
 	if os.Getenv("MOTHERSHIP_URL") != "" {
 		ecfg, err := edge.ConfigFromEnv()
 		if err != nil {
@@ -129,16 +129,16 @@ func edgeServe(args []string) {
 		source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
 		srv.Source = source
 		srv.SetupApp = edge.Setup(ecfg)
-		// Owner edges come from the mothership mirror; a config file `edges:` section adds static ones in front
-		// (ext/edgeroute forwards, configured the PocketHost way).
+		// Owner edges come from the mothership mirror; a config file `edges:` section (a list and/or another
+		// mothership) adds providers in front (ext/edge forwards, configured the PocketHost way).
 		srv.Edges = source
-		if n := pocker.TopLevel(cfg.Doc(), "edges"); n != nil {
-			var static ceedge.StaticEdges
-			if err := n.Decode(&static); err != nil {
-				slog.Error("pockethost: edges", "error", err)
-				os.Exit(1)
-			}
-			srv.Edges = ceedge.MultiEdges{&static, source}
+		extra, err := ceedge.EdgesFromConfig(pocker.TopLevel(cfg.Doc(), "edges"), slog.Default())
+		if err != nil {
+			slog.Error("pockethost: edges", "error", err)
+			os.Exit(1)
+		}
+		if extra != nil {
+			srv.Edges = ceedge.MultiProvider{extra, source}
 		}
 		srv.EdgeRoute = edge.RouteConfig(slog.Default())
 		var running atomic.Pointer[pocker.Manager]

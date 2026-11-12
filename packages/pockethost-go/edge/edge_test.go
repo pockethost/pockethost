@@ -20,7 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketbase/ext/firewall"
+	ceedge "github.com/pockethost/pocketbase/ext/edge"
+
 	"github.com/pockethost/pocketbase/ext/pocker"
 	"github.com/pockethost/pocketbase/ext/servertiming"
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
@@ -58,7 +59,7 @@ func TestMapInstance(t *testing.T) {
 	if p.EncryptionKey != "k32" || strings.Join(p.Access.CORSOrigins, ",") != "https://a.com,https://b.com" {
 		t.Errorf("explicit fields: key=%q cors=%v", p.EncryptionKey, p.Access.CORSOrigins)
 	}
-	fwc, _ := p.PluginConfig("firewall").(firewall.InstanceConfig)
+	fwc, _ := p.PluginConfig("firewall").(ceedge.FirewallInstanceConfig)
 	if strings.Join(fwc.TrustedIPs, ",") != "203.0.113.0/24" {
 		t.Errorf("owner trusted_ips: %v", fwc.TrustedIPs)
 	}
@@ -285,9 +286,9 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		t.Fatal(err)
 	}
 	var running atomic.Pointer[pocker.Manager]
-	fw := firewall.New()
+	fw := &ceedge.Firewall{}
 	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
-		Plugins: []pocker.Plugin{servertiming.New(), fw},
+		Firewall: fw, Plugins: []pocker.Plugin{servertiming.New()},
 		Wrap: func(h http.Handler) http.Handler {
 			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, NodeCompat(stats.Middleware(h)))
 		},

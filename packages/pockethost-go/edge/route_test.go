@@ -16,7 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketbase/ext/firewall"
+	ceedge "github.com/pockethost/pocketbase/ext/edge"
+
 	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
@@ -174,7 +175,7 @@ func TestForwardCORSPolicy(t *testing.T) {
 
 func TestFrontPeerCheckAndHealth(t *testing.T) {
 	s := routeSource(t, edgeRec{ID: "E_SFO", EdgeID: "sfo", Region: "sfo"})
-	fw, err := firewall.NewFirewall(firewall.Config{AllowCIDRs: []string{"173.245.48.0/20"}})
+	fw, err := ceedge.NewFirewall(ceedge.FirewallConfig{AllowCIDRs: []string{"173.245.48.0/20"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +207,7 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 func TestFirewallFromEnv(t *testing.T) {
 	t.Setenv("IPCIDR_LIST", "173.245.48.0/20, 2400:cb00::/32")
 	t.Setenv("PH_USER_PROXY_IPS", "203.0.113.9")
-	fw := firewall.Config{AllowCIDRs: []string{"10.88.0.0/24"}, TrustedProxies: []string{"10.88.0.0/24"}}
+	fw := ceedge.FirewallConfig{AllowCIDRs: []string{"10.88.0.0/24"}, TrustedProxies: []string{"10.88.0.0/24"}}
 	FirewallFromEnv(&fw)
 	if strings.Join(fw.AllowCIDRs, ",") != "10.88.0.0/24,173.245.48.0/20,2400:cb00::/32,127.0.0.0/8,::1/128" ||
 		strings.Join(fw.TrustedProxies, ",") != "10.88.0.0/24,173.245.48.0/20,2400:cb00::/32" ||
@@ -216,7 +217,7 @@ func TestFirewallFromEnv(t *testing.T) {
 	if fw.RateLimitHeaderPrefix != "X-PocketHost-RateLimit" {
 		t.Errorf("header prefix: %q", fw.RateLimitHeaderPrefix)
 	}
-	if _, err := firewall.NewFirewall(fw); err != nil {
+	if _, err := ceedge.NewFirewall(fw); err != nil {
 		t.Fatal(err)
 	}
 }

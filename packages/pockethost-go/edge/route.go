@@ -12,15 +12,13 @@ import (
 	"time"
 
 	ceedge "github.com/pockethost/pocketbase/ext/edge"
-	"github.com/pockethost/pocketbase/ext/edgeroute"
 
-	"github.com/pockethost/pocketbase/ext/firewall"
 	"github.com/pockethost/pocketbase/ext/pocker"
 )
 
 // Any edge accepts any request (the load balancer sends visitors to the nearest edge). Each instance runs on exactly
 // one edge; a request for an instance on another edge is forwarded over the private network straight to that edge,
-// after this edge's firewall (peer check, rate limits, CORS). The forwarding itself is PocketBase CE's ext/edgeroute;
+// after this edge's firewall (peer check, rate limits, CORS). The forwarding itself is PocketBase CE's ext/edge;
 // this edge's mirror is its EdgeSource (see [Source.Resolve]), configured the PocketHost way by [RouteConfig].
 
 const (
@@ -77,14 +75,14 @@ func (s *Source) edgeByRecord(id string) (edgeRec, bool) {
 	return e, ok
 }
 
-// RouteConfig is ext/edgeroute configured like the Node firewall: PocketHost's forwarded-by header, the daemon health
+// RouteConfig is ext/edge configured like the Node firewall: PocketHost's forwarded-by header, the daemon health
 // path other edges probe, PH_FIREWALL_DAEMON_GRACE_RETRY_MS, and PocketHost's 503 message. Edges is left for the caller.
-func RouteConfig(log *slog.Logger) edgeroute.Config {
+func RouteConfig(log *slog.Logger) ceedge.RouterConfig {
 	retry := 250 * time.Millisecond
 	if v, err := strconv.Atoi(os.Getenv("PH_FIREWALL_DAEMON_GRACE_RETRY_MS")); err == nil && time.Duration(v)*time.Millisecond > retry {
 		retry = time.Duration(v) * time.Millisecond
 	}
-	return edgeroute.Config{
+	return ceedge.RouterConfig{
 		ForwardedByHeader:  ForwardedByHeader,
 		HealthPath:         DaemonHealthPath,
 		HealthyWindow:      30 * time.Second,
@@ -131,7 +129,7 @@ func (s *Source) Forward(w http.ResponseWriter, r *http.Request, inst pocker.Ins
 	s.routeInit.Do(func() {
 		cfg := RouteConfig(s.log)
 		cfg.Edges = s
-		s.rt = edgeroute.New(cfg)
+		s.rt = ceedge.NewRouter(cfg)
 	})
 	s.rt.Forward(w, r, inst)
 }
@@ -189,7 +187,7 @@ func (s *Source) edgeLabels(host string) (me, origin [2]string, ok bool) {
 //   - fwd   (forwarded to the owner edge) time waiting on it, desc "me>owner"
 //   - edge  (served here) this edge's total, desc = edge name
 //   - entry (the request came from Cloudflare, not another edge) this edge's total, desc = edge name
-func edgeTimingEntries(me string, forwarded bool, mark *edgeroute.Mark, elapsed time.Duration, now time.Time) []pocker.TimingEntry {
+func edgeTimingEntries(me string, forwarded bool, mark *ceedge.Mark, elapsed time.Duration, now time.Time) []pocker.TimingEntry {
 	var out []pocker.TimingEntry
 	if mark != nil && mark.To != "" {
 		out = append(out, pocker.TimingEntry{Name: "fwd", Dur: now.Sub(mark.Start), Desc: me + ">" + mark.To})
@@ -209,18 +207,18 @@ const FirewallHealthPath = "/api/firewall/health"
 // health route, the peer allowlist, and the edge routing headers. Instance routing, rate limits and forwarding
 // happen in Pocker's Manager behind it. ready reports whether the Manager has loaded the instance list; until it
 // does, the health route answers 503 so the load balancer keeps traffic away (nil means always ready).
-func (s *Source) Front(fw *firewall.Firewall, ready func() bool, next http.Handler) http.Handler {
+func (s *Source) Front(fw *ceedge.Firewall, ready func() bool, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		forwarded := r.Header.Get(ForwardedByHeader) != ""
-		ctx, mark := edgeroute.WithMark(r.Context())
+		ctx, mark := ceedge.WithMark(r.Context())
 		r = r.WithContext(ctx)
 		pocker.Timing(r.Context(), func() []pocker.TimingEntry { // reported by the servertiming plugin
 			return edgeTimingEntries(s.cfg.EdgeID, forwarded, mark, time.Since(start), time.Now())
 		})
 		w.Header().Set("X-Powered-By", PoweredBy)
 		if r.URL.Path == FirewallHealthPath {
-			edgeroute.OpenCORSHeaders(w, r)
+			ceedge.OpenCORSHeaders(w, r)
 			w.Header().Set("Content-Type", "application/json")
 			if ready != nil && !ready() {
 				w.WriteHeader(http.StatusServiceUnavailable)
