@@ -35,7 +35,7 @@ func TestExportMatchesEmbedded(t *testing.T) {
 		t.Fatalf("exported %d of %d", n, len(files))
 	}
 	for _, f := range files {
-		want, _ := fs.ReadFile(dist, "dist/"+f)
+		want, _ := fs.ReadFile(appFiles, "app/"+f)
 		got, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(f)))
 		if err != nil || string(got) != string(want) {
 			t.Fatalf("%s differs (%v)", f, err)

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Copy the mothership's built JS (hooks, migrations, the `live` admin add-on) next to the Go code, so
 # `pockethost mothership` can go:embed it (go:embed can't reach outside the Go module).
-#   sync.sh          refresh mothershipapp/dist
-#   sync.sh --check  exit 1 if dist differs from the source (pre-push)
+#   sync.sh          refresh mothershipapp/app
+#   sync.sh --check  exit 1 if app/ differs from the source (pre-push)
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 src=$(cd "$here/../../server/src/mothership-app" && pwd)
@@ -15,13 +15,13 @@ build() { # build <dest>
 }
 if [ "${1:-}" = --check ]; then
   tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-  build "$tmp/dist"
-  if ! diff -r -q "$tmp/dist" "$here/dist" >/dev/null 2>&1; then
-    diff -r -q "$tmp/dist" "$here/dist" || true
-    echo "packages/pockethost-go/mothershipapp/dist is stale. Run: pnpm sync:mothership-embed (after building pb_hooks) and commit it." >&2
+  build "$tmp/app"
+  if ! diff -r -q "$tmp/app" "$here/app" >/dev/null 2>&1; then
+    diff -r -q "$tmp/app" "$here/app" || true
+    echo "packages/pockethost-go/mothershipapp/app is stale. Run: pnpm sync:mothership-embed (after building pb_hooks) and commit it." >&2
     exit 1
   fi
   exit 0
 fi
-build "$here/dist"
-echo "synced $(find "$here/dist" -type f | wc -l | tr -d ' ') files into mothershipapp/dist"
+build "$here/app"
+echo "synced $(find "$here/app" -type f | wc -l | tr -d ' ') files into mothershipapp/app"

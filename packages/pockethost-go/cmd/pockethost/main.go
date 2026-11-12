@@ -1,7 +1,11 @@
-// Command pockethost is PocketHost's edge: Pocker CE plus PocketHost's providers and platform features. It is also
-// the mothership (`pockethost mothership serve ...`, see mothership.go).
+// Command pockethost is PocketHost's server binary, on PocketBase CE. The first argument picks the role:
 //
-//	pockethost serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
+//	pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
+//	pockethost edge check [--env-file .env]
+//	pockethost mothership serve|migrate|superuser|version|hooks export ...   (mothership.go)
+//
+// The edge is Pocker CE plus PocketHost's providers and platform features. `pockethost serve` / `pockethost check` are
+// deprecated aliases for `pockethost edge serve` / `edge check`.
 //
 // With MOTHERSHIP_URL set (directly or in --env-file, same names as the Node edge), instances come from PocketHost's
 // mothership mirror, the edge heartbeats and reports instance status, and every instance gets PocketHost's platform
@@ -30,27 +34,56 @@ import (
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 )
 
+const usage = `usage:
+  pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]
+  pockethost edge check [--env-file .env]
+  pockethost mothership serve|migrate|superuser|version|hooks export ...   (see mothership.go)`
+
 func main() {
-	if len(os.Args) >= 2 && os.Args[1] == "mothership" {
-		mothership(os.Args[2:])
-		return
-	}
-	if len(os.Args) >= 2 && os.Args[1] == "check" {
-		check(os.Args[2:])
-		return
-	}
-	if len(os.Args) < 2 || os.Args[1] != "serve" {
-		fmt.Fprintln(os.Stderr, "usage: pockethost serve [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]")
+	args := os.Args[1:]
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(2)
 	}
-	fs := flag.NewFlagSet("serve", flag.ExitOnError)
+	switch args[0] {
+	case "mothership":
+		mothership(args[1:])
+		return
+	case "edge":
+		if len(args) >= 2 {
+			switch args[1] {
+			case "serve":
+				edgeServe(args[2:])
+				return
+			case "check":
+				check(args[2:])
+				return
+			}
+		}
+	case "serve", "check":
+		// Before 2026-11-12 the edge commands had no role prefix; existing systemd units still run `pockethost serve`.
+		slog.Warn("pockethost: `pockethost " + args[0] + "` is deprecated; use `pockethost edge " + args[0] + "`")
+		if args[0] == "serve" {
+			edgeServe(args[1:])
+		} else {
+			check(args[1:])
+		}
+		return
+	}
+	fmt.Fprintln(os.Stderr, usage)
+	os.Exit(2)
+}
+
+// edgeServe runs the edge: Pocker CE + PocketHost's providers and platform features (`pockethost edge serve`).
+func edgeServe(args []string) {
+	fs := flag.NewFlagSet("edge serve", flag.ExitOnError)
 	envFile := fs.String("env-file", "", "KEY=VALUE file (e.g. the edge's .env); already-set variables win")
 	configPath := fs.String("config", "pocker.yaml", "Pocker config file (optional)")
 	listen := fs.String("listen", "", "listen address (overrides config)")
 	pbRoot := fs.String("pbRoot", "", "instance folders root (overrides config)")
 	instances := fs.String("instances", "", "instances YAML file (overrides config)")
 	vacuumCron := fs.String("vacuum-cron", edge.DefaultVacuumOptions().Cron, `nightly vacuum schedule (UTC cron, "off" to disable)`)
-	_ = fs.Parse(os.Args[2:])
+	_ = fs.Parse(args)
 
 	if *envFile != "" {
 		if err := edge.LoadEnvFile(*envFile); err != nil {
@@ -131,7 +164,7 @@ func main() {
 	}
 }
 
-// check: read-only mapping report against the mothership (pockethost check --env-file .env).
+// check: read-only mapping report against the mothership (pockethost edge check --env-file .env).
 func check(args []string) {
 	fs := flag.NewFlagSet("check", flag.ExitOnError)
 	envFile := fs.String("env-file", "", "KEY=VALUE file (e.g. the edge's .env)")
