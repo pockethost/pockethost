@@ -48,6 +48,8 @@ const rebuildEdges = (app, type, newId) => {
   // instances.edge, kept outside the collection in case the relation has to be recreated
   app.db().newQuery('DROP TABLE IF EXISTS `_edges_rebuild_map`').execute()
   app.db().newQuery("CREATE TABLE `_edges_rebuild_map` AS SELECT id, edge FROM instances WHERE edge != ''").execute()
+  // without it, restoring ~25k instances scans the map once per row (25 s on a copy of production; the mothership is down meanwhile)
+  app.db().newQuery('CREATE UNIQUE INDEX `_edges_rebuild_map_id` ON `_edges_rebuild_map` (id)').execute()
 
   const records = app.findAllRecords('edges').map((r) => ({
     id: r.id,
