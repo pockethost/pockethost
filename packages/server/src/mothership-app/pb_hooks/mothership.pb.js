@@ -70,7 +70,7 @@ routerAdd("PATCH", "/api/tokens/{id}", (e) => {
 }, $apis.requireAuth("users"));
 routerAdd("POST", "/api/pat/verify", (e) => {
 	return require(`${__hooks}/mothership`).HandlePatVerify(e);
-}, $apis.requireSuperuserAuth());
+}, $apis.requireAuth("_superusers", "edges"));
 routerAdd("GET", "/api/pat/whoami", (e) => {
 	return require(`${__hooks}/mothership`).HandlePatWhoami(e);
 });
@@ -104,10 +104,15 @@ routerAdd("GET", "/_ph/backup/{id}/{zip}", (e) => {
 //#region src/lib/handlers/edge/hooks.ts
 routerAdd("POST", "/api/edge/heartbeat", (e) => {
 	return require(`${__hooks}/mothership`).HandleEdgeHeartbeat(e);
-}, $apis.requireSuperuserAuth());
+}, $apis.requireAuth("_superusers", "edges"));
 cronAdd("edges-stale", "* * * * *", () => {
 	require(`${__hooks}/mothership`).markStaleEdges();
 });
+onRecordEnrich((e) => {
+	const auth = e.requestInfo?.auth;
+	if (auth && auth.collection().name === "edges") e.record?.ignoreEmailVisibility(true);
+	e.next();
+}, "users");
 
 //#endregion
 //#region src/lib/handlers/instance/hooks.ts
@@ -194,10 +199,10 @@ onBootstrap((e) => {
 //#region src/lib/handlers/mirror/hooks.ts
 routerAdd("GET", "/api/mirror", (e) => {
 	return require(`${__hooks}/mothership`).HandleMirrorData(e);
-}, $apis.gzip(), $apis.requireSuperuserAuth());
+}, $apis.gzip(), $apis.requireAuth("_superusers", "edges"));
 routerAdd("POST", "/api/mirror", (e) => {
 	return require(`${__hooks}/mothership`).HandleMirrorSync(e);
-}, $apis.gzip(), $apis.requireSuperuserAuth());
+}, $apis.gzip(), $apis.requireAuth("_superusers", "edges"));
 
 //#endregion
 //#region src/lib/handlers/notify/hooks.ts
@@ -262,7 +267,7 @@ cronAdd("public-stats", "0 * * * *", () => {
 //#region src/lib/handlers/user/hooks.ts
 routerAdd("GET", "/api/userToken/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTokenRequest(e);
-}, $apis.requireSuperuserAuth());
+}, $apis.requireAuth("_superusers", "edges"));
 routerAdd("GET", "/api/user/trusted-ips", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTrustedIpsGet(e);
 }, $apis.requireAuth());

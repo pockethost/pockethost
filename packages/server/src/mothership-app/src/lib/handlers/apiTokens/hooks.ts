@@ -27,7 +27,7 @@ routerAdd(
   (e) => {
     return require(`${__hooks}/mothership`).HandlePatVerify(e)
   },
-  $apis.requireSuperuserAuth()
+  $apis.requireAuth('_superusers', 'edges')
 )
 
 routerAdd('GET', '/api/pat/whoami', (e) => {

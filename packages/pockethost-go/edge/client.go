@@ -16,10 +16,12 @@ import (
 	"time"
 )
 
-// client talks to the mothership as a superuser. It has its own transport: Pocker's egress policy guards Go's default
+// client talks to the mothership as the edge itself (an `edges` auth record: edge_id + MOTHERSHIP_EDGE_SECRET) or, on
+// edges not switched yet, as a superuser. It has its own transport: Pocker's egress policy guards Go's default
 // transport, and the mothership is on a private address.
 type client struct {
 	base       string
+	authColl   string // "edges" or "_superusers"
 	user, pass string
 	http       *http.Client
 
@@ -27,13 +29,21 @@ type client struct {
 	token string
 }
 
-func newClient(base, user, pass string) *client {
+// newClientFor picks the edge login when the edge has a secret, else the superuser login.
+func newClientFor(cfg Config) *client {
+	if cfg.EdgeSecret != "" {
+		return newClient(cfg.MothershipURL, "edges", cfg.EdgeID, cfg.EdgeSecret)
+	}
+	return newClient(cfg.MothershipURL, "_superusers", cfg.AdminUser, cfg.AdminPassword)
+}
+
+func newClient(base, authColl, user, pass string) *client {
 	tr := &http.Transport{
 		DialContext:         (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
 		MaxIdleConnsPerHost: 8,
 		IdleConnTimeout:     90 * time.Second,
 	}
-	return &client{base: base, user: user, pass: pass, http: &http.Client{Transport: tr}}
+	return &client{base: base, authColl: authColl, user: user, pass: pass, http: &http.Client{Transport: tr}}
 }
 
 func (c *client) auth(ctx context.Context) (string, error) {
@@ -43,7 +53,7 @@ func (c *client) auth(ctx context.Context) (string, error) {
 		return c.token, nil
 	}
 	body, _ := json.Marshal(map[string]string{"identity": c.user, "password": c.pass})
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.base+"/api/collections/_superusers/auth-with-password", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.base+"/api/collections/"+c.authColl+"/auth-with-password", bytes.NewReader(body))
 	if err != nil {
 		return "", err
 	}
