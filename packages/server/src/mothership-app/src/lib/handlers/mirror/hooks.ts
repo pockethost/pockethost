@@ -5,7 +5,7 @@ routerAdd(
     return require(`${__hooks}/mothership`).HandleMirrorData(e)
   },
   $apis.gzip(),
-  $apis.requireAuth('_superusers', 'edges')
+  $apis.requireSuperuserAuth()
 )
 routerAdd(
   'POST',
@@ -14,5 +14,5 @@ routerAdd(
     return require(`${__hooks}/mothership`).HandleMirrorSync(e)
   },
   $apis.gzip(),
-  $apis.requireAuth('_superusers', 'edges')
+  $apis.requireSuperuserAuth()
 )

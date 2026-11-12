@@ -4,7 +4,7 @@ routerAdd(
   (e) => {
     return require(`${__hooks}/mothership`).HandleUserTokenRequest(e)
   },
-  $apis.requireAuth('_superusers', 'edges')
+  $apis.requireSuperuserAuth()
 )
 
 routerAdd(

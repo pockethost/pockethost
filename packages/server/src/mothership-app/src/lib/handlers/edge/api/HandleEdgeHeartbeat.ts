@@ -1,16 +1,9 @@
-import { authEdge } from '$util/edgeAuth'
-
 export const HandleEdgeHeartbeat = (e: core.RequestEvent) => {
   const { body } = e.requestInfo()
-  const edge = authEdge(e)
-  // An edge login reports for itself only; a superuser names the edge (and may create it).
-  const edgeId = edge ? edge.getString('edge_id') : body?.edge_id
+  const edgeId = body?.edge_id
 
   if (!edgeId || typeof edgeId !== 'string') {
     throw new BadRequestError('edge_id is required')
-  }
-  if (edge && body?.edge_id !== undefined && body.edge_id !== edgeId) {
-    throw new ForbiddenError(`This login is edge ${edgeId}; it can't report for ${body.edge_id}.`)
   }
 
   const stats = body?.stats ?? {}
@@ -22,8 +15,6 @@ export const HandleEdgeHeartbeat = (e: core.RequestEvent) => {
     const collection = $app.findCollectionByNameOrId('edges')
     record = new Record(collection)
     record.set('edge_id', edgeId)
-    // `edges` is an auth collection: an edge created here can't log in until a superuser sets its secret.
-    record.setRandomPassword()
     record.set('label', typeof body?.label === 'string' ? body.label : edgeId)
   }
 

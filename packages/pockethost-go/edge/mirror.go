@@ -50,7 +50,7 @@ func NewSource(cfg Config, log *slog.Logger) *Source {
 		log = slog.Default()
 	}
 	return &Source{
-		cfg: cfg, c: newClientFor(cfg), log: log,
+		cfg: cfg, c: newClient(cfg.MothershipURL, cfg.AdminUser, cfg.AdminPassword), log: log,
 		users: map[string]userRec{}, instances: map[string]instanceRec{}, edges: map[string]edgeRec{},
 		logins: map[string]loginCache{}, emitted: map[string]pocker.Instance{}, claims: map[string]string{},
 		cands: map[string]map[string]claim{}, byUID: map[string]map[string]struct{}{},

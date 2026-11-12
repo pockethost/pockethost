@@ -18,8 +18,7 @@ import (
 // works for both.
 type Config struct {
 	MothershipURL      string        // MOTHERSHIP_URL
-	EdgeSecret         string        // MOTHERSHIP_EDGE_SECRET: log in as this edge (edges record, identity = EdgeID)
-	AdminUser          string        // MOTHERSHIP_ADMIN_USERNAME: superuser login, only when EdgeSecret is unset
+	AdminUser          string        // MOTHERSHIP_ADMIN_USERNAME
 	AdminPassword      string        // MOTHERSHIP_ADMIN_PASSWORD
 	EdgeID             string        // PH_EDGE_ID (default: hostname)
 	Region             string        // PH_EDGE_REGION
@@ -85,7 +84,6 @@ func ConfigFromEnv() (Config, error) {
 	proto := envOr("HTTP_PROTOCOL", "https:")
 	c := Config{
 		MothershipURL:      strings.TrimRight(os.Getenv("MOTHERSHIP_URL"), "/"),
-		EdgeSecret:         os.Getenv("MOTHERSHIP_EDGE_SECRET"),
 		AdminUser:          os.Getenv("MOTHERSHIP_ADMIN_USERNAME"),
 		AdminPassword:      os.Getenv("MOTHERSHIP_ADMIN_PASSWORD"),
 		EdgeID:             envOr("PH_EDGE_ID", host),
@@ -99,11 +97,8 @@ func ConfigFromEnv() (Config, error) {
 		HeartbeatInterval:  envMillis("PH_EDGE_HEARTBEAT_MS", 10*time.Second),
 		DriftCheckInterval: envMillis("PH_MIRROR_DRIFT_CHECK_MS", 60*time.Second),
 	}
-	if c.MothershipURL == "" {
-		return c, fmt.Errorf("MOTHERSHIP_URL is required")
-	}
-	if c.EdgeSecret == "" && (c.AdminUser == "" || c.AdminPassword == "") {
-		return c, fmt.Errorf("MOTHERSHIP_EDGE_SECRET (or MOTHERSHIP_ADMIN_USERNAME and MOTHERSHIP_ADMIN_PASSWORD) is required")
+	if c.MothershipURL == "" || c.AdminUser == "" || c.AdminPassword == "" {
+		return c, fmt.Errorf("MOTHERSHIP_URL, MOTHERSHIP_ADMIN_USERNAME and MOTHERSHIP_ADMIN_PASSWORD are required")
 	}
 	return c, nil
 }

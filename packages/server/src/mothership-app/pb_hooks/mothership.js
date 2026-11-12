@@ -1194,27 +1194,11 @@ const HandleBackupDownload = (e) => {
 };
 
 //#endregion
-//#region src/lib/util/edgeAuth.ts
-/**
-* Edges log in as records of the `edges` auth collection (`edge_id` + the edge's secret). Routes edges call accept a
-* superuser or an edge login (`$apis.requireAuth('_superusers', 'edges')`); handlers use this to tell them apart.
-*
-* @returns The calling edge's record, or undefined when the caller is a superuser (or anyone else)
-*/
-const authEdge = (e) => {
-	const auth = e.auth;
-	if (!auth || auth.collection().name !== "edges") return void 0;
-	return auth;
-};
-
-//#endregion
 //#region src/lib/handlers/edge/api/HandleEdgeHeartbeat.ts
 const HandleEdgeHeartbeat = (e) => {
 	const { body } = e.requestInfo();
-	const edge = authEdge(e);
-	const edgeId = edge ? edge.getString("edge_id") : body?.edge_id;
+	const edgeId = body?.edge_id;
 	if (!edgeId || typeof edgeId !== "string") throw new BadRequestError("edge_id is required");
-	if (edge && body?.edge_id !== void 0 && body.edge_id !== edgeId) throw new ForbiddenError(`This login is edge ${edgeId}; it can't report for ${body.edge_id}.`);
 	const stats = body?.stats ?? {};
 	let record;
 	try {
@@ -1223,7 +1207,6 @@ const HandleEdgeHeartbeat = (e) => {
 		const collection = $app.findCollectionByNameOrId("edges");
 		record = new Record(collection);
 		record.set("edge_id", edgeId);
-		record.setRandomPassword();
 		record.set("label", typeof body?.label === "string" ? body.label : edgeId);
 	}
 	record.set("last_seen", (/* @__PURE__ */ new Date()).toISOString());
@@ -3575,12 +3558,8 @@ const HandleMirrorData = (e) => {
 
 //#endregion
 //#region src/lib/handlers/mirror/lib/applyLiveInstances.ts
-/**
-* Save per row (not bulk SQL) so dashboard SSE clients get status updates.
-*
-* @param edgeRecordId When an edge reports (edge login), only instances on that edge are touched
-*/
-const applyLiveInstances = (app, liveInstances, edgeRecordId) => {
+/** Save per row (not bulk SQL) so dashboard SSE clients get status updates. */
+const applyLiveInstances = (app, liveInstances) => {
 	let updated = 0;
 	for (const live of liveInstances) {
 		const id = live?.id?.trim();
@@ -3593,7 +3572,6 @@ const applyLiveInstances = (app, liveInstances, edgeRecordId) => {
 		} catch {
 			continue;
 		}
-		if (edgeRecordId && record.getString(`edge`) !== edgeRecordId) continue;
 		if (!record.get(`power`)) continue;
 		if (record.getString(`status`) === status) continue;
 		record.set(`status`, status);
@@ -3607,13 +3585,9 @@ const applyLiveInstances = (app, liveInstances, edgeRecordId) => {
 //#region src/lib/handlers/mirror/api/HandleMirrorSync.ts
 const HandleMirrorSync = (e) => {
 	const { body } = e.requestInfo();
-	const edge = authEdge(e);
-	if (body.resetIdle) {
-		if (edge) throw new ForbiddenError(`resetIdle needs a superuser.`);
-		resetInstancesIdle($app);
-	}
+	if (body.resetIdle) resetInstancesIdle($app);
 	const liveInstances = Array.isArray(body.instances) ? body.instances : [];
-	const updated = applyLiveInstances($app, liveInstances, edge?.id);
+	const updated = applyLiveInstances($app, liveInstances);
 	if (body.resetIdle || updated > 0) refreshAndBroadcastLivePlatformStats();
 	if (body.dump === false) return e.json(200, { updated });
 	return e.json(200, {
@@ -6159,13 +6133,6 @@ const HandleUserTokenRequest = (e) => {
 	mkLog(`user-token`);
 	const id = e.request.pathValue("id");
 	if (!id) throw new BadRequestError(`User ID is required.`);
-	const edge = authEdge(e);
-	if (edge) {
-		if ($app.findRecordsByFilter("instances", "uid = {:uid} && edge = {:edge}", "", 1, 0, {
-			uid: id,
-			edge: edge.id
-		}).length === 0) throw new ForbiddenError(`No instance of this user runs on this edge.`);
-	}
 	const rec = $app.findRecordById("users", id);
 	const tokenKey = rec.getString("tokenKey");
 	const passwordHash = rec.getString("password:hash");

@@ -3,12 +3,8 @@ type LiveInstance = {
   status?: string
 }
 
-/**
- * Save per row (not bulk SQL) so dashboard SSE clients get status updates.
- *
- * @param edgeRecordId When an edge reports (edge login), only instances on that edge are touched
- */
-export const applyLiveInstances = (app: core.App, liveInstances: LiveInstance[], edgeRecordId?: string) => {
+/** Save per row (not bulk SQL) so dashboard SSE clients get status updates. */
+export const applyLiveInstances = (app: core.App, liveInstances: LiveInstance[]) => {
   let updated = 0
 
   for (const live of liveInstances) {
@@ -24,7 +20,6 @@ export const applyLiveInstances = (app: core.App, liveInstances: LiveInstance[],
       continue
     }
 
-    if (edgeRecordId && record.getString(`edge`) !== edgeRecordId) continue
     if (!record.get(`power`)) continue
     if (record.getString(`status`) === status) continue
 
