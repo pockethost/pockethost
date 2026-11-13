@@ -14,6 +14,7 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/jsvm"
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
+	"github.com/pockethost/pocketbase/ext/jsembed"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
 )
 
@@ -64,11 +65,9 @@ func mothership(args []string) {
 		// --hooksDir did).
 		hooks = fstest.MapFS{}
 	}
-	jsvm.MustRegister(app, jsvm.Config{
-		HooksFS:       hooks,
-		MigrationsFS:  mothershipapp.Migrations(),
+	jsvm.MustRegister(app, jsembed.Config(hooks, mothershipapp.Migrations(), jsvm.Config{
 		HooksPoolSize: hooksPool,
-	})
+	}))
 
 	// `migrate up/down/history-sync` as before. Automigrate stays off: collection edits in the admin must not write
 	// migration files (there is no app folder to write them to any more).
