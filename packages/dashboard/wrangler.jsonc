@@ -1,0 +1,16 @@
+// pockethost.io as an assets-only Cloudflare Worker (replaces the Pages project `pockethost`).
+// Plan: pockethost-support plans/dashboard-workers-migration.md
+{
+  "name": "pockethost-dashboard",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./build",
+    // Unknown and dynamic paths (/instances/<id>, login token links) get build/404.html with status 404, and the
+    // SvelteKit client renders the page, like Pages does today.
+    "not_found_handling": "404-page",
+    // /blog/ → 308 /blog, like Pages does today.
+    "html_handling": "drop-trailing-slash",
+  },
+  "workers_dev": true,
+  "preview_urls": true,
+}

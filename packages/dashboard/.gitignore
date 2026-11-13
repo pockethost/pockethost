@@ -8,3 +8,4 @@ dist-server
 
 # Route-colocated images mirrored to static/generated/ (see scripts/sync-route-images.js)
 /static/generated/
+.wrangler

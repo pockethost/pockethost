@@ -1,0 +1,4 @@
+# Cloudflare static assets headers (copied into build/ by SvelteKit).
+# SvelteKit's hashed files never change once built, so browsers can keep them for a year.
+/_app/immutable/*
+  Cache-Control: public, max-age=31536000, immutable
