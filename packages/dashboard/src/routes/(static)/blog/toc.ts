@@ -352,7 +352,7 @@ export const toc: BlogTocEntry[] = [
   {
     title: 'Announcing Pocker',
     path: '/blog/announcing-pocker',
-    description: 'Our 2024 Go container experiment (since retired).',
+    description: 'Our 2024 Go container experiment, back in Nov 2026 as the runtime behind newer edges.',
     date: 'Dec 20, 2024',
     author: 'capn',
   },

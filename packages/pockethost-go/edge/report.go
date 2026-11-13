@@ -22,6 +22,9 @@ func (s *Source) InstanceEvent(e pocker.Event) {
 		case pocker.EventStarted:
 			err = s.c.do(ctx, http.MethodPost, "/api/mirror",
 				map[string]any{"instances": []map[string]string{{"id": e.InstanceID, "status": "running"}}, "dump": false}, nil)
+		case pocker.EventStopped:
+			// powered off (or suspended): the app no longer runs (/api/mirror only takes starting/running)
+			err = s.c.do(ctx, http.MethodPatch, "/api/collections/instances/records/"+e.InstanceID, map[string]string{"status": "idle"}, nil)
 		case pocker.EventFailed:
 			err = s.c.do(ctx, http.MethodPatch, "/api/collections/instances/records/"+e.InstanceID, map[string]string{"status": "failed"}, nil)
 		default:
