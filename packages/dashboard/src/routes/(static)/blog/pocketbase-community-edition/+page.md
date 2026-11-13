@@ -4,7 +4,7 @@
 
 ### Why the name
 
-We asked the community what to call the fork, and **PocketBase Community Edition** won by an overwhelming popular vote. Before we used it, I asked Gani for permission to use the PocketBase name this way, and he gave it.
+We asked the community what to call the fork, and **PocketBase Community Edition** won by an overwhelming popular vote.
 
 The name describes how the fork is run: in the open, by the people who use it, with plugins anyone can contribute. There is no paid or "enterprise" PocketBase.
 
