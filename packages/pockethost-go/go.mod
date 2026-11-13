@@ -4,13 +4,13 @@ go 1.27
 
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
-	github.com/pockethost/pocketbase/ext/edge v0.0.0-20261113195712-820751969044
-	github.com/pockethost/pocketbase/ext/firewall v0.0.0-20261113195712-820751969044
-	github.com/pockethost/pocketbase/ext/jsembed v0.0.0-20261113195712-820751969044
-	github.com/pockethost/pocketbase/ext/pages v0.0.0-20261113195712-820751969044
-	github.com/pockethost/pocketbase/ext/pitr v0.0.0-20261113195712-820751969044
-	github.com/pockethost/pocketbase/ext/pocker v0.0.0-20261113195712-820751969044
-	github.com/pockethost/pocketbase/ext/servertiming v0.0.0-20261113195712-820751969044
+	github.com/pockethost/pocketone/ext/edge v0.0.0-20261113221933-9bd96d1ce8d7
+	github.com/pockethost/pocketone/ext/firewall v0.0.0-20261113221933-9bd96d1ce8d7
+	github.com/pockethost/pocketone/ext/jsembed v0.0.0-20261113221933-9bd96d1ce8d7
+	github.com/pockethost/pocketone/ext/pages v0.0.0-20261113221933-9bd96d1ce8d7
+	github.com/pockethost/pocketone/ext/pitr v0.0.0-20261113221933-9bd96d1ce8d7
+	github.com/pockethost/pocketone/ext/pocker v0.0.0-20261113221933-9bd96d1ce8d7
+	github.com/pockethost/pocketone/ext/servertiming v0.0.0-20261113221933-9bd96d1ce8d7
 	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.60.1
 )
@@ -51,10 +51,10 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
-	github.com/pockethost/pocketbase/ext/ceplugin v0.0.0-20261113195712-820751969044 // indirect
-	github.com/pockethost/pocketbase/ext/host v0.0.0-20261113195712-820751969044 // indirect
-	github.com/pockethost/pocketbase/ext/jserrors v0.0.0-20261113195712-820751969044 // indirect
-	github.com/pockethost/pocketbase/ext/sandbox v0.0.0-20261113195712-820751969044 // indirect
+	github.com/pockethost/pocketone/ext/ceplugin v0.0.0-20261113221933-9bd96d1ce8d7 // indirect
+	github.com/pockethost/pocketone/ext/host v0.0.0-20261113221933-9bd96d1ce8d7 // indirect
+	github.com/pockethost/pocketone/ext/jserrors v0.0.0-20261113221933-9bd96d1ce8d7 // indirect
+	github.com/pockethost/pocketone/ext/sandbox v0.0.0-20261113221933-9bd96d1ce8d7 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
@@ -81,7 +81,7 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-// PocketBase CE (github.com/pockethost/pocketbase) keeps PocketBase's module path so upstream merges stay easy. This
+// PocketOne (github.com/pockethost/pocketone) keeps PocketBase's module path so upstream merges stay easy. This
 // replace points the module at CE; the ext/* requires are CE plugin modules in the same repo. Bump the replace and
 // every ext/* require to the same CE commit together.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase v0.0.2-0.20261113195712-820751969044
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone v0.0.2-0.20261113221933-9bd96d1ce8d7

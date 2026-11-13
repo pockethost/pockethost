@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	firewall "github.com/pockethost/pocketbase/ext/firewall"
+	firewall "github.com/pockethost/pocketone/ext/firewall"
 
-	"github.com/pockethost/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketone/ext/pocker"
 )
 
 type listSource []pocker.Instance

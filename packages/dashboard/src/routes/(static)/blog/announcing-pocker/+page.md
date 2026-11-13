@@ -1,4 +1,4 @@
-> **Update (Nov 2026):** Pocker is back. It retired in June 2026, and in November 2026 it returned as the Go runtime behind PocketHost's newer edges, built on [PocketBase CE](https://github.com/pockethost/pocketbase). The post below is the original 2024 announcement.
+> **Update (Nov 2026):** Pocker is back. It retired in June 2026, and in November 2026 it returned as the Go runtime behind PocketHost's newer edges, built on [PocketOne](https://github.com/pockethost/pocketone). The post below is the original 2024 announcement.
 
 Well, I've decided to go rogue and solve the problem of global PocketBase hosting. The Flounder series has raised enough money for us to do this, so I'm moving forward.
 

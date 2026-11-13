@@ -14,11 +14,11 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/jsvm"
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
-	"github.com/pockethost/pocketbase/ext/jsembed"
+	"github.com/pockethost/pocketone/ext/jsembed"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
 )
 
-// mothership runs PocketHost's mothership: one trusted PocketBase CE app whose JS hooks, JS migrations and admin
+// mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin
 // add-on are embedded in this binary (mothershipapp). It replaces the Node launcher + stock PocketBase
 // (`pnpm prod:cli mothership serve`); data, schema and hook behavior are unchanged.
 //

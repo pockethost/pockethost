@@ -1,12 +1,12 @@
 # pockethost-go
 
-PocketHost's own build, on top of **PocketBase Community Edition**
-([pockethost/pocketbase](https://github.com/pockethost/pocketbase), public): PocketBase plus a few hooks, with the
-multitenant engine as the [`ext/pocker`](https://github.com/pockethost/pocketbase/tree/main/ext/pocker) plugin (routing,
+PocketHost's own build, on top of **PocketOne**
+([pockethost/pocketone](https://github.com/pockethost/pocketone), public): PocketBase plus a few hooks, with the
+multitenant engine as the [`ext/pocker`](https://github.com/pockethost/pocketone/tree/main/ext/pocker) plugin (routing,
 SQLite authorizer, egress and memory controls, firewall, TLS, per-instance limits/secrets/access, YAML instance source)
-and the JS sandbox as [`ext/sandbox`](https://github.com/pockethost/pocketbase/tree/main/ext/sandbox).
+and the JS sandbox as [`ext/sandbox`](https://github.com/pockethost/pocketone/tree/main/ext/sandbox).
 
-Binaries: `pockethost` (the edge, below) and, later, `pockethost-mothership` (the mothership on PocketBase CE, once it
+Binaries: `pockethost` (the edge, below) and, later, `pockethost-mothership` (the mothership on PocketOne, once it
 can replace the Node mothership; no deadline).
 
 This package adds what PocketHost needs to run a business on it, as Go code that **imports CE** (not a fork). It moved here
@@ -32,15 +32,15 @@ When a feature here needs a new hook in CE, the hook goes into CE generically.
 merges stay easy), and requires the CE plugin modules it uses:
 
 ```
-require github.com/pockethost/pocketbase/ext/pocker <version>
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketbase <version>
+require github.com/pockethost/pocketone/ext/pocker <version>
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone <version>
 ```
 
 Update to a newer CE commit (all three at the same commit):
 
 ```sh
-go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockethost/pocketbase@<commit>
-go get github.com/pockethost/pocketbase/ext/pocker@<commit> github.com/pockethost/pocketbase/ext/sandbox@<commit>
+go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockethost/pocketone@<commit>
+go get github.com/pockethost/pocketone/ext/pocker@<commit> github.com/pockethost/pocketone/ext/sandbox@<commit>
 go mod tidy
 ```
 

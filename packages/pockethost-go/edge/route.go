@@ -11,16 +11,16 @@ import (
 	"strings"
 	"time"
 
-	firewall "github.com/pockethost/pocketbase/ext/firewall"
+	firewall "github.com/pockethost/pocketone/ext/firewall"
 
-	ceedge "github.com/pockethost/pocketbase/ext/edge"
+	ceedge "github.com/pockethost/pocketone/ext/edge"
 
-	"github.com/pockethost/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketone/ext/pocker"
 )
 
 // Any edge accepts any request (the load balancer sends visitors to the nearest edge). Each instance runs on exactly
 // one edge; a request for an instance on another edge is forwarded over the private network straight to that edge,
-// after this edge's firewall (peer check, rate limits, CORS). The forwarding itself is PocketBase CE's ext/edge;
+// after this edge's firewall (peer check, rate limits, CORS). The forwarding itself is PocketOne's ext/edge;
 // this edge's mirror is its EdgeSource (see [Source.Resolve]), configured the PocketHost way by [RouteConfig].
 
 const (

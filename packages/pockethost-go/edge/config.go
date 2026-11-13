@@ -6,7 +6,7 @@ package edge
 import (
 	"bufio"
 
-	firewall "github.com/pockethost/pocketbase/ext/firewall"
+	firewall "github.com/pockethost/pocketone/ext/firewall"
 
 	"fmt"
 	"os"

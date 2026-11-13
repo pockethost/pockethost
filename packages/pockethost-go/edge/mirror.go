@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	ceedge "github.com/pockethost/pocketbase/ext/edge"
+	ceedge "github.com/pockethost/pocketone/ext/edge"
 
-	"github.com/pockethost/pocketbase/ext/pocker"
+	"github.com/pockethost/pocketone/ext/pocker"
 )
 
 // Source is a pocker.InstanceSource backed by PocketHost's mothership mirror: a full dump at start and after every

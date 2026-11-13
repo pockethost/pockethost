@@ -1,4 +1,4 @@
-// Command pockethost is PocketHost's server binary, on PocketBase CE. The first argument picks the role:
+// Command pockethost is PocketHost's server binary, on PocketOne. The first argument picks the role:
 //
 //	pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
 //	pockethost edge check [--env-file .env]
@@ -24,15 +24,15 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	firewall "github.com/pockethost/pocketbase/ext/firewall"
+	firewall "github.com/pockethost/pocketone/ext/firewall"
 
-	ceedge "github.com/pockethost/pocketbase/ext/edge"
+	ceedge "github.com/pockethost/pocketone/ext/edge"
 
-	"github.com/pockethost/pocketbase/ext/pages"
-	"github.com/pockethost/pocketbase/ext/pages/pockerplugin"
-	"github.com/pockethost/pocketbase/ext/pitr"
-	"github.com/pockethost/pocketbase/ext/pocker"
-	"github.com/pockethost/pocketbase/ext/servertiming"
+	"github.com/pockethost/pocketone/ext/pages"
+	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
+	"github.com/pockethost/pocketone/ext/pitr"
+	"github.com/pockethost/pocketone/ext/pocker"
+	"github.com/pockethost/pocketone/ext/servertiming"
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 )
