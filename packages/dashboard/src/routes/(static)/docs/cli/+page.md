@@ -99,7 +99,7 @@ pockethost logs my-instance
 - `--no-node-modules`: don't ship `node_modules` (see [Packages](#packages-node_modules))
 - `--sftp`: sync over SFTP with your SSH key instead of HTTPS (retired February 6, 2027)
 
-`deploy` makes the instance's files match your local folders, so files on the instance that you don't have locally are deleted. Before deleting anything, it lists those files and asks. Add `-y, --yes` to skip the question; without a terminal (for example in CI), `deploy` refuses to delete files unless you pass `-y`. `dev` deletes them without asking, because it mirrors your local changes.
+`deploy` makes the instance's files match your local folders, so files on the instance that you don't have locally are deleted. From CLI 4.3, it lists those files and asks before deleting anything. Add `-y, --yes` to skip the question; without a terminal (for example in CI), `deploy` refuses to delete files unless you pass `-y`. `dev` deletes them without asking, because it mirrors your local changes.
 
 `deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically. `--dry-run` lists what would be deployed without deploying, and `--out <dir>` writes the deploy set to a local folder so you can inspect exactly what your instance would receive.
 
