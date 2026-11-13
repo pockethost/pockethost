@@ -32,8 +32,8 @@ PBCE has its own version numbers, starting at 0.0.1. Each release notes the upst
 On macOS or Linux with [Homebrew](https://brew.sh):
 
 ```bash
-brew install pockethost/tap/pocketbase
-pocketbase serve
+brew install pockethost/tap/pocketone
+pocketone serve
 ```
 
 Or download the zip for your platform from [Releases](https://github.com/pockethost/pocketone/releases). It runs your existing `pb_data`, `pb_hooks` and `pb_migrations` like the upstream PocketBase release it's built on.
