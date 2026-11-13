@@ -65,9 +65,10 @@ func mothership(args []string) {
 		// --hooksDir did).
 		hooks = fstest.MapFS{}
 	}
-	jsvm.MustRegister(app, jsembed.Config(hooks, mothershipapp.Migrations(), jsvm.Config{
+	jsvm.MustRegister(app, jsvm.Config{
 		HooksPoolSize: hooksPool,
-	}))
+		Extensions:    []jsvm.Extension{jsembed.Hooks(hooks), jsembed.Migrations(mothershipapp.Migrations())},
+	})
 
 	// `migrate up/down/history-sync` as before. Automigrate stays off: collection edits in the admin must not write
 	// migration files (there is no app folder to write them to any more).
