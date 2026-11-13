@@ -8,7 +8,7 @@ description: Deploy a PocketBase project to PocketHost from GitHub Actions or an
 Point your CI at a PocketHost instance and every push deploys your `pb_hooks`, `pb_migrations`, `pb_public`, and packages. You need two things:
 
 1. A **personal access token** stored as a CI secret named `POCKETHOST_TOKEN`.
-2. A step that runs **`npx pockethost deploy <instance>`**.
+2. A step that runs **`npx pockethost deploy <instance> -y`**. `-y` lets the deploy delete files on the instance that aren't in your repository; without it, CI deploys that would delete files stop instead (CLI 4.3 or later).
 
 No password, SSH key, or saved login is needed, so it works on fresh CI runners.
 
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npx pockethost@latest deploy my-app
+      - run: npx pockethost@latest deploy my-app -y
         env:
           POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
 ```
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npx pockethost@latest deploy myapp-${{ github.ref_name }}
+      - run: npx pockethost@latest deploy myapp-${{ github.ref_name }} -y
         env:
           POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
 ```
@@ -110,7 +110,7 @@ Each deploy is recorded with its time, file count, and commit SHA. The CLI sends
 
 ## Other CI systems
 
-Any CI that can run Node 20+ works the same way: set `POCKETHOST_TOKEN` as a secret environment variable and run `npx pockethost@latest deploy <instance>`.
+Any CI that can run Node 20+ works the same way: set `POCKETHOST_TOKEN` as a secret environment variable and run `npx pockethost@latest deploy <instance> -y`.
 
 ## Security notes
 
