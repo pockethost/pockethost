@@ -12,5 +12,6 @@
     "html_handling": "drop-trailing-slash",
   },
   "workers_dev": true,
-  "preview_urls": true,
+  // No previews: the Worker only deploys from main.
+  "preview_urls": false,
 }

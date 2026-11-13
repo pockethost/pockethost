@@ -150,39 +150,16 @@ jobs:
           workingDirectory: packages/dashboard
           command: pages deploy ./build --project-name=pockethost --branch=${{ github.event_name == 'pull_request_target' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
 
-      - name: Worker preview alias
-        id: alias
-        env:
-          RAW: ${{ github.event_name == 'pull_request_target' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
-        run: |
-          set -euo pipefail
-          alias=$(printf '%s' "$RAW" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+//' | cut -c1-40 | sed -E 's/-+$//')
-          echo "alias=${alias}" >> "$GITHUB_OUTPUT"
-
       - name: Publish to Cloudflare Workers
         uses: cloudflare/wrangler-action@v4
         id: worker
+        if: github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH
         continue-on-error: true # until the cutover; then this becomes the only deploy step
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: packages/dashboard
-          # main: deploy the Worker. Branches and PRs: upload a version with a stable preview alias (doesn't touch production).
-          command: ${{ (github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH) && 'deploy' || format('versions upload --preview-alias {0}', steps.alias.outputs.alias) }}
-
-      - name: Worker preview URL
-        id: worker_urls
-        if: steps.worker.outcome == 'success' && !(github.event_name == 'push' && github.ref_name == env.MAIN_BRANCH)
-        env:
-          VERSION_URL: ${{ steps.worker.outputs.deployment-url }}
-          ALIAS: ${{ steps.alias.outputs.alias }}
-        run: |
-          set -euo pipefail
-          # https://<version-id-prefix>-pockethost-dashboard.<subdomain>.workers.dev -> https://<alias>-pockethost-dashboard.<subdomain>.workers.dev
-          host="${VERSION_URL#https://}"
-          if [ -n "$host" ]; then
-            echo "alias_url=https://${ALIAS}-${host#*-}" >> "$GITHUB_OUTPUT"
-          fi
+          command: deploy
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request_target'
@@ -193,12 +170,8 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: [
-                `✅ HEAD: ${{ steps.deployment.outputs.deployment-alias-url }}`,
-                `✅ Permalink: ${{ steps.deployment.outputs.deployment-url }}`,
-                '${{ steps.worker_urls.outputs.alias_url }}' ? `🧪 Worker HEAD: ${{ steps.worker_urls.outputs.alias_url }}` : '',
-                '${{ steps.worker.outputs.deployment-url }}' ? `🧪 Worker permalink: ${{ steps.worker.outputs.deployment-url }}` : '',
-              ].filter(Boolean).join('\n')
+              body: `✅ HEAD: ${{ steps.deployment.outputs.deployment-alias-url }}
+            ✅ Permalink: ${{ steps.deployment.outputs.deployment-url }}`
             })
 
       - name: Build Discord message
