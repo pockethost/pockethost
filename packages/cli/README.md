@@ -68,7 +68,9 @@ pockethost delete <instance>
 
 `dev` and `deploy` accept `-v/--verbose`, `-i/--include`, `-e/--exclude`, `--no-node-modules`, and `--sftp` (sync
 over SFTP instead of HTTPS). `deploy` also takes `--commit <sha>`, `-m/--message <note>`, `--dry-run` (list what would
-be deployed) and `--out <dir>` (write the deploy set to a local folder instead of deploying).
+be deployed), `--out <dir>` (write the deploy set to a local folder instead of deploying) and `-y/--yes` (delete files
+on the instance that aren't in your local folders without asking; without a terminal, `deploy` refuses to delete them
+unless you pass it).
 
 Default includes: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
 

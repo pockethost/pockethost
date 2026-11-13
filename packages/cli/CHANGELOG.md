@@ -2,6 +2,15 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.3.0
+
+### Minor Changes
+
+- `deploy` lists the files on the instance that it would delete (files you don't have locally) and asks before
+  deleting them. `-y, --yes` skips the question. Without a terminal (CI), `deploy` refuses to delete files unless you
+  pass `-y`. `dev` still deletes them without asking. Needs a PocketHost server from Nov 2026 or later to preview the
+  deletes; older servers deploy as before.
+
 ## 4.2.2
 
 ### Patch Changes

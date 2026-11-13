@@ -123,7 +123,7 @@ describe('CLI deploy over the deploy API', () => {
     projectFile('pb_public/index.html', '<h1>v2</h1>')
     unlinkSync(join(project, 'pb_migrations/1_init.js'))
     const logs: string[] = []
-    const second = await deploy({ log: (m) => logs.push(m) })
+    const second = await deploy({ yes: true, log: (m) => logs.push(m) })
     expect(second).toMatchObject({ writtenCount: 1, deletedCount: 1, unchanged: 3 })
     expect(recordDeploy).toHaveBeenLastCalledWith(expect.objectContaining({ uploaded_count: 1 }))
     expect(readFileSync(instFile('pb_public/index.html'), 'utf8')).toBe('<h1>v2</h1>')
@@ -131,7 +131,50 @@ describe('CLI deploy over the deploy API', () => {
     expect(logs.some((l) => l.includes('Uploading 1 file'))).toBe(true)
 
     const third = await deploy()
-    expect(third.nothingChanged).toBe(true)
+    expect(third!.nothingChanged).toBe(true)
+  })
+
+  it('asks before deleting remote files missing locally; -y skips the question', async () => {
+    projectFile('pb_hooks/keep.pb.js', 'keep()')
+    projectFile('pb_hooks/gone.pb.js', 'gone()')
+    await deploy({ yes: true })
+    unlinkSync(join(project, 'pb_hooks/gone.pb.js'))
+
+    // declined: nothing is deployed, the remote file stays
+    const asked: string[][] = []
+    const logs: string[] = []
+    const declined = await deploy({
+      log: (m) => logs.push(m),
+      confirmDeletes: async (paths) => {
+        asked.push(paths)
+        return false
+      },
+    })
+    expect(declined).toBeNull()
+    expect(asked).toEqual([['pb_hooks/gone.pb.js']])
+    expect(logs.some((l) => l.includes('- pb_hooks/gone.pb.js'))).toBe(true)
+    expect(existsSync(instFile('pb_hooks/gone.pb.js'))).toBe(true)
+
+    // no TTY and no -y: refuse
+    await expect(deploy()).rejects.toThrow(/would delete 1 file\(s\) on myapp\. Add -y/)
+    expect(existsSync(instFile('pb_hooks/gone.pb.js'))).toBe(true)
+
+    // confirmed
+    const ok = await deploy({ confirmDeletes: async () => true })
+    expect(ok).toMatchObject({ deletedCount: 1 })
+    expect(existsSync(instFile('pb_hooks/gone.pb.js'))).toBe(false)
+
+    // -y: no question
+    projectFile('pb_hooks/gone2.pb.js', 'x')
+    await deploy({ yes: true })
+    unlinkSync(join(project, 'pb_hooks/gone2.pb.js'))
+    const forced = await deploy({
+      yes: true,
+      confirmDeletes: async () => {
+        throw new Error('must not ask with -y')
+      },
+    })
+    expect(forced).toMatchObject({ deletedCount: 1 })
   })
 
   it('reports a rejected token clearly', async () => {

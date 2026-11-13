@@ -157,6 +157,22 @@ func TestStoreFindMissing(t *testing.T) {
 	eq(t, "missing after upload", missing, []string{})
 }
 
+// previewDeletes lists the customer files a commit would delete: not platform files, pb_data or node_modules.
+func TestStorePreviewDeletes(t *testing.T) {
+	f := newFixture(t, "pb_hooks/_ph_backup.pb.js")
+	f.put("pb_hooks/_ph_backup.pb.js", "")
+	f.put("pb_hooks/keep.pb.js", "keep")
+	f.put("pb_hooks/gone.pb.js", "gone")
+	f.put("pb_public/old/page.html", "old")
+	f.put("pb_data/data.db", "db")
+	f.put("node_modules/dep/index.js", "dep")
+	got, err := f.store.previewDeletes(Manifest{"pb_hooks/keep.pb.js": sha("keep"), "node_modules/other/index.js": sha("x")}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	eq(t, "toDelete", got, []string{"pb_hooks/gone.pb.js", "pb_public/old/page.html"})
+}
+
 func TestStoreApply(t *testing.T) {
 	f := newFixture(t)
 	f.put("pb_hooks/old.pb.js", "old")

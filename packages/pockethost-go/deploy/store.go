@@ -318,6 +318,22 @@ func (s *Store) findMissing(m Manifest, nodeModules bool) ([]string, error) {
 	return missing, nil
 }
 
+// previewDeletes: customer files a commit of m would delete (for the CLI's confirmation). node_modules is left out:
+// the deploy owns it and removes packages no longer shipped.
+func (s *Store) previewDeletes(m Manifest, nodeModules bool) ([]string, error) {
+	current, _, err := s.scan(managesNodeModules(m, nodeModules))
+	if err != nil {
+		return nil, err
+	}
+	out := []string{}
+	for _, p := range planDeploy(m, current).toDelete {
+		if !isNodeModulesPath(p) {
+			out = append(out, p)
+		}
+	}
+	return out, nil
+}
+
 func sortedKeys(m Manifest) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {

@@ -187,8 +187,9 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
       const { store } = await authorize(req, true)
       const manifest = validateManifest(req.body?.files)
       const missing = await store.findMissing(manifest, deployOptions(req.body))
-      dbg(`check: ${Object.keys(manifest).length} files, ${missing.length} missing`)
-      res.json({ missing })
+      const toDelete = await store.previewDeletes(manifest, deployOptions(req.body))
+      dbg(`check: ${Object.keys(manifest).length} files, ${missing.length} missing, ${toDelete.length} to delete`)
+      res.json({ missing, toDelete })
     })
   )
 

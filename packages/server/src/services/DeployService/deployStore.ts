@@ -205,6 +205,15 @@ export const createDeployStore = (root: string, instanceDir: string, storeOpts: 
   }
 
   /**
+   * Customer files a commit of this manifest would delete (for the CLI's confirmation). node_modules is left out: the
+   * deploy owns it and removes packages no longer shipped.
+   */
+  const previewDeletes = async (manifest: Manifest, opts: DeployOptions = {}) => {
+    const current = await scanCurrent(manifest, opts)
+    return planDeploy(manifest, current).toDelete.filter((p) => !isNodeModulesPath(p))
+  }
+
+  /**
    * Copies every file that must change into a staging dir and verifies its hash. Nothing in the instance dir is
    * touched. Throws MissingBlobsError if a needed file is neither uploaded nor on disk.
    */
@@ -393,6 +402,7 @@ export const createDeployStore = (root: string, instanceDir: string, storeOpts: 
     putBlob,
     scanCurrent,
     findMissing,
+    previewDeletes,
     stage,
     apply,
     recordManifest,

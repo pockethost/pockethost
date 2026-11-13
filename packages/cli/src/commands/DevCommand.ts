@@ -65,9 +65,11 @@ export const watchAndDeploy = async (
   const upload = debounce(
     () =>
       limiter.schedule(() =>
-        deployMyCode(subdomain, include, exclude, verbose, { sftp }).catch(
-          (e) => console.error(`Deploy failed: ${e.message ?? e}`)
-        )
+        // dev mode mirrors local changes, deletes included: a file removed locally is meant to go
+        deployMyCode(subdomain, include, exclude, verbose, {
+          sftp,
+          yes: true,
+        }).catch((e) => console.error(`Deploy failed: ${e.message ?? e}`))
       ),
     200
   )
@@ -102,6 +104,7 @@ export async function deployMyCode(
     commit?: string
     message?: string
     nodeModules?: boolean
+    yes?: boolean
   } = {}
 ) {
   if (!instanceName) {
@@ -118,6 +121,7 @@ export async function deployMyCode(
       nodeModules: extra.nodeModules,
       commit: extra.commit,
       message: extra.message,
+      yes: extra.yes,
     })
     return
   }

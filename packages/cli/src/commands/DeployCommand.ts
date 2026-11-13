@@ -30,6 +30,10 @@ export const DeployCommand = () => {
     )
     .option(`--dry-run`, `List what would be deployed, deploy nothing`)
     .option(
+      `-y, --yes`,
+      `Delete files on the instance that aren't in your local folders without asking`
+    )
+    .option(
       '-i, --include <include...>',
       'Files to include in the sync',
       (val, prev) => [...prev, ...val.split(',')],
@@ -54,6 +58,7 @@ export const DeployCommand = () => {
         out,
         dryRun,
         nodeModules,
+        yes,
       } = options
       if (out || dryRun) {
         const local = {
@@ -71,6 +76,7 @@ export const DeployCommand = () => {
         commit,
         message,
         nodeModules,
+        yes,
       })
     })
 }

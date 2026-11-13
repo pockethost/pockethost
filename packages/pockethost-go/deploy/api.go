@@ -395,8 +395,12 @@ func (a *API) check(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	a.log.Debug("check", "instance", c.inst.ID, "files", len(m), "missing", len(missing))
-	writeJSON(w, 200, map[string]any{"missing": missing})
+	toDelete, err := c.store.previewDeletes(m, body["nodeModules"] == true)
+	if err != nil {
+		return err
+	}
+	a.log.Debug("check", "instance", c.inst.ID, "files", len(m), "missing", len(missing), "toDelete", len(toDelete))
+	writeJSON(w, 200, map[string]any{"missing": missing, "toDelete": toDelete})
 	return nil
 }
 

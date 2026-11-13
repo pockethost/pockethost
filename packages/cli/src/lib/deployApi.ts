@@ -5,6 +5,7 @@ import { globSync } from 'glob'
 import { join, sep } from 'path'
 import prettyBytes from 'pretty-bytes'
 import { gzipSync } from 'zlib'
+import { confirm } from '@inquirer/prompts'
 import { version } from '../../package.json'
 import { excludeDefaults } from '../../vendor/ftp-deploy/module.js'
 import { isCodePath } from './codeSet'
@@ -39,6 +40,10 @@ export type DeployApiOptions = {
   nodeModules?: boolean
   commit?: string
   message?: string
+  /** Delete remote files missing locally without asking (`-y`). Without it, a TTY asks and anything else refuses. */
+  yes?: boolean
+  /** Asks the user to confirm the deletes (default: an interactive prompt). Tests override it. */
+  confirmDeletes?: (paths: string[]) => Promise<boolean>
   cwd?: string
   log?: (msg: string) => void
 }
@@ -251,7 +256,11 @@ export const createDeployClient = (
         scopes: string[]
       }>('GET', '/whoami'),
     check: (files: Record<string, string>, nodeModules = false) =>
-      call<{ missing: string[] }>('POST', '/check', { files, nodeModules }),
+      // toDelete: customer files the commit would delete (servers before Nov 2026 don't send it)
+      call<{ missing: string[]; toDelete?: string[] }>('POST', '/check', {
+        files,
+        nodeModules,
+      }),
     upload: (bundle: Buffer) =>
       call<{ received: number; stored: number }>(
         'POST',
@@ -268,7 +277,18 @@ export const createDeployClient = (
  * Deploys over HTTPS: send the manifest, upload only what the server doesn't have, then commit. The server swaps the
  * files in atomically and restarts the instance when hooks, migrations or packages changed.
  */
-export const deployViaApi = async (opts: DeployApiOptions) => {
+/** How many paths the delete confirmation lists before "and N more". */
+const DELETE_LIST_MAX = 50
+
+const askToDelete = async (paths: string[]) =>
+  confirm({
+    message: `Delete ${paths.length} file(s) on the instance?`,
+    default: false,
+  })
+
+export const deployViaApi = async (
+  opts: DeployApiOptions
+): Promise<CommitResult | null> => {
   const log = opts.log ?? console.log
   const cwd = opts.cwd ?? process.cwd()
   const cred = await resolveDeployCredential()
@@ -321,7 +341,27 @@ export const deployViaApi = async (opts: DeployApiOptions) => {
 
   // Tells the server this deploy owns the root node_modules, so packages that are no longer shipped get removed.
   const managesNodeModules = nodeModules !== null
-  const { missing } = await client.check(manifest, managesNodeModules)
+  const { missing, toDelete = [] } = await client.check(
+    manifest,
+    managesNodeModules
+  )
+  if (toDelete.length > 0 && !opts.yes) {
+    log(
+      `⚠️  ${toDelete.length} file(s) on ${opts.instanceName} aren't in your local folders and will be deleted:`
+    )
+    for (const p of toDelete.slice(0, DELETE_LIST_MAX)) log(`   - ${p}`)
+    if (toDelete.length > DELETE_LIST_MAX)
+      log(`   … and ${toDelete.length - DELETE_LIST_MAX} more`)
+    if (!opts.confirmDeletes && !process.stdin.isTTY) {
+      throw new Error(
+        `Not deploying: this would delete ${toDelete.length} file(s) on ${opts.instanceName}. Add -y to allow it.`
+      )
+    }
+    if (!(await (opts.confirmDeletes ?? askToDelete)(toDelete))) {
+      log(`Nothing was deployed.`)
+      return null
+    }
+  }
   await upload(missing)
 
   const commitBody = {
