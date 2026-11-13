@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Announcing PocketBase Community Edition',
+    path: '/blog/pocketbase-community-edition',
+    description:
+      'PocketBase Community Edition is a community fork of PocketBase: the same core with a few small hooks, and every new feature built as a plugin. Point-in-time restore, Pages, MCP and more ship in the standard binary. Not affiliated with or endorsed by PocketBase.',
+    date: 'Nov 13, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Service Update: PocketBase 0.22 and Older Retire February 6, 2027',
     path: '/blog/pocketbase-022-sunset',
     description:
