@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	firewall "github.com/pockethost/pocketbase/ext/firewall"
+
 	ceedge "github.com/pockethost/pocketbase/ext/edge"
 
 	"github.com/pockethost/pocketbase/ext/pocker"
@@ -207,7 +209,7 @@ const FirewallHealthPath = "/api/firewall/health"
 // health route, the peer allowlist, and the edge routing headers. Instance routing, rate limits and forwarding
 // happen in Pocker's Manager behind it. ready reports whether the Manager has loaded the instance list; until it
 // does, the health route answers 503 so the load balancer keeps traffic away (nil means always ready).
-func (s *Source) Front(fw *ceedge.Firewall, ready func() bool, next http.Handler) http.Handler {
+func (s *Source) Front(fw *firewall.Firewall, ready func() bool, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		forwarded := r.Header.Get(ForwardedByHeader) != ""
