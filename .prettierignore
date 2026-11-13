@@ -8,6 +8,7 @@ build
 *.njk
 _site
 forks
+wt
 
 packages/server/src/mothership-app/pb_hooks
 **/types.d.ts
