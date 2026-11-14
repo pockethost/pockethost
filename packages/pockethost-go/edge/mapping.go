@@ -229,6 +229,7 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 	secrets["PH_APEX_DOMAIN"] = cfg.ApexDomain
 	p.Secrets = secrets
 	p.Dev = inst.Dev
+	p.Version = inst.Version // the docker runtime runs this release (pocker serves every instance in-process and ignores it)
 	p.Private = map[string]string{"backup_token": backupToken(cfg.BackupTokenSecret, inst.ID), "subdomain": inst.Subdomain}
 
 	if inst.SyncAdmin && ownerLogin != nil {

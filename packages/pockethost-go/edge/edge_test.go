@@ -38,7 +38,8 @@ func TestMapInstance(t *testing.T) {
 	owner := &userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1, TrustedIPs: raw(`["203.0.113.0/24"]`)}
 	inst := instanceRec{ID: "abc123", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", Cname: "Shop.Example.com",
 		Secrets:  raw(`{"STRIPE_KEY":"sk","PH_CORS_ORIGINS":"https://a.com, https://b.com,https://a.com","PB_ENCRYPTION_KEY":"k32"}`),
-		Firewall: raw(`"{\"ip_hourly\": 2000, \"ip_concurrent\": 1.5, \"instance_hourly\": -1}"`), SyncAdmin: true}
+		Firewall: raw(`"{\"ip_hourly\": 2000, \"ip_concurrent\": 1.5, \"instance_hourly\": -1}"`), SyncAdmin: true,
+		Version: "p1:0.0.*"}
 	login := func(uid string) *tokenInfo {
 		return &tokenInfo{Email: "o@x.com", PasswordHash: "$2a$hash", TokenKey: "tk"}
 	}
@@ -46,6 +47,9 @@ func TestMapInstance(t *testing.T) {
 	p, ok := mapInstance(testCfg, inst, owner, "E_SGP", login)
 	if !ok || p.Blocked != nil {
 		t.Fatalf("own instance: ok=%v %+v", ok, p.Blocked)
+	}
+	if p.Version != "p1:0.0.*" {
+		t.Fatalf("version %q: the docker runtime needs the instance's version", p.Version)
 	}
 	if strings.Join(p.Hosts, ",") != "shop.pockethost.io,abc123.pockethost.io,shop.example.com" {
 		t.Errorf("hosts: %v", p.Hosts)
