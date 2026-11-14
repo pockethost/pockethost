@@ -28,7 +28,7 @@ import (
 // instancesBox holds the running edge.Instances (pocker's Manager or the docker adapter) once the host has one.
 type instancesBox struct{ i edge.Instances }
 
-// edgeServeConfig runs the edge from pocketbase.yaml: the `pockethost` section (edge id, mothership login), a
+// edgeServeConfig runs the edge from pocketone.yaml: the `pockethost` section (edge id, mothership login), a
 // runtime provider (pocker in-process or docker containers), listeners, firewall and fleet from their sections;
 // secrets come from the .env beside it and never reach the instances.
 func edgeServeConfig(configPath, envPath string) error {
@@ -157,6 +157,6 @@ func edgeServeConfig(configPath, envPath string) error {
 	}
 	vopts.DiscordURL = ph.DiscordHealthURL
 	h.Background = append(h.Background, func(ctx context.Context) { source.NewVacuumer(current, vopts).Run(ctx) })
-	log.Info("pockethost: edge from pocketbase.yaml", "provider", provider, "edge", ecfg.EdgeID, "region", ecfg.Region, "mothership", ecfg.MothershipURL)
+	log.Info("pockethost: edge from pocketone.yaml", "provider", provider, "edge", ecfg.EdgeID, "region", ecfg.Region, "mothership", ecfg.MothershipURL)
 	return h.Run(ctx)
 }

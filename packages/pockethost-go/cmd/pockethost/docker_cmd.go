@@ -12,17 +12,17 @@ import (
 	"github.com/pockethost/pocketone/ext/docker"
 )
 
-// dockerCmd is `pockethost docker seed|update --config pocketbase.yaml`: the release binaries a docker edge serves.
+// dockerCmd is `pockethost docker seed|update --config pocketone.yaml`: the release binaries a docker edge serves.
 // On a PocketHost edge (the config has a pockethost section) the mothership's versions list says which: seed
 // downloads what it lists but isn't cached (e.g. before switching an edge to docker), and update is refused (the
 // mothership keeps the list). Without a pockethost section, docker.versions does: update finds the latest patch of
 // each tracked minor, records and downloads it; seed downloads what is recorded but not cached.
 func dockerCmd(args []string) error {
 	if len(args) == 0 || (args[0] != "seed" && args[0] != "update") {
-		return errors.New("usage: pockethost docker seed|update [--config pocketbase.yaml] [--env-file .env]")
+		return errors.New("usage: pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]")
 	}
 	fs := flag.NewFlagSet("docker "+args[0], flag.ExitOnError)
-	configPath := fs.String("config", "pocketbase.yaml", "the edge's pocketbase.yaml")
+	configPath := fs.String("config", "pocketone.yaml", "the edge's pocketone.yaml")
 	envFile := fs.String("env-file", "", "secrets for $VAR references (default .env beside the config)")
 	_ = fs.Parse(args[1:])
 	cfg, err := config.Load(config.Options{ConfigPath: *configPath, EnvPath: *envFile})

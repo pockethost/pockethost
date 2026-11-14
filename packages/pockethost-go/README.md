@@ -1,7 +1,7 @@
 # pockethost-go
 
 PocketHost's own build, on top of **PocketOne** ([pockethost/pocketone](https://github.com/pockethost/pocketone),
-public): PocketBase plus generic plugins under `ext/`. PocketHost uses `ext/config` (`pocketbase.yaml` + a private
+public): PocketBase plus generic plugins under `ext/`. PocketHost uses `ext/config` (`pocketone.yaml` + a private
 `.env`), `ext/host` (the multi-instance host), the runtime providers `ext/pocker` (in-process, sandboxed by
 `ext/sandbox`) and `ext/docker` (one container per instance), `ext/firewall` and `ext/edge` (forwarding between edges).
 
@@ -9,9 +9,9 @@ One binary, `pockethost`, with role-first commands:
 
 | Command | What it runs |
 |---|---|
-| `pockethost edge serve --config pocketbase.yaml --env-file .env` | an edge: firewall, instances (pocker or docker), deploy API, webhooks, vacuum |
-| `pockethost edge check --config pocketbase.yaml --env-file .env` | read-only: how the mothership's records map on this edge |
-| `pockethost docker seed --config pocketbase.yaml --env-file .env` | downloads the releases the mothership lists that this docker edge doesn't have yet |
+| `pockethost edge serve --config pocketone.yaml --env-file .env` | an edge: firewall, instances (pocker or docker), deploy API, webhooks, vacuum |
+| `pockethost edge check --config pocketone.yaml --env-file .env` | read-only: how the mothership's records map on this edge |
+| `pockethost docker seed --config pocketone.yaml --env-file .env` | downloads the releases the mothership lists that this docker edge doesn't have yet |
 | `pockethost mothership serve\|migrate\|superuser\|version\|hooks export` | the mothership (hooks, migrations and admin add-on embedded) |
 | `pockethost mothership versions list\|update [minor ...]` | the PocketBase/PocketOne versions PocketHost supports (see Versions) |
 
@@ -31,7 +31,7 @@ go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockethos
 go mod tidy
 ```
 
-## An edge: `pocketbase.yaml`
+## An edge: `pocketone.yaml`
 
 Each plugin owns its section. Secrets stay in the `.env` beside the config (`$VAR` references); instances never see
 it.

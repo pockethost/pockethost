@@ -9,7 +9,7 @@ import (
 	"github.com/pockethost/pocketone/ext/firewall"
 )
 
-// SectionConfig is the `pockethost` section of an edge's pocketbase.yaml: what edge.env held (the mothership login
+// SectionConfig is the `pockethost` section of an edge's pocketone.yaml: what edge.env held (the mothership login
 // comes from .env through $VARS).
 //
 //	pockethost:
