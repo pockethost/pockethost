@@ -281,7 +281,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 
 	addr := freeAddr(t)
 	pcfg := pocker.DefaultConfig()
-	pcfg.Listen, pcfg.PBRoot, pcfg.MemorySoftLimit = addr, t.TempDir(), -1
+	pcfg.Listen, pcfg.PBRoot = addr, t.TempDir()
 	hooksDir := filepath.Join(pcfg.PBRoot, "mine1", "pb_hooks")
 	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
 		t.Fatal(err)
