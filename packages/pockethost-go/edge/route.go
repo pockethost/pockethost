@@ -159,8 +159,8 @@ func (s *Source) IsRemote(host string) bool {
 	return ok && !isMine(inst, s.myEdge, s.cfg.EdgeID)
 }
 
-// edgeLabels: this edge, and the edge that runs host's instance (this edge for local or unknown hosts; ok=false when
-// the owner is unknown).
+// edgeLabels: this edge, and the edge that runs host's instance (this edge for local instances; ok=false when no
+// instance has that host or its owner edge is unknown, so no origin headers are sent).
 func (s *Source) edgeLabels(host string) (me, origin [2]string, ok bool) {
 	me = [2]string{s.cfg.EdgeID, s.cfg.Region}
 	host = normalizeRequestHost(host)
@@ -168,7 +168,10 @@ func (s *Source) edgeLabels(host string) (me, origin [2]string, ok bool) {
 	defer s.mu.Unlock()
 	id, found := s.claims[host]
 	inst, known := s.instances[id]
-	if !found || !known || isMine(inst, s.myEdge, s.cfg.EdgeID) {
+	if !found || !known {
+		return me, origin, false
+	}
+	if isMine(inst, s.myEdge, s.cfg.EdgeID) {
 		return me, me, true
 	}
 	ref := ownerEdge(inst)
