@@ -7,7 +7,7 @@ the website. Instructions here are for coding agents and contributors; read them
 
 | Path | What it is |
 |---|---|
-| `packages/pockethost-go` | The `pockethost` Go binary, built on [PocketOne](https://github.com/pockethost/pocketone) plugins. Roles: `pockethost edge serve --config pocketbase.yaml` (edges) and `pockethost mothership` (control plane). See its README. |
+| `packages/pockethost-go` | The `pockethost` Go binary, built on [PocketOne](https://github.com/pockethost/pocketone) plugins. Roles: `pockethost edge serve --config pocketone.yaml` (edges) and `pockethost mothership` (control plane). See its README. |
 | `packages/server` | The legacy Node stack (mothership, edge daemon, firewall, instance lifecycle). Still runs one edge; edge-facing changes here must also land in `packages/pockethost-go`. |
 | `packages/server/src/mothership-app` | The mothership's PocketBase app: TS handlers bundled by tsdown into `pb_hooks/`, plus migrations. Runs in PocketBase's Goja JSVM, not Node. |
 | `packages/dashboard` | SvelteKit site: marketing, docs (`src/routes/(static)/docs/`), blog, customer dashboard. |
