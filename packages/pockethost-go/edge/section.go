@@ -82,10 +82,17 @@ func FirewallDefaults(fw *firewall.Config, _ **firewall.RateLimits) {
 		fw.AllowCIDRs = append(fw.AllowCIDRs, "127.0.0.0/8", "::1/128")
 	}
 	fw.TrustedClients = append(fw.TrustedClients, "127.0.0.0/8", "::1/128")
+	if len(fw.TrustedClientHeaders) == 0 {
+		fw.TrustedClientHeaders = TrustedClientHeaders
+	}
 	if fw.RateLimitHeaderPrefix == "" {
 		fw.RateLimitHeaderPrefix = "X-PocketHost-RateLimit"
 	}
 }
+
+// TrustedClientHeaders are where a customer's trusted proxy names its end user: PocketOne's X-Client-IP, and
+// X-PocketHost-Client-IP, the name in PocketHost's docs (accepted for good; see the header rename plan).
+var TrustedClientHeaders = []string{"X-Client-IP", "X-PocketHost-Client-IP"}
 
 func or(v, def string) string {
 	if strings.TrimSpace(v) != "" {
