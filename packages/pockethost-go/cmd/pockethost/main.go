@@ -40,6 +40,7 @@ import (
 const usage = `usage:
   pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]
   pockethost edge check [--env-file .env]
+  pockethost docker seed|update [--config pocketbase.yaml] [--env-file .env]
   pockethost mothership serve|migrate|superuser|version|hooks export ...   (see mothership.go)`
 
 func main() {
@@ -49,6 +50,12 @@ func main() {
 		os.Exit(2)
 	}
 	switch args[0] {
+	case "docker":
+		if err := dockerCmd(args[1:]); err != nil {
+			fmt.Fprintln(os.Stderr, "pockethost:", err)
+			os.Exit(1)
+		}
+		return
 	case "mothership":
 		mothership(args[1:])
 		return
