@@ -41,8 +41,8 @@ const (
 // PoweredBy is the X-Powered-By on responses a Pocker edge fulfills (Node edges send "PocketHost"). An edge on another
 // runtime sets none: the instance's own server names itself (the PocketOne binary says "PocketOne", upstream
 // PocketBase says nothing). A forwarded response keeps the owner's value (or none), so the header names who fulfilled
-// the request, not the edge it entered at.
-const PoweredBy = "Pocker"
+// the request, not the edge it entered at. It carries the PocketOne version Pocker runs ("Pocker 0.0.2").
+var PoweredBy = "Pocker " + pocker.Version()
 
 func parsePBTime(v string) (time.Time, error) {
 	v = strings.Replace(strings.TrimSpace(v), " ", "T", 1)
