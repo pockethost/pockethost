@@ -88,12 +88,14 @@ func mothership(args []string) {
 			}
 			// the mothership keeps its own versions list (pocketbase_versions); nothing else writes it
 			scheduleVersions(e.App)
+			scheduleUsage(e.App) // owners' disk use from the edges' instance_stats
 			return e.Next()
 		},
 		Priority: 999,
 	})
 
 	app.RootCmd.AddCommand(versionsCmd(app)) // the versions list, by hand
+	app.RootCmd.AddCommand(usageCmd(app))    // the owners' disk sum, by hand
 
 	log.Printf("pockethost mothership %s", mothershipVersion())
 	if err := app.Start(); err != nil {

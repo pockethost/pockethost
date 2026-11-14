@@ -18,6 +18,7 @@ import (
 	ceedge "github.com/pockethost/pocketone/ext/edge"
 	"github.com/pockethost/pocketone/ext/firewall"
 	"github.com/pockethost/pocketone/ext/host"
+	"github.com/pockethost/pocketone/ext/lifecycle"
 	"github.com/pockethost/pocketone/ext/pages"
 	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
 	"github.com/pockethost/pocketone/ext/pitr"
@@ -157,6 +158,15 @@ func edgeServeConfig(configPath, envPath string) error {
 	}
 	vopts.DiscordURL = ph.DiscordHealthURL
 	h.Background = append(h.Background, func(ctx context.Context) { source.NewVacuumer(current, vopts).Run(ctx) })
+	// instance data: disk used and last request served, written to the mothership's instance_stats (ext/lifecycle)
+	lc := &lifecycle.Lifecycle{Directory: h.Directory, Folder: func(i host.Instance) string {
+		if i.Dir != "" {
+			return cfg.ResolvePath(i.Dir)
+		}
+		return filepath.Join(root, i.ID)
+	}, Sink: source.InstanceStats(), Logger: log}
+	h.Gates = append(h.Gates, lc)
+	h.Background = append(h.Background, lc.Run)
 	log.Info("pockethost: edge from pocketone.yaml", "provider", provider, "edge", ecfg.EdgeID, "region", ecfg.Region, "mothership", ecfg.MothershipURL)
 	return h.Run(ctx)
 }

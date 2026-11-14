@@ -6,7 +6,7 @@ const int = (v: string) => parseInt(v, 10)
 export const DiskUsageCommand = () =>
   new Command(`disk-usage`)
     .description(
-      `Measure each instance folder with du and write each owner's total to users.volume_storage_used (display only)`
+      `Measure this edge's instance folders and write each one's size to instance_stats (the mothership sums them per owner)`
     )
     .option(`--dry-run`, `Print a summary and write nothing`, false)
     .option(`--concurrency <n>`, `du processes running at once`, int, 4)
