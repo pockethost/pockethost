@@ -70,7 +70,9 @@ export const selectableVersionError = (version: unknown, selectable: string[]): 
     return `A PocketBase version is required. Version must be one of: ${selectable.join(', ')}`
   }
   if (isPocketOneVersion(version)) {
-    return listVersions().includes(version) ? null : `PocketOne ${version} is not offered. Version must be one of: ${selectable.join(', ')}`
+    return listVersions().includes(version)
+      ? null
+      : `PocketOne ${version} is not offered. Version must be one of: ${selectable.join(', ')}`
   }
   if (!isSelectableVersion(version)) {
     return `PocketBase ${version} is no longer supported for new instances or version changes. Use 0.23 or later.`
