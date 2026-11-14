@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/ceplugin"
 	"github.com/pockethost/pocketone/ext/firewall"
+	"github.com/pockethost/pocketone/ext/pluginkit"
 )
 
 // SectionConfig is the `pockethost` section of an edge's pocketbase.yaml: what edge.env held (the mothership login
@@ -42,7 +42,7 @@ type SectionConfig struct {
 }
 
 // Section is the key of the `pockethost` section.
-var Section = ceplugin.NewSection("pockethost", SectionConfig{}, "PocketHost edge: this edge's id/region/internal URL, apex and app URLs, the mothership login, backup token secret, vacuum schedule.")
+var Section = pluginkit.NewSection("pockethost", SectionConfig{}, "PocketHost edge: this edge's id/region/internal URL, apex and app URLs, the mothership login, backup token secret, vacuum schedule.")
 
 // ConfigFromSection is ConfigFromEnv for pocketbase.yaml.
 func ConfigFromSection(s SectionConfig) (Config, error) {

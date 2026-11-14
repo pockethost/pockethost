@@ -4,12 +4,12 @@
 //	pockethost edge check [--env-file .env]
 //	pockethost mothership serve|migrate|superuser|version|hooks export ...   (mothership.go)
 //
-// The edge is Pocker CE plus PocketHost's providers and platform features. `pockethost serve` / `pockethost check` are
+// The edge is Pocker plus PocketHost's providers and platform features. `pockethost serve` / `pockethost check` are
 // deprecated aliases for `pockethost edge serve` / `edge check`.
 //
 // With MOTHERSHIP_URL set (directly or in --env-file, same names as the Node edge), instances come from PocketHost's
 // mothership mirror, the edge heartbeats and reports instance status, and every instance gets PocketHost's platform
-// routes. Without it, instances come from CE's YAML file.
+// routes. Without it, instances come from PocketOne's YAML file.
 package main
 
 import (
@@ -84,7 +84,7 @@ func main() {
 	os.Exit(2)
 }
 
-// edgeServe runs the edge: Pocker CE + PocketHost's providers and platform features (`pockethost edge serve`).
+// edgeServe runs the edge: Pocker + PocketHost's providers and platform features (`pockethost edge serve`).
 func edgeServe(args []string) {
 	fs := flag.NewFlagSet("edge serve", flag.ExitOnError)
 	envFile := fs.String("env-file", "", "KEY=VALUE file (e.g. the edge's .env); already-set variables win")

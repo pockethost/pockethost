@@ -5,17 +5,17 @@ go 1.27
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/pockethost/pocketone/ext/ceplugin v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/config v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/docker v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/edge v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/firewall v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/host v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/jsembed v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/pages v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/pitr v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/pocker v0.0.0-20261114124657-7bc7c7152cba
-	github.com/pockethost/pocketone/ext/servertiming v0.0.0-20261114124657-7bc7c7152cba
+	github.com/pockethost/pocketone/ext/config v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/docker v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/edge v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/firewall v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/host v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/jsembed v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/pages v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/pitr v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/pluginkit v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/pocker v0.0.0-20261114133731-bf5544c47dd1
+	github.com/pockethost/pocketone/ext/servertiming v0.0.0-20261114133731-bf5544c47dd1
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/crypto v0.58.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -58,8 +58,8 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
-	github.com/pockethost/pocketone/ext/jserrors v0.0.0-20261114124657-7bc7c7152cba // indirect
-	github.com/pockethost/pocketone/ext/sandbox v0.0.0-20261114124657-7bc7c7152cba // indirect
+	github.com/pockethost/pocketone/ext/jserrors v0.0.0-20261114133731-bf5544c47dd1 // indirect
+	github.com/pockethost/pocketone/ext/sandbox v0.0.0-20261114133731-bf5544c47dd1 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
@@ -85,6 +85,6 @@ require (
 )
 
 // PocketOne (github.com/pockethost/pocketone) keeps PocketBase's module path so upstream merges stay easy. This
-// replace points the module at CE; the ext/* requires are CE plugin modules in the same repo. Bump the replace and
-// every ext/* require to the same CE commit together.
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone v0.0.2-0.20261114124657-7bc7c7152cba
+// replace points the module at PocketOne; the ext/* requires are PocketOne plugin modules in the same repo. Bump the replace and
+// every ext/* require to the same PocketOne commit together.
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone v0.0.2-0.20261114133731-bf5544c47dd1
