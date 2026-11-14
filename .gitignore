@@ -19,7 +19,7 @@ pb_data
 # Claude Code personal settings
 .claude/settings.local.json
 
-# Internal notes and plans live in the private pockethost/pockethost-support repo (plans/)
+# Internal notes and plans live in the private maintainer repo
 /*-plan.md
 /backlog.md
 /*-comparison.md

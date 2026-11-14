@@ -16,15 +16,9 @@ alwaysApply: false
 
 `git push` **fails** if any step fails. Do not tell the user to push until this passes.
 
-## Docs and blog decision (every push)
+## Docs
 
-Before each push, decide whether the commits being pushed (`git log origin/main..HEAD`) need a docs update and a blog post, and tell the user which and why:
-
-- **User-facing** (anything a PocketHost customer sees or does differently: dashboard, SFTP, instance behavior, limits, billing, policy) → update `/docs` (`packages/dashboard/src/routes/(static)/docs/`).
-- **New or changed feature** → also a blog post, per [`feature-announcements.mdc`](feature-announcements.mdc) and [`.cursor/skills/feature-blog/SKILL.md`](../skills/feature-blog/SKILL.md).
-- **Internal only** (ops, refactors, deps, CI, infra with no visible change) → neither; say so in one line.
-
-Write for end users ([`end-user-docs.mdc`](end-user-docs.mdc)). Draft the docs and post before or alongside the push; don't hold a fix hostage to them, but don't skip the decision.
+If the commits change anything a customer sees or does (dashboard, CLI, instance behavior, limits, billing, policy), update `/docs` (`packages/dashboard/src/routes/(static)/docs/`) for end users ([`end-user-docs.mdc`](end-user-docs.mdc)).
 
 ## When agents must run it
 

@@ -138,7 +138,7 @@ jobs:
           cd packages/dashboard
           pnpm build
 
-      # Until the cutover (pockethost-support plans/dashboard-workers-migration.md), pockethost.io is still served by
+      # Until the cutover (private maintainer notes, dashboard-workers-migration), pockethost.io is still served by
       # Pages, so Pages stays the live deploy and the Worker deploys alongside it without failing the job.
       - name: Publish to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4

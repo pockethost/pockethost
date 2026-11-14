@@ -211,6 +211,14 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 	if w.Code != 200 || w.Header().Get(HeaderEdgeName) != "sgp-1" || w.Header().Get(HeaderOriginName) != "sfo" {
 		t.Fatalf("allowed peer: %d %v", w.Code, w.Header())
 	}
+	// a host no instance has: the entry edge is named, but there is no origin to name
+	r := httptest.NewRequest("GET", "http://nobody-here.pockethost.io/", nil)
+	r.RemoteAddr = "173.245.48.10:1234"
+	uw := httptest.NewRecorder()
+	h.ServeHTTP(uw, r)
+	if uw.Header().Get(HeaderEdgeName) != "sgp-1" || uw.Header().Get(HeaderOriginName) != "" || uw.Header().Get(HeaderOriginRegion) != "" {
+		t.Fatalf("unknown host: %v", uw.Header())
+	}
 }
 
 // PocketHost's firewall defaults over the `firewall` section: loopback allowed and trusted, the Node header names.
