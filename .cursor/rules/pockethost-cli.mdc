@@ -33,4 +33,4 @@ Update the commands list, options, and any quick-start examples in both files. K
 
 **Skip** for internal-only work (refactors, deps, tests) with no CLI surface change.
 
-**Blog posts** are separate. Use [`.cursor/skills/feature-blog/SKILL.md`](../skills/feature-blog/SKILL.md) for customer announcements, not as a substitute for the README or the CLI docs page.
+**Blog posts** are separate from the README and the CLI docs page; they don't replace either.

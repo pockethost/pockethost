@@ -43,7 +43,7 @@ Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**,
 - "free tier", "Free plan", "Hacker tier", Pro/Agency tiers, or tier comparison tables with $19.99/$49.99
 - "paid plans" vs "free tier" for standard features
 - "Pro subscribers" (use **subscribers** or **Pay Per PocketBase**)
-- Em dashes (`—`) in customer-facing copy. Use a period and a new sentence, or rewrite. See [communication-style.mdc](communication-style.mdc).
+- Em dashes (`—`) in customer-facing copy. Use a period and a new sentence, or rewrite.
 
 **Do write:**
 
@@ -60,5 +60,3 @@ Dashboard `/pricing` and Lemon Squeezy checkout use **$9.99/mo**, **$59.99/yr**,
 - `subscription_quantity` = paid instance count. The dashboard caps total instances at it. The edge daemon refuses to run instances when it is 0.
 - `common/subscriptionLimits.ts` still has the old DB/file split constants for the account page meters. They predate the disk storage policy and nothing populates usage.
 - Feature gates: prefer active hosting entitlement, not bare `subscription !== 'free'`, unless blocking lapsed accounts only.
-
-Read [MEMORY.md](../pockethost-support/MEMORY.md) Billing section when touching pricing, limits, dashboard paywalls, or Lemon Squeezy flows.

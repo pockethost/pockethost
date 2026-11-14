@@ -26,7 +26,7 @@ Registration hook is bundled by tsdown. Static assets under `pb_admin_ext/` are 
 
 1. `pnpm dev:mothership-hooks` — watch tsdown when editing registration hook.
 2. Edit `pb_admin_ext/*/main.js` — refresh admin UI to pick up `/_/extensions.js` (main.js changes often hot-refresh).
-3. Mothership admin URL: local `serve` stack → mothership subdomain (see `../pockethost-support/MEMORY.md` dev workflow).
+3. Mothership admin URL: local `serve` stack → mothership subdomain.
 4. Superuser auth: `_superusers` collection (v0.39).
 
 ### Deploy
