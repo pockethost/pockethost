@@ -10,7 +10,6 @@ import { extractPocketBaseZip } from './extractZip'
 import { maxSatisfyingVersionFromList } from './maxSatisfyingVersion'
 import { mkAssetSuffix, mkBinaryName, mkContainerPlatform, needsContainerRuntime } from './platform'
 import { findRelease, latestPerMinor, manifestVersions } from './releases'
-import { mkVersionCatalog, mkVersionCatalogFromPatches, syncMothershipVersions } from './syncMothershipVersions'
 
 export type PocketBaseBinaryServiceConfig = SingletonBaseConfig
 
@@ -111,8 +110,6 @@ export const createPocketBaseBinaryService = (config: PocketBaseBinaryServiceCon
     for (const version of targets) {
       await downloadVersion(version.format())
     }
-
-    await syncMothershipVersions(mkVersionCatalog(targets))
   }
 
   const ensureBinary = async (versionRange: string) => {
@@ -194,18 +191,3 @@ export const freshenPocketbaseVersions = async () => {
 }
 
 export { rmNamedContainerSync, spawnPocketBaseContainer } from './dockerSpawn'
-
-export const syncCachedVersionsToMothership = async () => {
-  const { info, warn } = LoggerService().create('syncCachedVersionsToMothership')
-  const patches = PocketBaseBinaryService().versions()
-
-  if (!patches.length) {
-    warn(`No cached pocketbase versions to sync`)
-    return
-  }
-
-  const catalog = mkVersionCatalogFromPatches(patches)
-  if (await syncMothershipVersions(catalog)) {
-    info(`Synced ${catalog.length} pocketbase versions from cache`)
-  }
-}

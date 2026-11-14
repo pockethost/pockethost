@@ -4,7 +4,6 @@ import {
   LoggerService,
   MOTHERSHIP_URL,
   neverendingPromise,
-  syncCachedVersionsToMothership,
 } from '@'
 import { Command } from 'commander'
 import { daemon } from '../EdgeCommand/DaemonCommand/ServeCommand/daemon'
@@ -26,8 +25,6 @@ export const ServeCommand = () => {
       await mothership({ logger })
     }
     dbg(`Mothership ready`)
-    await syncCachedVersionsToMothership()
-    dbg(`Pocketbase versions synced`)
     await daemon({ logger })
     dbg(`Daemon ready`)
     await firewall({ logger })
