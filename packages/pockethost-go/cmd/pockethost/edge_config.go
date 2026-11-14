@@ -118,10 +118,10 @@ func edgeServeConfig(configPath, envPath, vacuumCronFlag string) error {
 		}
 	}
 	if sc, _ := docker.Section.Get(); provider == "docker" && len(sc.Versions) > 0 {
-		log.Warn("pockethost: docker.versions is ignored; the mothership lists the releases every docker edge serves")
+		log.Warn("pockethost: docker.versions is ignored; the mothership's versions list says what every edge serves")
 	}
-	// the mothership owns the releases list (docker_releases): every docker edge serves the same ones
-	host.RegisterProvider(&docker.Provider{Container: edge.DockerContainer(platformBinds), Resolve: cfg.ResolvePath, Versions: source.DockerVersions()})
+	// the mothership owns the versions list (pocketbase_versions): every edge serves the same ones
+	host.RegisterProvider(&docker.Provider{Container: edge.DockerContainer(platformBinds), Resolve: cfg.ResolvePath, Versions: source.Versions()})
 
 	h, err := host.FromConfig(host.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log})
 	if err != nil {

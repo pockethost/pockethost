@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
@@ -10,34 +11,33 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionsCmd is `pockethost mothership versions list|update`: the releases every docker edge serves. update asks
-// docker's discovery for the latest patch of each minor (upstream PocketBase from 0.23 on, and PocketOne), pinned with
-// checksums, and records them; docker edges follow the list within 30 s and seed what they don't have.
+// versionsCmd is `pockethost mothership versions list|update`: the PocketBase versions PocketHost supports, kept in
+// the pocketbase_versions setting. Only the mothership writes it; users pick from it and edges serve it.
 func versionsCmd(app core.App) *cobra.Command {
-	cmd := &cobra.Command{Use: "versions", Short: "The PocketBase/PocketOne releases every docker edge serves", SilenceUsage: true}
+	cmd := &cobra.Command{Use: "versions", Short: "The PocketBase and PocketOne versions PocketHost supports", SilenceUsage: true}
 	cmd.AddCommand(&cobra.Command{
-		Use:   "list",
+		Use:          "list",
 		SilenceUsage: true,
-		Short: "Prints the docker releases the mothership lists",
+		Short:        "Prints the versions list",
 		RunE: func(c *cobra.Command, _ []string) error {
-			rs, updated, err := edge.LoadDockerReleases(app)
+			vs, synced, err := edge.LoadVersions(app)
 			if err != nil {
 				return err
 			}
-			for _, r := range rs {
-				fmt.Fprintf(c.OutOrStdout(), "%-12s %s\n", r.Key(), assetPlatforms(r))
+			for _, v := range vs {
+				fmt.Fprintf(c.OutOrStdout(), "%-12s %-10s %s\n", v.Range, v.Patch, assetPlatforms(v))
 			}
-			fmt.Fprintf(c.OutOrStdout(), "%d releases (updated %s)\n", len(rs), orNone(updated))
+			fmt.Fprintf(c.OutOrStdout(), "%d versions (updated %s)\n", len(vs), orNone(synced))
 			return nil
 		},
 	})
 	cmd.AddCommand(&cobra.Command{
-		Use:   "update [minor ...]",
+		Use:          "update [minor ...]",
 		SilenceUsage: true,
-		Short: "Records the latest patch of every minor (or of the minors given, e.g. pb:0.36 p1:0.0)",
+		Short:        "Records the latest patch of every minor (or of the minors given, e.g. pb:0.36 p1:0.0) from PocketBase and PocketOne",
 		RunE: func(c *cobra.Command, args []string) error {
 			t0 := time.Now()
-			prev, _, err := edge.LoadDockerReleases(app)
+			prev, _, err := edge.LoadVersions(app)
 			if err != nil {
 				return err
 			}
@@ -45,31 +45,43 @@ func versionsCmd(app core.App) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := edge.SaveDockerReleases(app, latest); err != nil {
+			next := edge.MergeVersions(prev, latest)
+			if err := edge.SaveVersions(app, next); err != nil {
 				return err
 			}
-			was := map[string]bool{}
-			for _, r := range prev {
-				was[r.Key()] = true
-			}
-			for _, r := range latest {
-				mark := ""
-				if !was[r.Key()] {
-					mark = "  (new)"
+			was := map[string]string{}
+			for _, v := range prev {
+				was[v.Range] = v.Patch
+				if v.Pinned() {
+					was[v.Range] += "+"
 				}
-				fmt.Fprintf(c.OutOrStdout(), "%-12s %s%s\n", r.Key(), assetPlatforms(r), mark)
 			}
-			fmt.Fprintf(c.OutOrStdout(), "recorded %d releases in %s; docker edges follow within 30 s\n", len(latest), time.Since(t0).Round(time.Millisecond))
+			for _, v := range next {
+				mark := ""
+				switch p, ok := was[v.Range]; {
+				case !ok:
+					mark = "  (new)"
+				case strings.TrimSuffix(p, "+") != v.Patch:
+					mark = "  (was " + strings.TrimSuffix(p, "+") + ")"
+				case !strings.HasSuffix(p, "+") && v.Pinned():
+					mark = "  (pinned)"
+				}
+				fmt.Fprintf(c.OutOrStdout(), "%-12s %-10s %s%s\n", v.Range, v.Patch, assetPlatforms(v), mark)
+			}
+			fmt.Fprintf(c.OutOrStdout(), "recorded %d versions in %s; edges follow within 30 s\n", len(next), time.Since(t0).Round(time.Millisecond))
 			return nil
 		},
 	})
 	return cmd
 }
 
-func assetPlatforms(r docker.Release) string {
+func assetPlatforms(v edge.Version) string {
+	if !v.Pinned() {
+		return "(not pinned)"
+	}
 	out := ""
 	for _, p := range []string{"linux_amd64", "linux_arm64"} {
-		if _, ok := r.Assets[p]; ok {
+		if _, ok := v.Assets[p]; ok {
 			if out != "" {
 				out += ","
 			}
