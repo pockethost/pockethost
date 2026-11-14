@@ -1,15 +1,14 @@
 // Command pockethost is PocketHost's server binary, on PocketOne. The first argument picks the role:
 //
-//	pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen :8090] [--pbRoot DIR] [--instances FILE]
-//	pockethost edge check [--env-file .env]
-//	pockethost mothership serve|migrate|superuser|version|hooks export ...   (mothership.go)
+//	pockethost edge serve [--config pocketbase.yaml] [--env-file .env]
+//	pockethost edge check [--config pocketbase.yaml] [--env-file .env]
+//	pockethost docker seed|update [--config pocketbase.yaml] [--env-file .env]
+//	pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (mothership.go)
 //
-// The edge is Pocker CE plus PocketHost's providers and platform features. `pockethost serve` / `pockethost check` are
-// deprecated aliases for `pockethost edge serve` / `edge check`.
-//
-// With MOTHERSHIP_URL set (directly or in --env-file, same names as the Node edge), instances come from PocketHost's
-// mothership mirror, the edge heartbeats and reports instance status, and every instance gets PocketHost's platform
-// routes. Without it, instances come from CE's YAML file.
+// An edge runs from pocketbase.yaml: a runtime provider (pocker or docker), the firewall, and the `pockethost` section
+// (this edge, the mothership login); instances come from PocketHost's mothership mirror, the edge heartbeats and
+// reports instance status, and every instance gets PocketHost's platform routes. Secrets live in the .env beside the
+// config and never reach the instances.
 package main
 
 import (
@@ -17,31 +16,17 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
-	"os/signal"
-	"path/filepath"
-	"sync/atomic"
-	"syscall"
 
-	firewall "github.com/pockethost/pocketone/ext/firewall"
-
-	ceedge "github.com/pockethost/pocketone/ext/edge"
-
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"github.com/pockethost/pocketone/ext/pages"
-	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
-	"github.com/pockethost/pocketone/ext/pitr"
-	"github.com/pockethost/pocketone/ext/pocker"
-	"github.com/pockethost/pocketone/ext/servertiming"
+	"github.com/pockethost/pocketone/ext/config"
 )
 
 const usage = `usage:
-  pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]
-  pockethost edge check [--env-file .env]
+  pockethost edge serve [--config pocketbase.yaml] [--env-file .env]
+  pockethost edge check [--config pocketbase.yaml] [--env-file .env]
   pockethost docker seed|update [--config pocketbase.yaml] [--env-file .env]
-  pockethost mothership serve|migrate|superuser|version|hooks export ...   (see mothership.go)`
+  pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (see mothership.go)`
 
 func main() {
 	args := os.Args[1:]
@@ -70,154 +55,43 @@ func main() {
 				return
 			}
 		}
-	case "serve", "check":
-		// Before 2026-11-12 the edge commands had no role prefix; existing systemd units still run `pockethost serve`.
-		slog.Warn("pockethost: `pockethost " + args[0] + "` is deprecated; use `pockethost edge " + args[0] + "`")
-		if args[0] == "serve" {
-			edgeServe(args[1:])
-		} else {
-			check(args[1:])
-		}
-		return
 	}
 	fmt.Fprintln(os.Stderr, usage)
 	os.Exit(2)
 }
 
-// edgeServe runs the edge: Pocker CE + PocketHost's providers and platform features (`pockethost edge serve`).
-func edgeServe(args []string) {
-	fs := flag.NewFlagSet("edge serve", flag.ExitOnError)
-	envFile := fs.String("env-file", "", "KEY=VALUE file (e.g. the edge's .env); already-set variables win")
-	configPath := fs.String("config", "pocker.yaml", "Pocker config file (optional)")
-	listen := fs.String("listen", "", "listen address (overrides config)")
-	pbRoot := fs.String("pbRoot", "", "instance folders root (overrides config)")
-	instances := fs.String("instances", "", "instances YAML file (overrides config)")
-	vacuumCron := fs.String("vacuum-cron", edge.DefaultVacuumOptions().Cron, `nightly vacuum schedule (UTC cron, "off" to disable)`)
+// edgeFlags parses an edge command's --config and --env-file.
+func edgeFlags(name string, args []string) (configPath, envPath string) {
+	fs := flag.NewFlagSet(name, flag.ExitOnError)
+	c := fs.String("config", "pocketbase.yaml", "the edge's pocketbase.yaml")
+	e := fs.String("env-file", "", "secrets for $VAR references (default .env beside the config)")
 	_ = fs.Parse(args)
+	return *c, *e
+}
 
-	if hasProvider(*configPath) {
-		// pocketbase.yaml: a runtime provider (pocker or docker) and the pockethost section; secrets from --env-file
-		// (default .env beside it) stay out of the process environment
-		if err := edgeServeConfig(*configPath, *envFile, *vacuumCron); err != nil {
-			slog.Error("pockethost: serve", "error", err)
-			os.Exit(1)
-		}
-		return
-	}
-
-	if *envFile != "" {
-		if err := edge.LoadEnvFile(*envFile); err != nil {
-			slog.Error("pockethost: env file", "error", err)
-			os.Exit(1)
-		}
-	}
-
-	cfg, err := pocker.LoadConfig(*configPath)
-	if err != nil {
-		slog.Error("pockethost: config", "error", err)
-		os.Exit(1)
-	}
-	if *listen != "" {
-		cfg.Listen = *listen
-	}
-	if *pbRoot != "" {
-		cfg.PBRoot = *pbRoot
-	}
-	if *instances != "" {
-		cfg.InstancesFile = *instances
-	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	srv := &pocker.Server{Config: cfg}
-	fw := &firewall.Firewall{}
-	fw.Adjust = func(c *firewall.Config, _ **firewall.RateLimits) { edge.FirewallFromEnv(c) } // after pocker.yaml, like before
-	srv.Firewall = fw
-	srv.Plugins = []pocker.Plugin{servertiming.New()}                   // servertiming outermost: its header includes the edge's own hops
-	srv.Plugins = append(srv.Plugins, pitr.New(pitr.Config{}))          // point-in-time restore, on for every instance (pocker.yaml `pitr:`, instance plugins.pitr)
-	srv.Plugins = append(srv.Plugins, pockerplugin.New(pages.Config{})) // PocketPages v1: serves an instance's pb_pages when it has one (instance plugins.pages.enabled: false turns it off)
-	if os.Getenv("MOTHERSHIP_URL") != "" {
-		ecfg, err := edge.ConfigFromEnv()
-		if err != nil {
-			slog.Error("pockethost: mothership config", "error", err)
-			os.Exit(1)
-		}
-		source := edge.NewSource(ecfg, slog.Default())
-		stats := edge.NewStats()
-		source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
-		srv.Source = source
-		srv.SetupApp = edge.Setup(ecfg)
-		// Owner edges come from the mothership mirror; a config file `edges:` section (a list and/or another
-		// mothership) adds providers in front (ext/edge forwards, configured the PocketHost way).
-		var edges ceedge.EdgeSource = source
-		extra, err := ceedge.EdgesFromConfig(pocker.TopLevel(cfg.Doc(), "edges"), slog.Default())
-		if err != nil {
-			slog.Error("pockethost: edges", "error", err)
-			os.Exit(1)
-		}
-		if extra != nil {
-			edges = ceedge.MultiProvider{extra, source}
-		}
-		rc := edge.RouteConfig(slog.Default())
-		rc.Edges = edges
-		srv.Forward = ceedge.NewRouter(rc).Forward
-		var running atomic.Pointer[pocker.Manager]
-		srv.OnStart = running.Store
-		manager := running.Load
-		instances := func() edge.Instances {
-			if m := manager(); m != nil {
-				return m
-			}
-			return nil
-		}
-		deployAPI := deploy.New(deploy.Options{
-			Backend: source.DeployBackend(),
-			Instances: func() deploy.Instances {
-				if m := manager(); m != nil {
-					return m
-				}
-				return nil
-			},
-			PBRoot:        cfg.PBRoot,
-			DataRoot:      filepath.Join(filepath.Dir(filepath.Clean(cfg.PBRoot)), "deploys"), // DATA_ROOT/deploys, as on the Node edge
-			PlatformPaths: edge.PlatformPaths,
-			IsRemote:      source.IsRemote,
-		})
-		ready := func() bool { m := manager(); return m != nil && m.Ready() } // LB health is 503 until instances load
-		srv.Wrap = func(h http.Handler) http.Handler {
-			return source.Front(fw, ready, edge.PoweredBy, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
-		}
-		if edge.WebhooksDisabled() {
-			slog.Info("pockethost: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")
-		} else {
-			go source.NewScheduler(instances).Run(ctx)
-		}
-		vopts := edge.DefaultVacuumOptions()
-		vopts.Cron = *vacuumCron
-		go source.NewVacuumer(instances, vopts).Run(ctx)
-		slog.Info("pockethost: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
-	}
-	if err := srv.Run(ctx); err != nil {
+// edgeServe runs the edge (`pockethost edge serve`).
+func edgeServe(args []string) {
+	if err := edgeServeConfig(edgeFlags("edge serve", args)); err != nil {
 		slog.Error("pockethost: serve", "error", err)
 		os.Exit(1)
 	}
 }
 
-// check: read-only mapping report against the mothership (pockethost edge check --env-file .env).
+// check: read-only mapping report against the mothership (`pockethost edge check`).
 func check(args []string) {
-	fs := flag.NewFlagSet("check", flag.ExitOnError)
-	envFile := fs.String("env-file", "", "KEY=VALUE file (e.g. the edge's .env)")
-	_ = fs.Parse(args)
-	if *envFile != "" {
-		if err := edge.LoadEnvFile(*envFile); err != nil {
-			slog.Error("pockethost: env file", "error", err)
-			os.Exit(1)
-		}
+	configPath, envPath := edgeFlags("edge check", args)
+	if _, err := config.Load(config.Options{ConfigPath: configPath, EnvPath: envPath}); err != nil {
+		slog.Error("pockethost: config", "error", err)
+		os.Exit(1)
 	}
-	ecfg, err := edge.ConfigFromEnv()
+	ph, err := edge.Section.Require()
 	if err != nil {
-		slog.Error("pockethost: mothership config", "error", err)
+		slog.Error("pockethost: config", "error", err)
+		os.Exit(1)
+	}
+	ecfg, err := edge.ConfigFromSection(ph)
+	if err != nil {
+		slog.Error("pockethost: config", "error", err)
 		os.Exit(1)
 	}
 	rep, err := edge.Check(context.Background(), ecfg)

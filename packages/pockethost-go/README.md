@@ -10,7 +10,7 @@ One binary, `pockethost`, with role-first commands:
 | Command | What it runs |
 |---|---|
 | `pockethost edge serve --config pocketbase.yaml --env-file .env` | an edge: firewall, instances (pocker or docker), deploy API, webhooks, vacuum |
-| `pockethost edge check` | read-only: how the mothership's records map on this edge |
+| `pockethost edge check --config pocketbase.yaml --env-file .env` | read-only: how the mothership's records map on this edge |
 | `pockethost docker seed --config pocketbase.yaml --env-file .env` | downloads the releases the mothership lists that this docker edge doesn't have yet |
 | `pockethost mothership serve\|migrate\|superuser\|version\|hooks export` | the mothership (hooks, migrations and admin add-on embedded) |
 | `pockethost mothership versions list\|update [minor ...]` | the PocketBase/PocketOne versions PocketHost supports (see Versions) |
@@ -68,6 +68,8 @@ pockethost:
   mothership: { url: "http://10.88.0.10:8090", email: $MOTHERSHIP_ADMIN_USERNAME, password: $MOTHERSHIP_ADMIN_PASSWORD }
   backup_token_secret: $PH_SECRET
   vacuum_cron: "0 11 * * *"
+  discord_health_url: $DISCORD_HEALTH_CHANNEL_URL   # the nightly vacuum's summary
+  # disable_webhooks: true          # instances' scheduled webhooks off on this edge
 ```
 
 **Runtimes.** `pocker` serves every instance in-process and ignores instance versions (every instance runs this
@@ -127,11 +129,11 @@ One process replaces both Node jobs (`firewall` + `edge-daemon`).
   daemon grace (one process now).
 - **Webhooks** (`edge/schedules.go`): each instance's `webhooks` (UTC cron, minute resolution; 6-field expressions
   drop the seconds) fire in-process through the Manager with the backup token, 30 min timeout, 50 at a time; the
-  result goes to `lastFired`; a missed run fires once at start. `PH_DISABLE_INSTANCE_WEBHOOKS` turns them off.
+  result goes to `lastFired`; a missed run fires once at start. `pockethost.disable_webhooks` turns them off.
 - **Vacuum** (`edge/vacuum.go`, `pockethost.vacuum_cron`, default `0 3 * * *` UTC): `data.db`/`logs.db` of this edge's instances
   with `autoVacuum` on are checked read-only; one with ≥10% or ≥64 MiB free pages (up to 1 GiB) is compacted with
   `VACUUM INTO` while `WithInstanceStopped` holds its requests, swapped in after `quick_check`, and the instance is
-  started again if it was running. Summary to `DISCORD_HEALTH_CHANNEL_URL` when set. No lock API: nothing outside the
+  started again if it was running. Summary to `pockethost.discord_health_url` when set. No lock API: nothing outside the
   process opens the files.
 
 ## Build

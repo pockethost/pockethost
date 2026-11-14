@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -36,15 +34,6 @@ type webhook struct {
 	LastFired *struct {
 		Timestamp int64 `json:"timestamp"`
 	} `json:"lastFired,omitempty"`
-}
-
-// WebhooksDisabled matches the Node edge: PH_DISABLE_INSTANCE_WEBHOOKS turns them off, PH_ENABLE_INSTANCE_WEBHOOKS wins.
-func WebhooksDisabled() bool {
-	if b, err := strconv.ParseBool(os.Getenv("PH_ENABLE_INSTANCE_WEBHOOKS")); err == nil && b {
-		return false
-	}
-	b, _ := strconv.ParseBool(os.Getenv("PH_DISABLE_INSTANCE_WEBHOOKS"))
-	return b
 }
 
 // parseCron accepts PocketBase's 5-field expressions and macros; a 6-field expression (seconds first, as the Node

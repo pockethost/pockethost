@@ -33,14 +33,13 @@ type VacuumOptions struct {
 	MinFreeBytes int64
 	// MaxBytes skips larger databases: the instance's requests are held while it runs (up to a minute).
 	MaxBytes int64
-	// DiscordURL, if set, gets a summary after each run (DISCORD_HEALTH_CHANNEL_URL).
+	// DiscordURL, if set, gets a summary after each run (`pockethost.discord_health_url`).
 	DiscordURL string
 }
 
 // DefaultVacuumOptions: 03:00 UTC, 10% or 64 MiB free, databases up to 1 GiB.
 func DefaultVacuumOptions() VacuumOptions {
-	return VacuumOptions{Cron: "0 3 * * *", MinFreeRatio: 0.10, MinFreeBytes: 64 << 20, MaxBytes: 1 << 30,
-		DiscordURL: os.Getenv("DISCORD_HEALTH_CHANNEL_URL")}
+	return VacuumOptions{Cron: "0 3 * * *", MinFreeRatio: 0.10, MinFreeBytes: 64 << 20, MaxBytes: 1 << 30}
 }
 
 // Vacuumer runs the nightly vacuum for this edge's instances.

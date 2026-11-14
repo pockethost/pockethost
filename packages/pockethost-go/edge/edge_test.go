@@ -292,7 +292,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	var running atomic.Pointer[pocker.Manager]
 	fw := &firewall.Firewall{}
 	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
-		Firewall: fw, Plugins: []pocker.Plugin{servertiming.New()},
+		Gates: []pocker.Gate{fw}, Plugins: []pocker.Plugin{servertiming.New()},
 		Wrap: func(h http.Handler) http.Handler {
 			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, PoweredBy, NodeCompat(stats.Middleware(h)))
 		},
@@ -518,20 +518,6 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	// deleted instance: gone
 	f.push("instances", "delete", moved)
 	waitFor("deleted instance gone", func() bool { c, _ := call("GET", "blog.pockethost.io", "/api/health", "", nil); return c == 404 })
-}
-
-func TestLoadEnvFileInlineComments(t *testing.T) {
-	p := filepath.Join(t.TempDir(), ".env")
-	_ = os.WriteFile(p, []byte("A_PORT=8080 # FIXME 80\nB_URL=\"http://x # not a comment\"\n# whole line\nC=plain\n"), 0o644)
-	for _, k := range []string{"A_PORT", "B_URL", "C"} {
-		_ = os.Unsetenv(k)
-	}
-	if err := LoadEnvFile(p); err != nil {
-		t.Fatal(err)
-	}
-	if os.Getenv("A_PORT") != "8080" || os.Getenv("B_URL") != "http://x # not a comment" || os.Getenv("C") != "plain" {
-		t.Fatalf("got %q %q %q", os.Getenv("A_PORT"), os.Getenv("B_URL"), os.Getenv("C"))
-	}
 }
 
 func TestHostClaimsFollowNodePriority(t *testing.T) {

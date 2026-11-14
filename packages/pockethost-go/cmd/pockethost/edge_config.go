@@ -23,23 +23,7 @@ import (
 	"github.com/pockethost/pocketone/ext/pitr"
 	"github.com/pockethost/pocketone/ext/pocker"
 	"github.com/pockethost/pocketone/ext/servertiming"
-	"gopkg.in/yaml.v3"
 )
-
-// hasProvider reports whether a config file is a pocketbase.yaml naming a runtime provider (`provider:`), as opposed
-// to a legacy pocker.yaml.
-func hasProvider(path string) bool {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return false
-	}
-	var top map[string]any
-	if yaml.Unmarshal(b, &top) != nil {
-		return false
-	}
-	_, ok := top["provider"]
-	return ok
-}
 
 // instancesBox holds the running edge.Instances (pocker's Manager or the docker adapter) once the host has one.
 type instancesBox struct{ i edge.Instances }
@@ -47,7 +31,7 @@ type instancesBox struct{ i edge.Instances }
 // edgeServeConfig runs the edge from pocketbase.yaml: the `pockethost` section (edge id, mothership login), a
 // runtime provider (pocker in-process or docker containers), listeners, firewall and fleet from their sections;
 // secrets come from the .env beside it and never reach the instances.
-func edgeServeConfig(configPath, envPath, vacuumCronFlag string) error {
+func edgeServeConfig(configPath, envPath string) error {
 	log := slog.Default()
 	cfg, err := config.Load(config.Options{ConfigPath: configPath, EnvPath: envPath})
 	if err != nil {
@@ -162,16 +146,16 @@ func edgeServeConfig(configPath, envPath, vacuumCronFlag string) error {
 	h.Wrappers = append(h.Wrappers, func(next http.Handler) http.Handler {
 		return source.Front(fw, ready, poweredBy, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(next))))
 	})
-	if ph.DisableWebhooks || edge.WebhooksDisabled() {
+	if ph.DisableWebhooks {
 		log.Info("pockethost: instance webhooks disabled")
 	} else {
 		h.Background = append(h.Background, func(ctx context.Context) { source.NewScheduler(current).Run(ctx) })
 	}
 	vopts := edge.DefaultVacuumOptions()
-	vopts.Cron = vacuumCronFlag
 	if ph.VacuumCron != "" {
 		vopts.Cron = ph.VacuumCron
 	}
+	vopts.DiscordURL = ph.DiscordHealthURL
 	h.Background = append(h.Background, func(ctx context.Context) { source.NewVacuumer(current, vopts).Run(ctx) })
 	log.Info("pockethost: edge from pocketbase.yaml", "provider", provider, "edge", ecfg.EdgeID, "region", ecfg.Region, "mothership", ecfg.MothershipURL)
 	return h.Run(ctx)

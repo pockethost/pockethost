@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -80,12 +78,9 @@ func (s *Source) edgeByRecord(id string) (edgeRec, bool) {
 }
 
 // RouteConfig is ext/edge configured like the Node firewall: PocketHost's forwarded-by header, the daemon health
-// path other edges probe, PH_FIREWALL_DAEMON_GRACE_RETRY_MS, and PocketHost's 503 message. Edges is left for the caller.
+// path other edges probe, and PocketHost's 503 message. Edges is left for the caller.
 func RouteConfig(log *slog.Logger) ceedge.RouterConfig {
 	retry := 250 * time.Millisecond
-	if v, err := strconv.Atoi(os.Getenv("PH_FIREWALL_DAEMON_GRACE_RETRY_MS")); err == nil && time.Duration(v)*time.Millisecond > retry {
-		retry = time.Duration(v) * time.Millisecond
-	}
 	return ceedge.RouterConfig{
 		ForwardedByHeader:  ForwardedByHeader,
 		HealthPath:         DaemonHealthPath,

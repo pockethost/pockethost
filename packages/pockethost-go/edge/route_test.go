@@ -213,13 +213,12 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 	}
 }
 
-func TestFirewallFromEnv(t *testing.T) {
-	t.Setenv("IPCIDR_LIST", "173.245.48.0/20, 2400:cb00::/32")
-	t.Setenv("PH_USER_PROXY_IPS", "203.0.113.9")
-	fw := firewall.Config{AllowCIDRs: []string{"10.88.0.0/24"}, TrustedProxies: []string{"10.88.0.0/24"}}
-	FirewallFromEnv(&fw)
-	if strings.Join(fw.AllowCIDRs, ",") != "10.88.0.0/24,173.245.48.0/20,2400:cb00::/32,127.0.0.0/8,::1/128" ||
-		strings.Join(fw.TrustedProxies, ",") != "10.88.0.0/24,173.245.48.0/20,2400:cb00::/32" ||
+// PocketHost's firewall defaults over the `firewall` section: loopback allowed and trusted, the Node header names.
+func TestFirewallDefaults(t *testing.T) {
+	fw := firewall.Config{AllowCIDRs: []string{"10.88.0.0/24", "173.245.48.0/20"}, TrustedProxies: []string{"10.88.0.0/24"},
+		TrustedClients: []string{"203.0.113.9"}}
+	FirewallDefaults(&fw, nil)
+	if strings.Join(fw.AllowCIDRs, ",") != "10.88.0.0/24,173.245.48.0/20,127.0.0.0/8,::1/128" ||
 		strings.Join(fw.TrustedClients, ",") != "203.0.113.9,127.0.0.0/8,::1/128" {
 		t.Fatalf("%+v", fw)
 	}

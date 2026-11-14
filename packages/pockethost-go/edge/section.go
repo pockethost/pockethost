@@ -19,6 +19,7 @@ import (
 //	  mothership: { url: http://10.88.0.10:8090, email: $MOTHERSHIP_ADMIN_USERNAME, password: $MOTHERSHIP_ADMIN_PASSWORD }
 //	  backup_token_secret: $PH_SECRET
 //	  vacuum_cron: "0 11 * * *"
+//	  discord_health_url: $DISCORD_HEALTH_CHANNEL_URL   # the nightly vacuum's summary
 type SectionConfig struct {
 	Edge struct {
 		ID          string `yaml:"id"`
@@ -36,6 +37,7 @@ type SectionConfig struct {
 	} `yaml:"mothership"`
 	BackupTokenSecret string        `yaml:"backup_token_secret"`
 	VacuumCron        string        `yaml:"vacuum_cron"`
+	DiscordHealthURL  string        `yaml:"discord_health_url"`
 	Heartbeat         time.Duration `yaml:"heartbeat"`
 	DriftCheck        time.Duration `yaml:"drift_check"`
 	DisableWebhooks   bool          `yaml:"disable_webhooks"`
@@ -44,7 +46,7 @@ type SectionConfig struct {
 // Section is the key of the `pockethost` section.
 var Section = ceplugin.NewSection("pockethost", SectionConfig{}, "PocketHost edge: this edge's id/region/internal URL, apex and app URLs, the mothership login, backup token secret, vacuum schedule.")
 
-// ConfigFromSection is ConfigFromEnv for pocketbase.yaml.
+// ConfigFromSection builds the edge's Config from the `pockethost` section.
 func ConfigFromSection(s SectionConfig) (Config, error) {
 	apex := or(s.Apex, "pockethost.io")
 	proto := or(s.Protocol, "https:")
@@ -75,7 +77,7 @@ func ConfigFromSection(s SectionConfig) (Config, error) {
 	return c, nil
 }
 
-// FirewallDefaults is FirewallFromEnv without the environment: loopback is always allowed and trusted (the edge's
+// FirewallDefaults are PocketHost's firewall settings over the `firewall` section: loopback is always allowed and trusted (the edge's
 // own scheduled calls and health checks), and rate-limit headers keep the Node firewall's names unless set.
 func FirewallDefaults(fw *firewall.Config, _ **firewall.RateLimits) {
 	if len(fw.AllowCIDRs) > 0 {
