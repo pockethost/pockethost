@@ -186,7 +186,7 @@ func edgeServe(args []string) {
 		})
 		ready := func() bool { m := manager(); return m != nil && m.Ready() } // LB health is 503 until instances load
 		srv.Wrap = func(h http.Handler) http.Handler {
-			return source.Front(fw, ready, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
+			return source.Front(fw, ready, edge.PoweredBy, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
 		}
 		if edge.WebhooksDisabled() {
 			slog.Info("pockethost: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")

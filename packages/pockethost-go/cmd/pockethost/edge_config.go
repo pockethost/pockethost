@@ -88,6 +88,10 @@ func edgeServeConfig(configPath, envPath, vacuumCronFlag string) error {
 		return nil
 	}
 	provider, _ := config.Provider.Get()
+	poweredBy := "" // docker: the instance's own server names itself (PocketOne says "PocketOne")
+	if provider == "pocker" {
+		poweredBy = edge.PoweredBy
+	}
 	var root string
 	switch provider {
 	case "pocker":
@@ -156,7 +160,7 @@ func edgeServeConfig(configPath, envPath, vacuumCronFlag string) error {
 	st := servertiming.New()
 	h.Wrappers = append([]func(http.Handler) http.Handler{st.Wrap}, h.Wrappers...) // outermost: its header includes the edge's hops
 	h.Wrappers = append(h.Wrappers, func(next http.Handler) http.Handler {
-		return source.Front(fw, ready, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(next))))
+		return source.Front(fw, ready, poweredBy, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(next))))
 	})
 	if ph.DisableWebhooks || edge.WebhooksDisabled() {
 		log.Info("pockethost: instance webhooks disabled")

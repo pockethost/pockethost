@@ -294,7 +294,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
 		Firewall: fw, Plugins: []pocker.Plugin{servertiming.New()},
 		Wrap: func(h http.Handler) http.Handler {
-			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, NodeCompat(stats.Middleware(h)))
+			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, PoweredBy, NodeCompat(stats.Middleware(h)))
 		},
 		OnEvent: func(e pocker.Event) {}, OnStart: running.Store}
 	go source.NewScheduler(func() Instances {

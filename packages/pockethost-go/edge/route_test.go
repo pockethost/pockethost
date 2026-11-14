@@ -180,7 +180,7 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 		t.Fatal(err)
 	}
 	ready := false
-	h := s.Front(fw, func() bool { return ready }, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("in")) }))
+	h := s.Front(fw, func() bool { return ready }, PoweredBy, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("in")) }))
 	do := func(path, peer string) *httptest.ResponseRecorder {
 		r := httptest.NewRequest("GET", "http://away.pockethost.io"+path, nil)
 		r.RemoteAddr = peer + ":1234"
@@ -197,6 +197,15 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 	}
 	if w := do("/", "198.51.100.7"); w.Code != 403 {
 		t.Fatalf("non-Cloudflare peer: %d", w.Code)
+	}
+	if got := do(FirewallHealthPath, "198.51.100.7").Header().Get("X-Powered-By"); got != PoweredBy {
+		t.Fatalf("a Pocker edge's X-Powered-By: %q", got)
+	}
+	silent := s.Front(fw, nil, "", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	sw := httptest.NewRecorder()
+	silent.ServeHTTP(sw, httptest.NewRequest("GET", "http://away.pockethost.io"+FirewallHealthPath, nil))
+	if got := sw.Header().Values("X-Powered-By"); len(got) != 0 {
+		t.Fatalf("a docker edge sets no X-Powered-By of its own: %v", got)
 	}
 	w := do("/", "173.245.48.10")
 	if w.Code != 200 || w.Header().Get(HeaderEdgeName) != "sgp-1" || w.Header().Get(HeaderOriginName) != "sfo" {
