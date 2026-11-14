@@ -1,5 +1,5 @@
 // pockethost.io as an assets-only Cloudflare Worker (replaces the Pages project `pockethost`).
-// Plan: pockethost-support plans/dashboard-workers-migration.md
+// Plan: private maintainer notes (dashboard-workers-migration)
 {
   "name": "pockethost-dashboard",
   "compatibility_date": "2026-11-01",
