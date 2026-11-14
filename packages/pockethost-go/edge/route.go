@@ -38,9 +38,11 @@ const (
 	HeaderOriginRegion = "X-PocketHost-Origin-Region"
 )
 
-// PoweredBy is the X-Powered-By on responses this edge fulfills (Node edges send "PocketHost"). A forwarded response
-// keeps the owner edge's value, so the header names who fulfilled the request, not the edge it entered at.
-const PoweredBy = "Pocker"
+// PoweredBy is the X-Powered-By on responses a Pocker edge fulfills (Node edges send "PocketHost"). An edge on another
+// runtime sets none: the instance's own server names itself (the PocketOne binary says "PocketOne", upstream
+// PocketBase says nothing). A forwarded response keeps the owner's value (or none), so the header names who fulfilled
+// the request, not the edge it entered at. It carries the PocketOne version Pocker runs ("Pocker 0.0.2").
+var PoweredBy = "Pocker " + pocker.Version()
 
 func parsePBTime(v string) (time.Time, error) {
 	v = strings.Replace(strings.TrimSpace(v), " ", "T", 1)
@@ -208,8 +210,9 @@ const FirewallHealthPath = "/api/firewall/health"
 // Front is the edge's outer middleware (the Node firewall's job, in front of the instances): the load balancer
 // health route, the peer allowlist, and the edge routing headers. Instance routing, rate limits and forwarding
 // happen in Pocker's Manager behind it. ready reports whether the Manager has loaded the instance list; until it
-// does, the health route answers 503 so the load balancer keeps traffic away (nil means always ready).
-func (s *Source) Front(fw *firewall.Firewall, ready func() bool, next http.Handler) http.Handler {
+// does, the health route answers 503 so the load balancer keeps traffic away (nil means always ready). poweredBy is
+// the X-Powered-By this edge sets (PoweredBy for Pocker, "" when the instances' own servers name themselves).
+func (s *Source) Front(fw *firewall.Firewall, ready func() bool, poweredBy string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		forwarded := r.Header.Get(ForwardedByHeader) != ""
@@ -218,7 +221,9 @@ func (s *Source) Front(fw *firewall.Firewall, ready func() bool, next http.Handl
 		pocker.Timing(r.Context(), func() []pocker.TimingEntry { // reported by the servertiming plugin
 			return edgeTimingEntries(s.cfg.EdgeID, forwarded, mark, time.Since(start), time.Now())
 		})
-		w.Header().Set("X-Powered-By", PoweredBy)
+		if poweredBy != "" {
+			w.Header().Set("X-Powered-By", poweredBy)
+		}
 		if r.URL.Path == FirewallHealthPath {
 			ceedge.OpenCORSHeaders(w, r)
 			w.Header().Set("Content-Type", "application/json")

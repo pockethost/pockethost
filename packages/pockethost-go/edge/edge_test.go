@@ -38,7 +38,8 @@ func TestMapInstance(t *testing.T) {
 	owner := &userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1, TrustedIPs: raw(`["203.0.113.0/24"]`)}
 	inst := instanceRec{ID: "abc123", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", Cname: "Shop.Example.com",
 		Secrets:  raw(`{"STRIPE_KEY":"sk","PH_CORS_ORIGINS":"https://a.com, https://b.com,https://a.com","PB_ENCRYPTION_KEY":"k32"}`),
-		Firewall: raw(`"{\"ip_hourly\": 2000, \"ip_concurrent\": 1.5, \"instance_hourly\": -1}"`), SyncAdmin: true}
+		Firewall: raw(`"{\"ip_hourly\": 2000, \"ip_concurrent\": 1.5, \"instance_hourly\": -1}"`), SyncAdmin: true,
+		Version: "p1:0.0.*"}
 	login := func(uid string) *tokenInfo {
 		return &tokenInfo{Email: "o@x.com", PasswordHash: "$2a$hash", TokenKey: "tk"}
 	}
@@ -46,6 +47,9 @@ func TestMapInstance(t *testing.T) {
 	p, ok := mapInstance(testCfg, inst, owner, "E_SGP", login)
 	if !ok || p.Blocked != nil {
 		t.Fatalf("own instance: ok=%v %+v", ok, p.Blocked)
+	}
+	if p.Version != "p1:0.0.*" {
+		t.Fatalf("version %q: the docker runtime needs the instance's version", p.Version)
 	}
 	if strings.Join(p.Hosts, ",") != "shop.pockethost.io,abc123.pockethost.io,shop.example.com" {
 		t.Errorf("hosts: %v", p.Hosts)
@@ -277,7 +281,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 
 	addr := freeAddr(t)
 	pcfg := pocker.DefaultConfig()
-	pcfg.Listen, pcfg.PBRoot, pcfg.MemorySoftLimit = addr, t.TempDir(), -1
+	pcfg.Listen, pcfg.PBRoot = addr, t.TempDir()
 	hooksDir := filepath.Join(pcfg.PBRoot, "mine1", "pb_hooks")
 	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -290,10 +294,15 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
 		Firewall: fw, Plugins: []pocker.Plugin{servertiming.New()},
 		Wrap: func(h http.Handler) http.Handler {
-			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, NodeCompat(stats.Middleware(h)))
+			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, PoweredBy, NodeCompat(stats.Middleware(h)))
 		},
 		OnEvent: func(e pocker.Event) {}, OnStart: running.Store}
-	go source.NewScheduler(running.Load).Run(ctx)
+	go source.NewScheduler(func() Instances {
+		if m := running.Load(); m != nil {
+			return m
+		}
+		return nil
+	}).Run(ctx)
 	done := make(chan error, 1)
 	go func() { done <- srv.Run(ctx) }()
 	defer func() { cancel(); <-done }()

@@ -1304,11 +1304,17 @@ const isSelectableVersion = (range) => {
 	const min = MIN_SELECTABLE_POCKETBASE_VERSION;
 	return major > min.major || major === min.major && minor >= min.minor;
 };
+/**
+* Whether a range is a PocketOne release line (`p1:0.0.*`). PocketOne versions are valid on an instance when the
+* mothership's list has them, but they aren't offered in the dashboard yet (sfo's Node edge can't run them).
+*/
+const isPocketOneVersion = (range) => /^p1:\d+\.\d+\.\*$/.test(range.trim());
 /** Versions a user may pick for a new instance or a version change. */
 const listSelectableVersions = () => listVersions().filter(isSelectableVersion);
 /** Error message for a version that isn't selectable, or null when it's fine. */
 const selectableVersionError = (version, selectable) => {
 	if (typeof version !== "string" || !version) return `A PocketBase version is required. Version must be one of: ${selectable.join(", ")}`;
+	if (isPocketOneVersion(version)) return listVersions().includes(version) ? null : `PocketOne ${version} is not offered. Version must be one of: ${selectable.join(", ")}`;
 	if (!isSelectableVersion(version)) return `PocketBase ${version} is no longer supported for new instances or version changes. Use 0.23 or later.`;
 	if (selectable.length && !selectable.includes(version)) return `Invalid version ${version}. Version must be one of: ${selectable.join(", ")}`;
 	return null;

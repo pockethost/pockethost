@@ -180,7 +180,7 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 		t.Fatal(err)
 	}
 	ready := false
-	h := s.Front(fw, func() bool { return ready }, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("in")) }))
+	h := s.Front(fw, func() bool { return ready }, PoweredBy, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("in")) }))
 	do := func(path, peer string) *httptest.ResponseRecorder {
 		r := httptest.NewRequest("GET", "http://away.pockethost.io"+path, nil)
 		r.RemoteAddr = peer + ":1234"
@@ -197,6 +197,15 @@ func TestFrontPeerCheckAndHealth(t *testing.T) {
 	}
 	if w := do("/", "198.51.100.7"); w.Code != 403 {
 		t.Fatalf("non-Cloudflare peer: %d", w.Code)
+	}
+	if got := do(FirewallHealthPath, "198.51.100.7").Header().Get("X-Powered-By"); got != PoweredBy {
+		t.Fatalf("a Pocker edge's X-Powered-By: %q", got)
+	}
+	silent := s.Front(fw, nil, "", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	sw := httptest.NewRecorder()
+	silent.ServeHTTP(sw, httptest.NewRequest("GET", "http://away.pockethost.io"+FirewallHealthPath, nil))
+	if got := sw.Header().Values("X-Powered-By"); len(got) != 0 {
+		t.Fatalf("a docker edge sets no X-Powered-By of its own: %v", got)
 	}
 	w := do("/", "173.245.48.10")
 	if w.Code != 200 || w.Header().Get(HeaderEdgeName) != "sgp-1" || w.Header().Get(HeaderOriginName) != "sfo" {
@@ -303,7 +312,7 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	}
 	opts := DefaultVacuumOptions()
 	opts.DiscordURL = ""
-	sum := s.NewVacuumer(func() *pocker.Manager { return m }, opts).Sweep(ctx)
+	sum := s.NewVacuumer(func() Instances { return m }, opts).Sweep(ctx)
 	after := fileSize(dbPath)
 	if sum.Vacuumed != 1 || sum.SavedBytes <= 0 || after >= before/2 || len(sum.Failed) != 0 {
 		t.Fatalf("sweep: %+v before=%d after=%d", sum, before, after)
@@ -318,7 +327,54 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	}
 	db.Close()
 	// nothing to reclaim the second time: no stop at all
-	if sum := s.NewVacuumer(func() *pocker.Manager { return m }, opts).Sweep(ctx); sum.Vacuumed != 0 {
+	if sum := s.NewVacuumer(func() Instances { return m }, opts).Sweep(ctx); sum.Vacuumed != 0 {
 		t.Fatalf("second sweep: %+v", sum)
+	}
+}
+
+// A customer's SSR proxy on their Trusted IPs (mothership users.trusted_ips) names each end user in
+// X-PocketHost-Client-IP (the documented name) or X-Client-IP: each user gets their own trusted bucket, as on the
+// Node firewall. Anyone else's header is ignored.
+func TestTrustedProxyEndUserBuckets(t *testing.T) {
+	cfg := firewall.Config{}
+	FirewallDefaults(&cfg, nil)
+	if strings.Join(cfg.TrustedClientHeaders, ",") != "X-Client-IP,X-PocketHost-Client-IP" {
+		t.Fatalf("trusted client headers: %v", cfg.TrustedClientHeaders)
+	}
+	trustedHourly := 3
+	fw := &firewall.Firewall{Config: cfg, RateLimits: &firewall.RateLimits{IPHourly: 1, InstanceHourly: 1000,
+		Trusted: &firewall.RateLimitSet{IPHourly: trustedHourly, InstanceHourly: 1000}}}
+	owner := &userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1, TrustedIPs: raw(`["198.51.100.7"]`)}
+	inst, _ := mapInstance(testCfg, instanceRec{ID: "abc123", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP"},
+		owner, "E_SGP", nil)
+	admit := func(remote string, hdr map[string]string) int {
+		r := httptest.NewRequest(http.MethodGet, "http://shop.pockethost.io/api/health", nil)
+		r.RemoteAddr = remote
+		for k, v := range hdr {
+			r.Header.Set(k, v)
+		}
+		w := httptest.NewRecorder()
+		rel, ok := fw.Admit(w, r, inst)
+		if !ok {
+			return w.Code
+		}
+		rel()
+		return 200
+	}
+	// two users behind the proxy each use their own full trusted bucket
+	for _, u := range []struct{ h, ip string }{{"X-PocketHost-Client-IP", "192.0.2.10"}, {"X-Client-IP", "192.0.2.11"}} {
+		for i := 0; i < trustedHourly; i++ {
+			if code := admit("198.51.100.7:1", map[string]string{u.h: u.ip}); code != 200 {
+				t.Fatalf("user %s request %d: %d", u.ip, i, code)
+			}
+		}
+		if code := admit("198.51.100.7:1", map[string]string{u.h: u.ip}); code != http.StatusTooManyRequests {
+			t.Fatalf("user %s over its bucket: %d", u.ip, code)
+		}
+	}
+	// an untrusted client can't pick a fresh bucket with the header (ip_hourly is 1)
+	admit("192.0.2.99:1", map[string]string{"X-PocketHost-Client-IP": "192.0.2.20"})
+	if code := admit("192.0.2.99:1", map[string]string{"X-PocketHost-Client-IP": "192.0.2.21"}); code != http.StatusTooManyRequests {
+		t.Fatalf("untrusted client spoofing an end user: %d", code)
 	}
 }

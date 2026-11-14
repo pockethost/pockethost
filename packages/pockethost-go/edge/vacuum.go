@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/cron"
-	"github.com/pockethost/pocketone/ext/pocker"
 	_ "modernc.org/sqlite"
 )
 
@@ -47,12 +46,12 @@ func DefaultVacuumOptions() VacuumOptions {
 // Vacuumer runs the nightly vacuum for this edge's instances.
 type Vacuumer struct {
 	s       *Source
-	manager func() *pocker.Manager
+	manager func() Instances
 	opts    VacuumOptions
 }
 
 // NewVacuumer creates the vacuum job; manager returns the running Manager (nil until started).
-func (s *Source) NewVacuumer(manager func() *pocker.Manager, opts VacuumOptions) *Vacuumer {
+func (s *Source) NewVacuumer(manager func() Instances, opts VacuumOptions) *Vacuumer {
 	return &Vacuumer{s: s, manager: manager, opts: opts}
 }
 
@@ -212,7 +211,7 @@ func (v *Vacuumer) worthIt(path string) (need bool, why string) {
 }
 
 // vacuumInstance compacts the given databases while the instance is stopped, then starts it again if it was running.
-func (v *Vacuumer) vacuumInstance(ctx context.Context, m *pocker.Manager, id string, dbs []string) (int64, error) {
+func (v *Vacuumer) vacuumInstance(ctx context.Context, m Instances, id string, dbs []string) (int64, error) {
 	wasRunning := m.Running(id)
 	var saved int64
 	var errs []error

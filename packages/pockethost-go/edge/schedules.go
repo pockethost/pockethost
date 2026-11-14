@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/cron"
-	"github.com/pockethost/pocketone/ext/pocker"
 )
 
 // Scheduled webhooks (the Node edge's CronService): each instance on this edge may list {endpoint, value} webhooks in
@@ -78,7 +77,7 @@ func catchUpDue(s *cron.Schedule, lastFired, now time.Time) bool {
 // Scheduler fires instance webhooks through the Manager.
 type Scheduler struct {
 	s       *Source
-	manager func() *pocker.Manager
+	manager func() Instances
 	now     func() time.Time
 	sem     chan struct{}
 
@@ -89,7 +88,7 @@ type Scheduler struct {
 }
 
 // NewScheduler creates the webhook scheduler; manager returns the running Manager (nil until started).
-func (s *Source) NewScheduler(manager func() *pocker.Manager) *Scheduler {
+func (s *Source) NewScheduler(manager func() Instances) *Scheduler {
 	return &Scheduler{s: s, manager: manager, now: time.Now, sem: make(chan struct{}, webhookConcurrency),
 		parsed: map[string]*cron.Schedule{}, running: map[string]bool{}}
 }

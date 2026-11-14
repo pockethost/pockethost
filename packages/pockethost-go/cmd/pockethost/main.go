@@ -28,18 +28,19 @@ import (
 
 	ceedge "github.com/pockethost/pocketone/ext/edge"
 
+	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
+	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 	"github.com/pockethost/pocketone/ext/pages"
 	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
 	"github.com/pockethost/pocketone/ext/pitr"
 	"github.com/pockethost/pocketone/ext/pocker"
 	"github.com/pockethost/pocketone/ext/servertiming"
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
-	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 )
 
 const usage = `usage:
   pockethost edge serve [--env-file .env] [--config pocker.yaml] [--listen ADDR] [--pbRoot DIR] [--instances FILE]
   pockethost edge check [--env-file .env]
+  pockethost docker seed|update [--config pocketbase.yaml] [--env-file .env]
   pockethost mothership serve|migrate|superuser|version|hooks export ...   (see mothership.go)`
 
 func main() {
@@ -49,6 +50,12 @@ func main() {
 		os.Exit(2)
 	}
 	switch args[0] {
+	case "docker":
+		if err := dockerCmd(args[1:]); err != nil {
+			fmt.Fprintln(os.Stderr, "pockethost:", err)
+			os.Exit(1)
+		}
+		return
 	case "mothership":
 		mothership(args[1:])
 		return
@@ -87,6 +94,16 @@ func edgeServe(args []string) {
 	instances := fs.String("instances", "", "instances YAML file (overrides config)")
 	vacuumCron := fs.String("vacuum-cron", edge.DefaultVacuumOptions().Cron, `nightly vacuum schedule (UTC cron, "off" to disable)`)
 	_ = fs.Parse(args)
+
+	if hasProvider(*configPath) {
+		// pocketbase.yaml: a runtime provider (pocker or docker) and the pockethost section; secrets from --env-file
+		// (default .env beside it) stay out of the process environment
+		if err := edgeServeConfig(*configPath, *envFile, *vacuumCron); err != nil {
+			slog.Error("pockethost: serve", "error", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	if *envFile != "" {
 		if err := edge.LoadEnvFile(*envFile); err != nil {
@@ -148,6 +165,12 @@ func edgeServe(args []string) {
 		var running atomic.Pointer[pocker.Manager]
 		srv.OnStart = running.Store
 		manager := running.Load
+		instances := func() edge.Instances {
+			if m := manager(); m != nil {
+				return m
+			}
+			return nil
+		}
 		deployAPI := deploy.New(deploy.Options{
 			Backend: source.DeployBackend(),
 			Instances: func() deploy.Instances {
@@ -163,16 +186,16 @@ func edgeServe(args []string) {
 		})
 		ready := func() bool { m := manager(); return m != nil && m.Ready() } // LB health is 503 until instances load
 		srv.Wrap = func(h http.Handler) http.Handler {
-			return source.Front(fw, ready, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
+			return source.Front(fw, ready, edge.PoweredBy, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(h))))
 		}
 		if edge.WebhooksDisabled() {
 			slog.Info("pockethost: instance webhooks disabled (PH_DISABLE_INSTANCE_WEBHOOKS)")
 		} else {
-			go source.NewScheduler(manager).Run(ctx)
+			go source.NewScheduler(instances).Run(ctx)
 		}
 		vopts := edge.DefaultVacuumOptions()
 		vopts.Cron = *vacuumCron
-		go source.NewVacuumer(manager, vopts).Run(ctx)
+		go source.NewVacuumer(instances, vopts).Run(ctx)
 		slog.Info("pockethost: using the mothership", "url", ecfg.MothershipURL, "edge", ecfg.EdgeID, "region", ecfg.Region)
 	}
 	if err := srv.Run(ctx); err != nil {

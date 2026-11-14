@@ -127,6 +127,9 @@ func FirewallFromEnv(fw *firewall.Config) {
 	}
 	fw.TrustedClients = append(fw.TrustedClients, csv("PH_USER_PROXY_IPS")...)
 	fw.TrustedClients = append(fw.TrustedClients, "127.0.0.0/8", "::1/128")
+	if len(fw.TrustedClientHeaders) == 0 {
+		fw.TrustedClientHeaders = TrustedClientHeaders
+	}
 	if fw.RateLimitHeaderPrefix == "" {
 		fw.RateLimitHeaderPrefix = "X-PocketHost-RateLimit" // the Node firewall's header names
 	}
