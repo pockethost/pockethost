@@ -293,7 +293,12 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, NodeCompat(stats.Middleware(h)))
 		},
 		OnEvent: func(e pocker.Event) {}, OnStart: running.Store}
-	go source.NewScheduler(running.Load).Run(ctx)
+	go source.NewScheduler(func() Instances {
+		if m := running.Load(); m != nil {
+			return m
+		}
+		return nil
+	}).Run(ctx)
 	done := make(chan error, 1)
 	go func() { done <- srv.Run(ctx) }()
 	defer func() { cancel(); <-done }()

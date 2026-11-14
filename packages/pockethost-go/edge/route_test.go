@@ -303,7 +303,7 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	}
 	opts := DefaultVacuumOptions()
 	opts.DiscordURL = ""
-	sum := s.NewVacuumer(func() *pocker.Manager { return m }, opts).Sweep(ctx)
+	sum := s.NewVacuumer(func() Instances { return m }, opts).Sweep(ctx)
 	after := fileSize(dbPath)
 	if sum.Vacuumed != 1 || sum.SavedBytes <= 0 || after >= before/2 || len(sum.Failed) != 0 {
 		t.Fatalf("sweep: %+v before=%d after=%d", sum, before, after)
@@ -318,7 +318,7 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	}
 	db.Close()
 	// nothing to reclaim the second time: no stop at all
-	if sum := s.NewVacuumer(func() *pocker.Manager { return m }, opts).Sweep(ctx); sum.Vacuumed != 0 {
+	if sum := s.NewVacuumer(func() Instances { return m }, opts).Sweep(ctx); sum.Vacuumed != 0 {
 		t.Fatalf("second sweep: %+v", sum)
 	}
 }
