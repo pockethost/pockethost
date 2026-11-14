@@ -7,13 +7,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 	"github.com/pockethost/pocketone/ext/config"
 	"github.com/pockethost/pocketone/ext/docker"
 )
 
-// dockerCmd is `pockethost docker seed|update --config pocketbase.yaml`: the release binaries a docker edge serves
-// (docker.versions). update finds the latest patch of each minor, records and downloads it; seed downloads what is
-// listed but not cached, e.g. before switching an edge to docker.
+// dockerCmd is `pockethost docker seed|update --config pocketbase.yaml`: the release binaries a docker edge serves.
+// On a PocketHost edge (the config has a pockethost section) the mothership's versions list says which: seed
+// downloads what it lists but isn't cached (e.g. before switching an edge to docker), and update is refused (the
+// mothership keeps the list). Without a pockethost section, docker.versions does: update finds the latest patch of
+// each tracked minor, records and downloads it; seed downloads what is recorded but not cached.
 func dockerCmd(args []string) error {
 	if len(args) == 0 || (args[0] != "seed" && args[0] != "update") {
 		return errors.New("usage: pockethost docker seed|update [--config pocketbase.yaml] [--env-file .env]")
@@ -32,6 +35,16 @@ func dockerCmd(args []string) error {
 	}
 	b := &docker.Binaries{Root: cfg.ResolvePath(sc.Binaries)}
 	ctx := context.Background()
+	if ph, ok := edge.Section.Get(); ok {
+		if args[0] == "update" {
+			return errors.New("the mothership keeps the versions list on a PocketHost edge: run `pockethost mothership versions update` there; `docker seed` downloads what it lists")
+		}
+		ecfg, err := edge.ConfigFromSection(ph)
+		if err != nil {
+			return err
+		}
+		return docker.RunSeed(ctx, os.Stdout, edge.NewSource(ecfg, nil).Versions(), b)
+	}
 	if args[0] == "update" {
 		return docker.RunUpdate(ctx, os.Stdout, docker.DefaultDiscovery(), b, sc.Versions)
 	}
