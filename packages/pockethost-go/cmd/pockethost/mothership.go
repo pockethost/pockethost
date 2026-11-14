@@ -91,6 +91,8 @@ func mothership(args []string) {
 		Priority: 999,
 	})
 
+	app.RootCmd.AddCommand(versionsCmd(app)) // the releases every docker edge serves
+
 	log.Printf("pockethost mothership %s", mothershipVersion())
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
