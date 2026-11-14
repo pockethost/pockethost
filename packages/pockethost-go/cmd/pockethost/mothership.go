@@ -86,12 +86,14 @@ func mothership(args []string) {
 			if !e.Router.HasRoute(http.MethodGet, "/{path...}") {
 				e.Router.GET("/{path...}", apis.Static(fstest.MapFS{}, true))
 			}
+			// the mothership keeps its own versions list (pocketbase_versions); nothing else writes it
+			scheduleVersions(e.App)
 			return e.Next()
 		},
 		Priority: 999,
 	})
 
-	app.RootCmd.AddCommand(versionsCmd(app)) // the releases every docker edge serves
+	app.RootCmd.AddCommand(versionsCmd(app)) // the versions list, by hand
 
 	log.Printf("pockethost mothership %s", mothershipVersion())
 	if err := app.Start(); err != nil {
