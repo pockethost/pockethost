@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
   import { isUserLoggedIn } from '$util/stores'
   import { AFTER_CHECKOUT_PATH, CLAIM_PATH, startCheckout as openCheckout } from '$util/billing'
 
@@ -38,7 +37,7 @@
     try {
       // Logged out: pay first, then claim the account the payment creates.
       const next = $isUserLoggedIn ? AFTER_CHECKOUT_PATH : CLAIM_PATH
-      await openCheckout(pvId, () => goto(next))
+      await openCheckout(pvId, next)
     } catch (err) {
       console.error(err)
       checkoutError = err instanceof Error ? err.message : 'Could not start checkout. Please try again.'

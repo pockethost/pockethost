@@ -79,11 +79,11 @@ const embedUrl = (url: string) => {
 }
 
 /**
- * Start checkout for a plan. Opens the checkout as an overlay on our page when Lemon.js loads, and calls `onSuccess`
+ * Start checkout for a plan. Opens the checkout as an overlay on our page when Lemon.js loads, and goes to `nextPath`
  * when the payment goes through; otherwise sends the browser to the hosted checkout page. Logged out, the payment
  * creates the account: the claim token is kept for /claim.
  */
-export const startCheckout = async (pvId: string, onSuccess: () => void) => {
+export const startCheckout = async (pvId: string, nextPath: string) => {
   const { url, claim } = await createLemonSqueezyCheckout(pvId)
   if (claim) saveClaim(claim)
   const ls = await loadLemonJs()
@@ -94,8 +94,10 @@ export const startCheckout = async (pvId: string, onSuccess: () => void) => {
   ls.Setup({
     eventHandler: (e) => {
       if (e.event === 'Checkout.Success') {
+        // A full page load, not a client-side goto: Lemon.js leaves its overlay layer (backdrop + spinner) in the DOM
+        // after Close(), which covered /claim.
         ls.Url.Close()
-        onSuccess()
+        window.location.assign(nextPath)
       }
     },
   })
