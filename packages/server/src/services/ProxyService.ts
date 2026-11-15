@@ -33,7 +33,7 @@ export type ProxyMiddleware = (
 /** Set by the instance handler: when it asked for the instance (`wakeStart`) and when it was ready (`readyAt`). */
 export type InstanceTiming = { wakeStart: number; readyAt?: number }
 
-/** Pure: this edge's Server-Timing entries (`origin`, `wake`, `edge`). See common/serverTiming.ts. */
+/** Pure: this edge's Server-Timing entries (`origin`, `wake`, `edge`). See core/serverTiming.ts. */
 export const daemonTimingEntries = (
   timing: InstanceTiming | undefined,
   elapsedMs: number,

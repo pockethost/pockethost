@@ -52,7 +52,7 @@ export const firewall = async ({ logger }: FirewallOptions) => {
   // Create Express app
   const app = express()
   app.disable('x-powered-by')
-  // First, so `entry` covers everything this edge does (rate limits, routing, holds). See common/serverTiming.ts.
+  // First, so `entry` covers everything this edge does (rate limits, routing, holds). See core/serverTiming.ts.
   app.use(
     serverTimingMiddleware((req, _res, elapsedMs) => [
       ...forwardTiming(req, PH_EDGE_ID()),
