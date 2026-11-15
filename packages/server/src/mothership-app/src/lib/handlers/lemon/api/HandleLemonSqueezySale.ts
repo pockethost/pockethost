@@ -42,8 +42,10 @@ type SaleContext = {
   stale_event_skipped?: boolean
 }
 
-/** Events that post to the lemon_cancel_discord channel. */
-const CANCEL_EVENTS = [`subscription_cancelled`, `order_refunded`, `subscription_payment_refunded`]
+/** Events that post to the lemon_cancel_discord template. */
+const CANCEL_EVENTS = [`subscription_cancelled`]
+/** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
+const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`]
 
 /**
  * Lemon Squeezy webhook. Every event updates the one billing item it is about (subscription or lifetime order), then
@@ -206,6 +208,8 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       notify(`lemonbot`, `lemon_order_discord`, userRec.id, context)
     } else if (CANCEL_EVENTS.includes(context.event_name)) {
       notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context)
+    } else if (REFUND_EVENTS.includes(context.event_name)) {
+      notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context)
     }
 
     audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context)
