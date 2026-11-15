@@ -580,6 +580,1040 @@ const HandlePatWhoami = (e) => {
 };
 
 //#endregion
+//#region src/lib/util/Logger.ts
+const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
+	if (typeof p === "object") return JSON.stringify(p, null, 2);
+	return p;
+}));
+const dbg = (...args) => console.log(args);
+const interpolateString = (template, dict) => {
+	return template.replace(/\{\$(\w+)\}/g, (match, key) => {
+		dbg({
+			match,
+			key
+		});
+		const lowerKey = key.toLowerCase();
+		return dict.hasOwnProperty(lowerKey) ? dict[lowerKey] || "" : match;
+	});
+};
+
+//#endregion
+//#region src/lib/util/bulkmail/template.ts
+const pathRe = /^[A-Za-z_]\w*(\.[A-Za-z_]\w*)*$/;
+const parseTemplate = (src) => {
+	const root = [];
+	const stack = [];
+	const push = (n) => {
+		const f = stack[stack.length - 1];
+		if (!f) root.push(n);
+		else if (f.inElse) f.node.els.push(n);
+		else f.node.then.push(n);
+	};
+	const tagRe = /\{\{\s*(.*?)\s*\}\}/g;
+	let pos = 0;
+	let m;
+	while (m = tagRe.exec(src)) {
+		if (m.index > pos) push({
+			kind: "text",
+			text: src.slice(pos, m.index)
+		});
+		pos = m.index + m[0].length;
+		const tag = m[1];
+		if (tag.startsWith("if ")) {
+			let cond = tag.slice(3).trim();
+			let negate = false;
+			if (cond.startsWith("!")) {
+				negate = true;
+				cond = cond.slice(1).trim();
+			}
+			if (!pathRe.test(cond)) throw new Error(`invalid condition "${tag}"`);
+			stack.push({
+				node: {
+					kind: "if",
+					path: cond,
+					negate,
+					then: [],
+					els: []
+				},
+				inElse: false
+			});
+		} else if (tag === "else") {
+			const f = stack[stack.length - 1];
+			if (!f || f.inElse) throw new Error("unexpected {{else}}");
+			f.inElse = true;
+		} else if (tag === "end") {
+			const f = stack.pop();
+			if (!f) throw new Error("unexpected {{end}}");
+			push(f.node);
+		} else {
+			if (!pathRe.test(tag)) throw new Error(`invalid placeholder {{${tag}}}`);
+			push({
+				kind: "var",
+				path: tag
+			});
+		}
+	}
+	if (stack.length) throw new Error(`missing {{end}} for {{if ${stack[stack.length - 1].node.path}}}`);
+	if (pos < src.length) push({
+		kind: "text",
+		text: src.slice(pos)
+	});
+	return root;
+};
+const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&#34;").replace(/'/g, "&#39;");
+const lookup = (data, path) => {
+	let cur = data;
+	for (const part of path.split(".")) {
+		if (cur === null || typeof cur !== "object") return void 0;
+		cur = cur[part];
+	}
+	return cur;
+};
+const toStr = (v) => {
+	if (v === void 0 || v === null) return "";
+	if (Array.isArray(v)) return v.join(", ");
+	return String(v);
+};
+const truthy = (v) => {
+	if (v === void 0 || v === null) return false;
+	if (typeof v === "boolean") return v;
+	if (typeof v === "number") return v !== 0;
+	if (typeof v === "string") {
+		const s = v.trim().toLowerCase();
+		return s !== "" && s !== "0" && s !== "false";
+	}
+	if (Array.isArray(v)) return v.length > 0;
+	if (typeof v === "object") return Object.keys(v).length > 0;
+	return toStr(v) !== "";
+};
+const renderNodes = (nodes, data, escape) => nodes.map((n) => {
+	if (n.kind === "text") return n.text;
+	if (n.kind === "var") {
+		const v = toStr(lookup(data, n.path));
+		return escape ? escapeHtml(v) : v;
+	}
+	return truthy(lookup(data, n.path)) !== n.negate ? renderNodes(n.then, data, escape) : renderNodes(n.els, data, escape);
+}).join("");
+const renderTemplate = (src, data, escape) => renderNodes(parseTemplate(src), data, escape);
+/** Legacy mailer placeholders: {$Var} (keys were matched lowercased) → {{var}}. */
+const convertLegacyTemplate = (src) => src.replace(/\{\$(\w+)\}/g, (_m, key) => `{{${key.toLowerCase()}}}`);
+const footerHtml = (unsubscribeUrl, postal) => {
+	let s = `<hr style="border:0;border-top:1px solid #ddd;margin:24px 0 12px"><p style="font-size:12px;color:#777">Don't want these emails? <a href="${escapeHtml(unsubscribeUrl)}">Unsubscribe</a>.`;
+	postal = postal.trim();
+	if (postal) s += "<br>" + escapeHtml(postal).replace(/\n/g, "<br>");
+	return s + "</p>";
+};
+const footerText = (unsubscribeUrl, postal) => {
+	let s = "\n\n--\nUnsubscribe: " + unsubscribeUrl;
+	postal = postal.trim();
+	if (postal) s += "\n" + postal;
+	return s;
+};
+const entities = {
+	"&amp;": "&",
+	"&lt;": "<",
+	"&gt;": ">",
+	"&quot;": "\"",
+	"&#34;": "\"",
+	"&#39;": "'",
+	"&nbsp;": " "
+};
+const htmlToText = (s) => {
+	s = s.replace(/<br\s*\/?>|<\/p>|<\/div>|<\/h[1-6]>|<\/li>/gi, "\n");
+	s = s.replace(/<[^>]*>/g, "");
+	s = s.replace(/&[#\w]+;/g, (e) => entities[e] ?? e);
+	return s.split("\n").map((l) => l.trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+};
+const normalizeEmail = (s) => {
+	const e = `${s ?? ""}`.trim().toLowerCase();
+	return /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[^\s@<>(),;:"]+$/.test(e) ? e : "";
+};
+
+//#endregion
+//#region src/lib/util/bulkmail/token.ts
+/**
+* Unsubscribe tokens, byte-for-byte the same as PocketBase CE ext/bulkmail (suppress.go), so links mailed by the legacy
+* mothership keep working after the CE plugin takes over (it reads the same secret from _params "bulkmail"):
+*
+* Base64url(email + "\n" + campaignId) + "." + base64url(first 16 bytes of HMAC-SHA256(secret, payload))
+*/
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const utf8$1 = (s) => {
+	const out = [];
+	for (const ch of s) {
+		let c = ch.codePointAt(0);
+		if (c < 128) out.push(c);
+		else if (c < 2048) out.push(192 | c >> 6, 128 | c & 63);
+		else if (c < 65536) out.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
+		else out.push(240 | c >> 18, 128 | c >> 12 & 63, 128 | c >> 6 & 63, 128 | c & 63);
+	}
+	return out;
+};
+const fromUtf8 = (b) => {
+	let s = "";
+	for (let i = 0; i < b.length;) {
+		const c = b[i];
+		let cp;
+		if (c < 128) cp = c, i += 1;
+		else if (c < 224) cp = (c & 31) << 6 | b[i + 1] & 63, i += 2;
+		else if (c < 240) cp = (c & 15) << 12 | (b[i + 1] & 63) << 6 | b[i + 2] & 63, i += 3;
+		else cp = (c & 7) << 18 | (b[i + 1] & 63) << 12 | (b[i + 2] & 63) << 6 | b[i + 3] & 63, i += 4;
+		s += String.fromCodePoint(cp);
+	}
+	return s;
+};
+const b64url = (bytes) => {
+	let s = "";
+	for (let i = 0; i < bytes.length; i += 3) {
+		const n = bytes[i] << 16 | (bytes[i + 1] ?? 0) << 8 | (bytes[i + 2] ?? 0);
+		s += B64[n >> 18 & 63] + B64[n >> 12 & 63];
+		if (i + 1 < bytes.length) s += B64[n >> 6 & 63];
+		if (i + 2 < bytes.length) s += B64[n & 63];
+	}
+	return s;
+};
+const b64urlDecode = (s) => {
+	const out = [];
+	let buf = 0;
+	let bits = 0;
+	for (const ch of s) {
+		const v = B64.indexOf(ch);
+		if (v < 0) return null;
+		buf = buf << 6 | v;
+		bits += 6;
+		if (bits >= 8) {
+			bits -= 8;
+			out.push(buf >> bits & 255);
+		}
+	}
+	return out;
+};
+const hexBytes = (hex) => {
+	const out = [];
+	for (let i = 0; i + 1 < hex.length; i += 2) out.push(parseInt(hex.slice(i, i + 2), 16));
+	return out;
+};
+const unsubscribeToken = (hs256, secret, email, campaignId) => {
+	const payload = `${email}`.trim().toLowerCase() + "\n" + campaignId;
+	return b64url(utf8$1(payload)) + "." + b64url(hexBytes(hs256(payload, secret)).slice(0, 16));
+};
+const parseUnsubscribeToken = (hs256, secret, token) => {
+	const dot = token.indexOf(".");
+	if (dot < 0) return null;
+	const raw = b64urlDecode(token.slice(0, dot));
+	if (!raw) return null;
+	const payload = fromUtf8(raw);
+	const nl = payload.indexOf("\n");
+	const email = nl < 0 ? payload : payload.slice(0, nl);
+	const campaignId = nl < 0 ? "" : payload.slice(nl + 1);
+	if (!email.includes("@")) return null;
+	const want = unsubscribeToken(hs256, secret, email, campaignId);
+	if (want.length !== token.length) return null;
+	let diff = 0;
+	for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ token.charCodeAt(i);
+	return diff === 0 ? {
+		email: email.toLowerCase(),
+		campaignId
+	} : null;
+};
+
+//#endregion
+//#region src/lib/handlers/bulkmail/engine.ts
+/**
+* Bulk mail on the legacy mothership, on the PocketBase CE ext/bulkmail schema (_bulkmail_campaigns, _bulkmail_sends,
+* _bulkmail_suppressions, _params "bulkmail"). Same routes, statuses, ledger and unsubscribe tokens as the CE plugin,
+* so the Pocker mothership can take over the same database with nothing to convert.
+*
+* PocketHost specifics (the EE part): recipients must be verified users, and users.unsubscribe stays in sync with the
+* suppression list both ways (see sync.ts).
+*/
+const BM_CAMPAIGNS = "_bulkmail_campaigns";
+const BM_SENDS = "_bulkmail_sends";
+const BM_SUPPRESSIONS = "_bulkmail_suppressions";
+const MAX_ATTEMPTS = 3;
+const BRAKE_MIN = 100;
+const BRAKE_RATE = .05;
+const nowStr = () => (/* @__PURE__ */ new Date()).toISOString().replace("T", " ");
+const bulkMailLimits = () => {
+	return {
+		rate: parseFloat(`${process.env.BULKMAIL_RATE || ""}`) || 10,
+		daily: parseInt(`${process.env.BULKMAIL_DAILY || ""}`, 10) || 5e4
+	};
+};
+const getSettings = (app = $app) => {
+	const s = {
+		postalAddress: "",
+		unsubscribeMailto: "",
+		snsTopicArns: [],
+		secret: "",
+		webhookSecret: ""
+	};
+	const row = new DynamicModel({ value: "" });
+	try {
+		app.db().newQuery(`SELECT value FROM _params WHERE id = 'bulkmail'`).one(row);
+		Object.assign(s, JSON.parse(row.value || "{}"));
+	} catch (_e) {}
+	if (!s.secret) {
+		s.secret = $security.randomStringWithAlphabet(64, "0123456789abcdef");
+		saveSettings(s, app);
+	}
+	return s;
+};
+const saveSettings = (s, app = $app) => {
+	const value = JSON.stringify(s);
+	const now = nowStr();
+	app.db().newQuery(`INSERT INTO _params (id, value, created, updated) VALUES ('bulkmail', {:value}, {:now}, {:now})
+       ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated = excluded.updated`).bind({
+		value,
+		now
+	}).execute();
+};
+const publicUrl = () => `${$app.settings().meta.appURL || "https://mothership.pockethost.io"}`.replace(/\/+$/, "");
+const unsubscribeUrl = (email, campaignId) => `${publicUrl()}/api/bulkmail/unsubscribe?t=${encodeURIComponent(unsubscribeToken($security.hs256, getSettings().secret, email, campaignId))}`;
+const parseToken = (token) => parseUnsubscribeToken($security.hs256, getSettings().secret, token);
+const isSuppressed = (email, app = $app) => {
+	const e = normalizeEmail(email);
+	if (!e) return false;
+	try {
+		app.findFirstRecordByData(BM_SUPPRESSIONS, "email", e);
+		return true;
+	} catch (_e) {
+		return false;
+	}
+};
+/** Adds or updates a suppression (record hooks then mirror it into users.unsubscribe). */
+const suppress = (email, reason, source, campaignId = "", app = $app) => {
+	const e = normalizeEmail(email);
+	if (!e) return null;
+	let rec;
+	try {
+		rec = app.findFirstRecordByData(BM_SUPPRESSIONS, "email", e);
+	} catch (_e) {
+		rec = new Record(app.findCollectionByNameOrId(BM_SUPPRESSIONS));
+		rec.set("email", e);
+	}
+	rec.set("reason", reason);
+	rec.set("source", source);
+	rec.set("campaign", campaignId);
+	app.save(rec);
+	return rec;
+};
+const parseAudience = (raw) => {
+	let a = {};
+	if (typeof raw === "string") a = raw ? JSON.parse(raw) : {};
+	else if (raw) a = JSON.parse(JSON.stringify(raw));
+	if (!a.sql && !a.collection) throw new Error("audience needs a collection or a SQL query");
+	if (!a.email_field) a.email_field = "email";
+	return a;
+};
+/** Runs a superuser-authored SELECT read-only (SQLite query_only) in a transaction that is always rolled back. */
+const queryReadOnly = (sql, model) => {
+	sql = sql.trim().replace(/;+\s*$/, "");
+	if (!/^\s*(select|with)\b/i.test(sql)) throw new Error("audience SQL must be a single SELECT");
+	if (sql.includes(";")) throw new Error("audience SQL must be a single statement");
+	const rows = arrayOf(model);
+	let queryErr = null;
+	try {
+		$app.runInTransaction((tx) => {
+			tx.db().newQuery("PRAGMA query_only = ON").execute();
+			try {
+				tx.db().newQuery(sql).all(rows);
+			} catch (e) {
+				queryErr = e;
+			}
+			tx.db().newQuery("PRAGMA query_only = OFF").execute();
+			throw new Error("__rollback__");
+		});
+	} catch (e) {
+		if (!`${e}`.includes("__rollback__")) throw e;
+	}
+	if (queryErr) throw queryErr;
+	return rows;
+};
+const userData = (u) => {
+	const data = JSON.parse(JSON.stringify(u.publicExport()));
+	data.email = u.email();
+	data.verified = u.verified();
+	return data;
+};
+const eachRecipient = (a, fn) => {
+	if (a.sql) {
+		const rows = queryReadOnly(a.sql, new DynamicModel({
+			id: "",
+			email: ""
+		}));
+		for (const row of rows) {
+			const recordRef = row.id ? `users:${row.id}` : "";
+			if (fn({
+				email: row.email,
+				recordRef,
+				data: {
+					id: row.id,
+					email: row.email
+				}
+			}) === false) return;
+		}
+		return;
+	}
+	const col = $app.findCollectionByNameOrId(a.collection);
+	let lastId = "";
+	for (;;) {
+		const filter = a.filter?.trim() ? `(${a.filter}) && id > {:lastId}` : "id > {:lastId}";
+		const recs = $app.findRecordsByFilter(col.id, filter, "id", 500, 0, { lastId });
+		for (const r of recs) {
+			if (!r) continue;
+			const data = JSON.parse(JSON.stringify(r.publicExport()));
+			data.email = r.getString(a.email_field);
+			if (fn({
+				email: r.getString(a.email_field),
+				recordRef: `${col.name}:${r.id}`,
+				data
+			}) === false) return;
+		}
+		if (recs.length < 500) return;
+		lastId = recs[recs.length - 1].id;
+	}
+};
+const suppressedSet = () => {
+	const rows = arrayOf(new DynamicModel({ email: "" }));
+	$app.db().newQuery(`SELECT email FROM ${BM_SUPPRESSIONS}`).all(rows);
+	const set = {};
+	rows.forEach((r) => set[r.email] = true);
+	return set;
+};
+const countAudience = (audience, sampleSize = 5) => {
+	const a = parseAudience(audience);
+	const sup = suppressedSet();
+	const seen = {};
+	let count = 0;
+	let suppressed = 0;
+	const sample = [];
+	eachRecipient(a, (r) => {
+		const e = normalizeEmail(r.email);
+		if (!e || seen[e]) return;
+		seen[e] = true;
+		if (sup[e]) return void suppressed++;
+		count++;
+		if (sample.length < sampleSize) sample.push(e);
+	});
+	return {
+		count,
+		suppressed,
+		sample
+	};
+};
+const campaign = (id) => {
+	try {
+		return $app.findRecordById(BM_CAMPAIGNS, id);
+	} catch (_e) {
+		throw new Error(`campaign "${id}" not found`);
+	}
+};
+const fromAddress = (c) => {
+	let name = c.getString("from_name");
+	let address = c.getString("from_address");
+	if (!address) {
+		address = $app.settings().meta.senderAddress;
+		name = name || $app.settings().meta.senderName;
+	}
+	return {
+		name,
+		address
+	};
+};
+const resolveVars = (c) => {
+	const raw = JSON.parse(c.getString("vars") || "{}") || {};
+	const out = {};
+	for (const name of Object.keys(raw)) {
+		const v = raw[name];
+		if (v && typeof v === "object" && typeof v.sql === "string") out[name] = queryReadOnly(v.sql, new DynamicModel({ value: "" }))[0]?.value ?? "";
+		else out[name] = v;
+	}
+	return out;
+};
+const varsCache = {};
+const validate = (c) => {
+	if (!c.getString("subject").trim()) throw new Error("the campaign needs a subject");
+	if (!c.getString("html").trim() && !c.getString("text").trim()) throw new Error("the campaign needs a body");
+	parseAudience(c.getString("audience"));
+	for (const f of [
+		"subject",
+		"html",
+		"text"
+	]) try {
+		parseTemplate(c.getString(f));
+	} catch (e) {
+		throw new Error(`${f}: ${e}`);
+	}
+	if (!fromAddress(c).address) throw new Error("set a sender address");
+};
+const refreshCounters = (c) => {
+	const rows = arrayOf(new DynamicModel({
+		status: "",
+		n: 0
+	}));
+	$app.db().newQuery(`SELECT status, COUNT(*) AS n FROM ${BM_SENDS} WHERE campaign = {:id} GROUP BY status`).bind({ id: c.id }).all(rows);
+	const counts = {};
+	rows.forEach((r) => counts[r.status] = r.n);
+	c.set("queued", counts.queued || 0);
+	c.set("sent", counts.sent || 0);
+	c.set("skipped", counts.skipped || 0);
+	c.set("failed", counts.failed || 0);
+	$app.save(c);
+};
+const setStatus = (c, status, reason = "") => {
+	c.set("status", status);
+	c.set("status_reason", reason);
+	if (status === "done") c.set("finished_at", nowStr());
+	$app.save(c);
+};
+/** Queues audience members not yet in the ledger (at most limit new ones when limit > 0). */
+const queue = (c, limit = 0) => {
+	const a = parseAudience(c.getString("audience"));
+	const sup = suppressedSet();
+	const existing = arrayOf(new DynamicModel({ email: "" }));
+	$app.db().newQuery(`SELECT email FROM ${BM_SENDS} WHERE campaign = {:id}`).bind({ id: c.id }).all(existing);
+	const seen = {};
+	existing.forEach((r) => seen[r.email] = true);
+	const rows = [];
+	let queued = 0;
+	eachRecipient(a, (r) => {
+		const e = normalizeEmail(r.email);
+		if (!e || seen[e]) return;
+		seen[e] = true;
+		if (sup[e]) {
+			rows.push({
+				email: e,
+				ref: r.recordRef,
+				status: "skipped",
+				reason: "suppressed"
+			});
+			return;
+		}
+		rows.push({
+			email: e,
+			ref: r.recordRef,
+			status: "queued",
+			reason: ""
+		});
+		queued++;
+		if (limit > 0 && queued >= limit) return false;
+	});
+	const now = nowStr();
+	$app.runInTransaction((tx) => {
+		for (const r of rows) tx.db().newQuery(`INSERT OR IGNORE INTO ${BM_SENDS} (id, campaign, email, record_ref, status, reason, attempts, retry_at, sent_at, message_id, created, updated)
+           VALUES ('r'||lower(hex(randomblob(7))), {:c}, {:email}, {:ref}, {:status}, {:reason}, 0, '', '', '', {:now}, {:now})`).bind({
+			c: c.id,
+			email: r.email,
+			ref: r.ref,
+			status: r.status,
+			reason: r.reason,
+			now
+		}).execute();
+	});
+	return queued;
+};
+const queueAndSend = (c, limit = 0) => {
+	delete varsCache[c.id];
+	varsCache[c.id] = resolveVars(c);
+	queue(c, limit);
+	c.set("status", "sending");
+	c.set("status_reason", "");
+	if (!c.getString("started_at")) c.set("started_at", nowStr());
+	c.set("finished_at", "");
+	refreshCounters(c);
+	return c;
+};
+const startCampaign = (id, limit = 0) => {
+	const c = campaign(id);
+	const status = c.getString("status");
+	if (status === "sending") return c;
+	if (status === "canceled") throw new Error("this campaign was canceled; duplicate it to send again");
+	validate(c);
+	const at = c.getString("scheduled_at");
+	if (at && new Date(at.replace(" ", "T")).getTime() > Date.now()) {
+		setStatus(c, "scheduled");
+		return c;
+	}
+	return queueAndSend(c, limit);
+};
+const pauseCampaign = (id) => {
+	const c = campaign(id);
+	if (!["sending", "scheduled"].includes(c.getString("status"))) throw new Error(`can't pause a ${c.getString("status")} campaign`);
+	setStatus(c, "paused", "Paused by a superuser.");
+	return c;
+};
+const resumeCampaign = (id) => {
+	const c = campaign(id);
+	if (c.getString("status") !== "paused") throw new Error(`can't resume a ${c.getString("status")} campaign`);
+	if (!c.getString("started_at")) {
+		c.set("status", "draft");
+		$app.save(c);
+		return startCampaign(id);
+	}
+	setStatus(c, "sending");
+	return c;
+};
+const cancelCampaign = (id) => {
+	const c = campaign(id);
+	if (["done", "canceled"].includes(c.getString("status"))) throw new Error(`can't cancel a ${c.getString("status")} campaign`);
+	$app.db().newQuery(`UPDATE ${BM_SENDS} SET status = 'skipped', reason = 'campaign canceled', updated = {:now} WHERE campaign = {:id} AND status = 'queued'`).bind({
+		id: c.id,
+		now: nowStr()
+	}).execute();
+	c.set("finished_at", nowStr());
+	c.set("status", "canceled");
+	c.set("status_reason", "Canceled by a superuser.");
+	refreshCounters(c);
+	return c;
+};
+const loadRecipientData = (email, recordRef) => {
+	let data = { email };
+	const i = recordRef.indexOf(":");
+	if (i > 0) try {
+		const rec = $app.findRecordById(recordRef.slice(0, i), recordRef.slice(i + 1));
+		data = rec.collection().name === "users" ? userData(rec) : JSON.parse(JSON.stringify(rec.publicExport()));
+	} catch (_e) {}
+	return data;
+};
+const buildMessage = (c, email, record) => {
+	const s = getSettings();
+	const vars = varsCache[c.id] || (varsCache[c.id] = resolveVars(c));
+	const from = fromAddress(c);
+	const unsub = unsubscribeUrl(email, c.id);
+	const data = {
+		...vars,
+		record,
+		email,
+		unsubscribe_url: unsub,
+		campaign: {
+			id: c.id,
+			name: c.getString("name")
+		}
+	};
+	const subject = renderTemplate(c.getString("subject"), data, false).replace(/\n/g, " ").trim();
+	let html = renderTemplate(c.getString("html"), data, true);
+	let text = renderTemplate(c.getString("text"), data, false);
+	if (!text.trim()) text = htmlToText(html);
+	if (html.trim()) html += footerHtml(unsub, s.postalAddress);
+	text += footerText(unsub, s.postalAddress);
+	let listUnsub = `<${unsub}>`;
+	if (s.unsubscribeMailto) listUnsub += `, <mailto:${s.unsubscribeMailto}?subject=unsubscribe>`;
+	const domain = from.address.split("@")[1] || "localhost";
+	return new MailerMessage({
+		from,
+		to: [{ address: email }],
+		subject,
+		html,
+		text,
+		headers: {
+			"List-Unsubscribe": listUnsub,
+			"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+			"Message-ID": `<bm.${$security.pseudorandomString(20)}@${domain}>`,
+			"X-Bulkmail-Campaign": c.id
+		}
+	});
+};
+const firstRecipient = (c, email = "") => {
+	const want = normalizeEmail(email);
+	let found = null;
+	eachRecipient(parseAudience(c.getString("audience")), (r) => {
+		const e = normalizeEmail(r.email);
+		if (!e || want && e !== want) return;
+		found = {
+			...r,
+			email: e
+		};
+		return false;
+	});
+	if (found) return found;
+	if (want) return {
+		email: want,
+		recordRef: "",
+		data: { email: want }
+	};
+	throw new Error("the audience matches nobody");
+};
+const previewCampaign = (id, email = "") => {
+	const c = campaign(id);
+	delete varsCache[c.id];
+	const r = firstRecipient(c, email);
+	const msg = buildMessage(c, r.email, loadRecipientData(r.email, r.recordRef));
+	return {
+		to: r.email,
+		from: msg.from,
+		subject: msg.subject,
+		html: msg.html,
+		text: msg.text,
+		headers: msg.headers
+	};
+};
+const testCampaign = (id, to = "") => {
+	const c = campaign(id);
+	to = to || c.getString("test_to");
+	const addrs = to.split(",").map(normalizeEmail).filter(Boolean).map((address) => ({ address }));
+	if (!addrs.length) throw new Error("set a test address (test_to)");
+	delete varsCache[c.id];
+	const r = firstRecipient(c);
+	const msg = buildMessage(c, r.email, loadRecipientData(r.email, r.recordRef));
+	msg.to = addrs;
+	msg.subject = "[TEST] " + msg.subject;
+	$app.newMailClient().send(msg);
+};
+const sentToday = () => {
+	const row = new DynamicModel({ n: 0 });
+	const start = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) + " 00:00:00.000Z";
+	$app.db().newQuery(`SELECT COUNT(*) AS n FROM ${BM_SENDS} WHERE status = 'sent' AND sent_at >= {:start}`).bind({ start }).one(row);
+	return row.n;
+};
+/** PocketHost rule (EE): only verified users get platform mail. Returns a skip reason or ''. */
+const eeSkipReason = (recordRef) => {
+	if (!recordRef.startsWith("users:")) return "";
+	try {
+		const u = $app.findRecordById("users", recordRef.slice(6));
+		if (!u.verified()) return "unverified";
+		if (u.getBool("unsubscribe")) return "unsubscribed";
+	} catch (_e) {
+		return "user deleted";
+	}
+	return "";
+};
+const sendOne = (c, send) => {
+	const email = send.getString("email");
+	send.set("attempts", send.getInt("attempts") + 1);
+	const save = () => {
+		$app.save(send);
+		refreshCounters(c);
+		const done = c.getInt("sent") + c.getInt("failed");
+		if (done >= BRAKE_MIN && c.getInt("failed") / done > BRAKE_RATE) setStatus(c, "paused", `Paused automatically: ${c.getInt("failed")} of ${done} sends failed. Check the failures, then resume.`);
+	};
+	const skip = isSuppressed(email) ? "suppressed" : eeSkipReason(send.getString("record_ref"));
+	if (skip) {
+		send.set("status", "skipped");
+		send.set("reason", skip);
+		return save();
+	}
+	try {
+		const msg = buildMessage(c, email, loadRecipientData(email, send.getString("record_ref")));
+		$app.newMailClient().send(msg);
+		send.set("status", "sent");
+		send.set("reason", "");
+		send.set("sent_at", nowStr());
+		send.set("message_id", msg.headers["Message-ID"] || "");
+	} catch (e) {
+		const err = `${e}`;
+		send.set("reason", err);
+		if (/\b5\d\d\b/.test(err) || send.getInt("attempts") >= MAX_ATTEMPTS) send.set("status", "failed");
+		else {
+			const backoffMin = send.getInt("attempts") * send.getInt("attempts");
+			send.set("retry_at", new Date(Date.now() + backoffMin * 6e4).toISOString().replace("T", " "));
+		}
+	}
+	save();
+};
+/** One unit of sender work. Returns ms to wait before the next step, or -1 when there's nothing to do. */
+const senderStep = () => {
+	const log = mkLog("bulkmail");
+	const now = nowStr();
+	const { rate, daily } = bulkMailLimits();
+	const due = $app.findRecordsByFilter(BM_CAMPAIGNS, `status = 'scheduled' && scheduled_at <= {:now}`, "scheduled_at", 1, 0, { now });
+	if (due[0]) {
+		try {
+			queueAndSend(due[0]);
+		} catch (e) {
+			setStatus(due[0], "paused", `Couldn't start: ${e}`);
+		}
+		return 0;
+	}
+	const sending = $app.findRecordsByFilter(BM_CAMPAIGNS, `status = 'sending'`, "started_at", 0, 0);
+	if (!sending.length) return -1;
+	if (sentToday() >= daily) {
+		for (const c of sending) if (c && !c.getString("status_reason").startsWith("Daily limit")) setStatus(c, "sending", `Daily limit of ${daily} reached; continues after midnight UTC.`);
+		return -1;
+	}
+	for (const c of sending) {
+		if (!c) continue;
+		const next = $app.findRecordsByFilter(BM_SENDS, `campaign = {:c} && status = 'queued' && (retry_at = '' || retry_at <= {:now})`, "created", 1, 0, {
+			c: c.id,
+			now
+		});
+		if (!next[0]) {
+			if (!$app.findRecordsByFilter("_bulkmail_sends", `campaign = {:c} && status = 'queued'`, "", 1, 0, { c: c.id }).length) {
+				refreshCounters(c);
+				setStatus(c, "done");
+				log(`campaign ${c.id} done`);
+			}
+			continue;
+		}
+		if (c.getString("status_reason").startsWith("Daily limit")) c.set("status_reason", "");
+		sendOne(c, next[0]);
+		let r = rate;
+		const own = c.getFloat("rate_per_sec");
+		if (own > 0 && own < r) r = own;
+		return Math.round(1e3 / r);
+	}
+	return -1;
+};
+const LOCK_KEY = "bulkmail.sender.lock";
+/** Cron body: send for up to ~55 s, one runner at a time. */
+const runBulkMailSender = () => {
+	const log = mkLog("bulkmail");
+	const held = $app.store().get(LOCK_KEY);
+	if (held && Date.now() - held < 12e4) return;
+	$app.store().set(LOCK_KEY, Date.now());
+	const stopAt = Date.now() + 55e3;
+	try {
+		while (Date.now() < stopAt) {
+			const wait = senderStep();
+			if (wait < 0) break;
+			if (wait > 0) sleep(wait);
+		}
+	} catch (e) {
+		log(`sender error: ${e}`);
+	} finally {
+		$app.store().remove(LOCK_KEY);
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/bulkmail/api.ts
+/** Routes shaped exactly like PocketBase CE ext/bulkmail (routes.go). */
+const body = (e) => {
+	try {
+		const info = e.requestInfo();
+		return JSON.parse(JSON.stringify(info.body || {}));
+	} catch (_e) {
+		return {};
+	}
+};
+const settingsResponse = () => {
+	const s = getSettings();
+	const { rate, daily } = bulkMailLimits();
+	const row = new DynamicModel({ n: 0 });
+	$app.db().newQuery(`SELECT COUNT(*) AS n FROM _bulkmail_sends WHERE status = 'sent' AND sent_at >= {:start}`).bind({ start: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) + " 00:00:00.000Z" }).one(row);
+	const base = `${$app.settings().meta.appURL || ""}`.replace(/\/+$/, "");
+	return {
+		...s,
+		secret: "",
+		webhookSecret: "",
+		hasWebhookSecret: !!s.webhookSecret,
+		rate,
+		daily,
+		sentToday: row.n,
+		allowed: true,
+		sesEndpoint: `${base}/api/sns`,
+		webhookEndpoint: `${base}/api/bulkmail/feedback/webhook`
+	};
+};
+const HandleBulkMailGetSettings = (e) => e.json(200, settingsResponse());
+const HandleBulkMailSaveSettings = (e) => {
+	const cur = getSettings();
+	const b = body(e);
+	for (const k of ["postalAddress", "unsubscribeMailto"]) if (typeof b[k] === "string") cur[k] = b[k].trim();
+	if (Array.isArray(b.snsTopicArns)) cur.snsTopicArns = b.snsTopicArns.filter((v) => typeof v === "string" && v);
+	if (typeof b.webhookSecret === "string" && b.webhookSecret) cur.webhookSecret = b.webhookSecret;
+	saveSettings(cur);
+	return e.json(200, settingsResponse());
+};
+const wrap = (e, fn) => {
+	try {
+		const res = fn();
+		return res === void 0 ? e.noContent(204) : e.json(200, res);
+	} catch (err) {
+		throw new BadRequestError(`${err}`.replace(/^Error: /, ""));
+	}
+};
+const HandleBulkMailCount = (e) => wrap(e, () => countAudience(body(e).audience, 5));
+const HandleBulkMailCampaignAction = (e) => {
+	const id = e.request.pathValue("id");
+	const action = e.request.pathValue("action");
+	const b = body(e);
+	return wrap(e, () => {
+		switch (action) {
+			case "start": return startCampaign(id, parseInt(`${b.limit || 0}`, 10) || 0);
+			case "pause": return pauseCampaign(id);
+			case "resume": return resumeCampaign(id);
+			case "cancel": return cancelCampaign(id);
+			case "test":
+				testCampaign(id, `${b.to || ""}`);
+				return;
+			case "preview": return previewCampaign(id, `${b.email || ""}`);
+		}
+		throw new Error(`unknown action ${action}`);
+	});
+};
+const page = (title, html) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem;color:#222}button{font:inherit;padding:.5rem 1.25rem;border:0;border-radius:6px;background:#222;color:#fff;cursor:pointer}</style></head><body><h1>${escapeHtml(title)}</h1>${html}</body></html>`;
+const notifyBen = (email) => {
+	try {
+		$app.newMailClient().send(new MailerMessage({
+			from: {
+				address: $app.settings().meta.senderAddress,
+				name: $app.settings().meta.senderName
+			},
+			to: [{ address: `ben@benallfree.com` }],
+			subject: `UNSUBSCRIBE ${email}`
+		}));
+	} catch (_e) {}
+};
+const HandleBulkMailUnsubscribePage = (e) => {
+	const token = e.request.url.query().get("t");
+	const parsed = parseToken(token);
+	if (!parsed) return e.html(400, page("Invalid link", `<p>This unsubscribe link isn't valid.</p>`));
+	if (isSuppressed(parsed.email)) return e.html(200, page("Unsubscribed", `<p>${escapeHtml(parsed.email)} won't receive these emails anymore.</p>`));
+	return e.html(200, page("Unsubscribe", `<p>Stop sending these emails to <b>${escapeHtml(parsed.email)}</b>?</p><form method="post"><input type="hidden" name="t" value="${escapeHtml(token)}"><button type="submit">Unsubscribe</button></form>`));
+};
+/** The confirm form and RFC 8058 one-click POSTs from mail providers. */
+const HandleBulkMailUnsubscribe = (e) => {
+	const log = mkLog("bulkmail");
+	let token = e.request.url.query().get("t");
+	let oneClick = false;
+	try {
+		const form = e.requestInfo().body || {};
+		if (form["t"]) token = `${form["t"]}`;
+		oneClick = `${form["List-Unsubscribe"] || ""}` === "One-Click";
+	} catch (_e) {}
+	const parsed = parseToken(token);
+	if (!parsed) return e.html(400, page("Invalid link", `<p>This unsubscribe link isn't valid.</p>`));
+	suppress(parsed.email, "unsubscribed", oneClick ? "one-click" : "link", parsed.campaignId);
+	log(`unsubscribed ${parsed.email} (${oneClick ? "one-click" : "link"})`);
+	notifyBen(parsed.email);
+	return e.html(200, page("Unsubscribed", `<p>${escapeHtml(parsed.email)} won't receive these emails anymore.</p>`));
+};
+/** {"type":"bounce|complaint|unsubscribe","email":"…","campaign":"…"} with X-Bulkmail-Secret. */
+const HandleBulkMailWebhook = (e) => {
+	const s = getSettings();
+	const given = e.request.header.get("X-Bulkmail-Secret");
+	if (!s.webhookSecret || given !== s.webhookSecret) throw new UnauthorizedError("");
+	const b = body(e);
+	const reason = {
+		bounce: "bounced",
+		complaint: "complained",
+		unsubscribe: "unsubscribed"
+	}[`${b.type}`.toLowerCase()];
+	if (!reason) throw new BadRequestError("type must be bounce, complaint or unsubscribe");
+	if (!suppress(`${b.email || ""}`, reason, "webhook", `${b.campaign || ""}`)) throw new BadRequestError("invalid email");
+	return e.noContent(204);
+};
+
+//#endregion
+//#region src/lib/handlers/bulkmail/sync.ts
+/**
+* Users.unsubscribe <-> _bulkmail_suppressions, both ways. The dashboard, Node and older mothership code read
+* users.unsubscribe; the CE bulk mail schema reads the suppression list. Each side only writes when the other side
+* differs, so the two hooks settle after one round.
+*/
+const syncUserToSuppressions = (e) => {
+	const user = e.record;
+	if (!user) return;
+	const before = user.original().getBool("unsubscribe");
+	const after = user.getBool("unsubscribe");
+	if (before === after) return;
+	const email = normalizeEmail(user.email());
+	if (!email) return;
+	let existing = null;
+	try {
+		existing = e.app.findFirstRecordByData(BM_SUPPRESSIONS, "email", email);
+	} catch (_e) {}
+	if (after && !existing) suppress(email, "unsubscribed", "users.unsubscribe", "", e.app);
+	else if (!after && existing) e.app.delete(existing);
+};
+const findUser = (app, email) => {
+	try {
+		return app.findFirstRecordByData("users", "email", email);
+	} catch (_e) {
+		try {
+			return app.findFirstRecordByFilter("users", "email:lower = {:e}", { e: email });
+		} catch (_e2) {
+			return null;
+		}
+	}
+};
+const syncSuppressionToUser = (e, suppressed) => {
+	const email = normalizeEmail(e.record?.getString("email") || "");
+	if (!email) return;
+	const user = findUser(e.app, email);
+	if (!user || user.getBool("unsubscribe") === suppressed) return;
+	user.set("unsubscribe", suppressed);
+	e.app.save(user);
+};
+
+//#endregion
+//#region src/lib/util/bulkmail/status.ts
+/** Superuser status edits on a bulk mail campaign (see handlers/bulkmail/ui.ts). Pure, so it is unit-tested. */
+/** Which engine call a status change maps to, or an error message. */
+const statusAction = (from, to) => {
+	if (to === "canceled") return ["done", "canceled"].includes(from) ? `can't cancel a ${from} campaign` : "cancel";
+	if (to === "paused") return ["sending", "scheduled"].includes(from) ? "pause" : `can't pause a ${from} campaign`;
+	if (to === "sending" || to === "scheduled") {
+		if (from === "paused") return "resume";
+		if (from === "draft") return "start";
+		return `can't start a ${from} campaign`;
+	}
+	return `status ${to} is set by the sender, not by hand`;
+};
+
+//#endregion
+//#region src/lib/handlers/bulkmail/ui.ts
+/**
+* Campaigns are run from the stock superuser UI (Collections > _bulkmail_campaigns), which replaced the `pockethost
+* mail send` CLI. Saving a campaign record does what the CE plugin's buttons do:
+*
+* - Status draft -> sending (or scheduled): start. A future scheduled_at makes it scheduled.
+* - Status sending/scheduled -> paused: pause. paused -> sending: resume.
+* - Status -> canceled: cancel.
+* - Saving a draft with test_to set, after changing its content or test_to: a [TEST] send to test_to.
+*
+* Other status changes (to done, or back to draft) are refused. The status a superuser picks is never written as is:
+* the engine sets it, so a refused start leaves the campaign where it was. Collection rules are superuser-only.
+*/
+const CONTENT_FIELDS = [
+	"subject",
+	"html",
+	"text",
+	"test_to",
+	"audience",
+	"vars",
+	"from_name",
+	"from_address"
+];
+const msg = (err) => `${err}`.replace(/^Error: /, "");
+const HandleBulkMailCampaignUpdateRequest = (e) => {
+	const rec = e.record;
+	const orig = rec.original();
+	const from = orig.getString("status") || "draft";
+	const to = rec.getString("status") || "draft";
+	if (from !== to) {
+		const action = statusAction(from, to);
+		if (![
+			"start",
+			"resume",
+			"pause",
+			"cancel"
+		].includes(action)) throw new BadRequestError(action);
+		rec.set("status", from);
+		$app.save(rec);
+		try {
+			if (action === "start") startCampaign(rec.id);
+			else if (action === "resume") resumeCampaign(rec.id);
+			else if (action === "pause") pauseCampaign(rec.id);
+			else cancelCampaign(rec.id);
+		} catch (err) {
+			throw new BadRequestError(`Saved, but couldn't ${action}: ${msg(err)}`);
+		}
+		return e.json(200, $app.findRecordById(BM_CAMPAIGNS, rec.id));
+	}
+	const changed = CONTENT_FIELDS.some((f) => JSON.stringify(orig.get(f)) !== JSON.stringify(rec.get(f)));
+	if (from !== "draft" || !changed || !rec.getString("test_to").trim()) return e.next();
+	$app.save(rec);
+	try {
+		testCampaign(rec.id);
+	} catch (err) {
+		throw new BadRequestError(`Saved, but the test send failed: ${msg(err)}`);
+	}
+	return e.json(200, $app.findRecordById(BM_CAMPAIGNS, rec.id));
+};
+
+//#endregion
 //#region src/lib/util/cloudflare.ts
 const DEAD_STATUSES = [
 	"moved",
@@ -660,24 +1694,6 @@ const ensureCustomHostname = (hostname, log) => {
 		deleteCustomHostnameById(existing.id, log);
 	}
 	return createCustomHostname(hostname, log);
-};
-
-//#endregion
-//#region src/lib/util/Logger.ts
-const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
-	if (typeof p === "object") return JSON.stringify(p, null, 2);
-	return p;
-}));
-const dbg = (...args) => console.log(args);
-const interpolateString = (template, dict) => {
-	return template.replace(/\{\$(\w+)\}/g, (match, key) => {
-		dbg({
-			match,
-			key
-		});
-		const lowerKey = key.toLowerCase();
-		return dict.hasOwnProperty(lowerKey) ? dict[lowerKey] || "" : match;
-	});
 };
 
 //#endregion
@@ -1419,35 +2435,57 @@ const findOwnedInstance = (caller, id) => {
 //#endregion
 //#region ../common/instanceLimits.ts
 /**
-* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`), and all
-* of them may run. Archived instances don't count. Shared by the mothership (create / power-on checks, bundled into the
-* JSVM, so no Node imports here) and the edge over-limit sweep.
+* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`) plus its
+* bonus instances (`users.bonus_instances`), and all of them may run. Bonus instances count only while the account has
+* at least one paid instance. Archived instances don't count. Shared by the mothership (create / power-on checks,
+* bundled into the JSVM, so no Node imports here) and the edge over-limit sweep.
 */
 /** Archived instances carry this prefix in `instances.suspension`. */
 const ARCHIVED_SUSPENSION_PREFIX = `Archived:`;
 const isArchivedSuspension = (suspension) => !!suspension && suspension.startsWith(ARCHIVED_SUSPENSION_PREFIX);
-const instanceAllowance = (user) => Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
+/** Paid and bonus instances. Bonus counts only while the account has at least one paid instance. */
+const allowanceParts = (user) => {
+	const paid = Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+	const bonus = paid > 0 ? Math.max(0, Math.floor(user.bonus_instances ?? 0)) : 0;
+	return {
+		paid,
+		bonus,
+		total: paid + bonus
+	};
+};
+/** "3 instances" or "3 instances (2 paid + 1 bonus)". */
+const allowanceLabel = (parts) => parts.bonus > 0 ? `${plural(parts.total)} (${parts.paid} paid + ${parts.bonus} bonus)` : plural(parts.total);
 /** Instances that count toward the limit: everything except archived ones. */
 const countedInstances = (owned) => owned.filter((i) => !isArchivedSuspension(i.suspension));
 /** Counted instances that are powered on. */
 const poweredOnInstances = (owned) => countedInstances(owned).filter((i) => i.power);
-const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
 /** Error message when the account can't create another instance, or null when it can. */
 const createLimitError = (owned, allowance) => {
+	const parts = typeof allowance === "number" ? {
+		paid: allowance,
+		bonus: 0,
+		total: allowance
+	} : allowance;
 	const count = countedInstances(owned).length;
-	if (count < allowance) return null;
-	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
-	return `Your plan includes ${plural(allowance)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
+	if (count < parts.total) return null;
+	if (parts.total === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
+	return `Your plan includes ${allowanceLabel(parts)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
 };
 /**
 * Error message when `instanceId` can't be powered on, or null when it can. Only the other powered-on instances are
 * counted, so re-saving an instance that is already on never fails.
 */
 const powerOnLimitError = (instanceId, owned, allowance) => {
+	const parts = typeof allowance === "number" ? {
+		paid: allowance,
+		bonus: 0,
+		total: allowance
+	} : allowance;
 	const othersOn = poweredOnInstances(owned).filter((i) => i.id !== instanceId).length;
-	if (othersOn < allowance) return null;
-	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
-	return `Your plan includes ${plural(allowance)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
+	if (othersOn < parts.total) return null;
+	if (parts.total === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
+	return `Your plan includes ${allowanceLabel(parts)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
 };
 
 //#endregion
@@ -1459,7 +2497,14 @@ const ownedInstances = (uid) => $app.findRecordsByFilter("instances", "uid = {:u
 	suspension: r.getString("suspension"),
 	updated: r.getString("updated")
 }));
-const allowanceOf = (uid) => instanceAllowance({ subscription_quantity: $app.findRecordById("users", uid).getInt("subscription_quantity") });
+/** Paid + bonus instances (bonus only counts while at least one is paid). */
+const allowanceOf = (uid) => {
+	const user = $app.findRecordById("users", uid);
+	return allowanceParts({
+		subscription_quantity: user.getInt("subscription_quantity"),
+		bonus_instances: user.getInt("bonus_instances")
+	});
+};
 /** 402 Payment Required: the plan doesn't include another instance. */
 const limitError = (message) => new ApiError(402, message, {});
 /** Throws 402 when the user already owns every instance their plan includes (archived ones don't count). */
@@ -2325,6 +3370,63 @@ const isRecurringLsOrder = (order) => {
 };
 
 //#endregion
+//#region ../common/billing/loyalty.ts
+/**
+* Loyalty bonus instances (pockethost-support plans/loyalty-bonus-instances-plan.md, decided with Ben 2026-11-11).
+*
+* - Lifetime (`hosting.slot.lifetime`) and annual plans: 5 bonus instances while the purchase is active.
+* - Monthly plans: +1 at the 1st paid renewal, then +1 every 3rd (1, 2, 3, 4, 5 at renewals 1, 4, 7, 10, 13).
+* - Cancelling stops new renewals (so no more earning) but the subscription stays active until its paid period ends, and
+*   so does the bonus. Resuming keeps counting on the same subscription.
+* - When a subscription expires its renewals stop counting; with nothing active left the bonus is 0 and a new
+*   subscription starts from 0.
+*
+* The bonus is a pure function of the account's billing items and each subscription's paid renewal count, so it can be
+* recomputed after any webhook (or in a backfill) without counting events. JSVM-safe: plain data + sync functions.
+*/
+const LOYALTY_MAX_BONUS = 5;
+/** Plans that get the full bonus up front, while active. Legacy Flounder lifetime already has 250 instances. */
+const LOYALTY_UPFRONT_SKUS = ["hosting.slot.lifetime", "hosting.slot.recurring.year"];
+/** Monthly per-instance plans that earn by paid renewals. */
+const LOYALTY_MONTHLY_SKUS = ["hosting.slot.recurring.month", "hosting.slot.recurring.month.legacy"];
+/** Bonus earned by `renewals` paid monthly renewals: 0, then 1 at the 1st, +1 every 3rd after, capped at 5. */
+const bonusForRenewals = (renewals) => {
+	const n = Math.floor(renewals);
+	if (!(n >= 1)) return 0;
+	return Math.min(5, 1 + Math.floor((n - 1) / 3));
+};
+const isLs = (i) => i.provider === "lemonsqueezy" && i.quantity > 0;
+/** Active LS monthly subscriptions on the account (the ones whose paid renewals count). */
+const activeMonthlySubscriptionIds = (items, now) => items.filter((i) => isLs(i) && i.kind === "subscription" && LOYALTY_MONTHLY_SKUS.includes(i.sku)).filter((i) => isBillingItemActive(i, now)).map((i) => i.external_id);
+/** True when an active lifetime or annual purchase gives the full bonus (no renewal counts needed). */
+const hasUpfrontLoyalty = (items, now) => items.some((i) => isLs(i) && LOYALTY_UPFRONT_SKUS.includes(i.sku) && isBillingItemActive(i, now));
+/**
+* The account's loyalty bonus. `renewalsBySubscription` maps an LS subscription id to its paid renewal count; missing
+* ids count as 0.
+*/
+const loyaltyBonus = (items, renewalsBySubscription, now) => {
+	const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now);
+	const renewals = monthlySubscriptionIds.reduce((sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)), 0);
+	if (hasUpfrontLoyalty(items, now)) return {
+		bonus: 5,
+		basis: "upfront",
+		renewals,
+		monthlySubscriptionIds
+	};
+	const bonus = bonusForRenewals(renewals);
+	return {
+		bonus,
+		basis: bonus > 0 ? "renewals" : "none",
+		renewals,
+		monthlySubscriptionIds
+	};
+};
+/** The grant note customers see in the dashboard tooltip. */
+const loyaltyNote = (r) => r.basis === "upfront" ? `Loyalty bonus: ${5} instances with your annual or lifetime plan` : `Loyalty bonus: ${r.renewals} monthly renewal${r.renewals === 1 ? `` : `s`}`;
+/** A paid (not refunded) renewal invoice. Initial and plan-change invoices don't count. */
+const isPaidRenewalInvoice = (a) => !!a && a.billing_reason === "renewal" && a.status === "paid" && !a.refunded;
+
+//#endregion
 //#region src/lib/handlers/lemon/lib/lsApi.ts
 /** Overridable for local testing against a mock; production uses the real API. */
 const LS_API = process.env.LS_API_BASE || `https://api.lemonsqueezy.com/v1`;
@@ -2367,6 +3469,8 @@ const lsSubscriptionsByOrderId = (orderId) => lsListAll(`/subscriptions?filter[o
 const lsSubscription = (subscriptionId) => lsRequest(`GET`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
 /** Cancel at period end. Returns the updated subscription resource. */
 const lsCancelSubscription = (subscriptionId) => lsRequest(`DELETE`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
+/** Paid (not refunded) renewal invoices on one subscription. */
+const lsPaidRenewalCount = (subscriptionId) => lsListAll(`/subscription-invoices?filter[subscription_id]=${encodeURIComponent(`${subscriptionId}`)}`).filter((inv) => isPaidRenewalInvoice(inv.attributes)).length;
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/billingStore.ts
@@ -3306,6 +4410,65 @@ const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 };
 
 //#endregion
+//#region src/lib/handlers/lemon/lib/loyaltyStore.ts
+const GRANTS = `bonus_grants`;
+/** The account's one `loyalty` grant row, if any. */
+const findLoyaltyGrant = (app, userId) => {
+	try {
+		return app.findFirstRecordByFilter(GRANTS, `user = {:user} && source = 'loyalty'`, { user: userId });
+	} catch {
+		return;
+	}
+};
+/**
+* Recompute the account's loyalty bonus from its billing items and each active monthly subscription's paid renewal
+* count (read from Lemon Squeezy), and keep its single `loyalty` grant row in line: amount = bonus, removed at 0. The
+* `bonus_grants` hooks then recompute `users.bonus_instances`. Manual grants are never touched.
+*
+* `fetchRenewals` is injectable for the backfill's pacing (and tests); it defaults to the LS API.
+*/
+const syncLoyalty = (app, userId, options = {}) => {
+	const apply = options.apply ?? true;
+	const now = options.now ?? /* @__PURE__ */ new Date();
+	const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount;
+	const items = loadBillingItems(app, userId);
+	const renewals = {};
+	if (!hasUpfrontLoyalty(items, now)) for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id);
+	const result = loyaltyBonus(items, renewals, now);
+	const grant = findLoyaltyGrant(app, userId);
+	const before = grant ? grant.getInt(`amount`) : 0;
+	const note = loyaltyNote(result);
+	const changed = result.bonus !== before || result.bonus > 0 && grant?.getString(`note`) !== note;
+	if (apply && changed) if (result.bonus === 0) {
+		if (grant) app.delete(grant);
+	} else {
+		const rec = grant || new Record(app.findCollectionByNameOrId(GRANTS));
+		rec.set(`user`, userId);
+		rec.set(`source`, `loyalty`);
+		rec.set(`amount`, result.bonus);
+		rec.set(`note`, note);
+		app.save(rec);
+	}
+	return {
+		...result,
+		before,
+		changed
+	};
+};
+/**
+* Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
+* plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
+*/
+const loyaltyCandidateUserIds = (app) => {
+	const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `);
+	const rows = arrayOf(new DynamicModel({ user: "" }));
+	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
+       UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
+       ORDER BY user`).all(rows);
+	return rows.map((r) => `${r.user}`).filter(Boolean);
+};
+
+//#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
 /** Events that post to the lemon_cancel_discord channel. */
 const CANCEL_EVENTS = [
@@ -3439,10 +4602,19 @@ const HandleLemonSqueezySale = (e) => {
 		const { before, after } = reconcileUser($app, userRec);
 		context.slots_before = before;
 		context.slots_after = after;
+		try {
+			const loyalty = syncLoyalty($app, userRec.id);
+			context.bonus_before = loyalty.before;
+			context.bonus_after = loyalty.bonus;
+		} catch (err) {
+			context.bonus_error = `${err}`;
+			log(`loyalty sync failed`, `${err}`);
+		}
 		const notify = mkNotifier(log, $app);
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
 		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
-		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context);
+		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
+		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });
 	} catch (err) {
 		audit(`LS_ERR`, `${err}`, context);
@@ -3451,6 +4623,69 @@ const HandleLemonSqueezySale = (e) => {
 			error: `${err}`
 		});
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLoyaltyBackfill.ts
+/**
+* Superuser: `POST /api/loyalty/backfill` - recompute loyalty bonuses for existing customers. Dry run by default.
+*
+* - `apply=1` writes the `loyalty` grant rows.
+* - `user=<id>` one user.
+* - `offset`, `limit` (default 0, 40): one page of candidates, so a run stays well inside request timeouts and Lemon
+*   Squeezy's rate limit (each monthly subscription costs one invoices call, paced 250 ms apart). Call again with
+*   `next` until it is null.
+*/
+const HandleLoyaltyBackfill = (e) => {
+	const q = e.request.url.query();
+	const apply = q.get(`apply`) === `1`;
+	const onlyUser = q.get(`user`);
+	const offset = Math.max(0, Number(q.get(`offset`) || 0) || 0);
+	const limit = Math.min(200, Math.max(1, Number(q.get(`limit`) || 40) || 40));
+	const all = onlyUser ? [onlyUser] : loyaltyCandidateUserIds($app);
+	const page = all.slice(offset, offset + limit);
+	let lsCalls = 0;
+	const fetchRenewals = (subscriptionId) => {
+		if (lsCalls++ > 0) sleep(250);
+		return lsPaidRenewalCount(subscriptionId);
+	};
+	const changes = [];
+	const errors = [];
+	let unchanged = 0;
+	for (const user of page) try {
+		const r = syncLoyalty($app, user, {
+			apply,
+			fetchRenewals
+		});
+		if (r.changed) changes.push({
+			user,
+			before: r.before,
+			after: r.bonus,
+			basis: r.basis,
+			renewals: r.renewals
+		});
+		else unchanged++;
+	} catch (err) {
+		errors.push({
+			user,
+			error: `${err}`
+		});
+	}
+	const next = offset + page.length < all.length ? offset + page.length : null;
+	const report = {
+		mode: apply ? `apply` : `dry-run`,
+		total: all.length,
+		offset,
+		next,
+		unchanged,
+		changes,
+		errors
+	};
+	if (apply && (changes.length || errors.length)) mkAudit(mkLog(`loyalty-backfill`), $app)(`LS`, `Loyalty backfill (offset ${offset}): ${changes.length} changed, ${errors.length} errors.`, {
+		changes,
+		errors
+	});
+	return e.json(200, report);
 };
 
 //#endregion
@@ -5899,8 +7134,16 @@ function sesEventType(msg) {
 const HandleSesError = (e) => {
 	const log = mkLog(`sns`);
 	const audit = mkAudit(log, $app);
+	const suppressBulk = (emailAddress, reason) => {
+		try {
+			suppress(emailAddress, reason, "ses");
+		} catch (e) {
+			log(`bulk mail suppression failed for ${emailAddress}: ${e}`);
+		}
+	};
 	const processBounce = (emailAddress) => {
 		log(`Processing bounce ${emailAddress}`);
+		suppressBulk(emailAddress, "bounced");
 		const extra = { email: emailAddress };
 		try {
 			const user = $app.findFirstRecordByData("users", "email", emailAddress);
@@ -5915,6 +7158,7 @@ const HandleSesError = (e) => {
 	};
 	const processComplaint = (emailAddress) => {
 		log(`Processing complaint ${emailAddress}`);
+		suppressBulk(emailAddress, "complained");
 		const extra = { email: emailAddress };
 		try {
 			const user = $app.findFirstRecordByData("users", "email", emailAddress);
@@ -6151,6 +7395,43 @@ const HandleUserTokenRequest = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/user/model/bonusInstances.ts
+const log$1 = mkLog(`bonus-instances`);
+/** Recomputes `users.bonus_instances` from the user's `bonus_grants` (sum, floored at 0). */
+const recomputeBonusInstances = (uid) => {
+	if (!uid) return;
+	const row = new DynamicModel({ total: 0 });
+	$app.db().newQuery(`SELECT COALESCE(SUM(amount), 0) AS total FROM bonus_grants WHERE user = {:uid}`).bind({ uid }).one(row);
+	const total = Math.max(0, Math.floor(Number(row.total) || 0));
+	let user;
+	try {
+		user = $app.findRecordById("users", uid);
+	} catch {
+		return;
+	}
+	if (user.getInt("bonus_instances") === total) return;
+	user.set("bonus_instances", total);
+	$app.save(user);
+	log$1(`${uid}: bonus_instances = ${total}`);
+};
+/** After a grant is created, updated or deleted: recompute its user (and the previous user if it moved). */
+const AfterChange_bonusGrant = (e) => {
+	const uid = e.record?.getString("user") ?? "";
+	recomputeBonusInstances(uid);
+	const before = e.record?.original()?.getString("user") ?? "";
+	if (before && before !== uid) recomputeBonusInstances(before);
+};
+/**
+* Only superusers (and the grants hook) change bonus_instances. Production's users collection has no update rule, so
+* customers can't update their record at all; this guard keeps it that way even if that rule ever opens up.
+*/
+const BeforeUpdateRequest_guardBonusInstances = (e) => {
+	if (e.hasSuperuserAuth() || !e.record) return;
+	const stored = $app.findRecordById("users", e.record.id).getInt("bonus_instances");
+	if (e.record.getInt("bonus_instances") !== stored) e.record.set("bonus_instances", stored);
+};
+
+//#endregion
 //#region ../common/trustedIps.ts
 /** Max trusted IP entries per active account. */
 const TRUSTED_IPS_MAX = 5;
@@ -6304,11 +7585,16 @@ const HandleVersionsRequest = (e) => {
 };
 
 //#endregion
+exports.AfterChange_bonusGrant = AfterChange_bonusGrant;
 exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
+exports.BM_CAMPAIGNS = BM_CAMPAIGNS;
+exports.BM_SENDS = BM_SENDS;
+exports.BM_SUPPRESSIONS = BM_SUPPRESSIONS;
 exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeCreate_version = BeforeCreate_version;
 exports.BeforeUpdateRequest_edge = BeforeUpdateRequest_edge;
+exports.BeforeUpdateRequest_guardBonusInstances = BeforeUpdateRequest_guardBonusInstances;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
@@ -6316,6 +7602,14 @@ exports.HandleApiTokenCreate = HandleApiTokenCreate;
 exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
 exports.HandleArchiveDownload = HandleArchiveDownload;
 exports.HandleBackupDownload = HandleBackupDownload;
+exports.HandleBulkMailCampaignAction = HandleBulkMailCampaignAction;
+exports.HandleBulkMailCampaignUpdateRequest = HandleBulkMailCampaignUpdateRequest;
+exports.HandleBulkMailCount = HandleBulkMailCount;
+exports.HandleBulkMailGetSettings = HandleBulkMailGetSettings;
+exports.HandleBulkMailSaveSettings = HandleBulkMailSaveSettings;
+exports.HandleBulkMailUnsubscribe = HandleBulkMailUnsubscribe;
+exports.HandleBulkMailUnsubscribePage = HandleBulkMailUnsubscribePage;
+exports.HandleBulkMailWebhook = HandleBulkMailWebhook;
 exports.HandleCustomHostnameRegister = HandleCustomHostnameRegister;
 exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
@@ -6329,6 +7623,7 @@ exports.HandleLemonSqueezyCheckout = HandleLemonSqueezyCheckout;
 exports.HandleLemonSqueezyReconcile = HandleLemonSqueezyReconcile;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
+exports.HandleLoyaltyBackfill = HandleLoyaltyBackfill;
 exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
@@ -6355,9 +7650,15 @@ exports.LIVE_PLATFORM_TOPIC = LIVE_PLATFORM_TOPIC;
 exports.LIVE_VIEW_STATS_TOPIC = LIVE_VIEW_STATS_TOPIC;
 exports.broadcastLivePlatformStats = broadcastLivePlatformStats;
 exports.broadcastLiveViewStats = broadcastLiveViewStats;
+exports.buildMessage = buildMessage;
+exports.bulkMailLimits = bulkMailLimits;
+exports.cancelCampaign = cancelCampaign;
+exports.convertLegacyTemplate = convertLegacyTemplate;
+exports.countAudience = countAudience;
 exports.cronSweepCustomHostnames = cronSweepCustomHostnames;
 exports.getLivePlatformStats = getLivePlatformStats;
 exports.getLiveViewStats = getLiveViewStats;
+exports.getSettings = getSettings;
 exports.handleLivePlatformInstanceCreate = handleLivePlatformInstanceCreate;
 exports.handleLivePlatformInstanceDelete = handleLivePlatformInstanceDelete;
 exports.handleLivePlatformInstanceUpdate = handleLivePlatformInstanceUpdate;
@@ -6368,18 +7669,35 @@ exports.handleLivePlatformUserUpdate = handleLivePlatformUserUpdate;
 exports.handleLiveViewStatsCron = handleLiveViewStatsCron;
 exports.initLivePlatformStatsAtBoot = initLivePlatformStatsAtBoot;
 exports.initLiveViewStatsAtBoot = initLiveViewStatsAtBoot;
+exports.isSuppressed = isSuppressed;
 exports.markStaleEdges = markStaleEdges;
 exports.mkPublicStatsPath = mkPublicStatsPath;
 exports.normalizeInstanceStatus = normalizeInstanceStatus;
+exports.parseAudience = parseAudience;
 exports.parseInstanceScope = parseInstanceScope;
+exports.parseToken = parseToken;
+exports.pauseCampaign = pauseCampaign;
+exports.previewCampaign = previewCampaign;
 exports.readTrustedIpsFromRecord = readTrustedIpsFromRecord;
 exports.reasonToDelete = reasonToDelete;
+exports.recomputeBonusInstances = recomputeBonusInstances;
 exports.recountLivePlatformStats = recountLivePlatformStats;
 exports.refreshAndBroadcastLivePlatformStats = refreshAndBroadcastLivePlatformStats;
 exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;
+exports.refreshCounters = refreshCounters;
 exports.refreshLiveViewStats = refreshLiveViewStats;
 exports.refreshPublicStats = refreshPublicStats;
+exports.resumeCampaign = resumeCampaign;
+exports.runBulkMailSender = runBulkMailSender;
+exports.saveSettings = saveSettings;
 exports.sendLivePlatformStatsToClient = sendLivePlatformStatsToClient;
 exports.sendLiveViewStatsToClient = sendLiveViewStatsToClient;
+exports.senderStep = senderStep;
+exports.startCampaign = startCampaign;
+exports.suppress = suppress;
 exports.sweepCustomHostnames = sweepCustomHostnames;
+exports.syncSuppressionToUser = syncSuppressionToUser;
+exports.syncUserToSuppressions = syncUserToSuppressions;
+exports.testCampaign = testCampaign;
+exports.unsubscribeUrl = unsubscribeUrl;
 exports.verifyPat = verifyPat;

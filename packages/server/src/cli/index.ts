@@ -8,7 +8,6 @@ import { FirewallCommand } from './commands/FirewallCommand'
 import { HealthCommand } from './commands/HealthCommand'
 import { MothershipCommand } from './commands/MothershipCommand'
 import { PocketBaseCommand } from './commands/PocketBaseCommand'
-import { MailCommand } from './commands/SendMailCommand'
 import { ServeCommand } from './commands/ServeCommand'
 import { SftpCommand } from './commands/SftpCommand'
 import { initIoc } from './ioc'
@@ -27,7 +26,6 @@ export const main = async () => {
     .addCommand(EdgeCommand())
     .addCommand(HealthCommand())
     .addCommand(FirewallCommand())
-    .addCommand(MailCommand())
     .addCommand(ServeCommand())
     .addCommand(SftpCommand())
     .addCommand(PocketBaseCommand())

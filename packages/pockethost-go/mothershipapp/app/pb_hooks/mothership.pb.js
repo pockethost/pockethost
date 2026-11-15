@@ -72,6 +72,38 @@ routerAdd("GET", "/api/pat/instances", (e) => {
 });
 
 //#endregion
+//#region src/lib/handlers/bulkmail/hooks.ts
+routerAdd("GET", "/api/bulkmail/settings", (e) => require(`${__hooks}/mothership`).HandleBulkMailGetSettings(e), $apis.requireSuperuserAuth());
+routerAdd("PATCH", "/api/bulkmail/settings", (e) => require(`${__hooks}/mothership`).HandleBulkMailSaveSettings(e), $apis.requireSuperuserAuth());
+routerAdd("POST", "/api/bulkmail/audience/count", (e) => require(`${__hooks}/mothership`).HandleBulkMailCount(e), $apis.requireSuperuserAuth());
+routerAdd("POST", "/api/bulkmail/campaigns/{id}/{action}", (e) => require(`${__hooks}/mothership`).HandleBulkMailCampaignAction(e), $apis.requireSuperuserAuth());
+routerAdd("GET", "/api/bulkmail/unsubscribe", (e) => require(`${__hooks}/mothership`).HandleBulkMailUnsubscribePage(e));
+routerAdd("POST", "/api/bulkmail/unsubscribe", (e) => require(`${__hooks}/mothership`).HandleBulkMailUnsubscribe(e));
+routerAdd("POST", "/api/bulkmail/feedback/webhook", (e) => require(`${__hooks}/mothership`).HandleBulkMailWebhook(e));
+cronAdd("bulkmail-sender", "* * * * *", () => {
+	require(`${__hooks}/mothership`).runBulkMailSender();
+});
+onRecordAfterUpdateSuccess((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).syncUserToSuppressions(e);
+}, "users");
+onRecordAfterCreateSuccess((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).syncSuppressionToUser(e, true);
+}, "_bulkmail_suppressions");
+onRecordAfterUpdateSuccess((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).syncSuppressionToUser(e, true);
+}, "_bulkmail_suppressions");
+onRecordAfterDeleteSuccess((e) => {
+	e.next();
+	require(`${__hooks}/mothership`).syncSuppressionToUser(e, false);
+}, "_bulkmail_suppressions");
+onRecordUpdateRequest((e) => {
+	return require(`${__hooks}/mothership`).HandleBulkMailCampaignUpdateRequest(e);
+}, "_bulkmail_campaigns");
+
+//#endregion
 //#region src/lib/handlers/cloudflare/hooks.ts
 routerAdd("POST", "/api/cloudflare/hostnames/sweep", (e) => {
 	return require(`${__hooks}/mothership`).HandleCustomHostnamesSweep(e);
@@ -169,6 +201,9 @@ routerAdd("POST", "/api/ls", (e) => {
 routerAdd("POST", "/api/ls/reconcile", (e) => {
 	return require(`${__hooks}/mothership`).HandleLemonSqueezyReconcile(e);
 }, $apis.requireSuperuserAuth());
+routerAdd("POST", "/api/loyalty/backfill", (e) => {
+	return require(`${__hooks}/mothership`).HandleLoyaltyBackfill(e);
+}, $apis.requireSuperuserAuth());
 
 //#endregion
 //#region src/lib/handlers/mail/hooks.ts
@@ -262,6 +297,24 @@ routerAdd("GET", "/api/user/trusted-ips", (e) => {
 routerAdd("PATCH", "/api/user/trusted-ips", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTrustedIpsUpdate(e);
 }, $apis.requireAuth());
+/** Keep users.bonus_instances equal to the sum of the user's bonus_grants */
+onRecordAfterCreateSuccess((e) => {
+	require(`${__hooks}/mothership`).AfterChange_bonusGrant(e);
+	e.next();
+}, "bonus_grants");
+onRecordAfterUpdateSuccess((e) => {
+	require(`${__hooks}/mothership`).AfterChange_bonusGrant(e);
+	e.next();
+}, "bonus_grants");
+onRecordAfterDeleteSuccess((e) => {
+	require(`${__hooks}/mothership`).AfterChange_bonusGrant(e);
+	e.next();
+}, "bonus_grants");
+/** Customers can't change their own bonus_instances */
+onRecordUpdateRequest((e) => {
+	require(`${__hooks}/mothership`).BeforeUpdateRequest_guardBonusInstances(e);
+	e.next();
+}, "users");
 
 //#endregion
 //#region src/lib/handlers/versions/hooks.ts

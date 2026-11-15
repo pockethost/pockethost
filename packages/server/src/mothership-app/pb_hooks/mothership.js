@@ -1538,6 +1538,82 @@ const syncSuppressionToUser = (e, suppressed) => {
 };
 
 //#endregion
+//#region src/lib/util/bulkmail/status.ts
+/** Superuser status edits on a bulk mail campaign (see handlers/bulkmail/ui.ts). Pure, so it is unit-tested. */
+/** Which engine call a status change maps to, or an error message. */
+const statusAction = (from, to) => {
+	if (to === "canceled") return ["done", "canceled"].includes(from) ? `can't cancel a ${from} campaign` : "cancel";
+	if (to === "paused") return ["sending", "scheduled"].includes(from) ? "pause" : `can't pause a ${from} campaign`;
+	if (to === "sending" || to === "scheduled") {
+		if (from === "paused") return "resume";
+		if (from === "draft") return "start";
+		return `can't start a ${from} campaign`;
+	}
+	return `status ${to} is set by the sender, not by hand`;
+};
+
+//#endregion
+//#region src/lib/handlers/bulkmail/ui.ts
+/**
+* Campaigns are run from the stock superuser UI (Collections > _bulkmail_campaigns), which replaced the `pockethost
+* mail send` CLI. Saving a campaign record does what the CE plugin's buttons do:
+*
+* - Status draft -> sending (or scheduled): start. A future scheduled_at makes it scheduled.
+* - Status sending/scheduled -> paused: pause. paused -> sending: resume.
+* - Status -> canceled: cancel.
+* - Saving a draft with test_to set, after changing its content or test_to: a [TEST] send to test_to.
+*
+* Other status changes (to done, or back to draft) are refused. The status a superuser picks is never written as is:
+* the engine sets it, so a refused start leaves the campaign where it was. Collection rules are superuser-only.
+*/
+const CONTENT_FIELDS = [
+	"subject",
+	"html",
+	"text",
+	"test_to",
+	"audience",
+	"vars",
+	"from_name",
+	"from_address"
+];
+const msg = (err) => `${err}`.replace(/^Error: /, "");
+const HandleBulkMailCampaignUpdateRequest = (e) => {
+	const rec = e.record;
+	const orig = rec.original();
+	const from = orig.getString("status") || "draft";
+	const to = rec.getString("status") || "draft";
+	if (from !== to) {
+		const action = statusAction(from, to);
+		if (![
+			"start",
+			"resume",
+			"pause",
+			"cancel"
+		].includes(action)) throw new BadRequestError(action);
+		rec.set("status", from);
+		$app.save(rec);
+		try {
+			if (action === "start") startCampaign(rec.id);
+			else if (action === "resume") resumeCampaign(rec.id);
+			else if (action === "pause") pauseCampaign(rec.id);
+			else cancelCampaign(rec.id);
+		} catch (err) {
+			throw new BadRequestError(`Saved, but couldn't ${action}: ${msg(err)}`);
+		}
+		return e.json(200, $app.findRecordById(BM_CAMPAIGNS, rec.id));
+	}
+	const changed = CONTENT_FIELDS.some((f) => JSON.stringify(orig.get(f)) !== JSON.stringify(rec.get(f)));
+	if (from !== "draft" || !changed || !rec.getString("test_to").trim()) return e.next();
+	$app.save(rec);
+	try {
+		testCampaign(rec.id);
+	} catch (err) {
+		throw new BadRequestError(`Saved, but the test send failed: ${msg(err)}`);
+	}
+	return e.json(200, $app.findRecordById(BM_CAMPAIGNS, rec.id));
+};
+
+//#endregion
 //#region src/lib/util/cloudflare.ts
 const DEAD_STATUSES = [
 	"moved",
@@ -7527,6 +7603,7 @@ exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
 exports.HandleArchiveDownload = HandleArchiveDownload;
 exports.HandleBackupDownload = HandleBackupDownload;
 exports.HandleBulkMailCampaignAction = HandleBulkMailCampaignAction;
+exports.HandleBulkMailCampaignUpdateRequest = HandleBulkMailCampaignUpdateRequest;
 exports.HandleBulkMailCount = HandleBulkMailCount;
 exports.HandleBulkMailGetSettings = HandleBulkMailGetSettings;
 exports.HandleBulkMailSaveSettings = HandleBulkMailSaveSettings;

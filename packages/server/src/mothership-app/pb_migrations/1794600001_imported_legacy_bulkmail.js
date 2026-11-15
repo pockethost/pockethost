@@ -48,14 +48,25 @@ migrate(
       }
 
       const sentRow = new DynamicModel({ n: 0 })
-      db.newQuery(`SELECT COUNT(*) AS n FROM sent_messages WHERE campaign_message = {:id}`).bind({ id: m.id }).one(sentRow)
+      db.newQuery(`SELECT COUNT(*) AS n FROM sent_messages WHERE campaign_message = {:id}`)
+        .bind({ id: m.id })
+        .one(sentRow)
 
       const rec = new Record(campaigns)
       rec.set('id', m.id)
-      rec.set('name', [m.cname, m.subject].filter((v) => v).join(' / ').slice(0, 200) || m.id)
+      rec.set(
+        'name',
+        [m.cname, m.subject]
+          .filter((v) => v)
+          .join(' / ')
+          .slice(0, 200) || m.id
+      )
       rec.set('subject', convert(m.subject))
       rec.set('html', convert(m.body))
-      rec.set('audience', m.usersQuery ? { sql: m.usersQuery } : { collection: 'users', filter: 'verified = true && unsubscribe = false' })
+      rec.set(
+        'audience',
+        m.usersQuery ? { sql: m.usersQuery } : { collection: 'users', filter: 'verified = true && unsubscribe = false' }
+      )
       rec.set('vars', vars)
       rec.set('status', sentRow.n > 0 ? 'done' : 'draft')
       rec.set('status_reason', sentRow.n > 0 ? 'Imported from the legacy mailer.' : '')

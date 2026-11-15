@@ -52,3 +52,8 @@ onRecordAfterDeleteSuccess((e) => {
   e.next()
   require(`${__hooks}/mothership`).syncSuppressionToUser(e, false)
 }, '_bulkmail_suppressions')
+
+// Campaigns are run by saving them in the superuser UI (see ui.ts).
+onRecordUpdateRequest((e) => {
+  return require(`${__hooks}/mothership`).HandleBulkMailCampaignUpdateRequest(e)
+}, '_bulkmail_campaigns')

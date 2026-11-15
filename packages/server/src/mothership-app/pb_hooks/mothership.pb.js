@@ -99,6 +99,9 @@ onRecordAfterDeleteSuccess((e) => {
 	e.next();
 	require(`${__hooks}/mothership`).syncSuppressionToUser(e, false);
 }, "_bulkmail_suppressions");
+onRecordUpdateRequest((e) => {
+	return require(`${__hooks}/mothership`).HandleBulkMailCampaignUpdateRequest(e);
+}, "_bulkmail_campaigns");
 
 //#endregion
 //#region src/lib/handlers/cloudflare/hooks.ts
