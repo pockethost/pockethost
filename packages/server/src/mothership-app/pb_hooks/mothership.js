@@ -733,7 +733,7 @@ const htmlToText = (s) => {
 	s = s.replace(/&[#\w]+;/g, (e) => entities[e] ?? e);
 	return s.split("\n").map((l) => l.trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 };
-const normalizeEmail = (s) => {
+const normalizeEmail$1 = (s) => {
 	const e = `${s ?? ""}`.trim().toLowerCase();
 	return /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[^\s@<>(),;:"]+$/.test(e) ? e : "";
 };
@@ -881,7 +881,7 @@ const publicUrl = mothershipPublicUrl;
 const unsubscribeUrl = (email, campaignId) => `${publicUrl()}/api/bulkmail/unsubscribe?t=${encodeURIComponent(unsubscribeToken($security.hs256, getSettings().secret, email, campaignId))}`;
 const parseToken = (token) => parseUnsubscribeToken($security.hs256, getSettings().secret, token);
 const isSuppressed = (email, app = $app) => {
-	const e = normalizeEmail(email);
+	const e = normalizeEmail$1(email);
 	if (!e) return false;
 	try {
 		app.findFirstRecordByData(BM_SUPPRESSIONS, "email", e);
@@ -892,7 +892,7 @@ const isSuppressed = (email, app = $app) => {
 };
 /** Adds or updates a suppression (record hooks then mirror it into users.unsubscribe). */
 const suppress = (email, reason, source, campaignId = "", app = $app) => {
-	const e = normalizeEmail(email);
+	const e = normalizeEmail$1(email);
 	if (!e) return null;
 	let rec;
 	try {
@@ -998,7 +998,7 @@ const countAudience = (audience, sampleSize = 5) => {
 	let suppressed = 0;
 	const sample = [];
 	eachRecipient(a, (r) => {
-		const e = normalizeEmail(r.email);
+		const e = normalizeEmail$1(r.email);
 		if (!e || seen[e]) return;
 		seen[e] = true;
 		if (sup[e]) return void suppressed++;
@@ -1087,7 +1087,7 @@ const queue = (c, limit = 0) => {
 	const rows = [];
 	let queued = 0;
 	eachRecipient(a, (r) => {
-		const e = normalizeEmail(r.email);
+		const e = normalizeEmail$1(r.email);
 		if (!e || seen[e]) return;
 		seen[e] = true;
 		if (sup[e]) {
@@ -1224,10 +1224,10 @@ const buildMessage = (c, email, record) => {
 	});
 };
 const firstRecipient = (c, email = "") => {
-	const want = normalizeEmail(email);
+	const want = normalizeEmail$1(email);
 	let found = null;
 	eachRecipient(parseAudience(c.getString("audience")), (r) => {
-		const e = normalizeEmail(r.email);
+		const e = normalizeEmail$1(r.email);
 		if (!e || want && e !== want) return;
 		found = {
 			...r,
@@ -1260,7 +1260,7 @@ const previewCampaign = (id, email = "") => {
 const testCampaign = (id, to = "") => {
 	const c = campaign(id);
 	to = to || c.getString("test_to");
-	const addrs = to.split(",").map(normalizeEmail).filter(Boolean).map((address) => ({ address }));
+	const addrs = to.split(",").map(normalizeEmail$1).filter(Boolean).map((address) => ({ address }));
 	if (!addrs.length) throw new Error("set a test address (test_to)");
 	delete varsCache[c.id];
 	const r = firstRecipient(c);
@@ -1517,7 +1517,7 @@ const syncUserToSuppressions = (e) => {
 	const before = user.original().getBool("unsubscribe");
 	const after = user.getBool("unsubscribe");
 	if (before === after) return;
-	const email = normalizeEmail(user.email());
+	const email = normalizeEmail$1(user.email());
 	if (!email) return;
 	let existing = null;
 	try {
@@ -1538,7 +1538,7 @@ const findUser = (app, email) => {
 	}
 };
 const syncSuppressionToUser = (e, suppressed) => {
-	const email = normalizeEmail(e.record?.getString("email") || "");
+	const email = normalizeEmail$1(e.record?.getString("email") || "");
 	if (!email) return;
 	const user = findUser(e.app, email);
 	if (!user || user.getBool("unsubscribe") === suppressed) return;
@@ -2956,6 +2956,37 @@ const BeforeUpdateRequest_edge = (e) => {
 };
 
 //#endregion
+//#region ../common/billing/accountClaim.ts
+/** How long the emailed claim link works. */
+const EMAIL_CLAIM_TTL_SECONDS = 10080 * 60;
+/** Browser claim tokens are 40 random alphanumerics; anything else is rejected before hashing. */
+const BROWSER_CLAIM_TOKEN_LENGTH = 40;
+const isBrowserClaimToken = (token) => typeof token === `string` && new RegExp(`^[A-Za-z0-9]{${40}}$`).test(token);
+const emailClaimSig = (hs256, secret, userId, exp) => hs256(`account-claim:${userId}:${exp}`, secret);
+const emailClaimToken = (hs256, secret, userId, nowSeconds) => {
+	const exp = Math.floor(nowSeconds) + EMAIL_CLAIM_TTL_SECONDS;
+	return `${userId}.${exp}.${emailClaimSig(hs256, secret, userId, exp)}`;
+};
+/** The user id from a valid, unexpired email claim token, else undefined. */
+const parseEmailClaimToken = (hs256, secret, token, nowSeconds) => {
+	if (!secret || typeof token !== `string`) return void 0;
+	const [userId, expStr, sig, extra] = token.split(`.`);
+	if (!userId || !expStr || !sig || extra !== void 0) return void 0;
+	const exp = Number(expStr);
+	if (!Number.isInteger(exp) || exp < nowSeconds) return void 0;
+	return emailClaimSig(hs256, secret, userId, exp) === sig ? userId : void 0;
+};
+/** `b***@example.com`, to say which account a purchase went to without revealing the address to anyone holding a link. */
+const maskEmail = (email) => {
+	const [name = ``, domain = ``] = `${email}`.split(`@`);
+	if (!domain) return `***`;
+	return `${name.slice(0, 1)}***@${domain}`;
+};
+const normalizeEmail = (email) => `${email ?? ``}`.trim().toLowerCase();
+/** Loose check before PocketBase's own validation; enough to give a clear message on the claim form. */
+const looksLikeEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+//#endregion
 //#region ../common/schema/User.ts
 const PLAN_NAMES = {
 	["legacy"]: "Legacy",
@@ -3900,6 +3931,286 @@ const reconcileUser = (app, userRec, items = loadBillingItems(app, userRec.id)) 
 };
 
 //#endregion
+//#region src/lib/handlers/lemon/lib/loyaltyStore.ts
+const GRANTS = `bonus_grants`;
+/** The account's one `loyalty` grant row, if any. */
+const findLoyaltyGrant = (app, userId) => {
+	try {
+		return app.findFirstRecordByFilter(GRANTS, `user = {:user} && source = 'loyalty'`, { user: userId });
+	} catch {
+		return;
+	}
+};
+/**
+* Recompute the account's loyalty bonus from its billing items (the subscription chain's start dates) and keep its
+* single `loyalty` grant row in line: amount = bonus, removed at 0. The `bonus_grants` hooks then recompute
+* `users.bonus_instances`. Manual grants are never touched. No Lemon Squeezy calls.
+*/
+const syncLoyalty = (app, userId, options = {}) => {
+	const apply = options.apply ?? true;
+	const now = options.now ?? /* @__PURE__ */ new Date();
+	const result = loyaltyBonus(loadBillingItems(app, userId), now, app.findRecordById(`users`, userId).getFloat(`subscription_quantity`));
+	const grant = findLoyaltyGrant(app, userId);
+	const before = grant ? grant.getInt(`amount`) : 0;
+	const note = loyaltyNote(result);
+	const changed = result.bonus !== before || result.bonus > 0 && grant?.getString(`note`) !== note;
+	if (apply && changed) if (result.bonus === 0) {
+		if (grant) app.delete(grant);
+	} else {
+		const rec = grant || new Record(app.findCollectionByNameOrId(GRANTS));
+		rec.set(`user`, userId);
+		rec.set(`source`, `loyalty`);
+		rec.set(`amount`, result.bonus);
+		rec.set(`note`, note);
+		app.save(rec);
+	}
+	return {
+		...result,
+		before,
+		changed
+	};
+};
+/**
+* Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
+* plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
+*/
+const loyaltyCandidateUserIds = (app) => {
+	const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `);
+	const rows = arrayOf(new DynamicModel({ user: "" }));
+	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
+       UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
+       ORDER BY user`).all(rows);
+	return rows.map((r) => `${r.user}`).filter(Boolean);
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/lib/accountClaimStore.ts
+/** The site the claim and login links point at (the dashboard, not the mothership API). */
+const SITE$1 = `https://pockethost.io`;
+const claimSecret = () => `${process.env.LS_WEBHOOK_SECRET || ""}`;
+const nowSeconds = () => Math.floor(Date.now() / 1e3);
+const hashClaimToken = (token) => $security.sha256(token);
+/** The account a browser claim token belongs to, or undefined (unknown token, or the webhook hasn't run yet). */
+const findUserByBrowserClaim = (app, token) => {
+	if (!isBrowserClaimToken(token)) return void 0;
+	try {
+		return app.findFirstRecordByFilter(`users`, `claim_hash = {:h}`, { h: hashClaimToken(token) });
+	} catch {
+		return;
+	}
+};
+const findUserByEmailClaim = (app, token) => {
+	const userId = parseEmailClaimToken($security.hs256, claimSecret(), token, nowSeconds());
+	if (!userId) return void 0;
+	try {
+		return app.findRecordById(`users`, userId);
+	} catch {
+		return;
+	}
+};
+/** The account behind either kind of claim token. */
+const findUserByClaim = (app, p) => p.claim ? findUserByBrowserClaim(app, p.claim) : p.t ? findUserByEmailClaim(app, p.t) : void 0;
+const randomPassword = () => $security.randomStringWithAlphabet(48, `abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789`);
+/**
+* A new, unclaimed account for a buyer who paid without one. Unverified, random password, `claim_open`. If another
+* webhook for the same checkout created it a moment earlier (unique email), that account is returned instead.
+*/
+const createBuyerAccount = (app, email, browserClaim, log) => {
+	const users = app.findCollectionByNameOrId(`users`);
+	const user = new Record(users);
+	user.set(`email`, normalizeEmail(email));
+	user.setPassword(randomPassword());
+	user.set(`verified`, false);
+	user.set(`subscription`, `free`);
+	user.set(`subscription_quantity`, 0);
+	user.set(`subscription_status`, `lapsed`);
+	user.set(`claim_open`, true);
+	if (isBrowserClaimToken(browserClaim)) user.set(`claim_hash`, hashClaimToken(browserClaim));
+	try {
+		app.save(user);
+		log(`created buyer account`, user.id);
+		return {
+			user,
+			created: true
+		};
+	} catch (err) {
+		try {
+			return {
+				user: app.findFirstRecordByData(`users`, `email`, normalizeEmail(email)),
+				created: false
+			};
+		} catch {
+			throw err;
+		}
+	}
+};
+/** Point a browser claim token at an account the sale was added to (so the claim page can say where it went). */
+const rememberBrowserClaim = (app, userRec, browserClaim) => {
+	if (!isBrowserClaimToken(browserClaim)) return;
+	const hash = hashClaimToken(browserClaim);
+	if (userRec.getString(`claim_hash`) === hash) return;
+	userRec.set(`claim_hash`, hash);
+	app.saveNoValidate(userRec);
+};
+/**
+* Email straight to an address from a message template. Platform notifications skip unverified accounts; a buyer's new
+* account is unverified, and this email is how they reach it.
+*/
+const sendTemplateEmail = (app, to, slug, vars, log) => {
+	const tpl = app.findFirstRecordByData(`message_templates`, `slug`, slug);
+	const lower = Object.fromEntries(Object.entries(vars).map(([k, v]) => [k.toLowerCase(), v]));
+	const msg = new MailerMessage({
+		from: {
+			address: app.settings().meta.senderAddress,
+			name: app.settings().meta.senderName
+		},
+		to: [{ address: to }],
+		bcc: [{ address: `pockethost+notifications@benallfree.com` }],
+		subject: interpolateString(tpl.getString(`subject`), lower),
+		html: interpolateString(tpl.getString(`body_html`), lower)
+	});
+	app.newMailClient().send(msg);
+	log(`sent ${slug}`, to);
+};
+/** "Your PocketHost account is ready": the claim link, to the billing email. */
+const sendClaimEmail = (app, userRec, billingEmail, log) => {
+	const t = emailClaimToken($security.hs256, claimSecret(), userRec.id, nowSeconds());
+	sendTemplateEmail(app, billingEmail, `account_claim`, {
+		CLAIM_URL: `${SITE$1}/claim?t=${encodeURIComponent(t)}`,
+		LOGIN_URL: `${SITE$1}/login`
+	}, log);
+};
+/** A guest checkout landed on an existing account (matched by email). */
+const sendPurchaseAddedEmail = (app, userRec, billingEmail, log) => {
+	sendTemplateEmail(app, billingEmail, `account_purchase_added`, {
+		ACCOUNT_EMAIL: maskEmail(userRec.getString(`email`)),
+		LOGIN_URL: `${SITE$1}/login`
+	}, log);
+};
+/** What the claim page may know about an account behind a token. Only an open claim reveals the email. */
+const claimStatus = (userRec) => {
+	if (!userRec) return { state: `pending` };
+	if (userRec.getBool(`claim_open`)) return {
+		state: `open`,
+		email: userRec.getString(`email`)
+	};
+	return {
+		state: `claimed`,
+		email: maskEmail(userRec.getString(`email`))
+	};
+};
+/** Close a claim: both tokens stop working. */
+const closeClaim = (userRec) => {
+	userRec.set(`claim_open`, false);
+	userRec.set(`claim_hash`, ``);
+};
+/**
+* Move everything a just-paid, unclaimed account owns onto the buyer's existing account, then delete the empty one.
+* Pay-first accounts have no instances yet, so their billing items are all there is.
+*/
+const attachClaimToUser = (app, claimUser, target, log) => {
+	if (!claimUser.getBool(`claim_open`)) throw new Error(`This purchase was already set up`);
+	if (claimUser.id === target.id) throw new Error(`Same account`);
+	if (app.findRecordsByFilter(`instances`, `uid = {:u}`, ``, 1, 0, { u: claimUser.id }).length) throw new Error(`That account already has instances; contact support`);
+	const billingEmails = lsEmailsFor(claimUser);
+	app.runInTransaction((tx) => {
+		for (const rec of loadBillingItemRecords(tx, claimUser.id)) {
+			rec.set(`user`, target.id);
+			tx.save(rec);
+		}
+		rememberLsEmails(tx, target, billingEmails);
+		reconcileUser(tx, target);
+		reconcileUser(tx, claimUser);
+	});
+	for (const id of [claimUser.id, target.id]) try {
+		syncLoyalty(app, id);
+	} catch (err) {
+		log(`loyalty sync after attach failed`, id, `${err}`);
+	}
+	try {
+		app.delete(app.findRecordById(`users`, claimUser.id));
+	} catch (err) {
+		log(`could not delete attached claim account, retiring it`, claimUser.id, `${err}`);
+		const rec = app.findRecordById(`users`, claimUser.id);
+		rec.set(`email`, `attached+${rec.id}@users.pockethost.invalid`);
+		closeClaim(rec);
+		app.saveNoValidate(rec);
+	}
+	log(`attached claim`, claimUser.id, `to`, target.id);
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleAccountClaim.ts
+/** Via requestInfo (cached): recordAuthResponse reads the request info again, so the raw body must not be consumed. */
+const readBody = (e) => e.requestInfo().body || {};
+const tokenOf = (b) => ({
+	claim: b.claim,
+	t: b.t
+});
+const HandleClaimStatus = (e) => {
+	const body = readBody(e);
+	if (!body.claim && !body.t) throw new BadRequestError(`claim or t is required`);
+	return e.json(200, claimStatus(findUserByClaim($app, tokenOf(body))));
+};
+const HandleClaimComplete = (e) => {
+	const log = mkLog(`claim`);
+	const audit = mkAudit(log, $app);
+	const body = readBody(e);
+	const user = findUserByClaim($app, tokenOf(body));
+	if (!user) throw new BadRequestError(`This link isn't valid or has expired.`);
+	if (!user.getBool(`claim_open`)) throw new BadRequestError(`This account is already set up. Log in instead.`);
+	const email = normalizeEmail(body.email);
+	const password = `${body.password || ""}`;
+	if (!looksLikeEmail(email)) throw new BadRequestError(`Enter a valid email address.`);
+	if (password.length < 8) throw new BadRequestError(`Use a password with at least ${8} characters.`);
+	const billingEmail = normalizeEmail(user.getString(`email`));
+	const changed = email !== billingEmail;
+	if (changed) {
+		let taken = false;
+		try {
+			$app.findFirstRecordByData(`users`, `email`, email);
+			taken = true;
+		} catch {}
+		if (taken) throw new BadRequestError(`That email already has an account. Log in to add this purchase to it.`);
+		user.setEmail(email);
+		user.setVerified(false);
+		rememberLsEmails($app, user, [billingEmail]);
+	} else if (body.t) user.setVerified(true);
+	user.setPassword(password);
+	closeClaim(user);
+	$app.save(user);
+	if (!user.verified()) try {
+		$mails.sendRecordVerification($app, user);
+	} catch (err) {
+		log(`verification email failed`, `${err}`);
+	}
+	audit(`CLAIM`, `Account claimed${changed ? ` with a different email than billing` : ``}.`, {
+		user_id: user.id,
+		via: body.t ? `email` : `browser`
+	});
+	return $apis.recordAuthResponse(e, user, `password`, null);
+};
+const HandleClaimAttach = (e) => {
+	const log = mkLog(`claim`);
+	const audit = mkAudit(log, $app);
+	const target = e.auth;
+	if (!target || target.collection().name !== `users`) throw new UnauthorizedError(`Log in first`);
+	const body = readBody(e);
+	const claimUser = findUserByClaim($app, tokenOf(body));
+	if (!claimUser) throw new BadRequestError(`This link isn't valid or has expired.`);
+	try {
+		attachClaimToUser($app, claimUser, $app.findRecordById(`users`, target.id), log);
+	} catch (err) {
+		throw new BadRequestError(`${err}`.replace(/^Error: /, ``));
+	}
+	audit(`CLAIM`, `Purchase attached to an existing account.`, {
+		user_id: target.id,
+		from: claimUser.id
+	});
+	return e.json(200, { status: `ok` });
+};
+
+//#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts
 const CANCELABLE_SKUS = [`hosting.slot.recurring.month`, `hosting.slot.recurring.month.legacy`];
 /**
@@ -3965,11 +4276,12 @@ const HandleLemonSqueezyCancel = (e) => {
 
 //#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts
+const SITE = `https://pockethost.io`;
+const ALNUM = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`;
 const HandleLemonSqueezyCheckout = (e) => {
 	const log = mkLog(`ls-checkout`);
 	try {
 		const authRecord = e.auth;
-		if (!authRecord) throw new UnauthorizedError(`Authentication required`);
 		const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`);
 		const storeId = process.env.LS_STORE_ID || $os.getenv(`LS_STORE_ID`);
 		if (!apiKey || !storeId) throw new BadRequestError(`Checkout is not configured (set LS_API_KEY and LS_STORE_ID on mothership)`);
@@ -3983,8 +4295,12 @@ const HandleLemonSqueezyCheckout = (e) => {
 		if (!pvId) throw new BadRequestError(`pvId is required`);
 		const variantId = lemonSqueezyVariantId(pvId);
 		if (!variantId) throw new BadRequestError(`Unknown plan: ${pvId}`);
-		const email = authRecord.get(`email`);
-		const userId = authRecord.id;
+		const claim = authRecord ? `` : $security.randomStringWithAlphabet(40, ALNUM);
+		const checkoutData = authRecord ? {
+			email: authRecord.get(`email`),
+			custom: { user_id: authRecord.id }
+		} : { custom: { claim } };
+		const redirectUrl = authRecord ? `${SITE}/dashboard?paid=1` : `${SITE}/claim`;
 		const res = $http.send({
 			url: `https://api.lemonsqueezy.com/v1/checkouts`,
 			method: `POST`,
@@ -3995,10 +4311,10 @@ const HandleLemonSqueezyCheckout = (e) => {
 			},
 			body: JSON.stringify({ data: {
 				type: `checkouts`,
-				attributes: { checkout_data: {
-					email,
-					custom: { user_id: userId }
-				} },
+				attributes: {
+					checkout_data: checkoutData,
+					product_options: { redirect_url: redirectUrl }
+				},
 				relationships: {
 					store: { data: {
 						type: `stores`,
@@ -4019,8 +4335,11 @@ const HandleLemonSqueezyCheckout = (e) => {
 		}
 		const url = res.json?.data?.attributes?.url;
 		if (!url) throw new Error(`No checkout URL in Lemon Squeezy response`);
-		log(`checkout created`, userId, pvId);
-		return e.json(200, { url });
+		log(`checkout created`, authRecord ? authRecord.id : `guest`, pvId);
+		return e.json(200, authRecord ? { url } : {
+			url,
+			claim
+		});
 	} catch (err) {
 		log(`${err}`);
 		throw err;
@@ -4618,59 +4937,6 @@ const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 };
 
 //#endregion
-//#region src/lib/handlers/lemon/lib/loyaltyStore.ts
-const GRANTS = `bonus_grants`;
-/** The account's one `loyalty` grant row, if any. */
-const findLoyaltyGrant = (app, userId) => {
-	try {
-		return app.findFirstRecordByFilter(GRANTS, `user = {:user} && source = 'loyalty'`, { user: userId });
-	} catch {
-		return;
-	}
-};
-/**
-* Recompute the account's loyalty bonus from its billing items (the subscription chain's start dates) and keep its
-* single `loyalty` grant row in line: amount = bonus, removed at 0. The `bonus_grants` hooks then recompute
-* `users.bonus_instances`. Manual grants are never touched. No Lemon Squeezy calls.
-*/
-const syncLoyalty = (app, userId, options = {}) => {
-	const apply = options.apply ?? true;
-	const now = options.now ?? /* @__PURE__ */ new Date();
-	const result = loyaltyBonus(loadBillingItems(app, userId), now, app.findRecordById(`users`, userId).getFloat(`subscription_quantity`));
-	const grant = findLoyaltyGrant(app, userId);
-	const before = grant ? grant.getInt(`amount`) : 0;
-	const note = loyaltyNote(result);
-	const changed = result.bonus !== before || result.bonus > 0 && grant?.getString(`note`) !== note;
-	if (apply && changed) if (result.bonus === 0) {
-		if (grant) app.delete(grant);
-	} else {
-		const rec = grant || new Record(app.findCollectionByNameOrId(GRANTS));
-		rec.set(`user`, userId);
-		rec.set(`source`, `loyalty`);
-		rec.set(`amount`, result.bonus);
-		rec.set(`note`, note);
-		app.save(rec);
-	}
-	return {
-		...result,
-		before,
-		changed
-	};
-};
-/**
-* Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
-* plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
-*/
-const loyaltyCandidateUserIds = (app) => {
-	const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `);
-	const rows = arrayOf(new DynamicModel({ user: "" }));
-	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
-       UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
-       ORDER BY user`).all(rows);
-	return rows.map((r) => `${r.user}`).filter(Boolean);
-};
-
-//#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
 /** Events that post to the lemon_cancel_discord template. */
 const CANCEL_EVENTS = [`subscription_cancelled`];
@@ -4780,18 +5046,23 @@ const HandleLemonSqueezySale = (e) => {
 				return $app.findRecordById(`users`, known.getString(`user`));
 			}
 			const email = `${attrs.user_email || firstAttrs.user_email || ""}`.trim();
-			if (email) {
+			if (!email) throw new Error(`No user ID or checkout email`);
+			for (const candidate of [...new Set([email, email.toLowerCase()])]) try {
+				const match = $app.findFirstRecordByData(`users`, `email`, candidate);
 				context.user_id_source = `email`;
-				try {
-					return $app.findFirstRecordByData(`users`, `email`, email);
-				} catch {
-					throw new Error(`No PocketHost user for checkout email ${email}`);
-				}
-			}
-			throw new Error(`No user ID or checkout email`);
+				return match;
+			} catch {}
+			const claim = payload.meta?.custom_data?.claim;
+			if (!claim) throw new Error(`No PocketHost user for checkout email ${email}`);
+			const { user, created } = createBuyerAccount($app, email, claim, log);
+			context.user_id_source = created ? `create` : `email`;
+			context.account_created = created;
+			return user;
 		})();
 		context.user_id = userRec.id;
 		context.user_email = userRec.getString(`email`);
+		const guestClaim = payload.meta?.custom_data?.claim;
+		context.guest_checkout = !!guestClaim;
 		if (context.user_id_source !== `email`) rememberLsEmails($app, userRec, [attrs.user_email, firstAttrs.user_email].filter(Boolean));
 		context.bootstrapped = ensureUserBootstrapped($app, userRec);
 		for (const sub of subscriptions) {
@@ -4810,6 +5081,18 @@ const HandleLemonSqueezySale = (e) => {
 		} catch (err) {
 			context.bonus_error = `${err}`;
 			log(`loyalty sync failed`, `${err}`);
+		}
+		const billingEmail = `${attrs.user_email || firstAttrs.user_email || ""}`.trim();
+		try {
+			if (context.account_created && billingEmail) sendClaimEmail($app, userRec, billingEmail, log);
+			else if (guestClaim && context.user_id_source === `email` && billingEmail) {
+				if (userRec.getString(`claim_hash`) !== $security.sha256(`${guestClaim}`)) {
+					rememberBrowserClaim($app, userRec, guestClaim);
+					if (!userRec.getBool(`claim_open`)) sendPurchaseAddedEmail($app, userRec, billingEmail, log);
+				}
+			}
+		} catch (err) {
+			log(`claim email failed`, `${err}`);
 		}
 		const notify = mkNotifier(log, $app);
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
@@ -7889,6 +8172,9 @@ exports.HandleBulkMailSaveSettings = HandleBulkMailSaveSettings;
 exports.HandleBulkMailUnsubscribe = HandleBulkMailUnsubscribe;
 exports.HandleBulkMailUnsubscribePage = HandleBulkMailUnsubscribePage;
 exports.HandleBulkMailWebhook = HandleBulkMailWebhook;
+exports.HandleClaimAttach = HandleClaimAttach;
+exports.HandleClaimComplete = HandleClaimComplete;
+exports.HandleClaimStatus = HandleClaimStatus;
 exports.HandleCustomHostnameRegister = HandleCustomHostnameRegister;
 exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;

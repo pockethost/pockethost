@@ -23,6 +23,12 @@ import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
 import { mothershipPublicUrl } from '$util/mothershipUrl'
 import {
+  createBuyerAccount,
+  rememberBrowserClaim,
+  sendClaimEmail,
+  sendPurchaseAddedEmail,
+} from '../lib/accountClaimStore'
+import {
   ensureUserBootstrapped,
   findBillingItemRecord,
   loadBillingItems,
@@ -35,7 +41,7 @@ import { syncLoyalty } from '../lib/loyaltyStore'
 import { lsSubscription, lsSubscriptionsByOrderId } from '../lib/lsApi'
 
 type LsWebhookPayload = {
-  meta?: { event_name?: string; custom_data?: { user_id?: string } }
+  meta?: { event_name?: string; custom_data?: { user_id?: string; claim?: string } }
   data?: { id?: string | number; type?: string; attributes?: Record<string, any> }
 }
 
@@ -45,7 +51,10 @@ type SaleContext = {
   resource_id?: string
   user_id?: string
   user_email?: string
-  user_id_source?: 'custom_data' | 'billing_item' | 'email'
+  user_id_source?: 'custom_data' | 'billing_item' | 'email' | 'create'
+  /** Pay-first: the sale came from a guest checkout (custom_data.claim). */
+  guest_checkout?: boolean
+  account_created?: boolean
   product_name?: string
   variant_name?: string
   quantity?: number
@@ -187,18 +196,27 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       }
 
       const email = `${attrs.user_email || firstAttrs.user_email || ''}`.trim()
-      if (email) {
-        context.user_id_source = `email`
+      if (!email) throw new Error(`No user ID or checkout email`)
+      for (const candidate of [...new Set([email, email.toLowerCase()])]) {
         try {
-          return $app.findFirstRecordByData(`users`, `email`, email)
-        } catch {
-          throw new Error(`No PocketHost user for checkout email ${email}`)
-        }
+          const match = $app.findFirstRecordByData(`users`, `email`, candidate)
+          context.user_id_source = `email`
+          return match
+        } catch {}
       }
-      throw new Error(`No user ID or checkout email`)
+      // Pay first: a guest checkout (custom_data.claim) with no account for its email makes one from the order email;
+      // the buyer claims it on /claim. Other unmatched sales still fail, as before, for reconcile to sort out.
+      const claim = payload.meta?.custom_data?.claim
+      if (!claim) throw new Error(`No PocketHost user for checkout email ${email}`)
+      const { user, created } = createBuyerAccount($app, email, claim, log)
+      context.user_id_source = created ? `create` : `email`
+      context.account_created = created
+      return user
     })()
     context.user_id = userRec.id
     context.user_email = userRec.getString(`email`)
+    const guestClaim = payload.meta?.custom_data?.claim
+    context.guest_checkout = !!guestClaim
 
     // Customers often check out under a different email. When checkout data (or an existing row) ties this event to
     // the user, remember that LS email so later syncs find their other purchases too.
@@ -230,6 +248,22 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     } catch (err) {
       context.bonus_error = `${err}`
       log(`loyalty sync failed`, `${err}`)
+    }
+
+    // Pay-first emails, once per checkout (the first event that created or matched the account). Always to the billing
+    // email: the claim link for a new account, or "added to your account" when the email matched one.
+    const billingEmail = `${attrs.user_email || firstAttrs.user_email || ''}`.trim()
+    try {
+      if (context.account_created && billingEmail) {
+        sendClaimEmail($app, userRec, billingEmail, log)
+      } else if (guestClaim && context.user_id_source === `email` && billingEmail) {
+        if (userRec.getString(`claim_hash`) !== $security.sha256(`${guestClaim}`)) {
+          rememberBrowserClaim($app, userRec, guestClaim)
+          if (!userRec.getBool(`claim_open`)) sendPurchaseAddedEmail($app, userRec, billingEmail, log)
+        }
+      }
+    } catch (err) {
+      log(`claim email failed`, `${err}`)
     }
 
     const notify = mkNotifier(log, $app)

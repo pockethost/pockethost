@@ -191,6 +191,15 @@ onBootstrap((e) => {
 //#region src/lib/handlers/lemon/hooks.ts
 routerAdd("POST", "/api/ls/checkout", (e) => {
 	return require(`${__hooks}/mothership`).HandleLemonSqueezyCheckout(e);
+});
+routerAdd("POST", "/api/claim/status", (e) => {
+	return require(`${__hooks}/mothership`).HandleClaimStatus(e);
+});
+routerAdd("POST", "/api/claim/complete", (e) => {
+	return require(`${__hooks}/mothership`).HandleClaimComplete(e);
+});
+routerAdd("POST", "/api/claim/attach", (e) => {
+	return require(`${__hooks}/mothership`).HandleClaimAttach(e);
 }, $apis.requireAuth());
 routerAdd("POST", "/api/ls/cancel", (e) => {
 	return require(`${__hooks}/mothership`).HandleLemonSqueezyCancel(e);

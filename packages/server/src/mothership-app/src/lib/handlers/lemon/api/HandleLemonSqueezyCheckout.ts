@@ -1,14 +1,17 @@
+import { BROWSER_CLAIM_TOKEN_LENGTH } from '$common/billing/accountClaim'
 import { lemonSqueezyVariantId } from '$common/lemonSqueezy'
 import { mkLog } from '$util/Logger'
+
+const SITE = `https://pockethost.io`
+const ALNUM = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`
 
 export const HandleLemonSqueezyCheckout = (e: core.RequestEvent) => {
   const log = mkLog(`ls-checkout`)
 
   try {
+    // Logged in: the purchase goes to this account. Logged out (pay-first signup): the webhook creates the account
+    // from the order email, and the browser claims it with `claim` (common/billing/accountClaim.ts).
     const authRecord = e.auth
-    if (!authRecord) {
-      throw new UnauthorizedError(`Authentication required`)
-    }
 
     const apiKey = process.env.LS_API_KEY || $os.getenv(`LS_API_KEY`)
     const storeId = process.env.LS_STORE_ID || $os.getenv(`LS_STORE_ID`)
@@ -34,8 +37,11 @@ export const HandleLemonSqueezyCheckout = (e: core.RequestEvent) => {
       throw new BadRequestError(`Unknown plan: ${pvId}`)
     }
 
-    const email = authRecord.get(`email`)
-    const userId = authRecord.id
+    const claim = authRecord ? `` : $security.randomStringWithAlphabet(BROWSER_CLAIM_TOKEN_LENGTH, ALNUM)
+    const checkoutData = authRecord
+      ? { email: authRecord.get(`email`), custom: { user_id: authRecord.id } }
+      : { custom: { claim } }
+    const redirectUrl = authRecord ? `${SITE}/dashboard?paid=1` : `${SITE}/claim`
 
     const res = $http.send({
       url: `https://api.lemonsqueezy.com/v1/checkouts`,
@@ -49,10 +55,8 @@ export const HandleLemonSqueezyCheckout = (e: core.RequestEvent) => {
         data: {
           type: `checkouts`,
           attributes: {
-            checkout_data: {
-              email,
-              custom: { user_id: userId },
-            },
+            checkout_data: checkoutData,
+            product_options: { redirect_url: redirectUrl },
           },
           relationships: {
             store: { data: { type: `stores`, id: storeId } },
@@ -74,8 +78,8 @@ export const HandleLemonSqueezyCheckout = (e: core.RequestEvent) => {
       throw new Error(`No checkout URL in Lemon Squeezy response`)
     }
 
-    log(`checkout created`, userId, pvId)
-    return e.json(200, { url })
+    log(`checkout created`, authRecord ? authRecord.id : `guest`, pvId)
+    return e.json(200, authRecord ? { url } : { url, claim })
   } catch (err) {
     log(`${err}`)
     throw err
