@@ -140,7 +140,7 @@
         <div slot="loading">
           <PrimaryButton
             text="Get Started"
-            url="/get-started"
+            url="/pricing"
             className="wiggle opacity-0 fade-up animation-delay-500"
             icon="arrow-right"
           />
@@ -154,7 +154,7 @@
           />
         </UserLoggedIn>
         <UserLoggedOut>
-          <PrimaryButton text="Get Started" url="/get-started" icon="arrow-right" className="wiggle" />
+          <PrimaryButton text="Get Started" url="/pricing" icon="arrow-right" className="wiggle" />
         </UserLoggedOut>
       </AuthStateGuard>
       <nav class="home-jump" aria-label="On this page">

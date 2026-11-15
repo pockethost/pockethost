@@ -10,8 +10,8 @@ export {
   type CancelMembershipResult,
 } from './lemonsqueezy'
 
-/** Where a new customer goes after paying: name and create the first instance. */
-export const AFTER_CHECKOUT_PATH = '/welcome'
+/** Where a customer goes after paying: the dashboard, which waits for the payment and then offers "New instance". */
+export const AFTER_CHECKOUT_PATH = '/dashboard?paid=1'
 
 const LEMON_JS = 'https://app.lemonsqueezy.com/js/lemon.js'
 

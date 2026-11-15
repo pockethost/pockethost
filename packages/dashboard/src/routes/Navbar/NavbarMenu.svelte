@@ -32,7 +32,7 @@
     </UserLoggedIn>
     <UserLoggedOut>
       <a href="/login" class="site-nav-link site-nav-link--menu">Login</a>
-      <a href="/get-started" class="site-nav-link site-nav-link--menu">Get started</a>
+      <a href="/pricing" class="site-nav-link site-nav-link--menu">Get started</a>
     </UserLoggedOut>
   </div>
 {:else}

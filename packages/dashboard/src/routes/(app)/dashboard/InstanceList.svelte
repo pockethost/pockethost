@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { globalInstancesStore, globalInstancesStoreReady } from '$util/stores'
+  import { globalInstancesStore, globalInstancesStoreReady, userStore } from '$util/stores'
   import {
     DEFAULT_INSTANCE_LIST_PREFS,
     instanceListPrefsHasUrlParams,
@@ -12,7 +12,7 @@
     type InstanceListSortDirection,
     type InstanceListViewMode,
   } from '$util/instanceListPrefs'
-  import { type InstanceFields } from '@pockethost/server/common'
+  import { instanceAllowance, type InstanceFields } from '@pockethost/server/common'
   import InstanceCard from './InstanceCard.svelte'
   import InstanceTableRow from './InstanceTableRow.svelte'
   import { page } from '$app/state'
@@ -146,6 +146,12 @@
   <div class="instance-list-empty">
     {#if Object.keys($globalInstancesStore).length === 0}
       <p>No instances yet. Create one to get started.</p>
+      {#if instanceAllowance($userStore ?? {}) > 0}
+        <wa-button href="/instances/new" variant="brand">
+          <wa-icon slot="start" name="plus"></wa-icon>
+          Create your first instance
+        </wa-button>
+      {/if}
     {:else}
       <p>No instances match your search.</p>
     {/if}

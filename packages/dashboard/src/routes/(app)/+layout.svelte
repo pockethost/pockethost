@@ -36,7 +36,7 @@
       <wa-button href="/login" variant="brand">Log in</wa-button>
       <p class="mt-4 text-sm text-neutral-500">
         No account?
-        <a href="/get-started" class="text-primary hover:text-secondary hover:underline">Get started</a>
+        <a href="/pricing" class="text-primary hover:text-secondary hover:underline">Get started</a>
       </p>
     </div>
   </UserLoggedOut>

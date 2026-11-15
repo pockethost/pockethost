@@ -18,11 +18,11 @@ export const isCheckoutPvId = (pvId: string): boolean => (CHECKOUT_PV_IDS as rea
 export const planLabelForPvId = (pvId: string): string => {
   switch (pvId) {
     case INSTANCE_MONTHLY_PV_ID:
-      return 'Monthly: $9.99/mo per slot'
+      return 'Monthly: $9.99/mo per instance'
     case INSTANCE_ANNUAL_PV_ID:
-      return `Annual: $59.99/yr per slot (save ~${annualSavingsPercent}% vs monthly)`
+      return `Annual: $59.99/yr per instance (save ~${annualSavingsPercent}% vs monthly)`
     case INSTANCE_LIFETIME_PV_ID:
-      return 'Lifetime: $149.99 per slot'
+      return 'Lifetime: $149.99 per instance'
     default:
       return 'Pay Per PocketBase'
   }
