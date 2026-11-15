@@ -115,17 +115,21 @@ export const formatShortDate = (d: Date) => `${MONTHS[d.getUTCMonth()]} ${d.getU
 export type LoyaltyRenewalEmailVars = { current: string; next: string; max: string }
 
 /**
- * Vars for the `loyalty_renewal` email sent after each paid renewal, or null when it shouldn't go out (excluded
- * accounts, no bonus). `renewsAt` is the renewed subscription's next renewal date; the renewal that earns the next
- * bonus is that many months later.
+ * Vars for the loyalty status emails (`loyalty_renewal` after each paid renewal, `loyalty_welcome` on a new purchase),
+ * or null when one shouldn't go out (excluded accounts; no bonus yet, unless `allowZero` for a new monthly
+ * subscription). `renewsAt` is the subscription's next renewal date; the renewal that earns the next bonus is that many
+ * months later.
  */
 export const loyaltyRenewalEmailVars = (
   result: Pick<LoyaltyResult, 'bonus' | 'basis' | 'renewals'>,
-  renewsAt: string | undefined
+  renewsAt: string | undefined,
+  options: { allowZero?: boolean } = {}
 ): LoyaltyRenewalEmailVars | null => {
-  if (result.basis === 'excluded' || result.bonus <= 0) return null
+  if (result.basis === 'excluded') return null
+  if (result.bonus <= 0 && !options.allowZero) return null
   const vars = { current: `${result.bonus}`, max: `${LOYALTY_MAX_BONUS}` }
-  const at = result.basis === 'renewals' ? nextBonusAtRenewal(result.renewals) : null
+  const earning = result.basis === 'renewals' || (options.allowZero && result.basis === 'none')
+  const at = earning ? nextBonusAtRenewal(result.renewals) : null
   const base = renewsAt ? new Date(renewsAt) : null
   if (at === null || !base || isNaN(base.getTime())) {
     return { ...vars, next: at === null ? `You're at the max` : `At renewal ${at}` }

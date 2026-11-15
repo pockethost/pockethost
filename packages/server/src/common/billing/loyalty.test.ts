@@ -159,6 +159,14 @@ describe('loyaltyRenewalEmailVars', () => {
   it('falls back to the renewal number without a date', () => {
     expect(loyaltyRenewalEmailVars(r(1, 1), undefined)?.next).toBe(`At renewal 4`)
   })
+  it('names the first renewal for a brand new monthly subscription (allowZero)', () => {
+    expect(loyaltyRenewalEmailVars(r(0, 0, `none`), `2026-12-14T10:00:00Z`, { allowZero: true })).toEqual({
+      current: `0`,
+      next: `On your Dec 14, 2026 renewal`,
+      max: `5`,
+    })
+    expect(loyaltyRenewalEmailVars(r(0, 0, `excluded`), `2026-12-14T10:00:00Z`, { allowZero: true })).toBeNull()
+  })
   it('sends nothing to excluded or zero-bonus accounts', () => {
     expect(loyaltyRenewalEmailVars(r(0, 0, `excluded`), `2026-12-13T10:00:00Z`)).toBeNull()
     expect(loyaltyRenewalEmailVars(r(0, 0, `none`), `2026-12-13T10:00:00Z`)).toBeNull()

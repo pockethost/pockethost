@@ -52,6 +52,8 @@ const CANCEL_EVENTS = [`subscription_cancelled`]
 /** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
 /** Email sent after each paid renewal with the account's loyalty bonus status. */
 const LOYALTY_RENEWAL_TEMPLATE = `loyalty_renewal`
+/** Email sent on a new loyalty-eligible purchase: how the bonus works and when the next one comes. */
+const LOYALTY_WELCOME_TEMPLATE = `loyalty_welcome`
 
 const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`]
 
@@ -232,27 +234,43 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context)
     }
 
-    // After each paid renewal, tell the owner where their loyalty bonus stands. Once per invoice (LS may resend).
-    if (context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs) && loyalty) {
-      const vars = loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at)
-      if (vars) {
-        try {
-          const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, LOYALTY_RENEWAL_TEMPLATE)
-          const sent = $app.findRecordsByFilter(
-            `notifications`,
-            `user = {:user} && message_template = {:tpl} && payload ~ {:invoice}`,
-            ``,
-            1,
-            0,
-            { user: userRec.id, tpl: tpl.id, invoice: `"invoice_id":"${context.resource_id}"` }
-          )
-          if (!sent.length) {
-            notify(`email`, LOYALTY_RENEWAL_TEMPLATE, userRec.id, { ...vars, invoice_id: context.resource_id })
-          }
-        } catch (err) {
-          log(`loyalty renewal email failed`, `${err}`)
-        }
+    // Loyalty status emails, each sent once per resource (LS may resend): after every paid renewal (per invoice), and
+    // on a new loyalty-eligible purchase (per subscription or lifetime order).
+    const sendLoyaltyEmail = (slug: string, ref: string, vars: Record<string, string> | null) => {
+      if (!vars) return
+      try {
+        const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, slug)
+        const sent = $app.findRecordsByFilter(
+          `notifications`,
+          `user = {:user} && message_template = {:tpl} && payload ~ {:ref}`,
+          ``,
+          1,
+          0,
+          { user: userRec.id, tpl: tpl.id, ref: `"loyalty_ref":"${ref}"` }
+        )
+        if (!sent.length) notify(`email`, slug, userRec.id, { ...vars, loyalty_ref: ref })
+      } catch (err) {
+        log(`${slug} email failed`, `${err}`)
       }
+    }
+    if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs)) {
+      sendLoyaltyEmail(
+        LOYALTY_RENEWAL_TEMPLATE,
+        `invoice:${context.resource_id}`,
+        loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at)
+      )
+    }
+    const newLoyaltyPurchase =
+      (context.event_name === `subscription_created` &&
+        !!first &&
+        (loyalty?.basis === `upfront` || !!loyalty?.monthlySubscriptionIds.includes(`${first.id}`))) ||
+      (context.event_name === `order_created` && order?.sku === `hosting.slot.lifetime`)
+    if (loyalty && newLoyaltyPurchase) {
+      sendLoyaltyEmail(
+        LOYALTY_WELCOME_TEMPLATE,
+        first ? `subscription:${first.id}` : `order:${context.resource_id}`,
+        loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at, { allowZero: true })
+      )
     }
 
     const bonusMsg =
