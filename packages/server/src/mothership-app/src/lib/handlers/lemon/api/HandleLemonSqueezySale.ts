@@ -8,6 +8,7 @@ import {
   type LsOrderResource,
   type LsSubscriptionResource,
 } from '$common/billing/billingItems'
+import { isPaidRenewalInvoice, loyaltyRenewalEmailVars } from '$common/billing/loyalty'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
@@ -49,6 +50,9 @@ type SaleContext = {
 /** Events that post to the lemon_cancel_discord template. */
 const CANCEL_EVENTS = [`subscription_cancelled`]
 /** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
+/** Email sent after each paid renewal with the account's loyalty bonus status. */
+const LOYALTY_RENEWAL_TEMPLATE = `loyalty_renewal`
+
 const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`]
 
 /**
@@ -209,8 +213,9 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
 
     // Loyalty bonus follows the same billing state (plus paid renewal counts from LS). A failure here must not fail the
     // billing update: it is audited, and the next event or the backfill corrects it.
+    let loyalty: ReturnType<typeof syncLoyalty> | undefined
     try {
-      const loyalty = syncLoyalty($app, userRec.id)
+      loyalty = syncLoyalty($app, userRec.id)
       context.bonus_before = loyalty.before
       context.bonus_after = loyalty.bonus
     } catch (err) {
@@ -225,6 +230,29 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context)
     } else if (REFUND_EVENTS.includes(context.event_name)) {
       notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context)
+    }
+
+    // After each paid renewal, tell the owner where their loyalty bonus stands. Once per invoice (LS may resend).
+    if (context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs) && loyalty) {
+      const vars = loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at)
+      if (vars) {
+        try {
+          const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, LOYALTY_RENEWAL_TEMPLATE)
+          const sent = $app.findRecordsByFilter(
+            `notifications`,
+            `user = {:user} && message_template = {:tpl} && payload ~ {:invoice}`,
+            ``,
+            1,
+            0,
+            { user: userRec.id, tpl: tpl.id, invoice: `"invoice_id":"${context.resource_id}"` }
+          )
+          if (!sent.length) {
+            notify(`email`, LOYALTY_RENEWAL_TEMPLATE, userRec.id, { ...vars, invoice_id: context.resource_id })
+          }
+        } catch (err) {
+          log(`loyalty renewal email failed`, `${err}`)
+        }
+      }
     }
 
     const bonusMsg =

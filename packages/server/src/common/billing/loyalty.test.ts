@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { BillingItem } from './billingItems'
-import { bonusForRenewals, isPaidRenewalInvoice, loyaltyBonus, loyaltyNote, nextBonusAtRenewal } from './loyalty'
+import {
+  bonusForRenewals,
+  isPaidRenewalInvoice,
+  loyaltyBonus,
+  loyaltyNote,
+  loyaltyRenewalEmailVars,
+  nextBonusAtRenewal,
+} from './loyalty'
 
 const NOW = new Date(`2026-11-11T12:00:00Z`)
 
@@ -128,5 +135,32 @@ describe('isPaidRenewalInvoice', () => {
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `pending` })).toBe(false)
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `paid`, refunded: true })).toBe(false)
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `refunded` })).toBe(false)
+  })
+})
+
+describe('loyaltyRenewalEmailVars', () => {
+  const r = (bonus: number, renewals: number, basis: any = `renewals`) => ({ bonus, renewals, basis })
+  it('names the renewal that earns the next bonus', () => {
+    // 4 renewals = 2 bonus; next at renewal 7, the next renewal (5) is Dec 13, so 7 is Feb 13.
+    expect(loyaltyRenewalEmailVars(r(2, 4), `2026-12-13T10:00:00Z`)).toEqual({
+      current: `2`,
+      next: `On your Feb 13, 2027 renewal`,
+      max: `5`,
+    })
+    // 1 renewal: next at 4, which is 2 months after the next renewal (2).
+    expect(loyaltyRenewalEmailVars(r(1, 1), `2026-12-13T10:00:00Z`)?.next).toBe(`On your Feb 13, 2027 renewal`)
+    // 3 renewals: the very next renewal (4) earns it.
+    expect(loyaltyRenewalEmailVars(r(1, 3), `2026-12-13T10:00:00Z`)?.next).toBe(`On your Dec 13, 2026 renewal`)
+  })
+  it('says max at 5 (monthly or annual)', () => {
+    expect(loyaltyRenewalEmailVars(r(5, 13), `2026-12-13T10:00:00Z`)?.next).toBe(`You're at the max`)
+    expect(loyaltyRenewalEmailVars(r(5, 0, `upfront`), `2027-11-13T10:00:00Z`)?.next).toBe(`You're at the max`)
+  })
+  it('falls back to the renewal number without a date', () => {
+    expect(loyaltyRenewalEmailVars(r(1, 1), undefined)?.next).toBe(`At renewal 4`)
+  })
+  it('sends nothing to excluded or zero-bonus accounts', () => {
+    expect(loyaltyRenewalEmailVars(r(0, 0, `excluded`), `2026-12-13T10:00:00Z`)).toBeNull()
+    expect(loyaltyRenewalEmailVars(r(0, 0, `none`), `2026-12-13T10:00:00Z`)).toBeNull()
   })
 })

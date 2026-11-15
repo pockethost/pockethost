@@ -3397,6 +3397,12 @@ const bonusForRenewals = (renewals) => {
 	if (!(n >= 1)) return 0;
 	return Math.min(5, 1 + Math.floor((n - 1) / 3));
 };
+/** Paid renewals needed for the next bonus instance, or null at the cap. */
+const nextBonusAtRenewal = (renewals) => {
+	const bonus = bonusForRenewals(renewals);
+	if (bonus >= 5) return null;
+	return bonus === 0 ? 1 : 1 + bonus * 3;
+};
 const isLs = (i) => i.provider === "lemonsqueezy" && i.quantity > 0;
 /** Active LS monthly subscriptions on the account (the ones whose paid renewals count). */
 const activeMonthlySubscriptionIds = (items, now) => items.filter((i) => isLs(i) && i.kind === "subscription" && LOYALTY_MONTHLY_SKUS.includes(i.sku)).filter((i) => isBillingItemActive(i, now)).map((i) => i.external_id);
@@ -3435,6 +3441,46 @@ const loyaltyBonus = (items, renewalsBySubscription, now, paidInstances = 0) => 
 const loyaltyNote = (r) => r.basis === "upfront" ? `Loyalty bonus: ${5} instances with your annual or lifetime plan` : `Loyalty bonus: ${r.renewals} monthly renewal${r.renewals === 1 ? `` : `s`}`;
 /** A paid (not refunded) renewal invoice. Initial and plan-change invoices don't count. */
 const isPaidRenewalInvoice = (a) => !!a && a.billing_reason === "renewal" && a.status === "paid" && !a.refunded;
+const MONTHS = [
+	`Jan`,
+	`Feb`,
+	`Mar`,
+	`Apr`,
+	`May`,
+	`Jun`,
+	`Jul`,
+	`Aug`,
+	`Sep`,
+	`Oct`,
+	`Nov`,
+	`Dec`
+];
+/** `Jan 13, 2027` (UTC). */
+const formatShortDate = (d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+/**
+* Vars for the `loyalty_renewal` email sent after each paid renewal, or null when it shouldn't go out (excluded
+* accounts, no bonus). `renewsAt` is the renewed subscription's next renewal date; the renewal that earns the next
+* bonus is that many months later.
+*/
+const loyaltyRenewalEmailVars = (result, renewsAt) => {
+	if (result.basis === "excluded" || result.bonus <= 0) return null;
+	const vars = {
+		current: `${result.bonus}`,
+		max: `${5}`
+	};
+	const at = result.basis === "renewals" ? nextBonusAtRenewal(result.renewals) : null;
+	const base = renewsAt ? new Date(renewsAt) : null;
+	if (at === null || !base || isNaN(base.getTime())) return {
+		...vars,
+		next: at === null ? `You're at the max` : `At renewal ${at}`
+	};
+	const d = new Date(base.getTime());
+	d.setUTCMonth(d.getUTCMonth() + (at - (result.renewals + 1)));
+	return {
+		...vars,
+		next: `On your ${formatShortDate(d)} renewal`
+	};
+};
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/lsApi.ts
@@ -4484,6 +4530,8 @@ const loyaltyCandidateUserIds = (app) => {
 /** Events that post to the lemon_cancel_discord template. */
 const CANCEL_EVENTS = [`subscription_cancelled`];
 /** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
+/** Email sent after each paid renewal with the account's loyalty bonus status. */
+const LOYALTY_RENEWAL_TEMPLATE = `loyalty_renewal`;
 const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`];
 /**
 * Lemon Squeezy webhook. Every event updates the one billing item it is about (subscription or lifetime order), then
@@ -4611,8 +4659,9 @@ const HandleLemonSqueezySale = (e) => {
 		const { before, after } = reconcileUser($app, userRec);
 		context.slots_before = before;
 		context.slots_after = after;
+		let loyalty;
 		try {
-			const loyalty = syncLoyalty($app, userRec.id);
+			loyalty = syncLoyalty($app, userRec.id);
 			context.bonus_before = loyalty.before;
 			context.bonus_after = loyalty.bonus;
 		} catch (err) {
@@ -4623,6 +4672,22 @@ const HandleLemonSqueezySale = (e) => {
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
 		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
 		else if (REFUND_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context);
+		if (context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs) && loyalty) {
+			const vars = loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at);
+			if (vars) try {
+				const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, LOYALTY_RENEWAL_TEMPLATE);
+				if (!$app.findRecordsByFilter(`notifications`, `user = {:user} && message_template = {:tpl} && payload ~ {:invoice}`, ``, 1, 0, {
+					user: userRec.id,
+					tpl: tpl.id,
+					invoice: `"invoice_id":"${context.resource_id}"`
+				}).length) notify(`email`, LOYALTY_RENEWAL_TEMPLATE, userRec.id, {
+					...vars,
+					invoice_id: context.resource_id
+				});
+			} catch (err) {
+				log(`loyalty renewal email failed`, `${err}`);
+			}
+		}
 		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
 		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });

@@ -106,3 +106,31 @@ export type LsInvoiceAttributes = { billing_reason?: string; status?: string; re
 /** A paid (not refunded) renewal invoice. Initial and plan-change invoices don't count. */
 export const isPaidRenewalInvoice = (a: LsInvoiceAttributes | undefined) =>
   !!a && a.billing_reason === 'renewal' && a.status === 'paid' && !a.refunded
+
+const MONTHS = [`Jan`, `Feb`, `Mar`, `Apr`, `May`, `Jun`, `Jul`, `Aug`, `Sep`, `Oct`, `Nov`, `Dec`]
+
+/** `Jan 13, 2027` (UTC). */
+export const formatShortDate = (d: Date) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`
+
+export type LoyaltyRenewalEmailVars = { current: string; next: string; max: string }
+
+/**
+ * Vars for the `loyalty_renewal` email sent after each paid renewal, or null when it shouldn't go out (excluded
+ * accounts, no bonus). `renewsAt` is the renewed subscription's next renewal date; the renewal that earns the next
+ * bonus is that many months later.
+ */
+export const loyaltyRenewalEmailVars = (
+  result: Pick<LoyaltyResult, 'bonus' | 'basis' | 'renewals'>,
+  renewsAt: string | undefined
+): LoyaltyRenewalEmailVars | null => {
+  if (result.basis === 'excluded' || result.bonus <= 0) return null
+  const vars = { current: `${result.bonus}`, max: `${LOYALTY_MAX_BONUS}` }
+  const at = result.basis === 'renewals' ? nextBonusAtRenewal(result.renewals) : null
+  const base = renewsAt ? new Date(renewsAt) : null
+  if (at === null || !base || isNaN(base.getTime())) {
+    return { ...vars, next: at === null ? `You're at the max` : `At renewal ${at}` }
+  }
+  const d = new Date(base.getTime())
+  d.setUTCMonth(d.getUTCMonth() + (at - (result.renewals + 1)))
+  return { ...vars, next: `On your ${formatShortDate(d)} renewal` }
+}
