@@ -48,5 +48,5 @@ describe.skipIf(!hasTools)(`instance archive storage (local rclone path)`, () =>
 
     await deleteInstanceArchive(remote, id)
     expect(await listInstanceArchives(remote)).toEqual([])
-  })
+  }, 30_000) // shells out to rclone several times; over 5 s when the whole suite runs in parallel
 })
