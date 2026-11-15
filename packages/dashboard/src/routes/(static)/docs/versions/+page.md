@@ -9,7 +9,7 @@ PocketHost runs the latest patch of each PocketBase minor release from **0.23 on
 
 ## PocketBase 0.22 and older
 
-PocketBase 0.22 and older can't be picked for new instances or version changes. Instances already on them keep running until **February 6, 2027**. On that date, any instance still on 0.22 or older is suspended and archived, and its owner gets a download link by email. Archives are deleted after 180 days. While you own an instance on 0.22 or older, a warning at the top of the dashboard lists it. See [the announcement](/blog/pocketbase-022-sunset) for details, including upgrade help for paid plans.
+PocketBase 0.22 and older can't be picked for new instances or version changes. Instances already on them keep running until **February 6, 2027**. On that date, any instance still on 0.22 or older stops working, and its owner gets a download link by email. Archives are deleted after 180 days. While you own an instance on 0.22 or older, a warning at the top of the dashboard lists it. See [the announcement](/blog/pocketbase-022-sunset) for details, including upgrade help on Discord.
 
 Moving from 0.22 or older to 0.23 or later is a bigger step than other upgrades. PocketBase migrates your data on its own, but 0.23 rewrote the JavaScript hooks API, so custom `pb_hooks` need updating. Follow PocketBase's [0.23 upgrade guide](https://pocketbase.io/v023upgrade/jsvm/) and test on a second instance first, as described below.
 

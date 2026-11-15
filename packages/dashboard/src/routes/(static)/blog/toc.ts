@@ -27,7 +27,7 @@ export const toc: BlogTocEntry[] = [
     title: 'Service Update: PocketBase 0.22 and Older Retire February 6, 2027',
     path: '/blog/pocketbase-022-sunset',
     description:
-      'New instances now need PocketBase 0.23 or later. Instances still on 0.22 or older are suspended and archived on February 6, 2027. Paid plans get help upgrading.',
+      'New instances now need PocketBase 0.23 or later. Instances still on 0.22 or older stop working on February 6, 2027. Upgrade help is on Discord, for everyone.',
     date: 'Nov 8, 2026',
     author: 'capn',
   },

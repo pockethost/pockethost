@@ -76,7 +76,7 @@
         <p>
           PocketBase <strong>v0.23+</strong> changes the JSVM API. Custom <code>pb_hooks</code> written for v0.22 or
           earlier may need updates before you upgrade. Versions 0.22 and older can't be selected anymore, and instances
-          still on them will be suspended and archived on {LEGACY_SUNSET_DATE}.
+          still on them will stop working on {LEGACY_SUNSET_DATE}.
           <a href="https://github.com/pocketbase/pocketbase/releases/tag/v0.23.0" class="text-primary"
             >Review the v0.23 release notes</a
           >.

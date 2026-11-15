@@ -4,7 +4,7 @@ Starting today, new instances and version changes need PocketBase 0.23 or later.
 
 ### What happens on February 6, 2027
 
-Any instance still on 0.22 or older is suspended and archived:
+Any instance still on 0.22 or older stops working:
 
 - It stops answering requests.
 - Its data is packed up and moved off the server. You get an email with a download link.
@@ -12,11 +12,9 @@ Any instance still on 0.22 or older is suspended and archived:
 
 This applies to every plan. Check the version badge next to your instance name in the dashboard. If any of your instances run 0.22 or older, a warning at the top of every dashboard page names them, with a link to each one's version page.
 
-### Paid plans: I'll help you upgrade
+### I'll help you upgrade
 
-If you're on a Pay Per PocketBase, Founder or Flounder plan, I'll help you move to 0.23 or later. Reply to the email you got about this, or [contact support](/support), and tell me which instance. The sooner you reach out, the more time we have to test it together.
-
-Free plans don't include migration help. Everything you need is below and in the PocketBase upgrade guide.
+If you need help with the upgrade, please reach out on [Discord](https://discord.gg/nVTxCMEcGT). I'm happy to help anyone. We can throw some AI at it.
 
 ### How to upgrade
 
@@ -43,7 +41,7 @@ PocketBase's own [upgrade guide](https://pocketbase.io/v023upgrade/jsvm/) lists 
 
 - **Today**: 0.22 and older can no longer be picked for new instances or version changes. Instances on them show a warning in the dashboard.
 - **December 8, 2026 and January 7, 2027**: reminder emails to anyone still on 0.22 or older.
-- **February 6, 2027**: remaining 0.22-and-older instances are suspended and archived, with a download link by email.
+- **February 6, 2027**: remaining 0.22-and-older instances stop working, with a download link by email.
 - **180 days after archiving**: archives are deleted.
 
 Questions? Ask on [Discord](https://discord.gg/nVTxCMEcGT) or reply to the email.
