@@ -31,6 +31,7 @@
   <SignupBox
     pvId={INSTANCE_MONTHLY_PV_ID}
     title="Monthly"
+    badgeText="Earn up to 5 loyalty bonus instances"
     price="$9.99"
     priceDetail="per instance, per month"
     priceNote={`$${(MONTHLY_PRICE / 6).toFixed(2)}/mo per instance after year 1, with 5 bonus instances`}
