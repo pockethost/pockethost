@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	firewall "github.com/pockethost/pocketone/ext/firewall"
+	firewall "github.com/pockethost/pocketone/ext/core/multisite-firewall"
 
-	ceedge "github.com/pockethost/pocketone/ext/edge"
+	ceedge "github.com/pockethost/pocketone/ext/core/multisite-edge"
 
-	"github.com/pockethost/pocketone/ext/pocker"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-pocker"
 )
 
 // Any edge accepts any request (the load balancer sends visitors to the nearest edge). Each instance runs on exactly

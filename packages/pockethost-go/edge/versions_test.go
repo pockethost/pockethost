@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/pockethost/pocketone/ext/docker"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
 )
 
 func rel(line, v string) docker.Release {

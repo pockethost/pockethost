@@ -9,7 +9,7 @@ import (
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"github.com/pockethost/pocketone/ext/docker"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
 	"github.com/spf13/cobra"
 )
 

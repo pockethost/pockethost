@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/lifecycle"
+	"github.com/pockethost/pocketone/ext/core/multisite-stats"
 )
 
 // pbDateLayout is how PocketBase stores dates.
@@ -24,8 +24,8 @@ type InstanceStats struct {
 }
 
 var (
-	_ lifecycle.Sink   = (*InstanceStats)(nil)
-	_ lifecycle.Loader = (*InstanceStats)(nil)
+	_ stats.Sink   = (*InstanceStats)(nil)
+	_ stats.Loader = (*InstanceStats)(nil)
 )
 
 // InstanceStats returns this edge's lifecycle sink.
@@ -67,13 +67,13 @@ func (st *InstanceStats) edgeRecord(ctx context.Context) (string, error) {
 	return "", fmt.Errorf("this edge's record isn't known yet")
 }
 
-// Load implements [lifecycle.Loader]: the rows this edge wrote before (so a restart doesn't measure everything again).
-func (st *InstanceStats) Load(ctx context.Context) ([]lifecycle.Facts, error) {
+// Load implements [stats.Loader]: the rows this edge wrote before (so a restart doesn't measure everything again).
+func (st *InstanceStats) Load(ctx context.Context) ([]stats.Facts, error) {
 	edgeID, err := st.edgeRecord(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var facts []lifecycle.Facts
+	var facts []stats.Facts
 	for page := 1; ; page++ {
 		var out struct {
 			Items      []statsRow `json:"items"`
@@ -87,7 +87,7 @@ func (st *InstanceStats) Load(ctx context.Context) ([]lifecycle.Facts, error) {
 		st.mu.Lock()
 		for _, r := range out.Items {
 			st.rows[r.Instance] = r.ID
-			f := lifecycle.Facts{Instance: r.Instance, DiskBytes: r.DiskBytes}
+			f := stats.Facts{Instance: r.Instance, DiskBytes: r.DiskBytes}
 			f.MeasuredAt, _ = parsePBTime(r.DiskMeasured)
 			f.LastActive, _ = parsePBTime(r.LastActive)
 			facts = append(facts, f)
@@ -99,9 +99,9 @@ func (st *InstanceStats) Load(ctx context.Context) ([]lifecycle.Facts, error) {
 	}
 }
 
-// Report implements [lifecycle.Sink]: it creates or updates each instance's row. It keeps going past a failed row and
+// Report implements [stats.Sink]: it creates or updates each instance's row. It keeps going past a failed row and
 // returns the first error.
-func (st *InstanceStats) Report(ctx context.Context, facts []lifecycle.Facts) error {
+func (st *InstanceStats) Report(ctx context.Context, facts []stats.Facts) error {
 	edgeID, err := st.edgeRecord(ctx)
 	if err != nil {
 		return err

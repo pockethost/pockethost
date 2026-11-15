@@ -13,17 +13,17 @@ import (
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"github.com/pockethost/pocketone/ext/config"
-	"github.com/pockethost/pocketone/ext/docker"
-	ceedge "github.com/pockethost/pocketone/ext/edge"
-	"github.com/pockethost/pocketone/ext/firewall"
-	"github.com/pockethost/pocketone/ext/host"
-	"github.com/pockethost/pocketone/ext/lifecycle"
-	"github.com/pockethost/pocketone/ext/pages"
-	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
-	"github.com/pockethost/pocketone/ext/pitr"
-	"github.com/pockethost/pocketone/ext/pocker"
-	"github.com/pockethost/pocketone/ext/servertiming"
+	"github.com/pockethost/pocketone/ext/core/config"
+	"github.com/pockethost/pocketone/ext/core/multisite"
+	ceedge "github.com/pockethost/pocketone/ext/core/multisite-edge"
+	"github.com/pockethost/pocketone/ext/core/multisite-firewall"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-pocker"
+	"github.com/pockethost/pocketone/ext/core/multisite-servertiming"
+	"github.com/pockethost/pocketone/ext/core/multisite-stats"
+	"github.com/pockethost/pocketone/ext/core/pages"
+	"github.com/pockethost/pocketone/ext/core/pages/pockerplugin"
+	"github.com/pockethost/pocketone/ext/core/pitr"
 )
 
 // instancesBox holds the running edge.Instances (pocker's Manager or the docker adapter) once the host has one.
@@ -52,8 +52,8 @@ func edgeServeConfig(configPath, envPath string) error {
 	defer stop()
 
 	source := edge.NewSource(ecfg, log)
-	stats := edge.NewStats()
-	source.Heartbeat(ctx, stats) // first beat registers the edge before the mirror loads
+	edgeStats := edge.NewStats()
+	source.Heartbeat(ctx, edgeStats) // first beat registers the edge before the mirror loads
 	var edges ceedge.EdgeSource = source
 	extra, err := ceedge.FromSection(log)
 	if err != nil {
@@ -86,7 +86,7 @@ func edgeServeConfig(configPath, envPath string) error {
 		sc, _ := docker.Section.Get()
 		root = cfg.ResolvePath(sc.Root)
 	}
-	host.RegisterProvider(&pocker.Provider{
+	multisite.RegisterProvider(&pocker.Provider{
 		Plugins: []pocker.Plugin{
 			pitr.New(pitr.Config{}),          // point-in-time restore for every instance
 			pockerplugin.New(pages.Config{}), // PocketPages v1 when an instance has pb_pages
@@ -118,9 +118,9 @@ func edgeServeConfig(configPath, envPath string) error {
 		dp.MinUpstream = edge.LegacyFloor
 		log.Info("pockethost: legacy releases on (PocketBase <0.23 from the binary cache)")
 	}
-	host.RegisterProvider(dp)
+	multisite.RegisterProvider(dp)
 
-	h, err := host.FromConfig(host.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log})
+	h, err := multisite.FromConfig(multisite.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log})
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func edgeServeConfig(configPath, envPath string) error {
 	st := servertiming.New()
 	h.Wrappers = append([]func(http.Handler) http.Handler{st.Wrap}, h.Wrappers...) // outermost: its header includes the edge's hops
 	h.Wrappers = append(h.Wrappers, func(next http.Handler) http.Handler {
-		return source.Front(fw, ready, poweredBy, edge.NodeCompat(stats.Middleware(deployAPI.Wrap(next))))
+		return source.Front(fw, ready, poweredBy, edge.NodeCompat(edgeStats.Middleware(deployAPI.Wrap(next))))
 	})
 	if ph.DisableWebhooks {
 		log.Info("pockethost: instance webhooks disabled")
@@ -167,7 +167,7 @@ func edgeServeConfig(configPath, envPath string) error {
 	vopts.DiscordURL = ph.DiscordHealthURL
 	h.Background = append(h.Background, func(ctx context.Context) { source.NewVacuumer(current, vopts).Run(ctx) })
 	// instance data: disk used and last request served, written to the mothership's instance_stats (ext/lifecycle)
-	lc := &lifecycle.Lifecycle{Directory: h.Directory, Folder: func(i host.Instance) string {
+	lc := &stats.Lifecycle{Directory: h.Directory, Folder: func(i multisite.Instance) string {
 		if i.Dir != "" {
 			return cfg.ResolvePath(i.Dir)
 		}

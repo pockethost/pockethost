@@ -13,8 +13,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/pockethost/pocketone/ext/docker"
-	"github.com/pockethost/pocketone/ext/host"
+	"github.com/pockethost/pocketone/ext/core/multisite"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
 )
 
 // The platform hooks and migrations every instance container gets, as the Node edge mounts them from
@@ -53,8 +53,8 @@ func WriteInstanceApp(dir, home string) ([]string, error) {
 // DockerContainer is the docker provider's per-container hook for PocketHost: the platform hooks and migrations,
 // and the environment the Node edge passes (the instance's secrets already carry PH_APP_NAME, PH_INSTANCE_URL and
 // PH_APEX_DOMAIN from the mapping): PH_BACKUP_TOKEN, ADMIN_SYNC (the owner's login for the dashboard) and DEV.
-func DockerContainer(platformBinds []string) func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error {
-	return func(_ context.Context, inst host.Instance, _ string, spec *docker.Spec) error {
+func DockerContainer(platformBinds []string) func(ctx context.Context, inst multisite.Instance, version string, spec *docker.Spec) error {
+	return func(_ context.Context, inst multisite.Instance, _ string, spec *docker.Spec) error {
 		spec.Binds = append(spec.Binds, platformBinds...)
 		if tok := inst.Private["backup_token"]; tok != "" {
 			spec.Env["PH_BACKUP_TOKEN"] = tok
@@ -76,7 +76,7 @@ func DockerContainer(platformBinds []string) func(ctx context.Context, inst host
 // interface pocker's Manager offers.
 type DockerInstances struct {
 	RT   *docker.Runtime
-	Host *host.Host
+	Host *multisite.Host
 	Log  *slog.Logger
 }
 

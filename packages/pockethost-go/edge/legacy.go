@@ -13,8 +13,8 @@ import (
 	"sort"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/pockethost/pocketone/ext/docker"
-	"github.com/pockethost/pocketone/ext/host"
+	"github.com/pockethost/pocketone/ext/core/multisite"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
 )
 
 const (
@@ -69,8 +69,8 @@ func (l legacyVersions) Releases(ctx context.Context) ([]docker.Release, error) 
 // LegacyContainer starts pre-0.23 releases as the Node edge does: DEV only from 0.20.1, and ready on any HTTP answer
 // (the oldest have no /api/health). Newer releases pass through unchanged. (The command needs no change: the runtime
 // keeps PocketBase's hooks watcher on, with no --hooksWatch flag the oldest releases wouldn't know.)
-func LegacyContainer(next func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error) func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error {
-	return func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error {
+func LegacyContainer(next func(ctx context.Context, inst multisite.Instance, version string, spec *docker.Spec) error) func(ctx context.Context, inst multisite.Instance, version string, spec *docker.Spec) error {
+	return func(ctx context.Context, inst multisite.Instance, version string, spec *docker.Spec) error {
 		if err := next(ctx, inst, version, spec); err != nil {
 			return err
 		}

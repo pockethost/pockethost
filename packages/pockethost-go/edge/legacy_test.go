@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pockethost/pocketone/ext/docker"
-	"github.com/pockethost/pocketone/ext/host"
+	"github.com/pockethost/pocketone/ext/core/multisite"
+	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
 )
 
 type fixedVersions []docker.Release
@@ -66,7 +66,7 @@ func TestLegacyContainer(t *testing.T) {
 		{"p1:0.0.2", def, "true", false},
 	} {
 		spec := &docker.Spec{Env: map[string]string{}, Labels: map[string]string{}}
-		if err := prep(context.Background(), host.Instance{ID: "x", Dev: true}, c.version, spec); err != nil {
+		if err := prep(context.Background(), multisite.Instance{ID: "x", Dev: true}, c.version, spec); err != nil {
 			t.Fatal(err)
 		}
 		cmd := def

@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/lifecycle"
+	"github.com/pockethost/pocketone/ext/core/multisite-stats"
 )
 
 // fakeStats is a mothership with just the login and the instance_stats records API.
@@ -86,7 +86,7 @@ func TestInstanceStatsSink(t *testing.T) {
 	}
 
 	now := time.Date(2026, 11, 14, 5, 0, 0, 0, time.UTC)
-	err = sink.Report(ctx, []lifecycle.Facts{
+	err = sink.Report(ctx, []stats.Facts{
 		{Instance: "kept", DiskBytes: 20, MeasuredAt: now},
 		{Instance: "moved", DiskBytes: 30, MeasuredAt: now, LastActive: now},
 		{Instance: "fresh", DiskBytes: 0, MeasuredAt: now},
@@ -95,7 +95,7 @@ func TestInstanceStatsSink(t *testing.T) {
 		t.Fatal(err)
 	}
 	// a second report updates the same rows (no duplicates)
-	if err := sink.Report(ctx, []lifecycle.Facts{{Instance: "fresh", DiskBytes: 5, MeasuredAt: now}}); err != nil {
+	if err := sink.Report(ctx, []stats.Facts{{Instance: "fresh", DiskBytes: 5, MeasuredAt: now}}); err != nil {
 		t.Fatal(err)
 	}
 	byInstance := map[string]map[string]any{}
