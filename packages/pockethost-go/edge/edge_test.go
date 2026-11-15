@@ -63,7 +63,7 @@ func TestMapInstance(t *testing.T) {
 	if p.EncryptionKey != "k32" || strings.Join(p.Access.CORSOrigins, ",") != "https://a.com,https://b.com" {
 		t.Errorf("explicit fields: key=%q cors=%v", p.EncryptionKey, p.Access.CORSOrigins)
 	}
-	fwc, _ := p.PluginConfig("firewall").(firewall.InstanceConfig)
+	fwc, _ := p.ExtensionConfig("firewall").(firewall.InstanceConfig)
 	if strings.Join(fwc.TrustedIPs, ",") != "203.0.113.0/24" {
 		t.Errorf("owner trusted_ips: %v", fwc.TrustedIPs)
 	}
@@ -82,7 +82,7 @@ func TestMapInstance(t *testing.T) {
 	// placement
 	// another edge's instance: forwarded after this edge's firewall, so it keeps rate limits and CORS, nothing else
 	if p, _ := mapInstance(testCfg, inst, owner, "E_OTHER", login); p.Remote != "edge:E_SGP" || p.Blocked != nil || p.Secrets != nil ||
-		p.Superusers != nil || p.Private != nil || p.PluginConfig("firewall") == nil || len(p.Access.CORSOrigins) == 0 {
+		p.Superusers != nil || p.Private != nil || p.ExtensionConfig("firewall") == nil || len(p.Access.CORSOrigins) == 0 {
 		t.Errorf("other edge: %+v", p)
 	}
 	legacy := inst
@@ -292,7 +292,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	var running atomic.Pointer[pocker.Manager]
 	fw := &firewall.Firewall{}
 	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
-		Gates: []pocker.Gate{fw}, Plugins: []pocker.Plugin{servertiming.New()},
+		Gates: []pocker.Gate{fw}, Extensions: []pocker.Extension{servertiming.New()},
 		Wrap: func(h http.Handler) http.Handler {
 			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, PoweredBy, NodeCompat(stats.Middleware(h)))
 		},

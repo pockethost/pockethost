@@ -22,7 +22,7 @@ import (
 	"github.com/pockethost/pocketone/ext/multisite-servertiming"
 	"github.com/pockethost/pocketone/ext/multisite-stats"
 	"github.com/pockethost/pocketone/ext/pages"
-	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
+	"github.com/pockethost/pocketone/ext/pages/pockerext"
 	"github.com/pockethost/pocketone/ext/pitr"
 )
 
@@ -87,9 +87,9 @@ func edgeServeConfig(configPath, envPath string) error {
 		root = cfg.ResolvePath(sc.Root)
 	}
 	multisite.RegisterProvider(&pocker.Provider{
-		Plugins: []pocker.Plugin{
-			pitr.New(pitr.Config{}),          // point-in-time restore for every instance
-			pockerplugin.New(pages.Config{}), // PocketPages v1 when an instance has pb_pages
+		Extensions: []pocker.Extension{
+			pitr.New(pitr.Config{}),       // point-in-time restore for every instance
+			pockerext.New(pages.Config{}), // PocketPages v1 when an instance has pb_pages
 		},
 		SetupApp: edge.Setup(ecfg),
 		OnStart:  func(m *pocker.Manager) { running.Store(&instancesBox{m}) },

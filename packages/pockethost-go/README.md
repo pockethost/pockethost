@@ -1,7 +1,7 @@
 # pockethost-go
 
 PocketHost's own build, on top of **PocketOne** ([pockethost/pocketone](https://github.com/pockethost/pocketone),
-public): PocketBase plus generic plugins under `ext/`. PocketHost uses `ext/config` (`pocketone.yaml` + a private
+public): PocketBase plus generic extensions under `ext/`. PocketHost uses `ext/config` (`pocketone.yaml` + a private
 `.env`), `ext/host` (the multi-instance host), the runtime providers `ext/pocker` (in-process, sandboxed by
 `ext/sandbox`) and `ext/docker` (one container per instance), `ext/firewall` and `ext/edge` (forwarding between edges).
 
@@ -22,11 +22,11 @@ PocketOne, the hook goes into PocketOne generically.
 ## PocketOne dependency
 
 `go.mod` requires PocketBase's module path and replaces it with PocketOne (which keeps PocketBase's module path so its
-upstream merges stay easy), and requires the PocketOne plugin modules it uses (`github.com/pockethost/pocketone/ext/*`).
+upstream merges stay easy), and requires the PocketOne extension modules it uses (`github.com/pockethost/pocketone/ext/*`).
 Move every one of them to the same PocketOne commit:
 
 ```sh
-go get $(grep -o 'github.com/pockethost/pocketone/ext/[a-z]*' go.mod | sort -u | sed 's/$/@<commit>/')
+go get $(grep -o 'github.com/pockethost/pocketone/ext/[a-z-]*' go.mod | sort -u | sed 's/$/@<commit>/')
 go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockethost/pocketone@<commit>
 go mod tidy
 ```

@@ -216,7 +216,7 @@ func (s *Source) Front(fw *firewall.Firewall, ready func() bool, poweredBy strin
 		forwarded := r.Header.Get(ForwardedByHeader) != ""
 		ctx, mark := ceedge.WithMark(r.Context())
 		r = r.WithContext(ctx)
-		pocker.Timing(r.Context(), func() []pocker.TimingEntry { // reported by the servertiming plugin
+		pocker.Timing(r.Context(), func() []pocker.TimingEntry { // reported by the servertiming extension
 			return edgeTimingEntries(s.cfg.EdgeID, forwarded, mark, time.Since(start), time.Now())
 		})
 		if poweredBy != "" {

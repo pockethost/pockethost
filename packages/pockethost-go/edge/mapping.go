@@ -198,7 +198,7 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 	secrets := stringMap(inst.Secrets)
 	p.Access.CORSOrigins = splitOrigins(secrets[secretCORS])
 	if fw := (firewall.InstanceConfig{RateLimits: rateLimits(inst.Firewall), TrustedIPs: stringList(owner.TrustedIPs)}); fw.RateLimits != nil || len(fw.TrustedIPs) > 0 {
-		p.Plugins = map[string]any{"firewall": fw} // owner's trusted IPs and the operator's rate-limit overrides
+		p.Extensions = map[string]any{"firewall": fw} // owner's trusted IPs and the operator's rate-limit overrides
 	}
 	if !isMine(inst, myEdge, cfg.EdgeID) {
 		// another edge runs it: Pocker applies this edge's firewall (rate limits, CORS) and forwards (Source.Forward)
