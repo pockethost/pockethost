@@ -225,28 +225,9 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
         })
     }
 
-    /**
-     * Listen for auth state changes and subscribe to realtime _user events. This way, when the verified flag is
-     * flipped, it will appear that the authstore model is updated.
-     *
-     * Polling is a stopgap til v.0.8. Once 0.8 comes along, we can do a realtime watch on the user record and update
-     * auth accordingly.
-     */
-    const unsub = onAuthChange((authStore) => {
-      const { model, isSuperuser } = authStore
-      if (!model) return
-      if (isSuperuser) return
-      if (model.verified) {
-        unsub()
-        return
-      }
-      setTimeout(refreshAuthToken, 1000)
-
-      // TODO - THIS DOES NOT WORK, WE HAVE TO POLL INSTEAD. FIX IN V0.8
-      // unsub = subscribe<User>(`users/${model.id}`, (user) => {
-      //   fireAuthChange({ ...authStore, model: user })
-      // })
-    })
+    // No polling for `verified`: util/stores.ts subscribes to the user record over realtime and refreshes auth when it
+    // changes (including when the account gets verified). The old 1 s poll (2022, pre PocketBase 0.8) refreshed auth
+    // every second for as long as an account stayed unverified.
   }
 
   const watchInstanceLog = (

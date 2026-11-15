@@ -74,7 +74,6 @@ export const init = () => {
 
   onAuthChange((authStoreProps) => {
     const isLoggedIn = authStoreProps.isValid
-    console.log(`onAuthChange update`, { isLoggedIn, authStoreProps })
     const user = authStoreProps.model as unknown as UserFields | null | undefined
     userStore.set(isLoggedIn && user ? user : undefined)
     isAuthStateInitialized.set(true)
@@ -82,7 +81,6 @@ export const init = () => {
   })
 
   userStore.subscribe((user) => {
-    console.log(`userStore.subscribe update`, { user })
     const isPaid = [SubscriptionType.Founder, SubscriptionType.Premium, SubscriptionType.Flounder].includes(
       user?.subscription || SubscriptionType.Free
     )
@@ -101,7 +99,6 @@ export const init = () => {
     client()
       .client.collection('instances')
       .subscribe<InstanceFields>('*', (data) => {
-        console.log('Instance subscribe update', data)
         if (data.action === 'delete') {
           globalInstancesStore.update((instances) => {
             const { [data.record.id]: _, ...rest } = instances
@@ -168,7 +165,6 @@ const tryUserSubscribe = (() => {
     client()
       .client.collection('users')
       .subscribe<UserFields>(id, (data) => {
-        console.log('User subscribed update', data)
         client().client.collection('users').authRefresh().catch(console.error)
       })
       .then((u) => {
