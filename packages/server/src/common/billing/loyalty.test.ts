@@ -87,9 +87,23 @@ describe('loyaltyBonus', () => {
     expect(loyaltyBonus([monthly(`m`)], { m: 7 }, NOW).bonus).toBe(3)
   })
 
-  it('sums renewals across several active monthly subscriptions', () => {
-    const r = loyaltyBonus([monthly(`m1`), monthly(`m2`)], { m1: 2, m2: 2 }, NOW)
-    expect(r).toMatchObject({ bonus: 2, renewals: 4, monthlySubscriptionIds: [`m1`, `m2`] })
+  it('counts only the first (longest-running) monthly subscription, not the sum', () => {
+    const r = loyaltyBonus([monthly(`m1`), monthly(`m2`)], { m1: 4, m2: 2 }, NOW)
+    expect(r).toMatchObject({
+      bonus: 2,
+      renewals: 4,
+      countingSubscriptionId: `m1`,
+      monthlySubscriptionIds: [`m1`, `m2`],
+    })
+    // Same-day second instance: no faster earning.
+    expect(loyaltyBonus([monthly(`m1`), monthly(`m2`)], { m1: 1, m2: 1 }, NOW).bonus).toBe(1)
+  })
+  it('falls back to the next longest-running subscription when the first ends', () => {
+    const first = monthly(`m1`, `expired`)
+    expect(loyaltyBonus([first, monthly(`m2`)], { m1: 9, m2: 4 }, NOW)).toMatchObject({
+      bonus: 2,
+      countingSubscriptionId: `m2`,
+    })
   })
 
   it('keeps the bonus after cancel until the paid period ends', () => {

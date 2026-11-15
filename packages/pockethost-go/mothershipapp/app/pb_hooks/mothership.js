@@ -3422,19 +3422,29 @@ const loyaltyBonus = (items, renewalsBySubscription, now, paidInstances = 0) => 
 		renewals: 0,
 		monthlySubscriptionIds
 	};
-	const renewals = monthlySubscriptionIds.reduce((sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)), 0);
+	let renewals = 0;
+	let countingSubscriptionId;
+	for (const id of monthlySubscriptionIds) {
+		const n = Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0));
+		if (countingSubscriptionId === void 0 || n > renewals) {
+			renewals = n;
+			countingSubscriptionId = id;
+		}
+	}
 	if (hasUpfrontLoyalty(items, now)) return {
 		bonus: 5,
 		basis: "upfront",
 		renewals,
-		monthlySubscriptionIds
+		monthlySubscriptionIds,
+		countingSubscriptionId
 	};
 	const bonus = bonusForRenewals(renewals);
 	return {
 		bonus,
 		basis: bonus > 0 ? "renewals" : "none",
 		renewals,
-		monthlySubscriptionIds
+		monthlySubscriptionIds,
+		countingSubscriptionId
 	};
 };
 /** The grant note customers see in the dashboard tooltip. */
@@ -4692,7 +4702,7 @@ const HandleLemonSqueezySale = (e) => {
 				log(`${slug} email failed`, `${err}`);
 			}
 		};
-		if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs)) sendLoyaltyEmail(LOYALTY_RENEWAL_TEMPLATE, `invoice:${context.resource_id}`, loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at));
+		if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs) && `${attrs.subscription_id}` === loyalty.countingSubscriptionId) sendLoyaltyEmail(LOYALTY_RENEWAL_TEMPLATE, `invoice:${context.resource_id}`, loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at));
 		const newLoyaltyPurchase = context.event_name === `subscription_created` && !!first && (loyalty?.basis === `upfront` || !!loyalty?.monthlySubscriptionIds.includes(`${first.id}`)) || context.event_name === `order_created` && order?.sku === `hosting.slot.lifetime`;
 		if (loyalty && newLoyaltyPurchase) sendLoyaltyEmail(LOYALTY_WELCOME_TEMPLATE, first ? `subscription:${first.id}` : `order:${context.resource_id}`, loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at, { allowZero: true }));
 		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;

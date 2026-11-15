@@ -49,10 +49,12 @@ export type LoyaltyResult = {
    * `none`.
    */
   basis: 'upfront' | 'renewals' | 'excluded' | 'none'
-  /** Paid renewals counted across active monthly subscriptions. */
+  /** Paid renewals of the counting (longest-running) active monthly subscription. */
   renewals: number
   /** Active monthly LS subscription ids whose renewal count is needed (to fetch before calling `loyaltyBonus`). */
   monthlySubscriptionIds: string[]
+  /** The monthly subscription that earns: the one with the most paid renewals (the account's first). */
+  countingSubscriptionId?: string
 }
 
 const isLs = (i: BillingItem) => i.provider === 'lemonsqueezy' && i.quantity > 0
@@ -83,15 +85,22 @@ export const loyaltyBonus = (
 ): LoyaltyResult => {
   const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now)
   if (isLoyaltyExcluded(paidInstances)) return { bonus: 0, basis: 'excluded', renewals: 0, monthlySubscriptionIds }
-  const renewals = monthlySubscriptionIds.reduce(
-    (sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)),
-    0
-  )
+  // Only the account's first (longest-running) monthly subscription earns. Buying more instances adds paid instances
+  // and storage, not faster loyalty. If that subscription ends, the next longest-running one takes over.
+  let renewals = 0
+  let countingSubscriptionId: string | undefined
+  for (const id of monthlySubscriptionIds) {
+    const n = Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0))
+    if (countingSubscriptionId === undefined || n > renewals) {
+      renewals = n
+      countingSubscriptionId = id
+    }
+  }
   if (hasUpfrontLoyalty(items, now)) {
-    return { bonus: LOYALTY_MAX_BONUS, basis: 'upfront', renewals, monthlySubscriptionIds }
+    return { bonus: LOYALTY_MAX_BONUS, basis: 'upfront', renewals, monthlySubscriptionIds, countingSubscriptionId }
   }
   const bonus = bonusForRenewals(renewals)
-  return { bonus, basis: bonus > 0 ? 'renewals' : 'none', renewals, monthlySubscriptionIds }
+  return { bonus, basis: bonus > 0 ? 'renewals' : 'none', renewals, monthlySubscriptionIds, countingSubscriptionId }
 }
 
 /** The grant note customers see in the dashboard tooltip. */

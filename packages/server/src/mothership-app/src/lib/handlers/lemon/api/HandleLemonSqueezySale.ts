@@ -253,7 +253,13 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
         log(`${slug} email failed`, `${err}`)
       }
     }
-    if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs)) {
+    // Only renewals of the earning subscription count, so only they get the email.
+    if (
+      loyalty &&
+      context.event_name === `subscription_payment_success` &&
+      isPaidRenewalInvoice(attrs) &&
+      `${attrs.subscription_id}` === loyalty.countingSubscriptionId
+    ) {
       sendLoyaltyEmail(
         LOYALTY_RENEWAL_TEMPLATE,
         `invoice:${context.resource_id}`,
