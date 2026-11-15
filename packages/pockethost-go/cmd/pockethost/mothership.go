@@ -14,8 +14,8 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/jsvm"
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
-	"github.com/pockethost/pocketone/ext/jsembed"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
+	"github.com/pockethost/pocketone/ext/jsembed"
 )
 
 // mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin
@@ -88,7 +88,8 @@ func mothership(args []string) {
 			}
 			// the mothership keeps its own versions list (pocketbase_versions); nothing else writes it
 			scheduleVersions(e.App)
-			scheduleUsage(e.App) // owners' disk use from the edges' instance_stats
+			scheduleUsage(e.App)  // owners' disk use from the edges' instance_stats
+			schedulePolicy(e.App) // a dry run of the over-limit policy, logged hourly
 			return e.Next()
 		},
 		Priority: 999,
@@ -96,6 +97,7 @@ func mothership(args []string) {
 
 	app.RootCmd.AddCommand(versionsCmd(app)) // the versions list, by hand
 	app.RootCmd.AddCommand(usageCmd(app))    // the owners' disk sum, by hand
+	app.RootCmd.AddCommand(policyCmd(app))   // what the policies would do, by hand
 
 	log.Printf("pockethost mothership %s", mothershipVersion())
 	if err := app.Start(); err != nil {
