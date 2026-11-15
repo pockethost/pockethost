@@ -1,6 +1,7 @@
 <script>
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
+  import LegacySunsetCallout from '$components/LegacySunsetCallout.svelte'
   import { userStore } from '$util/stores'
 
   $: maxInstances = $userStore?.subscription_quantity
@@ -18,6 +19,7 @@
         </wa-button>
       </wa-callout>
     {/if}
+    <LegacySunsetCallout />
     <slot />
   </UserLoggedIn>
   <UserLoggedOut>
