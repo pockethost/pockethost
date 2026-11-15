@@ -8,9 +8,11 @@ Welcome to PocketHost! This guide will help you set up your first PocketBase ins
 
 ## 1. Create a PocketHost Account
 
-The first step is to [create a PocketHost account](https://pockethost.io/get-started) and subscribe.
+The first step is to pick a plan and pay. Your account is created from your payment.
 
-- **Sign Up**: Visit [pockethost.io/get-started](https://pockethost.io/get-started).
+- **Pick a plan**: Visit [pockethost.io/pricing](https://pockethost.io/pricing) and choose a plan. Checkout opens right there.
+- **Set up your account**: After you pay, choose the email you want to sign in with and a password. We fill in the email you paid with, and you can change it. We also email a setup link to the email you paid with, so you can finish later or from another device. Already have an account? Log in on that same page to add the purchase to it.
+- **Create your first instance**: You land on your dashboard. Click **Create your first instance**.
 - **Email Verification**: Click the link in the confirmation email. You can't use instances until your email is verified. Unverified accounts and their instances are deleted after **7 days**.
 - **Changing your email**: Go to [Account → Change email](/account/change-email), enter the new address, and confirm from the new inbox with your current password. Your old email stays active until you confirm. 
 
