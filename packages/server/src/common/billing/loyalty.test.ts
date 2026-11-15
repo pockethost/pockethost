@@ -45,6 +45,12 @@ describe('loyaltyBonus', () => {
     expect(loyaltyBonus(items, {}, NOW)).toMatchObject({ bonus: 5, basis: `upfront` })
   })
 
+  it('excludes accounts with more paid instances than the cap (Founder/Flounder + a monthly)', () => {
+    expect(loyaltyBonus([monthly('m1')], { m1: 13 }, NOW, 251)).toMatchObject({ bonus: 0, basis: `excluded` })
+    expect(loyaltyBonus([sub('y1', `hosting.slot.recurring.year`)], {}, NOW, 6)).toMatchObject({ bonus: 0 })
+    expect(loyaltyBonus([monthly('m1')], { m1: 13 }, NOW, 5)).toMatchObject({ bonus: 5, basis: `renewals` })
+  })
+
   it('gives legacy Flounder lifetime nothing', () => {
     const items: BillingItem[] = [
       {

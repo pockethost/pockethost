@@ -3380,6 +3380,8 @@ const isRecurringLsOrder = (order) => {
 *   so does the bonus. Resuming keeps counting on the same subscription.
 * - When a subscription expires its renewals stop counting; with nothing active left the bonus is 0 and a new
 *   subscription starts from 0.
+* - Accounts with more paid instances than the bonus cap (`LOYALTY_MAX_BONUS`) get no loyalty bonus: Founder, Flounder
+*   and other legacy plans with 250+ instances, whatever else they buy (Ben, 2026-11-15).
 *
 * The bonus is a pure function of the account's billing items and each subscription's paid renewal count, so it can be
 * recomputed after any webhook (or in a backfill) without counting events. JSVM-safe: plain data + sync functions.
@@ -3398,14 +3400,22 @@ const bonusForRenewals = (renewals) => {
 const isLs = (i) => i.provider === "lemonsqueezy" && i.quantity > 0;
 /** Active LS monthly subscriptions on the account (the ones whose paid renewals count). */
 const activeMonthlySubscriptionIds = (items, now) => items.filter((i) => isLs(i) && i.kind === "subscription" && LOYALTY_MONTHLY_SKUS.includes(i.sku)).filter((i) => isBillingItemActive(i, now)).map((i) => i.external_id);
+/** More paid instances than the bonus cap: no loyalty bonus at all. */
+const isLoyaltyExcluded = (paidInstances) => Math.floor(paidInstances) > 5;
 /** True when an active lifetime or annual purchase gives the full bonus (no renewal counts needed). */
 const hasUpfrontLoyalty = (items, now) => items.some((i) => isLs(i) && LOYALTY_UPFRONT_SKUS.includes(i.sku) && isBillingItemActive(i, now));
 /**
 * The account's loyalty bonus. `renewalsBySubscription` maps an LS subscription id to its paid renewal count; missing
-* ids count as 0.
+* ids count as 0. `paidInstances` is `users.subscription_quantity`; above the cap the account is excluded.
 */
-const loyaltyBonus = (items, renewalsBySubscription, now) => {
+const loyaltyBonus = (items, renewalsBySubscription, now, paidInstances = 0) => {
 	const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now);
+	if (isLoyaltyExcluded(paidInstances)) return {
+		bonus: 0,
+		basis: "excluded",
+		renewals: 0,
+		monthlySubscriptionIds
+	};
 	const renewals = monthlySubscriptionIds.reduce((sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)), 0);
 	if (hasUpfrontLoyalty(items, now)) return {
 		bonus: 5,
@@ -4432,9 +4442,10 @@ const syncLoyalty = (app, userId, options = {}) => {
 	const now = options.now ?? /* @__PURE__ */ new Date();
 	const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount;
 	const items = loadBillingItems(app, userId);
+	const paidInstances = app.findRecordById(`users`, userId).getFloat(`subscription_quantity`);
 	const renewals = {};
-	if (!hasUpfrontLoyalty(items, now)) for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id);
-	const result = loyaltyBonus(items, renewals, now);
+	if (!isLoyaltyExcluded(paidInstances) && !hasUpfrontLoyalty(items, now)) for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id);
+	const result = loyaltyBonus(items, renewals, now, paidInstances);
 	const grant = findLoyaltyGrant(app, userId);
 	const before = grant ? grant.getInt(`amount`) : 0;
 	const note = loyaltyNote(result);

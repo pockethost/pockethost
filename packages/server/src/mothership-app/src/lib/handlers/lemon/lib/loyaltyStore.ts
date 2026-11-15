@@ -1,6 +1,7 @@
 import {
   activeMonthlySubscriptionIds,
   hasUpfrontLoyalty,
+  isLoyaltyExcluded,
   LOYALTY_MONTHLY_SKUS,
   LOYALTY_UPFRONT_SKUS,
   loyaltyBonus,
@@ -43,13 +44,14 @@ export const syncLoyalty = (
   const now = options.now ?? new Date()
   const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount
   const items = loadBillingItems(app, userId)
+  const paidInstances = app.findRecordById(`users`, userId).getFloat(`subscription_quantity`)
 
-  // Lifetime and annual get the full bonus without any LS calls.
+  // Excluded accounts, lifetime and annual need no LS calls.
   const renewals: Record<string, number> = {}
-  if (!hasUpfrontLoyalty(items, now)) {
+  if (!isLoyaltyExcluded(paidInstances) && !hasUpfrontLoyalty(items, now)) {
     for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id)
   }
-  const result = loyaltyBonus(items, renewals, now)
+  const result = loyaltyBonus(items, renewals, now, paidInstances)
 
   const grant = findLoyaltyGrant(app, userId)
   const before = grant ? grant.getInt(`amount`) : 0

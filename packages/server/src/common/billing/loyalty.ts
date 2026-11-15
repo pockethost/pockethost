@@ -10,6 +10,8 @@ import type { ProductSku } from './types'
  *   so does the bonus. Resuming keeps counting on the same subscription.
  * - When a subscription expires its renewals stop counting; with nothing active left the bonus is 0 and a new
  *   subscription starts from 0.
+ * - Accounts with more paid instances than the bonus cap (`LOYALTY_MAX_BONUS`) get no loyalty bonus: Founder, Flounder
+ *   and other legacy plans with 250+ instances, whatever else they buy (Ben, 2026-11-15).
  *
  * The bonus is a pure function of the account's billing items and each subscription's paid renewal count, so it can be
  * recomputed after any webhook (or in a backfill) without counting events. JSVM-safe: plain data + sync functions.
@@ -42,8 +44,11 @@ export const nextBonusAtRenewal = (renewals: number): number | null => {
 
 export type LoyaltyResult = {
   bonus: number
-  /** Why: `upfront` (lifetime or annual), `renewals` (monthly), or `none`. */
-  basis: 'upfront' | 'renewals' | 'none'
+  /**
+   * Why: `upfront` (lifetime or annual), `renewals` (monthly), `excluded` (more paid instances than the cap), or
+   * `none`.
+   */
+  basis: 'upfront' | 'renewals' | 'excluded' | 'none'
   /** Paid renewals counted across active monthly subscriptions. */
   renewals: number
   /** Active monthly LS subscription ids whose renewal count is needed (to fetch before calling `loyaltyBonus`). */
@@ -59,20 +64,25 @@ export const activeMonthlySubscriptionIds = (items: BillingItem[], now: Date) =>
     .filter((i) => isBillingItemActive(i, now))
     .map((i) => i.external_id)
 
+/** More paid instances than the bonus cap: no loyalty bonus at all. */
+export const isLoyaltyExcluded = (paidInstances: number) => Math.floor(paidInstances) > LOYALTY_MAX_BONUS
+
 /** True when an active lifetime or annual purchase gives the full bonus (no renewal counts needed). */
 export const hasUpfrontLoyalty = (items: BillingItem[], now: Date) =>
   items.some((i) => isLs(i) && LOYALTY_UPFRONT_SKUS.includes(i.sku) && isBillingItemActive(i, now))
 
 /**
  * The account's loyalty bonus. `renewalsBySubscription` maps an LS subscription id to its paid renewal count; missing
- * ids count as 0.
+ * ids count as 0. `paidInstances` is `users.subscription_quantity`; above the cap the account is excluded.
  */
 export const loyaltyBonus = (
   items: BillingItem[],
   renewalsBySubscription: Record<string, number>,
-  now: Date
+  now: Date,
+  paidInstances = 0
 ): LoyaltyResult => {
   const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now)
+  if (isLoyaltyExcluded(paidInstances)) return { bonus: 0, basis: 'excluded', renewals: 0, monthlySubscriptionIds }
   const renewals = monthlySubscriptionIds.reduce(
     (sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)),
     0
