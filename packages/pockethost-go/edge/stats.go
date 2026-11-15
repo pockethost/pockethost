@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/multisite-stats"
+	"github.com/pockethost/pocketone/ext/stats"
 )
 
 // pbDateLayout is how PocketBase stores dates.

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
-	"github.com/pockethost/pocketone/ext/multisite-stats/rules"
+	"github.com/pockethost/pocketone/ext/stats/rules"
 )
 
 // Instance is what the over-limit policy reads about one instance.

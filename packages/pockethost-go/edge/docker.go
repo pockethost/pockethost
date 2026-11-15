@@ -14,7 +14,7 @@ import (
 	"strconv"
 
 	"github.com/pockethost/pocketone/ext/multisite"
-	"github.com/pockethost/pocketone/ext/multisite-provider-docker"
+	"github.com/pockethost/pocketone/ext/docker"
 )
 
 // The platform hooks and migrations every instance container gets, as the Node edge mounts them from
