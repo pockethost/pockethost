@@ -2,7 +2,7 @@
 
 # Terms of Service
 
-**Last Modified Date: November 8, 2026**
+**Last Modified Date: November 14, 2026**
 
 Welcome to PocketHost! These Terms of Service ("Terms") govern your access to and use of PocketHost's services, so please read them carefully.
 
@@ -36,6 +36,16 @@ There are no age restrictions for using our services. However, by using PocketHo
 
 - **No-Questions-Asked Refunds**: If you're not satisfied with our services, you may request a refund within **30 days** of purchase, and it will be granted without questions.
 - **Extended Refunds**: We may provide refunds beyond the 30-day window at our discretion. Our goal is to ensure customer satisfaction.
+
+### 4.3 Loyalty Bonus Instances
+
+- **What They Are**: Paid accounts may receive bonus instances on top of the instances they pay for, up to **5** per account. Bonus instances work like paid instances, but they do not add disk storage.
+- **Lifetime and Annual Plans**: Receive 5 bonus instances. Annual plans keep them while the subscription is active.
+- **Monthly Plans**: Earn 1 bonus instance at the 1st paid renewal, then 1 more every 3 paid renewals (renewals 1, 4, 7, 10 and 13). Switching from monthly to annual brings the account to 5.
+- **Paid Instance Required**: Bonus instances count only while the account has at least one paid instance.
+- **Cancellation and Expiry**: After you cancel, bonus instances remain until the paid period ends. When a subscription ends, its bonus instances end with it, and a new monthly subscription starts earning from 0.
+- **Larger Plans**: Accounts with more than 5 paid instances, including Founder, Flounder and other legacy plans, do not receive loyalty bonus instances.
+- **Changes**: Bonus instances are a free addition to your plan, not something you purchase. We may change or end the loyalty program. If it ends, your account keeps the instances you pay for.
 
 ## 5. Fair Use Policy
 
