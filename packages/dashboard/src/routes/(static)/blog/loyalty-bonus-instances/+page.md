@@ -22,6 +22,6 @@ Open your [account page](/account). If you have a bonus, the instance count show
 
 PocketHost is open source, and it keeps growing because people pay for it. I wanted a way to say thanks to everyone who keeps supporting it, and to give you more room to build while it grows.
 
-The full rules, including what happens when you cancel or switch plans, are in our [Terms of Service](/terms). If your plan ever goes down and you're running more instances than it includes, see the [limits page](/docs/limits#when-your-plan-goes-down). Nothing gets deleted.
+The full rules, including what happens when you cancel or switch plans, are in our [Terms of Service](/terms).
 
 Thanks for supporting PocketHost.
