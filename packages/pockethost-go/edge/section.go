@@ -20,6 +20,7 @@ import (
 //	  backup_token_secret: $PH_SECRET
 //	  vacuum_cron: "0 11 * * *"
 //	  discord_health_url: $DISCORD_HEALTH_CHANNEL_URL   # the nightly vacuum's summary
+//	  legacy_releases: false   # sfo-2 only, until Feb 6, 2027: also serve PocketBase <0.23 from the binary cache (legacy.go)
 type SectionConfig struct {
 	Edge struct {
 		ID          string `yaml:"id"`
@@ -41,6 +42,7 @@ type SectionConfig struct {
 	Heartbeat         time.Duration `yaml:"heartbeat"`
 	DriftCheck        time.Duration `yaml:"drift_check"`
 	DisableWebhooks   bool          `yaml:"disable_webhooks"`
+	LegacyReleases    bool          `yaml:"legacy_releases"` // legacy.go; delete after Feb 6, 2027
 }
 
 // Section is the key of the `pockethost` section.

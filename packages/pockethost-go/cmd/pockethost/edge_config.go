@@ -110,7 +110,15 @@ func edgeServeConfig(configPath, envPath string) error {
 		log.Warn("pockethost: docker.versions is ignored; the mothership's versions list says what every edge serves")
 	}
 	// the mothership owns the versions list (pocketbase_versions): every edge serves the same ones
-	host.RegisterProvider(&docker.Provider{Container: edge.DockerContainer(platformBinds), Resolve: cfg.ResolvePath, Versions: source.Versions()})
+	dp := &docker.Provider{Container: edge.DockerContainer(platformBinds), Resolve: cfg.ResolvePath, Versions: source.Versions()}
+	if provider == "docker" && ph.LegacyReleases { // sfo-2 until Feb 6, 2027 (edge/legacy.go)
+		sc, _ := docker.Section.Get()
+		dp.Versions = edge.LegacyVersions(dp.Versions, &docker.Binaries{Root: cfg.ResolvePath(sc.Binaries)})
+		dp.Container = edge.LegacyContainer(dp.Container)
+		dp.MinUpstream = edge.LegacyFloor
+		log.Info("pockethost: legacy releases on (PocketBase <0.23 from the binary cache)")
+	}
+	host.RegisterProvider(dp)
 
 	h, err := host.FromConfig(host.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log})
 	if err != nil {
