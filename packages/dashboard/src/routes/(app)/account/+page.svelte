@@ -13,6 +13,8 @@
   import StorageMeter from './StorageMeter.svelte'
   import { client } from '$src/pocketbase-client'
   import { onMount } from 'svelte'
+  import { formatBonusDate, loadLoyaltyStatus, type LoyaltyStatus } from '$util/loyalty'
+  import { LOYALTY_MAX_BONUS } from '@pockethost/server/common'
 
   type BonusGrant = { id: string; amount: number; source: 'manual' | 'loyalty'; note: string; created: string }
   let bonusGrants: BonusGrant[] = []
@@ -23,6 +25,27 @@
       bonusGrants = [] // collection not deployed yet, or no access
     }
   })
+
+  let loyalty: LoyaltyStatus | null = null
+  let loyaltyFor = ''
+  $: loyaltyKey = $userStore?.id ? `${$userStore.id}:${$userStore.subscription_quantity ?? 0}` : ''
+  $: if (loyaltyKey && loyaltyKey !== loyaltyFor) {
+    loyaltyFor = loyaltyKey
+    loadLoyaltyStatus($userStore?.subscription_quantity ?? 0).then((s) => (loyalty = s))
+  }
+  /** Bonus instances held now (granted), and what the next step is. */
+  $: bonusNow = Math.max(0, Math.floor($userStore?.bonus_instances ?? 0))
+  $: bonusNext = !loyalty
+    ? ''
+    : loyalty.result.basis === 'excluded'
+      ? `Bonus instances are for accounts with up to ${LOYALTY_MAX_BONUS} paid instances`
+      : loyalty.progress
+        ? `Next one in ${loyalty.progress.days} day${loyalty.progress.days === 1 ? '' : 's'} (${formatBonusDate(loyalty.progress.date)})`
+        : bonusNow >= LOYALTY_MAX_BONUS
+          ? `You're at the max`
+          : allowance.paid > 0
+            ? ''
+            : `Subscribe to start earning them`
 
   $: canCancelMembership =
     $userSubscriptionType === SubscriptionType.Premium &&
@@ -100,6 +123,19 @@
                 {/if}
                 <span class="account-stat-sep">·</span>
                 <a href="/support" class="account-stat-link">Request more</a>
+              </dd>
+            </div>
+            <div class="account-stat account-stat--wide">
+              <dt>Bonus instances</dt>
+              <dd>
+                <span class="account-stat-value">{bonusNow}</span>
+                <span class="account-stat-muted"> of {LOYALTY_MAX_BONUS}</span>
+                {#if bonusNext}
+                  <span class="account-stat-sep">·</span>
+                  <span class="account-stat-muted">{bonusNext}</span>
+                {/if}
+                <span class="account-stat-sep">·</span>
+                <a href="/blog/loyalty-bonus-instances" class="account-stat-link">How it works</a>
               </dd>
             </div>
             <div class="account-stat account-stat--wide account-stat--meter">

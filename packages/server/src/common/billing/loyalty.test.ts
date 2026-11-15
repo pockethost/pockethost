@@ -3,10 +3,12 @@ import type { BillingItem } from './billingItems'
 import {
   bonusForRenewals,
   isPaidRenewalInvoice,
+  LOYALTY_MONTHLY_SKUS,
   loyaltyBonus,
   loyaltyChainStart,
   loyaltyEndingEmail,
   loyaltyNote,
+  loyaltyProgress,
   loyaltyPurchaseEmail,
   loyaltyRenewalEmail,
   nextBonusAtRenewal,
@@ -276,5 +278,35 @@ describe('resume token', () => {
     expect(parseResumeToken(hs, `s`, t)).toBe(`123`)
     expect(parseResumeToken(hs, `s`, t.replace(`123`, `124`))).toBeUndefined()
     expect(parseResumeToken(hs, ``, t)).toBeUndefined()
+  })
+})
+
+describe(`loyaltyProgress`, () => {
+  const monthly = (starts_at: string): BillingItem => ({
+    provider: `lemonsqueezy`,
+    kind: `subscription`,
+    external_id: `m1`,
+    sku: LOYALTY_MONTHLY_SKUS[0]!,
+    quantity: 1,
+    status: `active`,
+    starts_at,
+  })
+
+  it(`counts down to the first bonus at month 1`, () => {
+    const p = loyaltyProgress([monthly(`2026-11-04T12:00:00Z`)], NOW, 1)
+    expect(p).toEqual({ days: 20, first: true, date: `2026-12-04T12:00:00.000Z` })
+  })
+
+  it(`counts down to the next bonus after the first`, () => {
+    // Started Oct 1: 1 month in (bonus 1), next at month 4 (Feb 1).
+    const p = loyaltyProgress([monthly(`2026-10-01T12:00:00Z`)], NOW, 1)
+    expect(p?.first).toBe(false)
+    expect(p?.date).toBe(`2027-02-01T12:00:00.000Z`)
+  })
+
+  it(`is null for upfront plans, the cap and no chain`, () => {
+    expect(loyaltyProgress([sub(`a1`, `hosting.slot.recurring.year`, `2026-10-01T00:00:00Z`)], NOW, 1)).toBeNull()
+    expect(loyaltyProgress([monthly(`2025-01-01T00:00:00Z`)], NOW, 1)).toBeNull()
+    expect(loyaltyProgress([], NOW, 0)).toBeNull()
   })
 })

@@ -8,6 +8,7 @@
 export * from './accountClaim'
 export * from './billingItems'
 export * from './entitlementFromPvId'
+export * from './loyalty'
 export * from './lsClaims'
 export * from './productCatalog'
 export * from './providerMappings'

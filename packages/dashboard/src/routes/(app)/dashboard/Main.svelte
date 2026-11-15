@@ -3,6 +3,7 @@
   import PricingPlans from '$src/components/PricingPlans.svelte'
   import { instanceAllowance } from '@pockethost/server/common'
   import InstanceList from './InstanceList.svelte'
+  import LoyaltyNudge from './LoyaltyNudge.svelte'
   import { page } from '$app/state'
   import { client } from '$src/pocketbase-client'
   import { onDestroy } from 'svelte'
@@ -63,6 +64,8 @@
     </wa-button>
   {/if}
 </header>
+
+<LoyaltyNudge />
 
 {#if confirming}
   <div class="dashboard-confirming"><span class="dashboard-spinner"></span></div>

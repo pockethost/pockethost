@@ -274,3 +274,19 @@ export const parseResumeToken = (hs256: (data: string, key: string) => string, s
   const id = token.slice(0, dot)
   return resumeToken(hs256, secret, id) === token ? id : undefined
 }
+
+export type LoyaltyProgress = { days: number; first: boolean; date: string }
+
+/**
+ * Days until the account's next loyalty bonus instance, for the dashboard nudge. Null when nothing is being earned: no
+ * active monthly chain, already at the cap (annual and lifetime get it upfront), or excluded.
+ */
+export const loyaltyProgress = (items: BillingItem[], now: Date, paidInstances = 0): LoyaltyProgress | null => {
+  const r = loyaltyBonus(items, now, paidInstances)
+  if (r.basis === 'upfront' || r.basis === 'excluded' || !r.chainStart) return null
+  const next = nextBonusAtRenewal(r.renewals)
+  if (next === null) return null
+  const date = addMonths(new Date(r.chainStart), next)
+  const days = Math.max(1, Math.ceil((date.getTime() - now.getTime()) / DAY))
+  return { days, first: r.bonus === 0, date: date.toISOString() }
+}

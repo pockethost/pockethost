@@ -3,11 +3,19 @@
   import { cancelMembership as cancelLemonSqueezyMembership } from '$util/billing'
   import { SubscriptionInterval, SubscriptionType } from '@pockethost/server/common'
   import { userStore, userSubscriptionType } from '$util/stores'
+  import { formatBonusDate, loadLoyaltyStatus, type LoyaltyStatus } from '$util/loyalty'
 
   let isSubmitting = false
   let errorMessage = ''
   let cancelled = false
   let endsAt: string | null = null
+
+  let loyalty: LoyaltyStatus | null = null
+  $: if ($userStore?.id && !loyalty) {
+    loadLoyaltyStatus($userStore.subscription_quantity ?? 0).then((s) => (loyalty = s))
+  }
+  $: bonusNow = Math.max(0, Math.floor($userStore?.bonus_instances ?? 0))
+  $: next = loyalty?.progress ?? null
 
   $: canCancel =
     $userSubscriptionType === SubscriptionType.Premium &&
@@ -25,11 +33,6 @@
   const handleCancel = async (e: Event) => {
     e.preventDefault()
     if (!canCancel || isSubmitting) return
-
-    const confirmed = confirm(
-      `Cancel your Pay Per PocketBase subscription? You keep access until the end of the current billing period. Your instances will stop running when the subscription ends.`
-    )
-    if (!confirmed) return
 
     isSubmitting = true
     errorMessage = ''
@@ -75,23 +78,80 @@
       </p>
     </wa-callout>
   {:else}
-    <wa-card class="wa-card-danger">
+    <wa-card>
       <div class="wa-card-body wa-card-body--lg wa-stack-lg">
+        <h2 class="cancel-why-title">Before you go</h2>
+
+        {#if next}
+          <div class="cancel-why-next">
+            <wa-icon name="gift"></wa-icon>
+            <span>
+              Your {next.first ? 'first' : 'next'} bonus instance arrives on
+              <strong>{formatBonusDate(next.date)}</strong>,
+              {next.days} day{next.days === 1 ? '' : 's'} from now.
+            </span>
+          </div>
+        {/if}
+
         <ul class="space-y-2 text-sm text-white/80">
-          <li>Billing stops at the end of the current period.</li>
-          <li>Your instances will stop running when the membership ends.</li>
+          {#if next}
+            <li>If you cancel, you won't get that bonus instance.</li>
+          {/if}
+          {#if bonusNow > 0}
+            <li>
+              You have {bonusNow} bonus instance{bonusNow === 1 ? '' : 's'}. They go away when your subscription ends.
+            </li>
+          {/if}
+          <li>If your subscription lapses, the bonus clock resets and a new subscription starts from zero.</li>
+          <li>Billing stops at the end of the current period, and your instances stop running then.</li>
           <li>Need a refund? See our cancellation policy or contact support.</li>
         </ul>
 
-        <div class="pt-2 border-t border-white/10">
+        <div class="cancel-why-actions">
+          <wa-button href="/account" variant="brand">
+            <wa-icon slot="start" name="heart"></wa-icon>
+            Keep my subscription
+          </wa-button>
           <form onsubmit={handleCancel}>
-            <wa-button type="submit" variant="danger" disabled={isSubmitting}>
-              <wa-icon slot="start" name="ban"></wa-icon>
-              Cancel membership
+            <wa-button type="submit" variant="danger" appearance="outlined" disabled={isSubmitting}>
+              {isSubmitting ? 'Cancelling…' : 'Cancel anyway'}
             </wa-button>
           </form>
         </div>
+        <a href="/blog/loyalty-bonus-instances" class="account-stat-link text-sm">How bonus instances work</a>
       </div>
     </wa-card>
   {/if}
 </FeatureTab>
+
+<style>
+  .cancel-why-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .cancel-why-next {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgb(30 184 84 / 0.35);
+    border-radius: 0.75rem;
+    background: rgb(30 184 84 / 0.08);
+    color: rgb(255 255 255 / 0.9);
+  }
+
+  .cancel-why-next wa-icon {
+    flex-shrink: 0;
+    color: rgb(30 184 84);
+  }
+
+  .cancel-why-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+</style>
