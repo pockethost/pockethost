@@ -580,6 +580,15 @@ const HandlePatWhoami = (e) => {
 };
 
 //#endregion
+//#region src/lib/util/mothershipUrl.ts
+/**
+* The mothership's public base URL, for links in emails that must reach mothership routes (bulk mail unsubscribe,
+* loyalty resume). Not `settings.meta.appURL`: that is the website (https://pockethost.io), which doesn't serve
+* `/api/*`. Override with MOTHERSHIP_PUBLIC_URL.
+*/
+const mothershipPublicUrl = () => `${process.env.MOTHERSHIP_PUBLIC_URL || "https://mothership.pockethost.io"}`.replace(/\/+$/, "");
+
+//#endregion
 //#region src/lib/util/Logger.ts
 const mkLog = (namespace) => (...s) => console.log(`[${namespace}]`, ...s.map((p) => {
 	if (typeof p === "object") return JSON.stringify(p, null, 2);
@@ -868,7 +877,7 @@ const saveSettings = (s, app = $app) => {
 		now
 	}).execute();
 };
-const publicUrl = () => `${$app.settings().meta.appURL || "https://mothership.pockethost.io"}`.replace(/\/+$/, "");
+const publicUrl = mothershipPublicUrl;
 const unsubscribeUrl = (email, campaignId) => `${publicUrl()}/api/bulkmail/unsubscribe?t=${encodeURIComponent(unsubscribeToken($security.hs256, getSettings().secret, email, campaignId))}`;
 const parseToken = (token) => parseUnsubscribeToken($security.hs256, getSettings().secret, token);
 const isSuppressed = (email, app = $app) => {
@@ -1391,7 +1400,7 @@ const settingsResponse = () => {
 	const { rate, daily } = bulkMailLimits();
 	const row = new DynamicModel({ n: 0 });
 	$app.db().newQuery(`SELECT COUNT(*) AS n FROM _bulkmail_sends WHERE status = 'sent' AND sent_at >= {:start}`).bind({ start: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) + " 00:00:00.000Z" }).one(row);
-	const base = `${$app.settings().meta.appURL || ""}`.replace(/\/+$/, "");
+	const base = mothershipPublicUrl();
 	return {
 		...s,
 		secret: "",
@@ -4830,9 +4839,8 @@ const HandleLemonSqueezySale = (e) => {
 		if (loyalty && context.event_name === `order_created` && order) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, order.sku, `order:${context.resource_id}`));
 		if (first && (context.event_name === `subscription_cancelled` || context.event_name === `subscription_expired`)) try {
 			const id = `${first.id}`;
-			const resume = `${$app.settings().meta.appURL || `https://mothership.pockethost.io`}`.replace(/\/+$/, ``);
 			sendLoyaltyEmail(loyaltyEndingEmail(context.event_name === `subscription_cancelled` ? `cancel` : `expired`, loadBillingItems($app, userRec.id), id, firstAttrs.ends_at || void 0, /* @__PURE__ */ new Date(), userRec.getFloat(`subscription_quantity`), {
-				resume: `${resume}/api/loyalty/resume?t=${encodeURIComponent(resumeToken($security.hs256, `${process.env.LS_WEBHOOK_SECRET || ""}`, id))}`,
+				resume: `${mothershipPublicUrl()}/api/loyalty/resume?t=${encodeURIComponent(resumeToken($security.hs256, `${process.env.LS_WEBHOOK_SECRET || ""}`, id))}`,
 				pricing: `https://pockethost.io/pricing`
 			}));
 		} catch (err) {

@@ -1,3 +1,4 @@
+import { mothershipPublicUrl } from '$util/mothershipUrl'
 /** Routes shaped exactly like PocketBase CE ext/bulkmail (routes.go). */
 import { mkLog } from '$util/Logger'
 import { escapeHtml } from '$util/bulkmail/template'
@@ -35,7 +36,7 @@ const settingsResponse = () => {
     .newQuery(`SELECT COUNT(*) AS n FROM _bulkmail_sends WHERE status = 'sent' AND sent_at >= {:start}`)
     .bind({ start: new Date().toISOString().slice(0, 10) + ' 00:00:00.000Z' })
     .one(row)
-  const base = `${$app.settings().meta.appURL || ''}`.replace(/\/+$/, '')
+  const base = mothershipPublicUrl()
   return {
     ...s,
     secret: '',

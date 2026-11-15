@@ -21,6 +21,7 @@ import {
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
+import { mothershipPublicUrl } from '$util/mothershipUrl'
 import {
   ensureUserBootstrapped,
   findBillingItemRecord,
@@ -273,7 +274,6 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     if (first && (context.event_name === `subscription_cancelled` || context.event_name === `subscription_expired`)) {
       try {
         const id = `${first.id}`
-        const resume = `${$app.settings().meta.appURL || `https://mothership.pockethost.io`}`.replace(/\/+$/, ``)
         sendLoyaltyEmail(
           loyaltyEndingEmail(
             context.event_name === `subscription_cancelled` ? `cancel` : `expired`,
@@ -283,7 +283,7 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
             new Date(),
             userRec.getFloat(`subscription_quantity`),
             {
-              resume: `${resume}/api/loyalty/resume?t=${encodeURIComponent(
+              resume: `${mothershipPublicUrl()}/api/loyalty/resume?t=${encodeURIComponent(
                 resumeToken($security.hs256, `${process.env.LS_WEBHOOK_SECRET || ''}`, id)
               )}`,
               pricing: `https://pockethost.io/pricing`,

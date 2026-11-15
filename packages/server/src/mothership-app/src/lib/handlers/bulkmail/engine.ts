@@ -1,3 +1,4 @@
+import { mothershipPublicUrl } from '$util/mothershipUrl'
 /**
  * Bulk mail on the legacy mothership, on the PocketBase CE ext/bulkmail schema (_bulkmail_campaigns, _bulkmail_sends,
  * _bulkmail_suppressions, _params "bulkmail"). Same routes, statuses, ledger and unsubscribe tokens as the CE plugin,
@@ -81,7 +82,7 @@ export const saveSettings = (s: BulkMailSettings, app: typeof $app = $app) => {
     .execute()
 }
 
-const publicUrl = () => `${$app.settings().meta.appURL || 'https://mothership.pockethost.io'}`.replace(/\/+$/, '')
+const publicUrl = mothershipPublicUrl
 
 export const unsubscribeUrl = (email: string, campaignId: string) =>
   `${publicUrl()}/api/bulkmail/unsubscribe?t=${encodeURIComponent(
