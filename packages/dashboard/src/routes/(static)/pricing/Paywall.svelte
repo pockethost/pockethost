@@ -10,64 +10,69 @@
   const annualSavings = Math.round((monthlyYearTotal - ANNUAL_PRICE) * 100) / 100
   const annualSavingsPercent = Math.round((annualSavings / monthlyYearTotal) * 100)
 
-  const slotStorage = `10 GB disk storage per instance (files in your own S3 don't count)`
-  const trialFeature = '30-day money-back guarantee'
-  const slotFeatures = [
-    slotStorage,
-    'Storage adds to your account pool, shared across every PocketBase you run',
+  const LIFETIME_PRICE = 149.99
+  const withBonus = (price: number) => (price / 6).toFixed(2)
+
+  const monthlyFeatures = [
+    '10 GB storage per paid instance',
     'Cloudflare CDN and DDoS protection',
     'Unmetered bandwidth and CPU (fair use)',
-    'Deploy from CI or the CLI, plus SFTP file access',
+    'Deploy from CI or the CLI',
   ]
-  const monthlyFeatures = [trialFeature, ...slotFeatures]
 </script>
 
 <div class="pricing-page-header">
   <h2 class="pricing-page-title">Pricing</h2>
-  <p class="pricing-page-lead">Pay Per PocketBase. Pay for each instance you run.</p>
+  <p class="pricing-page-lead">Pay per instance. Every plan has a 30-day money-back guarantee.</p>
+  <p class="pricing-page-sublead">Each paid instance adds 10 GB to your account's shared storage.</p>
 </div>
 
 <div class="pricing-page-grid">
   <SignupBox
     pvId={INSTANCE_MONTHLY_PV_ID}
     title="Monthly"
-    badgeText="Earn up to 5 loyalty bonus instances"
+    highlightBig="+5"
+    highlightWord="BONUS"
+    highlightDetail="Earn up to 5 loyalty bonus instances"
+    buttonText="Start monthly"
     price="$9.99"
     priceDetail="per instance, per month"
-    priceNote={`$${(MONTHLY_PRICE / 6).toFixed(2)}/mo per instance after year 1, with 5 bonus instances`}
-    cta="Each instance includes 10 GB disk storage. Need more? Add another instance."
+    priceNote={`As low as $${withBonus(MONTHLY_PRICE)}/mo per instance with 5 bonus instances`}
+    cta="Billed every month."
     features={monthlyFeatures}
   />
   <SignupBox
     pvId={INSTANCE_ANNUAL_PV_ID}
     selected
-    savingsPercent={annualSavingsPercent}
-    savingsAmountLabel={`Save $${annualSavings.toFixed(0)} per instance vs monthly billing`}
+    glow
+    highlightBig={`${annualSavingsPercent}%`}
+    highlightWord="OFF"
+    highlightDetail={`Save $${annualSavings.toFixed(0)} per instance vs monthly`}
     compareAtPrice={`$${monthlyYearTotal.toFixed(2)}/yr`}
     title="Annual"
+    buttonText="Start annual"
     price="$59.99"
     priceDetail="per instance, per year"
-    priceNote={`$${(ANNUAL_PRICE / 6 / 12).toFixed(2)}/mo per instance from day one, with 5 bonus instances`}
-    cta="Everything in Monthly, billed once a year, plus:"
-    features={[
-      '5 bonus instances from day one: 6 instances for the price of 1',
-      'One payment a year, no monthly charges',
-    ]}
+    priceNote={`$${withBonus(ANNUAL_PRICE / 12)}/mo per instance with 5 bonus instances`}
+    cta="Everything in Monthly, billed once a year."
+    features={['5 loyalty bonus instances right away', 'One payment a year']}
   />
   <SignupBox
     pvId={INSTANCE_LIFETIME_PV_ID}
-    buttonText="Buy lifetime instance"
+    buttonText="Buy lifetime"
     price="$149.99"
-    priceDetail="once per instance"
+    priceDetail="once, per instance"
+    priceNote={`$${Math.round(LIFETIME_PRICE / 6)} per instance with 5 bonus instances`}
     title="Lifetime"
-    cta="Everything in Monthly, paid once, plus:"
-    features={[
-      '5 bonus instances from day one: 6 instances for the price of 1',
-      'Lifetime hosting for each instance you buy',
-      'No renewals and no recurring fees',
-    ]}
+    cta="Everything in Monthly, paid once."
+    features={['5 loyalty bonus instances right away', 'No renewals or recurring fees']}
   />
 </div>
+
+<p class="pricing-footnote">
+  Bonus instances are a loyalty perk. They add no storage and count only while you have a paid instance. See the
+  <a href="/terms">Terms of Service</a>.
+</p>
 
 <section class="pricing-below">
   <div class="pricing-demo">

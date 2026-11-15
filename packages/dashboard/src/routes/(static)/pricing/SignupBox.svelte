@@ -14,9 +14,12 @@
   export let bestDeal: boolean = false
   export let badgeText: string | undefined = undefined
   export let badgeUrgent: boolean = false
-  /** Large in-card savings callout (e.g. annual vs monthly). */
-  export let savingsPercent: number | undefined = undefined
-  export let savingsAmountLabel: string | undefined = undefined
+  /** Large in-card callout below the title, e.g. big "50%", word "OFF", detail line. */
+  export let highlightBig: string | undefined = undefined
+  export let highlightWord: string | undefined = undefined
+  export let highlightDetail: string | undefined = undefined
+  /** Green glow and slight scale-up, for the plan we want to stand out. */
+  export let glow: boolean = false
   export let compareAtPrice: string | undefined = undefined
   export let title: string | undefined = undefined
   export let cta: string
@@ -51,11 +54,9 @@
   }
 </script>
 
-<div class="pricing-plan {selected ? 'pricing-plan--featured' : ''} {savingsPercent ? 'pricing-plan--splasher' : ''}">
+<div class="pricing-plan {selected ? 'pricing-plan--featured' : ''} {glow ? 'pricing-plan--splasher' : ''}">
   {#if badgeText}
     <div class="pricing-plan-badge" class:pricing-plan-badge--urgent={badgeUrgent}>{badgeText}</div>
-  {:else if savingsPercent}
-    <div class="pricing-plan-badge pricing-plan-badge--savings">Save {savingsPercent}%</div>
   {:else if bestDeal}
     <div class="pricing-plan-badge">HOT</div>
   {/if}
@@ -64,12 +65,14 @@
     {#if title}
       <h3 class="pricing-plan-title">{title}</h3>
     {/if}
-    {#if savingsPercent}
-      <div class="pricing-plan-splasher" aria-label="Save {savingsPercent} percent vs monthly billing">
-        <span class="pricing-plan-splasher-percent">{savingsPercent}%</span>
-        <span class="pricing-plan-splasher-off">OFF</span>
-        {#if savingsAmountLabel}
-          <span class="pricing-plan-splasher-detail">{savingsAmountLabel}</span>
+    {#if highlightBig}
+      <div class="pricing-plan-splasher">
+        <span class="pricing-plan-splasher-percent">{highlightBig}</span>
+        {#if highlightWord}
+          <span class="pricing-plan-splasher-off">{highlightWord}</span>
+        {/if}
+        {#if highlightDetail}
+          <span class="pricing-plan-splasher-detail">{highlightDetail}</span>
         {/if}
       </div>
     {/if}

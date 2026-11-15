@@ -311,6 +311,27 @@
   color: rgb(156 163 175);
 }
 
+.pricing-page-sublead {
+  margin: 0.25rem auto 0;
+  max-width: 42rem;
+  font-size: 0.9375rem;
+  color: rgb(156 163 175);
+}
+
+.pricing-footnote {
+  max-width: 42rem;
+  margin: 1.5rem auto 0;
+  padding: 0 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-align: center;
+  color: rgb(156 163 175);
+}
+
+.pricing-footnote a {
+  text-decoration: underline;
+}
+
 .pricing-plan-price-note {
   margin-top: 0.25rem;
   font-size: 0.75rem;

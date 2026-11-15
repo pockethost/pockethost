@@ -7,7 +7,7 @@ export const highlights = [
   {
     icon: 'rocket',
     title: 'Push to deploy',
-    description: 'Deploy from GitHub Actions or the CLI with a scoped API token. SFTP too.',
+    description: 'Deploy from GitHub Actions or the CLI with a scoped API token.',
   },
   {
     icon: 'link',
