@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/core/multisite-firewall"
-	"github.com/pockethost/pocketone/ext/core/pluginkit"
+	"github.com/pockethost/pocketone/ext/multisite-firewall"
+	"github.com/pockethost/pocketone/ext/pluginkit"
 )
 
 // SectionConfig is the `pockethost` section of an edge's pocketone.yaml: what edge.env held (the mothership login

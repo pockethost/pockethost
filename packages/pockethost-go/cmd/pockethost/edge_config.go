@@ -13,17 +13,17 @@ import (
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"github.com/pockethost/pocketone/ext/core/config"
-	"github.com/pockethost/pocketone/ext/core/multisite"
-	ceedge "github.com/pockethost/pocketone/ext/core/multisite-edge"
-	"github.com/pockethost/pocketone/ext/core/multisite-firewall"
-	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
-	"github.com/pockethost/pocketone/ext/core/multisite-provider-pocker"
-	"github.com/pockethost/pocketone/ext/core/multisite-servertiming"
-	"github.com/pockethost/pocketone/ext/core/multisite-stats"
-	"github.com/pockethost/pocketone/ext/core/pages"
-	"github.com/pockethost/pocketone/ext/core/pages/pockerplugin"
-	"github.com/pockethost/pocketone/ext/core/pitr"
+	"github.com/pockethost/pocketone/ext/config"
+	"github.com/pockethost/pocketone/ext/multisite"
+	ceedge "github.com/pockethost/pocketone/ext/multisite-edge"
+	"github.com/pockethost/pocketone/ext/multisite-firewall"
+	"github.com/pockethost/pocketone/ext/multisite-provider-docker"
+	"github.com/pockethost/pocketone/ext/multisite-provider-pocker"
+	"github.com/pockethost/pocketone/ext/multisite-servertiming"
+	"github.com/pockethost/pocketone/ext/multisite-stats"
+	"github.com/pockethost/pocketone/ext/pages"
+	"github.com/pockethost/pocketone/ext/pages/pockerplugin"
+	"github.com/pockethost/pocketone/ext/pitr"
 )
 
 // instancesBox holds the running edge.Instances (pocker's Manager or the docker adapter) once the host has one.

@@ -15,7 +15,7 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
-	"github.com/pockethost/pocketone/ext/core/jsembed"
+	"github.com/pockethost/pocketone/ext/jsembed"
 )
 
 // mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin

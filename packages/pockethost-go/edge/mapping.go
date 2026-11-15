@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	firewall "github.com/pockethost/pocketone/ext/core/multisite-firewall"
+	firewall "github.com/pockethost/pocketone/ext/multisite-firewall"
 
-	"github.com/pockethost/pocketone/ext/core/multisite-provider-pocker"
+	"github.com/pockethost/pocketone/ext/multisite-provider-pocker"
 )
 
 // Mothership records as the mirror exports them.

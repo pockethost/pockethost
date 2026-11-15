@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/core/multisite-provider-pocker"
+	"github.com/pockethost/pocketone/ext/multisite-provider-pocker"
 )
 
 // TestWithPockerManager deploys to a real PocketBase app run by Pocker: hooks change after a restart, a broken hook is

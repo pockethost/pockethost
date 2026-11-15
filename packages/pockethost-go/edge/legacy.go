@@ -13,8 +13,8 @@ import (
 	"sort"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/pockethost/pocketone/ext/core/multisite"
-	"github.com/pockethost/pocketone/ext/core/multisite-provider-docker"
+	"github.com/pockethost/pocketone/ext/multisite"
+	"github.com/pockethost/pocketone/ext/multisite-provider-docker"
 )
 
 const (

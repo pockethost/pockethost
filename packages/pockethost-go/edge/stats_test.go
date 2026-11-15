@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/core/multisite-stats"
+	"github.com/pockethost/pocketone/ext/multisite-stats"
 )
 
 // fakeStats is a mothership with just the login and the instance_stats records API.
