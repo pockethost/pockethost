@@ -9,6 +9,8 @@
   export let buttonText: string = 'Subscribe Now'
   export let price: string
   export let priceDetail: string = ''
+  /** Small line under the price (e.g. the per-instance price with bonus instances). */
+  export let priceNote: string = ''
   export let bestDeal: boolean = false
   export let badgeText: string | undefined = undefined
   export let badgeUrgent: boolean = false
@@ -95,6 +97,9 @@
     <div class="pricing-plan-price">{price}</div>
     {#if priceDetail}
       <div class="pricing-plan-price-detail">{priceDetail}</div>
+    {/if}
+    {#if priceNote}
+      <div class="pricing-plan-price-note">{priceNote}</div>
     {/if}
   </div>
 

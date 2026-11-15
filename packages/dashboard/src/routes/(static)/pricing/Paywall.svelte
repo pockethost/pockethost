@@ -19,11 +19,7 @@
     'Unmetered bandwidth and CPU (fair use)',
     'Deploy from CI or the CLI, plus SFTP file access',
   ]
-  const monthlyFeatures = [
-    trialFeature,
-    `$${(MONTHLY_PRICE / 6).toFixed(2)}/mo per instance after year 1, with 5 bonus instances`,
-    ...slotFeatures,
-  ]
+  const monthlyFeatures = [trialFeature, ...slotFeatures]
 </script>
 
 <div class="pricing-page-header">
@@ -37,6 +33,7 @@
     title="Monthly"
     price="$9.99"
     priceDetail="per instance, per month"
+    priceNote={`$${(MONTHLY_PRICE / 6).toFixed(2)}/mo per instance after year 1, with 5 bonus instances`}
     cta="Each instance includes 10 GB disk storage. Need more? Add another instance."
     features={monthlyFeatures}
   />
@@ -49,10 +46,10 @@
     title="Annual"
     price="$59.99"
     priceDetail="per instance, per year"
+    priceNote={`$${(ANNUAL_PRICE / 6 / 12).toFixed(2)}/mo per instance from day one, with 5 bonus instances`}
     cta="Everything in Monthly, billed once a year, plus:"
     features={[
       '5 bonus instances from day one: 6 instances for the price of 1',
-      `About $${(ANNUAL_PRICE / 6 / 12).toFixed(2)}/mo per instance with all 6 running`,
       'One payment a year, no monthly charges',
     ]}
   />

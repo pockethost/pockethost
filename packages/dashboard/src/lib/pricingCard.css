@@ -311,6 +311,12 @@
   color: rgb(156 163 175);
 }
 
+.pricing-plan-price-note {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgb(134 239 172);
+}
+
 .pricing-plan-error {
   margin-top: 0.5rem;
 }
