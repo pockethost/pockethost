@@ -44,7 +44,7 @@
         Long version: If you need to cancel your membership for any reason, please <a
           class="text-primary"
           href={DISCORD_URL}>contact <code>.noaxis</code> on Discord</a
-        >. If you cancel within the first 5 days of a signup or renewal, we'll refund the full amount. Otherwise, we'll
+        >. If you cancel within 30 days of purchase, we'll refund the full amount, no questions asked. After that, we'll
         pro-rate it. Sound good?
       </p>
       <p>

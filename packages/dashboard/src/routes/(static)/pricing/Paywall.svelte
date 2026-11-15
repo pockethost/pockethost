@@ -11,7 +11,7 @@
   const annualSavingsPercent = Math.round((annualSavings / monthlyYearTotal) * 100)
 
   const slotStorage = `10 GB disk storage per instance (files in your own S3 don't count)`
-  const trialFeature = '7 day risk-free trial'
+  const trialFeature = '30-day money-back guarantee'
   const slotFeatures = [
     slotStorage,
     'Storage adds to your account pool, shared across every PocketBase you run',

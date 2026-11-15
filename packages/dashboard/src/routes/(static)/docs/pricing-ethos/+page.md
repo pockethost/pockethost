@@ -16,7 +16,7 @@ Each paid instance adds:
 You can have as many instances as you pay for. Need another one? Add another instance.
 
 - **Fair use bandwidth and CPU** on all paid instances
-- **7-day risk-free trial** on every plan
+- **30-day money-back guarantee** on every plan
 - **Community support** on Discord for everyone
 
 See [pricing](/pricing) for checkout.

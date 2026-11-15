@@ -73,7 +73,7 @@ More detail: [Last call for Flounder lifetime access](/blog/flounder-lifetime-su
 
 ### Pay Per PocketBase pricing
 
-PocketHost is a **hard paywall**: **$9.99/month**, **$59.99/year**, or **$149.99 lifetime** per instance (7-day risk-free trial on every plan). Each paid instance adds **10 GB of disk storage** (pooled on your account; see [disk storage](/docs/limits#disk-storage)) and gives you **one more instance**.
+PocketHost is a **hard paywall**: **$9.99/month**, **$59.99/year**, or **$149.99 lifetime** per instance (30-day money-back guarantee on every plan). Each paid instance adds **10 GB of disk storage** (pooled on your account; see [disk storage](/docs/limits#disk-storage)) and gives you **one more instance**.
 
 You can have as many instances as you pay for, and all of them can run.
 
