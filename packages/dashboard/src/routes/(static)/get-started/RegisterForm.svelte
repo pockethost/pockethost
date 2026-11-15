@@ -1,207 +1,180 @@
 <script lang="ts">
-  import { client } from '$src/pocketbase-client'
-  import { continueCheckoutAfterAuth, handleInstanceGeneratorWidget } from '$util/database'
-  import { planLabelForPvId } from '$util/checkoutIntent'
-  import { writable } from 'svelte/store'
-  import { slide } from 'svelte/transition'
-  import NewInstanceProcessingBlock from './NewInstanceProcessingBlock.svelte'
-  import { onMount } from 'svelte'
+  import { signupAndCheckout } from '$util/database'
+  import { INSTANCE_ANNUAL_PV_ID, INSTANCE_LIFETIME_PV_ID, INSTANCE_MONTHLY_PV_ID } from '$util/billing'
 
   export let isSignUpView: boolean = false
+  /** Plan picked on the pricing cards, if any. Defaults to Annual. */
   export let checkoutPvId = ''
 
-  let isProcessing: boolean = false
+  const plans = [
+    { pvId: INSTANCE_MONTHLY_PV_ID, name: 'Monthly', price: '$9.99', per: 'per instance / month' },
+    { pvId: INSTANCE_ANNUAL_PV_ID, name: 'Annual', price: '$59.99', per: 'per instance / year', note: 'Save 50%' },
+    { pvId: INSTANCE_LIFETIME_PV_ID, name: 'Lifetime', price: '$149.99', per: 'once, per instance' },
+  ]
 
-  const instanceNameField = writable('')
-  const instanceInfo = writable({
-    name: '',
-    fetching: true,
-    available: false,
-  })
+  let pvId = INSTANCE_ANNUAL_PV_ID
+  $: if (checkoutPvId) pvId = checkoutPvId
 
-  const generateSlug = async () => {
-    instanceInfo.update((info) => ({ ...info, fetching: true }))
-    const { instanceName: name } = await client().client.send(`/api/signup`, {})
-    instanceInfo.update((info) => ({
-      ...info,
-      available: true,
-      name,
-      fetching: false,
-    }))
-    instanceNameField.set(name)
-  }
+  let email = ''
+  let password = ''
+  let formError = ''
+  let busy = false
 
-  onMount(() => {
-    instanceNameField.subscribe(async (name) => {
-      if (name === $instanceInfo.name) return
-      try {
-        instanceInfo.update((info) => ({
-          ...info,
-          fetching: true,
-        }))
-        await client().client.send(`/api/signup?name=${encodeURIComponent(name)}`, {})
-        instanceInfo.update((info) => ({
-          ...info,
-          fetching: false,
-          available: true,
-          name,
-        }))
-      } catch (e) {
-        instanceInfo.update((info) => ({
-          ...info,
-          fetching: false,
-          available: false,
-          name,
-        }))
-      }
-    })
-  })
-
-  onMount(() => {
-    generateSlug()
-  })
-
-  let email: string = ''
-  let password: string = ''
-  let formError: string = ''
-
-  let isFormButtonDisabled: boolean = true
-  $: isFormButtonDisabled =
-    email.length === 0 || password.length === 0 || $instanceInfo.name.length === 0 || !$instanceInfo.available
-
-  $: planLabel = checkoutPvId ? planLabelForPvId(checkoutPvId) : ''
-  $: submitLabel = checkoutPvId ? 'Create account & subscribe' : 'Create'
-
-  const handleInstanceNameRegeneration = () => {
-    generateSlug()
-  }
-
-  const handleLoginClick = () => {
-    isSignUpView = !isSignUpView
-  }
+  $: disabled = busy || email.length === 0 || password.length < 8
 
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
-    isFormButtonDisabled = true
-    isProcessing = true
+    if (disabled) return
+    busy = true
     formError = ''
-
-    await handleInstanceGeneratorWidget(
-      email,
-      password,
-      $instanceInfo.name,
-      (error) => {
-        formError = error
-      },
-      checkoutPvId || undefined
-    )
-
-    isFormButtonDisabled = false
-
-    setTimeout(() => {
-      isProcessing = false
-    }, 1000)
+    await signupAndCheckout(email.trim().toLowerCase(), password, pvId, (message) => {
+      formError = message
+    })
+    busy = false
   }
 </script>
 
-{#if isProcessing}
-  <div in:slide={{ delay: 400 }} out:slide>
-    <NewInstanceProcessingBlock />
+<form class="auth-form" onsubmit={handleSubmit}>
+  <h2 class="auth-form-title">Create your account</h2>
+  <p class="auth-form-lead">Pick a plan and pay. Then you name your first instance, and it's live in seconds.</p>
+
+  <fieldset class="signup-plans">
+    <legend class="auth-label">Plan</legend>
+    {#each plans as plan}
+      <label class="signup-plan" class:signup-plan--on={pvId === plan.pvId}>
+        <input type="radio" name="plan" value={plan.pvId} bind:group={pvId} />
+        <span class="signup-plan-name">
+          {plan.name}
+          {#if plan.note}<span class="signup-plan-note">{plan.note}</span>{/if}
+        </span>
+        <span class="signup-plan-price">{plan.price}</span>
+        <span class="signup-plan-per">{plan.per}</span>
+      </label>
+    {/each}
+  </fieldset>
+
+  <div class="auth-field-group">
+    <label class="auth-label" for="email">Email</label>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      class="auth-field"
+      placeholder="name@example.com"
+      autocomplete="email"
+      bind:value={email}
+      required
+    />
   </div>
-{:else}
-  <div in:slide={{ delay: 400 }} out:slide>
-    <form class="auth-form" onsubmit={handleSubmit}>
-      <h2 class="auth-form-title">
-        {#if checkoutPvId}
-          Create your account
-        {:else}
-          Create your first Instance, fast.
-        {/if}
-      </h2>
 
-      {#if checkoutPvId}
-        <p class="auth-form-lead">
-          You chose <strong>{planLabel}</strong>. We create your account and first instance, then send you to secure
-          checkout.
-        </p>
-      {/if}
-
-      <div class="auth-field-group">
-        <label class="auth-label" for="instance">Instance Name</label>
-
-        <div class="flex gap-2">
-          <wa-input
-            type="text"
-            placeholder="instance-name"
-            value={$instanceNameField}
-            oninput={(e: Event) => instanceNameField.set((e.currentTarget as HTMLInputElement).value)}
-            id="instance"
-            class="w-full"
-          ></wa-input>
-
-          <wa-button type="button" variant="neutral" appearance="outline" onclick={handleInstanceNameRegeneration}>
-            <wa-icon name="rotate"></wa-icon>
-          </wa-button>
-        </div>
-
-        <div class="text-sm text-white/70">
-          {#if $instanceNameField === ''}
-            <span class="text-error">Please enter an instance name</span>
-          {:else if $instanceInfo.fetching}
-            Verifying...
-          {:else if $instanceInfo.available}
-            <span class="text-success"> https://{$instanceInfo.name}.pockethost.io ✔︎</span>
-          {:else if !$instanceInfo.available}
-            <span class="text-error"> https://{$instanceInfo.name}.pockethost.io ❌</span>
-          {/if}
-        </div>
-      </div>
-
-      <div class="auth-field-group">
-        <label class="auth-label" for="email">Email</label>
-
-        <wa-input
-          type="email"
-          id="email"
-          placeholder="name@example.com"
-          autocomplete="email"
-          value={email}
-          oninput={(e: Event) => (email = (e.currentTarget as HTMLInputElement).value)}
-          required
-          class="w-full"
-        ></wa-input>
-      </div>
-
-      <div class="auth-field-group">
-        <label class="auth-label" for="password">Password</label>
-        <wa-input
-          type="password"
-          id="password"
-          placeholder="Password"
-          autocomplete="new-password"
-          value={password}
-          oninput={(e: Event) => (password = (e.currentTarget as HTMLInputElement).value)}
-          required
-          class="w-full"
-        ></wa-input>
-      </div>
-
-      {#if formError}
-        <wa-callout variant="danger" class="wa-callout-padded">
-          <wa-icon slot="icon" name="circle-xmark"></wa-icon>
-          {formError}
-        </wa-callout>
-      {/if}
-
-      <button type="submit" class="auth-submit" disabled={isFormButtonDisabled}>
-        {submitLabel}
-        <wa-icon name="arrow-right"></wa-icon>
-      </button>
-    </form>
-
-    <div class="auth-footer">
-      Already have an account?
-      <button type="button" class="auth-footer-button" onclick={handleLoginClick}>Log in</button>
-    </div>
+  <div class="auth-field-group">
+    <label class="auth-label" for="password">Password</label>
+    <input
+      type="password"
+      id="password"
+      name="password"
+      class="auth-field"
+      placeholder="At least 8 characters"
+      autocomplete="new-password"
+      minlength="8"
+      bind:value={password}
+      required
+    />
   </div>
-{/if}
+
+  {#if formError}
+    <wa-callout variant="danger" class="wa-callout-padded">
+      <wa-icon slot="icon" name="circle-xmark"></wa-icon>
+      {formError}
+    </wa-callout>
+  {/if}
+
+  <button type="submit" class="auth-submit" {disabled}>
+    {#if busy}
+      <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+    {:else}
+      Continue to payment
+      <wa-icon name="arrow-right"></wa-icon>
+    {/if}
+  </button>
+  <p class="signup-fine">30-day money-back guarantee. Secure checkout by Lemon Squeezy.</p>
+</form>
+
+<div class="auth-footer">
+  Already have an account?
+  <button type="button" class="auth-footer-button" onclick={() => (isSignUpView = !isSignUpView)}>Log in</button>
+</div>
+
+<style>
+  .signup-plans {
+    display: grid;
+    gap: 0.5rem;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .signup-plan {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 'radio name price' 'radio name per';
+    column-gap: 0.75rem;
+    align-items: center;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 0.75rem;
+    background: rgb(255 255 255 / 0.03);
+    cursor: pointer;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease;
+  }
+
+  .signup-plan--on {
+    border-color: rgb(30 184 84 / 0.8);
+    background: rgb(30 184 84 / 0.08);
+  }
+
+  .signup-plan input {
+    grid-area: radio;
+    accent-color: rgb(30 184 84);
+  }
+
+  .signup-plan-name {
+    grid-area: name;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .signup-plan-note {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: rgb(30 184 84);
+    background: rgb(30 184 84 / 0.12);
+  }
+
+  .signup-plan-price {
+    grid-area: price;
+    text-align: right;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .signup-plan-per {
+    grid-area: per;
+    text-align: right;
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.5);
+  }
+
+  .signup-fine {
+    margin: 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.45);
+  }
+</style>

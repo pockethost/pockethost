@@ -1,6 +1,6 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
-  import { cancelLemonSqueezyMembership } from '$util/lemonsqueezy'
+  import { cancelMembership as cancelLemonSqueezyMembership } from '$util/billing'
   import { SubscriptionInterval, SubscriptionType } from '@pockethost/server/common'
   import { userStore, userSubscriptionType } from '$util/stores'
 

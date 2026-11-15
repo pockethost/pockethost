@@ -2,14 +2,16 @@
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
   import LegacySunsetCallout from '$components/LegacySunsetCallout.svelte'
-  import { userStore } from '$util/stores'
+  import { globalInstancesStore, userStore } from '$util/stores'
 
   $: maxInstances = $userStore?.subscription_quantity
+  // An unpaid account with no instances sees plans on the dashboard instead (pay first), so no warning bar.
+  $: hasInstances = Object.keys($globalInstancesStore).length > 0
 </script>
 
 <div class="px-4 md:px-20 relative z-10 max-w-content mx-auto pt-6 md:pt-10">
   <UserLoggedIn>
-    {#if maxInstances === 0}
+    {#if maxInstances === 0 && hasInstances}
       <wa-callout variant="warning" class="wa-callout-padded py-2 mt-2">
         <span class="flex-1 text-sm flex text-white text-start items-center justify-start gap-4">
           Instances will not run until you upgrade.

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { INSTANCE_MONTHLY_PV_ID, createLemonSqueezyCheckout } from '$util/lemonsqueezy'
+  import { AFTER_CHECKOUT_PATH, INSTANCE_MONTHLY_PV_ID, startCheckout as openCheckout } from '$util/billing'
   import { checkoutIntentUrl } from '$util/checkoutIntent'
   import UserLoggedIn from '$components/guards/UserLoggedIn.svelte'
   import UserLoggedOut from '$components/guards/UserLoggedOut.svelte'
@@ -13,8 +13,7 @@
     if (loading) return
     loading = true
     try {
-      const url = await createLemonSqueezyCheckout(INSTANCE_MONTHLY_PV_ID)
-      window.location.href = url
+      await openCheckout(INSTANCE_MONTHLY_PV_ID, () => goto(AFTER_CHECKOUT_PATH))
     } catch (err) {
       console.error(err)
       alert('Could not start checkout. Please try again.')

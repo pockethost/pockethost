@@ -26,8 +26,13 @@
     <UserLoggedOut>
       <a href="/about" class="site-nav-link site-nav-link--menu">About</a>
     </UserLoggedOut>
+    <UserLoggedIn>
+      <a href="/account" class="site-nav-link site-nav-link--menu">Account</a>
+      <button type="button" class="site-nav-link site-nav-link--menu" onclick={handleLogoutAndRedirect}>Logout</button>
+    </UserLoggedIn>
     <UserLoggedOut>
       <a href="/login" class="site-nav-link site-nav-link--menu">Login</a>
+      <a href="/get-started" class="site-nav-link site-nav-link--menu">Get started</a>
     </UserLoggedOut>
   </div>
 {:else}

@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation'
   import { isUserLoggedIn } from '$util/stores'
   import { checkoutIntentUrl } from '$util/checkoutIntent'
-  import { createLemonSqueezyCheckout } from '$util/lemonsqueezy'
+  import { AFTER_CHECKOUT_PATH, startCheckout as openCheckout } from '$util/billing'
 
   export let pvId: string
   export let selected: boolean = false
@@ -43,8 +43,7 @@
 
     loading = true
     try {
-      const url = await createLemonSqueezyCheckout(pvId)
-      window.location.href = url
+      await openCheckout(pvId, () => goto(AFTER_CHECKOUT_PATH))
     } catch (err) {
       console.error(err)
       checkoutError = err instanceof Error ? err.message : 'Could not start checkout. Please try again.'

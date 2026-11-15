@@ -7,6 +7,33 @@
   import PrimaryButton from './PrimaryButton.svelte'
   import { tweened } from 'svelte/motion'
   import { cubicOut } from 'svelte/easing'
+  import PricingPlans from '$src/components/PricingPlans.svelte'
+  import { toc as blogToc } from '../blog/toc'
+
+  const docs = [
+    {
+      href: '/docs/getting-started',
+      icon: 'rocket',
+      title: 'Getting started',
+      text: 'Your first instance, start to finish.',
+    },
+    { href: '/docs/cli', icon: 'terminal', title: 'PocketHost CLI', text: 'Deploy, pull files and manage instances.' },
+    {
+      href: '/docs/deploy-from-ci',
+      icon: 'code-branch',
+      title: 'Deploy from CI',
+      text: 'Push to GitHub, ship to PocketHost.',
+    },
+    { href: '/docs/js', icon: 'code', title: 'JavaScript hooks', text: 'Run your own code inside PocketBase.' },
+    {
+      href: '/docs/custom-domain',
+      icon: 'link',
+      title: 'Custom domain',
+      text: 'Your domain, with SSL handled for you.',
+    },
+    { href: '/docs/limits', icon: 'gauge', title: 'Limits', text: 'Storage, memory and fair use.' },
+  ]
+  const latestPosts = blogToc.slice(0, 3)
 
   const features = [
     {
@@ -130,6 +157,11 @@
           <PrimaryButton text="Get Started" url="/get-started" icon="arrow-right" className="wiggle" />
         </UserLoggedOut>
       </AuthStateGuard>
+      <nav class="home-jump" aria-label="On this page">
+        <a href="#pricing">Pricing</a>
+        <a href="#docs">Docs</a>
+        <a href="#blog">Blog</a>
+      </nav>
     </div>
   </div>
 
@@ -165,6 +197,52 @@
     </div>
   </section>
 
+  <section id="pricing" class="home-section">
+    <div class="home-head">
+      <p class="home-eyebrow">Pricing</p>
+      <h2 class="home-title">Pay per instance</h2>
+      <p class="home-lead">
+        Every plan has a 30-day money-back guarantee. Pick a plan, pay, then name your first instance.
+      </p>
+    </div>
+    <PricingPlans />
+    <p class="home-more"><a href="/pricing">Full pricing details</a></p>
+  </section>
+
+  <section id="docs" class="home-section">
+    <div class="home-head">
+      <p class="home-eyebrow">Docs</p>
+      <h2 class="home-title">Start building</h2>
+    </div>
+    <div class="home-grid">
+      {#each docs as doc}
+        <a href={doc.href} class="home-card">
+          <span class="home-card-icon"><wa-icon name={doc.icon}></wa-icon></span>
+          <span class="home-card-title">{doc.title}</span>
+          <span class="home-card-text">{doc.text}</span>
+        </a>
+      {/each}
+    </div>
+    <p class="home-more"><a href="/docs">All docs</a></p>
+  </section>
+
+  <section id="blog" class="home-section">
+    <div class="home-head">
+      <p class="home-eyebrow">Blog</p>
+      <h2 class="home-title">What's new</h2>
+    </div>
+    <div class="home-grid home-grid--posts">
+      {#each latestPosts as post}
+        <a href={post.path} class="home-card">
+          {#if post.date}<span class="home-card-date">{post.date}</span>{/if}
+          <span class="home-card-title">{post.title}</span>
+          <span class="home-card-text">{post.description}</span>
+        </a>
+      {/each}
+    </div>
+    <p class="home-more"><a href="/blog">All posts</a></p>
+  </section>
+
   <section class="py-24 lg:px-8 text-white">
     <div class="text-center mb-10 md:mb-20">
       <h2 class="text-4xl md:text-5xl font-light mb-6 tracking-tight text-white">
@@ -192,3 +270,142 @@
     </div>
   </section>
 </div>
+
+<style>
+  .home-jump {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .home-jump a {
+    color: rgb(255 255 255 / 0.7);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgb(255 255 255 / 0.25);
+  }
+
+  .home-jump a:hover {
+    color: #fff;
+  }
+
+  .home-section {
+    scroll-margin-top: 1rem;
+    padding: 5rem 0 0;
+    color: #fff;
+  }
+
+  .home-head {
+    max-width: 40rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .home-eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(30 184 84);
+  }
+
+  .home-title {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+
+  .home-lead {
+    margin: 0.75rem 0 0;
+    color: rgb(255 255 255 / 0.6);
+  }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    max-width: 72rem;
+    margin: 2.5rem auto 0;
+  }
+
+  @media (min-width: 640px) {
+    .home-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .home-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .home-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.25rem 1.4rem;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: 0.9rem;
+    background: rgb(255 255 255 / 0.04);
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .home-card:hover {
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.2);
+  }
+
+  .home-card-icon {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .home-card-title {
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .home-card-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.6);
+  }
+
+  .home-grid--posts .home-card-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .home-card-date {
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  .home-more {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .home-more a {
+    color: rgb(30 184 84);
+  }
+
+  .home-more a:hover {
+    text-decoration: underline;
+  }
+</style>

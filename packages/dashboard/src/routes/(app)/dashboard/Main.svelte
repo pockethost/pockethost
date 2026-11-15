@@ -1,9 +1,14 @@
 <script lang="ts">
   import { globalInstancesStore, userStore } from '$util/stores'
+  import PricingPlans from '$src/components/PricingPlans.svelte'
+  import { instanceAllowance } from '@pockethost/server/common'
   import InstanceList from './InstanceList.svelte'
 
   $: instanceCount = Object.values($globalInstancesStore).length
   $: canCreate = ($userStore?.subscription_quantity ?? 0) > 0
+  $: allowance = instanceAllowance($userStore ?? {})
+  /** Pay first: a new account with no plan and no instances picks a plan here. */
+  $: needsPlan = allowance === 0 && instanceCount === 0
 </script>
 
 <svelte:head>
@@ -14,7 +19,9 @@
   <div>
     <h1 class="dashboard-title">Dashboard</h1>
     <p class="dashboard-subtitle">
-      {#if instanceCount === 0}
+      {#if needsPlan}
+        Pick a plan to create your first PocketBase instance. Every plan has a 30-day money-back guarantee.
+      {:else if instanceCount === 0}
         Create a PocketBase instance to get started.
       {:else}
         {instanceCount} instance{instanceCount === 1 ? '' : 's'}. Plans will be limited by storage, not instance count.
@@ -30,7 +37,11 @@
   {/if}
 </header>
 
-<InstanceList />
+{#if needsPlan}
+  <PricingPlans />
+{:else}
+  <InstanceList />
+{/if}
 
 <style>
   .dashboard-head {

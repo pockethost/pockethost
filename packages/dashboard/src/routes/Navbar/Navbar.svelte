@@ -5,18 +5,12 @@
 
 <div class="max-w-content mx-auto flex items-center justify-between px-4 py-3 md:px-20">
   <div class="m-0 flex min-w-10 flex-1 items-center">
-    <wa-dropdown class="navbar-mobile-dropdown md:hidden">
-      <wa-button slot="trigger" appearance="plain" class="mx-0 px-0 lg:hidden">
-        <Logo />
-      </wa-button>
-      <NavbarMenu isCollapsed />
-    </wa-dropdown>
-    <a href="/" class="hidden items-center md:flex">
+    <a href="/" class="flex items-center" aria-label="PocketHost home">
       <Logo />
     </a>
 
     <div class="mx-4 hidden h-5 w-px bg-white/15 md:block"></div>
-    <div class="flex items-center gap-3 text-neutral-500">
+    <div class="hidden items-center gap-3 text-neutral-500 sm:flex">
       <a
         href="https://github.com/pockethost/pockethost"
         rel="noreferrer"
@@ -55,14 +49,35 @@
       </a>
     </div>
   </div>
-  <div class="flex flex-none items-center">
+  <div class="flex flex-none items-center gap-1">
     <NavbarMenu />
+    <wa-dropdown placement="bottom-end" class="navbar-mobile-dropdown">
+      <button slot="trigger" type="button" class="navbar-menu-button" aria-label="Open menu">
+        <wa-icon name="bars"></wa-icon>
+        <span>Menu</span>
+      </button>
+      <NavbarMenu isCollapsed />
+    </wa-dropdown>
   </div>
 </div>
 
 <style>
   :global(.navbar-mobile-dropdown) {
-    display: contents;
+    display: inline-flex;
+  }
+
+  .navbar-menu-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    border-radius: 0.5rem;
+    background: rgb(255 255 255 / 0.04);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
   }
 
   @media (min-width: 768px) {
