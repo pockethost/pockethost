@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	ceedge "github.com/pockethost/pocketone/ext/edge"
@@ -104,8 +105,9 @@ func (s *Source) resolveMyEdgeLocked() bool {
 	return prev != s.myEdge
 }
 
-// ownerLogin fetches (and caches per user version) the owner's login for superuser sync. Called with s.mu held;
-// only for this edge's instances with syncAdmin, so it's a handful of calls.
+// ownerLogin fetches (and caches per user version) the owner's login for superuser sync. Called with s.mu held, for
+// this edge's served instances with syncAdmin. A full diff can need thousands (sfo-2), so prefetchLogins fills the
+// cache in parallel first; this fetch is for single changes (a realtime event, a drift check).
 func (s *Source) ownerLoginLocked(ctx context.Context) func(uid string) *tokenInfo {
 	return func(uid string) *tokenInfo {
 		u := s.users[uid]
@@ -120,6 +122,82 @@ func (s *Source) ownerLoginLocked(ctx context.Context) func(uid string) *tokenIn
 		s.logins[uid] = loginCache{updated: u.Updated, info: &t}
 		return &t
 	}
+}
+
+// loginWorkers bounds the parallel owner-login fetches of prefetchLogins.
+const loginWorkers = 32
+
+// loginsNeededLocked lists the owners whose login the next full diff would fetch: owners of this edge's served
+// instances with admin sync, not cached for their current user record.
+func (s *Source) loginsNeededLocked() []string {
+	seen := map[string]bool{}
+	var out []string
+	note := func(uid string) *tokenInfo {
+		if !seen[uid] {
+			seen[uid] = true
+			out = append(out, uid)
+		}
+		return nil
+	}
+	for _, inst := range s.instances {
+		u, ok := s.users[inst.UID]
+		if !ok || !inst.SyncAdmin {
+			continue
+		}
+		if c, ok := s.logins[inst.UID]; ok && c.updated == u.Updated {
+			continue
+		}
+		mapInstance(s.cfg, inst, &u, s.myEdge, note)
+	}
+	return out
+}
+
+// prefetchLogins fetches, loginWorkers at a time (the cost is the round trip to the mothership, ~66 ms from sfo-2) and without holding s.mu, the owner logins the next full diff needs,
+// so a full diff doesn't make one sequential mothership call per owner under the lock (minutes on an edge with
+// thousands of owners). A failed fetch is cached as "no login" for that user record (admin sync skipped until the
+// owner's record changes), so the diff doesn't retry each one in turn.
+func (s *Source) prefetchLogins(ctx context.Context) {
+	s.mu.Lock()
+	uids := s.loginsNeededLocked()
+	s.mu.Unlock()
+	if len(uids) == 0 {
+		return
+	}
+	t0 := time.Now()
+	var failed atomic.Int64
+	work := make(chan string)
+	var wg sync.WaitGroup
+	for range min(loginWorkers, len(uids)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for uid := range work {
+				var t tokenInfo
+				err := s.c.do(ctx, http.MethodGet, "/api/userToken/"+uid, nil, &t)
+				info := &t
+				if err != nil {
+					if failed.Add(1) <= 5 {
+						s.log.Warn("pockethost: owner login not available; admin sync skipped", "uid", uid, "error", err)
+					}
+					info = nil
+				}
+				s.mu.Lock()
+				s.logins[uid] = loginCache{updated: s.users[uid].Updated, info: info}
+				s.mu.Unlock()
+			}
+		}()
+	}
+feed:
+	for _, uid := range uids {
+		select {
+		case work <- uid:
+		case <-ctx.Done():
+			break feed
+		}
+	}
+	close(work)
+	wg.Wait()
+	s.log.Info("pockethost: owner logins fetched", "owners", len(uids), "failed", failed.Load(), "ms", time.Since(t0).Milliseconds())
 }
 
 // computeLocked maps one mothership instance (ok=false: not served).
@@ -269,8 +347,11 @@ func (s *Source) Snapshot(ctx context.Context) ([]pocker.Instance, error) {
 		return nil, err
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.loadDumpLocked(d)
+	s.mu.Unlock()
+	s.prefetchLogins(ctx)
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.emitted = map[string]pocker.Instance{}
 	s.diffLocked(ctx, nil)
 	s.lastDrift = time.Now()
@@ -329,6 +410,9 @@ func (s *Source) realtimeLoop(ctx context.Context) {
 			if d, err := s.fetchDump(ctx); err == nil {
 				s.mu.Lock()
 				s.loadDumpLocked(d)
+				s.mu.Unlock()
+				s.prefetchLogins(ctx)
+				s.mu.Lock()
 				changes := s.diffLocked(ctx, nil)
 				s.mu.Unlock()
 				s.emit(ctx, changes)

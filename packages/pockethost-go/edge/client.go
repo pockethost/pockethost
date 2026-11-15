@@ -30,7 +30,7 @@ type client struct {
 func newClient(base, user, pass string) *client {
 	tr := &http.Transport{
 		DialContext:         (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
-		MaxIdleConnsPerHost: 8,
+		MaxIdleConnsPerHost: 32, // prefetchLogins runs loginWorkers requests at once
 		IdleConnTimeout:     90 * time.Second,
 	}
 	return &client{base: base, user: user, pass: pass, http: &http.Client{Transport: tr}}

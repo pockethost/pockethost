@@ -232,7 +232,7 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 	p.Version = inst.Version // the docker runtime runs this release (pocker serves every instance in-process and ignores it)
 	p.Private = map[string]string{"backup_token": backupToken(cfg.BackupTokenSecret, inst.ID), "subdomain": inst.Subdomain}
 
-	if inst.SyncAdmin && ownerLogin != nil {
+	if inst.SyncAdmin && ownerLogin != nil && p.Blocked == nil { // a blocked instance never starts: no login needed
 		if t := ownerLogin(inst.UID); t != nil && t.Email != "" && t.PasswordHash != "" {
 			p.Superusers = []pocker.Superuser{{ID: owner.ID, Email: t.Email, TokenKey: t.TokenKey, PasswordHash: t.PasswordHash}}
 		}
