@@ -4470,12 +4470,10 @@ const loyaltyCandidateUserIds = (app) => {
 
 //#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
-/** Events that post to the lemon_cancel_discord channel. */
-const CANCEL_EVENTS = [
-	`subscription_cancelled`,
-	`order_refunded`,
-	`subscription_payment_refunded`
-];
+/** Events that post to the lemon_cancel_discord template. */
+const CANCEL_EVENTS = [`subscription_cancelled`];
+/** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
+const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`];
 /**
 * Lemon Squeezy webhook. Every event updates the one billing item it is about (subscription or lifetime order), then
 * the user's slot count is recomputed from all of their billing items. Users may hold any number of subscriptions
@@ -4613,6 +4611,7 @@ const HandleLemonSqueezySale = (e) => {
 		const notify = mkNotifier(log, $app);
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
 		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
+		else if (REFUND_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context);
 		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
 		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });
