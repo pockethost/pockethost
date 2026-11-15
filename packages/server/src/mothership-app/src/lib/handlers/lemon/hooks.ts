@@ -37,3 +37,11 @@ routerAdd(
   },
   $apis.requireSuperuserAuth()
 )
+
+routerAdd('GET', '/api/loyalty/resume', (e) => {
+  return require(`${__hooks}/mothership`).HandleLoyaltyResumePage(e)
+})
+
+routerAdd('POST', '/api/loyalty/resume', (e) => {
+  return require(`${__hooks}/mothership`).HandleLoyaltyResume(e)
+})

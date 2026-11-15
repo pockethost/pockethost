@@ -206,3 +206,71 @@ export const loyaltyPurchaseEmail = (r: LoyaltyResult, sku: ProductSku, ref: str
   if (!LOYALTY_MONTHLY_SKUS.includes(sku) || r.basis === 'upfront' || r.renewals > 0 || !r.chainStart) return null
   return { template: LOYALTY_TEMPLATES.welcome, ref: `chain:${r.chainStart}:0`, vars: emailVars(r) }
 }
+
+export const LOYALTY_ENDING_TEMPLATES = {
+  cancel: { none: 'bonus_cancelled_none', earning: 'bonus_cancelled_earning', maxed: 'bonus_cancelled_maxed' },
+  expired: {
+    none: 'bonus_last_chance_none',
+    earning: 'bonus_last_chance_earning',
+    maxed: 'bonus_last_chance_maxed',
+  },
+} as const
+
+export type LoyaltyEndingEmail = {
+  template: string
+  ref: string
+  vars: LoyaltyEmailVars & { ends: string; deadline: string; resume_url: string; pricing_url: string }
+}
+
+/**
+ * The email when a subscription is cancelled (`cancel`, still paid until `endsAt`) or has expired (`expired`). Only
+ * when that subscription ending breaks the account's chain: cancelling one of two overlapping subscriptions sends
+ * nothing. Which version goes out depends on the bonus at stake: none (no bonus yet), earning (1 to 4) or maxed (5).
+ * `items` already reflect the cancel or expiry.
+ */
+export const loyaltyEndingEmail = (
+  kind: 'cancel' | 'expired',
+  items: BillingItem[],
+  subscriptionId: string,
+  endsAtIso: string | undefined,
+  now: Date,
+  paidInstances: number,
+  urls: { resume: string; pricing: string }
+): LoyaltyEndingEmail | null => {
+  if (!endsAtIso) return null
+  const endsAt = new Date(endsAtIso)
+  if (isNaN(endsAt.getTime())) return null
+  const ended = items.map((i) =>
+    i.kind === 'subscription' && i.external_id === subscriptionId ? { ...i, status: 'expired', ends_at: endsAtIso } : i
+  )
+  // Still covered the day after this subscription ends? Then the chain survives and there's nothing to say.
+  if (loyaltyChainStart(ended, new Date(endsAt.getTime() + DAY))) return null
+  // The bonus at stake: as it stands now (cancel), or just before it ended (expired).
+  const at = kind === 'cancel' ? now : new Date(endsAt.getTime() - 60 * 1000)
+  const r = loyaltyBonus(kind === 'cancel' ? items : ended, at, paidInstances)
+  if (r.basis === 'excluded') return null
+  const level = r.bonus <= 0 ? 'none' : r.bonus >= LOYALTY_MAX_BONUS ? 'maxed' : 'earning'
+  return {
+    template: LOYALTY_ENDING_TEMPLATES[kind][level],
+    ref: `${kind}:${subscriptionId}:${endsAtIso}`,
+    vars: {
+      ...emailVars(r),
+      ends: formatShortDate(endsAt),
+      deadline: formatShortDate(new Date(endsAt.getTime() + LOYALTY_COMEBACK_DAYS * DAY)),
+      resume_url: urls.resume,
+      pricing_url: urls.pricing,
+    },
+  }
+}
+
+/** One-click resume link token: `<subscription id>.<hs256("resume:<id>", secret)>`. */
+export const resumeToken = (hs256: (data: string, key: string) => string, secret: string, subscriptionId: string) =>
+  `${subscriptionId}.${hs256(`resume:${subscriptionId}`, secret)}`
+
+/** The subscription id from a valid resume token, else undefined. */
+export const parseResumeToken = (hs256: (data: string, key: string) => string, secret: string, token: string) => {
+  const dot = `${token || ''}`.indexOf('.')
+  if (dot <= 0 || !secret) return undefined
+  const id = token.slice(0, dot)
+  return resumeToken(hs256, secret, id) === token ? id : undefined
+}

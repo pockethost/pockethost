@@ -204,6 +204,12 @@ routerAdd("POST", "/api/ls/reconcile", (e) => {
 routerAdd("POST", "/api/loyalty/backfill", (e) => {
 	return require(`${__hooks}/mothership`).HandleLoyaltyBackfill(e);
 }, $apis.requireSuperuserAuth());
+routerAdd("GET", "/api/loyalty/resume", (e) => {
+	return require(`${__hooks}/mothership`).HandleLoyaltyResumePage(e);
+});
+routerAdd("POST", "/api/loyalty/resume", (e) => {
+	return require(`${__hooks}/mothership`).HandleLoyaltyResume(e);
+});
 
 //#endregion
 //#region src/lib/handlers/mail/hooks.ts

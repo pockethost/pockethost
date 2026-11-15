@@ -1442,7 +1442,7 @@ const HandleBulkMailCampaignAction = (e) => {
 		throw new Error(`unknown action ${action}`);
 	});
 };
-const page = (title, html) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem;color:#222}button{font:inherit;padding:.5rem 1.25rem;border:0;border-radius:6px;background:#222;color:#fff;cursor:pointer}</style></head><body><h1>${escapeHtml(title)}</h1>${html}</body></html>`;
+const page$1 = (title, html) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem;color:#222}button{font:inherit;padding:.5rem 1.25rem;border:0;border-radius:6px;background:#222;color:#fff;cursor:pointer}</style></head><body><h1>${escapeHtml(title)}</h1>${html}</body></html>`;
 const notifyBen = (email) => {
 	try {
 		$app.newMailClient().send(new MailerMessage({
@@ -1458,9 +1458,9 @@ const notifyBen = (email) => {
 const HandleBulkMailUnsubscribePage = (e) => {
 	const token = e.request.url.query().get("t");
 	const parsed = parseToken(token);
-	if (!parsed) return e.html(400, page("Invalid link", `<p>This unsubscribe link isn't valid.</p>`));
-	if (isSuppressed(parsed.email)) return e.html(200, page("Unsubscribed", `<p>${escapeHtml(parsed.email)} won't receive these emails anymore.</p>`));
-	return e.html(200, page("Unsubscribe", `<p>Stop sending these emails to <b>${escapeHtml(parsed.email)}</b>?</p><form method="post"><input type="hidden" name="t" value="${escapeHtml(token)}"><button type="submit">Unsubscribe</button></form>`));
+	if (!parsed) return e.html(400, page$1("Invalid link", `<p>This unsubscribe link isn't valid.</p>`));
+	if (isSuppressed(parsed.email)) return e.html(200, page$1("Unsubscribed", `<p>${escapeHtml(parsed.email)} won't receive these emails anymore.</p>`));
+	return e.html(200, page$1("Unsubscribe", `<p>Stop sending these emails to <b>${escapeHtml(parsed.email)}</b>?</p><form method="post"><input type="hidden" name="t" value="${escapeHtml(token)}"><button type="submit">Unsubscribe</button></form>`));
 };
 /** The confirm form and RFC 8058 one-click POSTs from mail providers. */
 const HandleBulkMailUnsubscribe = (e) => {
@@ -1473,11 +1473,11 @@ const HandleBulkMailUnsubscribe = (e) => {
 		oneClick = `${form["List-Unsubscribe"] || ""}` === "One-Click";
 	} catch (_e) {}
 	const parsed = parseToken(token);
-	if (!parsed) return e.html(400, page("Invalid link", `<p>This unsubscribe link isn't valid.</p>`));
+	if (!parsed) return e.html(400, page$1("Invalid link", `<p>This unsubscribe link isn't valid.</p>`));
 	suppress(parsed.email, "unsubscribed", oneClick ? "one-click" : "link", parsed.campaignId);
 	log(`unsubscribed ${parsed.email} (${oneClick ? "one-click" : "link"})`);
 	notifyBen(parsed.email);
-	return e.html(200, page("Unsubscribed", `<p>${escapeHtml(parsed.email)} won't receive these emails anymore.</p>`));
+	return e.html(200, page$1("Unsubscribed", `<p>${escapeHtml(parsed.email)} won't receive these emails anymore.</p>`));
 };
 /** {"type":"bounce|complaint|unsubscribe","email":"…","campaign":"…"} with X-Bulkmail-Secret. */
 const HandleBulkMailWebhook = (e) => {
@@ -3563,6 +3563,59 @@ const loyaltyPurchaseEmail = (r, sku, ref) => {
 		vars: emailVars(r)
 	};
 };
+const LOYALTY_ENDING_TEMPLATES = {
+	cancel: {
+		none: "bonus_cancelled_none",
+		earning: "bonus_cancelled_earning",
+		maxed: "bonus_cancelled_maxed"
+	},
+	expired: {
+		none: "bonus_last_chance_none",
+		earning: "bonus_last_chance_earning",
+		maxed: "bonus_last_chance_maxed"
+	}
+};
+/**
+* The email when a subscription is cancelled (`cancel`, still paid until `endsAt`) or has expired (`expired`). Only
+* when that subscription ending breaks the account's chain: cancelling one of two overlapping subscriptions sends
+* nothing. Which version goes out depends on the bonus at stake: none (no bonus yet), earning (1 to 4) or maxed (5).
+* `items` already reflect the cancel or expiry.
+*/
+const loyaltyEndingEmail = (kind, items, subscriptionId, endsAtIso, now, paidInstances, urls) => {
+	if (!endsAtIso) return null;
+	const endsAt = new Date(endsAtIso);
+	if (isNaN(endsAt.getTime())) return null;
+	const ended = items.map((i) => i.kind === "subscription" && i.external_id === subscriptionId ? {
+		...i,
+		status: "expired",
+		ends_at: endsAtIso
+	} : i);
+	if (loyaltyChainStart(ended, new Date(endsAt.getTime() + DAY))) return null;
+	const at = kind === "cancel" ? now : /* @__PURE__ */ new Date(endsAt.getTime() - 60 * 1e3);
+	const r = loyaltyBonus(kind === "cancel" ? items : ended, at, paidInstances);
+	if (r.basis === "excluded") return null;
+	const level = r.bonus <= 0 ? "none" : r.bonus >= 5 ? "maxed" : "earning";
+	return {
+		template: LOYALTY_ENDING_TEMPLATES[kind][level],
+		ref: `${kind}:${subscriptionId}:${endsAtIso}`,
+		vars: {
+			...emailVars(r),
+			ends: formatShortDate(endsAt),
+			deadline: formatShortDate(new Date(endsAt.getTime() + 30 * DAY)),
+			resume_url: urls.resume,
+			pricing_url: urls.pricing
+		}
+	};
+};
+/** One-click resume link token: `<subscription id>.<hs256("resume:<id>", secret)>`. */
+const resumeToken = (hs256, secret, subscriptionId) => `${subscriptionId}.${hs256(`resume:${subscriptionId}`, secret)}`;
+/** The subscription id from a valid resume token, else undefined. */
+const parseResumeToken = (hs256, secret, token) => {
+	const dot = `${token || ""}`.indexOf(".");
+	if (dot <= 0 || !secret) return void 0;
+	const id = token.slice(0, dot);
+	return resumeToken(hs256, secret, id) === token ? id : void 0;
+};
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/lsApi.ts
@@ -4775,6 +4828,16 @@ const HandleLemonSqueezySale = (e) => {
 			if (sku) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, sku, `subscription:${first.id}`));
 		}
 		if (loyalty && context.event_name === `order_created` && order) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, order.sku, `order:${context.resource_id}`));
+		if (first && (context.event_name === `subscription_cancelled` || context.event_name === `subscription_expired`)) try {
+			const id = `${first.id}`;
+			const resume = `${$app.settings().meta.appURL || `https://mothership.pockethost.io`}`.replace(/\/+$/, ``);
+			sendLoyaltyEmail(loyaltyEndingEmail(context.event_name === `subscription_cancelled` ? `cancel` : `expired`, loadBillingItems($app, userRec.id), id, firstAttrs.ends_at || void 0, /* @__PURE__ */ new Date(), userRec.getFloat(`subscription_quantity`), {
+				resume: `${resume}/api/loyalty/resume?t=${encodeURIComponent(resumeToken($security.hs256, `${process.env.LS_WEBHOOK_SECRET || ""}`, id))}`,
+				pricing: `https://pockethost.io/pricing`
+			}));
+		} catch (err) {
+			log(`loyalty ending email failed`, `${err}`);
+		}
 		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
 		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });
@@ -4838,6 +4901,62 @@ const HandleLoyaltyBackfill = (e) => {
 		errors
 	});
 	return e.json(200, report);
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLoyaltyResume.ts
+/**
+* One-click resume from the "sorry to see you go" email: `GET /api/loyalty/resume?t=<token>` shows a confirm button (a
+* GET never changes anything, because link scanners open every URL in a message); the button POSTs back and the
+* cancelled Lemon Squeezy subscription is resumed (`cancelled: false`), keeping its chain and bonus instances.
+*/
+const page = (title, body) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;line-height:1.5}button{font-size:1rem;padding:.6rem 1.2rem;border-radius:.4rem;border:0;background:#2563eb;color:#fff;cursor:pointer}</style></head><body><h1>${title}</h1>${body}</body></html>`;
+const secret = () => `${process.env.LS_WEBHOOK_SECRET || ""}`;
+const ACCOUNT = `<p><a href="https://pockethost.io/account">Go to your account</a></p>`;
+const HandleLoyaltyResumePage = (e) => {
+	const token = e.request.url.query().get("t");
+	if (!parseResumeToken($security.hs256, secret(), token)) return e.html(400, page(`Invalid link`, `<p>This resume link isn't valid.</p>${ACCOUNT}`));
+	return e.html(200, page(`Resume your subscription`, `<p>Pick up right where you left off. You keep every bonus instance and keep earning.</p><form method="post"><input type="hidden" name="t" value="${token.replace(/"/g, "&quot;")}"><button type="submit">Resume my subscription</button></form>`));
+};
+const HandleLoyaltyResume = (e) => {
+	const log = mkLog(`loyalty-resume`);
+	const audit = mkAudit(log, $app);
+	let token = e.request.url.query().get("t");
+	try {
+		const form = e.requestInfo().body || {};
+		if (form["t"]) token = `${form["t"]}`;
+	} catch (_e) {}
+	const subscriptionId = parseResumeToken($security.hs256, secret(), token);
+	if (!subscriptionId) return e.html(400, page(`Invalid link`, `<p>This resume link isn't valid.</p>${ACCOUNT}`));
+	const rec = findBillingItemRecord($app, {
+		provider: `lemonsqueezy`,
+		kind: `subscription`,
+		external_id: subscriptionId
+	});
+	if (!rec) return e.html(404, page(`Not found`, `<p>We couldn't find that subscription.</p>${ACCOUNT}`));
+	if (rec.getString(`status`) !== `cancelled`) {
+		const ended = [`expired`, `unpaid`].includes(rec.getString(`status`));
+		return e.html(200, page(ended ? `This subscription has ended` : `You're all set`, ended ? `<p>It can't be resumed anymore, but you can <a href="https://pockethost.io/pricing">subscribe again</a>.</p>` : `<p>Your subscription is already active.</p>${ACCOUNT}`));
+	}
+	try {
+		const sub = lsRequest(`PATCH`, `/subscriptions/${encodeURIComponent(subscriptionId)}`, { data: {
+			type: `subscriptions`,
+			id: subscriptionId,
+			attributes: { cancelled: false }
+		} })?.data;
+		const userId = rec.getString(`user`);
+		if (sub) upsertLsSubscription($app, userId, sub);
+		reconcileUser($app, $app.findRecordById(`users`, userId));
+		syncLoyalty($app, userId);
+		audit(`LS`, `Resumed subscription ${subscriptionId} from the loyalty email.`, {
+			user: userId,
+			subscriptionId
+		});
+		return e.html(200, page(`Welcome back!`, `<p>Your subscription is active again, and your bonus instances stay with you.</p>${ACCOUNT}`));
+	} catch (err) {
+		log(`resume failed`, `${err}`);
+		return e.html(500, page(`Something went wrong`, `<p>We couldn't resume it automatically. Just reply to the email and we'll sort it out.</p>`));
+	}
 };
 
 //#endregion
@@ -7776,6 +7895,8 @@ exports.HandleLemonSqueezyReconcile = HandleLemonSqueezyReconcile;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
 exports.HandleLoyaltyBackfill = HandleLoyaltyBackfill;
+exports.HandleLoyaltyResume = HandleLoyaltyResume;
+exports.HandleLoyaltyResumePage = HandleLoyaltyResumePage;
 exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;

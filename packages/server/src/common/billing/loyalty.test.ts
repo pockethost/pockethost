@@ -5,10 +5,13 @@ import {
   isPaidRenewalInvoice,
   loyaltyBonus,
   loyaltyChainStart,
+  loyaltyEndingEmail,
   loyaltyNote,
   loyaltyPurchaseEmail,
   loyaltyRenewalEmail,
   nextBonusAtRenewal,
+  parseResumeToken,
+  resumeToken,
   wholeMonthsBetween,
 } from './loyalty'
 
@@ -226,5 +229,52 @@ describe('isPaidRenewalInvoice', () => {
     expect(isPaidRenewalInvoice({ billing_reason: `initial`, status: `paid` })).toBe(false)
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `pending` })).toBe(false)
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `paid`, refunded: true })).toBe(false)
+  })
+})
+
+describe('ending emails', () => {
+  const urls = { resume: `https://r`, pricing: `https://p` }
+  const ends = `2026-12-14T12:00:00Z`
+  it('cancel before the first bonus: none version', () => {
+    const items = [monthly(`a`, `2026-11-14T10:00:00Z`, `cancelled`, ends)]
+    expect(loyaltyEndingEmail(`cancel`, items, `a`, ends, NOW, 1, urls)).toMatchObject({
+      template: `bonus_cancelled_none`,
+      vars: { ends: `Dec 14, 2026`, resume_url: `https://r` },
+    })
+  })
+  it('cancel while earning and maxed', () => {
+    const earning = [monthly(`a`, `2026-07-14T12:00:00Z`, `cancelled`, ends)]
+    expect(loyaltyEndingEmail(`cancel`, earning, `a`, ends, NOW, 1, urls)).toMatchObject({
+      template: `bonus_cancelled_earning`,
+      vars: { current: `2` },
+    })
+    const yearly = [annual(`y`, `2025-12-14T12:00:00Z`, `cancelled`, ends)]
+    expect(loyaltyEndingEmail(`cancel`, yearly, `y`, ends, NOW, 1, urls)?.template).toBe(`bonus_cancelled_maxed`)
+  })
+  it('cancelling one of two overlapping subscriptions: nothing', () => {
+    const items = [monthly(`a`, `2026-07-14T12:00:00Z`, `cancelled`, ends), monthly(`b`, `2026-09-01T00:00:00Z`)]
+    expect(loyaltyEndingEmail(`cancel`, items, `a`, ends, NOW, 2, urls)).toBeNull()
+  })
+  it('expired: last chance with the 30-day deadline and the bonus held', () => {
+    const end = `2026-11-10T12:00:00Z`
+    const items = [monthly(`a`, `2026-03-10T12:00:00Z`, `expired`, end)]
+    expect(loyaltyEndingEmail(`expired`, items, `a`, end, NOW, 0, urls)).toMatchObject({
+      template: `bonus_last_chance_earning`,
+      vars: { current: `3`, deadline: `Dec 10, 2026` },
+    })
+  })
+  it('excluded accounts: nothing', () => {
+    const items = [monthly(`a`, `2026-07-14T12:00:00Z`, `cancelled`, ends)]
+    expect(loyaltyEndingEmail(`cancel`, items, `a`, ends, NOW, 250, urls)).toBeNull()
+  })
+})
+
+describe('resume token', () => {
+  const hs = (d: string, k: string) => `h(${d}|${k})`
+  it('round-trips and rejects tampering', () => {
+    const t = resumeToken(hs, `s`, `123`)
+    expect(parseResumeToken(hs, `s`, t)).toBe(`123`)
+    expect(parseResumeToken(hs, `s`, t.replace(`123`, `124`))).toBeUndefined()
+    expect(parseResumeToken(hs, ``, t)).toBeUndefined()
   })
 })

@@ -11,9 +11,12 @@ import {
 } from '$common/billing/billingItems'
 import {
   isPaidRenewalInvoice,
+  loyaltyEndingEmail,
   loyaltyPurchaseEmail,
   loyaltyRenewalEmail,
+  resumeToken,
   type LoyaltyEmail,
+  type LoyaltyEndingEmail,
 } from '$common/billing/loyalty'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
@@ -21,6 +24,7 @@ import { mkNotifier } from '$util/mkNotifier'
 import {
   ensureUserBootstrapped,
   findBillingItemRecord,
+  loadBillingItems,
   reconcileUser,
   rememberLsEmails,
   upsertBillingItem,
@@ -237,7 +241,7 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     }
 
     // Loyalty emails, each sent once per `ref` (LS may resend, and several subscriptions may renew in one month).
-    const sendLoyaltyEmail = (email: LoyaltyEmail | null) => {
+    const sendLoyaltyEmail = (email: LoyaltyEmail | LoyaltyEndingEmail | null) => {
       if (!email) return
       try {
         const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, email.template)
@@ -263,6 +267,32 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     }
     if (loyalty && context.event_name === `order_created` && order) {
       sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, order.sku, `order:${context.resource_id}`))
+    }
+    // Cancel ("sorry to see you go", with a one-click resume link) and expiry ("last chance"), only when that
+    // subscription ending breaks the account's chain.
+    if (first && (context.event_name === `subscription_cancelled` || context.event_name === `subscription_expired`)) {
+      try {
+        const id = `${first.id}`
+        const resume = `${$app.settings().meta.appURL || `https://mothership.pockethost.io`}`.replace(/\/+$/, ``)
+        sendLoyaltyEmail(
+          loyaltyEndingEmail(
+            context.event_name === `subscription_cancelled` ? `cancel` : `expired`,
+            loadBillingItems($app, userRec.id),
+            id,
+            firstAttrs.ends_at || undefined,
+            new Date(),
+            userRec.getFloat(`subscription_quantity`),
+            {
+              resume: `${resume}/api/loyalty/resume?t=${encodeURIComponent(
+                resumeToken($security.hs256, `${process.env.LS_WEBHOOK_SECRET || ''}`, id)
+              )}`,
+              pricing: `https://pockethost.io/pricing`,
+            }
+          )
+        )
+      } catch (err) {
+        log(`loyalty ending email failed`, `${err}`)
+      }
     }
 
     const bonusMsg =

@@ -41,9 +41,9 @@ There are no age restrictions for using our services. However, by using PocketHo
 
 - **What They Are**: Paid accounts may receive bonus instances on top of the instances they pay for, up to **5** per account. Bonus instances work like paid instances, but they do not add disk storage.
 - **Lifetime and Annual Plans**: Receive 5 bonus instances. Annual plans keep them while the subscription is active.
-- **Monthly Plans**: Earn 1 bonus instance at the 1st paid renewal, then 1 more every 3 paid renewals (renewals 1, 4, 7, 10 and 13). Switching from monthly to annual brings the account to 5.
+- **Monthly Plans**: Earn 1 bonus instance after 1 month of continuous paid subscription, then 1 more every 3 months (months 1, 4, 7, 10 and 13). Months count from the start of your continuous paid subscription, even if you switch plans or subscriptions, as long as a new subscription starts before the previous one ends. Additional subscriptions running at the same time do not earn extra bonus instances. Switching from monthly to annual brings the account to 5.
 - **Paid Instance Required**: Bonus instances count only while the account has at least one paid instance.
-- **Cancellation and Expiry**: After you cancel, bonus instances remain until the paid period ends. When a subscription ends, its bonus instances end with it, and a new monthly subscription starts earning from 0.
+- **Cancellation and Expiry**: After you cancel, bonus instances remain until the paid period ends. When your paid subscription ends, your bonus instances end with it. If you subscribe again within 30 days, your bonus instances return and earning continues where it left off (the days in between do not count). After 30 days, a new subscription starts earning from 0.
 - **Larger Plans**: Accounts with more than 5 paid instances, including Founder, Flounder and other legacy plans, do not receive loyalty bonus instances.
 - **Changes**: Bonus instances are a free addition to your plan, not something you purchase. We may change or end the loyalty program. If it ends, your account keeps the instances you pay for.
 
