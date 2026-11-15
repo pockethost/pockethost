@@ -82,7 +82,7 @@
           class={feature.startsWith('-') ? 'pricing-plan-feature-icon--no' : 'pricing-plan-feature-icon--ok'}
         ></wa-icon>
         <span class={feature.startsWith('-') ? 'pricing-plan-feature--struck' : ''}>
-          {feature.replace('-', '')}
+          {feature.replace(/^-/, '')}
         </span>
       </li>
     {/each}

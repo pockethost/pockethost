@@ -19,7 +19,7 @@
     'Unmetered bandwidth and CPU (fair use)',
     'Deploy from CI or the CLI, plus SFTP file access',
   ]
-  const sharedFeatures = [trialFeature, ...slotFeatures]
+  const monthlyFeatures = [trialFeature, ...slotFeatures]
 </script>
 
 <div class="pricing-page-header">
@@ -34,7 +34,7 @@
     price="$9.99"
     priceDetail="per instance, per month"
     cta="Each instance includes 10 GB disk storage. Need more? Add another instance."
-    features={sharedFeatures}
+    features={monthlyFeatures}
   />
   <SignupBox
     pvId={INSTANCE_ANNUAL_PV_ID}
@@ -45,8 +45,12 @@
     title="Annual"
     price="$59.99"
     priceDetail="per instance, per year"
-    cta="Same as monthly. Billed once per year."
-    features={[trialFeature, `Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo when paid annually`, ...slotFeatures]}
+    cta="Everything in Monthly, billed once a year, plus:"
+    features={[
+      '5 bonus instances from day one: 6 instances for the price of 1',
+      `Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo per instance`,
+      'One payment a year, no monthly charges',
+    ]}
   />
   <SignupBox
     pvId={INSTANCE_LIFETIME_PV_ID}
@@ -54,8 +58,12 @@
     price="$149.99"
     priceDetail="once per instance"
     title="Lifetime"
-    cta="Pay once per instance for lifetime hosting. No recurring fees."
-    features={[trialFeature, 'Lifetime hosting for each instance purchased', 'No recurring fees', ...slotFeatures]}
+    cta="Everything in Monthly, paid once, plus:"
+    features={[
+      '5 bonus instances from day one: 6 instances for the price of 1',
+      'Lifetime hosting for each instance you buy',
+      'No renewals and no recurring fees',
+    ]}
   />
 </div>
 
