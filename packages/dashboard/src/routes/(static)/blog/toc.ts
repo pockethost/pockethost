@@ -8,6 +8,14 @@ export type BlogTocEntry = {
 
 export const toc: BlogTocEntry[] = [
   {
+    title: 'Loyalty Bonus Instances for Paid Accounts',
+    path: '/blog/loyalty-bonus-instances',
+    description:
+      'Paid accounts now get up to 5 bonus instances on top of the ones they pay for. Annual and lifetime plans get all 5 right away, and monthly plans earn them by renewing.',
+    date: 'Nov 14, 2026',
+    author: 'capn',
+  },
+  {
     title: 'Announcing PocketOne, a Community Fork of PocketBase',
     path: '/blog/pocketone',
     description:
