@@ -1,6 +1,7 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
   import {
+    allowanceParts,
     DISK_STORAGE_GB_PER_PAID_INSTANCE,
     diskStorageLimit,
     PLAN_NAMES,
@@ -10,13 +11,30 @@
   import Avatar from '$src/routes/Navbar/Avatar.svelte'
   import { userStore, userSubscriptionType } from '$util/stores'
   import StorageMeter from './StorageMeter.svelte'
+  import { client } from '$src/pocketbase-client'
+  import { onMount } from 'svelte'
+
+  type BonusGrant = { id: string; amount: number; source: 'manual' | 'loyalty'; note: string; created: string }
+  let bonusGrants: BonusGrant[] = []
+  onMount(async () => {
+    try {
+      bonusGrants = await client().client.collection('bonus_grants').getFullList<BonusGrant>({ sort: '-created' })
+    } catch {
+      bonusGrants = [] // collection not deployed yet, or no access
+    }
+  })
 
   $: canCancelMembership =
     $userSubscriptionType === SubscriptionType.Premium &&
     $userStore?.subscription_interval === SubscriptionInterval.Month
 
-  $: instanceCount = $userStore?.subscription_quantity ?? 0
-  $: paidInstances = $userSubscriptionType === SubscriptionType.Premium ? instanceCount : 0
+  $: allowance = allowanceParts($userStore ?? {})
+  $: instanceCount = allowance.total
+  $: paidInstances = $userSubscriptionType === SubscriptionType.Premium ? allowance.paid : 0
+  $: bonusTooltip = bonusGrants
+    .filter((g) => g.amount !== 0)
+    .map((g) => `${g.amount > 0 ? '+' : ''}${g.amount}${g.note ? `: ${g.note}` : ''}`)
+    .join('\n')
   $: diskLimit = diskStorageLimit($userSubscriptionType, paidInstances)
   // Everything on PocketHost's servers counts toward one pooled number.
   $: diskUsedBytes = ($userStore?.volume_storage_used ?? 0) + ($userStore?.object_storage_used ?? 0)
@@ -68,6 +86,18 @@
               <dd>
                 <span class="account-stat-value">{instanceCount}</span>
                 <span class="account-stat-muted"> allowed</span>
+                {#if allowance.bonus > 0}
+                  <span class="account-stat-muted">({allowance.paid} paid + {allowance.bonus} bonus)</span>
+                  <wa-badge id="bonus-instances-badge" variant="success" pill title={bonusTooltip}>
+                    <wa-icon name="gift"></wa-icon>
+                    +{allowance.bonus} bonus
+                  </wa-badge>
+                  {#if bonusTooltip}
+                    <wa-tooltip for="bonus-instances-badge">
+                      <span class="bonus-tooltip">{bonusTooltip}</span>
+                    </wa-tooltip>
+                  {/if}
+                {/if}
                 <span class="account-stat-sep">·</span>
                 <a href="/support" class="account-stat-link">Request more</a>
               </dd>
@@ -108,3 +138,9 @@
     </div>
   </div>
 </FeatureTab>
+
+<style>
+  .bonus-tooltip {
+    white-space: pre-line;
+  }
+</style>

@@ -1,9 +1,10 @@
 <script lang="ts">
   import { globalInstancesStore, userSubscriptionType, versions, userStore } from '$util/stores'
+  import { instanceAllowance } from '@pockethost/server/common'
   import Creator from './Creator.svelte'
   import Paywall from './Paywall.svelte'
 
-  $: maxInstances = $userStore?.subscription_quantity || 0
+  $: maxInstances = instanceAllowance($userStore ?? {}) // paid + bonus
   let instanceCount = 0
   let canCreate = false
   $: {

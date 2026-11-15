@@ -1,4 +1,5 @@
 import type { LsOrderResource, LsSubscriptionResource } from '$common/billing/billingItems'
+import { isPaidRenewalInvoice, type LsInvoiceAttributes } from '$common/billing/loyalty'
 
 /** Overridable for local testing against a mock; production uses the real API. */
 const LS_API = process.env.LS_API_BASE || `https://api.lemonsqueezy.com/v1`
@@ -60,3 +61,9 @@ export const lsSubscription = (subscriptionId: string | number): LsSubscriptionR
 /** Cancel at period end. Returns the updated subscription resource. */
 export const lsCancelSubscription = (subscriptionId: string | number): LsSubscriptionResource =>
   lsRequest(`DELETE`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data
+
+/** Paid (not refunded) renewal invoices on one subscription. */
+export const lsPaidRenewalCount = (subscriptionId: string | number): number =>
+  lsListAll<{ attributes?: LsInvoiceAttributes }>(
+    `/subscription-invoices?filter[subscription_id]=${encodeURIComponent(`${subscriptionId}`)}`
+  ).filter((inv) => isPaidRenewalInvoice(inv.attributes)).length

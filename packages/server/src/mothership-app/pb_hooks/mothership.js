@@ -1419,35 +1419,57 @@ const findOwnedInstance = (caller, id) => {
 //#endregion
 //#region ../common/instanceLimits.ts
 /**
-* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`), and all
-* of them may run. Archived instances don't count. Shared by the mothership (create / power-on checks, bundled into the
-* JSVM, so no Node imports here) and the edge over-limit sweep.
+* Instance limits. An account may own as many instances as its plan includes (`users.subscription_quantity`) plus its
+* bonus instances (`users.bonus_instances`), and all of them may run. Bonus instances count only while the account has
+* at least one paid instance. Archived instances don't count. Shared by the mothership (create / power-on checks,
+* bundled into the JSVM, so no Node imports here) and the edge over-limit sweep.
 */
 /** Archived instances carry this prefix in `instances.suspension`. */
 const ARCHIVED_SUSPENSION_PREFIX = `Archived:`;
 const isArchivedSuspension = (suspension) => !!suspension && suspension.startsWith(ARCHIVED_SUSPENSION_PREFIX);
-const instanceAllowance = (user) => Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
+/** Paid and bonus instances. Bonus counts only while the account has at least one paid instance. */
+const allowanceParts = (user) => {
+	const paid = Math.max(0, Math.floor(user.subscription_quantity ?? 0));
+	const bonus = paid > 0 ? Math.max(0, Math.floor(user.bonus_instances ?? 0)) : 0;
+	return {
+		paid,
+		bonus,
+		total: paid + bonus
+	};
+};
+/** "3 instances" or "3 instances (2 paid + 1 bonus)". */
+const allowanceLabel = (parts) => parts.bonus > 0 ? `${plural(parts.total)} (${parts.paid} paid + ${parts.bonus} bonus)` : plural(parts.total);
 /** Instances that count toward the limit: everything except archived ones. */
 const countedInstances = (owned) => owned.filter((i) => !isArchivedSuspension(i.suspension));
 /** Counted instances that are powered on. */
 const poweredOnInstances = (owned) => countedInstances(owned).filter((i) => i.power);
-const plural = (n) => `${n} instance${n === 1 ? `` : `s`}`;
 /** Error message when the account can't create another instance, or null when it can. */
 const createLimitError = (owned, allowance) => {
+	const parts = typeof allowance === "number" ? {
+		paid: allowance,
+		bonus: 0,
+		total: allowance
+	} : allowance;
 	const count = countedInstances(owned).length;
-	if (count < allowance) return null;
-	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
-	return `Your plan includes ${plural(allowance)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
+	if (count < parts.total) return null;
+	if (parts.total === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to create one.`;
+	return `Your plan includes ${allowanceLabel(parts)} and you have ${count}. Delete or archive one, or add instances to your plan.`;
 };
 /**
 * Error message when `instanceId` can't be powered on, or null when it can. Only the other powered-on instances are
 * counted, so re-saving an instance that is already on never fails.
 */
 const powerOnLimitError = (instanceId, owned, allowance) => {
+	const parts = typeof allowance === "number" ? {
+		paid: allowance,
+		bonus: 0,
+		total: allowance
+	} : allowance;
 	const othersOn = poweredOnInstances(owned).filter((i) => i.id !== instanceId).length;
-	if (othersOn < allowance) return null;
-	if (allowance === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
-	return `Your plan includes ${plural(allowance)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
+	if (othersOn < parts.total) return null;
+	if (parts.total === 0) return `Your account doesn't include any instances yet. Add an instance to your plan to run one.`;
+	return `Your plan includes ${allowanceLabel(parts)} and ${othersOn} ${othersOn === 1 ? `is` : `are`} already running. Power one off, or add instances to your plan.`;
 };
 
 //#endregion
@@ -1459,7 +1481,14 @@ const ownedInstances = (uid) => $app.findRecordsByFilter("instances", "uid = {:u
 	suspension: r.getString("suspension"),
 	updated: r.getString("updated")
 }));
-const allowanceOf = (uid) => instanceAllowance({ subscription_quantity: $app.findRecordById("users", uid).getInt("subscription_quantity") });
+/** Paid + bonus instances (bonus only counts while at least one is paid). */
+const allowanceOf = (uid) => {
+	const user = $app.findRecordById("users", uid);
+	return allowanceParts({
+		subscription_quantity: user.getInt("subscription_quantity"),
+		bonus_instances: user.getInt("bonus_instances")
+	});
+};
 /** 402 Payment Required: the plan doesn't include another instance. */
 const limitError = (message) => new ApiError(402, message, {});
 /** Throws 402 when the user already owns every instance their plan includes (archived ones don't count). */
@@ -2325,6 +2354,63 @@ const isRecurringLsOrder = (order) => {
 };
 
 //#endregion
+//#region ../common/billing/loyalty.ts
+/**
+* Loyalty bonus instances (pockethost-support plans/loyalty-bonus-instances-plan.md, decided with Ben 2026-11-11).
+*
+* - Lifetime (`hosting.slot.lifetime`) and annual plans: 5 bonus instances while the purchase is active.
+* - Monthly plans: +1 at the 1st paid renewal, then +1 every 3rd (1, 2, 3, 4, 5 at renewals 1, 4, 7, 10, 13).
+* - Cancelling stops new renewals (so no more earning) but the subscription stays active until its paid period ends, and
+*   so does the bonus. Resuming keeps counting on the same subscription.
+* - When a subscription expires its renewals stop counting; with nothing active left the bonus is 0 and a new
+*   subscription starts from 0.
+*
+* The bonus is a pure function of the account's billing items and each subscription's paid renewal count, so it can be
+* recomputed after any webhook (or in a backfill) without counting events. JSVM-safe: plain data + sync functions.
+*/
+const LOYALTY_MAX_BONUS = 5;
+/** Plans that get the full bonus up front, while active. Legacy Flounder lifetime already has 250 instances. */
+const LOYALTY_UPFRONT_SKUS = ["hosting.slot.lifetime", "hosting.slot.recurring.year"];
+/** Monthly per-instance plans that earn by paid renewals. */
+const LOYALTY_MONTHLY_SKUS = ["hosting.slot.recurring.month", "hosting.slot.recurring.month.legacy"];
+/** Bonus earned by `renewals` paid monthly renewals: 0, then 1 at the 1st, +1 every 3rd after, capped at 5. */
+const bonusForRenewals = (renewals) => {
+	const n = Math.floor(renewals);
+	if (!(n >= 1)) return 0;
+	return Math.min(5, 1 + Math.floor((n - 1) / 3));
+};
+const isLs = (i) => i.provider === "lemonsqueezy" && i.quantity > 0;
+/** Active LS monthly subscriptions on the account (the ones whose paid renewals count). */
+const activeMonthlySubscriptionIds = (items, now) => items.filter((i) => isLs(i) && i.kind === "subscription" && LOYALTY_MONTHLY_SKUS.includes(i.sku)).filter((i) => isBillingItemActive(i, now)).map((i) => i.external_id);
+/** True when an active lifetime or annual purchase gives the full bonus (no renewal counts needed). */
+const hasUpfrontLoyalty = (items, now) => items.some((i) => isLs(i) && LOYALTY_UPFRONT_SKUS.includes(i.sku) && isBillingItemActive(i, now));
+/**
+* The account's loyalty bonus. `renewalsBySubscription` maps an LS subscription id to its paid renewal count; missing
+* ids count as 0.
+*/
+const loyaltyBonus = (items, renewalsBySubscription, now) => {
+	const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now);
+	const renewals = monthlySubscriptionIds.reduce((sum, id) => sum + Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0)), 0);
+	if (hasUpfrontLoyalty(items, now)) return {
+		bonus: 5,
+		basis: "upfront",
+		renewals,
+		monthlySubscriptionIds
+	};
+	const bonus = bonusForRenewals(renewals);
+	return {
+		bonus,
+		basis: bonus > 0 ? "renewals" : "none",
+		renewals,
+		monthlySubscriptionIds
+	};
+};
+/** The grant note customers see in the dashboard tooltip. */
+const loyaltyNote = (r) => r.basis === "upfront" ? `Loyalty bonus: ${5} instances with your annual or lifetime plan` : `Loyalty bonus: ${r.renewals} monthly renewal${r.renewals === 1 ? `` : `s`}`;
+/** A paid (not refunded) renewal invoice. Initial and plan-change invoices don't count. */
+const isPaidRenewalInvoice = (a) => !!a && a.billing_reason === "renewal" && a.status === "paid" && !a.refunded;
+
+//#endregion
 //#region src/lib/handlers/lemon/lib/lsApi.ts
 /** Overridable for local testing against a mock; production uses the real API. */
 const LS_API = process.env.LS_API_BASE || `https://api.lemonsqueezy.com/v1`;
@@ -2367,6 +2453,8 @@ const lsSubscriptionsByOrderId = (orderId) => lsListAll(`/subscriptions?filter[o
 const lsSubscription = (subscriptionId) => lsRequest(`GET`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
 /** Cancel at period end. Returns the updated subscription resource. */
 const lsCancelSubscription = (subscriptionId) => lsRequest(`DELETE`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
+/** Paid (not refunded) renewal invoices on one subscription. */
+const lsPaidRenewalCount = (subscriptionId) => lsListAll(`/subscription-invoices?filter[subscription_id]=${encodeURIComponent(`${subscriptionId}`)}`).filter((inv) => isPaidRenewalInvoice(inv.attributes)).length;
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/billingStore.ts
@@ -3306,6 +3394,65 @@ const mkNotifier = (log, app) => (channel, template, user_id, context = {}) => {
 };
 
 //#endregion
+//#region src/lib/handlers/lemon/lib/loyaltyStore.ts
+const GRANTS = `bonus_grants`;
+/** The account's one `loyalty` grant row, if any. */
+const findLoyaltyGrant = (app, userId) => {
+	try {
+		return app.findFirstRecordByFilter(GRANTS, `user = {:user} && source = 'loyalty'`, { user: userId });
+	} catch {
+		return;
+	}
+};
+/**
+* Recompute the account's loyalty bonus from its billing items and each active monthly subscription's paid renewal
+* count (read from Lemon Squeezy), and keep its single `loyalty` grant row in line: amount = bonus, removed at 0. The
+* `bonus_grants` hooks then recompute `users.bonus_instances`. Manual grants are never touched.
+*
+* `fetchRenewals` is injectable for the backfill's pacing (and tests); it defaults to the LS API.
+*/
+const syncLoyalty = (app, userId, options = {}) => {
+	const apply = options.apply ?? true;
+	const now = options.now ?? /* @__PURE__ */ new Date();
+	const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount;
+	const items = loadBillingItems(app, userId);
+	const renewals = {};
+	if (!hasUpfrontLoyalty(items, now)) for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id);
+	const result = loyaltyBonus(items, renewals, now);
+	const grant = findLoyaltyGrant(app, userId);
+	const before = grant ? grant.getInt(`amount`) : 0;
+	const note = loyaltyNote(result);
+	const changed = result.bonus !== before || result.bonus > 0 && grant?.getString(`note`) !== note;
+	if (apply && changed) if (result.bonus === 0) {
+		if (grant) app.delete(grant);
+	} else {
+		const rec = grant || new Record(app.findCollectionByNameOrId(GRANTS));
+		rec.set(`user`, userId);
+		rec.set(`source`, `loyalty`);
+		rec.set(`amount`, result.bonus);
+		rec.set(`note`, note);
+		app.save(rec);
+	}
+	return {
+		...result,
+		before,
+		changed
+	};
+};
+/**
+* Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
+* plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
+*/
+const loyaltyCandidateUserIds = (app) => {
+	const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `);
+	const rows = arrayOf(new DynamicModel({ user: "" }));
+	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
+       UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
+       ORDER BY user`).all(rows);
+	return rows.map((r) => `${r.user}`).filter(Boolean);
+};
+
+//#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezySale.ts
 /** Events that post to the lemon_cancel_discord channel. */
 const CANCEL_EVENTS = [
@@ -3439,10 +3586,19 @@ const HandleLemonSqueezySale = (e) => {
 		const { before, after } = reconcileUser($app, userRec);
 		context.slots_before = before;
 		context.slots_after = after;
+		try {
+			const loyalty = syncLoyalty($app, userRec.id);
+			context.bonus_before = loyalty.before;
+			context.bonus_after = loyalty.bonus;
+		} catch (err) {
+			context.bonus_error = `${err}`;
+			log(`loyalty sync failed`, `${err}`);
+		}
 		const notify = mkNotifier(log, $app);
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
 		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
-		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.`, context);
+		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
+		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });
 	} catch (err) {
 		audit(`LS_ERR`, `${err}`, context);
@@ -3451,6 +3607,69 @@ const HandleLemonSqueezySale = (e) => {
 			error: `${err}`
 		});
 	}
+};
+
+//#endregion
+//#region src/lib/handlers/lemon/api/HandleLoyaltyBackfill.ts
+/**
+* Superuser: `POST /api/loyalty/backfill` - recompute loyalty bonuses for existing customers. Dry run by default.
+*
+* - `apply=1` writes the `loyalty` grant rows.
+* - `user=<id>` one user.
+* - `offset`, `limit` (default 0, 40): one page of candidates, so a run stays well inside request timeouts and Lemon
+*   Squeezy's rate limit (each monthly subscription costs one invoices call, paced 250 ms apart). Call again with
+*   `next` until it is null.
+*/
+const HandleLoyaltyBackfill = (e) => {
+	const q = e.request.url.query();
+	const apply = q.get(`apply`) === `1`;
+	const onlyUser = q.get(`user`);
+	const offset = Math.max(0, Number(q.get(`offset`) || 0) || 0);
+	const limit = Math.min(200, Math.max(1, Number(q.get(`limit`) || 40) || 40));
+	const all = onlyUser ? [onlyUser] : loyaltyCandidateUserIds($app);
+	const page = all.slice(offset, offset + limit);
+	let lsCalls = 0;
+	const fetchRenewals = (subscriptionId) => {
+		if (lsCalls++ > 0) sleep(250);
+		return lsPaidRenewalCount(subscriptionId);
+	};
+	const changes = [];
+	const errors = [];
+	let unchanged = 0;
+	for (const user of page) try {
+		const r = syncLoyalty($app, user, {
+			apply,
+			fetchRenewals
+		});
+		if (r.changed) changes.push({
+			user,
+			before: r.before,
+			after: r.bonus,
+			basis: r.basis,
+			renewals: r.renewals
+		});
+		else unchanged++;
+	} catch (err) {
+		errors.push({
+			user,
+			error: `${err}`
+		});
+	}
+	const next = offset + page.length < all.length ? offset + page.length : null;
+	const report = {
+		mode: apply ? `apply` : `dry-run`,
+		total: all.length,
+		offset,
+		next,
+		unchanged,
+		changes,
+		errors
+	};
+	if (apply && (changes.length || errors.length)) mkAudit(mkLog(`loyalty-backfill`), $app)(`LS`, `Loyalty backfill (offset ${offset}): ${changes.length} changed, ${errors.length} errors.`, {
+		changes,
+		errors
+	});
+	return e.json(200, report);
 };
 
 //#endregion
@@ -6151,6 +6370,43 @@ const HandleUserTokenRequest = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/user/model/bonusInstances.ts
+const log$1 = mkLog(`bonus-instances`);
+/** Recomputes `users.bonus_instances` from the user's `bonus_grants` (sum, floored at 0). */
+const recomputeBonusInstances = (uid) => {
+	if (!uid) return;
+	const row = new DynamicModel({ total: 0 });
+	$app.db().newQuery(`SELECT COALESCE(SUM(amount), 0) AS total FROM bonus_grants WHERE user = {:uid}`).bind({ uid }).one(row);
+	const total = Math.max(0, Math.floor(Number(row.total) || 0));
+	let user;
+	try {
+		user = $app.findRecordById("users", uid);
+	} catch {
+		return;
+	}
+	if (user.getInt("bonus_instances") === total) return;
+	user.set("bonus_instances", total);
+	$app.save(user);
+	log$1(`${uid}: bonus_instances = ${total}`);
+};
+/** After a grant is created, updated or deleted: recompute its user (and the previous user if it moved). */
+const AfterChange_bonusGrant = (e) => {
+	const uid = e.record?.getString("user") ?? "";
+	recomputeBonusInstances(uid);
+	const before = e.record?.original()?.getString("user") ?? "";
+	if (before && before !== uid) recomputeBonusInstances(before);
+};
+/**
+* Only superusers (and the grants hook) change bonus_instances. Production's users collection has no update rule, so
+* customers can't update their record at all; this guard keeps it that way even if that rule ever opens up.
+*/
+const BeforeUpdateRequest_guardBonusInstances = (e) => {
+	if (e.hasSuperuserAuth() || !e.record) return;
+	const stored = $app.findRecordById("users", e.record.id).getInt("bonus_instances");
+	if (e.record.getInt("bonus_instances") !== stored) e.record.set("bonus_instances", stored);
+};
+
+//#endregion
 //#region ../common/trustedIps.ts
 /** Max trusted IP entries per active account. */
 const TRUSTED_IPS_MAX = 5;
@@ -6304,11 +6560,13 @@ const HandleVersionsRequest = (e) => {
 };
 
 //#endregion
+exports.AfterChange_bonusGrant = AfterChange_bonusGrant;
 exports.AfterCreate_notify_discord = AfterCreate_notify_discord;
 exports.BeforeCreate_autoVacuum = BeforeCreate_autoVacuum;
 exports.BeforeCreate_ssh_keys = BeforeCreate_ssh_keys;
 exports.BeforeCreate_version = BeforeCreate_version;
 exports.BeforeUpdateRequest_edge = BeforeUpdateRequest_edge;
+exports.BeforeUpdateRequest_guardBonusInstances = BeforeUpdateRequest_guardBonusInstances;
 exports.BeforeUpdate_cname = BeforeUpdate_cname;
 exports.BeforeUpdate_ssh_keys = BeforeUpdate_ssh_keys;
 exports.BeforeUpdate_version = BeforeUpdate_version;
@@ -6329,6 +6587,7 @@ exports.HandleLemonSqueezyCheckout = HandleLemonSqueezyCheckout;
 exports.HandleLemonSqueezyReconcile = HandleLemonSqueezyReconcile;
 exports.HandleLemonSqueezySale = HandleLemonSqueezySale;
 exports.HandleLivePlatformRefresh = HandleLivePlatformRefresh;
+exports.HandleLoyaltyBackfill = HandleLoyaltyBackfill;
 exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
@@ -6374,6 +6633,7 @@ exports.normalizeInstanceStatus = normalizeInstanceStatus;
 exports.parseInstanceScope = parseInstanceScope;
 exports.readTrustedIpsFromRecord = readTrustedIpsFromRecord;
 exports.reasonToDelete = reasonToDelete;
+exports.recomputeBonusInstances = recomputeBonusInstances;
 exports.recountLivePlatformStats = recountLivePlatformStats;
 exports.refreshAndBroadcastLivePlatformStats = refreshAndBroadcastLivePlatformStats;
 exports.refreshAndBroadcastLiveViewStats = refreshAndBroadcastLiveViewStats;

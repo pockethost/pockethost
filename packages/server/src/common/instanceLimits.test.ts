@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   OVER_LIMIT_GRACE_MS,
+  allowanceLabel,
+  allowanceParts,
   createLimitError,
   instanceAllowance,
   pickExcessInstances,
@@ -25,6 +27,46 @@ describe('instanceAllowance', () => {
     expect(instanceAllowance({ subscription_quantity: 3 })).toBe(3)
     expect(instanceAllowance({ subscription_quantity: null })).toBe(0)
     expect(instanceAllowance({ subscription_quantity: -38 })).toBe(0)
+  })
+})
+
+describe('bonus instances', () => {
+  it('adds bonus to the paid allowance', () => {
+    expect(allowanceParts({ subscription_quantity: 2, bonus_instances: 3 })).toEqual({ paid: 2, bonus: 3, total: 5 })
+    expect(instanceAllowance({ subscription_quantity: 2, bonus_instances: 3 })).toBe(5)
+  })
+
+  it('counts bonus only while at least one instance is paid', () => {
+    expect(allowanceParts({ subscription_quantity: 0, bonus_instances: 4 })).toEqual({ paid: 0, bonus: 0, total: 0 })
+    expect(instanceAllowance({ subscription_quantity: null, bonus_instances: 4 })).toBe(0)
+  })
+
+  it('never goes below zero or uses fractions', () => {
+    expect(allowanceParts({ subscription_quantity: 1, bonus_instances: -5 })).toEqual({ paid: 1, bonus: 0, total: 1 })
+    expect(allowanceParts({ subscription_quantity: 1.9, bonus_instances: 1.9 })).toEqual({
+      paid: 1,
+      bonus: 1,
+      total: 2,
+    })
+  })
+
+  it('labels the split only when there is a bonus', () => {
+    expect(allowanceLabel({ paid: 2, bonus: 1, total: 3 })).toBe(`3 instances (2 paid + 1 bonus)`)
+    expect(allowanceLabel({ paid: 1, bonus: 0, total: 1 })).toBe(`1 instance`)
+  })
+
+  it('names the split in limit errors', () => {
+    const owned = [inst(`a`, true, `2026-11-01`), inst(`b`, true, `2026-11-01`), inst(`c`, false, `2026-11-01`)]
+    const parts = allowanceParts({ subscription_quantity: 2, bonus_instances: 1 })
+    expect(createLimitError(owned, parts)).toMatch(/includes 3 instances \(2 paid \+ 1 bonus\) and you have 3/)
+    expect(powerOnLimitError(`c`, owned, parts)).toBeNull()
+    expect(createLimitError(owned.slice(0, 2), parts)).toBeNull()
+  })
+
+  it('lets the over-limit sweep keep bonus instances running', () => {
+    const owned = [inst(`a`, true, `2026-11-01`), inst(`b`, true, `2026-11-02`), inst(`c`, true, `2026-11-03`)]
+    expect(planOverLimit({ subscription_quantity: 2, bonus_instances: 1 }, owned, NOW).kind).toBe(`ok`)
+    expect(planOverLimit({ subscription_quantity: 2, bonus_instances: 0 }, owned, NOW).kind).toBe(`start`)
   })
 })
 
