@@ -52,16 +52,16 @@ func TestLegacyVersionsFromCache(t *testing.T) {
 
 func TestLegacyContainer(t *testing.T) {
 	prep := LegacyContainer(DockerContainer(nil))
-	def := []string{"./pocketbase", "serve", "--http", "0.0.0.0:8090", "--hooksWatch=false", "--dev"}
+	def := []string{"./pocketbase", "serve", "--http", "0.0.0.0:8090", "--dev"} // the runtime's default (hooks watcher on)
 	for _, c := range []struct {
 		version   string
 		cmd       []string
 		dev       string
 		anyStatus bool
 	}{
-		{"pb:0.8.0", []string{"./pocketbase", "serve", "--http", "0.0.0.0:8090", "--dev"}, "false", true},
-		{"pb:0.20.1", []string{"./pocketbase", "serve", "--http", "0.0.0.0:8090", "--dev"}, "true", true},
-		{"pb:0.22.21", []string{"./pocketbase", "serve", "--http", "0.0.0.0:8090", "--dev"}, "true", true},
+		{"pb:0.8.0", def, "false", true},
+		{"pb:0.20.1", def, "true", true},
+		{"pb:0.22.21", def, "true", true},
 		{"pb:0.23.0", def, "true", false},
 		{"p1:0.0.2", def, "true", false},
 	} {
@@ -70,7 +70,7 @@ func TestLegacyContainer(t *testing.T) {
 			t.Fatal(err)
 		}
 		cmd := def
-		if spec.Cmd != nil {
+		if spec.Cmd != nil { // none set today; kept so a future change to the command is checked
 			cmd = spec.Cmd(def)
 		}
 		if !reflect.DeepEqual(cmd, c.cmd) || spec.Env["DEV"] != c.dev || spec.HealthAnyStatus != c.anyStatus {

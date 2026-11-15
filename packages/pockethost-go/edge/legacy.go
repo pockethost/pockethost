@@ -66,9 +66,9 @@ func (l legacyVersions) Releases(ctx context.Context) ([]docker.Release, error) 
 	return append(old, rs...), nil
 }
 
-// LegacyContainer starts pre-0.23 releases as the Node edge does: without --hooksWatch (older releases don't know the
-// flag), DEV only from 0.20.1, and ready on any HTTP answer (the oldest have no /api/health). Newer releases pass
-// through unchanged.
+// LegacyContainer starts pre-0.23 releases as the Node edge does: DEV only from 0.20.1, and ready on any HTTP answer
+// (the oldest have no /api/health). Newer releases pass through unchanged. (The command needs no change: the runtime
+// keeps PocketBase's hooks watcher on, with no --hooksWatch flag the oldest releases wouldn't know.)
 func LegacyContainer(next func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error) func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error {
 	return func(ctx context.Context, inst host.Instance, version string, spec *docker.Spec) error {
 		if err := next(ctx, inst, version, spec); err != nil {
@@ -80,15 +80,6 @@ func LegacyContainer(next func(ctx context.Context, inst host.Instance, version 
 		}
 		if !isLegacy(v) {
 			return nil
-		}
-		spec.Cmd = func(def []string) []string {
-			out := make([]string, 0, len(def))
-			for _, a := range def {
-				if a != "--hooksWatch=false" {
-					out = append(out, a)
-				}
-			}
-			return out
 		}
 		spec.HealthAnyStatus = true
 		if semver.MustParse(v).LessThan(semver.MustParse(legacyDevFrom)) {
