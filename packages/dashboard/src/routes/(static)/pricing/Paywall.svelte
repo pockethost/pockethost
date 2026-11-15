@@ -48,7 +48,7 @@
     cta="Everything in Monthly, billed once a year, plus:"
     features={[
       '5 bonus instances from day one: 6 instances for the price of 1',
-      `Effective $${(ANNUAL_PRICE / 12).toFixed(2)}/mo per instance`,
+      `About $${(ANNUAL_PRICE / 6 / 12).toFixed(2)}/mo per instance with all 6 running`,
       'One payment a year, no monthly charges',
     ]}
   />
