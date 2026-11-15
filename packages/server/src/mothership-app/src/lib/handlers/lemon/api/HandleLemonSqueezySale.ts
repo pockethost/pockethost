@@ -1,5 +1,6 @@
 import {
   billingItemFromLsOrder,
+  billingItemFromLsSubscription,
   isCompleteLsSubscription,
   isLsDisputeEvent,
   isRecurringLsOrder,
@@ -8,7 +9,12 @@ import {
   type LsOrderResource,
   type LsSubscriptionResource,
 } from '$common/billing/billingItems'
-import { isPaidRenewalInvoice, loyaltyRenewalEmailVars } from '$common/billing/loyalty'
+import {
+  isPaidRenewalInvoice,
+  loyaltyPurchaseEmail,
+  loyaltyRenewalEmail,
+  type LoyaltyEmail,
+} from '$common/billing/loyalty'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { mkNotifier } from '$util/mkNotifier'
@@ -50,10 +56,6 @@ type SaleContext = {
 /** Events that post to the lemon_cancel_discord template. */
 const CANCEL_EVENTS = [`subscription_cancelled`]
 /** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
-/** Email sent after each paid renewal with the account's loyalty bonus status. */
-const LOYALTY_RENEWAL_TEMPLATE = `loyalty_renewal`
-/** Email sent on a new loyalty-eligible purchase: how the bonus works and when the next one comes. */
-const LOYALTY_WELCOME_TEMPLATE = `loyalty_welcome`
 
 const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`]
 
@@ -234,49 +236,33 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
       notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context)
     }
 
-    // Loyalty status emails, each sent once per resource (LS may resend): after every paid renewal (per invoice), and
-    // on a new loyalty-eligible purchase (per subscription or lifetime order).
-    const sendLoyaltyEmail = (slug: string, ref: string, vars: Record<string, string> | null) => {
-      if (!vars) return
+    // Loyalty emails, each sent once per `ref` (LS may resend, and several subscriptions may renew in one month).
+    const sendLoyaltyEmail = (email: LoyaltyEmail | null) => {
+      if (!email) return
       try {
-        const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, slug)
+        const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, email.template)
         const sent = $app.findRecordsByFilter(
           `notifications`,
           `user = {:user} && message_template = {:tpl} && payload ~ {:ref}`,
           ``,
           1,
           0,
-          { user: userRec.id, tpl: tpl.id, ref: `"loyalty_ref":"${ref}"` }
+          { user: userRec.id, tpl: tpl.id, ref: `"loyalty_ref":"${email.ref}"` }
         )
-        if (!sent.length) notify(`email`, slug, userRec.id, { ...vars, loyalty_ref: ref })
+        if (!sent.length) notify(`email`, email.template, userRec.id, { ...email.vars, loyalty_ref: email.ref })
       } catch (err) {
-        log(`${slug} email failed`, `${err}`)
+        log(`${email.template} email failed`, `${err}`)
       }
     }
-    // Only renewals of the earning subscription count, so only they get the email.
-    if (
-      loyalty &&
-      context.event_name === `subscription_payment_success` &&
-      isPaidRenewalInvoice(attrs) &&
-      `${attrs.subscription_id}` === loyalty.countingSubscriptionId
-    ) {
-      sendLoyaltyEmail(
-        LOYALTY_RENEWAL_TEMPLATE,
-        `invoice:${context.resource_id}`,
-        loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at)
-      )
+    if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs)) {
+      sendLoyaltyEmail(loyaltyRenewalEmail(loyalty))
     }
-    const newLoyaltyPurchase =
-      (context.event_name === `subscription_created` &&
-        !!first &&
-        (loyalty?.basis === `upfront` || !!loyalty?.monthlySubscriptionIds.includes(`${first.id}`))) ||
-      (context.event_name === `order_created` && order?.sku === `hosting.slot.lifetime`)
-    if (loyalty && newLoyaltyPurchase) {
-      sendLoyaltyEmail(
-        LOYALTY_WELCOME_TEMPLATE,
-        first ? `subscription:${first.id}` : `order:${context.resource_id}`,
-        loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at, { allowZero: true })
-      )
+    if (loyalty && context.event_name === `subscription_created` && first) {
+      const sku = billingItemFromLsSubscription(first)?.sku
+      if (sku) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, sku, `subscription:${first.id}`))
+    }
+    if (loyalty && context.event_name === `order_created` && order) {
+      sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, order.sku, `order:${context.resource_id}`))
     }
 
     const bonusMsg =

@@ -3333,6 +3333,7 @@ const billingItemFromLsSubscription = (sub) => {
 		sku: entitlement.product_sku,
 		quantity: entitlement.subscription_quantity,
 		status: `${attrs.status || ""}`,
+		starts_at: attrs.created_at || void 0,
 		ends_at: attrs.ends_at || void 0,
 		renews_at: attrs.renews_at || void 0,
 		variant_id: `${attrs.variant_id ?? ""}`,
@@ -3356,6 +3357,7 @@ const billingItemFromLsOrder = (order) => {
 		sku: entitlement.product_sku,
 		quantity: entitlement.subscription_quantity,
 		status: `${order.attributes?.status || ""}`,
+		starts_at: order.attributes?.created_at || void 0,
 		variant_id: `${item.variant_id ?? ""}`,
 		product_name: item.product_name || "",
 		variant_name: item.variant_name || ""
@@ -3372,83 +3374,114 @@ const isRecurringLsOrder = (order) => {
 //#endregion
 //#region ../common/billing/loyalty.ts
 /**
-* Loyalty bonus instances (pockethost-support plans/loyalty-bonus-instances-plan.md, decided with Ben 2026-11-11).
+* Loyalty bonus instances (pocketbrain plans/loyalty-bonus-instances-plan.md, decided with Ben 2026-11-11, chain rule
+* 2026-11-14).
 *
 * - Lifetime (`hosting.slot.lifetime`) and annual plans: 5 bonus instances while the purchase is active.
-* - Monthly plans: +1 at the 1st paid renewal, then +1 every 3rd (1, 2, 3, 4, 5 at renewals 1, 4, 7, 10, 13).
-* - Cancelling stops new renewals (so no more earning) but the subscription stays active until its paid period ends, and
-*   so does the bonus. Resuming keeps counting on the same subscription.
-* - When a subscription expires its renewals stop counting; with nothing active left the bonus is 0 and a new
-*   subscription starts from 0.
+* - Monthly: counted on the account's **chain**, its paid subscriptions laid end to end. A subscription that starts
+*   before the previous one ends (or within `LOYALTY_COMEBACK_DAYS` of it) continues the chain, so the bonus keeps
+*   counting from the chain's first start. Gap days don't count. A longer gap starts a new chain from 0. Overlapping
+*   subscriptions (a second instance) cover the same time, so they never earn faster.
+* - Whole months since the chain started: 1 bonus after the 1st month, +1 every 3 (months 1, 4, 7, 10, 13), cap 5.
 * - Accounts with more paid instances than the bonus cap (`LOYALTY_MAX_BONUS`) get no loyalty bonus: Founder, Flounder
 *   and other legacy plans with 250+ instances, whatever else they buy (Ben, 2026-11-15).
 *
-* The bonus is a pure function of the account's billing items and each subscription's paid renewal count, so it can be
-* recomputed after any webhook (or in a backfill) without counting events. JSVM-safe: plain data + sync functions.
+* A pure function of the account's billing items and the time, so it can be recomputed after any webhook (or in a
+* backfill). JSVM-safe: plain data + sync functions.
 */
 const LOYALTY_MAX_BONUS = 5;
+/** A gap up to this long between subscriptions doesn't break the chain (the gap itself doesn't count). */
+const LOYALTY_COMEBACK_DAYS = 30;
 /** Plans that get the full bonus up front, while active. Legacy Flounder lifetime already has 250 instances. */
 const LOYALTY_UPFRONT_SKUS = ["hosting.slot.lifetime", "hosting.slot.recurring.year"];
-/** Monthly per-instance plans that earn by paid renewals. */
+/** Monthly per-instance plans. */
 const LOYALTY_MONTHLY_SKUS = ["hosting.slot.recurring.month", "hosting.slot.recurring.month.legacy"];
-/** Bonus earned by `renewals` paid monthly renewals: 0, then 1 at the 1st, +1 every 3rd after, capped at 5. */
-const bonusForRenewals = (renewals) => {
-	const n = Math.floor(renewals);
+/** Bonus earned after `months` whole months on the chain: 0, then 1 at month 1, +1 every 3rd after, capped at 5. */
+const bonusForRenewals = (months) => {
+	const n = Math.floor(months);
 	if (!(n >= 1)) return 0;
 	return Math.min(5, 1 + Math.floor((n - 1) / 3));
 };
-/** Paid renewals needed for the next bonus instance, or null at the cap. */
-const nextBonusAtRenewal = (renewals) => {
-	const bonus = bonusForRenewals(renewals);
+/** Chain month that earns the next bonus instance, or null at the cap. */
+const nextBonusAtRenewal = (months) => {
+	const bonus = bonusForRenewals(months);
 	if (bonus >= 5) return null;
 	return bonus === 0 ? 1 : 1 + bonus * 3;
 };
 const isLs = (i) => i.provider === "lemonsqueezy" && i.quantity > 0;
-/** Active LS monthly subscriptions on the account (the ones whose paid renewals count). */
-const activeMonthlySubscriptionIds = (items, now) => items.filter((i) => isLs(i) && i.kind === "subscription" && LOYALTY_MONTHLY_SKUS.includes(i.sku)).filter((i) => isBillingItemActive(i, now)).map((i) => i.external_id);
+const DAY = 1440 * 60 * 1e3;
+/** Whole calendar months from `a` to `b` (UTC). */
+const wholeMonthsBetween = (a, b) => {
+	let m = (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth());
+	const anchor = new Date(a.getTime());
+	anchor.setUTCMonth(anchor.getUTCMonth() + m);
+	if (anchor.getTime() > b.getTime()) m -= 1;
+	return Math.max(0, m);
+};
+/** `d` plus `n` calendar months (UTC). */
+const addMonths = (d, n) => {
+	const out = new Date(d.getTime());
+	out.setUTCMonth(out.getUTCMonth() + n);
+	return out;
+};
+/**
+* The account's current chain: its loyalty-eligible paid items (monthly, annual, lifetime) laid end to end. Returns the
+* effective start (first start plus gap days) when the chain is still active at `now`, else undefined. Items with no
+* start date are skipped.
+*/
+const loyaltyChainStart = (items, now) => {
+	const spans = items.filter((i) => isLs(i) && (LOYALTY_MONTHLY_SKUS.includes(i.sku) || LOYALTY_UPFRONT_SKUS.includes(i.sku))).map((i) => {
+		const start = i.starts_at ? new Date(i.starts_at).getTime() : NaN;
+		if (isNaN(start)) return void 0;
+		const ends = i.ends_at ? new Date(i.ends_at).getTime() : NaN;
+		return {
+			start,
+			end: isBillingItemActive(i, now) ? Infinity : isNaN(ends) ? start : ends
+		};
+	}).filter((x) => !!x).sort((a, b) => a.start - b.start);
+	let chainStart = NaN;
+	let chainEnd = -Infinity;
+	let gap = 0;
+	for (const s of spans) {
+		if (isNaN(chainStart) || s.start > chainEnd + 30 * DAY) {
+			chainStart = s.start;
+			gap = 0;
+		} else if (s.start > chainEnd) gap += s.start - chainEnd;
+		chainEnd = Math.max(chainEnd, s.end);
+	}
+	if (isNaN(chainStart) || chainEnd < now.getTime()) return void 0;
+	return new Date(chainStart + gap);
+};
 /** More paid instances than the bonus cap: no loyalty bonus at all. */
 const isLoyaltyExcluded = (paidInstances) => Math.floor(paidInstances) > 5;
-/** True when an active lifetime or annual purchase gives the full bonus (no renewal counts needed). */
+/** True when an active lifetime or annual purchase gives the full bonus. */
 const hasUpfrontLoyalty = (items, now) => items.some((i) => isLs(i) && LOYALTY_UPFRONT_SKUS.includes(i.sku) && isBillingItemActive(i, now));
-/**
-* The account's loyalty bonus. `renewalsBySubscription` maps an LS subscription id to its paid renewal count; missing
-* ids count as 0. `paidInstances` is `users.subscription_quantity`; above the cap the account is excluded.
-*/
-const loyaltyBonus = (items, renewalsBySubscription, now, paidInstances = 0) => {
-	const monthlySubscriptionIds = activeMonthlySubscriptionIds(items, now);
+/** The account's loyalty bonus. `paidInstances` is `users.subscription_quantity`; above the cap the account is excluded. */
+const loyaltyBonus = (items, now, paidInstances = 0) => {
 	if (isLoyaltyExcluded(paidInstances)) return {
 		bonus: 0,
 		basis: "excluded",
-		renewals: 0,
-		monthlySubscriptionIds
+		renewals: 0
 	};
-	let renewals = 0;
-	let countingSubscriptionId;
-	for (const id of monthlySubscriptionIds) {
-		const n = Math.max(0, Math.floor(renewalsBySubscription[id] ?? 0));
-		if (countingSubscriptionId === void 0 || n > renewals) {
-			renewals = n;
-			countingSubscriptionId = id;
-		}
-	}
+	const start = loyaltyChainStart(items, now);
+	const renewals = start ? wholeMonthsBetween(start, new Date(now.getTime() + DAY)) : 0;
+	const chainStart = start?.toISOString();
 	if (hasUpfrontLoyalty(items, now)) return {
 		bonus: 5,
 		basis: "upfront",
 		renewals,
-		monthlySubscriptionIds,
-		countingSubscriptionId
+		chainStart
 	};
 	const bonus = bonusForRenewals(renewals);
 	return {
 		bonus,
 		basis: bonus > 0 ? "renewals" : "none",
 		renewals,
-		monthlySubscriptionIds,
-		countingSubscriptionId
+		chainStart
 	};
 };
 /** The grant note customers see in the dashboard tooltip. */
-const loyaltyNote = (r) => r.basis === "upfront" ? `Loyalty bonus: ${5} instances with your annual or lifetime plan` : `Loyalty bonus: ${r.renewals} monthly renewal${r.renewals === 1 ? `` : `s`}`;
+const loyaltyNote = (r) => r.basis === "upfront" ? `Loyalty bonus: ${5} instances with your annual or lifetime plan` : `Loyalty bonus: ${r.renewals} month${r.renewals === 1 ? `` : `s`} subscribed`;
 /** A paid (not refunded) renewal invoice. Initial and plan-change invoices don't count. */
 const isPaidRenewalInvoice = (a) => !!a && a.billing_reason === "renewal" && a.status === "paid" && !a.refunded;
 const MONTHS = [
@@ -3467,30 +3500,67 @@ const MONTHS = [
 ];
 /** `Jan 13, 2027` (UTC). */
 const formatShortDate = (d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
-/**
-* Vars for the loyalty status emails (`loyalty_renewal` after each paid renewal, `loyalty_welcome` on a new purchase),
-* or null when one shouldn't go out (excluded accounts; no bonus yet, unless `allowZero` for a new monthly
-* subscription). `renewsAt` is the subscription's next renewal date; the renewal that earns the next bonus is that many
-* months later.
-*/
-const loyaltyRenewalEmailVars = (result, renewsAt, options = {}) => {
-	if (result.basis === "excluded") return null;
-	if (result.bonus <= 0 && !options.allowZero) return null;
-	const vars = {
-		current: `${result.bonus}`,
-		max: `${5}`
-	};
-	const at = result.basis === "renewals" || options.allowZero && result.basis === "none" ? nextBonusAtRenewal(result.renewals) : null;
-	const base = renewsAt ? new Date(renewsAt) : null;
-	if (at === null || !base || isNaN(base.getTime())) return {
-		...vars,
-		next: at === null ? `You're at the max` : `At renewal ${at}`
-	};
-	const d = new Date(base.getTime());
-	d.setUTCMonth(d.getUTCMonth() + (at - (result.renewals + 1)));
+/** Email templates (message_templates slugs). Editable in the mothership admin. */
+const LOYALTY_TEMPLATES = {
+	welcome: "bonus_welcome",
+	welcomeAnnual: "bonus_welcome_annual",
+	welcomeLifetime: "bonus_welcome_lifetime",
+	firstEarned: "bonus_first_earned",
+	earned: "bonus_earned",
+	progress: "bonus_progress"
+};
+const emailVars = (r) => {
+	const at = nextBonusAtRenewal(r.renewals);
+	const date = r.chainStart && at !== null ? formatShortDate(addMonths(new Date(r.chainStart), at)) : ``;
 	return {
-		...vars,
-		next: `On your ${formatShortDate(d)} renewal`
+		current: `${r.bonus}`,
+		max: `${5}`,
+		date,
+		next: at === null ? `You're at the max` : date ? `On your ${date} renewal` : `Soon`
+	};
+};
+/**
+* The email after a paid renewal (Ben, 2026-11-14): fanfare when this chain month earned a bonus (the first one gets
+* its own), progress when it didn't, nothing at 5 or for annual/lifetime. One per chain month (`ref`), however many
+* subscriptions renew.
+*/
+const loyaltyRenewalEmail = (r) => {
+	if (r.basis !== "renewals" || !r.chainStart || r.renewals < 1) return null;
+	const ref = `chain:${r.chainStart}:${r.renewals}`;
+	if (bonusForRenewals(r.renewals) > bonusForRenewals(r.renewals - 1)) return {
+		template: r.bonus === 1 ? LOYALTY_TEMPLATES.firstEarned : LOYALTY_TEMPLATES.earned,
+		ref,
+		vars: emailVars(r)
+	};
+	if (r.bonus >= 5) return null;
+	return {
+		template: LOYALTY_TEMPLATES.progress,
+		ref,
+		vars: emailVars(r)
+	};
+};
+/**
+* The email on a new purchase: annual and lifetime get their 5 once, here. A monthly subscription that starts a new
+* chain gets the welcome with the date its first bonus lands; one that joins an existing chain (a second instance, or
+* an account already on annual) gets nothing.
+*/
+const loyaltyPurchaseEmail = (r, sku, ref) => {
+	if (r.basis === "excluded") return null;
+	if (sku === "hosting.slot.lifetime") return {
+		template: LOYALTY_TEMPLATES.welcomeLifetime,
+		ref,
+		vars: emailVars(r)
+	};
+	if (sku === "hosting.slot.recurring.year") return {
+		template: LOYALTY_TEMPLATES.welcomeAnnual,
+		ref,
+		vars: emailVars(r)
+	};
+	if (!LOYALTY_MONTHLY_SKUS.includes(sku) || r.basis === "upfront" || r.renewals > 0 || !r.chainStart) return null;
+	return {
+		template: LOYALTY_TEMPLATES.welcome,
+		ref: `chain:${r.chainStart}:0`,
+		vars: emailVars(r)
 	};
 };
 
@@ -3537,14 +3607,21 @@ const lsSubscriptionsByOrderId = (orderId) => lsListAll(`/subscriptions?filter[o
 const lsSubscription = (subscriptionId) => lsRequest(`GET`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
 /** Cancel at period end. Returns the updated subscription resource. */
 const lsCancelSubscription = (subscriptionId) => lsRequest(`DELETE`, `/subscriptions/${encodeURIComponent(`${subscriptionId}`)}`)?.data;
-/** Paid (not refunded) renewal invoices on one subscription. */
-const lsPaidRenewalCount = (subscriptionId) => lsListAll(`/subscription-invoices?filter[subscription_id]=${encodeURIComponent(`${subscriptionId}`)}`).filter((inv) => isPaidRenewalInvoice(inv.attributes)).length;
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/billingStore.ts
 const COLLECTION = `billing_items`;
 /** PB stores dates as `2026-12-01 00:00:00.000Z`; normalize to ISO so Goja's Date parses it. */
 const isoOrUndefined = (value) => value ? value.replace(" ", "T") : void 0;
+/** LS `created_at` from the stored provider payload (subscriptions and orders keep their LS attributes there). */
+const storedCreatedAt = (rec) => {
+	try {
+		const v = JSON.parse(rec.getString(`provider_data`) || `null`)?.created_at;
+		return v ? `${v}` : void 0;
+	} catch {
+		return;
+	}
+};
 const toItem = (rec) => ({
 	provider: rec.getString(`provider`),
 	kind: rec.getString(`kind`),
@@ -3552,6 +3629,7 @@ const toItem = (rec) => ({
 	sku: rec.getString(`sku`),
 	quantity: rec.getInt(`quantity`),
 	status: rec.getString(`status`),
+	starts_at: storedCreatedAt(rec),
 	ends_at: isoOrUndefined(rec.getString(`ends_at`)),
 	renews_at: isoOrUndefined(rec.getString(`renews_at`)),
 	variant_id: rec.getString(`variant_id`),
@@ -4489,21 +4567,14 @@ const findLoyaltyGrant = (app, userId) => {
 	}
 };
 /**
-* Recompute the account's loyalty bonus from its billing items and each active monthly subscription's paid renewal
-* count (read from Lemon Squeezy), and keep its single `loyalty` grant row in line: amount = bonus, removed at 0. The
-* `bonus_grants` hooks then recompute `users.bonus_instances`. Manual grants are never touched.
-*
-* `fetchRenewals` is injectable for the backfill's pacing (and tests); it defaults to the LS API.
+* Recompute the account's loyalty bonus from its billing items (the subscription chain's start dates) and keep its
+* single `loyalty` grant row in line: amount = bonus, removed at 0. The `bonus_grants` hooks then recompute
+* `users.bonus_instances`. Manual grants are never touched. No Lemon Squeezy calls.
 */
 const syncLoyalty = (app, userId, options = {}) => {
 	const apply = options.apply ?? true;
 	const now = options.now ?? /* @__PURE__ */ new Date();
-	const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount;
-	const items = loadBillingItems(app, userId);
-	const paidInstances = app.findRecordById(`users`, userId).getFloat(`subscription_quantity`);
-	const renewals = {};
-	if (!isLoyaltyExcluded(paidInstances) && !hasUpfrontLoyalty(items, now)) for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id);
-	const result = loyaltyBonus(items, renewals, now, paidInstances);
+	const result = loyaltyBonus(loadBillingItems(app, userId), now, app.findRecordById(`users`, userId).getFloat(`subscription_quantity`));
 	const grant = findLoyaltyGrant(app, userId);
 	const before = grant ? grant.getInt(`amount`) : 0;
 	const note = loyaltyNote(result);
@@ -4542,10 +4613,6 @@ const loyaltyCandidateUserIds = (app) => {
 /** Events that post to the lemon_cancel_discord template. */
 const CANCEL_EVENTS = [`subscription_cancelled`];
 /** Events that post to the lemon_refund_discord template (a refund isn't a cancellation). */
-/** Email sent after each paid renewal with the account's loyalty bonus status. */
-const LOYALTY_RENEWAL_TEMPLATE = `loyalty_renewal`;
-/** Email sent on a new loyalty-eligible purchase: how the bonus works and when the next one comes. */
-const LOYALTY_WELCOME_TEMPLATE = `loyalty_welcome`;
 const REFUND_EVENTS = [`order_refunded`, `subscription_payment_refunded`];
 /**
 * Lemon Squeezy webhook. Every event updates the one billing item it is about (subscription or lifetime order), then
@@ -4686,25 +4753,28 @@ const HandleLemonSqueezySale = (e) => {
 		if (context.event_name === `order_created`) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
 		else if (CANCEL_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
 		else if (REFUND_EVENTS.includes(context.event_name)) notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context);
-		const sendLoyaltyEmail = (slug, ref, vars) => {
-			if (!vars) return;
+		const sendLoyaltyEmail = (email) => {
+			if (!email) return;
 			try {
-				const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, slug);
+				const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, email.template);
 				if (!$app.findRecordsByFilter(`notifications`, `user = {:user} && message_template = {:tpl} && payload ~ {:ref}`, ``, 1, 0, {
 					user: userRec.id,
 					tpl: tpl.id,
-					ref: `"loyalty_ref":"${ref}"`
-				}).length) notify(`email`, slug, userRec.id, {
-					...vars,
-					loyalty_ref: ref
+					ref: `"loyalty_ref":"${email.ref}"`
+				}).length) notify(`email`, email.template, userRec.id, {
+					...email.vars,
+					loyalty_ref: email.ref
 				});
 			} catch (err) {
-				log(`${slug} email failed`, `${err}`);
+				log(`${email.template} email failed`, `${err}`);
 			}
 		};
-		if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs) && `${attrs.subscription_id}` === loyalty.countingSubscriptionId) sendLoyaltyEmail(LOYALTY_RENEWAL_TEMPLATE, `invoice:${context.resource_id}`, loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at));
-		const newLoyaltyPurchase = context.event_name === `subscription_created` && !!first && (loyalty?.basis === `upfront` || !!loyalty?.monthlySubscriptionIds.includes(`${first.id}`)) || context.event_name === `order_created` && order?.sku === `hosting.slot.lifetime`;
-		if (loyalty && newLoyaltyPurchase) sendLoyaltyEmail(LOYALTY_WELCOME_TEMPLATE, first ? `subscription:${first.id}` : `order:${context.resource_id}`, loyaltyRenewalEmailVars(loyalty, firstAttrs.renews_at, { allowZero: true }));
+		if (loyalty && context.event_name === `subscription_payment_success` && isPaidRenewalInvoice(attrs)) sendLoyaltyEmail(loyaltyRenewalEmail(loyalty));
+		if (loyalty && context.event_name === `subscription_created` && first) {
+			const sku = billingItemFromLsSubscription(first)?.sku;
+			if (sku) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, sku, `subscription:${first.id}`));
+		}
+		if (loyalty && context.event_name === `order_created` && order) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, order.sku, `order:${context.resource_id}`));
 		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
 		audit(`LS`, `${context.event_name}: slots ${before} → ${after}.${bonusMsg}`, context);
 		return e.json(200, { status: "ok" });
@@ -4724,9 +4794,7 @@ const HandleLemonSqueezySale = (e) => {
 *
 * - `apply=1` writes the `loyalty` grant rows.
 * - `user=<id>` one user.
-* - `offset`, `limit` (default 0, 40): one page of candidates, so a run stays well inside request timeouts and Lemon
-*   Squeezy's rate limit (each monthly subscription costs one invoices call, paced 250 ms apart). Call again with
-*   `next` until it is null.
+* - `offset`, `limit` (default 0, 40): one page of candidates. Call again with `next` until it is null.
 */
 const HandleLoyaltyBackfill = (e) => {
 	const q = e.request.url.query();
@@ -4736,25 +4804,17 @@ const HandleLoyaltyBackfill = (e) => {
 	const limit = Math.min(200, Math.max(1, Number(q.get(`limit`) || 40) || 40));
 	const all = onlyUser ? [onlyUser] : loyaltyCandidateUserIds($app);
 	const page = all.slice(offset, offset + limit);
-	let lsCalls = 0;
-	const fetchRenewals = (subscriptionId) => {
-		if (lsCalls++ > 0) sleep(250);
-		return lsPaidRenewalCount(subscriptionId);
-	};
 	const changes = [];
 	const errors = [];
 	let unchanged = 0;
 	for (const user of page) try {
-		const r = syncLoyalty($app, user, {
-			apply,
-			fetchRenewals
-		});
+		const r = syncLoyalty($app, user, { apply });
 		if (r.changed) changes.push({
 			user,
 			before: r.before,
 			after: r.bonus,
 			basis: r.basis,
-			renewals: r.renewals
+			months: r.renewals
 		});
 		else unchanged++;
 	} catch (err) {

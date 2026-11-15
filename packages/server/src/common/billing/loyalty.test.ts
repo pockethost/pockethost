@@ -4,141 +4,219 @@ import {
   bonusForRenewals,
   isPaidRenewalInvoice,
   loyaltyBonus,
+  loyaltyChainStart,
   loyaltyNote,
-  loyaltyRenewalEmailVars,
+  loyaltyPurchaseEmail,
+  loyaltyRenewalEmail,
   nextBonusAtRenewal,
+  wholeMonthsBetween,
 } from './loyalty'
 
-const NOW = new Date(`2026-11-11T12:00:00Z`)
+const NOW = new Date(`2026-11-14T12:00:00Z`)
 
-const sub = (id: string, sku: BillingItem['sku'], status = `active`, ends_at?: string): BillingItem => ({
+const sub = (
+  id: string,
+  sku: BillingItem['sku'],
+  starts_at: string,
+  status = `active`,
+  ends_at?: string
+): BillingItem => ({
   provider: `lemonsqueezy`,
   kind: `subscription`,
   external_id: id,
   sku,
   quantity: 1,
   status,
+  starts_at,
   ends_at,
 })
-const monthly = (id: string, status?: string, ends_at?: string) =>
-  sub(id, `hosting.slot.recurring.month`, status, ends_at)
+const monthly = (id: string, starts_at: string, status?: string, ends_at?: string) =>
+  sub(id, `hosting.slot.recurring.month`, starts_at, status, ends_at)
+const annual = (id: string, starts_at: string, status?: string, ends_at?: string) =>
+  sub(id, `hosting.slot.recurring.year`, starts_at, status, ends_at)
+const lifetime = (starts_at: string, sku: BillingItem['sku'] = `hosting.slot.lifetime`): BillingItem => ({
+  provider: `lemonsqueezy`,
+  kind: `order`,
+  external_id: `o1`,
+  sku,
+  quantity: 1,
+  status: `paid`,
+  starts_at,
+})
 
-describe('bonusForRenewals', () => {
-  it('follows 1, 4, 7, 10, 13 and caps at 5', () => {
+describe('schedule', () => {
+  it('follows months 1, 4, 7, 10, 13 and caps at 5', () => {
     const got = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 40].map(bonusForRenewals)
     expect(got).toEqual([0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5])
-  })
-  it('treats junk as 0', () => {
     expect(bonusForRenewals(-3)).toBe(0)
     expect(bonusForRenewals(NaN)).toBe(0)
-  })
-  it('names the next renewal that earns', () => {
     expect([0, 1, 3, 4, 12, 13].map(nextBonusAtRenewal)).toEqual([1, 4, 4, 7, 13, null])
+  })
+  it('counts whole calendar months', () => {
+    expect(wholeMonthsBetween(new Date(`2026-10-14T12:00:00Z`), NOW)).toBe(1)
+    expect(wholeMonthsBetween(new Date(`2026-10-15T12:00:00Z`), NOW)).toBe(0)
+    expect(wholeMonthsBetween(new Date(`2025-11-14T12:00:00Z`), NOW)).toBe(12)
   })
 })
 
-describe('loyaltyBonus', () => {
-  it('gives lifetime 5 up front', () => {
-    const items: BillingItem[] = [
-      {
-        provider: `lemonsqueezy`,
-        kind: `order`,
-        external_id: `o1`,
-        sku: `hosting.slot.lifetime`,
-        quantity: 1,
-        status: `paid`,
-      },
-    ]
-    expect(loyaltyBonus(items, {}, NOW)).toMatchObject({ bonus: 5, basis: `upfront` })
-  })
-
-  it('excludes accounts with more paid instances than the cap (Founder/Flounder + a monthly)', () => {
-    expect(loyaltyBonus([monthly('m1')], { m1: 13 }, NOW, 251)).toMatchObject({ bonus: 0, basis: `excluded` })
-    expect(loyaltyBonus([sub('y1', `hosting.slot.recurring.year`)], {}, NOW, 6)).toMatchObject({ bonus: 0 })
-    expect(loyaltyBonus([monthly('m1')], { m1: 13 }, NOW, 5)).toMatchObject({ bonus: 5, basis: `renewals` })
-  })
-
-  it('gives legacy Flounder lifetime nothing', () => {
-    const items: BillingItem[] = [
-      {
-        provider: `lemonsqueezy`,
-        kind: `order`,
-        external_id: `o1`,
-        sku: `hosting.slot.lifetime.legacy_flounder`,
-        quantity: 250,
-        status: `paid`,
-      },
-    ]
-    expect(loyaltyBonus(items, {}, NOW).bonus).toBe(0)
-  })
-
-  it('gives annual 5 while active, including cancelled within its period', () => {
-    expect(loyaltyBonus([sub(`a`, `hosting.slot.recurring.year`)], {}, NOW).bonus).toBe(5)
-    const cancelled = sub(`a`, `hosting.slot.recurring.year`, `cancelled`, `2027-01-01T00:00:00Z`)
-    expect(loyaltyBonus([cancelled], {}, NOW).bonus).toBe(5)
-    const ended = sub(`a`, `hosting.slot.recurring.year`, `cancelled`, `2026-11-01T00:00:00Z`)
-    expect(loyaltyBonus([ended], {}, NOW).bonus).toBe(0)
-    expect(loyaltyBonus([sub(`a`, `hosting.slot.recurring.year`, `expired`)], {}, NOW).bonus).toBe(0)
-  })
-
-  it('counts paid renewals on active monthly subscriptions', () => {
-    expect(loyaltyBonus([monthly(`m`)], {}, NOW)).toMatchObject({ bonus: 0, basis: `none`, renewals: 0 })
-    expect(loyaltyBonus([monthly(`m`)], { m: 1 }, NOW)).toMatchObject({ bonus: 1, basis: `renewals`, renewals: 1 })
-    expect(loyaltyBonus([monthly(`m`)], { m: 7 }, NOW).bonus).toBe(3)
-  })
-
-  it('counts only the first (longest-running) monthly subscription, not the sum', () => {
-    const r = loyaltyBonus([monthly(`m1`), monthly(`m2`)], { m1: 4, m2: 2 }, NOW)
-    expect(r).toMatchObject({
-      bonus: 2,
-      renewals: 4,
-      countingSubscriptionId: `m1`,
-      monthlySubscriptionIds: [`m1`, `m2`],
-    })
-    // Same-day second instance: no faster earning.
-    expect(loyaltyBonus([monthly(`m1`), monthly(`m2`)], { m1: 1, m2: 1 }, NOW).bonus).toBe(1)
-  })
-  it('falls back to the next longest-running subscription when the first ends', () => {
-    const first = monthly(`m1`, `expired`)
-    expect(loyaltyBonus([first, monthly(`m2`)], { m1: 9, m2: 4 }, NOW)).toMatchObject({
-      bonus: 2,
-      countingSubscriptionId: `m2`,
+describe('chain', () => {
+  it('starts at the first subscription and keeps going', () => {
+    expect(loyaltyBonus([monthly(`a`, `2026-04-14T12:00:00Z`)], NOW)).toMatchObject({
+      bonus: 3,
+      basis: `renewals`,
+      renewals: 7,
     })
   })
 
-  it('keeps the bonus after cancel until the paid period ends', () => {
-    const cancelled = monthly(`m`, `cancelled`, `2026-12-01T00:00:00Z`)
-    expect(loyaltyBonus([cancelled], { m: 4 }, NOW).bonus).toBe(2)
-    const ended = monthly(`m`, `cancelled`, `2026-11-10T00:00:00Z`)
-    expect(loyaltyBonus([ended], { m: 4 }, NOW).bonus).toBe(0)
+  it('a second instance never earns faster', () => {
+    const items = [monthly(`a`, `2026-07-14T12:00:00Z`), monthly(`b`, `2026-07-14T12:00:00Z`)]
+    expect(loyaltyBonus(items, NOW)).toMatchObject({ bonus: 2, renewals: 4 })
   })
 
-  it('drops renewals of expired subscriptions (a new subscription starts from 0)', () => {
-    expect(loyaltyBonus([monthly(`old`, `expired`), monthly(`new`)], { old: 9, new: 0 }, NOW).bonus).toBe(0)
+  it('switching A to B in time keeps the original start', () => {
+    const a = monthly(`a`, `2026-04-14T12:00:00Z`, `expired`, `2026-09-01T00:00:00Z`)
+    const b = monthly(`b`, `2026-08-20T00:00:00Z`)
+    expect(loyaltyBonus([a, b], NOW)).toMatchObject({ bonus: 3, renewals: 7 })
   })
 
-  it('jumps to 5 when an annual plan is added next to a monthly one', () => {
-    const r = loyaltyBonus([monthly(`m`), sub(`a`, `hosting.slot.recurring.year`)], { m: 1 }, NOW)
-    expect(r).toMatchObject({ bonus: 5, basis: `upfront` })
+  it('a short gap holds the chain but the gap days do not count', () => {
+    const a = monthly(`a`, `2026-04-14T12:00:00Z`, `expired`, `2026-08-14T12:00:00Z`)
+    const b = monthly(`b`, `2026-09-14T12:00:00Z`) // 31-day gap: over the 30-day window
+    expect(loyaltyBonus([a, b], NOW).renewals).toBe(2) // new chain from Sep 14
+    const c = monthly(`c`, `2026-09-03T12:00:00Z`) // 20-day gap: held
+    expect(loyaltyBonus([a, c], NOW)).toMatchObject({ renewals: 6, bonus: 2 })
   })
 
+  it('a lapse longer than the comeback window starts a new chain from 0', () => {
+    const b = monthly(`b`, `2026-01-14T12:00:00Z`, `expired`, `2026-05-14T12:00:00Z`)
+    const c = monthly(`c`, `2026-11-01T12:00:00Z`)
+    expect(loyaltyBonus([b, c], NOW)).toMatchObject({ bonus: 0, basis: `none`, renewals: 0 })
+  })
+
+  it('no active subscription: no chain, bonus 0', () => {
+    const a = monthly(`a`, `2026-01-14T12:00:00Z`, `expired`, `2026-10-01T00:00:00Z`)
+    expect(loyaltyChainStart([a], NOW)).toBeUndefined()
+    expect(loyaltyBonus([a], NOW).bonus).toBe(0)
+  })
+
+  it('cancelled but still in its paid period still counts', () => {
+    const a = monthly(`a`, `2026-04-14T12:00:00Z`, `cancelled`, `2026-12-14T12:00:00Z`)
+    expect(loyaltyBonus([a], NOW).bonus).toBe(3)
+  })
+
+  it('annual to monthly keeps the start date', () => {
+    const y = annual(`y`, `2025-06-01T00:00:00Z`, `expired`, `2026-06-01T00:00:00Z`)
+    const m = monthly(`m`, `2026-05-25T00:00:00Z`)
+    expect(loyaltyBonus([y, m], NOW)).toMatchObject({ bonus: 5, basis: `renewals` })
+  })
+
+  it('a webhook just before the anniversary still sees the month', () => {
+    const a = monthly(`a`, `2026-10-14T12:05:00Z`)
+    expect(loyaltyBonus([a], NOW).renewals).toBe(1)
+  })
+
+  it('skips items without a start date', () => {
+    const a = { ...monthly(`a`, ``), starts_at: undefined }
+    expect(loyaltyBonus([a], NOW).bonus).toBe(0)
+  })
+})
+
+describe('upfront and exclusions', () => {
+  it('annual and lifetime get 5', () => {
+    expect(loyaltyBonus([annual(`y`, `2026-11-01T00:00:00Z`)], NOW)).toMatchObject({ bonus: 5, basis: `upfront` })
+    expect(loyaltyBonus([lifetime(`2026-11-01T00:00:00Z`)], NOW)).toMatchObject({ bonus: 5, basis: `upfront` })
+  })
+  it('legacy Flounder lifetime gets nothing', () => {
+    expect(loyaltyBonus([lifetime(`2024-01-01T00:00:00Z`, `hosting.slot.lifetime.legacy_flounder`)], NOW).bonus).toBe(0)
+  })
+  it('excludes accounts with more paid instances than the cap', () => {
+    expect(loyaltyBonus([monthly(`a`, `2025-01-01T00:00:00Z`)], NOW, 251)).toMatchObject({
+      bonus: 0,
+      basis: `excluded`,
+    })
+    expect(loyaltyBonus([annual(`y`, `2026-11-01T00:00:00Z`)], NOW, 6).bonus).toBe(0)
+    expect(loyaltyBonus([monthly(`a`, `2025-01-01T00:00:00Z`)], NOW, 5).bonus).toBe(5)
+  })
   it('ignores manual and baseline rows', () => {
-    const manual: BillingItem = {
-      provider: `manual`,
-      kind: `manual`,
-      external_id: `baseline:u`,
-      sku: `hosting.slot.recurring.year`,
-      quantity: 1,
-      status: `active`,
-    }
-    expect(loyaltyBonus([manual], {}, NOW).bonus).toBe(0)
+    const manual: BillingItem = { ...annual(`baseline:u`, `2026-01-01T00:00:00Z`), provider: `manual`, kind: `manual` }
+    expect(loyaltyBonus([manual], NOW).bonus).toBe(0)
   })
-
   it('writes a customer-facing note', () => {
-    expect(loyaltyNote(loyaltyBonus([monthly(`m`)], { m: 1 }, NOW))).toBe(`Loyalty bonus: 1 monthly renewal`)
-    expect(loyaltyNote(loyaltyBonus([sub(`a`, `hosting.slot.recurring.year`)], {}, NOW))).toBe(
+    expect(loyaltyNote(loyaltyBonus([monthly(`a`, `2026-10-14T12:00:00Z`)], NOW))).toBe(
+      `Loyalty bonus: 1 month subscribed`
+    )
+    expect(loyaltyNote(loyaltyBonus([annual(`y`, `2026-11-01T00:00:00Z`)], NOW))).toBe(
       `Loyalty bonus: 5 instances with your annual or lifetime plan`
     )
+  })
+})
+
+describe('renewal email', () => {
+  const at = (start: string) => loyaltyBonus([monthly(`a`, start)], NOW)
+  it('first bonus gets its own fanfare', () => {
+    expect(loyaltyRenewalEmail(at(`2026-10-14T12:00:00Z`))).toMatchObject({
+      template: `bonus_first_earned`,
+      vars: { current: `1`, next: `On your Feb 14, 2027 renewal`, max: `5` },
+    })
+  })
+  it('fanfare when this month earned one', () => {
+    expect(loyaltyRenewalEmail(at(`2026-07-14T12:00:00Z`))).toMatchObject({
+      template: `bonus_earned`,
+      vars: { current: `2` },
+    })
+  })
+  it('progress when it did not', () => {
+    expect(loyaltyRenewalEmail(at(`2026-09-14T12:00:00Z`))).toMatchObject({
+      template: `bonus_progress`,
+      vars: { current: `1`, next: `On your Jan 14, 2027 renewal` },
+    })
+  })
+  it('fanfare at reaching 5, then nothing', () => {
+    expect(loyaltyRenewalEmail(at(`2025-10-14T12:00:00Z`))).toMatchObject({
+      template: `bonus_earned`,
+      vars: { current: `5`, next: `You're at the max` },
+    })
+    expect(loyaltyRenewalEmail(at(`2025-09-14T12:00:00Z`))).toBeNull()
+  })
+  it('nothing for annual or lifetime', () => {
+    expect(loyaltyRenewalEmail(loyaltyBonus([annual(`y`, `2025-11-14T12:00:00Z`)], NOW))).toBeNull()
+  })
+  it('one per chain month, whichever subscription renews', () => {
+    const one = loyaltyRenewalEmail(at(`2026-09-14T12:00:00Z`))
+    const two = loyaltyRenewalEmail(
+      loyaltyBonus([monthly(`a`, `2026-09-14T12:00:00Z`), monthly(`b`, `2026-10-30T00:00:00Z`)], NOW)
+    )
+    expect(two?.ref).toBe(one?.ref)
+  })
+})
+
+describe('purchase email', () => {
+  it('new monthly chain: welcome with the first bonus date', () => {
+    const r = loyaltyBonus([monthly(`a`, `2026-11-14T10:00:00Z`)], NOW)
+    expect(loyaltyPurchaseEmail(r, `hosting.slot.recurring.month`, `subscription:a`)).toMatchObject({
+      template: `bonus_welcome`,
+      vars: { current: `0`, date: `Dec 14, 2026` },
+    })
+  })
+  it('a second instance on an existing chain: nothing', () => {
+    const r = loyaltyBonus([monthly(`a`, `2026-06-01T00:00:00Z`), monthly(`b`, `2026-11-14T10:00:00Z`)], NOW)
+    expect(loyaltyPurchaseEmail(r, `hosting.slot.recurring.month`, `subscription:b`)).toBeNull()
+  })
+  it('annual and lifetime: their own welcome, once', () => {
+    const y = loyaltyBonus([annual(`y`, `2026-11-14T10:00:00Z`)], NOW)
+    expect(loyaltyPurchaseEmail(y, `hosting.slot.recurring.year`, `subscription:y`)?.template).toBe(
+      `bonus_welcome_annual`
+    )
+    const l = loyaltyBonus([lifetime(`2026-11-14T10:00:00Z`)], NOW)
+    expect(loyaltyPurchaseEmail(l, `hosting.slot.lifetime`, `order:o1`)?.template).toBe(`bonus_welcome_lifetime`)
+  })
+  it('monthly bought while on annual: nothing', () => {
+    const r = loyaltyBonus([annual(`y`, `2026-06-01T00:00:00Z`), monthly(`m`, `2026-11-14T10:00:00Z`)], NOW)
+    expect(loyaltyPurchaseEmail(r, `hosting.slot.recurring.month`, `subscription:m`)).toBeNull()
+  })
+  it('excluded accounts: nothing', () => {
+    const r = loyaltyBonus([annual(`y`, `2026-11-14T10:00:00Z`)], NOW, 250)
+    expect(loyaltyPurchaseEmail(r, `hosting.slot.recurring.year`, `subscription:y`)).toBeNull()
   })
 })
 
@@ -148,41 +226,5 @@ describe('isPaidRenewalInvoice', () => {
     expect(isPaidRenewalInvoice({ billing_reason: `initial`, status: `paid` })).toBe(false)
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `pending` })).toBe(false)
     expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `paid`, refunded: true })).toBe(false)
-    expect(isPaidRenewalInvoice({ billing_reason: `renewal`, status: `refunded` })).toBe(false)
-  })
-})
-
-describe('loyaltyRenewalEmailVars', () => {
-  const r = (bonus: number, renewals: number, basis: any = `renewals`) => ({ bonus, renewals, basis })
-  it('names the renewal that earns the next bonus', () => {
-    // 4 renewals = 2 bonus; next at renewal 7, the next renewal (5) is Dec 13, so 7 is Feb 13.
-    expect(loyaltyRenewalEmailVars(r(2, 4), `2026-12-13T10:00:00Z`)).toEqual({
-      current: `2`,
-      next: `On your Feb 13, 2027 renewal`,
-      max: `5`,
-    })
-    // 1 renewal: next at 4, which is 2 months after the next renewal (2).
-    expect(loyaltyRenewalEmailVars(r(1, 1), `2026-12-13T10:00:00Z`)?.next).toBe(`On your Feb 13, 2027 renewal`)
-    // 3 renewals: the very next renewal (4) earns it.
-    expect(loyaltyRenewalEmailVars(r(1, 3), `2026-12-13T10:00:00Z`)?.next).toBe(`On your Dec 13, 2026 renewal`)
-  })
-  it('says max at 5 (monthly or annual)', () => {
-    expect(loyaltyRenewalEmailVars(r(5, 13), `2026-12-13T10:00:00Z`)?.next).toBe(`You're at the max`)
-    expect(loyaltyRenewalEmailVars(r(5, 0, `upfront`), `2027-11-13T10:00:00Z`)?.next).toBe(`You're at the max`)
-  })
-  it('falls back to the renewal number without a date', () => {
-    expect(loyaltyRenewalEmailVars(r(1, 1), undefined)?.next).toBe(`At renewal 4`)
-  })
-  it('names the first renewal for a brand new monthly subscription (allowZero)', () => {
-    expect(loyaltyRenewalEmailVars(r(0, 0, `none`), `2026-12-14T10:00:00Z`, { allowZero: true })).toEqual({
-      current: `0`,
-      next: `On your Dec 14, 2026 renewal`,
-      max: `5`,
-    })
-    expect(loyaltyRenewalEmailVars(r(0, 0, `excluded`), `2026-12-14T10:00:00Z`, { allowZero: true })).toBeNull()
-  })
-  it('sends nothing to excluded or zero-bonus accounts', () => {
-    expect(loyaltyRenewalEmailVars(r(0, 0, `excluded`), `2026-12-13T10:00:00Z`)).toBeNull()
-    expect(loyaltyRenewalEmailVars(r(0, 0, `none`), `2026-12-13T10:00:00Z`)).toBeNull()
   })
 })

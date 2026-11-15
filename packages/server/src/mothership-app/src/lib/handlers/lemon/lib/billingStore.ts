@@ -16,6 +16,16 @@ const COLLECTION = `billing_items`
 /** PB stores dates as `2026-12-01 00:00:00.000Z`; normalize to ISO so Goja's Date parses it. */
 const isoOrUndefined = (value: string) => (value ? value.replace(' ', 'T') : undefined)
 
+/** LS `created_at` from the stored provider payload (subscriptions and orders keep their LS attributes there). */
+const storedCreatedAt = (rec: core.Record) => {
+  try {
+    const v = JSON.parse(rec.getString(`provider_data`) || `null`)?.created_at
+    return v ? `${v}` : undefined
+  } catch {
+    return undefined
+  }
+}
+
 const toItem = (rec: core.Record): BillingItem => ({
   provider: rec.getString(`provider`) as BillingItem['provider'],
   kind: rec.getString(`kind`) as BillingItem['kind'],
@@ -23,6 +33,7 @@ const toItem = (rec: core.Record): BillingItem => ({
   sku: rec.getString(`sku`) as BillingItem['sku'],
   quantity: rec.getInt(`quantity`),
   status: rec.getString(`status`),
+  starts_at: storedCreatedAt(rec),
   ends_at: isoOrUndefined(rec.getString(`ends_at`)),
   renews_at: isoOrUndefined(rec.getString(`renews_at`)),
   variant_id: rec.getString(`variant_id`),

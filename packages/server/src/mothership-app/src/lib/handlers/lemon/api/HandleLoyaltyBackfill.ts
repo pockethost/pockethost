@@ -1,16 +1,13 @@
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
 import { loyaltyCandidateUserIds, syncLoyalty } from '../lib/loyaltyStore'
-import { lsPaidRenewalCount } from '../lib/lsApi'
 
 /**
  * Superuser: `POST /api/loyalty/backfill` - recompute loyalty bonuses for existing customers. Dry run by default.
  *
  * - `apply=1` writes the `loyalty` grant rows.
  * - `user=<id>` one user.
- * - `offset`, `limit` (default 0, 40): one page of candidates, so a run stays well inside request timeouts and Lemon
- *   Squeezy's rate limit (each monthly subscription costs one invoices call, paced 250 ms apart). Call again with
- *   `next` until it is null.
+ * - `offset`, `limit` (default 0, 40): one page of candidates. Call again with `next` until it is null.
  */
 export const HandleLoyaltyBackfill = (e: core.RequestEvent) => {
   const q = e.request.url.query()
@@ -22,19 +19,13 @@ export const HandleLoyaltyBackfill = (e: core.RequestEvent) => {
   const all = onlyUser ? [onlyUser] : loyaltyCandidateUserIds($app)
   const page = all.slice(offset, offset + limit)
 
-  let lsCalls = 0
-  const fetchRenewals = (subscriptionId: string) => {
-    if (lsCalls++ > 0) sleep(250)
-    return lsPaidRenewalCount(subscriptionId)
-  }
-
-  const changes: { user: string; before: number; after: number; basis: string; renewals: number }[] = []
+  const changes: { user: string; before: number; after: number; basis: string; months: number }[] = []
   const errors: { user: string; error: string }[] = []
   let unchanged = 0
   for (const user of page) {
     try {
-      const r = syncLoyalty($app, user, { apply, fetchRenewals })
-      if (r.changed) changes.push({ user, before: r.before, after: r.bonus, basis: r.basis, renewals: r.renewals })
+      const r = syncLoyalty($app, user, { apply })
+      if (r.changed) changes.push({ user, before: r.before, after: r.bonus, basis: r.basis, months: r.renewals })
       else unchanged++
     } catch (err) {
       errors.push({ user, error: `${err}` })

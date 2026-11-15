@@ -23,6 +23,8 @@ export type BillingItem = {
   quantity: number
   /** Provider status verbatim (LS subscription or order status), or `active` / `inactive` for manual rows. */
   status: string
+  /** ISO date the subscription or order started (LS `created_at`). */
+  starts_at?: string
   /** ISO date. For cancelled subscriptions, access ends here. */
   ends_at?: string
   renews_at?: string
@@ -163,6 +165,7 @@ export type LsSubscriptionResource = {
     product_name?: string
     variant_name?: string
     status?: string
+    created_at?: string | null
     ends_at?: string | null
     renews_at?: string | null
     first_subscription_item?: { quantity?: number } | null
@@ -174,6 +177,7 @@ export type LsOrderResource = {
   id: string | number
   attributes?: {
     status?: string
+    created_at?: string | null
     first_order_item?: {
       product_id?: number
       variant_id?: number
@@ -230,6 +234,7 @@ export const billingItemFromLsSubscription = (sub: LsSubscriptionResource): Bill
     sku: entitlement.product_sku,
     quantity: entitlement.subscription_quantity,
     status: `${attrs.status || ''}`,
+    starts_at: attrs.created_at || undefined,
     ends_at: attrs.ends_at || undefined,
     renews_at: attrs.renews_at || undefined,
     variant_id: `${attrs.variant_id ?? ''}`,
@@ -254,6 +259,7 @@ export const billingItemFromLsOrder = (order: LsOrderResource): BillingItem | un
     sku: entitlement.product_sku,
     quantity: entitlement.subscription_quantity,
     status: `${order.attributes?.status || ''}`,
+    starts_at: order.attributes?.created_at || undefined,
     variant_id: `${item.variant_id ?? ''}`,
     product_name: item.product_name || '',
     variant_name: item.variant_name || '',

@@ -1,7 +1,4 @@
 import {
-  activeMonthlySubscriptionIds,
-  hasUpfrontLoyalty,
-  isLoyaltyExcluded,
   LOYALTY_MONTHLY_SKUS,
   LOYALTY_UPFRONT_SKUS,
   loyaltyBonus,
@@ -9,7 +6,6 @@ import {
   type LoyaltyResult,
 } from '$common/billing/loyalty'
 import { loadBillingItems } from './billingStore'
-import { lsPaidRenewalCount } from './lsApi'
 
 const GRANTS = `bonus_grants`
 
@@ -29,29 +25,20 @@ export type LoyaltySync = LoyaltyResult & {
 }
 
 /**
- * Recompute the account's loyalty bonus from its billing items and each active monthly subscription's paid renewal
- * count (read from Lemon Squeezy), and keep its single `loyalty` grant row in line: amount = bonus, removed at 0. The
- * `bonus_grants` hooks then recompute `users.bonus_instances`. Manual grants are never touched.
- *
- * `fetchRenewals` is injectable for the backfill's pacing (and tests); it defaults to the LS API.
+ * Recompute the account's loyalty bonus from its billing items (the subscription chain's start dates) and keep its
+ * single `loyalty` grant row in line: amount = bonus, removed at 0. The `bonus_grants` hooks then recompute
+ * `users.bonus_instances`. Manual grants are never touched. No Lemon Squeezy calls.
  */
 export const syncLoyalty = (
   app: core.App,
   userId: string,
-  options: { apply?: boolean; fetchRenewals?: (subscriptionId: string) => number; now?: Date } = {}
+  options: { apply?: boolean; now?: Date } = {}
 ): LoyaltySync => {
   const apply = options.apply ?? true
   const now = options.now ?? new Date()
-  const fetchRenewals = options.fetchRenewals ?? lsPaidRenewalCount
   const items = loadBillingItems(app, userId)
   const paidInstances = app.findRecordById(`users`, userId).getFloat(`subscription_quantity`)
-
-  // Excluded accounts, lifetime and annual need no LS calls.
-  const renewals: Record<string, number> = {}
-  if (!isLoyaltyExcluded(paidInstances) && !hasUpfrontLoyalty(items, now)) {
-    for (const id of activeMonthlySubscriptionIds(items, now)) renewals[id] = fetchRenewals(id)
-  }
-  const result = loyaltyBonus(items, renewals, now, paidInstances)
+  const result = loyaltyBonus(items, now, paidInstances)
 
   const grant = findLoyaltyGrant(app, userId)
   const before = grant ? grant.getInt(`amount`) : 0
