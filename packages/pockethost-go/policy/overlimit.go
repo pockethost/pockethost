@@ -26,7 +26,7 @@ type Instance struct {
 // Account is one owner and their instances: the over-limit policy's subject.
 type Account struct {
 	User        string
-	Allowance   int       // instances the plan includes (users.subscription_quantity, floored, at least 0)
+	Allowance   int       // paid instances (users.subscription_quantity, floored) + bonus_instances while at least 1 is paid
 	OverSince   time.Time // users.over_limit_since: when the account was first seen over its plan (zero: not marked)
 	LapsedSince time.Time // users.lapsed_since: when the owner was told the plan ended (zero: not marked)
 	Suspended   bool      // users.suspension is set
@@ -168,11 +168,12 @@ func LoadAccounts(app core.App) ([]Account, error) {
 	var users []struct {
 		ID         string  `db:"id"`
 		Quantity   float64 `db:"q"`
+		Bonus      float64 `db:"b"`
 		OverSince  string  `db:"ols"`
 		Lapsed     string  `db:"ls"`
 		Suspension string  `db:"s"`
 	}
-	if err := app.DB().NewQuery(`SELECT id, COALESCE(subscription_quantity, 0) AS q, COALESCE(over_limit_since, '') AS ols,
+	if err := app.DB().NewQuery(`SELECT id, COALESCE(subscription_quantity, 0) AS q, COALESCE(bonus_instances, 0) AS b, COALESCE(over_limit_since, '') AS ols,
 		COALESCE(lapsed_since, '') AS ls, COALESCE(suspension, '') AS s FROM users`).All(&users); err != nil {
 		return nil, fmt.Errorf("users: %w", err)
 	}
@@ -205,9 +206,18 @@ func LoadAccounts(app core.App) ([]Account, error) {
 	}
 	out := make([]Account, 0, len(users))
 	for _, u := range users {
-		out = append(out, Account{User: u.ID, Allowance: int(math.Max(0, math.Floor(u.Quantity))),
+		out = append(out, Account{User: u.ID, Allowance: allowance(u.Quantity, u.Bonus),
 			OverSince: parseDate(u.OverSince), LapsedSince: parseDate(u.Lapsed), Suspended: u.Suspension != "",
 			PaidBefore: paid[u.ID], Instances: owned[u.ID]})
 	}
 	return out, nil
+}
+
+// allowance is paid + bonus instances. Bonus counts only while at least 1 instance is paid (loyalty plan).
+func allowance(paid, bonus float64) int {
+	p := int(math.Max(0, math.Floor(paid)))
+	if p == 0 {
+		return 0
+	}
+	return p + int(math.Max(0, math.Floor(bonus)))
 }

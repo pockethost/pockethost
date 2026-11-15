@@ -116,3 +116,15 @@ func TestReplaceACriterion(t *testing.T) {
 		t.Fatalf("after replacing grace_passed: %+v", rep.Decisions)
 	}
 }
+
+func TestAllowanceAddsBonusOnlyWhenPaid(t *testing.T) {
+	cases := []struct {
+		paid, bonus float64
+		want        int
+	}{{2, 3, 5}, {0, 5, 0}, {1.9, 0, 1}, {-1, 2, 0}, {3, -1, 3}}
+	for _, c := range cases {
+		if got := allowance(c.paid, c.bonus); got != c.want {
+			t.Errorf("allowance(%v, %v) = %d, want %d", c.paid, c.bonus, got, c.want)
+		}
+	}
+}
