@@ -1,5 +1,6 @@
 export * from './adminPlugins'
 export * from './apiTokens'
+export * from './bulkmail'
 export * from './cloudflare'
 export * from './downloads'
 export * from './edge'
