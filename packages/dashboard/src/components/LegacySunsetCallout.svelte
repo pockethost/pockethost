@@ -1,7 +1,8 @@
 <script lang="ts">
   import { page } from '$app/stores'
   import { LEGACY_SUNSET_BLOG, LEGACY_SUNSET_DATE, legacyInstances, summarizeLegacyInstances } from '$lib/legacySunset'
-  import { globalInstancesStore, isUserPaid } from '$util/stores'
+  import { DISCORD_URL } from '$lib/appEnv'
+  import { globalInstancesStore } from '$util/stores'
 
   /**
    * Account-level notice: shown on every logged-in dashboard page while the user owns an instance on PocketBase 0.22 or
@@ -24,12 +25,12 @@
     <strong>PocketHost is retiring PocketBase 0.22 and older on {LEGACY_SUNSET_DATE}.</strong>
     {#if summary.total === 1 && summary.current}
       This instance runs <code>{summary.current.version}</code>.
-      <a href={versionHref(summary.current.id)} class={linkClass}>Upgrade to 0.23 or later</a> before then, or it will be
-      suspended and archived.
+      <a href={versionHref(summary.current.id)} class={linkClass}>Upgrade to 0.23 or later</a> before then, because it will
+      stop working that day.
     {:else if summary.total === 1}
       {@const only = summary.named[0]!}
       Your instance <a href={versionHref(only.id)} class={linkClass}>{only.subdomain}</a> runs
-      <code>{only.version}</code>. Upgrade it to 0.23 or later before then, or it will be suspended and archived.
+      <code>{only.version}</code>. Upgrade it to 0.23 or later before then, because it will stop working that day.
     {:else}
       {summary.total} of your instances run 0.22 or older:
       {#each listed as item, i (item.id)}{#if i > 0}{i === listed.length - 1 && moreCount === 0 ? ' and ' : ', '}{/if}<a
@@ -41,12 +42,11 @@
           type="button"
           class="{linkClass} cursor-pointer"
           on:click={() => (expanded = true)}>{moreCount} more</button
-        >{/if}. Upgrade each to 0.23 or later before then, or they will be suspended and archived.
+        >{/if}. Upgrade each to 0.23 or later before then, because they will stop working that day.
     {/if}
-    {#if $isUserPaid}
-      As a paid customer you can get help with the upgrade: reply to the sunset email or
-      <a href="/support" class={linkClass}>contact support</a>.
-    {/if}
+    If you need help with the upgrade, please reach out on
+    <a href={DISCORD_URL} class={linkClass} target="_blank" rel="noopener">Discord</a>. I'm happy to help anyone. We can
+    throw some AI at it.
     <a href={LEGACY_SUNSET_BLOG} class={linkClass}>Details</a>
   </wa-callout>
 {/if}
