@@ -19,7 +19,11 @@
     'Unmetered bandwidth and CPU (fair use)',
     'Deploy from CI or the CLI, plus SFTP file access',
   ]
-  const monthlyFeatures = [trialFeature, ...slotFeatures]
+  const monthlyFeatures = [
+    trialFeature,
+    `$${(MONTHLY_PRICE / 6).toFixed(2)}/mo per instance after year 1, with 5 bonus instances`,
+    ...slotFeatures,
+  ]
 </script>
 
 <div class="pricing-page-header">
