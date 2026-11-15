@@ -10,7 +10,7 @@ Any instance still on 0.22 or older is suspended and archived:
 - Its data is packed up and moved off the server. You get an email with a download link.
 - The archive is kept for 180 days, then deleted.
 
-This applies to every plan. Check the version badge next to your instance name in the dashboard. Instances on 0.22 or older also show a warning.
+This applies to every plan. Check the version badge next to your instance name in the dashboard. If any of your instances run 0.22 or older, a warning at the top of every dashboard page names them, with a link to each one's version page.
 
 ### Paid plans: I'll help you upgrade
 
