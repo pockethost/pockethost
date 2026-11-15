@@ -12,6 +12,31 @@ export {
 
 /** Where a customer goes after paying: the dashboard, which waits for the payment and then offers "New instance". */
 export const AFTER_CHECKOUT_PATH = '/dashboard?paid=1'
+/** Where a guest goes after paying: claim the account the payment created. */
+export const CLAIM_PATH = '/claim'
+
+const CLAIM_KEY = 'ph_claim'
+/**
+ * The browser claim token from a guest checkout. Kept in localStorage so a reload or the redirect fallback still has
+ * it.
+ */
+export const savedClaim = () => {
+  try {
+    return localStorage.getItem(CLAIM_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+export const forgetClaim = () => {
+  try {
+    localStorage.removeItem(CLAIM_KEY)
+  } catch {}
+}
+const saveClaim = (claim: string) => {
+  try {
+    localStorage.setItem(CLAIM_KEY, claim)
+  } catch {}
+}
 
 const LEMON_JS = 'https://app.lemonsqueezy.com/js/lemon.js'
 
@@ -55,10 +80,12 @@ const embedUrl = (url: string) => {
 
 /**
  * Start checkout for a plan. Opens the checkout as an overlay on our page when Lemon.js loads, and calls `onSuccess`
- * when the payment goes through; otherwise sends the browser to the hosted checkout page.
+ * when the payment goes through; otherwise sends the browser to the hosted checkout page. Logged out, the payment
+ * creates the account: the claim token is kept for /claim.
  */
 export const startCheckout = async (pvId: string, onSuccess: () => void) => {
-  const url = await createLemonSqueezyCheckout(pvId)
+  const { url, claim } = await createLemonSqueezyCheckout(pvId)
+  if (claim) saveClaim(claim)
   const ls = await loadLemonJs()
   if (!ls) {
     window.location.href = url

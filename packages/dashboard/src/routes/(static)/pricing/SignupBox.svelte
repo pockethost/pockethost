@@ -1,8 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { isUserLoggedIn } from '$util/stores'
-  import { checkoutIntentUrl } from '$util/checkoutIntent'
-  import { AFTER_CHECKOUT_PATH, startCheckout as openCheckout } from '$util/billing'
+  import { AFTER_CHECKOUT_PATH, CLAIM_PATH, startCheckout as openCheckout } from '$util/billing'
 
   export let pvId: string
   export let selected: boolean = false
@@ -28,22 +27,18 @@
   let loading = false
   let checkoutError = ''
 
-  $: loggedOutButtonText = buttonText === 'Subscribe Now' ? 'Create account & subscribe' : buttonText
-  $: ctaButtonLabel = $isUserLoggedIn ? buttonText : loggedOutButtonText
+  $: ctaButtonLabel = buttonText
 
   const startCheckout = async () => {
     checkoutError = ''
-
-    if (!$isUserLoggedIn) {
-      await goto(checkoutIntentUrl(pvId))
-      return
-    }
 
     if (loading) return
 
     loading = true
     try {
-      await openCheckout(pvId, () => goto(AFTER_CHECKOUT_PATH))
+      // Logged out: pay first, then claim the account the payment creates.
+      const next = $isUserLoggedIn ? AFTER_CHECKOUT_PATH : CLAIM_PATH
+      await openCheckout(pvId, () => goto(next))
     } catch (err) {
       console.error(err)
       checkoutError = err instanceof Error ? err.message : 'Could not start checkout. Please try again.'

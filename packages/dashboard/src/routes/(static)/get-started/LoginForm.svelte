@@ -1,12 +1,7 @@
 <script lang="ts">
   import { client } from '$src/pocketbase-client'
-  import { continueCheckoutAfterAuth } from '$util/database'
-  import { planLabelForPvId } from '$util/checkoutIntent'
 
   const { authViaEmail } = client()
-
-  export let isSignUpView: boolean = true
-  export let checkoutPvId = ''
 
   let email: string = ''
   let password: string = ''
@@ -14,14 +9,9 @@
   let showPassword: boolean = false
 
   $: isFormButtonDisabled = email.length === 0 || password.length === 0
-  $: planLabel = checkoutPvId ? planLabelForPvId(checkoutPvId) : ''
-  $: submitLabel = checkoutPvId ? 'Log in & subscribe' : 'Log In'
+  const submitLabel = 'Log In'
 
   let isButtonLoading: boolean = false
-
-  const handleRegisterClick = () => {
-    isSignUpView = !isSignUpView
-  }
 
   const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
@@ -32,12 +22,6 @@
     showPassword = false
     try {
       await authViaEmail(email, password)
-      if (checkoutPvId) {
-        await continueCheckoutAfterAuth(checkoutPvId, (message) => {
-          formError = message
-        })
-        return
-      }
       window.location.href = '/dashboard'
     } catch (error) {
       const e = error as Error
@@ -49,12 +33,6 @@
 
 <form class="auth-form" method="post" autocomplete="on" onsubmit={handleSubmit}>
   <h2 class="auth-form-title">Log In</h2>
-
-  {#if checkoutPvId}
-    <p class="auth-form-lead">
-      Log in to continue checkout for <strong>{planLabel}</strong>.
-    </p>
-  {/if}
 
   <div class="auth-field-group">
     <label class="auth-label" for="email">Email</label>
@@ -120,5 +98,5 @@
 
 <div class="auth-footer">
   Don't have an account?
-  <button type="button" class="auth-footer-button" onclick={handleRegisterClick}>Create A New Account</button>
+  <a href="/pricing" class="auth-footer-button">Pick a plan to get started</a>
 </div>

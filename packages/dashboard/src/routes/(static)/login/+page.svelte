@@ -14,5 +14,5 @@
       </wa-callout>
     </div>
   {/if}
-  <InstanceGeneratorWidget login />
+  <InstanceGeneratorWidget />
 </div>
