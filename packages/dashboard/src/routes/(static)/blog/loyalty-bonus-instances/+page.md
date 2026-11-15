@@ -1,6 +1,6 @@
-If you pay for PocketHost, you just got more instances. No coupon, no form, nothing to click.
+Let's have a party, ladies and gentlemen. You just got more instances.
 
-Starting today, paid accounts get **loyalty bonus instances** on top of the ones they pay for, up to 5 per account. They work like paid instances. You can create them, deploy to them, and run all of them at once.
+Starting today, paid accounts get **loyalty bonus instances** on top of the ones they pay for, up to 5 per account. A lot of you have supported this little open source project called PocketHost for a long time and I wanted a way to say thank you to everyone who does that. So starting now, you get bonus instances for sticking around.
 
 ### Who gets what
 
@@ -10,18 +10,14 @@ Starting today, paid accounts get **loyalty bonus instances** on top of the ones
 | Annual   | 5, right away, while your subscription is active |
 | Monthly  | Earned by renewing, up to 5                      |
 
-On a monthly plan you get 1 bonus instance after your first renewal, then 1 more every 3 renewals after that. That's renewals 1, 4, 7, 10 and 13. It counts paid renewals, not days on the calendar.
+On a monthly plan you get 1 bonus instance after your first month, then 1 more every 3 months after that.
 
-If you're already a customer, you didn't start from zero. I went back through every subscription's payment history and credited the renewals you've already paid for. Annual and lifetime accounts got their 5 right away.
+Everyone gets grandfathered in. If you've already been paying, your bonus instances start from the day you began paying. I went back through every subscription's payment history and credited the renewals you've already paid for. If you just signed up today, you'll get one after your first month. Annual and lifetime accounts got their 5 right away.
 
 ### Where to see it
 
-Open your [account page](/account). If you have a bonus, the instance count shows it with a green badge, something like "6 allowed (1 paid + 5 bonus)". Hover the badge to see why you got it.
+Open your [account page](/account). If you have a bonus, the instance count shows it with a green badge, something like "6 allowed (1 paid + 5 bonus)".
 
-### Why
-
-PocketHost is open source, and it keeps growing because people pay for it. I wanted a way to say thanks to everyone who keeps supporting it, and to give you more room to build while it grows.
-
-The full rules, including what happens when you cancel or switch plans, are in our [Terms of Service](/terms).
+The full rules, including what happens when you cancel or switch plans, are in our [Terms of Service](/terms). Short version: keepy pay, keepy bonuses.
 
 Thanks for supporting PocketHost.
