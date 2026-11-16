@@ -330,7 +330,7 @@ func num(v any) float64 {
 }
 
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, Prefix), "/")
+	path := apiPath(r)
 	var err error
 	switch {
 	case path == "/whoami" && r.Method == http.MethodGet:
@@ -349,6 +349,8 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = a.readFile(w, r)
 	case path == "/files/raw" && r.Method == http.MethodPut:
 		err = a.writeFile(w, r)
+	case path == "/tree" && r.Method == http.MethodGet:
+		err = a.tree(w, r)
 	case path == "/logs" && r.Method == http.MethodGet:
 		err = a.logs(w, r)
 	default:

@@ -14,24 +14,28 @@ import (
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 	"github.com/pockethost/pocketone/ext/config"
-	"github.com/pockethost/pocketone/ext/multisite"
-	ceedge "github.com/pockethost/pocketone/ext/edge"
-	"github.com/pockethost/pocketone/ext/firewall"
+	deployv1 "github.com/pockethost/pocketone/ext/contracts/deploy/v1"
+	remotev1 "github.com/pockethost/pocketone/ext/contracts/remote/v1"
 	"github.com/pockethost/pocketone/ext/docker"
+	ceedge "github.com/pockethost/pocketone/ext/edge"
+	"github.com/pockethost/pocketone/ext/extkit"
+	"github.com/pockethost/pocketone/ext/firewall"
+	"github.com/pockethost/pocketone/ext/multisite"
+	"github.com/pockethost/pocketone/ext/pages"
+	"github.com/pockethost/pocketone/ext/pitr"
 	"github.com/pockethost/pocketone/ext/pocker"
 	"github.com/pockethost/pocketone/ext/servertiming"
+	"github.com/pockethost/pocketone/ext/settings"
 	"github.com/pockethost/pocketone/ext/stats"
-	"github.com/pockethost/pocketone/ext/pages"
-	"github.com/pockethost/pocketone/ext/pages/pockerext"
-	"github.com/pockethost/pocketone/ext/pitr"
 )
 
 // instancesBox holds the running edge.Instances (pocker's Manager or the docker adapter) once the host has one.
 type instancesBox struct{ i edge.Instances }
 
-// edgeServeConfig runs the edge from pocketone.yaml: the `pockethost` section (edge id, mothership login), a
-// runtime provider (pocker in-process or docker containers), listeners, firewall and fleet from their sections;
-// secrets come from the .env beside it and never reach the instances.
+// edgeServeConfig runs the edge from pocketone.yaml: the `pockethost` section (edge id, mothership login), the
+// `multisite` section (this is a host), one runtime (docker when the `docker` section is there, else pocker
+// in-process), listeners, firewall and fleet from their sections; secrets come from the .env beside it and never reach
+// the instances.
 func edgeServeConfig(configPath, envPath string) error {
 	log := slog.Default()
 	cfg, err := config.Load(config.Options{ConfigPath: configPath, EnvPath: envPath})
@@ -72,7 +76,10 @@ func edgeServeConfig(configPath, envPath string) error {
 		}
 		return nil
 	}
-	provider, _ := config.Provider.Get()
+	provider := "pocker" // an edge runs one runtime: docker when its section is there
+	if _, on := docker.Section.Get(); on {
+		provider = "docker"
+	}
 	poweredBy := "" // docker: the instance's own server names itself (PocketOne says "PocketOne")
 	if provider == "pocker" {
 		poweredBy = edge.PoweredBy
@@ -86,15 +93,16 @@ func edgeServeConfig(configPath, envPath string) error {
 		sc, _ := docker.Section.Get()
 		root = cfg.ResolvePath(sc.Root)
 	}
-	multisite.RegisterProvider(&pocker.Provider{
+	pp := &pocker.Provider{
 		Extensions: []pocker.Extension{
-			pitr.New(pitr.Config{}),       // point-in-time restore for every instance
-			pockerext.New(pages.Config{}), // PocketPages v1 when an instance has pb_pages
+			pitr.New(pitr.Config{}),   // point-in-time restore for every instance (restore/v1)
+			settings.New(),            // settings/v1: pitr's own-bucket setting on Settings → Backups
+			pages.New(pages.Config{}), // PocketPages v1 when an instance has pb_pages
 		},
 		SetupApp: edge.Setup(ecfg),
 		OnStart:  func(m *pocker.Manager) { running.Store(&instancesBox{m}) },
 		Resolve:  cfg.ResolvePath,
-	})
+	}
 	var platformBinds []string
 	if provider == "docker" {
 		sc, _ := docker.Section.Get()
@@ -118,24 +126,6 @@ func edgeServeConfig(configPath, envPath string) error {
 		dp.MinUpstream = edge.LegacyFloor
 		log.Info("pockethost: legacy releases on (PocketBase <0.23 from the binary cache)")
 	}
-	multisite.RegisterProvider(dp)
-
-	h, err := multisite.FromConfig(multisite.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log})
-	if err != nil {
-		return err
-	}
-	if rt, ok := h.Runtime.(*docker.Runtime); ok {
-		running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
-	}
-	var fw *firewall.Firewall
-	for _, g := range h.Gates {
-		if f, ok := g.(*firewall.Firewall); ok {
-			fw = f
-		}
-	}
-	if fw == nil {
-		return errors.New("pockethost: the edge needs a firewall section (allowed peers, trusted proxies)")
-	}
 	deployAPI := deploy.New(deploy.Options{
 		Backend: source.DeployBackend(),
 		Instances: func() deploy.Instances {
@@ -149,9 +139,57 @@ func edgeServeConfig(configPath, envPath string) error {
 		PlatformPaths: edge.PlatformPaths,
 		IsRemote:      source.IsRemote,
 	})
+	dp.RemoteAuth = deployAPI.ContractAuth // remote/v1 for docker instances: the owner's PocketHost token, as for deploys
+
+	// host extensions, in order: servertiming first (http.wrap/v1, outermost: its header includes the edge's hops),
+	// then the one runtime this edge runs (runtime/v1); the firewall links itself (gate/v1)
+	exts := []multisite.Extension{servertiming.New()}
+	if provider == "docker" {
+		exts = append(exts, dp)
+	} else {
+		exts = append(exts, pp)
+	}
+	h, err := multisite.FromConfig(multisite.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log, Extensions: exts})
+	if err != nil {
+		return err
+	}
+	for _, r := range h.Runtimes {
+		if rt, ok := r.(*docker.Runtime); ok {
+			running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
+		}
+	}
+	// PocketOne's contracts for every instance this edge runs, so `pocketone remote ...` and `pocketone deploy`
+	// work against PocketHost: deploy/v1 is the deploy API (also at /_ph/deploy/v1 for the npm CLI); remote/v1 is
+	// docker's on docker edges (status, restart, logs), and pocker's Manager here. Both take the owner's PocketHost
+	// token or login.
+	prev := h.Scope.Registering("pockethost")
+	deployv1.Contract.ProvideForInstances(h.Scope, func(string) http.Handler { return deployAPI })
+	h.InstanceRoutes = append(h.InstanceRoutes, func(next http.Handler) http.Handler {
+		return extkit.HostRoutes(h.Scope, deployv1.Contract, multisite.InstanceID, next)
+	})
+	if provider == "pocker" {
+		remotev1.Contract.ProvideForInstances(h.Scope, edge.PockerRemote(func() *pocker.Manager {
+			if b := running.Load(); b != nil {
+				m, _ := b.i.(*pocker.Manager)
+				return m
+			}
+			return nil
+		}, h.Scope))
+		h.InstanceRoutes = append(h.InstanceRoutes, func(next http.Handler) http.Handler {
+			return remotev1.W.HostHandler(h.Scope, multisite.InstanceID, deployAPI.ContractAuth, next)
+		})
+	}
+	h.Scope.Registering(prev)
+	var fw *firewall.Firewall
+	for _, g := range h.Gates {
+		if f, ok := g.(*firewall.Firewall); ok {
+			fw = f
+		}
+	}
+	if fw == nil {
+		return errors.New("pockethost: the edge needs a firewall section (allowed peers, trusted proxies)")
+	}
 	ready := func() bool { i := current(); return i != nil && i.Ready() } // LB health is 503 until instances load
-	st := servertiming.New()
-	h.Wrappers = append([]func(http.Handler) http.Handler{st.Wrap}, h.Wrappers...) // outermost: its header includes the edge's hops
 	h.Wrappers = append(h.Wrappers, func(next http.Handler) http.Handler {
 		return source.Front(fw, ready, poweredBy, edge.NodeCompat(edgeStats.Middleware(deployAPI.Wrap(next))))
 	})

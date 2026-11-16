@@ -43,12 +43,12 @@ server:
   plain: [":8080"]                  # WireGuard: other edges forward here (internal_url)
   tls: { cert: /etc/pockethost-origin/cert.pem, key: /etc/pockethost-origin/key.pem }
 
-provider: pocker                    # or docker
+multisite: {}                       # this is a multisite host; the runtime is pocker, or docker with a docker section
 
 pocker:
   root: /root/.pockethost/data/instances
 
-# docker:                           # with provider: docker
+# docker:                           # instead of pocker: run each instance in a container
 #   socket: /var/run/docker.sock
 #   image: alpine:3.20              # base image; the instance's release binary is mounted in
 #   binaries: /root/.pockethost/pocketbase   # release cache (pockethost docker seed)
@@ -108,6 +108,18 @@ starts it again if it was running, so the CLI sees `startError` from a broken ho
 Differences from the Node edge: an oversized body gets a JSON 413; a symlink in the code set says "remove it and
 redeploy" (no SFTP). Requests for an instance on another edge are forwarded there. The deploy API and `/logs` sit
 behind the edge's peer check (`Source.Front`) but not its rate limits.
+
+**PocketOne's contracts.** The edge also answers the `pocketone` command for every instance it runs, through
+PocketOne's [contracts](https://pocketone.dev/docs/contracts), after its gates:
+
+- `deploy/v1` at `/api/_c/deploy/v1/` is this same API (check, blobs, commit, files, and `tree` for `pocketone dev`),
+  so `pocketone deploy`, `dev` and `pull` work against PocketHost.
+- `remote/v1` at `/api/_c/remote/v1/`: whoami (public; lists both contracts), status, restart and logs, from
+  pocker's Manager or the docker runtime.
+
+Both take the instance owner's PocketHost token or login, checked as for a deploy (`deploy.API.ContractAuth`): a
+write token may restart, a read-only token may read. Log in with `pocketone login <instance URL>` and paste a
+PocketHost token.
 
 Tests: `go test ./deploy/` includes `TestCLICompat`, which runs the `pockethost` CLI's own deploy and files code under
 bun against this API (needs bun and a pockethost checkout; `POCKETHOST_CLI_DIR`, default `/root/pockethost/packages/cli`),
