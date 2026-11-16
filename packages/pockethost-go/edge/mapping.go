@@ -41,7 +41,10 @@ type instanceRec struct {
 	Version    string          `json:"version"`
 	Webhooks   json.RawMessage `json:"webhooks"`
 	AutoVacuum *bool           `json:"autoVacuum"`
-	Updated    string          `json:"updated"`
+	// DuplicateOf and DuplicateStatus: a copy of another instance, and whether its files are copied yet (duplicate.go).
+	DuplicateOf     string `json:"duplicateOf"`
+	DuplicateStatus string `json:"duplicateStatus"`
+	Updated         string `json:"updated"`
 }
 
 type edgeRec struct {
@@ -213,6 +216,10 @@ func mapInstance(cfg Config, inst instanceRec, owner *userRec, myEdge string, ow
 	case owner.SubscriptionQuantity == 0:
 		p.Blocked = &pocker.Blocked{Status: http.StatusPaymentRequired,
 			Message: fmt.Sprintf("Instances will not run until you <a href=%s/access>upgrade</a>", cfg.AppURL)}
+	case inst.DuplicateStatus == duplicateCopying:
+		p.Blocked = &pocker.Blocked{Status: http.StatusServiceUnavailable, Message: fmt.Sprintf("%s is still being copied.", host)}
+	case inst.DuplicateStatus == duplicateFailed:
+		p.Blocked = &pocker.Blocked{Status: http.StatusServiceUnavailable, Message: fmt.Sprintf("%s could not be copied. Delete it and duplicate again.", host)}
 	case !inst.Power:
 		p.Blocked = &pocker.Blocked{Status: http.StatusServiceUnavailable,
 			Message: fmt.Sprintf("%s is powered off. See %s/power", host, cfg.DocURL)}

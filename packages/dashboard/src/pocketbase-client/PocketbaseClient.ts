@@ -140,6 +140,10 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     UpdateInstancePayloadSchema
   )
 
+  /** Copies a powered-off instance into a new one on the latest PocketBase version (POST /api/instance/{id}/duplicate). */
+  const duplicateInstance = (id: InstanceId, subdomain: string): Promise<CreateInstanceResult> =>
+    client.send(`/api/instance/${encodeURIComponent(id)}/duplicate`, { method: 'POST', body: { subdomain } })
+
   const deleteInstance = mkRest<DeleteInstancePayload, DeleteInstanceResult>(
     RestCommands.Instance,
     RestMethods.Delete,
@@ -303,6 +307,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     getAllInstancesById,
     resendVerificationEmail,
     updateInstance,
+    duplicateInstance,
     deleteInstance,
     getTrustedIps,
     updateTrustedIps,
