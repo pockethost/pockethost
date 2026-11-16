@@ -25,6 +25,8 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.2 (2026-11-16)
+
 ### Upgrading
 
 1. In each edge's `pocketone.yaml`, replace the `provider: pocker` or `provider: docker` line with `multisite: {}`. The edge's `pocker:` or `docker:` section picks the runtime; the old key now stops the edge from starting.
