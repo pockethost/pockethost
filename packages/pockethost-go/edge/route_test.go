@@ -19,6 +19,7 @@ import (
 	firewall "github.com/pockethost/pocketone/ext/firewall"
 
 	"github.com/pockethost/pocketone/ext/pocker"
+	"github.com/pockethost/pocketone/ext/standard"
 )
 
 type listSource []pocker.Instance
@@ -299,7 +300,7 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}},
 	})
 	s.diffLocked(context.Background(), nil)
-	m := pocker.NewManager(listSource{{ID: "mine1", Hosts: []string{"shop.pockethost.io"}}, {ID: "optout", Hosts: []string{"o.pockethost.io"}}}, pocker.ManagerOptions{PBRoot: root, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	m := pocker.NewManager(listSource{{ID: "mine1", Hosts: []string{"shop.pockethost.io"}}, {ID: "optout", Hosts: []string{"o.pockethost.io"}}}, pocker.ManagerOptions{Standard: standard.New(), PBRoot: root, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go m.Run(ctx)

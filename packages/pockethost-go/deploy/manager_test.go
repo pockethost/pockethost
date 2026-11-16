@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pockethost/pocketone/ext/pocker"
+	"github.com/pockethost/pocketone/ext/standard"
 )
 
 // TestWithPockerManager deploys to a real PocketBase app run by Pocker: hooks change after a restart, a broken hook is
@@ -25,7 +26,7 @@ func TestWithPockerManager(t *testing.T) {
 		t.Fatal(err)
 	}
 	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
-	mgr := pocker.NewManager(&pocker.YAMLSource{Path: yaml, Required: true}, pocker.ManagerOptions{PBRoot: pbRoot, Logger: quiet})
+	mgr := pocker.NewManager(&pocker.YAMLSource{Path: yaml, Required: true}, pocker.ManagerOptions{Standard: standard.New(), PBRoot: pbRoot, Logger: quiet})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go mgr.Run(ctx)

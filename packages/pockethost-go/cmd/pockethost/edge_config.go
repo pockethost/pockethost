@@ -21,11 +21,9 @@ import (
 	"github.com/pockethost/pocketone/ext/extkit"
 	"github.com/pockethost/pocketone/ext/firewall"
 	"github.com/pockethost/pocketone/ext/multisite"
-	"github.com/pockethost/pocketone/ext/pages"
-	"github.com/pockethost/pocketone/ext/pitr"
 	"github.com/pockethost/pocketone/ext/pocker"
 	"github.com/pockethost/pocketone/ext/servertiming"
-	"github.com/pockethost/pocketone/ext/settings"
+	"github.com/pockethost/pocketone/ext/standard"
 	"github.com/pockethost/pocketone/ext/stats"
 )
 
@@ -94,11 +92,9 @@ func edgeServeConfig(configPath, envPath string) error {
 		root = cfg.ResolvePath(sc.Root)
 	}
 	pp := &pocker.Provider{
-		Extensions: []pocker.Extension{
-			pitr.New(pitr.Config{}),   // point-in-time restore for every instance (restore/v1)
-			settings.New(),            // settings/v1: pitr's own-bucket setting on Settings → Backups
-			pages.New(pages.Config{}), // PocketPages v1 when an instance has pb_pages
-		},
+		// every instance gets PocketOne's standard extensions: tokens with OAuth sign-in, MCP, PocketPages, PITR,
+		// settings and the rest (the host's own deploy/v1 and remote/v1 answer for them, see Host below)
+		Standard: standard.New(),
 		SetupApp: edge.Setup(ecfg),
 		OnStart:  func(m *pocker.Manager) { running.Store(&instancesBox{m}) },
 		Resolve:  cfg.ResolvePath,

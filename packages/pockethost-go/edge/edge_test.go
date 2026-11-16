@@ -25,6 +25,7 @@ import (
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pocketone/ext/pocker"
 	"github.com/pockethost/pocketone/ext/servertiming"
+	"github.com/pockethost/pocketone/ext/standard"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -291,7 +292,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	}
 	var running atomic.Pointer[pocker.Manager]
 	fw := &firewall.Firewall{}
-	srv := &pocker.Server{Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
+	srv := &pocker.Server{Standard: standard.New(), Config: pcfg, Source: source, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
 		Gates: []pocker.Gate{fw}, Extensions: []pocker.Extension{servertiming.New()},
 		Wrap: func(h http.Handler) http.Handler {
 			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, PoweredBy, NodeCompat(stats.Middleware(h)))
@@ -341,6 +342,15 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 		}
 	}
 	waitFor("server", func() bool { c, _ := call("GET", "shop.pockethost.io", "/api/health", "", nil); return c == 200 })
+
+	// every instance has the standard extensions: MCP and its OAuth sign-in, on the instance's public origin
+	if c, b := call("GET", "shop.pockethost.io", "/.well-known/oauth-protected-resource/mcp", "", map[string]string{"X-Forwarded-Proto": "https"}); c != 200 ||
+		!strings.Contains(b, `"resource":"https://shop.pockethost.io/mcp"`) || !strings.Contains(b, `"authorization_servers":["https://shop.pockethost.io"]`) {
+		t.Fatalf("MCP metadata on an instance: %d %s", c, b)
+	}
+	if c, _ := call("POST", "shop.pockethost.io", "/mcp", `{"jsonrpc":"2.0","id":1,"method":"ping"}`, nil); c != 401 {
+		t.Fatalf("/mcp without a token: want 401, got %d", c)
+	}
 
 	// own instance: hooks folder, secrets, platform routes, admin sync, CORS from PH_CORS_ORIGINS
 	if c, b := call("GET", "mine1.pockethost.io", "/api/health", "", nil); c != 200 {
