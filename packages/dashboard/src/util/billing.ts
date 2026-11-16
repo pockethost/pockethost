@@ -1,6 +1,7 @@
 /**
  * Billing, in one place. Every billing call in the dashboard goes through here, never to the provider directly, so a
- * later provider change (e.g. Stripe Managed Payments) stays inside this module. Today the provider is Lemon Squeezy.
+ * provider change stays inside this module. The mothership picks the provider per checkout: Lemon Squeezy (an overlay
+ * on our page) or Stripe Managed Payments (Stripe's hosted checkout page).
  */
 import { cancelLemonSqueezyMembership, createLemonSqueezyCheckout } from './lemonsqueezy'
 export {
@@ -79,13 +80,19 @@ const embedUrl = (url: string) => {
 }
 
 /**
- * Start checkout for a plan. Opens the checkout as an overlay on our page when Lemon.js loads, and goes to `nextPath`
- * when the payment goes through; otherwise sends the browser to the hosted checkout page. Logged out, the payment
- * creates the account: the claim token is kept for /claim.
+ * Start checkout for a plan. Stripe: sends the browser to Stripe's checkout page. Lemon Squeezy: opens the checkout as
+ * an overlay on our page when Lemon.js loads, and goes to `nextPath` when the payment goes through; otherwise sends the
+ * browser to the hosted checkout page. Logged out, the payment creates the account: the claim token is kept for
+ * /claim.
  */
 export const startCheckout = async (pvId: string, nextPath: string) => {
-  const { url, claim } = await createLemonSqueezyCheckout(pvId)
+  const { url, claim, provider } = await createLemonSqueezyCheckout(pvId)
   if (claim) saveClaim(claim)
+  // Stripe: its own checkout page, which returns to the success URL the mothership set (same as `nextPath`).
+  if (provider === 'stripe') {
+    window.location.href = url
+    return
+  }
   const ls = await loadLemonJs()
   if (!ls) {
     window.location.href = url
