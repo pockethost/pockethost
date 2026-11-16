@@ -2,6 +2,9 @@ name: Publish Dashboard to Cloudflare Pages
 
 on:
   push:
+    # Branches only: a pushed tag (a pockethost binary release) would otherwise deploy a Pages preview named after the
+    # tag, since GitHub ignores path filters for tag pushes. Releases announce themselves in release-notify.yaml.
+    branches: ['**']
     paths:
       - .github/workflows/publish-dashboard.yaml
       - packages/dashboard/**

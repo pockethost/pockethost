@@ -1,0 +1,26 @@
+name: Announce release on Discord
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Discord
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          NAME: ${{ github.event.release.name || github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name }}
+          URL: ${{ github.event.release.html_url }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          set -euo pipefail
+          kind="RELEASE"
+          if [ "$PRERELEASE" = "true" ]; then kind="PRERELEASE"; fi
+          msg="**POCKETHOST ${kind}** [${NAME}](${URL})
+          Upgrade: \`brew upgrade pockethost\`"
+          jq -n --arg content "$msg" '{content: $content}' |
+            curl -fsS -m 15 -H 'Content-Type: application/json' -d @- "$DISCORD_WEBHOOK"
