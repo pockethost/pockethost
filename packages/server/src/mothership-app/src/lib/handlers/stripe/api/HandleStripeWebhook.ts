@@ -262,12 +262,17 @@ export const HandleStripeWebhook = (e: core.RequestEvent) => {
     }
 
     const notify = mkNotifier(log, $app)
-    if (isNewPurchase) {
-      notify(`lemonbot`, `lemon_order_discord`, userRec.id, context)
-    } else if (event.type === `customer.subscription.updated` && item.status === `cancelled`) {
-      notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context)
-    } else if (event.type === `charge.refunded`) {
-      notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context)
+    // Discord notices are best effort: billing is already saved, and failing here would make Stripe resend the event.
+    try {
+      if (isNewPurchase) {
+        notify(`lemonbot`, `lemon_order_discord`, userRec.id, context)
+      } else if (event.type === `customer.subscription.updated` && item.status === `cancelled`) {
+        notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context)
+      } else if (event.type === `charge.refunded`) {
+        notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context)
+      }
+    } catch (err) {
+      log(`discord notice failed`, `${err}`)
     }
 
     // Loyalty "thanks for buying" email, once per purchase (Stripe may resend the event).
