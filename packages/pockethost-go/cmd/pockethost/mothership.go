@@ -11,11 +11,11 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase"
 	"ganigeorgiev.com/pocketbase/pocketbase/apis"
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
-	"ganigeorgiev.com/pocketbase/pocketbase/plugins/jsvm"
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
-	"github.com/pockethost/pocketone/ext/jsembed"
+	"github.com/pockethost/pocketone/ext/bundle"
+	"github.com/pockethost/pocketone/ext/jsvm"
 )
 
 // mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin
@@ -67,7 +67,7 @@ func mothership(args []string) {
 	}
 	jsvm.MustRegister(app, jsvm.Config{
 		HooksPoolSize: hooksPool,
-		Extensions:    []jsvm.Extension{jsembed.Hooks(hooks), jsembed.Migrations(mothershipapp.Migrations())},
+		Extensions:    []any{bundle.Hooks(hooks), bundle.Migrations(mothershipapp.Migrations())},
 	})
 
 	// `migrate up/down/history-sync` as before. Automigrate stays off: collection edits in the admin must not write

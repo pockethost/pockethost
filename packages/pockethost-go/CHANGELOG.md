@@ -25,6 +25,23 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.4 (2026-11-16)
+
+### Upgrading
+
+1. `pockethost` reads `P1_TOKEN`, `P1_TOKEN_<REMOTE>` and `P1_CONFIG_DIR` now, no longer `POCKETHOST_TOKEN`: rename them in CI and scripts that run this binary. The npm `pockethost` CLI is unchanged.
+2. `pockethost login` and `link` no longer take a password (`--email`, `--password`): sign in through the browser (`--device` on a machine without one), or pass an API token with `--token`, `--token-stdin` or `P1_TOKEN`. A browser login made before this release can't renew once the remote is upgraded: log in again when it expires.
+
+### Changed
+
+- **edge:** every Pocker instance's JS (hooks, routes, migrations) runs on QuickJS instead of goja. Hook files now share one global scope, handlers can be `async`, and each instance's JS has a hard 64 MiB memory cap.
+- **mothership:** its embedded JS app runs on the same QuickJS engine.
+- A request with an unknown or expired `Authorization` token now gets a 401 instead of going on as a guest (PocketBase v0.42).
+
+### PocketOne
+
+- Built on [PocketOne v0.0.1-alpha.6](https://github.com/pockethost/pocketone/releases/tag/v0.0.1-alpha.6) (PocketBase v0.42.2).
+
 ## v5.0.0-alpha.3 (2026-11-16)
 
 ### Added
