@@ -1,10 +1,13 @@
 import { isBillingItemActive } from '$common/billing/billingItems'
+import { billingItemFromStripeSubscription } from '$common/billing/stripe'
 import { mkLog } from '$util/Logger'
 import { mkAudit } from '$util/mkAudit'
+import { stripeCancelSubscription } from '../../stripe/lib/stripeApi'
 import {
   ensureUserBootstrapped,
   loadBillingItemRecords,
   reconcileUser,
+  upsertBillingItem,
   upsertLsSubscription,
 } from '../lib/billingStore'
 import { lsCancelSubscription } from '../lib/lsApi'
@@ -16,7 +19,7 @@ const CANCELABLE_SKUS = [`hosting.slot.recurring.month`, `hosting.slot.recurring
  *
  * Body (optional): `{ "itemId": "<billing_items id>" }` cancels one subscription. Without it, every active monthly
  * subscription on the account is cancelled — users can hold several (e.g. PayPal subscriptions that could not change
- * quantity), and "cancel membership" means all of them.
+ * quantity), and "cancel membership" means all of them. Covers Lemon Squeezy and Stripe subscriptions alike.
  */
 export const HandleLemonSqueezyCancel = (e: core.RequestEvent) => {
   const log = mkLog(`ls-cancel`)
@@ -43,7 +46,7 @@ export const HandleLemonSqueezyCancel = (e: core.RequestEvent) => {
     const targets = loadBillingItemRecords($app, userRec.id).filter((rec) => {
       if (itemId && rec.id !== itemId) return false
       return (
-        rec.getString(`provider`) === `lemonsqueezy` &&
+        [`lemonsqueezy`, `stripe`].includes(rec.getString(`provider`)) &&
         rec.getString(`kind`) === `subscription` &&
         CANCELABLE_SKUS.includes(rec.getString(`sku`)) &&
         // Already-cancelled subscriptions are still "active" until ends_at; don't cancel them twice.
@@ -59,6 +62,13 @@ export const HandleLemonSqueezyCancel = (e: core.RequestEvent) => {
     const cancelled: { itemId: string; subscriptionId: string; endsAt: string | null }[] = []
     for (const rec of targets) {
       const subscriptionId = rec.getString(`external_id`)
+      if (rec.getString(`provider`) === `stripe`) {
+        const sub = stripeCancelSubscription(subscriptionId)
+        const item = billingItemFromStripeSubscription(sub)
+        if (item) upsertBillingItem($app, userRec.id, item, { providerData: sub })
+        cancelled.push({ itemId: rec.id, subscriptionId, endsAt: item?.ends_at || null })
+        continue
+      }
       const sub = lsCancelSubscription(subscriptionId)
       upsertLsSubscription($app, userRec.id, sub)
       cancelled.push({ itemId: rec.id, subscriptionId, endsAt: (sub.attributes as any)?.ends_at || null })

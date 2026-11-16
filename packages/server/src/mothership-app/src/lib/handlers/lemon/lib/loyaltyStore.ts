@@ -61,8 +61,9 @@ export const syncLoyalty = (
 }
 
 /**
- * Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
- * plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
+ * Users the loyalty backfill looks at: anyone with a Lemon Squeezy or Stripe lifetime, annual or monthly per-instance
+ * purchase, plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is
+ * stable.
  */
 export const loyaltyCandidateUserIds = (app: core.App): string[] => {
   const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `)
@@ -70,7 +71,7 @@ export const loyaltyCandidateUserIds = (app: core.App): string[] => {
   app
     .db()
     .newQuery(
-      `SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
+      `SELECT DISTINCT user FROM billing_items WHERE provider IN ('lemonsqueezy', 'stripe') AND sku IN (${skus})
        UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
        ORDER BY user`
     )

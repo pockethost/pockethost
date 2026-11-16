@@ -5,6 +5,8 @@ type AuditEvents =
   | 'NOTIFICATION_ERR'
   | 'LS'
   | 'LS_ERR'
+  | 'STRIPE'
+  | 'STRIPE_ERR'
   | 'CLAIM'
   | 'PBOUNCE'
   | 'PBOUNCE_ERR'

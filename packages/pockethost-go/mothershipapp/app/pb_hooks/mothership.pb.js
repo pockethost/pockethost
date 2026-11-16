@@ -302,6 +302,18 @@ cronAdd("public-stats", "0 * * * *", () => {
 });
 
 //#endregion
+//#region src/lib/handlers/stripe/hooks.ts
+routerAdd("POST", "/api/billing/checkout", (e) => {
+	return require(`${__hooks}/mothership`).HandleBillingCheckout(e);
+});
+routerAdd("POST", "/api/billing/cancel", (e) => {
+	return require(`${__hooks}/mothership`).HandleLemonSqueezyCancel(e);
+}, $apis.requireAuth());
+routerAdd("POST", "/api/stripe/webhook", (e) => {
+	return require(`${__hooks}/mothership`).HandleStripeWebhook(e);
+});
+
+//#endregion
 //#region src/lib/handlers/user/hooks.ts
 routerAdd("GET", "/api/userToken/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTokenRequest(e);

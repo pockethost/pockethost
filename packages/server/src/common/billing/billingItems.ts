@@ -12,12 +12,15 @@ import type { ProductSku } from './types'
  * JSVM-safe: plain data + sync functions only.
  */
 export type BillingItemKind = 'subscription' | 'order' | 'manual'
-export type BillingItemProvider = 'lemonsqueezy' | 'manual'
+export type BillingItemProvider = 'lemonsqueezy' | 'stripe' | 'manual'
 
 export type BillingItem = {
   provider: BillingItemProvider
   kind: BillingItemKind
-  /** LS subscription id / LS order id / free-form id for manual grants. */
+  /**
+   * LS subscription id / LS order id / Stripe subscription id / Stripe PaymentIntent id / free-form id for manual
+   * grants.
+   */
   external_id: string
   sku: ProductSku
   quantity: number

@@ -12,6 +12,7 @@ import {
   LEGACY_PRO_ANNUAL_PV_ID,
   LEGACY_PRO_MONTHLY_PV_ID,
 } from '../lemonSqueezy'
+import { isKnownSku } from './productCatalog'
 import type { BillingProvider, ProductSku } from './types'
 
 /**
@@ -35,5 +36,11 @@ const SKU_BY_PROVIDER_KEY: Record<string, ProductSku> = {
 
 export const providerKey = (provider: BillingProvider, externalId: string) => `${provider}:${externalId}`
 
-export const resolveProviderSku = (provider: BillingProvider, externalId: string): ProductSku | undefined =>
-  SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)]
+/**
+ * Stripe needs no table: a Stripe price's `lookup_key` is the SKU itself (common/billing/stripe.ts), so `externalId`
+ * for Stripe is the lookup key.
+ */
+export const resolveProviderSku = (provider: BillingProvider, externalId: string): ProductSku | undefined => {
+  if (provider === 'stripe') return isKnownSku(externalId) ? externalId : undefined
+  return SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)]
+}

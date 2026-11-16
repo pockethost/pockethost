@@ -3163,17 +3163,19 @@ const SKU_BY_PROVIDER_KEY = {
 	[`lemonsqueezy:${LEGACY_FLOUNDER_ANNUAL_PV_ID}`]: "hosting.legacy.flounder.year"
 };
 const providerKey = (provider, externalId) => `${provider}:${externalId}`;
-const resolveProviderSku = (provider, externalId) => SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)];
+/**
+* Stripe needs no table: a Stripe price's `lookup_key` is the SKU itself (common/billing/stripe.ts), so `externalId`
+* for Stripe is the lookup key.
+*/
+const resolveProviderSku = (provider, externalId) => {
+	if (provider === "stripe") return isKnownSku(externalId) ? externalId : void 0;
+	return SKU_BY_PROVIDER_KEY[providerKey(provider, externalId)];
+};
 
 //#endregion
 //#region ../common/billing/entitlementFromPvId.ts
-/**
-* Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
-* Returns undefined for unmapped pv_ids so callers can reject unknown products.
-*/
-const entitlementFromPvId = (pvId, quantity) => {
-	const sku = resolveProviderSku("lemonsqueezy", pvId);
-	if (!sku) return void 0;
+/** The entitlement one purchase of `sku` grants at checkout `quantity`. */
+const entitlementFromSku = (sku, quantity) => {
 	const template = PRODUCT_CATALOG[sku];
 	const resolvedQuantity = template.quantityFromCheckout ? quantity : template.fixedQuantity ?? 0;
 	return {
@@ -3183,6 +3185,15 @@ const entitlementFromPvId = (pvId, quantity) => {
 		subscription_quantity: resolvedQuantity,
 		subscription_status: template.statusWhenActive
 	};
+};
+/**
+* Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
+* Returns undefined for unmapped pv_ids so callers can reject unknown products.
+*/
+const entitlementFromPvId = (pvId, quantity) => {
+	const sku = resolveProviderSku("lemonsqueezy", pvId);
+	if (!sku) return void 0;
+	return entitlementFromSku(sku, quantity);
 };
 
 //#endregion
@@ -3706,11 +3717,16 @@ const lsCancelSubscription = (subscriptionId) => lsRequest(`DELETE`, `/subscript
 const COLLECTION = `billing_items`;
 /** PB stores dates as `2026-12-01 00:00:00.000Z`; normalize to ISO so Goja's Date parses it. */
 const isoOrUndefined = (value) => value ? value.replace(" ", "T") : void 0;
-/** LS `created_at` from the stored provider payload (subscriptions and orders keep their LS attributes there). */
+/**
+* When the purchase started, from the stored provider payload: LS `created_at` (subscriptions and orders keep their LS
+* attributes there), or Stripe's `created` (unix seconds) on a stored Stripe object.
+*/
 const storedCreatedAt = (rec) => {
 	try {
-		const v = JSON.parse(rec.getString(`provider_data`) || `null`)?.created_at;
-		return v ? `${v}` : void 0;
+		const data = JSON.parse(rec.getString(`provider_data`) || `null`);
+		if (data?.created_at) return `${data.created_at}`;
+		if (typeof data?.created === `number` && data.created > 0) return (/* @__PURE__ */ new Date(data.created * 1e3)).toISOString();
+		return;
 	} catch {
 		return;
 	}
@@ -3808,7 +3824,7 @@ const upsertLsSubscription = (app, userId, sub) => {
 	};
 };
 /** Pull every LS subscription + lifetime order for the user's email and upsert them. */
-const lc$2 = (s) => `${s ?? ""}`.trim().toLowerCase();
+const lc$3 = (s) => `${s ?? ""}`.trim().toLowerCase();
 const readBillingLinks = (userRec) => {
 	try {
 		return JSON.parse(userRec.getString(`billing_links`) || `null`) || {};
@@ -3819,7 +3835,7 @@ const readBillingLinks = (userRec) => {
 /** Every email this user has bought under on Lemon Squeezy: the account email plus recorded alternates. */
 const lsEmailsFor = (userRec) => {
 	const alt = readBillingLinks(userRec)?.lemonsqueezy?.emails || [];
-	return [...new Set([lc$2(userRec.getString(`email`)), ...alt.map(lc$2)])].filter(Boolean);
+	return [...new Set([lc$3(userRec.getString(`email`)), ...alt.map(lc$3)])].filter(Boolean);
 };
 /**
 * Record LS checkout emails that differ from the account email. Only call with emails tied to this user by checkout
@@ -3827,11 +3843,11 @@ const lsEmailsFor = (userRec) => {
 */
 const rememberLsEmails = (app, userRec, emails) => {
 	const known = lsEmailsFor(userRec);
-	const add = emails.map(lc$2).filter((e) => e && !known.includes(e));
+	const add = emails.map(lc$3).filter((e) => e && !known.includes(e));
 	if (!add.length) return false;
 	const links = readBillingLinks(userRec);
 	links.lemonsqueezy = links.lemonsqueezy || {};
-	links.lemonsqueezy.emails = [...new Set([...(links.lemonsqueezy.emails || []).map(lc$2), ...add])];
+	links.lemonsqueezy.emails = [...new Set([...(links.lemonsqueezy.emails || []).map(lc$3), ...add])];
 	userRec.set(`billing_links`, links);
 	app.saveNoValidate(userRec);
 	return true;
@@ -3922,6 +3938,7 @@ const reconcileUser = (app, userRec, items = loadBillingItems(app, userRec.id)) 
 	const entitlement = reconcileEntitlement(items, /* @__PURE__ */ new Date());
 	applyEntitlement(userRec, entitlement);
 	if (items.some((i) => i.provider === `lemonsqueezy`)) userRec.set(`billing_provider`, `lemonsqueezy`);
+	else if (items.some((i) => i.provider === `stripe`)) userRec.set(`billing_provider`, `stripe`);
 	app.saveNoValidate(userRec);
 	return {
 		before,
@@ -3971,13 +3988,14 @@ const syncLoyalty = (app, userId, options = {}) => {
 	};
 };
 /**
-* Users the loyalty backfill looks at: anyone with a Lemon Squeezy lifetime, annual or monthly per-instance purchase,
-* plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is stable.
+* Users the loyalty backfill looks at: anyone with a Lemon Squeezy or Stripe lifetime, annual or monthly per-instance
+* purchase, plus anyone who already has a loyalty grant (so stale ones get cleared). Sorted by id so `offset` paging is
+* stable.
 */
 const loyaltyCandidateUserIds = (app) => {
 	const skus = [...LOYALTY_UPFRONT_SKUS, ...LOYALTY_MONTHLY_SKUS].map((s) => `'${s}'`).join(`, `);
 	const rows = arrayOf(new DynamicModel({ user: "" }));
-	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider = 'lemonsqueezy' AND sku IN (${skus})
+	app.db().newQuery(`SELECT DISTINCT user FROM billing_items WHERE provider IN ('lemonsqueezy', 'stripe') AND sku IN (${skus})
        UNION SELECT DISTINCT user FROM bonus_grants WHERE source = 'loyalty'
        ORDER BY user`).all(rows);
 	return rows.map((r) => `${r.user}`).filter(Boolean);
@@ -3986,7 +4004,7 @@ const loyaltyCandidateUserIds = (app) => {
 //#endregion
 //#region src/lib/handlers/lemon/lib/accountClaimStore.ts
 /** The site the claim and login links point at (the dashboard, not the mothership API). */
-const SITE$1 = `https://pockethost.io`;
+const SITE$2 = `https://pockethost.io`;
 const claimSecret = () => `${process.env.LS_WEBHOOK_SECRET || ""}`;
 const nowSeconds = () => Math.floor(Date.now() / 1e3);
 const hashClaimToken = (token) => $security.sha256(token);
@@ -4076,15 +4094,15 @@ const sendTemplateEmail = (app, to, slug, vars, log) => {
 const sendClaimEmail = (app, userRec, billingEmail, log) => {
 	const t = emailClaimToken($security.hs256, claimSecret(), userRec.id, nowSeconds());
 	sendTemplateEmail(app, billingEmail, `account_claim`, {
-		CLAIM_URL: `${SITE$1}/claim?t=${encodeURIComponent(t)}`,
-		LOGIN_URL: `${SITE$1}/login`
+		CLAIM_URL: `${SITE$2}/claim?t=${encodeURIComponent(t)}`,
+		LOGIN_URL: `${SITE$2}/login`
 	}, log);
 };
 /** A guest checkout landed on an existing account (matched by email). */
 const sendPurchaseAddedEmail = (app, userRec, billingEmail, log) => {
 	sendTemplateEmail(app, billingEmail, `account_purchase_added`, {
 		ACCOUNT_EMAIL: maskEmail(userRec.getString(`email`)),
-		LOGIN_URL: `${SITE$1}/login`
+		LOGIN_URL: `${SITE$2}/login`
 	}, log);
 };
 /** What the claim page may know about an account behind a token. Only an open claim reveals the email. */
@@ -4211,6 +4229,198 @@ const HandleClaimAttach = (e) => {
 };
 
 //#endregion
+//#region ../common/billing/stripe.ts
+/**
+* Stripe (Managed Payments) billing, the pure part. JSVM-safe: plain data + sync functions only.
+*
+* A Stripe price's `lookup_key` is the internal SKU it sells (e.g. `hosting.slot.recurring.month`), so no Stripe ids
+* live in code: checkout finds the price by lookup key, and webhooks read the SKU back off the price. The same code
+* then works against a Stripe sandbox and the live account.
+*/
+/** Stripe API version every request pins. Managed Payments on Checkout Sessions needs 2025-03-31.basil or later. */
+const STRIPE_API_VERSION = "2026-04-22.dahlia";
+/** SKUs sold through Stripe checkout. */
+const STRIPE_CHECKOUT_SKUS = [
+	"hosting.slot.recurring.month",
+	"hosting.slot.recurring.year",
+	"hosting.slot.lifetime"
+];
+const isStripeCheckoutSku = (sku) => !!sku && STRIPE_CHECKOUT_SKUS.includes(sku);
+/** The SKU a Stripe price sells, from its lookup key. Undefined for prices we don't know. */
+const skuFromStripePrice = (price) => {
+	const key = `${price?.lookup_key || ""}`;
+	return isKnownSku(key) ? key : void 0;
+};
+const iso = (unix) => typeof unix === "number" && unix > 0 ? (/* @__PURE__ */ new Date(unix * 1e3)).toISOString() : void 0;
+const productName = (price) => typeof price?.product === "object" && price.product ? price.product.name || "" : "";
+/**
+* Stripe subscription status in the vocabulary billing items already use (Lemon Squeezy's), so entitlement, loyalty and
+* cancel logic work unchanged: a subscription set to end is `cancelled` until `ends_at`, as on Lemon Squeezy.
+*/
+const stripeSubscriptionStatus = (sub) => {
+	switch (sub.status) {
+		case "active": return sub.cancel_at_period_end || sub.cancel_at ? "cancelled" : "active";
+		case "trialing": return sub.cancel_at_period_end || sub.cancel_at ? "cancelled" : "on_trial";
+		case "past_due": return "past_due";
+		case "canceled":
+		case "incomplete_expired": return "expired";
+		default: return sub.status || "unknown";
+	}
+};
+/** Map a Stripe subscription to a billing item. Undefined when its price isn't one of ours. */
+const billingItemFromStripeSubscription = (sub) => {
+	const item = sub.items?.data?.find((i) => skuFromStripePrice(i.price));
+	const sku = skuFromStripePrice(item?.price);
+	if (!item || !sku) return void 0;
+	const entitlement = entitlementFromSku(sku, item.quantity || 1);
+	const status = stripeSubscriptionStatus(sub);
+	const periodEnd = item.current_period_end ?? sub.current_period_end;
+	const endsAt = status === "cancelled" ? iso(sub.cancel_at ?? periodEnd) : status === "expired" ? iso(sub.ended_at) : void 0;
+	return {
+		provider: "stripe",
+		kind: "subscription",
+		external_id: sub.id,
+		sku,
+		quantity: entitlement.subscription_quantity,
+		status,
+		starts_at: iso(sub.created),
+		ends_at: endsAt,
+		renews_at: status === "active" || status === "on_trial" ? iso(periodEnd) : void 0,
+		variant_id: item.price?.id || "",
+		product_name: productName(item.price),
+		variant_name: item.price?.nickname || ""
+	};
+};
+/**
+* A one-time (lifetime) purchase as a billing item, keyed by its PaymentIntent so refunds (which name the
+* PaymentIntent) find it. Undefined when no line item is a lifetime price of ours.
+*/
+const billingItemFromStripePayment = (p) => {
+	const line = p.lineItems.find((l) => {
+		const sku = skuFromStripePrice(l.price);
+		return !!sku && sku === "hosting.slot.lifetime";
+	});
+	const sku = skuFromStripePrice(line?.price);
+	if (!line || !sku) return void 0;
+	const entitlement = entitlementFromSku(sku, line.quantity || 1);
+	return {
+		provider: "stripe",
+		kind: "order",
+		external_id: p.paymentIntentId,
+		sku,
+		quantity: entitlement.subscription_quantity,
+		status: p.status || "paid",
+		starts_at: iso(p.created),
+		variant_id: line.price?.id || "",
+		product_name: productName(line.price ?? void 0),
+		variant_name: line.price?.nickname || ""
+	};
+};
+/** Order status after a refund on its charge. */
+const stripeRefundStatus = (charge) => charge.refunded || charge.amount && charge.amount_refunded && charge.amount_refunded >= charge.amount ? "refunded" : "partial_refund";
+/**
+* The subscription an invoice belongs to. API versions from basil on moved it to `parent.subscription_details`; older
+* ones have `subscription`.
+*/
+const invoiceSubscriptionId = (invoice) => {
+	const v = invoice?.parent?.subscription_details?.subscription ?? invoice?.subscription;
+	if (!v) return void 0;
+	return typeof v === "string" ? v : v.id;
+};
+/** Encode params the way Stripe's form API wants them: `a[b][0][c]=v`. Undefined and null are left out. */
+const stripeForm = (params) => {
+	const parts = [];
+	const walk = (prefix, value) => {
+		if (value === void 0 || value === null) return;
+		if (Array.isArray(value)) {
+			value.forEach((v, i) => walk(`${prefix}[${i}]`, v));
+			return;
+		}
+		if (typeof value === "object") {
+			for (const [k, v] of Object.entries(value)) walk(`${prefix}[${k}]`, v);
+			return;
+		}
+		parts.push(`${encodeURIComponent(prefix)}=${encodeURIComponent(`${value}`)}`);
+	};
+	for (const [k, v] of Object.entries(params)) walk(k, v);
+	return parts.join("&");
+};
+/** Webhook signatures older than this are rejected (Stripe's own default). */
+const STRIPE_SIGNATURE_TOLERANCE_SECONDS = 300;
+/**
+* Check a `Stripe-Signature` header (`t=<unix>,v1=<hex>[,v1=...]`) against the raw body. `hs256(data, secret)` returns
+* the hex HMAC-SHA256 (PocketBase's `$security.hs256`), `equal` compares in constant time.
+*/
+const verifyStripeSignature = (p) => {
+	if (!p.header || !p.secret) return false;
+	let t = "";
+	const v1 = [];
+	for (const part of p.header.split(",")) {
+		const [k, ...rest] = part.trim().split("=");
+		const v = rest.join("=");
+		if (k === "t") t = v;
+		else if (k === "v1" && v) v1.push(v);
+	}
+	const ts = Number(t);
+	if (!t || !Number.isFinite(ts) || !v1.length) return false;
+	if (Math.abs(p.nowSeconds - ts) > 300) return false;
+	const expected = p.hs256(`${t}.${p.raw}`, p.secret);
+	return v1.some((sig) => p.equal(expected, sig));
+};
+
+//#endregion
+//#region src/lib/handlers/stripe/lib/stripeApi.ts
+/** Overridable for local testing against a mock; production uses the real API. */
+const STRIPE_API = process.env.STRIPE_API_BASE || `https://api.stripe.com/v1`;
+const stripeSecretKey = () => {
+	const key = process.env.STRIPE_SECRET_KEY || $os.getenv(`STRIPE_SECRET_KEY`);
+	if (!key) throw new BadRequestError(`Stripe is not configured (set STRIPE_SECRET_KEY on mothership)`);
+	return key;
+};
+/** One Stripe API call. GET params go in the query string, POST params as a form body. */
+const stripeRequest = (method, path, params = {}) => {
+	const form = stripeForm(params);
+	const url = `${STRIPE_API}${path}${method === "GET" && form ? `${path.includes("?") ? "&" : "?"}${form}` : ""}`;
+	const res = $http.send({
+		url,
+		method,
+		headers: {
+			Authorization: `Bearer ${stripeSecretKey()}`,
+			"Stripe-Version": STRIPE_API_VERSION,
+			"Content-Type": `application/x-www-form-urlencoded`
+		},
+		body: method === "GET" ? "" : form,
+		timeout: 30
+	});
+	if (res.statusCode < 200 || res.statusCode >= 300) {
+		const detail = res.json?.error?.message || JSON.stringify(res.json);
+		throw new BadRequestError(`Stripe ${method} ${path} failed (${res.statusCode}): ${detail}`);
+	}
+	return res.json;
+};
+/** The active price for a SKU (its lookup key), with its product. */
+const stripePriceForSku = (sku) => {
+	const price = stripeRequest(`GET`, `/prices`, {
+		lookup_keys: [sku],
+		active: true,
+		expand: [`data.product`]
+	})?.data?.[0];
+	if (!price) throw new BadRequestError(`No active Stripe price with lookup key ${sku}`);
+	return price;
+};
+/** A subscription with each item's price and product, as billing items need it. */
+const stripeSubscription = (id) => stripeRequest(`GET`, `/subscriptions/${encodeURIComponent(id)}`, { expand: [`items.data.price.product`] });
+const stripeCheckoutLineItems = (sessionId) => stripeRequest(`GET`, `/checkout/sessions/${encodeURIComponent(sessionId)}/line_items`, {
+	limit: 100,
+	expand: [`data.price.product`]
+})?.data || [];
+/** Cancel at period end (the customer keeps access until then). Returns the updated subscription. */
+const stripeCancelSubscription = (id) => {
+	stripeRequest(`POST`, `/subscriptions/${encodeURIComponent(id)}`, { cancel_at_period_end: true });
+	return stripeSubscription(id);
+};
+
+//#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezyCancel.ts
 const CANCELABLE_SKUS = [`hosting.slot.recurring.month`, `hosting.slot.recurring.month.legacy`];
 /**
@@ -4218,7 +4428,7 @@ const CANCELABLE_SKUS = [`hosting.slot.recurring.month`, `hosting.slot.recurring
 *
 * Body (optional): `{ "itemId": "<billing_items id>" }` cancels one subscription. Without it, every active monthly
 * subscription on the account is cancelled — users can hold several (e.g. PayPal subscriptions that could not change
-* quantity), and "cancel membership" means all of them.
+* quantity), and "cancel membership" means all of them. Covers Lemon Squeezy and Stripe subscriptions alike.
 */
 const HandleLemonSqueezyCancel = (e) => {
 	const log = mkLog(`ls-cancel`);
@@ -4238,7 +4448,7 @@ const HandleLemonSqueezyCancel = (e) => {
 		const now = /* @__PURE__ */ new Date();
 		const targets = loadBillingItemRecords($app, userRec.id).filter((rec) => {
 			if (itemId && rec.id !== itemId) return false;
-			return rec.getString(`provider`) === `lemonsqueezy` && rec.getString(`kind`) === `subscription` && CANCELABLE_SKUS.includes(rec.getString(`sku`)) && rec.getString(`status`) !== `cancelled` && isBillingItemActive({
+			return [`lemonsqueezy`, `stripe`].includes(rec.getString(`provider`)) && rec.getString(`kind`) === `subscription` && CANCELABLE_SKUS.includes(rec.getString(`sku`)) && rec.getString(`status`) !== `cancelled` && isBillingItemActive({
 				kind: `subscription`,
 				status: rec.getString(`status`)
 			}, now);
@@ -4247,6 +4457,17 @@ const HandleLemonSqueezyCancel = (e) => {
 		const cancelled = [];
 		for (const rec of targets) {
 			const subscriptionId = rec.getString(`external_id`);
+			if (rec.getString(`provider`) === `stripe`) {
+				const sub = stripeCancelSubscription(subscriptionId);
+				const item = billingItemFromStripeSubscription(sub);
+				if (item) upsertBillingItem($app, userRec.id, item, { providerData: sub });
+				cancelled.push({
+					itemId: rec.id,
+					subscriptionId,
+					endsAt: item?.ends_at || null
+				});
+				continue;
+			}
 			const sub = lsCancelSubscription(subscriptionId);
 			upsertLsSubscription($app, userRec.id, sub);
 			cancelled.push({
@@ -4276,8 +4497,8 @@ const HandleLemonSqueezyCancel = (e) => {
 
 //#endregion
 //#region src/lib/handlers/lemon/api/HandleLemonSqueezyCheckout.ts
-const SITE = `https://pockethost.io`;
-const ALNUM = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`;
+const SITE$1 = `https://pockethost.io`;
+const ALNUM$1 = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`;
 const HandleLemonSqueezyCheckout = (e) => {
 	const log = mkLog(`ls-checkout`);
 	try {
@@ -4295,12 +4516,12 @@ const HandleLemonSqueezyCheckout = (e) => {
 		if (!pvId) throw new BadRequestError(`pvId is required`);
 		const variantId = lemonSqueezyVariantId(pvId);
 		if (!variantId) throw new BadRequestError(`Unknown plan: ${pvId}`);
-		const claim = authRecord ? `` : $security.randomStringWithAlphabet(40, ALNUM);
+		const claim = authRecord ? `` : $security.randomStringWithAlphabet(40, ALNUM$1);
 		const checkoutData = authRecord ? {
 			email: authRecord.get(`email`),
 			custom: { user_id: authRecord.id }
 		} : { custom: { claim } };
-		const redirectUrl = authRecord ? `${SITE}/dashboard?paid=1` : `${SITE}/claim`;
+		const redirectUrl = authRecord ? `${SITE$1}/dashboard?paid=1` : `${SITE$1}/claim`;
 		const res = $http.send({
 			url: `https://api.lemonsqueezy.com/v1/checkouts`,
 			method: `POST`,
@@ -4349,7 +4570,7 @@ const HandleLemonSqueezyCheckout = (e) => {
 //#endregion
 //#region ../common/billing/lsClaims.ts
 const str = (v) => `${v ?? ""}`.trim();
-const lc$1 = (v) => str(v).toLowerCase();
+const lc$2 = (v) => str(v).toLowerCase();
 const lsResourceKey = (kind, id) => str(id) ? `${kind}:${str(id)}` : void 0;
 /** Key for a billing item, or undefined when it is not a Lemon Squeezy row. */
 const lsResourceKeyOfItem = (item) => {
@@ -4379,7 +4600,7 @@ const lsClaimsFromAudit = (contexts) => {
 		if (!c || typeof c !== "object" || c.user_id_source === "email") continue;
 		const userId = str(c.data?.meta?.custom_data?.user_id);
 		if (!userId) continue;
-		const email = lc$1(c.data?.data?.attributes?.user_email);
+		const email = lc$2(c.data?.data?.attributes?.user_email);
 		if (email) (emails[userId] = emails[userId] || {})[email] = true;
 		const key = lsResourceKeyOfWebhookData(c.data?.data);
 		if (!key || conflicted[key]) continue;
@@ -4441,7 +4662,7 @@ const listAll = (path) => {
 	return out;
 };
 const keyOf = (i) => `${i.provider}:${i.kind}:${i.external_id}`;
-const lc = (s) => `${s ?? ""}`.trim().toLowerCase();
+const lc$1 = (s) => `${s ?? ""}`.trim().toLowerCase();
 const PRESERVE_PREFIX = `preserve:`;
 const isPreserve = (i) => i.kind === `manual` && i.external_id.startsWith(PRESERVE_PREFIX);
 const userFields = (rec) => ({
@@ -4517,7 +4738,7 @@ const runReconcile = (opts = {}) => {
 	const idFetchErrors = [];
 	let lsSubscriptionsSeen = 0;
 	const push = (email, found) => {
-		const k = lc(email);
+		const k = lc$1(email);
 		(byEmail[k] = byEmail[k] || []).push(found);
 		const resourceKey = lsResourceKeyOfItem(found.item);
 		if (resourceKey) byKey[resourceKey] = found;
@@ -4621,7 +4842,7 @@ const runReconcile = (opts = {}) => {
 	let usersWithAltEmails = 0;
 	for (const userRec of Object.values(users)) try {
 		const uid = userRec.id;
-		const email = lc(userRec.getString(`email`));
+		const email = lc$1(userRec.getString(`email`));
 		const emails = emailsOf(userRec);
 		const altEmails = emails.filter((em) => em !== email);
 		if (altEmails.length) usersWithAltEmails++;
@@ -4648,7 +4869,7 @@ const runReconcile = (opts = {}) => {
 			const fresh = byKey[key];
 			if (fresh) {
 				merged[keyOf(fresh.item)] = fresh;
-				const lsEmail = lc(fresh.providerData?.user_email);
+				const lsEmail = lc$1(fresh.providerData?.user_email);
 				if (lsEmail) rememberEmails.push(lsEmail);
 				continue;
 			}
@@ -4803,7 +5024,7 @@ const runReconcile = (opts = {}) => {
 		const items = [...loadBillingItems($app, id).filter((i) => !leaving.includes(lsResourceKeyOfItem(i) || ``)), ...arriving];
 		affectedOutsideRun.push({
 			user_id: id,
-			email: lc(rec.getString(`email`)),
+			email: lc$1(rec.getString(`email`)),
 			before: rec.getInt(`subscription_quantity`),
 			after: reconcileEntitlement(items, now).subscription_quantity
 		});
@@ -7940,6 +8161,288 @@ const HandleStatsRefreshAtBoot = (_e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/stripe/api/HandleBillingCheckout.ts
+const SITE = `https://pockethost.io`;
+const ALNUM = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`;
+/** `stripe` sends new checkouts to Stripe Managed Payments; anything else (or unset) keeps Lemon Squeezy. */
+const checkoutProvider = () => `${process.env.BILLING_CHECKOUT_PROVIDER || $os.getenv(`BILLING_CHECKOUT_PROVIDER`) || ""}`.trim().toLowerCase() === `stripe` ? `stripe` : `lemonsqueezy`;
+/**
+* An account that still has a live Lemon Squeezy subscription keeps buying on Lemon Squeezy until Lemon Squeezy's
+* migration moves it, so one account is never billed by both for recurring plans.
+*/
+const hasLiveLsSubscription = (userId) => {
+	const now = /* @__PURE__ */ new Date();
+	return loadBillingItems($app, userId).some((i) => i.provider === `lemonsqueezy` && i.kind === `subscription` && isBillingItemActive(i, now));
+};
+const readPvId = (e) => {
+	const data = new DynamicModel({ pvId: "" });
+	e.bindBody(data);
+	return `${JSON.parse(JSON.stringify(data)).pvId || ""}`.trim();
+};
+/**
+* Start a checkout. The dashboard sends the plan as its Lemon Squeezy pv_id (as before); this picks the provider. Lemon
+* Squeezy: the existing handler, response `{ url, claim? }`. Stripe: a Managed Payments Checkout Session, response `{
+* url, claim?, provider: 'stripe' }`, which the dashboard opens as a page (no overlay).
+*/
+const HandleBillingCheckout = (e) => {
+	const log = mkLog(`billing-checkout`);
+	const authRecord = e.auth;
+	if (checkoutProvider() !== `stripe` || authRecord && hasLiveLsSubscription(authRecord.id)) return HandleLemonSqueezyCheckout(e);
+	try {
+		const pvId = readPvId(e);
+		if (!pvId) throw new BadRequestError(`pvId is required`);
+		const sku = CHECKOUT_PV_IDS.includes(pvId) ? resolveProviderSku(`lemonsqueezy`, pvId) : void 0;
+		if (!isStripeCheckoutSku(sku)) throw new BadRequestError(`Unknown plan: ${pvId}`);
+		const price = stripePriceForSku(sku);
+		const recurring = sku !== `hosting.slot.lifetime`;
+		const claim = authRecord ? `` : $security.randomStringWithAlphabet(40, ALNUM);
+		const metadata = authRecord ? { user_id: authRecord.id } : { claim };
+		const session = stripeRequest(`POST`, `/checkout/sessions`, {
+			mode: recurring ? `subscription` : `payment`,
+			managed_payments: { enabled: true },
+			line_items: [{
+				price: price.id,
+				quantity: 1
+			}],
+			success_url: authRecord ? `${SITE}/dashboard?paid=1` : `${SITE}/claim`,
+			cancel_url: `${SITE}/pricing`,
+			client_reference_id: authRecord ? authRecord.id : void 0,
+			customer_email: authRecord ? authRecord.getString(`email`) : void 0,
+			metadata,
+			subscription_data: recurring ? { metadata } : void 0
+		});
+		if (!session?.url) throw new Error(`No checkout URL in Stripe response`);
+		log(`stripe checkout created`, authRecord ? authRecord.id : `guest`, sku, session.id);
+		return e.json(200, authRecord ? {
+			url: session.url,
+			provider: `stripe`
+		} : {
+			url: session.url,
+			claim,
+			provider: `stripe`
+		});
+	} catch (err) {
+		log(`${err}`);
+		throw err;
+	}
+};
+
+//#endregion
+//#region src/lib/handlers/stripe/api/HandleStripeWebhook.ts
+const lc = (s) => `${s ?? ""}`.trim().toLowerCase();
+const idOf = (v) => typeof v === "string" ? v : v?.id ? `${v.id}` : "";
+/**
+* Stripe (Managed Payments) webhook. Like the Lemon Squeezy one: each event updates the billing item it is about, then
+* the user's instance count is recomputed from all of their billing items. Subscriptions are always re-read from the
+* Stripe API, so events arriving out of order can't roll state back.
+*
+* Events: `checkout.session.completed` (a new purchase: finds or creates the account), `customer.subscription.*` and
+* `invoice.*` (renewals, failed payments, cancellations), `charge.refunded` (lifetime refunds).
+*/
+const HandleStripeWebhook = (e) => {
+	const log = mkLog(`stripe`);
+	const audit = mkAudit(log, $app);
+	const context = {};
+	try {
+		const secret = process.env.STRIPE_WEBHOOK_SECRET || $os.getenv(`STRIPE_WEBHOOK_SECRET`);
+		if (!secret) throw new Error(`No secret`);
+		const raw = readerToString(e.request.body);
+		if (!verifyStripeSignature({
+			header: e.request.header.get(`Stripe-Signature`),
+			raw,
+			secret,
+			nowSeconds: Math.floor(Date.now() / 1e3),
+			hs256: (data, key) => $security.hs256(data, key),
+			equal: (a, b) => $security.equal(a, b)
+		})) throw new BadRequestError(`Invalid signature`);
+		const event = JSON.parse(raw);
+		const obj = event.data?.object || {};
+		context.event_id = event.id;
+		context.event_name = event.type;
+		context.resource_id = idOf(obj);
+		log(`event`, event.type, event.id, context.resource_id);
+		/** What this event is about: a subscription to re-read, or a one-time payment. */
+		const target = (() => {
+			switch (event.type) {
+				case `checkout.session.completed`:
+				case `checkout.session.async_payment_succeeded`:
+					if (obj.payment_status !== `paid` && obj.payment_status !== `no_payment_required`) return void 0;
+					return obj.mode === `subscription` ? {
+						subscriptionId: idOf(obj.subscription),
+						session: obj
+					} : { session: obj };
+				case `customer.subscription.created`:
+				case `customer.subscription.updated`:
+				case `customer.subscription.deleted`:
+				case `customer.subscription.paused`:
+				case `customer.subscription.resumed`: return { subscriptionId: obj.id };
+				case `invoice.paid`:
+				case `invoice.payment_failed`: {
+					const subscriptionId = invoiceSubscriptionId(obj);
+					return subscriptionId ? { subscriptionId } : void 0;
+				}
+				case `charge.refunded`: return obj.payment_intent ? { refundCharge: obj } : void 0;
+				default: return;
+			}
+		})();
+		if (!target) {
+			audit(`STRIPE`, `Ignored ${event.type}.`, context);
+			return e.json(200, { status: `ignored` });
+		}
+		let item;
+		let providerData;
+		if (target.subscriptionId) {
+			const sub = stripeSubscription(target.subscriptionId);
+			item = billingItemFromStripeSubscription(sub);
+			if (!item) {
+				audit(`STRIPE`, `Ignored ${event.type}: subscription ${sub.id} has no SKU price.`, context);
+				return e.json(200, { status: `ignored` });
+			}
+			providerData = sub;
+		} else if (target.session) {
+			const paymentIntentId = idOf(target.session.payment_intent);
+			if (!paymentIntentId) throw new Error(`Checkout ${target.session.id} has no payment intent`);
+			item = billingItemFromStripePayment({
+				paymentIntentId,
+				created: target.session.created,
+				lineItems: stripeCheckoutLineItems(target.session.id)
+			});
+			if (!item) throw new Error(`No lifetime price on checkout ${target.session.id}`);
+			providerData = {
+				checkout_session: target.session.id,
+				payment_intent: paymentIntentId,
+				created: target.session.created
+			};
+		} else if (target.refundCharge) {
+			const known = findBillingItemRecord($app, {
+				provider: `stripe`,
+				kind: `order`,
+				external_id: idOf(target.refundCharge.payment_intent)
+			});
+			if (!known) {
+				audit(`STRIPE`, `Refund on a non-lifetime charge ${target.refundCharge.id}; nothing to update.`, context);
+				return e.json(200, { status: `ignored` });
+			}
+			try {
+				providerData = {
+					...JSON.parse(known.getString(`provider_data`) || `{}`),
+					refund_charge: target.refundCharge.id
+				};
+			} catch {}
+			item = {
+				provider: `stripe`,
+				kind: `order`,
+				external_id: known.getString(`external_id`),
+				sku: known.getString(`sku`),
+				quantity: known.getInt(`quantity`),
+				status: stripeRefundStatus(target.refundCharge),
+				variant_id: known.getString(`variant_id`),
+				product_name: known.getString(`product_name`),
+				variant_name: known.getString(`variant_name`)
+			};
+		}
+		if (!item) throw new Error(`Nothing to apply for ${event.type}`);
+		context.product_name = item.product_name;
+		context.variant_name = item.variant_name;
+		context.quantity = item.quantity;
+		const session = target.session;
+		const metadata = session?.metadata || providerData?.metadata || {};
+		const userRec = (() => {
+			const known = findBillingItemRecord($app, item);
+			if (known) {
+				context.user_id_source = `billing_item`;
+				return $app.findRecordById(`users`, known.getString(`user`));
+			}
+			if (metadata.user_id) {
+				context.user_id_source = `metadata`;
+				try {
+					return $app.findRecordById(`users`, metadata.user_id);
+				} catch {
+					throw new Error(`User ${metadata.user_id} not found`);
+				}
+			}
+			if (!session) return void 0;
+			const email = `${session.customer_details?.email || session.customer_email || ""}`.trim();
+			if (!email) throw new Error(`No user ID or checkout email on ${session.id}`);
+			for (const candidate of [...new Set([email, lc(email)])]) try {
+				const match = $app.findFirstRecordByData(`users`, `email`, candidate);
+				context.user_id_source = `email`;
+				return match;
+			} catch {}
+			if (!metadata.claim) throw new Error(`No PocketHost user for checkout email ${email}`);
+			const { user, created } = createBuyerAccount($app, email, metadata.claim, log);
+			context.user_id_source = created ? `create` : `email`;
+			context.account_created = created;
+			return user;
+		})();
+		if (!userRec) {
+			audit(`STRIPE`, `Skipped ${event.type}: ${context.resource_id} not tied to an account yet.`, context);
+			return e.json(200, { status: `ignored` });
+		}
+		context.user_id = userRec.id;
+		context.user_email = userRec.getString(`email`);
+		context.guest_checkout = !!metadata.claim;
+		ensureUserBootstrapped($app, userRec);
+		upsertBillingItem($app, userRec.id, item, { providerData });
+		const { before, after } = reconcileUser($app, userRec);
+		context.slots_before = before;
+		context.slots_after = after;
+		let loyalty;
+		try {
+			loyalty = syncLoyalty($app, userRec.id);
+			context.bonus_before = loyalty.before;
+			context.bonus_after = loyalty.bonus;
+		} catch (err) {
+			context.bonus_error = `${err}`;
+			log(`loyalty sync failed`, `${err}`);
+		}
+		const isNewPurchase = !!session;
+		const billingEmail = `${session?.customer_details?.email || ""}`.trim();
+		if (isNewPurchase) try {
+			if (context.account_created && billingEmail) sendClaimEmail($app, userRec, billingEmail, log);
+			else if (metadata.claim && context.user_id_source === `email` && billingEmail) {
+				if (userRec.getString(`claim_hash`) !== $security.sha256(`${metadata.claim}`)) {
+					rememberBrowserClaim($app, userRec, metadata.claim);
+					if (!userRec.getBool(`claim_open`)) sendPurchaseAddedEmail($app, userRec, billingEmail, log);
+				}
+			}
+		} catch (err) {
+			log(`claim email failed`, `${err}`);
+		}
+		const notify = mkNotifier(log, $app);
+		if (isNewPurchase) notify(`lemonbot`, `lemon_order_discord`, userRec.id, context);
+		else if (event.type === `customer.subscription.updated` && item.status === `cancelled`) notify(`lemonbot`, `lemon_cancel_discord`, userRec.id, context);
+		else if (event.type === `charge.refunded`) notify(`lemonbot`, `lemon_refund_discord`, userRec.id, context);
+		const sendLoyaltyEmail = (email) => {
+			if (!email) return;
+			try {
+				const tpl = $app.findFirstRecordByData(`message_templates`, `slug`, email.template);
+				if (!$app.findRecordsByFilter(`notifications`, `user = {:user} && message_template = {:tpl} && payload ~ {:ref}`, ``, 1, 0, {
+					user: userRec.id,
+					tpl: tpl.id,
+					ref: `"loyalty_ref":"${email.ref}"`
+				}).length) notify(`email`, email.template, userRec.id, {
+					...email.vars,
+					loyalty_ref: email.ref
+				});
+			} catch (err) {
+				log(`${email.template} email failed`, `${err}`);
+			}
+		};
+		if (loyalty && isNewPurchase) sendLoyaltyEmail(loyaltyPurchaseEmail(loyalty, item.sku, `stripe:${item.kind}:${item.external_id}`));
+		const bonusMsg = context.bonus_before !== void 0 && context.bonus_before !== context.bonus_after ? ` Loyalty bonus ${context.bonus_before} → ${context.bonus_after}.` : context.bonus_error ? ` Loyalty sync failed.` : ``;
+		audit(`STRIPE`, `${event.type}: slots ${before} → ${after}.${bonusMsg}`, context);
+		return e.json(200, { status: `ok` });
+	} catch (err) {
+		audit(`STRIPE_ERR`, `${err}`, context);
+		return e.json(500, {
+			status: `error`,
+			error: `${err}`
+		});
+	}
+};
+
+//#endregion
 //#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
 const HandleUserTokenRequest = (e) => {
 	mkLog(`user-token`);
@@ -8164,6 +8667,7 @@ exports.HandleApiTokenCreate = HandleApiTokenCreate;
 exports.HandleApiTokenUpdate = HandleApiTokenUpdate;
 exports.HandleArchiveDownload = HandleArchiveDownload;
 exports.HandleBackupDownload = HandleBackupDownload;
+exports.HandleBillingCheckout = HandleBillingCheckout;
 exports.HandleBulkMailCampaignAction = HandleBulkMailCampaignAction;
 exports.HandleBulkMailCampaignUpdateRequest = HandleBulkMailCampaignUpdateRequest;
 exports.HandleBulkMailCount = HandleBulkMailCount;
@@ -8208,6 +8712,7 @@ exports.HandleSignupCheck = HandleSignupCheck;
 exports.HandleSignupConfirm = HandleSignupConfirm;
 exports.HandleStatsRefreshAtBoot = HandleStatsRefreshAtBoot;
 exports.HandleStatsRequest = HandleStatsRequest;
+exports.HandleStripeWebhook = HandleStripeWebhook;
 exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserTrustedIpsGet = HandleUserTrustedIpsGet;
 exports.HandleUserTrustedIpsUpdate = HandleUserTrustedIpsUpdate;

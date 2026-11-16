@@ -15,14 +15,8 @@ export type AppliedEntitlement = {
   subscription_status: 'active' | 'grandfathered'
 }
 
-/**
- * Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
- * Returns undefined for unmapped pv_ids so callers can reject unknown products.
- */
-export const entitlementFromPvId = (pvId: string, quantity: number): AppliedEntitlement | undefined => {
-  const sku = resolveProviderSku('lemonsqueezy', pvId)
-  if (!sku) return undefined
-
+/** The entitlement one purchase of `sku` grants at checkout `quantity`. */
+export const entitlementFromSku = (sku: ProductSku, quantity: number): AppliedEntitlement => {
   const template = PRODUCT_CATALOG[sku]
   const resolvedQuantity = template.quantityFromCheckout ? quantity : (template.fixedQuantity ?? 0)
 
@@ -33,4 +27,14 @@ export const entitlementFromPvId = (pvId: string, quantity: number): AppliedEnti
     subscription_quantity: resolvedQuantity,
     subscription_status: template.statusWhenActive,
   }
+}
+
+/**
+ * Resolve a Lemon Squeezy pv_id (`{product_id}-{variant_id}`) + checkout quantity into the entitlement to apply.
+ * Returns undefined for unmapped pv_ids so callers can reject unknown products.
+ */
+export const entitlementFromPvId = (pvId: string, quantity: number): AppliedEntitlement | undefined => {
+  const sku = resolveProviderSku('lemonsqueezy', pvId)
+  if (!sku) return undefined
+  return entitlementFromSku(sku, quantity)
 }

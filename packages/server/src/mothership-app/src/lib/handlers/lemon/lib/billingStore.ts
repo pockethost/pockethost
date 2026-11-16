@@ -16,11 +16,16 @@ const COLLECTION = `billing_items`
 /** PB stores dates as `2026-12-01 00:00:00.000Z`; normalize to ISO so Goja's Date parses it. */
 const isoOrUndefined = (value: string) => (value ? value.replace(' ', 'T') : undefined)
 
-/** LS `created_at` from the stored provider payload (subscriptions and orders keep their LS attributes there). */
+/**
+ * When the purchase started, from the stored provider payload: LS `created_at` (subscriptions and orders keep their LS
+ * attributes there), or Stripe's `created` (unix seconds) on a stored Stripe object.
+ */
 const storedCreatedAt = (rec: core.Record) => {
   try {
-    const v = JSON.parse(rec.getString(`provider_data`) || `null`)?.created_at
-    return v ? `${v}` : undefined
+    const data = JSON.parse(rec.getString(`provider_data`) || `null`)
+    if (data?.created_at) return `${data.created_at}`
+    if (typeof data?.created === `number` && data.created > 0) return new Date(data.created * 1000).toISOString()
+    return undefined
   } catch {
     return undefined
   }
@@ -264,8 +269,11 @@ export const reconcileUser = (app: core.App, userRec: core.Record, items = loadB
   const before = userRec.getInt(`subscription_quantity`)
   const entitlement = reconcileEntitlement(items, new Date())
   applyEntitlement(userRec, entitlement)
+  // Lemon Squeezy wins while an account has any: its subscriptions still renew there until they migrate.
   if (items.some((i) => i.provider === `lemonsqueezy`)) {
     userRec.set(`billing_provider`, `lemonsqueezy`)
+  } else if (items.some((i) => i.provider === `stripe`)) {
+    userRec.set(`billing_provider`, `stripe`)
   }
   // Only billing fields change here; skip full-record validation so a legacy row with e.g. an invalid email
   // can still have its entitlement corrected.
