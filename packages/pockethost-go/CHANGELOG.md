@@ -25,6 +25,18 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Upgrading
+
+1. In each edge's `pocketone.yaml`, replace the `provider: pocker` or `provider: docker` line with `multisite: {}`. The edge's `pocker:` or `docker:` section picks the runtime; the old key now stops the edge from starting.
+
+### Added
+
+- **pocketone command:** `pocketone deploy`, `dev`, `pull` and `pocketone remote whoami | status | restart | logs` work against PocketHost instances, with a PocketHost token (`pocketone login <instance URL>`, then paste the token). The edge answers PocketOne's `deploy/v1` and `remote/v1` for every instance it runs; the npm `pockethost` CLI keeps working as before.
+
+### PocketOne
+
+- Built on PocketOne main `1dc2b95c` (extension contracts): instances also get the `settings` extension, so PITR's own-bucket setting on Settings → Backups keeps working.
+
 ## v5.0.0-alpha.1 (2026-11-15)
 
 The first versioned release of the `pockethost` binary. Its numbers continue past the npm `pockethost` CLI (4.x), which it will replace.
