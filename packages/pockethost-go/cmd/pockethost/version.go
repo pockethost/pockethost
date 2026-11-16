@@ -13,7 +13,7 @@ import (
 var Version = "dev"
 
 // upstreamModule is PocketBase's module path, which PocketOne keeps; go.mod requires it at the upstream version
-// PocketOne is built on (v0.41.1) and replaces it with PocketOne.
+// PocketOne is built on (v0.42.2 since PocketOne v0.0.1-alpha.6) and replaces it with PocketOne.
 const upstreamModule = "ganigeorgiev.com/pocketbase/pocketbase"
 
 // versionString is what `pockethost version` and `pockethost --version` print:

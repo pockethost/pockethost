@@ -3,7 +3,7 @@ module github.com/pockethost/pockethost/packages/pockethost-go
 go 1.27
 
 require (
-	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
+	ganigeorgiev.com/pocketbase/pocketbase v0.42.2
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/pockethost/pocketone/ext/bundle v0.0.0-20261116155940-81d427f1249d
 	github.com/pockethost/pocketone/ext/config v0.0.0-20261116155940-81d427f1249d
