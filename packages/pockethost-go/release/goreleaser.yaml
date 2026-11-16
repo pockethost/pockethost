@@ -84,8 +84,8 @@ release:
 
     ## What's in this release
 
-# The Homebrew formula in pockethost/homebrew-tap. goreleaser skips it for a draft release, so after publishing,
-# update Formula/pockethost.rb by hand (version, urls, sha256 from checksums.txt), as for PocketOne.
+# The Homebrew formula in pockethost/homebrew-tap. goreleaser pushes it even for a draft release (checked on
+# v5.0.0-alpha.1), so the formula's urls 404 until the draft is published.
 brews:
   - name: pockethost
     ids: [pockethost]

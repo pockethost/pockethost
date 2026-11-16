@@ -156,8 +156,9 @@ PocketOne release is followed by a PocketHost release that pins it, and PocketHo
 - `release/release.sh vX.Y.Z` (from the repo root) tags, pushes the tag and runs goreleaser
   ([release/goreleaser.yaml](release/goreleaser.yaml)), leaving a draft GitHub release with zips for Linux and macOS.
   `release/release.sh --snapshot` builds the same zips locally into `.builds/` without tagging.
-- After publishing, update `Formula/pockethost.rb` in
-  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap) (goreleaser skips it for drafts).
+- goreleaser also pushes `Formula/pockethost.rb` to
+  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap), even for a draft, so `brew install` fails
+  (404) until the draft is published. Publish soon after cutting.
 
 ## Rollout
 
