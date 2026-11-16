@@ -4,6 +4,7 @@
 //	pockethost edge check [--config pocketone.yaml] [--env-file .env]
 //	pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]
 //	pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (mothership.go)
+//	pockethost version   (also --version, -v: this release, and the PocketOne and PocketBase it's built on)
 //
 // An edge runs from pocketone.yaml: a runtime provider (pocker or docker), the firewall, and the `pockethost` section
 // (this edge, the mothership login); instances come from PocketHost's mothership mirror, the edge heartbeats and
@@ -26,7 +27,8 @@ const usage = `usage:
   pockethost edge serve [--config pocketone.yaml] [--env-file .env]
   pockethost edge check [--config pocketone.yaml] [--env-file .env]
   pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]
-  pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (see mothership.go)`
+  pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (see mothership.go)
+  pockethost version`
 
 func main() {
 	args := os.Args[1:]
@@ -35,6 +37,9 @@ func main() {
 		os.Exit(2)
 	}
 	switch args[0] {
+	case "version", "--version", "-v":
+		fmt.Println(versionString())
+		return
 	case "docker":
 		if err := dockerCmd(args[1:]); err != nil {
 			fmt.Fprintln(os.Stderr, "pockethost:", err)

@@ -1,3 +1,4 @@
 /pockethost
 /pb_root/
 *.test
+/.builds/

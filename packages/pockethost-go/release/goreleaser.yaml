@@ -1,0 +1,108 @@
+# PocketHost's release config. Don't run goreleaser directly: release.sh passes the tags, the PocketOne version and
+# the notes (see CHANGELOG.md for the whole release process).
+#
+#   packages/pockethost-go/release/release.sh v5.0.0-alpha.1
+#   packages/pockethost-go/release/release.sh --snapshot
+#
+version: 2
+
+project_name: pockethost
+
+dist: packages/pockethost-go/.builds
+
+before:
+  hooks:
+    - go -C packages/pockethost-go mod tidy
+
+builds:
+  - id: pockethost
+    dir: packages/pockethost-go
+    main: ./cmd/pockethost
+    binary: pockethost
+    flags:
+      - -trimpath
+    ldflags:
+      # this release, and the PocketOne release go.mod pins (empty when the pin is a commit between releases; then
+      # `pockethost version` names the commit)
+      - -s -w -X main.Version={{ .Version }} -X ganigeorgiev.com/pocketbase/pocketbase.Version={{ .Env.POCKETONE_VERSION }}
+    env:
+      - CGO_ENABLED=0
+    # no Windows yet: the edge's vacuum check uses syscall.Statfs (Unix only); add it with a build tag when end-user
+    # commands need Windows
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: pockethost
+    ids: [pockethost]
+    formats: [zip]
+    files:
+      - src: packages/pockethost-go/CHANGELOG.md
+        dst: CHANGELOG.md
+      - src: LICENSE*
+        dst: .
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  # release.sh --snapshot builds on the newest v5+ tag (v5.0.0-alpha.0 before the first): 5.0.0-alpha.0-next
+  version_template: '{{ .Version }}-next'
+
+release:
+  github:
+    owner: pockethost
+    name: pockethost
+  draft: true
+  # v5.0.0-alpha.1 has a prerelease part, so it's published as a GitHub prerelease and never "Latest"
+  prerelease: auto
+  name_template: 'PocketHost {{ .Tag }}'
+  header: |
+    ## Install or upgrade
+
+    **New install:**
+
+    ```bash
+    brew install pockethost/tap/pockethost
+    ```
+
+    Homebrew on macOS or Linux; the formula comes from [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap). Or download the zip for your platform below.
+
+    **Upgrade:**
+
+    ```bash
+    brew upgrade pockethost
+    ```
+
+    Or download the zip below. Check the **Upgrading** section below, if this release has one, before you upgrade.
+
+    **The npm `pockethost` CLI** also installs a `pockethost` command. If you have it (`npm ls -g pockethost`), whichever comes first on your PATH wins; the npm CLI still has commands this binary doesn't yet.
+
+    ## What's in this release
+
+# The Homebrew formula in pockethost/homebrew-tap. goreleaser skips it for a draft release, so after publishing,
+# update Formula/pockethost.rb by hand (version, urls, sha256 from checksums.txt), as for PocketOne.
+brews:
+  - name: pockethost
+    ids: [pockethost]
+    repository:
+      owner: pockethost
+      name: homebrew-tap
+    directory: Formula
+    homepage: https://pockethost.io
+    description: PocketHost, PocketBase hosting, built on PocketOne
+    license: MIT
+    commit_author:
+      name: PocketHost
+      email: noreply@pockethost.io
+    install: |
+      bin.install "pockethost"
+    test: |
+      system "#{bin}/pockethost", "version"
+
+# GitHub renders every newline in release notes as a line break: never hard-wrap the header above or CHANGELOG.md.
+# --release-notes (from release.sh) skips goreleaser's generated changelog.

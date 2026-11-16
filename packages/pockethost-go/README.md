@@ -145,6 +145,20 @@ CGO_ENABLED=0 go build -trimpath -o pockethost ./cmd/pockethost
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o pockethost ./cmd/pockethost   # for the servers
 ```
 
+## Releases
+
+`pockethost` has its own versions, starting at `v5.0.0-alpha.1` (above the npm `pockethost` CLI's 4.x, which it will
+replace). `pockethost version` prints this release and the PocketOne and PocketBase versions it's built on. Every
+PocketOne release is followed by a PocketHost release that pins it, and PocketHost can release in between.
+
+- [CHANGELOG.md](CHANGELOG.md): a line under `## Unreleased` for every user-visible change; its top says how to cut a
+  release.
+- `release/release.sh vX.Y.Z` (from the repo root) tags, pushes the tag and runs goreleaser
+  ([release/goreleaser.yaml](release/goreleaser.yaml)), leaving a draft GitHub release with zips for Linux and macOS.
+  `release/release.sh --snapshot` builds the same zips locally into `.builds/` without tagging.
+- After publishing, update `Formula/pockethost.rb` in
+  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap) (goreleaser skips it for drafts).
+
 ## Rollout
 
 Edges speak today's mothership protocol, so the mothership and sfo-2's Node edge never need to learn anything new;
