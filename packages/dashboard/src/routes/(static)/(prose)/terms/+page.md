@@ -2,7 +2,7 @@
 
 # Terms of Service
 
-**Last Modified Date: November 14, 2026**
+**Last Modified Date: November 16, 2026**
 
 Welcome to PocketHost! These Terms of Service ("Terms") govern your access to and use of PocketHost's services, so please read them carefully.
 
@@ -29,13 +29,16 @@ There are no age restrictions for using our services. However, by using PocketHo
 ### 4.1 Paid Membership Services
 
 - **Expanded Capacity and Access**: We offer paid membership services for users requiring expanded capacity and access.
-- **Payment Processing**: All payments are handled through third-party providers **Stripe** and **LemonSqueezy**.
+- **Who Sells to You**: Purchases are sold through **Link** (a Stripe company) or **Lemon Squeezy**, which act as the merchant of record. The merchant of record takes your payment, charges any sales tax or VAT, and sends your receipts. PocketHost provides the service you buy.
+- **On Your Statement**: Purchases made through Link appear on your card statement as `LINK.COM* POCKETHOST.IO`.
+- **Managing Your Subscription**: You can cancel from your PocketHost dashboard. For purchases made through Link, you can also manage your payment method, receipts and subscription at [link.com](https://link.com).
 - **Subscription Plans**: We offer both annual and monthly subscription plans with no additional fees.
 
 ### 4.2 Refund Policy
 
 - **No-Questions-Asked Refunds**: If you're not satisfied with our services, you may request a refund within **30 days** of purchase, and it will be granted without questions.
 - **Extended Refunds**: We may provide refunds beyond the 30-day window at our discretion. Our goal is to ensure customer satisfaction.
+- **How Refunds Are Paid**: Refunds go back to your original payment method through the merchant of record. For purchases made through Link, you can also ask Link for a refund directly, and Link may grant it under its own policy.
 
 ### 4.3 Loyalty Bonus Instances
 

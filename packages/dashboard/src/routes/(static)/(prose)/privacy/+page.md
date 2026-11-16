@@ -2,7 +2,7 @@
 
 # Privacy Policy
 
-**Last Updated: November 6, 2026**
+**Last Updated: November 16, 2026**
 
 At PocketHost, we are committed to protecting your privacy and ensuring the security of your data. This Privacy Policy outlines how we collect, use, and safeguard your information when you use our services.
 
@@ -24,11 +24,17 @@ PocketHost provides hosting services for PocketBase applications. By using our s
 
 - **Authorized Third Parties**: We may share your information with third-party service providers who are authorized to communicate on our behalf, solely for the purpose of providing our services to you.
 
-### 2.3 Aggregate Data
+### 2.3 Payments
+
+- **Merchant of Record**: When you buy a plan, you pay on a checkout page run by **Link** (a Stripe company) or **Lemon Squeezy**, which sell to you as the merchant of record. They collect your payment details, billing address and email to process the payment, calculate tax and prevent fraud. They handle that information under their own privacy policies: [Link](https://link.com/privacy), [Stripe](https://stripe.com/privacy) and [Lemon Squeezy](https://www.lemonsqueezy.com/privacy).
+
+- **What We Receive**: PocketHost never sees or stores your full card number. We receive your email address, what you bought, and the status of your subscription, so we can give your account its instances.
+
+### 2.4 Aggregate Data
 
 - **Public Statistics**: We may publish aggregate data such as user counts, instance counts, and other platform statistics. This information does not include any personally identifiable information and is used to inform the public about our platform's usage.
 
-### 2.4 Anonymized Troubleshooting
+### 2.5 Anonymized Troubleshooting
 
 - **Community Support**: Occasionally, we may discuss particular user behaviors on platforms like Discord for troubleshooting purposes. These discussions are always conducted anonymously to protect your identity.
 
