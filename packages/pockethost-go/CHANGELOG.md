@@ -25,13 +25,15 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.3 (2026-11-16)
+
 ### Added
 
 - **edge:** every Pocker instance gets PocketOne's standard extensions: API tokens with OAuth sign-in, MCP at `/mcp` (agents connect with `https://<instance host>/mcp`), PocketPages, PITR, settings, bulk mail and the rest. Before, instances got only PITR, settings and PocketPages. An instance can turn one off with `extensions.<name>.enabled: false`.
 
 ### PocketOne
 
-- Built on PocketOne `6b849393` (main after v0.0.1-alpha.3): Pocker requires the standard set, so no instance starts without it.
+- Built on [PocketOne v0.0.1-alpha.4](https://github.com/pockethost/pocketone/releases/tag/v0.0.1-alpha.4): Pocker requires the standard set, so no instance starts without it.
 
 ## v5.0.0-alpha.2 (2026-11-16)
 
