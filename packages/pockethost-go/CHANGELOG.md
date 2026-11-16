@@ -35,7 +35,7 @@ the two version numbers don't match.
 
 ### PocketOne
 
-- Built on PocketOne main `1dc2b95c` (extension contracts): instances also get the `settings` extension, so PITR's own-bucket setting on Settings → Backups keeps working.
+- Built on [PocketOne v0.0.1-alpha.3](https://github.com/pockethost/pocketone/releases/tag/v0.0.1-alpha.3) (PocketBase 0.41.1), with extension contracts: instances also get the `settings` extension, so PITR's own-bucket setting on Settings → Backups keeps working.
 
 ## v5.0.0-alpha.1 (2026-11-15)
 

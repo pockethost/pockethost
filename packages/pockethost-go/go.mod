@@ -5,20 +5,20 @@ go 1.27
 require (
 	ganigeorgiev.com/pocketbase/pocketbase v0.41.1
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/pockethost/pocketone/ext/config v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/contracts v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/docker v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/edge v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/extkit v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/firewall v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/jsembed v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/multisite v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/pages v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/pitr v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/pocker v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/servertiming v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/settings v0.0.0-20261116005422-1dc2b95c1e75
-	github.com/pockethost/pocketone/ext/stats v0.0.0-20261116005422-1dc2b95c1e75
+	github.com/pockethost/pocketone/ext/config v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/contracts v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/docker v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/edge v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/extkit v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/firewall v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/jsembed v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/multisite v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/pages v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/pitr v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/pocker v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/servertiming v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/settings v0.0.0-20261116012330-f1176a817fcb
+	github.com/pockethost/pocketone/ext/stats v0.0.0-20261116012330-f1176a817fcb
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.60.1
@@ -60,8 +60,8 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
-	github.com/pockethost/pocketone/ext/jserrors v0.0.0-20261116005422-1dc2b95c1e75 // indirect
-	github.com/pockethost/pocketone/ext/sandbox v0.0.0-20261116005422-1dc2b95c1e75 // indirect
+	github.com/pockethost/pocketone/ext/jserrors v0.0.0-20261116012330-f1176a817fcb // indirect
+	github.com/pockethost/pocketone/ext/sandbox v0.0.0-20261116012330-f1176a817fcb // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
@@ -87,4 +87,4 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone v0.0.1-alpha.2.0.20261116005422-1dc2b95c1e75
+replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone v0.0.1-alpha.3
