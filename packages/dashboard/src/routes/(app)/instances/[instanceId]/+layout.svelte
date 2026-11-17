@@ -62,6 +62,8 @@
   $: ({ id } = $instance || {})
   $: isShuttingDown = $instance ? isInstanceShuttingDown($instance) : false
   $: isFullyOff = $instance ? isInstanceFullyOff($instance) : false
+  $: copyStatus = $instance?.duplicateStatus || ''
+  $: isUnfinishedCopy = copyStatus === 'copying' || copyStatus === 'failed'
 
   const { updateInstance } = client()
 
@@ -136,6 +138,12 @@
               isActive: sectionActive('auto-vacuum'),
             },
             { href: `${base}/dev`, label: 'Dev Mode', icon: 'code', isActive: sectionActive('dev') },
+            {
+              href: `${base}/duplicate`,
+              label: 'Duplicate',
+              icon: 'copy',
+              isActive: sectionActive('duplicate'),
+            },
             { href: `${base}/rename`, label: 'Rename', icon: 'pen', isActive: sectionActive('rename') },
             {
               href: `${base}/delete`,
@@ -197,13 +205,23 @@
       <Toggle
         checked={$instance.power}
         loading={isShuttingDown}
-        disabled={isShuttingDown}
+        disabled={isShuttingDown || isUnfinishedCopy}
         onChange={handlePowerChange($instance.id)}
       />
     {/snippet}
 
     {#snippet alerts()}
-      {#if isShuttingDown}
+      {#if copyStatus === 'copying'}
+        <AlertBar
+          message="Copying files into this instance. You can power it on once the copy is ready. This page updates when it is done."
+          type="info"
+        />
+      {:else if copyStatus === 'failed'}
+        <AlertBar
+          message={`This copy failed${$instance.duplicateError ? `: ${$instance.duplicateError}` : ''}. Delete it and duplicate again.`}
+          type="error"
+        />
+      {:else if isShuttingDown}
         <AlertBar message="Shutting down instance. This usually takes a few seconds." type="warning" />
       {:else if isFullyOff}
         <AlertBar message="This instance is turned off and will not respond to requests." type="warning" />

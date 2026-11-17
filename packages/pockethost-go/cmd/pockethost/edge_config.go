@@ -200,6 +200,7 @@ func edgeServeConfig(configPath, envPath string) error {
 	}
 	vopts.DiscordURL = ph.DiscordHealthURL
 	h.Background = append(h.Background, func(ctx context.Context) { source.NewVacuumer(current, vopts).Run(ctx) })
+	h.Background = append(h.Background, func(ctx context.Context) { source.NewDuplicator(current).Run(ctx) })
 	// instance data: disk used and last request served, written to the mothership's instance_stats (ext/lifecycle)
 	lc := &stats.Lifecycle{Directory: h.Directory, Folder: func(i multisite.Instance) string {
 		if i.Dir != "" {

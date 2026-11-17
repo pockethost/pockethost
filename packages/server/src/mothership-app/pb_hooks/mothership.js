@@ -2608,6 +2608,82 @@ const HandleInstanceDelete = (e) => {
 };
 
 //#endregion
+//#region src/lib/handlers/instance/lib/duplicatePolicy.ts
+/** Why `source` can't be duplicated now, or null when it can. */
+const duplicateSourceError = (source) => {
+	if (source.suspension) return `This instance is suspended, so it can't be duplicated.`;
+	if (source.power || source.status.toLowerCase() !== "idle") return `Power this instance off first, so the copy is consistent.`;
+	if (source.duplicateStatus === "copying") return `This instance is still being copied. Try again when it's ready.`;
+	if (source.duplicateStatus === "failed") return `This instance's own copy failed, so it can't be duplicated.`;
+	if (!source.edge) return `This instance isn't placed on a server yet. Try again in a minute.`;
+	return null;
+};
+/** Why an instance with this `duplicateStatus` can't be powered on, or null when it can. */
+const duplicatePowerOnError = (duplicateStatus, duplicateError) => {
+	if (duplicateStatus === "copying") return `This copy is still being made. It can be powered on once it's ready.`;
+	if (duplicateStatus === "failed") return `This copy failed${duplicateError ? `: ${duplicateError}` : ""}. Delete it and duplicate again.`;
+	return null;
+};
+
+//#endregion
+//#region src/lib/handlers/instance/api/HandleInstanceDuplicate.ts
+/**
+* POST /api/instance/{id}/duplicate `{ subdomain }`. Makes a new, powered-off instance on the source's edge, on the
+* latest PocketBase version, with the source's settings. The edge then copies the source's files into it
+* (`duplicateStatus` goes from `copying` to `ready` or `failed`). The source must be off, so the copy is consistent and
+* its hooks never run in two places. Dashboard (JWT) or a token with write access to every instance.
+*/
+const HandleInstanceDuplicate = (e) => {
+	const log = mkLog(`POST:instance/duplicate`);
+	const sourceId = e.request.pathValue("id");
+	const caller = resolveInstanceCaller(e, { kind: "create" });
+	const source = findOwnedInstance(caller, sourceId);
+	let data = new DynamicModel({ subdomain: "" });
+	e.bindBody(data);
+	data = JSON.parse(JSON.stringify(data));
+	const subdomain = String(data.subdomain || "").trim().toLowerCase();
+	const sourceError = duplicateSourceError({
+		power: source.getBool("power"),
+		status: source.getString("status"),
+		suspension: source.getString("suspension"),
+		duplicateStatus: source.getString("duplicateStatus"),
+		edge: source.getString("edge")
+	});
+	if (sourceError) throw new BadRequestError(sourceError);
+	if (!subdomain) throw new BadRequestError(`Choose a name for the copy.`);
+	const nameError = instanceNameError(subdomain);
+	if (nameError) throw new BadRequestError(nameError);
+	if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
+	assertCanCreateInstance(caller.userId);
+	const version = listSelectableVersions()[0];
+	if (!version) throw new BadRequestError(`No PocketBase version is available right now.`);
+	const record = new Record($app.findCollectionByNameOrId("instances"));
+	record.set("uid", caller.userId);
+	record.set("subdomain", subdomain);
+	record.set("power", false);
+	record.set("status", "idle");
+	record.set("version", version);
+	record.set("edge", source.getString("edge"));
+	record.set("dev", source.getBool("dev"));
+	record.set("syncAdmin", source.getBool("syncAdmin"));
+	record.set("autoVacuum", source.getBool("autoVacuum"));
+	record.set("secrets", source.get("secrets"));
+	record.set("webhooks", source.get("webhooks"));
+	record.set("firewall", source.get("firewall"));
+	record.set("duplicateOf", source.id);
+	record.set("duplicateStatus", "copying");
+	record.set("duplicateError", "");
+	$app.save(record);
+	log(`duplicated`, JSON.stringify({
+		source: source.id,
+		copy: record.id,
+		subdomain,
+		version
+	}));
+	return e.json(200, { instance: record });
+};
+
+//#endregion
 //#region src/lib/handlers/instance/bootstrap/resetInstancesIdle.ts
 const resetInstancesIdle = (app) => {
 	const records = app.findRecordsByFilter(`instances`, `status != 'idle'`).filter((r) => !!r);
@@ -2709,7 +2785,11 @@ const HandleInstanceUpdate = (e) => {
 	if (subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncAdmin !== null && syncAdmin !== record.getBool("syncAdmin") || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged) {
 		if (record.getBool("power") || record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be powered off first.`);
 	}
-	if (power === true && !record.getBool("power")) assertCanPowerOn(caller.userId, id);
+	if (power === true && !record.getBool("power")) {
+		const copyError = duplicatePowerOnError(record.getString("duplicateStatus"), record.getString("duplicateError"));
+		if (copyError) throw new BadRequestError(copyError);
+		assertCanPowerOn(caller.userId, id);
+	}
 	const sanitized = removeEmptyKeys({
 		subdomain,
 		version,
@@ -8688,6 +8768,7 @@ exports.HandleCustomHostnamesSweep = HandleCustomHostnamesSweep;
 exports.HandleEdgeHeartbeat = HandleEdgeHeartbeat;
 exports.HandleInstanceCreate = HandleInstanceCreate;
 exports.HandleInstanceDelete = HandleInstanceDelete;
+exports.HandleInstanceDuplicate = HandleInstanceDuplicate;
 exports.HandleInstanceUpdate = HandleInstanceUpdate;
 exports.HandleInstancesResetIdle = HandleInstancesResetIdle;
 exports.HandleInstancesRuntimeReset = HandleInstancesRuntimeReset;

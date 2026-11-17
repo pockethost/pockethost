@@ -146,6 +146,9 @@ routerAdd("PUT", "/api/instance/{id}", (e) => {
 routerAdd("POST", "/api/instance", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceCreate(e);
 });
+routerAdd("POST", "/api/instance/{id}/duplicate", (e) => {
+	return require(`${__hooks}/mothership`).HandleInstanceDuplicate(e);
+});
 routerAdd("DELETE", "/api/instance/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceDelete(e);
 });

@@ -64,6 +64,11 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   firewall?: InstanceFirewall | null
   /** The one edge that runs this instance (edges record id). Chosen by the mothership; hidden from customers. */
   edge?: string
+  /** Set on a copy made with Duplicate: the id of the instance it was copied from. */
+  duplicateOf?: string
+  /** '' (not a copy), 'copying' (files not copied yet), 'ready' or 'failed' (see duplicateError). */
+  duplicateStatus?: '' | 'copying' | 'ready' | 'failed'
+  duplicateError?: string
 } & TExtra
 
 export type WithUser<TUser = UserFields> = {

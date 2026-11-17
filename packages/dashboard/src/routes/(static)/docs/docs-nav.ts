@@ -19,6 +19,7 @@ export const docsNav: DocNavSection[] = [
       { slug: 'accessing', title: 'Connect' },
       { slug: 'power', title: 'Power' },
       { slug: 'rename-instance', title: 'Rename' },
+      { slug: 'duplicate-instance', title: 'Duplicate' },
       { slug: 'versions', title: 'Changing Versions' },
       { slug: 'custom-domain', title: 'Custom Domain' },
       { slug: 'delete', title: 'Delete' },

@@ -3,6 +3,7 @@ import { ensureCustomHostname } from '$util/cloudflare'
 import { mkLog, StringKvLookup } from '$util/Logger'
 import { removeEmptyKeys } from '$util/removeEmptyKeys'
 import { isAvailable } from '../../signup/isAvailable'
+import { duplicatePowerOnError } from '../lib/duplicatePolicy'
 import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
 import { assertCanPowerOn } from '../lib/instanceLimits'
 import { applySecretsPatch, instanceNameError, invalidSecretKey } from '../lib/instancePolicy'
@@ -131,7 +132,11 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   }
 
   // Powering on counts against the plan; re-saving an instance that is already on never fails.
-  if (power === true && !record.getBool('power')) assertCanPowerOn(caller.userId, id)
+  if (power === true && !record.getBool('power')) {
+    const copyError = duplicatePowerOnError(record.getString('duplicateStatus'), record.getString('duplicateError'))
+    if (copyError) throw new BadRequestError(copyError)
+    assertCanPowerOn(caller.userId, id)
+  }
 
   const sanitized = removeEmptyKeys({
     subdomain,
