@@ -25,6 +25,10 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Fixed
+
+- **edge:** on the docker runtime, each instance's output (startup errors included) is written to its `logs/exec.log` again, so the dashboard's instance log shows it; it had stayed empty since the switch from the Node edge.
+
 ## v5.0.0-alpha.4 (2026-11-16)
 
 ### Upgrading
