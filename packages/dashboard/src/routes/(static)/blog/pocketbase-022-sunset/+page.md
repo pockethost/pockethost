@@ -21,6 +21,7 @@ If you need help with the upgrade, please reach out on [Discord](https://discord
 PocketBase 0.23 was a big release. It migrates your database automatically when it first starts, but it rewrote the JavaScript hooks API and moved admins into a `_superusers` collection. So the risky part isn't your data. It's your code:
 
 - **Custom `pb_hooks`** written for 0.22 or older need updating. Most changes are renames: `$app.dao()` methods move onto `$app`, `onRecordBeforeCreateRequest` becomes `onRecordCreateRequest` with `e.next()`, and route handlers get a request event instead of `c`.
+- **Old `pb_migrations`** files written for 0.22 or older stop the instance from starting (`Dao is not defined`). Your schema is already in your database, so delete them, or rewrite them for 0.23 if you still need them.
 - **Your frontend** should use a JS SDK made for 0.23 or later, especially if it signs in as an admin.
 - If you have no `pb_hooks` and only use the SDK for records and user sign-in, the upgrade is usually just a version switch.
 
@@ -28,8 +29,8 @@ The safe way to do it:
 
 1. [Back up your instance](/docs/backup-restore).
 2. Create a second instance on the latest version and restore the backup into it.
-3. Update your hooks and frontend against that copy until everything works.
-4. Power off your real instance, [change its version](/docs/versions), deploy your updated hooks, and power it back on.
+3. Update your hooks, migrations and frontend against that copy until everything works.
+4. Power off your real instance, [change its version](/docs/versions), deploy your updated hooks and migrations, and power it back on.
 
 PocketBase's own [upgrade guide](https://pocketbase.io/v023upgrade/jsvm/) lists every change, with before-and-after examples.
 
