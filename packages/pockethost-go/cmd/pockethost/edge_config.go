@@ -114,7 +114,8 @@ func edgeServeConfig(configPath, envPath string) error {
 		log.Warn("pockethost: docker.versions is ignored; the mothership's versions list says what every edge serves")
 	}
 	// the mothership owns the versions list (pocketbase_versions): every edge serves the same ones
-	dp := &docker.Provider{Container: edge.DockerContainer(platformBinds), Resolve: cfg.ResolvePath, Versions: source.Versions()}
+	// container output goes to each instance's logs/exec.log, which the dashboard's log view reads
+	dp := &docker.Provider{Container: edge.DockerContainer(platformBinds), OnLog: edge.DockerLog(root), Resolve: cfg.ResolvePath, Versions: source.Versions()}
 	if provider == "docker" && ph.LegacyReleases { // sfo-2 until Feb 6, 2027 (edge/legacy.go)
 		sc, _ := docker.Section.Get()
 		dp.Versions = edge.LegacyVersions(dp.Versions, &docker.Binaries{Root: cfg.ResolvePath(sc.Binaries)})
