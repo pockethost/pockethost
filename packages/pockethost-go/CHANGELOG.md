@@ -25,9 +25,25 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.5 (2026-11-17)
+
+### Added
+
+- **edge:** every Pocker instance automigrates: creating, changing or deleting a collection over the API or the dashboard writes its JS migration into the instance's `pb_migrations`, as on a docker instance.
+- **edge:** every Pocker instance gets PocketOne's new standard extensions: Cache, Templates (edit the OAuth sign-in pages) and Vacuum (scheduled database compaction, set in Settings → Backups).
+
+### Changed
+
+- **edge:** a `pb_hooks` or settings change restarts a Pocker instance: the running app stops once its requests finish (up to 10s), then a fresh one starts; requests that arrive meanwhile get 503 with `Retry-After`. In production a broken hook file leaves the instance down (502 naming the file) until it's fixed.
+
 ### Fixed
 
+- **edge:** a long-running Pocker instance serving PocketPages no longer runs out of JS memory after a few thousand page renders.
 - **edge:** on the docker runtime, each instance's output (startup errors included) is written to its `logs/exec.log` again, so the dashboard's instance log shows it; it had stayed empty since the switch from the Node edge.
+
+### PocketOne
+
+- Built on [PocketOne v0.0.1-alpha.7](https://github.com/pockethost/pocketone/releases/tag/v0.0.1-alpha.7) (PocketBase v0.42.2).
 
 ## v5.0.0-alpha.4 (2026-11-16)
 

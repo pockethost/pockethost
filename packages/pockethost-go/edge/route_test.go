@@ -18,14 +18,10 @@ import (
 
 	firewall "github.com/pockethost/pocketone/ext/firewall"
 
+	"github.com/pockethost/pocketone/ext/contracts/instance/source/v1/sourcetest"
 	"github.com/pockethost/pocketone/ext/pocker"
 	"github.com/pockethost/pocketone/ext/standard"
 )
-
-type listSource []pocker.Instance
-
-func (l listSource) Snapshot(context.Context) ([]pocker.Instance, error) { return l, nil }
-func (l listSource) Watch(context.Context) (<-chan pocker.Change, error) { return nil, nil }
 
 func pbTime(t time.Time) string { return t.UTC().Format("2006-01-02 15:04:05.000Z") }
 
@@ -300,7 +296,7 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}},
 	})
 	s.diffLocked(context.Background(), nil)
-	m := pocker.NewManager(listSource{{ID: "mine1", Hosts: []string{"shop.pockethost.io"}}, {ID: "optout", Hosts: []string{"o.pockethost.io"}}}, pocker.ManagerOptions{Standard: standard.New(), PBRoot: root, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	m := pocker.NewManager(sourcetest.ScopeOf(pocker.Instance{ID: "mine1", Hosts: []string{"shop.pockethost.io"}}, pocker.Instance{ID: "optout", Hosts: []string{"o.pockethost.io"}}), pocker.ManagerOptions{Standard: standard.New(), PBRoot: root, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go m.Run(ctx)
