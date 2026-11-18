@@ -153,12 +153,15 @@ func takesValue(flag string) bool {
 }
 
 // The mothership's own JS is trusted and runs whole-table jobs on one VM: the edges' /api/mirror dump (~25 MB of
-// JSON, every verified user and instance), the hostname sweep and the usage sums. QuickJS's tenant defaults
-// (64 MiB, 5 s, 30 s) stop those, so the mothership starts far above them.
+// JSON, every verified user and instance, ~8.5 s), the hostname sweep and the usage sums. QuickJS's tenant defaults
+// (64 MiB, 5 s, 30 s) stop those, so the mothership starts far above them. Requests also queue for that one VM: after
+// a mothership restart every edge asks for the dump at once, so the last in line waits for all the others' dumps
+// (30 s, the default wait, failed half of them).
 const (
 	mothershipJSMemory   = 1 << 30
 	mothershipJSTaskTime = 5 * time.Minute
 	mothershipJSTaskWall = 30 * time.Minute
+	mothershipJSWait     = 5 * time.Minute
 )
 
 // mothershipJSLimits is pocketone.yaml's app.js_limits, each key left out taking the mothership's default.
@@ -173,6 +176,7 @@ func mothershipJSLimits(l config.JSLimits) jsvm.VMConfig {
 	if vm.TaskWall == 0 {
 		vm.TaskWall = mothershipJSTaskWall
 	}
+	vm.WaitTimeout = mothershipJSWait
 	return vm
 }
 
