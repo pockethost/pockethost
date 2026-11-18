@@ -1,6 +1,11 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/pockethost/pocketone/ext/config"
+)
 
 func TestFirstCommand(t *testing.T) {
 	for _, c := range []struct {
@@ -11,10 +16,22 @@ func TestFirstCommand(t *testing.T) {
 		{[]string{"--dir", "x", "migrate", "up"}, "migrate"},
 		{[]string{"--dir=x", "serve", "--http", "0.0.0.0:8090"}, "serve"},
 		{[]string{"--dev", "serve"}, "serve"},
+		{[]string{"--config", "/etc/pocketone.yaml", "serve"}, "serve"},
 		{nil, ""},
 	} {
 		if got := firstCommand(c.args); got != c.want {
 			t.Errorf("%v: got %q, want %q", c.args, got, c.want)
 		}
+	}
+}
+
+func TestMothershipJSLimits(t *testing.T) {
+	got := mothershipJSLimits(config.JSLimits{})
+	if got.MemoryLimit != 1<<30 || got.TaskBudget != 5*time.Minute || got.TaskWall != 30*time.Minute {
+		t.Fatalf("defaults: got %+v", got)
+	}
+	got = mothershipJSLimits(config.JSLimits{Memory: 2 << 30, TaskTime: time.Minute})
+	if got.MemoryLimit != 2<<30 || got.TaskBudget != time.Minute || got.TaskWall != 30*time.Minute {
+		t.Fatalf("yaml wins per key: got %+v", got)
 	}
 }

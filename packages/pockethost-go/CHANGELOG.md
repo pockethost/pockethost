@@ -25,6 +25,10 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Fixed
+
+- **mothership:** its JS runs with budgets for whole-table jobs again (1 GiB of memory, 5 min of JS time and 30 min of wall time per task), so the edges' `/api/mirror` dump no longer runs out of QuickJS's 64 MiB tenant default and answers 400. `app.js_limits` in a `pocketone.yaml` beside the binary (or `--config`) overrides each one; `--hooksPool` is ignored.
+
 ## v5.0.0-alpha.5 (2026-11-17)
 
 ### Added

@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime/debug"
 	"testing/fstest"
+	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase"
 	"ganigeorgiev.com/pocketbase/pocketbase/apis"
@@ -15,6 +16,7 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
 	"github.com/pockethost/pocketone/ext/bundle"
+	"github.com/pockethost/pocketone/ext/config"
 	"github.com/pockethost/pocketone/ext/jsvm"
 )
 
@@ -29,6 +31,9 @@ import (
 //
 // The hooks read the same environment variables as before (LS_*, DISCORD_*, MOTHERSHIP_CLOUDFLARE_*, APP_URL,
 // TEST_EMAIL) from the process environment.
+//
+// pocketone.yaml (./pocketone.yaml, else next to the binary, or --config) sets the JS engine's limits in
+// app.js_limits; without it the mothership's own defaults below apply.
 func mothership(args []string) {
 	if len(args) >= 1 && (args[0] == "version" || args[0] == "--version") {
 		fmt.Println(mothershipVersion())
@@ -50,11 +55,20 @@ func mothership(args []string) {
 
 	// PocketBase parses os.Args itself: hand it everything after "mothership".
 	os.Args = append([]string{os.Args[0]}, args...)
+	cfgOpts := config.FromArgs(os.Args[1:])
+	if _, err := config.Load(cfgOpts); err != nil {
+		log.Fatal(err)
+	}
+	appCfg, _ := config.App.Get()
+
 	app := pocketbase.New()
 	app.RootCmd.Use = "pockethost mothership"
 
 	var hooksPool int
-	app.RootCmd.PersistentFlags().IntVar(&hooksPool, "hooksPool", 15, "prewarmed JS runtimes for the hooks")
+	var cfgPath, envPath string
+	app.RootCmd.PersistentFlags().IntVar(&hooksPool, "hooksPool", 15, "ignored: the mothership's JS runs on one QuickJS VM")
+	app.RootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "the config file (default ./pocketone.yaml, else next to the executable)")
+	app.RootCmd.PersistentFlags().StringVar(&envPath, "env-file", "", "secrets for $VAR references in the config file (default .env beside it)")
 	app.RootCmd.ParseFlags(os.Args[1:])
 
 	// Embedded mode: hooks, migrations and require(`${__hooks}/...`) come only from the binary.
@@ -66,8 +80,8 @@ func mothership(args []string) {
 		hooks = fstest.MapFS{}
 	}
 	jsvm.MustRegister(app, jsvm.Config{
-		HooksPoolSize: hooksPool,
-		Extensions:    []any{bundle.Hooks(hooks), bundle.Migrations(mothershipapp.Migrations())},
+		Extensions: []any{bundle.Hooks(hooks), bundle.Migrations(mothershipapp.Migrations())},
+		VM:         mothershipJSLimits(appCfg.JSLimits),
 	})
 
 	// `migrate up/down/history-sync` as before. Automigrate stays off: collection edits in the admin must not write
@@ -132,10 +146,34 @@ func containsEq(s string) bool {
 // takesValue lists the persistent flags that take a separate value (`--dir x`); booleans don't.
 func takesValue(flag string) bool {
 	switch flag {
-	case "--dir", "--encryptionEnv", "--queryTimeout", "--hooksPool":
+	case "--dir", "--encryptionEnv", "--queryTimeout", "--hooksPool", "--config", "--env-file":
 		return true
 	}
 	return false
+}
+
+// The mothership's own JS is trusted and runs whole-table jobs on one VM: the edges' /api/mirror dump (~25 MB of
+// JSON, every verified user and instance), the hostname sweep and the usage sums. QuickJS's tenant defaults
+// (64 MiB, 5 s, 30 s) stop those, so the mothership starts far above them.
+const (
+	mothershipJSMemory   = 1 << 30
+	mothershipJSTaskTime = 5 * time.Minute
+	mothershipJSTaskWall = 30 * time.Minute
+)
+
+// mothershipJSLimits is pocketone.yaml's app.js_limits, each key left out taking the mothership's default.
+func mothershipJSLimits(l config.JSLimits) jsvm.VMConfig {
+	vm := jsvm.VMConfig{MemoryLimit: int64(l.Memory), TaskBudget: l.TaskTime, TaskWall: l.TaskWall}
+	if vm.MemoryLimit == 0 {
+		vm.MemoryLimit = mothershipJSMemory
+	}
+	if vm.TaskBudget == 0 {
+		vm.TaskBudget = mothershipJSTaskTime
+	}
+	if vm.TaskWall == 0 {
+		vm.TaskWall = mothershipJSTaskWall
+	}
+	return vm
 }
 
 // mothershipVersion is the git commit this binary was built from and a hash of the embedded app.
