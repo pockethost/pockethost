@@ -83,7 +83,7 @@ const TEMPLATES = {
     body: [
       '<p>Hey,</p>',
       '<p>Your subscription is cancelled, and it stays active until {$ENDS}.</p>',
-      '<p>Just so you know, your {$CURRENT} bonus instances go away when your sub ends, and your next one was coming {$NEXT}. <a href="{$RESUME_URL}">Resume your subscription</a> before {$ENDS} and you keep them all.</p>',
+      '<p>Just so you know, your {$CURRENT} bonus instances go away when your sub ends, and your next one was coming on your {$DATE} renewal. <a href="{$RESUME_URL}">Resume your subscription</a> before {$ENDS} and you keep them all.</p>',
       SORRY,
       SIGN,
     ],
