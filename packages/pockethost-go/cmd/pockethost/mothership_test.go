@@ -27,7 +27,8 @@ func TestFirstCommand(t *testing.T) {
 
 func TestMothershipJSLimits(t *testing.T) {
 	got := mothershipJSLimits(config.JSLimits{})
-	if got.MemoryLimit != 1<<30 || got.TaskBudget != 5*time.Minute || got.TaskWall != 30*time.Minute {
+	if got.MemoryLimit != 1<<30 || got.TaskBudget != 5*time.Minute || got.TaskWall != 30*time.Minute ||
+		got.WaitTimeout != 5*time.Minute {
 		t.Fatalf("defaults: got %+v", got)
 	}
 	got = mothershipJSLimits(config.JSLimits{Memory: 2 << 30, TaskTime: time.Minute})
