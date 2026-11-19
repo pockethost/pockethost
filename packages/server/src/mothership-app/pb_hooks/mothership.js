@@ -5664,22 +5664,6 @@ const applyLiveInstances = (app, liveInstances) => {
 };
 
 //#endregion
-//#region src/lib/handlers/mirror/lib/buildMirrorDump.ts
-const exportRecord = (record) => record.publicExport();
-/** Instances carry their edge for routing; `edge` is hidden from customers, so add it back explicitly. */
-const exportInstance = (record) => ({
-	...record.publicExport(),
-	edge: record.getString("edge")
-});
-const buildMirrorDump = (app) => {
-	return {
-		users: app.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord),
-		instances: app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportInstance),
-		edges: app.findAllRecords(`edges`).filter((r) => !!r).map(exportRecord)
-	};
-};
-
-//#endregion
 //#region src/lib/handlers/mirror/api/HandleMirrorSync.ts
 const HandleMirrorSync = (e) => {
 	const { body } = e.requestInfo();
@@ -5687,11 +5671,7 @@ const HandleMirrorSync = (e) => {
 	const liveInstances = Array.isArray(body.instances) ? body.instances : [];
 	const updated = applyLiveInstances($app, liveInstances);
 	if (body.resetIdle || updated > 0) refreshAndBroadcastLivePlatformStats();
-	if (body.dump === false) return e.json(200, { updated });
-	return e.json(200, {
-		...buildMirrorDump($app),
-		updated
-	});
+	return e.json(200, { updated });
 };
 
 //#endregion

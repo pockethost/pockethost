@@ -1,8 +1,8 @@
 import { refreshAndBroadcastLivePlatformStats } from '../../adminPlugins/platformStats'
 import { resetInstancesIdle } from '../../instance/bootstrap/resetInstancesIdle'
 import { applyLiveInstances } from '../lib/applyLiveInstances'
-import { buildMirrorDump } from '../lib/buildMirrorDump'
 
+// POST /api/mirror: an edge reports its live instances. The full dump is GET /api/mirror, served in Go.
 export const HandleMirrorSync = (e: core.RequestEvent) => {
   const { body } = e.requestInfo()
 
@@ -17,10 +17,5 @@ export const HandleMirrorSync = (e: core.RequestEvent) => {
     refreshAndBroadcastLivePlatformStats()
   }
 
-  // `dump: false`: an edge reporting its live instances after a reconnect; it catches up on its own, incrementally.
-  if (body.dump === false) {
-    return e.json(200, { updated })
-  }
-
-  return e.json(200, { ...buildMirrorDump($app), updated })
+  return e.json(200, { updated })
 }
