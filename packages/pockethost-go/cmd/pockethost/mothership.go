@@ -100,6 +100,7 @@ func mothership(args []string) {
 			if !e.Router.HasRoute(http.MethodGet, "/{path...}") {
 				e.Router.GET("/{path...}", apis.Static(fstest.MapFS{}, true))
 			}
+			registerMirror(e) // GET /api/mirror, the edges' dump, in Go
 			// the mothership keeps its own versions list (pocketbase_versions); nothing else writes it
 			scheduleVersions(e.App)
 			scheduleUsage(e.App)  // owners' disk use from the edges' instance_stats
@@ -152,11 +153,10 @@ func takesValue(flag string) bool {
 	return false
 }
 
-// The mothership's own JS is trusted and runs whole-table jobs on one VM: the edges' /api/mirror dump (~25 MB of
-// JSON, every verified user and instance, ~8.5 s), the hostname sweep and the usage sums. QuickJS's tenant defaults
-// (64 MiB, 5 s, 30 s) stop those, so the mothership starts far above them. Requests also queue for that one VM: after
-// a mothership restart every edge asks for the dump at once, so the last in line waits for all the others' dumps
-// (30 s, the default wait, failed half of them).
+// The mothership's own JS is trusted and runs whole-table jobs on one VM (the hostname sweep, the usage sums).
+// QuickJS's tenant defaults (64 MiB, 5 s, 30 s) stop those, so the mothership starts far above them, and requests may
+// wait up to 5 min for the VM while one runs. The edges' /api/mirror dump left JS for Go (mothership_mirror.go): at
+// ~8.5 s of VM time each, edges reconnecting together queued past the default 30 s wait.
 const (
 	mothershipJSMemory   = 1 << 30
 	mothershipJSTaskTime = 5 * time.Minute
