@@ -5639,28 +5639,6 @@ const HandleMetaUpdateAtBoot = (_e) => {
 };
 
 //#endregion
-//#region src/lib/handlers/mirror/lib/buildMirrorDump.ts
-const exportRecord = (record) => record.publicExport();
-/** Instances carry their edge for routing; `edge` is hidden from customers, so add it back explicitly. */
-const exportInstance = (record) => ({
-	...record.publicExport(),
-	edge: record.getString("edge")
-});
-const buildMirrorDump = (app) => {
-	return {
-		users: app.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord),
-		instances: app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportInstance),
-		edges: app.findAllRecords(`edges`).filter((r) => !!r).map(exportRecord)
-	};
-};
-
-//#endregion
-//#region src/lib/handlers/mirror/api/HandleMirrorData.ts
-const HandleMirrorData = (e) => {
-	return e.json(200, buildMirrorDump($app));
-};
-
-//#endregion
 //#region src/lib/handlers/mirror/lib/applyLiveInstances.ts
 /** Save per row (not bulk SQL) so dashboard SSE clients get status updates. */
 const applyLiveInstances = (app, liveInstances) => {
@@ -5683,6 +5661,22 @@ const applyLiveInstances = (app, liveInstances) => {
 		updated++;
 	}
 	return updated;
+};
+
+//#endregion
+//#region src/lib/handlers/mirror/lib/buildMirrorDump.ts
+const exportRecord = (record) => record.publicExport();
+/** Instances carry their edge for routing; `edge` is hidden from customers, so add it back explicitly. */
+const exportInstance = (record) => ({
+	...record.publicExport(),
+	edge: record.getString("edge")
+});
+const buildMirrorDump = (app) => {
+	return {
+		users: app.findRecordsByFilter(`users`, `verified = true`).filter((r) => !!r).map(exportRecord),
+		instances: app.findAllRecords(`instances`, $dbx.exp(`instances.uid in (select id from users where verified = 1)`)).filter((r) => !!r).map(exportInstance),
+		edges: app.findAllRecords(`edges`).filter((r) => !!r).map(exportRecord)
+	};
 };
 
 //#endregion
@@ -8784,7 +8778,6 @@ exports.HandleMailSend = HandleMailSend;
 exports.HandleMetaUpdateAtBoot = HandleMetaUpdateAtBoot;
 exports.HandleMigrateCnamesToDomains = HandleMigrateCnamesToDomains;
 exports.HandleMigrateInstanceVersions = HandleMigrateInstanceVersions;
-exports.HandleMirrorData = HandleMirrorData;
 exports.HandleMirrorSync = HandleMirrorSync;
 exports.HandleOutpostUnsubscribe = HandleOutpostUnsubscribe;
 exports.HandlePatInstances = HandlePatInstances;
