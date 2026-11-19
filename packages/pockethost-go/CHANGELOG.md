@@ -25,6 +25,18 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.7 (2026-11-19)
+
+### Fixed
+
+- **edge:** Pocker instances start on alpha.6's PocketOne: the API Tokens rename migration (and any collection rename on a Pocker instance) failed with `near "RENAME": syntax error` because the sandboxed database fell back to generic SQL. Edges have run this fix since 2026-11-19 as `5.0.0-alpha.6+sqlfix`.
+- **mothership:** PocketHost API tokens work again with the CLI (login, list, create): PocketBase v0.42 refused them as unknown tokens.
+- `pockethost --version` names the PocketBase version PocketOne is built on (it said 0.42.2 on alpha.6).
+
+### PocketOne
+
+- Built on [PocketOne v0.0.1-alpha.9](https://github.com/pocketonehq/pocketone/releases/tag/v0.0.1-alpha.9) (PocketBase v0.42.3).
+
 ## v5.0.0-alpha.6 (2026-11-19)
 
 ### Added
