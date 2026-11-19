@@ -100,6 +100,7 @@ func mothership(args []string) {
 			if !e.Router.HasRoute(http.MethodGet, "/{path...}") {
 				e.Router.GET("/{path...}", apis.Static(fstest.MapFS{}, true))
 			}
+			allowPATs(e)      // let ph_pat_ bearer tokens reach the JS PAT routes
 			registerMirror(e) // GET /api/mirror, the edges' dump, in Go
 			// the mothership keeps its own versions list (pocketbase_versions); nothing else writes it
 			scheduleVersions(e.App)
