@@ -8,7 +8,7 @@ import (
 	"slices"
 	"testing"
 
-	deployv1 "github.com/pockethost/pocketone/ext/contracts/deploy/v1"
+	deployv1 "pocketone.dev/ext/contracts/deploy/v1"
 )
 
 // The edge serves the API as PocketOne's deploy/v1 too (extkit.HostRoutes hands it /api/_c/deploy/v1/...): the same

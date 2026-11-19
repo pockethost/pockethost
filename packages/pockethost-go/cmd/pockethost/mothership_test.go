@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/config"
+	"pocketone.dev/ext/config"
 )
 
 func TestFirstCommand(t *testing.T) {

@@ -16,11 +16,11 @@ import (
 	"testing"
 	"time"
 
-	firewall "github.com/pockethost/pocketone/ext/firewall"
+	firewall "pocketone.dev/ext/firewall"
 
-	"github.com/pockethost/pocketone/ext/contracts/instance/source/v1/sourcetest"
-	"github.com/pockethost/pocketone/ext/pocker"
-	"github.com/pockethost/pocketone/ext/standard"
+	"pocketone.dev/ext/contracts/instance/source/v1/sourcetest"
+	"pocketone.dev/ext/pocker"
+	"pocketone.dev/ext/standard"
 )
 
 func pbTime(t time.Time) string { return t.UTC().Format("2006-01-02 15:04:05.000Z") }

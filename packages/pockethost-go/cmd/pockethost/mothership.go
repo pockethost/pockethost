@@ -15,9 +15,9 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
-	"github.com/pockethost/pocketone/ext/bundle"
-	"github.com/pockethost/pocketone/ext/config"
-	"github.com/pockethost/pocketone/ext/jsvm"
+	"pocketone.dev/ext/bundle"
+	"pocketone.dev/ext/config"
+	"pocketone.dev/ext/jsvm"
 )
 
 // mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin

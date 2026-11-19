@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"github.com/pockethost/pocketone/ext/config"
-	"github.com/pockethost/pocketone/ext/docker"
+	"pocketone.dev/ext/config"
+	"pocketone.dev/ext/docker"
 )
 
 // dockerCmd is `pockethost docker seed|update --config pocketone.yaml`: the release binaries a docker edge serves.

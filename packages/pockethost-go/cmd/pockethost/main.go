@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"github.com/pockethost/pocketone/ext/config"
+	"pocketone.dev/ext/config"
 )
 
 const usage = `usage:

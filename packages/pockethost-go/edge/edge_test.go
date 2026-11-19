@@ -20,12 +20,12 @@ import (
 	"testing"
 	"time"
 
-	firewall "github.com/pockethost/pocketone/ext/firewall"
+	firewall "pocketone.dev/ext/firewall"
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
-	"github.com/pockethost/pocketone/ext/pocker"
-	"github.com/pockethost/pocketone/ext/servertiming"
-	"github.com/pockethost/pocketone/ext/standard"
+	"pocketone.dev/ext/pocker"
+	"pocketone.dev/ext/servertiming"
+	"pocketone.dev/ext/standard"
 	"golang.org/x/crypto/bcrypt"
 )
 

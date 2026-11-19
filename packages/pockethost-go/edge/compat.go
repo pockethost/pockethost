@@ -3,7 +3,7 @@ package edge
 import (
 	"net/http"
 
-	"github.com/pockethost/pocketone/ext/pocker"
+	"pocketone.dev/ext/pocker"
 )
 
 // DaemonHealthPath is where the Node firewall and other edges check this edge's daemon.

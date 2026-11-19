@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	deployv1 "github.com/pockethost/pocketone/ext/contracts/deploy/v1"
-	"github.com/pockethost/pocketone/ext/extkit"
+	deployv1 "pocketone.dev/ext/contracts/deploy/v1"
+	"pocketone.dev/ext/extkit"
 )
 
 // The deploy API also answers PocketOne's deploy/v1 contract (`pocketone deploy`, `dev`, `pull`) at

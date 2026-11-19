@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/contracts/instance/source/v1/sourcetest"
-	"github.com/pockethost/pocketone/ext/pocker"
-	"github.com/pockethost/pocketone/ext/standard"
+	"pocketone.dev/ext/contracts/instance/source/v1/sourcetest"
+	"pocketone.dev/ext/pocker"
+	"pocketone.dev/ext/standard"
 )
 
 // TestWithPockerManager deploys to a real PocketBase app run by Pocker: hooks change after a restart, a broken hook is

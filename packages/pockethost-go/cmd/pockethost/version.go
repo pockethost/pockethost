@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/pockethost/pocketone/ext/pocker"
+	"pocketone.dev/ext/pocker"
 )
 
 // Version is this PocketHost release (5.0.0-alpha.1, ...), stamped by goreleaser (-X main.Version={{ .Version }}).

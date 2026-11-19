@@ -25,11 +25,25 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.6 (2026-11-19)
+
+### Added
+
+- **edge:** every Pocker instance gets PocketOne's new standard extensions: WASM (modules in `pb_hooks`), UI Cache (dashboard cache headers that let updates through), S3 Fallback (off until its `storage` section), and Agent and Agent Chat (off until the instance names a model or an API).
+
+### Changed
+
+- **edge:** the Tokens extension is now API Tokens on every Pocker instance: its collections are renamed on the instance's first start, JS hooks use `$apiTokens` (was `$tokens`), and its API moved to `/api/_c/api-tokens/v1`.
+
 ### Fixed
 
 - **mothership:** `GET /api/mirror` (the edges' full dump) is served in Go instead of the JS hooks: about 10 times faster, edges asking at once are served in parallel and share one dump, so a mothership restart no longer queues every edge behind the others. The JSON is unchanged.
 
 - **mothership:** its JS runs with budgets for whole-table jobs again (1 GiB of memory, 5 min of JS time and 30 min of wall time per task, and requests wait up to 5 min for the JS VM instead of 30 s, so every edge's resync gets its dump after a restart), so the edges' `/api/mirror` dump no longer runs out of QuickJS's 64 MiB tenant default and answers 400. `app.js_limits` in a `pocketone.yaml` beside the binary (or `--config`) overrides each one; `--hooksPool` is ignored.
+
+### PocketOne
+
+- Built on [PocketOne v0.0.1-alpha.8](https://github.com/pockethost/pocketone/releases/tag/v0.0.1-alpha.8) (PocketBase v0.42.3).
 
 ## v5.0.0-alpha.5 (2026-11-17)
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pockethost/pocketone/ext/stats/rules"
+	"pocketone.dev/ext/stats/rules"
 )
 
 // The cases of the Node planner's tests (packages/server/src/common/instanceLimits.test.ts: planOverLimit,

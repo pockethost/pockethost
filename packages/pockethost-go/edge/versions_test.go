@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/pockethost/pocketone/ext/docker"
+	"pocketone.dev/ext/docker"
 )
 
 func rel(line, v string) docker.Release {
