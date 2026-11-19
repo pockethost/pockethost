@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	ceedge "github.com/pockethost/pocketone/ext/edge"
+	ceedge "pocketone.dev/ext/edge"
 
-	"github.com/pockethost/pocketone/ext/pocker"
+	"pocketone.dev/ext/pocker"
 )
 
 // Source is a pocker.InstanceSource backed by PocketHost's mothership mirror: a full dump at start and after every

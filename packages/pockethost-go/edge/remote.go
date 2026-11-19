@@ -3,9 +3,9 @@ package edge
 import (
 	"context"
 
-	remotev1 "github.com/pockethost/pocketone/ext/contracts/remote/v1"
-	"github.com/pockethost/pocketone/ext/extkit"
-	"github.com/pockethost/pocketone/ext/pocker"
+	remotev1 "pocketone.dev/ext/contracts/remote/v1"
+	"pocketone.dev/ext/extkit"
+	"pocketone.dev/ext/pocker"
 )
 
 // PockerRemote is remote/v1 for a pocker edge's instances (status, restart, logs from pocker's Manager; whoami lists

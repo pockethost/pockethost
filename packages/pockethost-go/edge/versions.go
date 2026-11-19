@@ -13,7 +13,7 @@ import (
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
 	"github.com/Masterminds/semver/v3"
-	"github.com/pockethost/pocketone/ext/docker"
+	"pocketone.dev/ext/docker"
 )
 
 // VersionsSetting is the mothership `settings` record listing the PocketBase versions PocketHost supports. The

@@ -6,22 +6,22 @@ require (
 	ganigeorgiev.com/pocketbase/dbx v1.13.0
 	ganigeorgiev.com/pocketbase/pocketbase v0.42.2
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/pockethost/pocketone/ext/bundle v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/config v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/contracts v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/docker v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/edge v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/extkit v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/firewall v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/jsvm v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/multisite v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/pocker v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/servertiming v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/standard v0.0.0-20261117224644-8450ba026f47
-	github.com/pockethost/pocketone/ext/stats v0.0.0-20261117224644-8450ba026f47
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.59.0
 	modernc.org/sqlite v1.62.0
+	pocketone.dev/ext/bundle v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/config v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/contracts v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/docker v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/edge v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/extkit v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/firewall v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/jsvm v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/multisite v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/pocker v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/servertiming v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/standard v0.0.0-20261119154122-376acf657471
+	pocketone.dev/ext/stats v0.0.0-20261119154122-376acf657471
 )
 
 require (
@@ -53,19 +53,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
-	github.com/pockethost/pocketone/ext/backups v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/bulkmail v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/cache v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/deploy v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/mcp v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/pages v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/pitr v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/remotes v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/s3redirect v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/sandbox v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/settings v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/templates v0.0.0-20261117224644-8450ba026f47 // indirect
-	github.com/pockethost/pocketone/ext/tokens v0.0.0-20261117224644-8450ba026f47 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
@@ -75,7 +62,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.1.0 // indirect
 	github.com/superfly/ltx v0.5.2 // indirect
-	github.com/tetratelabs/wazero v1.2.1 // indirect
+	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/wasilibs/go-re2 v1.3.0 // indirect
 	github.com/yuin/goldmark v1.8.7 // indirect
 	golang.org/x/image v0.48.0 // indirect
@@ -83,7 +70,7 @@ require (
 	golang.org/x/oauth2 v0.38.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
-	golang.org/x/term v0.47.0 // indirect
+	golang.org/x/term v0.48.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -91,6 +78,24 @@ require (
 	modernc.org/libquickjs v0.13.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
+	pocketone.dev/ext/agent v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/agent-chat v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/api-tokens v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/backups v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/bulkmail v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/cache v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/deploy v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/mcp v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/pages v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/pitr v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/remotes v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/s3-fallback v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/s3redirect v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/sandbox v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/settings v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/templates v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/uicache v0.0.0-20261119154122-376acf657471 // indirect
+	pocketone.dev/ext/wasm v0.0.0-20261119154122-376acf657471 // indirect
 )
 
-replace ganigeorgiev.com/pocketbase/pocketbase => github.com/pockethost/pocketone v0.0.1-alpha.7
+replace ganigeorgiev.com/pocketbase/pocketbase => pocketone.dev v0.0.1-alpha.8

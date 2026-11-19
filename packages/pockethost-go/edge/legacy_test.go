@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pockethost/pocketone/ext/multisite"
-	"github.com/pockethost/pocketone/ext/docker"
+	"pocketone.dev/ext/multisite"
+	"pocketone.dev/ext/docker"
 )
 
 type fixedVersions []docker.Release
