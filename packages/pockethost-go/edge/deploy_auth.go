@@ -65,12 +65,17 @@ const (
 
 var bearerRE = regexp.MustCompile(`(?i)^Bearer\s+(.+)$`)
 
+// bearerToken is the token in an Authorization header: "Bearer <token>", or the bare token, as PocketBase takes it
+// (PocketOne's generated contract clients, such as `pocketone remote status`, send it bare).
 func bearerToken(authorization string) string {
-	m := bearerRE.FindStringSubmatch(strings.TrimSpace(authorization))
-	if m == nil {
-		return ""
+	a := strings.TrimSpace(authorization)
+	if m := bearerRE.FindStringSubmatch(a); m != nil {
+		return strings.TrimSpace(m[1])
 	}
-	return strings.TrimSpace(m[1])
+	if strings.ContainsAny(a, " \t") {
+		return "" // another scheme (Basic ...)
+	}
+	return a
 }
 
 type authEntry struct {
@@ -98,7 +103,7 @@ func newAuthResolver(v tokenVerifier) *authResolver {
 func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fresh bool) (tokenAuth, error) {
 	token := bearerToken(authorization)
 	if token == "" {
-		return tokenAuth{}, &deploy.AuthError{Status: 401, Message: "Missing token. Run 'pockethost login' or set P1_TOKEN."}
+		return tokenAuth{}, &deploy.AuthError{Status: 401, Message: "Missing token. Run 'pocketone login' or set P1_TOKEN."}
 	}
 	sum := sha256.Sum256([]byte(token))
 	key := hex.EncodeToString(sum[:])

@@ -158,6 +158,9 @@ func edgeServeConfig(configPath, envPath string) error {
 	})
 	if rt, ok := h.Runtime.(*docker.Runtime); ok {
 		running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
+		// and on docker, its superusers' own logins, checked with the container: `pocketone link` signs in as one
+		// (email and password: stock images have no browser sign-in)
+		deployBackend.AcceptInstanceSuperusers(rt.SuperuserAuth())
 	}
 	// PocketOne's contracts for every instance this edge runs, so `pocketone remote ...` and `pocketone deploy`
 	// work against PocketHost: deploy/v1 is PocketOne's deploy API (ext/deploy) on the files the runtime provides

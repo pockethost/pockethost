@@ -33,7 +33,8 @@ const (
 type DeployBackend struct {
 	s          *Source
 	tokens     *authResolver
-	instTokens *instanceTokens // the instance's own tokens, when the runtime can check them (AcceptInstanceTokens)
+	instTokens *instanceTokens     // the instance's own tokens, when the runtime can check them (AcceptInstanceTokens)
+	superusers *instanceSuperusers // the instance's own superusers, when the runtime can ask it (AcceptInstanceSuperusers)
 }
 
 // DeployBackend returns the edge's deploy backend.
@@ -47,6 +48,12 @@ func (s *Source) DeployBackend() *DeployBackend {
 // the instance through tokens (instance.tokens/v1 on the host scope; nil when this edge's runtime doesn't provide it).
 func (b *DeployBackend) AcceptInstanceTokens(tokens func() tokensv1.Tokens) {
 	b.instTokens = newInstanceTokens(tokens)
+}
+
+// AcceptInstanceSuperusers has the backend also accept each instance's own superusers, checked with the instance by
+// the runtime (docker's SuperuserAuth: the instance's own answer to the token). `pocketone link` signs in as one.
+func (b *DeployBackend) AcceptInstanceSuperusers(check func(*http.Request) extkit.Auth) {
+	b.superusers = newInstanceSuperusers(check)
 }
 
 // Lookup finds the instance a request's host names.
@@ -75,8 +82,8 @@ func (b *DeployBackend) lookupHost(host string) (deploy.Instance, bool) {
 }
 
 // Authenticate says who the request acts as on inst: its owner, through a token that covers the instance (read, or
-// read and write) or a dashboard login (both); or, with AcceptInstanceTokens, one of the instance's superusers through
-// a token the instance issued. Anyone else gets deploy.ErrNoAccess (404), so tokens can't probe
+// read and write) or a dashboard login (both); or one of the instance's superusers, through a token the instance issued
+// (AcceptInstanceTokens) or the superuser's own login (AcceptInstanceSuperusers). Anyone else gets deploy.ErrNoAccess (404), so tokens can't probe
 // instance names.
 func (b *DeployBackend) Authenticate(r *http.Request, inst deploy.Instance) (deploy.Auth, error) {
 	a, err := b.tokens.resolve(r.Context(), r.Header.Get("Authorization"), clientIP(r), false)
@@ -84,8 +91,12 @@ func (b *DeployBackend) Authenticate(r *http.Request, inst deploy.Instance) (dep
 		// not a PocketHost token: it may be one the instance issued (`pocketone login` and `clone` sign in to it)
 		var ae *deploy.AuthError
 		if errors.As(err, &ae) && ae.Status == http.StatusUnauthorized {
-			if ia, ok, ierr := b.instTokens.authenticate(r.Context(), inst, bearerToken(r.Header.Get("Authorization"))); ok {
+			token := bearerToken(r.Header.Get("Authorization"))
+			if ia, ok, ierr := b.instTokens.authenticate(r.Context(), inst, token); ok {
 				return ia, ierr
+			}
+			if sa, ok := b.superusers.authenticate(r, inst, token); ok {
+				return sa, nil
 			}
 		}
 		return deploy.Auth{}, err
@@ -118,6 +129,9 @@ func (b *DeployBackend) ContractAuth(r *http.Request) extkit.Auth {
 	a, err := b.Authenticate(r, inst)
 	if err != nil {
 		return extkit.Auth{}
+	}
+	if a.Via == "instance-superuser" {
+		return extkit.Auth{Kind: "superuser", Collection: "_superusers", RecordID: a.UserID}
 	}
 	au := extkit.Auth{Kind: "record", ID: a.UserID, Collection: "users", RecordID: a.UserID}
 	if a.Via == "token" || a.Via == "instance-token" {
