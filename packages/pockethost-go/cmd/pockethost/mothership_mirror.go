@@ -12,10 +12,8 @@ import (
 
 // mirrorDump is what an edge loads at boot and after every realtime reconnect (GET /api/mirror): every instance and
 // edge, each as the record's public export plus the hidden fields edges need: `edge` (where it runs) and the
-// owner-derived blocked, superusers, trusted_ips and owners (mothership_owners.go). Edges built since then read no
-// users; Users (every verified user) is kept only for edges still on the build before, and goes once none is left.
+// owner-derived blocked, superusers, trusted_ips and owners (mothership_owners.go). Edges read no users.
 type mirrorDump struct {
-	Users     []map[string]any `json:"users"`
 	Instances []map[string]any `json:"instances"`
 	Edges     []map[string]any `json:"edges"`
 }
@@ -23,10 +21,6 @@ type mirrorDump struct {
 // buildMirrorDump reads the dump. It runs in Go, not in the mothership's one JS VM: the JS version took ~8.5 s of VM
 // time per call, so edges reconnecting together queued behind each other (and past the VM's wait limit).
 func buildMirrorDump(app core.App) (*mirrorDump, error) {
-	users, err := app.FindRecordsByFilter("users", "verified = true", "", 0, 0)
-	if err != nil {
-		return nil, err
-	}
 	instances, err := app.FindAllRecords("instances")
 	if err != nil {
 		return nil, err
@@ -36,12 +30,8 @@ func buildMirrorDump(app core.App) (*mirrorDump, error) {
 		return nil, err
 	}
 	d := &mirrorDump{
-		Users:     make([]map[string]any, 0, len(users)),
 		Instances: make([]map[string]any, 0, len(instances)),
 		Edges:     make([]map[string]any, 0, len(edges)),
-	}
-	for _, r := range users {
-		d.Users = append(d.Users, r.PublicExport())
 	}
 	for _, r := range instances {
 		m := r.PublicExport()

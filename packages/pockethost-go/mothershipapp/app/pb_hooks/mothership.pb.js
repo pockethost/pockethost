@@ -292,9 +292,6 @@ routerAdd("POST", "/api/stripe/webhook", (e) => {
 
 //#endregion
 //#region src/lib/handlers/user/hooks.ts
-routerAdd("GET", "/api/userToken/{id}", (e) => {
-	return require(`${__hooks}/mothership`).HandleUserTokenRequest(e);
-}, $apis.requireSuperuserAuth());
 routerAdd("GET", "/api/user/trusted-ips", (e) => {
 	return require(`${__hooks}/mothership`).HandleUserTrustedIpsGet(e);
 }, $apis.requireAuth());
