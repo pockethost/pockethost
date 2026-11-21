@@ -2,6 +2,8 @@ package deploy
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,30 +42,13 @@ type Instance struct {
 	Elsewhere string
 }
 
-// DeployRecord is a row in the mothership's deploys collection.
-type DeployRecord struct {
-	Instance      string  `json:"instance"`
-	User          string  `json:"user"`
-	Status        string  `json:"status"` // success | failed
-	FileCount     int     `json:"file_count"`
-	UploadedCount float64 `json:"uploaded_count"`
-	UploadedBytes float64 `json:"uploaded_bytes"`
-	TotalBytes    int64   `json:"total_bytes"`
-	Commit        string  `json:"commit"`
-	Message       string  `json:"message"`
-	Source        string  `json:"source"`
-	TokenLabel    string  `json:"token_label"`
-	Error         string  `json:"error"`
-}
-
-// Backend is the control plane: instance lookup, token checks and deploy history.
+// Backend is the control plane: instance lookup and token checks. Deploys are not recorded.
 type Backend interface {
 	Lookup(host string) (Instance, bool)
 	// VerifyToken checks an API token (pbt_..., api-tokens.verify/v1); VerifyJWT a user's login. Both return
 	// *AuthError for a refused token; any other error is treated as an outage.
 	VerifyToken(ctx context.Context, token, ip string) (apitokensv1.Grant, error)
 	VerifyJWT(ctx context.Context, token string) (userID string, err error)
-	RecordDeploy(ctx context.Context, rec DeployRecord) (id string, err error)
 }
 
 // Instances is the part of Pocker's Manager the deploy API uses.
@@ -309,30 +294,11 @@ func readJSON(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
 	return body, nil
 }
 
-func clip(v any, max int) string {
-	s, _ := v.(string)
-	if r := []rune(s); len(r) > max {
-		return string(r[:max])
-	}
-	return s
-}
-
-// num follows JavaScript's Number(v) || 0 for the values a client sends.
-func num(v any) float64 {
-	switch x := v.(type) {
-	case float64:
-		return x
-	case string:
-		f, err := strconv.ParseFloat(strings.TrimSpace(x), 64)
-		if err == nil {
-			return f
-		}
-	case bool:
-		if x {
-			return 1
-		}
-	}
-	return 0
+// newDeployID names a deploy's manifest in the upload cache. Deploys are not recorded anywhere else.
+func newDeployID() string {
+	var b [4]byte
+	_, _ = rand.Read(b[:])
+	return fmt.Sprintf("%d-%s", time.Now().UnixMilli(), hex.EncodeToString(b[:]))
 }
 
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -480,18 +446,8 @@ func (a *API) commit(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	nodeModules := body["nodeModules"] == true
-	base := DeployRecord{
-		Instance: c.inst.ID, User: c.auth.UserID, FileCount: len(m), TokenLabel: c.auth.TokenLabel,
-		Commit: clip(body["commit"], 100), Message: clip(body["message"], 500), Source: clip(body["source"], 100),
-		UploadedCount: num(body["uploadedCount"]), UploadedBytes: num(body["uploadedBytes"]),
-	}
-	// history and restarts outlive a client that hangs up
+	// restarts outlive a client that hangs up
 	ctx := context.WithoutCancel(r.Context())
-	record := func(rec DeployRecord) (string, error) {
-		rctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-		defer cancel()
-		return a.opts.Backend.RecordDeploy(rctx, rec)
-	}
 
 	unlock := a.lock(c.inst.ID)
 	defer unlock()
@@ -536,23 +492,12 @@ func (a *API) commit(w http.ResponseWriter, r *http.Request) error {
 	}
 	if err != nil {
 		_ = os.RemoveAll(st.stagingDir)
-		rec := base
-		rec.Status, rec.Error = "failed", clip(err.Error(), 2000)
-		_, _ = record(rec)
 		return err
 	}
 
 	var deployID *string
 	if !nothingChanged {
-		rec := base
-		rec.Status, rec.TotalBytes = "success", applied.totalBytes
-		id, rerr := record(rec)
-		if rerr != nil || id == "" {
-			if rerr != nil {
-				a.log.Warn("could not record deploy", "instance", c.inst.ID, "error", rerr)
-			}
-			id = fmt.Sprintf("local-%d", time.Now().UnixMilli())
-		}
+		id := newDeployID()
 		deployID = &id
 		if err := c.store.recordManifest(id, m); err != nil {
 			a.log.Warn("recordManifest failed", "instance", c.inst.ID, "error", err)

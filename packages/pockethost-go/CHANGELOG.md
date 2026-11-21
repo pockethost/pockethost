@@ -31,6 +31,7 @@ the two version numbers don't match.
 
 ### Changed
 
+- Deploys are no longer recorded: edges stop writing to the mothership after each deploy, and a mothership migration deletes the `deploys` collection and its rows. Deploy commits still accept `commit`, `message` and `source` from older clients and ignore them; `deployId` is now a local id.
 - API tokens are PocketOne API tokens (`pbt_…`, ext/api-tokens) on the mothership, with `instances` / `instances:read` scopes limited to some instances by value (`instances=<id>`). Existing `ph_pat_…` tokens keep working: each one moves over on its first use, with the same access and expiry.
 - Edges check tokens with the mothership's api-tokens.verify/v1 instead of `/api/pat/verify`.
 - The dashboard's API Tokens page creates and revokes tokens through the token API; a token's instances can't be edited any more (create a new token instead).

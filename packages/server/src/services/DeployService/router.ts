@@ -1,4 +1,5 @@
 import express, { type NextFunction, type Request, type Response } from 'express'
+import { randomBytes } from 'node:crypto'
 import type { InstanceFields, Logger } from '../../common'
 import { instanceAllowedByScope } from '../InstanceFileAccess/scope'
 import { fileAccessSuspension } from '../InstanceFileAccess/suspension'
@@ -13,21 +14,6 @@ export const DEPLOY_API_PREFIX = '/_ph/deploy/v1'
 export const MAX_BUNDLE_BYTES = 64 * 1024 * 1024
 export const MAX_BUNDLE_RAW_BYTES = 256 * 1024 * 1024
 
-export type DeployRecordInput = {
-  instance: string
-  user: string
-  status: 'success' | 'failed'
-  file_count: number
-  uploaded_count: number
-  uploaded_bytes: number
-  total_bytes: number
-  commit: string
-  message: string
-  source: string
-  token_label: string
-  error: string
-}
-
 export type DeployRouterDeps = {
   resolveAuth: (authorization: string | undefined, ip?: string, opts?: { fresh?: boolean }) => Promise<DeployAuth>
   getInstanceByHost: (host: string) => Promise<InstanceFields | undefined>
@@ -39,7 +25,6 @@ export type DeployRouterDeps = {
     fn: () => Promise<T>
   ) => Promise<{ result: T; wasRunning: boolean }>
   startInstance: (instance: InstanceFields) => Promise<void>
-  recordDeploy: (input: DeployRecordInput) => Promise<string | undefined>
   /** Replays the last `linesBack` log entries, then follows new ones. Returns an unsubscribe function. */
   tailLogs?: (instance: InstanceFields, linesBack: number, onEntry: (entry: unknown) => void) => () => void
   logger: Logger
@@ -55,7 +40,8 @@ export class DeployHttpError extends Error {
   }
 }
 
-const clip = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '')
+/** Names a deploy's manifest in the upload cache. Deploys are not recorded anywhere else. */
+const newDeployId = () => `${Date.now()}-${randomBytes(4).toString('hex')}`
 
 /** `nodeModules: true` means the client manages the root node_modules, even when it ships no packages. */
 const deployOptions = (body: any): DeployOptions => ({ nodeModules: body?.nodeModules === true })
@@ -212,23 +198,8 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
     '/commit',
     json,
     handle(async (req, res) => {
-      const { instance, auth, store } = await authorize(req, true)
+      const { instance, store } = await authorize(req, true)
       const manifest: Manifest = validateManifest(req.body?.files)
-      const meta = {
-        commit: clip(req.body?.commit, 100),
-        message: clip(req.body?.message, 500),
-        source: clip(req.body?.source, 100),
-        uploaded_count: Number(req.body?.uploadedCount) || 0,
-        uploaded_bytes: Number(req.body?.uploadedBytes) || 0,
-      }
-      const base = {
-        instance: instance.id,
-        user: auth.userId,
-        file_count: Object.keys(manifest).length,
-        token_label: auth.tokenLabel,
-        ...meta,
-      }
-
       const result = await lock(instance.id, async () => {
         await store.cleanTmp()
         // Slow work (copying, hashing) happens here, before the instance is touched.
@@ -246,36 +217,18 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
 
         let applied
         let wasRunning = false
-        try {
-          if (!needsRestart) {
-            applied = await store.apply(manifest, staged)
-          } else {
-            const out = await deps.withInstanceStopped(instance, () => store.apply(manifest, staged))
-            applied = out.result
-            wasRunning = out.wasRunning
-          }
-        } catch (e) {
-          await deps
-            .recordDeploy({
-              ...base,
-              status: 'failed',
-              total_bytes: 0,
-              error: clip(`${(e as Error)?.message ?? e}`, 2000),
-            })
-            .catch(() => undefined)
-          throw e
+        if (!needsRestart) {
+          applied = await store.apply(manifest, staged)
+        } else {
+          const out = await deps.withInstanceStopped(instance, () => store.apply(manifest, staged))
+          applied = out.result
+          wasRunning = out.wasRunning
         }
 
-        // A no-op deploy (e.g. `pockethost dev` on startup) leaves no history entry.
+        // A no-op deploy (e.g. `pockethost dev` on startup) caches no manifest.
         let deployId: string | null = null
         if (!nothingChanged) {
-          deployId =
-            (await deps
-              .recordDeploy({ ...base, status: 'success', total_bytes: applied.totalBytes, error: '' })
-              .catch((e) => {
-                warn(`Could not record deploy for ${instance.id}`, e)
-                return undefined
-              })) ?? `local-${Date.now()}`
+          deployId = newDeployId()
           await store.recordManifest(deployId, manifest).catch((e) => warn(`recordManifest failed`, e))
           await store.gc().catch((e) => warn(`deploy gc failed`, e))
         }

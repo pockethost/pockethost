@@ -35,7 +35,6 @@ beforeEach(() => {
     storeFor: (i) => createDeployStore(join(root, 'deploys', i.id), join(root, 'instances', i.id)),
     withInstanceStopped: vi.fn(async (_i, fn) => ({ result: await fn(), wasRunning: true })),
     startInstance: vi.fn(async () => {}),
-    recordDeploy: vi.fn(async () => 'dep123'),
     logger,
   }
   app = express()

@@ -123,14 +123,6 @@ func (b deployBackend) VerifyJWT(ctx context.Context, token string) (string, err
 	return out.Record.ID, nil
 }
 
-func (b deployBackend) RecordDeploy(ctx context.Context, rec deploy.DeployRecord) (string, error) {
-	var out struct {
-		ID string `json:"id"`
-	}
-	err := b.s.c.do(ctx, http.MethodPost, "/api/collections/deploys/records", rec, &out)
-	return out.ID, err
-}
-
 // PlatformPaths are the Node edge's platform hooks and migrations (packages/server/src/instance-app), bind-mounted
 // into every container; Docker left an empty placeholder at each in the instance folder. They aren't the customer's,
 // so deploys never compare or delete them (an instance moved from a Docker edge may still have them).

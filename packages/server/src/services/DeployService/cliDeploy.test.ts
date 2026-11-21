@@ -35,7 +35,6 @@ let root: string
 let project: string
 let server: ReturnType<express.Express['listen']>
 const startInstance = vi.fn(async () => {})
-const recordDeploy = vi.fn(async () => `dep${recordDeploy.mock.calls.length}`)
 const env = { ...process.env }
 
 const projectFile = (rel: string, content: string) => {
@@ -63,7 +62,6 @@ beforeAll(async () => {
       storeFor: (i) => createDeployStore(join(root, 'deploys', i.id), join(root, 'instances', i.id)),
       withInstanceStopped: async (_i, fn) => ({ result: await fn(), wasRunning: true }),
       startInstance,
-      recordDeploy,
       logger,
     })
   )
@@ -116,16 +114,12 @@ describe('CLI deploy over the deploy API', () => {
     expect(readFileSync(instFile('pb_data/data.db'), 'utf8')).toBe('REMOTE DB')
     expect(existsSync(instFile('node_modules'))).toBe(false)
     expect(existsSync(instFile('README.md'))).toBe(false)
-    expect(recordDeploy).toHaveBeenLastCalledWith(
-      expect.objectContaining({ status: 'success', file_count: 5, uploaded_count: 5, commit: 'deadbeef' })
-    )
 
     projectFile('pb_public/index.html', '<h1>v2</h1>')
     unlinkSync(join(project, 'pb_migrations/1_init.js'))
     const logs: string[] = []
     const second = await deploy({ yes: true, log: (m) => logs.push(m) })
     expect(second).toMatchObject({ writtenCount: 1, deletedCount: 1, unchanged: 3 })
-    expect(recordDeploy).toHaveBeenLastCalledWith(expect.objectContaining({ uploaded_count: 1 }))
     expect(readFileSync(instFile('pb_public/index.html'), 'utf8')).toBe('<h1>v2</h1>')
     expect(existsSync(instFile('pb_migrations/1_init.js'))).toBe(false)
     expect(logs.some((l) => l.includes('Uploading 1 file'))).toBe(true)
