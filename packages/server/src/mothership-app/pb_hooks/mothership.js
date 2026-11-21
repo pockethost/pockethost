@@ -8159,23 +8159,6 @@ const HandleStripeWebhook = (e) => {
 };
 
 //#endregion
-//#region src/lib/handlers/user/api/HandleUserTokenRequest.ts
-const HandleUserTokenRequest = (e) => {
-	mkLog(`user-token`);
-	const id = e.request.pathValue("id");
-	if (!id) throw new BadRequestError(`User ID is required.`);
-	const rec = $app.findRecordById("users", id);
-	const tokenKey = rec.getString("tokenKey");
-	const passwordHash = rec.getString("password:hash");
-	const email = rec.getString(`email`);
-	return e.json(200, {
-		email,
-		passwordHash,
-		tokenKey
-	});
-};
-
-//#endregion
 //#region src/lib/handlers/user/model/bonusInstances.ts
 const log$1 = mkLog(`bonus-instances`);
 /** Recomputes `users.bonus_instances` from the user's `bonus_grants` (sum, floored at 0). */
@@ -8424,7 +8407,6 @@ exports.HandleSignupConfirm = HandleSignupConfirm;
 exports.HandleStatsRefreshAtBoot = HandleStatsRefreshAtBoot;
 exports.HandleStatsRequest = HandleStatsRequest;
 exports.HandleStripeWebhook = HandleStripeWebhook;
-exports.HandleUserTokenRequest = HandleUserTokenRequest;
 exports.HandleUserTrustedIpsGet = HandleUserTrustedIpsGet;
 exports.HandleUserTrustedIpsUpdate = HandleUserTrustedIpsUpdate;
 exports.HandleUserWelcomeMessage = HandleUserWelcomeMessage;

@@ -53,7 +53,7 @@ func NewSource(cfg Config, log *slog.Logger) *Source {
 	}
 }
 
-// dump is GET /api/mirror. The mothership still sends users for edges on the build before this one; they're ignored.
+// dump is GET /api/mirror.
 type dump struct {
 	Instances []instanceRec `json:"instances"`
 	Edges     []edgeRec     `json:"edges"`
