@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/cron"
@@ -204,14 +203,6 @@ func fileSize(p string) int64 {
 		return 0
 	}
 	return st.Size()
-}
-
-func freeDisk(dir string) (int64, bool) {
-	var st syscall.Statfs_t
-	if syscall.Statfs(dir, &st) != nil {
-		return 0, false
-	}
-	return int64(st.Bavail) * int64(st.Bsize), true
 }
 
 // worthIt reads the free-page count without stopping the app. why explains a skip worth reporting.

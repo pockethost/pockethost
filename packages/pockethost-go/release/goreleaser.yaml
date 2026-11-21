@@ -27,11 +27,10 @@ builds:
       - -s -w -X main.Version={{ .Version }} -X ganigeorgiev.com/pocketbase/pocketbase.Version={{ .Env.POCKETONE_VERSION }}
     env:
       - CGO_ENABLED=0
-    # no Windows yet: the edge's vacuum check uses syscall.Statfs (Unix only); add it with a build tag when end-user
-    # commands need Windows
     goos:
       - linux
       - darwin
+      - windows
     goarch:
       - amd64
       - arm64
