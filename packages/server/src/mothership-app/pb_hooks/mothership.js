@@ -2472,7 +2472,7 @@ const HandleInstanceUpdate = (e) => {
 		if (!isAvailable(subdomain)) throw new BadRequestError(`Instance name ${subdomain} is not available.`);
 	}
 	const oldCname = record.getString("cname").trim();
-	const newCname = cname !== null ? cname.trim() : null;
+	const newCname = cname !== null ? cname.trim().toLowerCase() : null;
 	const cnameChanged = newCname !== null && oldCname !== newCname;
 	if (newCname !== null && newCname.length > 0) {
 		log(`CNAME saved ("${oldCname}" -> "${newCname}") - registering with Cloudflare`);
@@ -2496,7 +2496,7 @@ const HandleInstanceUpdate = (e) => {
 		webhooks,
 		autoVacuum,
 		dev,
-		cname
+		cname: newCname
 	});
 	for (const [key, value] of Object.entries(sanitized)) record.set(key, value);
 	$app.runInTransaction((txApp) => {
@@ -2688,11 +2688,15 @@ const BeforeUpdate_cname = (e) => {
 	const id = record.id;
 	const newCname = record.get("cname").trim();
 	if (newCname === `${record.original().get("cname")}`.trim()) return;
+	if (newCname !== newCname.toLowerCase()) {
+		log(`${`[ERROR] [${id}] Custom domain ${newCname} must be lowercase.`}`);
+		throw new BadRequestError(`Custom domain must be lowercase.`);
+	}
 	if (newCname.length > 0) {
 		const result = new DynamicModel({ id: "" });
 		if ((() => {
 			try {
-				$app.db().newQuery(`select id from instances where cname = {:cname} and id <> {:id}`).bind({
+				$app.db().newQuery(`select id from instances where lower(trim(cname)) = {:cname} and id <> {:id}`).bind({
 					cname: newCname,
 					id
 				}).one(result);

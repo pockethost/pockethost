@@ -126,7 +126,7 @@ func (r *Resolver) claimOn(inst instanceRec, host string) int {
 // winner finds the instance host routes to, and every instance that claims it (their records are the answer's deps:
 // a write to any of them can change the winner).
 func (r *Resolver) winner(host string) (*instanceRec, []instanceRec, error) {
-	cond := dbx.Or(dbx.NewExp("instances.cname != '' AND instances.cname = {:host}", dbx.Params{"host": host}))
+	cond := dbx.Or(dbx.NewExp("instances.cname != '' AND lower(trim(instances.cname)) = {:host}", dbx.Params{"host": host}))
 	if l := r.label(host); l != "" {
 		cond = dbx.Or(cond, dbx.NewExp("instances.subdomain = {:label} OR instances.id = {:label}", dbx.Params{"label": l}))
 	}

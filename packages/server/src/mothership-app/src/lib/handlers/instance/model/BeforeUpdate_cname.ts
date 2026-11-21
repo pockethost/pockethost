@@ -11,7 +11,14 @@ export const BeforeUpdate_cname = (e: core.RecordUpdateEvent) => {
   // on instances that already share a domain from before this check existed.
   if (newCname === `${record.original().get('cname')}`.trim()) return
 
-  // Only check if cname is already in use locally
+  // Hostnames are stored lowercase (the update API lowercases them); any other write path must too.
+  if (newCname !== newCname.toLowerCase()) {
+    const msg = `[ERROR] [${id}] Custom domain ${newCname} must be lowercase.`
+    log(`${msg}`)
+    throw new BadRequestError(`Custom domain must be lowercase.`)
+  }
+
+  // Only check if cname is already in use locally (case-insensitively: older rows may still be mixed case)
   if (newCname.length > 0) {
     const result = new DynamicModel({
       id: '',
@@ -21,7 +28,7 @@ export const BeforeUpdate_cname = (e: core.RecordUpdateEvent) => {
       try {
         $app
           .db()
-          .newQuery(`select id from instances where cname = {:cname} and id <> {:id}`)
+          .newQuery(`select id from instances where lower(trim(cname)) = {:cname} and id <> {:id}`)
           .bind({ cname: newCname, id })
           .one(result)
       } catch (e) {

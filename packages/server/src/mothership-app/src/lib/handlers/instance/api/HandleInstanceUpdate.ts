@@ -102,7 +102,8 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
 
   // Check if CNAME changed and handle Cloudflare
   const oldCname = record.getString('cname').trim()
-  const newCname = cname !== null ? cname.trim() : null
+  // Hostnames are case-insensitive; store them lowercase so lookups and the uniqueness check agree.
+  const newCname = cname !== null ? cname.trim().toLowerCase() : null
   const cnameChanged = newCname !== null && oldCname !== newCname
 
   // Register whenever the domain is saved, even unchanged: saving again re-adds a hostname the daily
@@ -148,7 +149,7 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
     webhooks,
     autoVacuum,
     dev,
-    cname,
+    cname: newCname,
   })
 
   for (const [key, value] of Object.entries(sanitized)) {
