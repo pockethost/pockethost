@@ -2375,8 +2375,8 @@ const removeEmptyKeys = (obj) => Object.fromEntries(Object.entries(obj).filter((
 //#endregion
 //#region src/lib/handlers/instance/api/HandleInstanceUpdate.ts
 /**
-* PUT /api/instance/{id}. Called by the dashboard. Besides the full `secrets` map, accepts `secretsPatch`
-* (`{ KEY: value | null }`) to change one secret without sending the others.
+* PUT /api/instance/{id}. Called by the dashboard. Besides the full `secrets` map, accepts `secretsPatch` (`{ KEY:
+* value | null }`) to change one secret without sending the others.
 */
 const HandleInstanceUpdate = (e) => {
 	const log = mkLog(`PUT:instance`);
