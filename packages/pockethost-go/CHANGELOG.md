@@ -37,6 +37,7 @@ the two version numbers don't match.
 - The dashboard's API Tokens page creates and revokes tokens through the token API; a token's instances can't be edited any more (create a new token instead).
 - Edges no longer read users: the mothership works out what each instance gets from its owner (blocked when the owner is suspended, has no paid instances or isn't verified; the owner's login for admin sync; the owner's trusted IPs; who may deploy) and writes it on the instance. Edges load and watch instances and edges only, and stop fetching owner logins one by one at start. Deploys now also refuse an instance whose owner has no paid instances or isn't verified, not only a suspended owner.
 - **edge:** deploys run on PocketOne's deploy extension (ext/deploy) at `/api/_c/deploy/v1` only, reading and writing instance files through the runtime's instance.fs/v1; PocketHost's own copy of the deploy API is gone. The old `/_ph/deploy/v1` path (the npm CLI's) is gone, and each instance's upload cache moves from `DATA_ROOT/deploys/<id>` to `.pb_deploy` in its folder, so the first deploy after the upgrade uploads every file once. The dashboard's live log view (`POST /logs`) is unchanged.
+- **edge:** Duplicate no longer copies the original's `pb_cache` (extensions' disposable files, including deploy's upload store) or `.pb_deploy`; the copy builds its own.
 - Deploy the mothership before the edges: until every edge runs this build, the mothership still sends users in the edge dump and answers `/api/userToken` for edges on the build before.
 
 ### PocketOne

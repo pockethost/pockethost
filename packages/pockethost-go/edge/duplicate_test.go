@@ -38,6 +38,9 @@ func TestCopyInstanceDir(t *testing.T) {
 	src, dst := filepath.Join(root, "src"), filepath.Join(root, "dst")
 	writeFile(t, filepath.Join(src, "pb_data", "data.db"), "db")
 	writeFile(t, filepath.Join(src, "pb_hooks", "main.pb.js"), "hook")
+	writeFile(t, filepath.Join(src, "pb_cache", "deploy", "blobs", "ab", "abc"), "cached upload")
+	writeFile(t, filepath.Join(src, ".pb_deploy", "blobs", "ab", "abc"), "cached upload")
+	writeFile(t, filepath.Join(src, "pb_public", "pb_cache", "kept.txt"), "x") // only the top-level folder is left out
 	if err := os.Symlink("main.pb.js", filepath.Join(src, "pb_hooks", "link.js")); err != nil {
 		t.Fatal(err)
 	}
@@ -48,11 +51,19 @@ func TestCopyInstanceDir(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n != int64(len("db")+len("hook")) {
+	if n != int64(len("db")+len("hook")+len("x")) {
 		t.Fatalf("bytes: %d", n)
 	}
 	if readFile(t, filepath.Join(dst, "pb_data", "data.db")) != "db" || readFile(t, filepath.Join(dst, "pb_hooks", "main.pb.js")) != "hook" {
 		t.Fatal("files not copied")
+	}
+	for _, d := range notCopied {
+		if _, err := os.Stat(filepath.Join(dst, d)); !os.IsNotExist(err) {
+			t.Fatalf("%s should not be copied: %v", d, err)
+		}
+	}
+	if readFile(t, filepath.Join(dst, "pb_public", "pb_cache", "kept.txt")) != "x" {
+		t.Fatal("a nested pb_cache folder is the customer's and must be copied")
 	}
 	if target, err := os.Readlink(filepath.Join(dst, "pb_hooks", "link.js")); err != nil || target != "main.pb.js" {
 		t.Fatalf("symlink: %q %v", target, err)
