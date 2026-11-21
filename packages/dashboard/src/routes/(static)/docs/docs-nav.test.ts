@@ -8,10 +8,13 @@ const pageSlugs = readdirSync(docsDir, { withFileTypes: true })
   .filter((d) => d.isDirectory() && existsSync(join(docsDir, d.name, '+page.md')))
   .map((d) => d.name)
 const navSlugs = docsNavFlat.map((d) => d.slug)
+// pages kept out of the nav on purpose: ftp (SFTP) is linked only from the dashboard's SFTP screens until SFTP retires
+// on Feb 6, 2027; delete the page and this entry then
+const unlisted = ['ftp']
 
 describe('docs nav', () => {
   it('lists every docs page', () => {
-    expect(pageSlugs.filter((s) => !navSlugs.includes(s))).toEqual([])
+    expect(pageSlugs.filter((s) => !navSlugs.includes(s) && !unlisted.includes(s))).toEqual([])
   })
 
   it('only links to pages that exist', () => {
