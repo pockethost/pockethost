@@ -1,13 +1,13 @@
 ---
 title: PocketHost CLI
-description: Install the pockethost CLI (Homebrew, Scoop, the install script or from source), and use it to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
+description: Install the pockethost CLI (Homebrew, Scoop, the install script or from source), and use it to link a project to an instance, deploy, sync both ways with dev, pull files, read logs and restart
 ---
 
 # PocketHost CLI
 
-**`pockethost`** is the PocketHost command-line tool for deploying local PocketBase project files to your instance, managing the files on it, and tailing instance logs.
+**`pockethost`** is the PocketHost command-line tool. Link a project folder to your instance, then deploy it, keep it in step while you work, pull files down, read the instance's logs and restart it.
 
-`deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. The CLI signs in with a **personal access token**, on your computer and in CI alike.
+`deploy` and `dev` upload over HTTPS: only the files that changed are sent, and your instance swaps them in.
 
 ## Install
 
@@ -52,7 +52,13 @@ The `pockethost` command used to be an npm package (and before 3.0, **phio**). T
 npm rm -g pockethost phio
 ```
 
-Then install `pockethost` as above and run `pockethost link` in each project folder.
+Then install `pockethost` as above and run `pockethost link <instance URL>` in each project folder. A few things are different:
+
+- **Linking:** `link` takes the instance's URL and saves it in `.pocketbase/remotes.json`. The old `.pockethostconfig` isn't read; you can delete it.
+- **Signing in:** in your browser, with an instance superuser, or with a token passed to `link`. In CI, the token goes in `P1_TOKEN` instead of `POCKETHOST_TOKEN`.
+- **`dev`** syncs both ways now, so changes made on the instance come down too.
+- **Your data:** `pb_data` is never downloaded or uploaded. Use PocketBase's backups instead (see [Your data](#your-data)).
+- **Instance settings** (power, versions, domains, secrets, webhooks, creating and deleting) are in the [dashboard](/dashboard).
 
 ## Quick start
 
@@ -72,198 +78,131 @@ pockethost deploy
 
 ## Commands
 
-| Command                                     | Purpose                                                         |
-| ------------------------------------------- | --------------------------------------------------------------- |
-| `pockethost login [token]`                  | Save a personal access token on this computer                   |
-| `pockethost token [set\|clear\|status]`     | Save, remove, or check the token                                |
-| `pockethost logout`                         | Remove the saved token from this computer                       |
-| `pockethost info` (`whoami`)                | Show the token and the linked instance                          |
-| `pockethost list` (`ls`)                    | List the instances your token can reach                         |
-| `pockethost link [instance]`                | Link this directory to an instance (writes `.pockethostconfig`) |
-| `pockethost dev [instance]`                 | Watch local files and deploy on change                          |
-| `pockethost deploy [instance]`              | Deploy once                                                     |
-| `pockethost files [path]`                   | List files on the instance                                      |
-| `pockethost pull [paths...]`                | Download instance files into this folder                        |
-| `pockethost upload <local> [remote]`        | Upload a file or folder to the instance                         |
-| `pockethost rm <paths...>`                  | Delete files on the instance                                    |
-| `pockethost logs [instance]`                | Tail instance logs                                              |
-| `pockethost show [instance]`                | Show power, URLs, domain, version and settings                  |
-| `pockethost power on\|off [instance]`       | Power an instance on or off                                     |
-| `pockethost rename <new-name> [instance]`   | Rename an instance (its URL changes)                            |
-| `pockethost version <version> [instance]`   | Change the PocketBase version                                   |
-| `pockethost versions`                       | List the PocketBase versions you can run                        |
-| `pockethost domain set\|clear`              | Set or remove a custom domain                                   |
-| `pockethost dev-mode on\|off [instance]`    | Turn dev mode on or off                                         |
-| `pockethost admin-sync on\|off [instance]`  | Turn admin sync on or off                                       |
-| `pockethost auto-vacuum on\|off [instance]` | Turn auto-vacuum on or off                                      |
-| `pockethost secrets list\|set\|unset`       | Manage secrets (environment variables)                          |
-| `pockethost webhooks list\|add\|rm`         | Manage scheduled webhooks                                       |
-| `pockethost create [name]`                  | Create an instance                                              |
-| `pockethost delete <instance>`              | Delete an instance and its data                                 |
+| Command                            | What it does                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `pockethost link <url> [token]`    | Make an instance this folder's remote and sign in                         |
+| `pockethost clone <url> [dir]`     | Make a folder for an instance, link it and pull its code                  |
+| `pockethost login [remote]`        | Sign in to a remote again                                                 |
+| `pockethost logout [remote]`       | Forget the saved login                                                    |
+| `pockethost deploy [remote]`       | Upload your project once                                                  |
+| `pockethost dev [remote]`          | Keep your project and the instance in step both ways, and stream its logs |
+| `pockethost pull [remote] [paths]` | Download the instance's code into your project                            |
+| `pockethost logs [remote]`         | Stream the instance's logs                                                |
+| `pockethost restart [remote]`      | Restart the instance so new migrations and packages apply                 |
+| `pockethost remote list`           | List the project's remotes and whether you're signed in                   |
+| `pockethost remote status`         | Show whether the instance is running, its versions and uptime             |
 
-`dev` and `deploy` accept:
+`[remote]` is a remote's name (`default` unless you named it with `link --name`) or an instance URL. Without it, commands use the project's default remote. Run any command with `--help` for all its flags.
 
-- `-v, --verbose`: list every uploaded, changed, and deleted file
-- `-i, --include <patterns...>`: extra include globs (comma-separated values work)
-- `-e, --exclude <patterns...>`: extra exclude globs
-- `--no-node-modules`: don't ship `node_modules` (see [Packages](#packages-node_modules))
+Everything else about an instance (power, versions, custom domains, secrets, webhooks, settings, creating and deleting) is in the [dashboard](/dashboard).
 
-`deploy` makes the instance's files match your local folders, so files on the instance that you don't have locally are deleted. From CLI 4.3, it lists those files and asks before deleting anything. Add `-y, --yes` to skip the question; without a terminal (for example in CI), `deploy` refuses to delete files unless you pass `-y`. `dev` deletes them without asking, because it mirrors your local changes.
+## Linking and remotes
 
-`deploy` also accepts `--commit <sha>` and `-m, --message <note>` to record with the deploy. In GitHub Actions the commit SHA is picked up automatically. `--dry-run` lists what would be deployed without deploying, and `--out <dir>` writes the deploy set to a local folder so you can inspect exactly what your instance would receive.
+`pockethost link` saves the instance as one of the project's **remotes** in `.pocketbase/remotes.json`. Commit that file, so teammates and CI deploy to the same instance. Your logins are saved in your home folder, never in the project.
 
-Default **includes**: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
-
-Default **excludes**: `pb_data/**`.
-
-## Files
-
-Four commands work with the files on your instance over HTTPS, using the same token as `deploy`. They reach `pb_hooks`, `pb_migrations`, `pb_public` and other `pb_*` folders, `pb_data`, `node_modules`, `package.json`, `bun.lock(b)` and `patches/`. They use the linked instance, or pass `-I <instance>`.
-
-| Command                              | What it does                                                                                                                                                                              |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pockethost files [path] [-r]`       | List a folder (`-r` for everything below it). `--json` for scripts                                                                                                                        |
-| `pockethost pull [paths...]`         | Download into the current folder. With no paths, everything except `pb_data` and `node_modules`. `--data` adds `pb_data`, `-d <dir>` picks another folder, `-n` shows what would download |
-| `pockethost upload <local> [remote]` | Upload a file or folder. The remote path defaults to the same relative path                                                                                                               |
-| `pockethost rm <paths...> [-r]`      | Delete files. `-r` deletes a folder and everything in it                                                                                                                                  |
-
-Reading needs any token for the instance. `upload` and `rm` need write access.
-
-**`pb_data` needs the instance powered off**, for reading and writing. Power it off in the dashboard, run the command, then power it back on.
-
-`pull` skips files that haven't changed since your last pull, so running it again is quick.
-
-### Start from what's on your instance
-
-If your instance has files that aren't in a local project yet (say you've been changing them on the instance), pull them before your first deploy:
+Link more than one instance with `--name`, and pick one by name on each command:
 
 ```bash
-mkdir my-app && cd my-app
-pockethost link my-instance
-pockethost pull
+pockethost link https://my-app-staging.pockethost.io --name staging
+pockethost deploy staging
+```
+
+`pockethost remote default <name>` changes which remote commands use when you don't name one.
+
+To start from an instance that already has code on it, `clone` does it in one step:
+
+```bash
+pockethost clone https://my-instance.pockethost.io   # makes ./my-instance, links it, pulls its code
+cd my-instance
+pockethost dev
+```
+
+## Deploy
+
+```bash
 pockethost deploy
 ```
 
-`deploy` removes files on the instance that aren't in your project, so pulling first means nothing gets lost.
+Sends every `pb_*` folder except `pb_data` (so `pb_hooks`, `pb_migrations`, `pb_pages`, `pb_public`), plus `package.json`, `bun.lock` or `bun.lockb`, `patches/`, and your production `node_modules` (see [Packages](#packages-nodemodules)). `pb_data`, `.git*` files and symlinks are never sent.
 
-### Download a copy of your data
+**Your project is the source of truth.** A deploy makes the instance's code match your project, so files on the instance that aren't in your project are removed. If a file changed on the instance since your last deploy, pull or `dev` (a migration the PocketBase admin wrote when you edited a collection, say), the deploy stops, lists those files and sends nothing. Bring them down with `pockethost pull`, then deploy again, or pass `--force` to overwrite them.
 
-```bash
-pockethost pull --data pb_data
-```
+**When changes take effect.** Hooks, pages and public files take effect right away. Migrations and packages apply when the instance restarts: pass `--restart`, or run `pockethost restart` afterwards.
 
-### Move an existing `pb_data` in
+`deploy` accepts:
 
-Power off the instance, then:
+- `--dry-run`: list what would be deployed, deploy nothing
+- `--out <dir>`: write the deploy set to a local folder, to inspect exactly what your instance would get
+- `-v, --verbose`: list every file
+- `-i, --include <patterns>` and `-e, --exclude <patterns>`: add to the default set (`pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/`)
+- `--no-node-modules`: don't ship `node_modules`, and leave the instance's alone
+- `--restart`: restart the instance after deploying when migrations or packages changed
+- `--force`: deploy even when files changed on the instance, overwriting them
 
-```bash
-pockethost upload ./pb_data
-```
-
-Large files are uploaded in pieces, so a big `data.db` works. If your settings are encrypted, add `PB_ENCRYPTION_KEY` first. See [Encrypted settings](/docs/encryption).
-
-### Packages (`node_modules`)
-
-PocketHost doesn't run `npm install`. When your project has a `package.json`, `pockethost deploy` ships your production `node_modules` instead: the packages in `dependencies` and everything they need, never `devDependencies`. Install locally first, then deploy:
+## Work live with `dev`
 
 ```bash
-npm install
-pockethost deploy
+pockethost dev
 ```
 
-It works with npm, pnpm, Bun and workspaces. Symlinks are followed, so your instance gets plain files. A workspace package ships only the files its `files` field publishes. Run `pockethost deploy --dry-run` to see the list. Only changed files upload, so later deploys are quick.
+`dev` keeps your folder and the instance in step both ways, and streams the instance's logs. Your edits go up half a second after you save. Changes made on the instance, such as the migrations the PocketBase admin writes when you edit a collection, come down within a few seconds. After you upload a migration or new packages, type `r` and Enter to restart the instance. Stop with Ctrl+C.
 
-Requires CLI 4.2 or later. The instance's `node_modules` ends up matching what you shipped, so a package you remove (even the last one) is removed there too. `--no-node-modules` leaves the instance's `node_modules` as it is.
+If a file changed on both sides, your copy wins and the instance's copy is saved in `.pocketone/conflicts/`. `dev` keeps its state in `.pocketone/`, so add that folder to `.gitignore`. To leave files out, list gitignore-style patterns in `.pocketoneignore`.
 
-### Remove a migration that won't run
+## Pull files and read logs
 
 ```bash
-pockethost files pb_migrations
-pockethost rm pb_migrations/1700000000_bad.js
+pockethost pull                         # pb_hooks, pb_migrations, pb_pages, pb_public, pb_templates, package.json, the lockfile, patches/
+pockethost pull default pb_hooks pb_public/index.html
+pockethost logs                         # the last 100 lines, then follow
 ```
 
-## Managing instances
+`pull` never downloads `pb_data`. To get a copy of your data, or to bring an existing `pb_data` in, use backups in the PocketBase admin: see [Your data](#your-data).
 
-Everything the dashboard does to an instance has a command, using the same token as `deploy`. Commands use the linked instance unless you name one. `secrets` and `webhooks` take `-I <instance>`.
+## Packages (`node_modules`)
+
+PocketHost doesn't install npm packages. When your project has a `package.json`, `pockethost deploy` ships your production `node_modules` instead: the packages in `dependencies` and everything they need, never `devDependencies`. Install locally first, then deploy:
 
 ```bash
-pockethost show                      # power, URLs, domain, version, settings
-pockethost power on
-pockethost power off --wait          # wait until it has stopped
-pockethost versions
-pockethost version 0.41.* --cycle
-pockethost domain set api.example.com --cycle
-pockethost secrets set STRIPE_KEY    # prompts for the value
-pockethost webhooks add /api/cron "*/5 * * * *"
+bun install        # or npm install, pnpm install
+pockethost deploy --restart
 ```
 
-**Settings that need the instance off.** Renaming, changing the version or custom domain, and switching dev mode, admin sync or auto-vacuum only work while the instance is powered off, same as in the dashboard. Add `--cycle` and the CLI powers it off, waits for it to stop, applies the change and powers it back on.
+It works with npm, pnpm, Bun and workspaces. Symlinks are followed, so your instance gets plain files. Run `pockethost deploy --dry-run` to see the list. Only changed files upload, so later deploys are quick. The instance's `node_modules` ends up matching what you shipped, so a package you remove is removed there too. `--no-node-modules` leaves the instance's `node_modules` as it is.
 
-**Secrets.** `secrets set KEY=value` changes only the secrets you name. Give just `KEY` to type the value at a prompt, so it stays out of your shell history. `secrets list` shows names only. Values are never sent back to the CLI. Secrets reach your instance as environment variables the next time it starts.
+## Your data
 
-**Creating and deleting.** `pockethost create [name]` picks a random available name if you don't give one, and `--link` links the current folder to it. It needs a token for all instances. `pockethost delete <instance>` needs the instance powered off and asks you to type its name, unless you pass `--yes`.
+The CLI works with your code, never with `pb_data`. For your data, use PocketBase's backups in your instance's admin (**Settings → Backups**):
 
-## Linking an instance (`.pockethostconfig`)
+- **Download a copy:** create a backup, then download it.
+- **Bring an existing `pb_data` in:** zip it, upload it as a backup, and restore it. If your settings are encrypted, add `PB_ENCRYPTION_KEY` first. See [Encrypted settings](/docs/encryption).
 
-`pockethost link` writes a `.pockethostconfig` file in your project root:
+See [Backups and Data Protection](/docs/backup-restore) for keeping your own backups.
 
-```json
-{
-  "instanceName": "all-your-base"
-}
+## Remove a migration that won't run
+
+Delete it from `pb_migrations` in your project and deploy. The deploy removes it from the instance too:
+
+```bash
+rm pb_migrations/1700000000_bad.js
+pockethost deploy --restart
 ```
 
-Commit this file so teammates and CI know which instance the project deploys to.
+## Signing in
 
-### Older project files
+`link`, `clone` and `login` sign you in to the instance:
 
-Older projects may still have one of:
+- **In your browser**, when the instance offers it. Add `--device` to sign in on another device with a code (over SSH, say), or `--no-browser` to print the URL.
+- **With one of the instance's superusers**' email and password.
+- **With a PocketHost API token** from **[Account → API Tokens](/account/tokens)**: pass it after the URL (`pockethost link <url> <token>`), with `--token`, or with `--token-stdin`. Each token can be limited to specific instances, can be read-only, and can be revoked at any time. `deploy`, `dev` and `restart` need write access; `pull` and `logs` work with a read-only token.
 
-- a `.phioconfig` file (from phio),
-- `"pockethost": { "instanceName": "..." }` in `package.json`, or
-- a standalone `pockethost.json`
+`pockethost remote list` shows each remote and whether you're signed in. `pockethost logout` forgets a saved login.
 
-The CLI migrates these to `.pockethostconfig` automatically the first time it reads them and removes the old entry.
+## Deploy from CI
 
-## Authentication
-
-The CLI signs in with a personal access token (`ph_pat_…`) only. Every command uses the first of these that is set:
-
-1. **`POCKETHOST_TOKEN`** environment variable
-2. The token saved by **`pockethost login`** (or `pockethost token set`)
-
-Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can be limited to specific instances, can be read-only, and can be revoked at any time. `list`, `link`, `show` and `logs` work with any token. `deploy`, `dev` and the [instance commands](#managing-instances) need write access, and `create` needs a token for all instances. The CLI only ever sees the instances its token can reach. For CI, see **[Deploy from CI](/docs/deploy-from-ci)**.
-
-## How deploys work
-
-1. The CLI collects the files matched by the include/exclude globs and hashes them.
-2. It sends the list to `https://<instance>.pockethost.io`, and PocketHost replies with the files it doesn't have yet.
-3. Only those files are uploaded, compressed.
-4. PocketHost swaps the new file set in all at once. If anything outside `pb_public` changed, the instance is stopped for the swap and started again. Changes to `pb_public` alone go live without a restart.
-
-`pb_data`, `.git*` files, and anything else outside `pb_*` folders, `package.json`, `bun.lock(b)`, `patches/` and `node_modules` are never touched.
-
-PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied as plain files, and the CLI ships your production `node_modules` with the deploy (see [Packages](#packages-node_modules)). A deploy from a project without a `package.json`, from an older CLI or with `--no-node-modules` leaves the instance's `node_modules` alone.
-
-**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've changed files on the instance directly, run [`pockethost pull`](#start-from-whats-on-your-instance) first.
-
-## Environment variables
-
-Override saved config without editing files:
-
-| Variable                    | Purpose                                                    |
-| --------------------------- | ---------------------------------------------------------- |
-| `POCKETHOST_TOKEN`          | Personal access token (CI); overrides the saved one        |
-| `POCKETHOST_INSTANCE_NAME`  | Default instance name                                      |
-| `POCKETHOST_MOTHERSHIP_URL` | Mothership API URL (default production)                    |
-| `POCKETHOST_HOME`           | Config folder for the saved token                          |
-| `POCKETHOST_PROJECT_DIR`    | Project folder (default: found from the current directory) |
-
-`POCKETHOST_INSTANCE_NAME` takes precedence over `.pockethostconfig`. The older `PHIO_*` names still work with a warning.
-
-## CI example
-
-Create a token at **[Account → API Tokens](/account/tokens)**, save it as the `POCKETHOST_TOKEN` repository secret, and deploy:
+1. Create a token at **[Account → API Tokens](/account/tokens)** with write access to the instance.
+2. Save it as a CI secret named `P1_TOKEN` (or `P1_TOKEN_STAGING` for the remote named `staging`).
+3. Commit `.pocketbase/remotes.json` (from `pockethost link`), install `pockethost` in the job and deploy:
 
 ```yaml
 on:
@@ -276,36 +215,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
+      - name: Install pockethost
+        run: curl -fsSL https://pockethost.io/install.sh | sh
 
       - name: Deploy to PocketHost
         env:
-          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
-        run: npx pockethost@latest deploy my-instance
+          P1_TOKEN: ${{ secrets.P1_TOKEN }}
+        run: pockethost deploy --restart
 ```
 
-See **[Deploy from CI](/docs/deploy-from-ci)** for per-branch instances and more detail.
+A CI run deploys without the "changed on the instance" check, since it has no record of an earlier deploy. See **[Deploy from CI](/docs/deploy-from-ci)** for per-branch instances and more detail.
 
 ## Troubleshooting
 
-### `No instance name provided and none was found in .pockethostconfig`
+### Not signed in
 
-Run `pockethost link <instance>` in your project directory, or pass the instance name on the command line.
+Run `pockethost login` (or `pockethost remote list` to see which remote it means). In CI, check that `P1_TOKEN` is set and that the token hasn't been revoked or expired.
 
-### `Authentication failed` or `Not authenticated`
+### The deploy stops and lists files that changed on the instance
 
-Check `pockethost token status`. If the token was revoked or expired, create a new one at **[Account → API Tokens](/account/tokens)** and run `pockethost login` again (or update the `POCKETHOST_TOKEN` secret).
+Someone (or the PocketBase admin) changed them since your last deploy. Run `pockethost pull` to bring them into your project, then deploy again. To overwrite them instead, pass `--force`.
 
-### `Instance '…' not found, or this token cannot access it`
+### `Migrations or packages changed`
 
-Check the instance name, and that the token's instance list includes it.
-
-### `phio: command not found` or old commands
-
-phio is now `pockethost`. See **[Coming from the npm CLI](#coming-from-the-npm-cli)**.
-
-### `Email/password login was removed in CLI 4.0`
-
-CLI 4.0 signs in with tokens only. Run `pockethost login` once to save a token, and replace `POCKETHOST_USERNAME`/`POCKETHOST_PASSWORD` in CI with a `POCKETHOST_TOKEN` secret.
+They apply when the instance restarts. Run `pockethost restart`, or deploy with `--restart`.
