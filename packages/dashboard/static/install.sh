@@ -70,8 +70,14 @@ main() {
 	case "$arch" in
 	x86_64 | amd64) arch=amd64 ;;
 	aarch64 | arm64) arch=arm64 ;;
+	armv7l | armv7) arch=armv7 ;;
+	ppc64le) arch=ppc64le ;;
+	s390x) arch=s390x ;;
 	*) fail "no pockethost build for $os/$arch; see https://github.com/$REPO/releases" ;;
 	esac
+	if [ "$os" = darwin ] && [ "$arch" != amd64 ] && [ "$arch" != arm64 ]; then
+		fail "no pockethost build for macOS/$arch"
+	fi
 
 	tag=${POCKETHOST_VERSION:-}
 	if [ -z "$tag" ]; then

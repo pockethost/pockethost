@@ -32,7 +32,7 @@ scoop install pockethost
 curl -fsSL https://pockethost.io/install.sh | sh
 ```
 
-It puts `pockethost` in `/usr/local/bin` (asking for your password through `sudo` when that folder isn't yours). Set `POCKETHOST_INSTALL_DIR` to put it somewhere else, for example `curl -fsSL https://pockethost.io/install.sh | POCKETHOST_INSTALL_DIR=$HOME/.local/bin sh`. You can also download the zip for your platform from [Releases](https://github.com/pockethost/pockethost/releases) and put `pockethost` on your `PATH` yourself.
+It puts `pockethost` in `/usr/local/bin` (asking for your password through `sudo` when that folder isn't yours). Set `POCKETHOST_INSTALL_DIR` to put it somewhere else, for example `curl -fsSL https://pockethost.io/install.sh | POCKETHOST_INSTALL_DIR=$HOME/.local/bin sh`. You can also download the zip for your platform from [Releases](https://github.com/pockethost/pockethost/releases) and put `pockethost` on your `PATH` yourself, or on Linux install its `.deb`, `.rpm` or `.apk` package from there.
 
 **Build from source**, with [Go](https://go.dev) installed:
 
