@@ -16,6 +16,7 @@ import (
 	cachev1 "pocketone.dev/ext/contracts/cache/v1"
 	deployv1 "pocketone.dev/ext/contracts/deploy/v1"
 	fsv1 "pocketone.dev/ext/contracts/instance/fs/v1"
+	tokensv1 "pocketone.dev/ext/contracts/instance/tokens/v1"
 	remotev1 "pocketone.dev/ext/contracts/remote/v1"
 	"pocketone.dev/ext/deploy"
 	"pocketone.dev/ext/docker"
@@ -149,6 +150,12 @@ func edgeServeConfig(configPath, envPath string) error {
 	if err != nil {
 		return err
 	}
+	// an instance's own API tokens (its superusers') work on its deploy/v1 and remote/v1 too, where the runtime can
+	// check them (pocker; docker's stock images can't be asked): `pocketone login` and `clone` sign in to the instance
+	deployBackend.AcceptInstanceTokens(func() tokensv1.Tokens {
+		t, _ := tokensv1.Contract.In(h.Scope)
+		return t
+	})
 	if rt, ok := h.Runtime.(*docker.Runtime); ok {
 		running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
 	}
