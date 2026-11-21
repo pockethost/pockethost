@@ -98,31 +98,20 @@ powered off 503, unverified 403.
 
 ## Deploy API
 
-`deploy/` is a Go port of the Node edge's `DeployService` (same routes, JSON, errors, limits, code-set rules, PHB1
-bundles, store layout `DATA_ROOT/deploys/<id>`). Tokens are checked against the mothership (`/api/pat/verify`, or the
-user's own `auth-refresh` for a login JWT), cached 30 s; deploys are recorded in the `deploys` collection. A commit
-that changes anything outside `pb_public/` runs while Pocker holds the instance (`Manager.WithInstanceStopped`), then
-starts it again if it was running, so the CLI sees `startError` from a broken hook right away.
+Deploys run on PocketOne's deploy API ([`ext/deploy`](https://pocketone.dev/docs/extensions/deploy)), served as the
+`deploy/v1` contract at `/api/_c/deploy/v1/` for every instance the edge runs (check, blobs, commit, files, and `tree`
+for `pocketone dev`), so `pocketone deploy`, `dev` and `pull` work against PocketHost. It works on the files the
+runtime provides (`instance.fs/v1`). Deploys are not recorded. `edge.DeployBackend` (`edge/deploy.go`) tells it which
+instance a host names (from the mirror) and who a request acts as: the instance owner's PocketHost API token, checked
+with the mothership's `api-tokens.verify/v1`, or the user's own `auth-refresh` for a dashboard login, cached 30 s. A
+token's `instances` / `instances:read` scopes (optionally `=<instance id>`) decide what it may do. Requests for an
+instance on another edge are forwarded there.
 
-Differences from the Node edge: an oversized body gets a JSON 413; a symlink in the code set says "remove it and
-redeploy" (no SFTP). Requests for an instance on another edge are forwarded there. The deploy API and `/logs` sit
-behind the edge's peer check (`Source.Front`) but not its rate limits.
+On pocker edges, `remote/v1` at `/api/_c/remote/v1/` adds whoami, status, restart and logs from pocker's Manager (docker
+edges get docker's). It takes the same token or login (`DeployBackend.ContractAuth`): an `instances` token may
+restart, an `instances:read` token may read. Log in with `pocketone login <instance URL>` and paste a PocketHost token.
 
-**PocketOne's contracts.** The edge also answers the `pocketone` command for every instance it runs, through
-PocketOne's [contracts](https://pocketone.dev/docs/contracts), after its gates:
-
-- `deploy/v1` at `/api/_c/deploy/v1/` is this same API (check, blobs, commit, files, and `tree` for `pocketone dev`),
-  so `pocketone deploy`, `dev` and `pull` work against PocketHost.
-- `remote/v1` at `/api/_c/remote/v1/`: whoami (public; lists both contracts), status, restart and logs, from
-  pocker's Manager or the docker runtime.
-
-Both take the instance owner's PocketHost token or login, checked as for a deploy (`deploy.API.ContractAuth`): a
-write token may restart, a read-only token may read. Log in with `pocketone login <instance URL>` and paste a
-PocketHost token.
-
-Tests: `go test ./deploy/` includes `TestCLICompat`, which runs the `pockethost` CLI's own deploy and files code under
-bun against this API (needs bun and a pockethost checkout; `POCKETHOST_CLI_DIR`, default `/root/pockethost/packages/cli`),
-and `TestWithPockerManager`, which deploys to real PocketBase apps.
+Tests: `go test ./edge/ -run 'Deploy|DashboardLogs'`.
 
 ## Firewall, webhooks, vacuum
 
