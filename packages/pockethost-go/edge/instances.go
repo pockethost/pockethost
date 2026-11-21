@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Instances is what PocketHost's edge features (deploy API, webhook scheduler, vacuum) need from the runtime
+// Instances is what PocketHost's edge features (webhook scheduler, vacuum, duplicate) need from the runtime
 // provider: pocker's Manager in-process, or DockerInstances for containers.
 type Instances interface {
 	Ready() bool

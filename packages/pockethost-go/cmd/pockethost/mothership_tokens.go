@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
+	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 	apitokens "pocketone.dev/ext/api-tokens"
 	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 	verifyv1 "pocketone.dev/ext/contracts/api-tokens/verify/v1"
@@ -45,9 +45,9 @@ func registerTokens(app core.App) *apitokens.Tokens {
 		return nil
 	}
 	values := &apitokens.ScopeValues{Description: "an instance id", Check: owns}
-	tk.MustRegisterScope(apitokens.Scope{Name: deploy.ScopeInstances, Collections: []string{"users"}, Values: values,
+	tk.MustRegisterScope(apitokens.Scope{Name: edge.ScopeInstances, Collections: []string{"users"}, Values: values,
 		Description: "Deploy to your instances, read their files and logs, and restart them"})
-	tk.MustRegisterScope(apitokens.Scope{Name: deploy.ScopeInstancesRead, Collections: []string{"users"}, Values: values,
+	tk.MustRegisterScope(apitokens.Scope{Name: edge.ScopeInstancesRead, Collections: []string{"users"}, Values: values,
 		Description: "Read your instances' files and logs"})
 
 	// A token without scopes would have its owner's full rights on the mothership (billing, keys, other tokens):
@@ -115,9 +115,9 @@ func importLegacyToken(app core.App, tk *apitokens.Tokens, secret string) error 
 // "instances:read"; a token for some instances gets one value per instance the owner still has. ok is false when
 // none is left (an empty scope list would mean the owner's full rights).
 func legacyScopes(app core.App, owner *core.Record, row *core.Record) (scopes []string, ok bool) {
-	name := deploy.ScopeInstancesRead
+	name := edge.ScopeInstancesRead
 	if slices.Contains(row.GetStringSlice("scopes"), "write") {
-		name = deploy.ScopeInstances
+		name = edge.ScopeInstances
 	}
 	if row.GetBool("all_instances") {
 		return []string{name}, true

@@ -1,17 +1,21 @@
-package deploy
+package edge
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
+
+	fsv1 "pocketone.dev/ext/contracts/instance/fs/v1"
+	"pocketone.dev/ext/deploy"
 )
 
 var (
@@ -19,21 +23,120 @@ var (
 	logPingEvery = 25 * time.Second
 )
 
-// logs: GET /logs?n=100 streams the instance's exec.log as server-sent events, one "log" event per entry
-// ({message, stream, time}), after replaying the last n (0..1000). Any token that can reach the instance may read.
-func (a *API) logs(w http.ResponseWriter, r *http.Request) error {
-	c, err := a.authorize(r, false)
+// DashboardLogs serves the dashboard's live log view (the Node edge's RealtimeLog) on every instance host this edge
+// runs: POST /logs {instanceId, n, auth} with "Authorization: <PocketBase token>" (or the pb_auth cookie in auth)
+// streams the instance's logs/exec.log as server-sent events. Only the owner's dashboard login may read; the body's
+// instanceId (id or subdomain) must be the instance the host names. CORS stays open: the dashboard calls it from its
+// own origin. files is the runtime's instance.fs/v1; hosts another edge runs (isRemote) go to next, which forwards
+// them.
+func (b *DeployBackend) DashboardLogs(files func() fsv1.Files, isRemote func(host string) bool) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/logs" || (r.Method != http.MethodPost && r.Method != http.MethodOptions) ||
+				(isRemote != nil && isRemote(hostOf(r))) {
+				next.ServeHTTP(w, r)
+				return
+			}
+			openCORS(w, r)
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			if err := b.dashboardLogs(w, r, files); err != nil && !errors.Is(err, errHeadersSent) {
+				writeLogsError(w, err)
+			}
+		})
+	}
+}
+
+// errHeadersSent: the stream failed after answering; nothing more to write.
+var errHeadersSent = errors.New("headers sent")
+
+type logsError struct {
+	status  int
+	message string
+}
+
+func (e *logsError) Error() string { return e.message }
+
+func writeLogsError(w http.ResponseWriter, err error) {
+	status, msg := http.StatusInternalServerError, "Logs failed: "+err.Error()
+	var le *logsError
+	var ae *deploy.AuthError
+	switch {
+	case errors.As(err, &le):
+		status, msg = le.status, le.message
+	case errors.As(err, &ae):
+		status, msg = ae.Status, ae.Message
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{"status": status, "message": msg})
+}
+
+func (b *DeployBackend) dashboardLogs(w http.ResponseWriter, r *http.Request, files func() fsv1.Files) error {
+	host := hostOf(r)
+	notFound := &logsError{http.StatusNotFound, host + " not found"}
+	inst, ok := b.Lookup(r)
+	if !ok {
+		return notFound
+	}
+	var body struct {
+		InstanceID string `json:"instanceId"`
+		N          *int   `json:"n"`
+		Auth       string `json:"auth"`
+	}
+	raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 64<<10))
 	if err != nil {
 		return err
 	}
-	n, _ := strconv.Atoi(strings.TrimSpace(r.URL.Query().Get("n")))
-	if r.URL.Query().Get("n") == "" {
-		n = 100
+	if json.Unmarshal(raw, &body) != nil || body.InstanceID == "" {
+		return &logsError{http.StatusBadRequest, "instanceId required"}
 	}
-	return streamLog(w, r, c.dir, min(max(n, 0), 1000))
+	token := strings.TrimSpace(r.Header.Get("Authorization"))
+	if bearerToken(token) == "" && token != "" {
+		token = "Bearer " + token
+	}
+	if token == "" {
+		token = cookieToken(body.Auth)
+	}
+	a, err := b.tokens.resolve(r.Context(), token, clientIP(r), false)
+	if err != nil {
+		return err
+	}
+	if a.Via == "token" || inst.OwnerID != a.UserID || (body.InstanceID != inst.ID && body.InstanceID != inst.Subdomain) {
+		return notFound
+	}
+	if inst.Elsewhere != "" {
+		return &logsError{http.StatusMisdirectedRequest, inst.Elsewhere}
+	}
+	var fs fsv1.Files
+	if files != nil {
+		fs = files()
+	}
+	if fs == nil {
+		return &logsError{http.StatusServiceUnavailable, "The server is starting; try again."}
+	}
+	f, err := fs.Instance(r.Context(), inst.ID)
+	if errors.Is(err, fsv1.ErrNoInstance) {
+		return notFound
+	}
+	if err != nil {
+		return err
+	}
+	dir, err := f.Dir(r.Context())
+	if err != nil {
+		return &logsError{http.StatusServiceUnavailable, "The server is starting; try again."}
+	}
+	n := 100
+	if body.N != nil {
+		n = min(max(*body.N, 0), 1000)
+	}
+	return streamLog(w, r, dir, n)
 }
 
-// streamLog writes <dir>/logs/exec.log as server-sent events until the client goes away.
+// streamLog writes <dir>/logs/exec.log as server-sent events, one "log" event per entry ({message, stream, time}),
+// after replaying the last n, until the client goes away.
 func streamLog(w http.ResponseWriter, r *http.Request, dir string, n int) error {
 	h := w.Header()
 	h.Set("Content-Type", "text/event-stream; charset=UTF-8")
@@ -54,14 +157,11 @@ func streamLog(w http.ResponseWriter, r *http.Request, dir string, n int) error 
 			entry = map[string]any{"stream": "stdout", "message": string(line), "time": time.Now().UTC().Format("2006-01-02T15:04:05.000Z")}
 		}
 		b, _ := json.Marshal(entry)
-		if _, err := w.Write([]byte("event: log\ndata: " + string(b) + "\n\n")); err != nil {
-			return false
-		}
-		return true
+		_, err := fmt.Fprintf(w, "event: log\ndata: %s\n\n", b)
+		return err == nil
 	}
 
-	path := filepath.Join(dir, "logs", "exec.log")
-	t := &tailer{path: path}
+	t := &tailer{path: filepath.Join(dir, "logs", "exec.log")}
 	for _, line := range t.start(n) {
 		if !send(line) {
 			return errHeadersSent
@@ -194,51 +294,6 @@ func (t *tailer) poll() [][]byte {
 	}
 	t.partial = append([]byte{}, data[end+1:]...)
 	return bytes.Split(data[:end], []byte("\n"))
-}
-
-// dashboardLogs: POST /logs {instanceId, n, auth} with "Authorization: <PocketBase token>" is the dashboard's live log
-// view (the Node edge's RealtimeLog). The owner's login token may read; the body's instanceId (id or subdomain) must
-// be the instance the host names. CORS stays open: the dashboard calls it from its own origin.
-func (a *API) dashboardLogs(w http.ResponseWriter, r *http.Request) error {
-	host := hostOf(r)
-	inst, ok := a.opts.Backend.Lookup(host)
-	if !ok {
-		return errf(404, "%s not found", host)
-	}
-	var body struct {
-		InstanceID string `json:"instanceId"`
-		N          *int   `json:"n"`
-		Auth       string `json:"auth"`
-	}
-	b, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 64<<10))
-	if err != nil {
-		return err
-	}
-	if json.Unmarshal(b, &body) != nil || body.InstanceID == "" {
-		return errf(400, "instanceId required")
-	}
-	token := strings.TrimSpace(r.Header.Get("Authorization"))
-	if bearerToken(token) == "" && token != "" {
-		token = "Bearer " + token
-	}
-	if token == "" {
-		token = cookieToken(body.Auth)
-	}
-	auth, err := a.auth.resolve(r.Context(), token, clientIP(r), false)
-	if err != nil {
-		return err
-	}
-	if auth.Via == "token" || inst.OwnerID != auth.UserID || (body.InstanceID != inst.ID && body.InstanceID != inst.Subdomain) {
-		return errf(404, "%s not found", host)
-	}
-	if inst.Elsewhere != "" {
-		return errf(http.StatusMisdirectedRequest, "%s", inst.Elsewhere)
-	}
-	n := 100
-	if body.N != nil {
-		n = min(max(*body.N, 0), 1000)
-	}
-	return streamLog(w, r, a.instanceDir(inst.ID), n)
 }
 
 // cookieToken reads the token from a PocketBase auth cookie ("pb_auth=<url-encoded JSON {token, ...}>; ...").

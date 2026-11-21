@@ -11,11 +11,12 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 	"pocketone.dev/ext/config"
 	deployv1 "pocketone.dev/ext/contracts/deploy/v1"
+	fsv1 "pocketone.dev/ext/contracts/instance/fs/v1"
 	remotev1 "pocketone.dev/ext/contracts/remote/v1"
+	"pocketone.dev/ext/deploy"
 	"pocketone.dev/ext/docker"
 	ceedge "pocketone.dev/ext/edge"
 	"pocketone.dev/ext/extkit"
@@ -123,20 +124,8 @@ func edgeServeConfig(configPath, envPath string) error {
 		dp.MinUpstream = edge.LegacyFloor
 		log.Info("pockethost: legacy releases on (PocketBase <0.23 from the binary cache)")
 	}
-	deployAPI := deploy.New(deploy.Options{
-		Backend: source.DeployBackend(),
-		Instances: func() deploy.Instances {
-			if i := current(); i != nil {
-				return i
-			}
-			return nil
-		},
-		PBRoot:        root,
-		DataRoot:      filepath.Join(filepath.Dir(filepath.Clean(root)), "deploys"), // DATA_ROOT/deploys, as on the Node edge
-		PlatformPaths: edge.PlatformPaths,
-		IsRemote:      source.IsRemote,
-	})
-	dp.RemoteAuth = deployAPI.ContractAuth // remote/v1 for docker instances: the owner's PocketHost token, as for deploys
+	deployBackend := source.DeployBackend()
+	dp.RemoteAuth = deployBackend.ContractAuth // remote/v1 for docker instances: the owner's PocketHost token, as for deploys
 
 	// host extensions, in order: servertiming first (http.wrap/v1, outermost: its header includes the edge's hops),
 	// then the one runtime this edge runs (runtime/v1); the firewall links itself (gate/v1)
@@ -154,9 +143,19 @@ func edgeServeConfig(configPath, envPath string) error {
 		running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
 	}
 	// PocketOne's contracts for every instance this edge runs, so `pocketone remote ...` and `pocketone deploy`
-	// work against PocketHost: deploy/v1 is the deploy API (also at /_ph/deploy/v1 for the npm CLI); remote/v1 is
-	// docker's on docker edges (status, restart, logs), and pocker's Manager here. Both take the owner's PocketHost
-	// token or login.
+	// work against PocketHost: deploy/v1 is PocketOne's deploy API (ext/deploy) on the files the runtime provides
+	// (instance.fs/v1, on the host scope); remote/v1 is docker's on docker edges (status, restart, logs), and pocker's
+	// Manager here. Both take the owner's PocketHost token or login.
+	files := func() fsv1.Files {
+		f, _ := fsv1.Contract.In(h.Scope)
+		return f
+	}
+	deployAPI := deploy.New(deploy.Options{
+		Backend:       deployBackend,
+		Files:         files,
+		PlatformPaths: edge.PlatformPaths,
+		Logger:        log,
+	})
 	prev := h.Scope.Registering("pockethost")
 	deployv1.Contract.ProvideForInstances(h.Scope, func(string) http.Handler { return deployAPI })
 	h.InstanceRoutes = append(h.InstanceRoutes, func(next http.Handler) http.Handler {
@@ -171,7 +170,7 @@ func edgeServeConfig(configPath, envPath string) error {
 			return nil
 		}, h.Scope))
 		h.InstanceRoutes = append(h.InstanceRoutes, func(next http.Handler) http.Handler {
-			return remotev1.W.HostHandler(h.Scope, multisite.InstanceID, deployAPI.ContractAuth, next)
+			return remotev1.W.HostHandler(h.Scope, multisite.InstanceID, deployBackend.ContractAuth, next)
 		})
 	}
 	h.Scope.Registering(prev)
@@ -186,7 +185,7 @@ func edgeServeConfig(configPath, envPath string) error {
 	}
 	ready := func() bool { i := current(); return i != nil && i.Ready() } // LB health is 503 until instances load
 	h.Wrappers = append(h.Wrappers, func(next http.Handler) http.Handler {
-		return source.Front(fw, ready, poweredBy, edge.NodeCompat(edgeStats.Middleware(deployAPI.Wrap(next))))
+		return source.Front(fw, ready, poweredBy, edge.NodeCompat(edgeStats.Middleware(deployBackend.DashboardLogs(files, source.IsRemote)(next))))
 	})
 	if ph.DisableWebhooks {
 		log.Info("pockethost: instance webhooks disabled")

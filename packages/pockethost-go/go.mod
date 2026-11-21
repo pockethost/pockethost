@@ -13,6 +13,7 @@ require (
 	pocketone.dev/ext/bundle v0.0.0-20261121033400-de42a86f09ac
 	pocketone.dev/ext/config v0.0.0-20261121033400-de42a86f09ac
 	pocketone.dev/ext/contracts v0.0.0-20261121033400-de42a86f09ac
+	pocketone.dev/ext/deploy v0.0.0-20261121033400-de42a86f09ac
 	pocketone.dev/ext/docker v0.0.0-20261121033400-de42a86f09ac
 	pocketone.dev/ext/edge v0.0.0-20261121033400-de42a86f09ac
 	pocketone.dev/ext/extkit v0.0.0-20261121033400-de42a86f09ac
@@ -84,7 +85,6 @@ require (
 	pocketone.dev/ext/backups v0.0.0-20261121033400-de42a86f09ac // indirect
 	pocketone.dev/ext/bulkmail v0.0.0-20261121033400-de42a86f09ac // indirect
 	pocketone.dev/ext/cache v0.0.0-20261121033400-de42a86f09ac // indirect
-	pocketone.dev/ext/deploy v0.0.0-20261121033400-de42a86f09ac // indirect
 	pocketone.dev/ext/mcp v0.0.0-20261121033400-de42a86f09ac // indirect
 	pocketone.dev/ext/pages v0.0.0-20261121033400-de42a86f09ac // indirect
 	pocketone.dev/ext/pitr v0.0.0-20261121033400-de42a86f09ac // indirect

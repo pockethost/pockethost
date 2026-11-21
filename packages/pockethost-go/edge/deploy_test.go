@@ -8,15 +8,14 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"pocketone.dev/ext/pocker"
 	"strings"
 	"testing"
 
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
+	"pocketone.dev/ext/deploy"
+	"pocketone.dev/ext/pocker"
 )
 
 func TestDeployBackend(t *testing.T) {
-	var recorded map[string]any
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/collections/_superusers/auth-with-password", func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]string{"token": "TOKEN"})
@@ -49,14 +48,6 @@ func TestDeployBackend(t *testing.T) {
 		}
 		_, _ = w.Write([]byte(`{"token":"new","record":{"id":"u1"}}`))
 	})
-	mux.HandleFunc("POST /api/collections/deploys/records", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "TOKEN" {
-			w.WriteHeader(401)
-			return
-		}
-		_ = json.NewDecoder(r.Body).Decode(&recorded)
-		_, _ = w.Write([]byte(`{"id":"dep123"}`))
-	})
 	ms := httptest.NewServer(mux)
 	defer ms.Close()
 
@@ -74,16 +65,16 @@ func TestDeployBackend(t *testing.T) {
 	b := s.DeployBackend()
 
 	for _, h := range []string{"shop.pockethost.io", "aaaaaaaaaaaaaaa.pockethost.io", "shop.example.com", "SHOP.pockethost.io."} {
-		got, ok := b.Lookup(h)
-		want := deploy.Instance{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", OwnerID: "u1", Power: true, Blocked: "account hold"}
+		got, ok := b.lookupHost(h)
+		want := deploy.Instance{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", OwnerID: "u1", Power: true, OwnerSuspension: "account hold"}
 		if !ok || got != want {
 			t.Errorf("%s: %+v %v", h, got, ok)
 		}
 	}
-	if got, ok := b.Lookup("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.Blocked != "" || got.Suspension != "x" {
+	if got, ok := b.lookupHost("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.OwnerSuspension != "" || got.Suspension != "x" {
 		t.Errorf("other edge: %+v", got)
 	}
-	if _, ok := b.Lookup("nope.pockethost.io"); ok {
+	if _, ok := b.lookupHost("nope.pockethost.io"); ok {
 		t.Error("unknown host")
 	}
 
@@ -114,9 +105,5 @@ func TestDeployBackend(t *testing.T) {
 	}
 	if _, err := b.VerifyJWT(ctx, "stale"); !errors.As(err, &ae) || ae.Status != 401 || ae.Message != "The request requires valid record authorization token." {
 		t.Fatalf("jwt refused: %v", err)
-	}
-	id, err := b.RecordDeploy(ctx, deploy.DeployRecord{Instance: "aaaaaaaaaaaaaaa", User: "u1", Status: "success", FileCount: 3, UploadedCount: 2, Commit: "abc"})
-	if err != nil || id != "dep123" || recorded["status"] != "success" || recorded["file_count"] != 3.0 || recorded["uploaded_count"] != 2.0 || recorded["commit"] != "abc" {
-		t.Fatalf("record: %s %v %v", id, err, recorded)
 	}
 }

@@ -22,7 +22,6 @@ import (
 
 	firewall "pocketone.dev/ext/firewall"
 
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
 	"pocketone.dev/ext/pocker"
 	"pocketone.dev/ext/servertiming"
 	"pocketone.dev/ext/standard"
@@ -402,11 +401,10 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	if c, b := call("GET", "blog.pockethost.io", "/api/health", "", map[string]string{ForwardedByHeader: "ams-1"}); c != 421 || !strings.Contains(b, "another PocketHost edge") {
 		t.Errorf("already forwarded: %d %s", c, b)
 	}
-	// the deploy API and the dashboard's log stream for another edge's instance go there too
-	deployAPI := deploy.New(deploy.Options{Backend: source.DeployBackend(), PBRoot: pcfg.PBRoot, DataRoot: t.TempDir(), IsRemote: source.IsRemote})
+	// the dashboard's log stream for another edge's instance goes there too
 	rec = httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "http://blog.pockethost.io/logs", strings.NewReader(`{}`))
-	deployAPI.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("next")) })).ServeHTTP(rec, req)
+	source.DeployBackend().DashboardLogs(nil, source.IsRemote)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("next")) })).ServeHTTP(rec, req)
 	if rec.Body.String() != "next" {
 		t.Errorf("remote /logs should pass through: %q", rec.Body.String())
 	}
