@@ -1,6 +1,7 @@
 /**
  * Who is calling an instance endpoint (`PUT`/`DELETE /api/instance/{id}`, `POST /api/instance`, duplicate): the
- * signed-in dashboard user. API tokens (pbt_...) don't reach the mothership's own routes; edges check them for deploys.
+ * signed-in dashboard user. API tokens (pbt_...) don't reach the mothership's own routes; edges check them for
+ * deploys.
  */
 export type InstanceCaller = {
   userId: string
