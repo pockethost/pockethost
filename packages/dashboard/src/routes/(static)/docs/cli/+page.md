@@ -1,6 +1,6 @@
 ---
 title: PocketHost CLI
-description: Install the pockethost CLI with Homebrew or Scoop, and use it to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
+description: Install the pockethost CLI (Homebrew, Scoop, the install script or from source), and use it to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
 ---
 
 # PocketHost CLI
@@ -8,8 +8,6 @@ description: Install the pockethost CLI with Homebrew or Scoop, and use it to li
 **`pockethost`** is the PocketHost command-line tool for deploying local PocketBase project files to your instance, managing the files on it, and tailing instance logs.
 
 `deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. The CLI signs in with a **personal access token**, on your computer and in CI alike.
-
-> **PocketHost is retiring SFTP file access on February 6, 2027.** `pockethost sftp` and `--sftp` stop working then. Use `deploy`/`dev` for code and the [file commands](#files) for everything else. See [Service update: SFTP sunset and CLI upgrade](/blog/sftp-sunset).
 
 ## Install
 
@@ -28,9 +26,23 @@ scoop bucket add pockethost https://github.com/pockethost/scoop-bucket
 scoop install pockethost
 ```
 
-Or download the zip for your platform from [Releases](https://github.com/pockethost/pockethost/releases), unzip it, and put `pockethost` somewhere on your `PATH`.
+**Install script** (macOS or Linux, no Homebrew):
 
-Check it with `pockethost --version`. To upgrade, run `brew upgrade pockethost` or `scoop update pockethost`, or `pockethost upgrade` if you installed from a zip.
+```bash
+curl -fsSL https://pockethost.io/install.sh | sh
+```
+
+It puts `pockethost` in `/usr/local/bin` (asking for your password through `sudo` when that folder isn't yours). Set `POCKETHOST_INSTALL_DIR` to put it somewhere else, for example `curl -fsSL https://pockethost.io/install.sh | POCKETHOST_INSTALL_DIR=$HOME/.local/bin sh`. You can also download the zip for your platform from [Releases](https://github.com/pockethost/pockethost/releases) and put `pockethost` on your `PATH` yourself.
+
+**Build from source**, with [Go](https://go.dev) installed:
+
+```bash
+git clone https://github.com/pockethost/pockethost.git
+cd pockethost/packages/pockethost-go
+go build -o pockethost ./cmd/pockethost
+```
+
+Check it with `pockethost --version`. To upgrade, run `brew upgrade pockethost` or `scoop update pockethost`; otherwise `pockethost upgrade`, or run the install script again.
 
 ## Coming from the npm CLI
 
