@@ -49,7 +49,7 @@ the two version numbers don't match.
 
 ### PocketOne
 
-- Built on PocketOne `main` at 4c961421 (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, standard-member switches.
+- Built on PocketOne `main` at 4354fd2a (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.
 
 ## v5.0.0-alpha.7 (2026-11-19)
 
