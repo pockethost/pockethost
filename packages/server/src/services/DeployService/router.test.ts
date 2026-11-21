@@ -43,7 +43,6 @@ beforeEach(() => {
     storeFor: (i) => createDeployStore(join(root, 'deploys', i.id), join(root, 'instances', i.id)),
     withInstanceStopped: vi.fn(async (_i, fn) => ({ result: await fn(), wasRunning: true })),
     startInstance: vi.fn(async () => {}),
-    recordDeploy: vi.fn(async () => 'dep123'),
     logger,
   }
   app = express()
@@ -80,7 +79,7 @@ describe('deploy router', () => {
     const commit = await api('post', '/commit').send({ files, commit: 'abc123', source: 'github-actions' })
     expect(commit.status).toBe(200)
     expect(commit.body).toMatchObject({
-      deployId: 'dep123',
+      deployId: expect.any(String),
       writtenCount: 2,
       deletedCount: 1,
       wasRunning: true,
@@ -90,23 +89,11 @@ describe('deploy router', () => {
     expect(existsSync(instFile('pb_hooks/old.pb.js'))).toBe(false)
     expect(readFileSync(instFile('pb_data/data.db'), 'utf8')).toBe('db')
     expect(deps.startInstance).toHaveBeenCalledTimes(1)
-    expect(deps.recordDeploy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        instance: 'inst1',
-        user: 'user1',
-        status: 'success',
-        file_count: 2,
-        commit: 'abc123',
-        token_label: 'CI',
-      })
-    )
 
     // Redeploying the same files changes nothing and doesn't stop the instance.
     ;(deps.withInstanceStopped as any).mockClear()
-    ;(deps.recordDeploy as any).mockClear()
     const noop = await api('post', '/commit').send({ files })
     expect(noop.body).toMatchObject({ deployId: null, nothingChanged: true, writtenCount: 0, deletedCount: 0 })
-    expect(deps.recordDeploy).not.toHaveBeenCalled()
     expect(deps.withInstanceStopped).not.toHaveBeenCalled()
   })
 
@@ -225,7 +212,7 @@ describe('deploy router', () => {
     expect(res.body.message).toBe('Account suspended')
   })
 
-  it('records a failed deploy and keeps files when apply fails', async () => {
+  it('keeps files when apply fails', async () => {
     mkdirSync(instFile('pb_public/blocker/node_modules'), { recursive: true })
     writeFileSync(instFile('pb_public/blocker/node_modules/x.js'), 'x')
     const files = { 'pb_public/blocker': sha('b') }
@@ -234,7 +221,6 @@ describe('deploy router', () => {
       .send(gzipSync(encodeBundle([{ data: Buffer.from('b') }])))
     const res = await api('post', '/commit').send({ files })
     expect(res.status).toBe(409)
-    expect(deps.recordDeploy).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }))
     expect(readFileSync(instFile('pb_public/blocker/node_modules/x.js'), 'utf8')).toBe('x')
   })
 

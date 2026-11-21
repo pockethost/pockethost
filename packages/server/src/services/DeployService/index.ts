@@ -86,7 +86,6 @@ export const DeployService = mkSingleton(async (config: SingletonBaseConfig) => 
     storeFor,
     withInstanceStopped: async (instance, fn) => (await instanceService()).withInstanceStopped(instance.id, fn),
     startInstance: async (instance) => (await instanceService()).startInstance(instance.id),
-    recordDeploy: async (input) => (await client.client.collection('deploys').create(input)).id,
     tailLogs: (instance, linesBack, onEntry) =>
       InstanceLogReader(instance.id, `exec`, logger).tail(linesBack, (entry) => onEntry(entry)),
     logger,
