@@ -5,9 +5,18 @@
   import Toggle from '../Toggle.svelte'
   import { isInstanceFullyOff, isInstanceShuttingDown } from '$util/instancePower'
 
-  const { updateInstance } = client()
+  const { updateInstance, getSyncLogin } = client()
 
-  $: ({ id, syncAdmin } = $instance)
+  // Admin Sync lives on the instance's owner row (instance_owners.sync_login), not on the instance
+  let syncAdmin = false
+  let loadedFor = ''
+  $: ({ id } = $instance)
+  $: if (id && id !== loadedFor) {
+    loadedFor = id
+    getSyncLogin(id).then((v) => {
+      if (loadedFor === id) syncAdmin = v
+    })
+  }
   $: isFullyOff = isInstanceFullyOff($instance)
   $: isShuttingDown = isInstanceShuttingDown($instance)
 
@@ -17,7 +26,10 @@
     if (!isFullyOff) return
 
     updateInstance({ id, fields: { syncAdmin: isChecked } })
-      .then(() => 'saved')
+      .then(() => {
+        syncAdmin = isChecked
+        return 'saved'
+      })
       .catch((error) => {
         errorMessage = error.data.message || error.message
       })

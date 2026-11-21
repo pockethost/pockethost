@@ -167,6 +167,18 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
   const getInstanceBySubdomain = (subdomain: InstanceFields['subdomain']): Promise<InstanceFields | undefined> =>
     client.collection('instances').getFirstListItem<InstanceFields>(`subdomain='${subdomain}'`)
 
+  /** Whether the owner's login is synced into the instance (Admin Sync): the instance's `instance_owners` row. */
+  const getSyncLogin = async (instanceId: InstanceId): Promise<boolean> => {
+    try {
+      const row = await client
+        .collection('instance_owners')
+        .getFirstListItem<{ sync_login: boolean }>(`instance=${JSON.stringify(instanceId)}`)
+      return !!row.sync_login
+    } catch {
+      return false
+    }
+  }
+
   const getAllInstancesById = async () =>
     (await client.collection('instances').getFullList()).reduce(
       (c, v) => {
@@ -292,6 +304,7 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
     parseError,
     getInstanceById,
     getInstanceBySubdomain,
+    getSyncLogin,
     createInstance,
     authViaEmail,
     createUser,

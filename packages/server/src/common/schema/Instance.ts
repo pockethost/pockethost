@@ -1,4 +1,4 @@
-import type { BaseFields, RecordId, Subdomain, UserFields, UserId } from '.'
+import type { BaseFields, InstanceId, RecordId, Subdomain, UserId } from '.'
 
 export type VersionId = string
 
@@ -45,14 +45,12 @@ export type InstanceFirewall = {
 
 export type InstanceFields<TExtra = {}> = BaseFields & {
   subdomain: Subdomain
-  uid: UserId
   status: InstanceStatus
   version: VersionId
   secrets: InstanceSecretCollection | null
   webhooks: InstanceWebhookCollection | null
   power: boolean
   suspension: string
-  syncAdmin: boolean
   /** Defaults to true when unset */
   autoVacuum?: boolean
   cname: string
@@ -71,11 +69,20 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   duplicateError?: string
 } & TExtra
 
-export type WithUser<TUser = UserFields> = {
-  expand: { uid: TUser }
-}
+/**
+ * The retired Node edge daemon's view of an instance (InstanceService, the Node mirror, the Node deploy service and
+ * firewall): it read the owner from `uid` and admin sync from `syncAdmin`, which the mothership no longer has (they
+ * moved to `instance_owners`). Only that code uses this type; it isn't run any more.
+ */
+export type LegacyInstanceFields = InstanceFields & { uid: UserId; syncAdmin: boolean }
 
-export type InstanceFields_WithUser = InstanceFields<WithUser>
+/** Who owns an instance (the mothership's `instance_owners`; one row per owned instance). */
+export type InstanceOwnerFields = BaseFields & {
+  instance: InstanceId
+  user: UserId
+  /** The owner's login is synced into the instance as a superuser ("admin sync"). */
+  sync_login: boolean
+}
 
 export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
 

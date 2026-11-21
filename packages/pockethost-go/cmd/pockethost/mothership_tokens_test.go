@@ -27,7 +27,6 @@ func tokensApp(t *testing.T) (core.App, *apitokens.Tokens, *core.Record) {
 		t.Fatal(err)
 	}
 	inst := core.NewBaseCollection("instances")
-	inst.Fields.Add(&core.TextField{Name: "uid"})
 	old := core.NewBaseCollection("api_tokens")
 	old.Fields.Add(&core.TextField{Name: "user"}, &core.TextField{Name: "label"}, &core.TextField{Name: "secret_hash"},
 		&core.JSONField{Name: "scopes"}, &core.BoolField{Name: "all_instances"}, &core.JSONField{Name: "instances"},
@@ -41,6 +40,9 @@ func tokensApp(t *testing.T) (core.App, *apitokens.Tokens, *core.Record) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := app.Save(ownersCollection(t, app, inst.Id, users.Id)); err != nil {
+		t.Fatal(err)
+	}
 	u := core.NewRecord(users)
 	u.SetEmail("owner@example.com")
 	u.SetPassword("password123")
@@ -52,13 +54,7 @@ func tokensApp(t *testing.T) (core.App, *apitokens.Tokens, *core.Record) {
 
 func newInstance(t *testing.T, app core.App, uid string) string {
 	t.Helper()
-	col, _ := app.FindCollectionByNameOrId("instances")
-	r := core.NewRecord(col)
-	r.Set("uid", uid)
-	if err := app.Save(r); err != nil {
-		t.Fatal(err)
-	}
-	return r.Id
+	return saveInstance(t, app, uid, false)
 }
 
 // newPAT writes an api_tokens row the way the old JS did and returns its secret (ph_pat_<id>_<secret>).

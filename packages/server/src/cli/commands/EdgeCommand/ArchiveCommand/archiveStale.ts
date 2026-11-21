@@ -32,6 +32,7 @@ import {
 } from '@'
 import { existsSync, rmSync } from 'fs'
 import { resolve } from 'path'
+import { fetchOwner } from '../../../../services/MothershipAdminClientService/instanceOwners'
 import { connectMothership as connect, dirSizeBytes, formatBytes, mapLimit } from '../edgeUtils'
 import { ARCHIVE_EMAIL_TEMPLATE } from './emailTemplate'
 
@@ -42,7 +43,8 @@ const SUSPENSION_SETTLE_MS = 5000
 
 const pbDate = (ms: number) => new Date(ms).toISOString().replace(`T`, ` `)
 
-type Candidate = InstanceFields & { expand: { uid: UserFields } }
+/** An instance with its owner (from instance_owners). */
+type Candidate = InstanceFields & { owner: UserFields }
 type Sized = { instance: Candidate; bytes: number }
 
 export type ArchiveStaleOptions = {
@@ -120,15 +122,24 @@ export const archiveStaleInstances = async ({
   /* ---------- Archive pass ---------- */
 
   const cutoff = pbDate(nowMs - staleDays * MS_PER_DAY)
-  const fetched = await pb.collection(`instances`).getFullList<Candidate>({
+  // owners on the free plan, by instance (instance_owners)
+  const freeOwners = await pb
+    .collection(`instance_owners`)
+    .getFullList<{ instance: string; expand?: { user?: UserFields } }>({
+      filter: `user.subscription = "free"`,
+      expand: `user`,
+      batch: 1000,
+    })
+  const ownerOf = new Map(freeOwners.flatMap((r) => (r.expand?.user ? [[r.instance, r.expand.user] as const] : [])))
+  const fetched = await pb.collection(`instances`).getFullList<InstanceFields>({
     // Suspended instances and accounts are included; isStaleCandidate skips ones already archived.
-    filter: `updated < "${cutoff}" && uid.subscription = "free"`,
-    expand: `uid`,
+    filter: `updated < "${cutoff}" && instance_owners_via_instance.user.subscription ?= "free"`,
     batch: 1000,
   })
-  const candidates = fetched.filter(
-    (i) => i.expand?.uid && isStaleCandidate({ ...i, owner: i.expand.uid }, nowMs, staleDays, { includeLapsed })
-  )
+  const candidates: Candidate[] = fetched.flatMap((i) => {
+    const owner = ownerOf.get(i.id)
+    return owner && isStaleCandidate({ ...i, owner }, nowMs, staleDays, { includeLapsed }) ? [{ ...i, owner }] : []
+  })
   summary.candidates = candidates.length
   info(`${candidates.length} stale free instance(s) (of ${totalInstances} total)`)
 
@@ -150,7 +161,7 @@ export const archiveStaleInstances = async ({
   const templateId = email ? await ensureTemplate(pb, apply) : ``
   const deleteDate = new Date(nowMs + retentionDays * MS_PER_DAY)
   const mkLabel = ({ instance, bytes }: Sized) =>
-    `${instance.subdomain} (${instance.id}, ${formatBytes(bytes)}, owner ${instance.expand.uid.email})`
+    `${instance.subdomain} (${instance.id}, ${formatBytes(bytes)}, owner ${instance.owner.email})`
 
   // Pick the work list up front so the caps apply the same way in dry runs and real runs.
   const selected: Sized[] = []
@@ -271,7 +282,7 @@ export const archiveStaleInstances = async ({
             deletedate: fmtDate(deleteDate),
           }
           await pb.collection(`notifications`).create({
-            user: instance.expand.uid.id,
+            user: instance.owner.id,
             channel: `email`,
             message_template: templateId,
             message_template_vars: vars,
@@ -397,15 +408,16 @@ export const archiveInstance = async (
   if (!linkSecret) throw new Error(`PH_ARCHIVE_LINK_SECRET (or PH_SECRET) must be set to sign download links`)
 
   const pb = await connect()
-  const instance = await pb.collection(`instances`).getOne<Candidate>(instanceId, { expand: `uid` })
+  const instance = await pb.collection(`instances`).getOne<InstanceFields>(instanceId)
   if (isArchivedSuspension(instance.suspension))
     throw new Error(`${instance.subdomain} (${instanceId}) is already archived`)
   const dir = mkInstanceDataPath(instanceId)
   if (!existsSync(dir)) throw new Error(`${dir} does not exist; nothing to archive`)
 
   const bytes = await dirSizeBytes(dir)
-  const owner = instance.expand?.uid
-  const label = `${instance.subdomain} (${instanceId}, ${formatBytes(bytes)}, owner ${owner?.email ?? instance.uid}, plan ${owner?.subscription ?? `?`})`
+  const ownerRow = await fetchOwner(pb, instanceId)
+  const owner = ownerRow?.expand?.user
+  const label = `${instance.subdomain} (${instanceId}, ${formatBytes(bytes)}, owner ${owner?.email ?? ownerRow?.user ?? `none`}, plan ${owner?.subscription ?? `?`})`
   const deleteDate = new Date(Date.now() + retentionDays * MS_PER_DAY)
   info(`[${mode}] ${label} -> ${remote}, archive kept until ${fmtDate(deleteDate)}`)
   if (!apply) return
@@ -492,6 +504,6 @@ export const restoreArchivedInstance = async (instanceId: string) => {
       .catch((e: unknown) => ({ status: `failed`, error: `${e}` }))
     info(`Custom domain ${instance.cname}: ${JSON.stringify(res)}`)
   }
-  const owner = await pb.collection(`users`).getOne<UserFields>(instance.uid)
-  if (owner.suspension) info(`The owner's account is suspended: ${JSON.stringify(owner.suspension)}`)
+  const owner = (await fetchOwner(pb, instanceId))?.expand?.user
+  if (owner?.suspension) info(`The owner's account is suspended: ${JSON.stringify(owner.suspension)}`)
 }

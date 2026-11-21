@@ -1,3 +1,4 @@
+import type { LegacyInstanceFields } from '@'
 import {
   createEvent,
   EDGE_APEX_DOMAIN,
@@ -101,7 +102,7 @@ export const MothershipMirrorService = mkSingleton(async (config: MothershipMirr
     const myEdge = Object.values(mirror.edgesById).find((edge) => edge.edge_id === PH_EDGE_ID())
     if (
       isInstanceOnEdge(record, myEdge, PH_EDGE_ID()) &&
-      shouldEnsureInstanceDirectories(record, mirror.users[record.uid])
+      shouldEnsureInstanceDirectories(record, mirror.users[(record as LegacyInstanceFields).uid])
     ) {
       ensureInstanceDirectoryStructure(record.id, logger)
     }

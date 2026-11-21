@@ -15,8 +15,10 @@ import (
 )
 
 // What an instance gets from its owner, resolved here so edges never read users: the instance's hidden fields
-// blocked, superusers, trusted_ips and owners (migration 1795800000_instance_owner_fields). They're written in the
-// instance's own save, rewritten on each of a user's instances when that user changes, and checked once at serve.
+// blocked, superusers, trusted_ips and owners (migration 1795800000_instance_owner_fields). The owner is the
+// instance's instance_owners row (migration 1796000000_instance_owners): who owns it and whether their login is synced
+// in (sync_login). The fields are written in the instance's own save and when its owner row changes, rewritten on each
+// of a user's instances when that user changes, and checked once at serve. Deleting a user deletes their instances.
 const (
 	fieldBlocked    = "blocked"
 	fieldSuperusers = "superusers"
@@ -30,7 +32,7 @@ type ownerBlock struct {
 	Message string `json:"message"`
 }
 
-// ownerLogin is the owner's login, synced into the instance as a superuser (syncAdmin).
+// ownerLogin is the owner's login, synced into the instance as a superuser (instance_owners.sync_login).
 type ownerLogin struct {
 	ID           string `json:"id"`
 	Email        string `json:"email"`
@@ -49,9 +51,10 @@ type ownerFields struct {
 // userOwnerFields are the users fields resolveOwner reads; a change to any of them rewrites the user's instances.
 var userOwnerFields = []string{"suspension", "subscription_quantity", "verified", "trusted_ips", "email", "tokenKey", "password:hash"}
 
-// resolveOwner works out inst's owner-derived values from owner (nil: no owner, or it's gone). The order of the
-// blocks is the edge's from before: suspended, then no paid instances, then not verified.
-func resolveOwner(inst, owner *core.Record, appURL string) ownerFields {
+// resolveOwner works out an instance's owner-derived values from its owner (nil: no owner, or it's gone) and whether
+// the owner's login is synced in. The order of the blocks is the edge's from before: suspended, then no paid
+// instances, then not verified.
+func resolveOwner(owner *core.Record, syncLogin bool, appURL string) ownerFields {
 	if owner == nil {
 		return ownerFields{Blocked: &ownerBlock{Status: http.StatusForbidden, Message: "This instance has no owner."},
 			Owners: []string{}, Superusers: []ownerLogin{}}
@@ -69,7 +72,7 @@ func resolveOwner(inst, owner *core.Record, appURL string) ownerFields {
 	case !owner.Verified():
 		f.Blocked = &ownerBlock{Status: http.StatusForbidden, Message: fmt.Sprintf("Log in at %s to verify your account.", appURL)}
 	}
-	if inst.GetBool("syncAdmin") {
+	if syncLogin {
 		if hash := owner.GetString("password:hash"); hash != "" && owner.Email() != "" {
 			f.Superusers = []ownerLogin{{ID: owner.Id, Email: owner.Email(), TokenKey: owner.TokenKey(), PasswordHash: hash}}
 		}
@@ -129,27 +132,50 @@ func mothershipAppURL(app core.App) string {
 	return strings.TrimRight(app.Settings().Meta.AppURL, "/")
 }
 
-// findOwner is inst's owner record, or nil.
-func findOwner(app core.App, inst *core.Record) *core.Record {
-	uid := inst.GetString("uid")
+// instanceOwner is who owns the instance (its instance_owners row): the user id ("" when none) and whether their
+// login is synced in.
+func instanceOwner(app core.App, instanceID string) (uid string, syncLogin bool) {
+	row, err := app.FindFirstRecordByFilter("instance_owners", "instance = {:id}", dbx.Params{"id": instanceID})
+	if err != nil {
+		return "", false
+	}
+	return row.GetString("user"), row.GetBool("sync_login")
+}
+
+// findOwner is the instance's owner record (nil: none, or it's gone) and whether their login is synced in.
+func findOwner(app core.App, instanceID string) (*core.Record, bool) {
+	uid, syncLogin := instanceOwner(app, instanceID)
 	if uid == "" {
-		return nil
+		return nil, false
 	}
 	u, err := app.FindRecordById("users", uid)
 	if err != nil {
-		return nil
+		return nil, false
 	}
-	return u
+	return u, syncLogin
 }
 
-// registerOwnerFields keeps every instance's owner-derived fields current.
+// registerOwnerFields keeps every instance's owner-derived fields current, and deletes a user's instances with the
+// user (instances.uid's cascade did that before ownership moved to instance_owners).
 func registerOwnerFields(app core.App) {
 	resolve := func(e *core.RecordEvent) error {
-		applyOwner(e.Record, resolveOwner(e.Record, findOwner(e.App, e.Record), mothershipAppURL(e.App)))
+		owner, syncLogin := findOwner(e.App, e.Record.Id)
+		applyOwner(e.Record, resolveOwner(owner, syncLogin, mothershipAppURL(e.App)))
 		return e.Next()
 	}
 	app.OnRecordCreate("instances").BindFunc(resolve)
 	app.OnRecordUpdate("instances").BindFunc(resolve)
+
+	// an owner row added (a new instance's, made right after the instance), changed (sync_login) or removed
+	ownerRowChanged := func(e *core.RecordEvent) error {
+		if err := refreshInstance(e.App, e.Record.GetString("instance")); err != nil {
+			e.App.Logger().Error("mothership: rewrite the instance after its owner changed", "instance", e.Record.GetString("instance"), "error", err)
+		}
+		return e.Next()
+	}
+	app.OnRecordAfterCreateSuccess("instance_owners").BindFunc(ownerRowChanged)
+	app.OnRecordAfterUpdateSuccess("instance_owners").BindFunc(ownerRowChanged)
+	app.OnRecordAfterDeleteSuccess("instance_owners").BindFunc(ownerRowChanged)
 
 	app.OnRecordAfterUpdateSuccess("users").BindFunc(func(e *core.RecordEvent) error {
 		if ownerFieldsChanged(e.Record) {
@@ -161,10 +187,20 @@ func registerOwnerFields(app core.App) {
 		}
 		return e.Next()
 	})
-	// a deleted owner leaves its instances (if any survive the cascade) blocked
-	app.OnRecordAfterDeleteSuccess("users").BindFunc(func(e *core.RecordEvent) error {
-		if _, err := refreshOwnerInstances(e.App, nil, e.Record.Id); err != nil {
-			e.App.Logger().Error("mothership: block the deleted owner's instances", "user", e.Record.Id, "error", err)
+	// in the user's delete transaction, before the owner rows' cascade removes the link
+	app.OnRecordDelete("users").BindFunc(func(e *core.RecordEvent) error {
+		rows, err := e.App.FindAllRecords("instance_owners", dbx.HashExp{"user": e.Record.Id})
+		if err != nil {
+			return err
+		}
+		for _, row := range rows {
+			inst, err := e.App.FindRecordById("instances", row.GetString("instance"))
+			if err != nil {
+				continue // already gone
+			}
+			if err := e.App.Delete(inst); err != nil {
+				return fmt.Errorf("delete the user's instance %s: %w", inst.Id, err)
+			}
 		}
 		return e.Next()
 	})
@@ -180,25 +216,33 @@ func ownerFieldsChanged(u *core.Record) bool {
 	return false
 }
 
-// refreshOwnerInstances rewrites the owner-derived fields of owner's instances (uid given when owner is nil) and
-// saves the ones that changed, so edges get them as instance updates. It returns how many it saved.
-func refreshOwnerInstances(app core.App, owner *core.Record, uid ...string) (int, error) {
-	id := ""
-	if owner != nil {
-		id = owner.Id
-	} else if len(uid) > 0 {
-		id = uid[0]
+// refreshInstance rewrites one instance's owner-derived fields and saves it when they changed.
+func refreshInstance(app core.App, instanceID string) error {
+	inst, err := app.FindRecordById("instances", instanceID)
+	if err != nil {
+		return nil // the instance is gone (its owner row went with it)
 	}
-	if id == "" {
-		return 0, nil
+	owner, syncLogin := findOwner(app, instanceID)
+	if !applyOwner(inst, resolveOwner(owner, syncLogin, mothershipAppURL(app))) {
+		return nil
 	}
-	insts, err := app.FindAllRecords("instances", dbx.HashExp{"uid": id})
+	return app.SaveNoValidate(inst)
+}
+
+// refreshOwnerInstances rewrites the owner-derived fields of owner's instances and saves the ones that changed, so
+// edges get them as instance updates. It returns how many it saved.
+func refreshOwnerInstances(app core.App, owner *core.Record) (int, error) {
+	rows, err := app.FindAllRecords("instance_owners", dbx.HashExp{"user": owner.Id})
 	if err != nil {
 		return 0, err
 	}
 	appURL, n := mothershipAppURL(app), 0
-	for _, inst := range insts {
-		if !applyOwner(inst, resolveOwner(inst, owner, appURL)) {
+	for _, row := range rows {
+		inst, err := app.FindRecordById("instances", row.GetString("instance"))
+		if err != nil {
+			continue
+		}
+		if !applyOwner(inst, resolveOwner(owner, row.GetBool("sync_login"), appURL)) {
 			continue
 		}
 		if err := app.SaveNoValidate(inst); err != nil {
@@ -222,6 +266,14 @@ func syncOwnerFields(app core.App) (checked, saved int, err error) {
 	for _, u := range users {
 		byID[u.Id] = u
 	}
+	rows, err := app.FindAllRecords("instance_owners")
+	if err != nil {
+		return 0, 0, err
+	}
+	ownerOf := make(map[string]*core.Record, len(rows)) // instance id -> owner row
+	for _, r := range rows {
+		ownerOf[r.GetString("instance")] = r
+	}
 	insts, err := app.FindAllRecords("instances")
 	if err != nil {
 		return 0, 0, err
@@ -230,7 +282,12 @@ func syncOwnerFields(app core.App) (checked, saved int, err error) {
 	err = app.RunInTransaction(func(tx core.App) error {
 		for _, inst := range insts {
 			checked++
-			diff := ownerDiff(inst, resolveOwner(inst, byID[inst.GetString("uid")], appURL))
+			var owner *core.Record
+			syncLogin := false
+			if row := ownerOf[inst.Id]; row != nil {
+				owner, syncLogin = byID[row.GetString("user")], row.GetBool("sync_login")
+			}
+			diff := ownerDiff(inst, resolveOwner(owner, syncLogin, appURL))
 			if len(diff) == 0 {
 				continue
 			}

@@ -1,3 +1,4 @@
+import type { LegacyInstanceFields } from '@'
 import express, { type NextFunction, type Request, type Response } from 'express'
 import { randomBytes } from 'node:crypto'
 import type { InstanceFields, Logger } from '../../common'
@@ -98,20 +99,21 @@ export const createDeployRouter = (deps: DeployRouterDeps) => {
     // The token's instances may have just been edited in the dashboard: re-check before refusing.
     if (
       auth.via === 'pat' &&
-      instance.uid === auth.userId &&
-      !instanceAllowedByScope(auth, instance.id, instance.uid)
+      (instance as LegacyInstanceFields).uid === auth.userId &&
+      !instanceAllowedByScope(auth, instance.id, (instance as LegacyInstanceFields).uid)
     ) {
       auth = await resolve(true)
     }
 
     // Same answer for "not yours" and "not in token scope" so tokens can't probe instance names.
-    if (instance.uid !== auth.userId || !instanceAllowedByScope(auth, instance.id, instance.uid)) {
+    const ownerId = (instance as LegacyInstanceFields).uid
+    if (ownerId !== auth.userId || !instanceAllowedByScope(auth, instance.id, ownerId)) {
       throw new DeployHttpError(404, `${host} not found`)
     }
     if (needWrite && !auth.scopes.includes('write')) {
       throw new DeployHttpError(403, `This token is read-only. Create a token with write access to deploy.`)
     }
-    const owner = await deps.getUser(instance.uid)
+    const owner = await deps.getUser(ownerId)
     const suspension = fileAccessSuspension(owner, instance)
     if (suspension) throw new DeployHttpError(403, suspension)
 

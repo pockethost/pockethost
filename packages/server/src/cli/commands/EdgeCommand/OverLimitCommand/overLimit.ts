@@ -10,6 +10,7 @@ import {
   type LimitInstance,
   type LimitUser,
 } from '@'
+import { fetchOwnerMap } from '../../../../services/MothershipAdminClientService/instanceOwners'
 import { connectMothership } from '../edgeUtils'
 import {
   OVER_LIMIT_POWERED_OFF_TEMPLATE,
@@ -17,6 +18,7 @@ import {
   SUBSCRIPTION_LAPSED_TEMPLATE,
 } from './emailTemplates'
 
+/** Uid: the owner's user id, from instance_owners. */
 type SweepInstance = LimitInstance & { uid: string; subdomain: string }
 type SweepUser = LimitUser & { id: string; suspension?: string; paidBefore?: boolean }
 
@@ -72,9 +74,12 @@ export const sweepOverLimit = async ({
   info(`[${mode}] grace=${immediate ? `none (immediate)` : `${graceMs / 3_600_000}h`} email=${email ? `on` : `off`}`)
 
   const pb = await connectMothership()
-  const instances = await pb
-    .collection(`instances`)
-    .getFullList<SweepInstance>({ fields: `id,uid,subdomain,power,suspension,updated`, batch: 1000 })
+  const ownerOf = await fetchOwnerMap(pb)
+  const instances: SweepInstance[] = (
+    await pb
+      .collection(`instances`)
+      .getFullList<Omit<SweepInstance, 'uid'>>({ fields: `id,subdomain,power,suspension,updated`, batch: 1000 })
+  ).map((i) => ({ ...i, uid: ownerOf.get(i.id) ?? `` }))
   const ownersWithPowerOn = [
     ...new Set(
       poweredOnInstances(instances)

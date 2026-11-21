@@ -75,7 +75,8 @@ func SumUsage(app core.App, apply bool) (UsageSummary, error) {
 		ID  string `db:"id"`
 		UID string `db:"uid"`
 	}
-	if err := app.DB().NewQuery("SELECT id, uid FROM instances").All(&insts); err != nil {
+	// the owner is the instance's instance_owners row (none: no owner)
+	if err := app.DB().NewQuery("SELECT i.id AS id, COALESCE(o.user, '') AS uid FROM instances i LEFT JOIN instance_owners o ON o.instance = i.id").All(&insts); err != nil {
 		return s, fmt.Errorf("instances: %w", err)
 	}
 	for _, r := range insts {

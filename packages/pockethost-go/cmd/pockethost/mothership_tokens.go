@@ -38,8 +38,7 @@ func registerTokens(app core.App) *apitokens.Tokens {
 		panic(err)
 	}
 	owns := func(owner *core.Record, id string) error {
-		inst, err := app.FindRecordById("instances", id)
-		if err != nil || inst.GetString("uid") != owner.Id {
+		if uid, _ := instanceOwner(app, id); uid == "" || uid != owner.Id {
 			return errors.New("not one of your instances")
 		}
 		return nil
@@ -123,8 +122,7 @@ func legacyScopes(app core.App, owner *core.Record, row *core.Record) (scopes []
 		return []string{name}, true
 	}
 	for _, id := range row.GetStringSlice("instances") {
-		inst, err := app.FindRecordById("instances", id)
-		if err == nil && inst.GetString("uid") == owner.Id {
+		if uid, _ := instanceOwner(app, id); uid != "" && uid == owner.Id {
 			scopes = append(scopes, apitokensv1.JoinScope(name, id))
 		}
 	}

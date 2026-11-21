@@ -6,6 +6,7 @@ import { isAvailable } from '../../signup/isAvailable'
 import { duplicatePowerOnError } from '../lib/duplicatePolicy'
 import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
 import { assertCanPowerOn } from '../lib/instanceLimits'
+import { setSyncLogin, syncLoginOf } from '../lib/instanceOwners'
 import { applySecretsPatch, instanceNameError, invalidSecretKey } from '../lib/instancePolicy'
 
 /**
@@ -116,10 +117,12 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   }
 
   const recordAutoVacuum = record.getBool('autoVacuum')
+  // `syncAdmin` (the dashboard's name) is the owner's `sync_login` in instance_owners
+  const syncLoginChanging = syncAdmin !== null && syncAdmin !== syncLoginOf($app, record.id)
   const advancedFieldChanging =
     (subdomain !== null && subdomain !== record.getString('subdomain')) ||
     (version !== null && version !== record.getString('version')) ||
-    (syncAdmin !== null && syncAdmin !== record.getBool('syncAdmin')) ||
+    syncLoginChanging ||
     (autoVacuum !== null && autoVacuum !== recordAutoVacuum) ||
     (dev !== null && dev !== record.getBool('dev')) ||
     cnameChanged
@@ -143,7 +146,6 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
     power,
     secrets,
     webhooks,
-    syncAdmin,
     autoVacuum,
     dev,
     cname,
@@ -152,7 +154,10 @@ export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   for (const [key, value] of Object.entries(sanitized)) {
     record.set(key, value)
   }
-  $app.save(record)
+  $app.runInTransaction((txApp) => {
+    txApp.save(record)
+    if (syncLoginChanging) setSyncLogin(txApp, record.id, syncAdmin === true)
+  })
 
   return e.json(200, { status: 'ok' })
 }
