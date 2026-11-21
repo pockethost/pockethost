@@ -33,6 +33,7 @@ the two version numbers don't match.
 
 ### Added
 
+- Windows builds (amd64 and arm64) on every release, beside Linux and macOS.
 - Docker edges take an instance's own superusers on the deploy API and `remote/v1`: `pocketone link https://<instance>.pockethost.io` signs in with one of the instance's superusers (email and password; the owner's PocketHost login when it's synced in), and that login deploys, pulls, reads logs and restarts. The edge asks the instance whether it accepts the token (cached 30 s). Pocker edges already took the instance's own tokens.
 - On pocker edges the deploy API and `remote/v1` also take an instance's own API tokens (its superusers'), so `pocketone login <instance URL>` and `pocketone clone <instance URL>`, which sign in to the instance in the browser, work on PocketHost as on any PocketOne app. Scopes as on a single app: none or `deploy` deploy, `deploy:read` reads. Docker edges take only PocketHost tokens and logins.
 
