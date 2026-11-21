@@ -37,6 +37,10 @@ the two version numbers don't match.
 - Edges no longer read users: the mothership works out what each instance gets from its owner (blocked when the owner is suspended, has no paid instances or isn't verified; the owner's login for admin sync; the owner's trusted IPs; who may deploy) and writes it on the instance. Edges load and watch instances and edges only, and stop fetching owner logins one by one at start. Deploys now also refuse an instance whose owner has no paid instances or isn't verified, not only a suspended owner.
 - Deploy the mothership before the edges: until every edge runs this build, the mothership still sends users in the edge dump and answers `/api/userToken` for edges on the build before.
 
+### PocketOne
+
+- Built on PocketOne main at fb2b76855 (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix and Import, one runtime per host, instance.fs/v1, no deploy history.
+
 ## v5.0.0-alpha.7 (2026-11-19)
 
 ### Fixed
