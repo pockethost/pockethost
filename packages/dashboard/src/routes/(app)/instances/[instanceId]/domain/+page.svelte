@@ -85,7 +85,8 @@
 
     if (!isFullyOff) return
 
-    const trimmed = formCname.trim()
+    // Hostnames are case-insensitive; the mothership stores them lowercase.
+    const trimmed = formCname.trim().toLowerCase()
 
     if (trimmed && !$isUserPaid) {
       errorMessage = `Oof, you hit a paywall. Custom domains require an active subscription. Please <a class='text-primary' href="/pricing">subscribe</a> or <a class='text-primary' href="/account">manage your account.</a>`
@@ -104,7 +105,7 @@
     updateInstance({
       id,
       fields: {
-        cname: formCname,
+        cname: trimmed,
       },
     }).catch((error) => {
       if (error.response?.data?.cname?.code === 'validation_not_unique') {
@@ -149,7 +150,7 @@
         title="Only valid domain name patterns are allowed"
         type="text"
         value={formCname}
-        oninput={(e: Event) => (formCname = (e.currentTarget as HTMLInputElement).value)}
+        oninput={(e: Event) => (formCname = (e.currentTarget as HTMLInputElement).value.toLowerCase())}
         class="w-full pr-10"
         disabled={!isFullyOff}
       ></wa-input>

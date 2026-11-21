@@ -51,6 +51,10 @@ the two version numbers don't match.
 - Instance ownership has its own table on the mothership, `instance_owners` (instance, user, sync_login), copied from `instances.uid` and `instances.syncAdmin`, which are removed. The dashboard's instance access, the `stats` view, the instance handlers, token scopes, disk-usage sums and the over-limit policy go through it; the Node jobs still on sfo-2 (SFTP, over-limit, archiving) read it too. Deleting a user still deletes their instances.
 - **mothership:** a standard PocketOne app: it reads `pocketone.yaml`'s `app` section like any PocketOne app (`dir`, `dev`, `encryption_env`, `query_timeout`, `js_limits`; flags still win) and registers PocketOne's standard extensions (settings, templates, cache, API tokens, remotes, mcp, pages, storage, s3redirect, pitr, backups, deploy, wasm, uicache, agent, agent-chat), each switched off with `<name>: {enabled: false}` in `pocketone.yaml`. Bulk mail stays the mothership's own (PocketOne's bulkmail extension is kept off: both would send from the same queue). Point-in-time restore (pitr) is on by default and keeps its history in `pb_data/litestream/`. `--hooksPool` is gone.
 
+### Fixed
+
+- Custom domains are lowercase: the mothership's instance update API lowercases them, any other write of a mixed-case custom domain is refused, the in-use check ignores case, and the dashboard lowercases what you type. Edges now find an instance whose custom domain was stored with capitals (it no longer 404s on the first request to an edge).
+
 ### PocketOne
 
 - Built on PocketOne `main` at 25ac8c31 (after v0.0.1-alpha.10): instance.tokens/v1 (Pocker checks an instance's own API tokens), API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.

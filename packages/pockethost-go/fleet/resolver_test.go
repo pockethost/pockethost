@@ -41,8 +41,13 @@ func TestHostClaimsFollowNodePriority(t *testing.T) {
 	m.Save(t, "instances", "ccccccccccccccc", map[string]any{"subdomain": "c-old", "cname": "dup.example.com", "power": true, "edge": sgp.Id})
 	time.Sleep(5 * time.Millisecond)
 	m.Save(t, "instances", "ddddddddddddddd", map[string]any{"subdomain": "d-new", "cname": "dup.example.com", "power": true, "edge": sgp.Id})
+	// a custom domain stored before the mothership lowercased them still routes
+	m.Save(t, "instances", "eeeeeeeeeeeeeee", map[string]any{"subdomain": "mixed", "cname": "Mixed.Example.com", "power": true, "edge": sgp.Id})
 	r := &fleet.Resolver{App: m.App, Cfg: cfg}
 
+	if e := resolve(t, r, "sgp-1", "mixed.example.com"); e == nil || e.ID != "eeeeeeeeeeeeeee" {
+		t.Errorf("a mixed-case custom domain should match its lowercase host: %+v", e)
+	}
 	a := resolve(t, r, "sgp-1", "shop.pockethost.io")
 	if a == nil || a.ID != "aaaaaaaaaaaaaaa" || strings.Join(a.Hosts, ",") != "shop.pockethost.io" {
 		t.Errorf("a keeps its subdomain only: %+v", a)
