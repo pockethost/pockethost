@@ -1,6 +1,6 @@
 ---
 title: PocketHost CLI
-description: Install and use the pockethost CLI to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
+description: Install the pockethost CLI with Homebrew or Scoop, and use it to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
 ---
 
 # PocketHost CLI
@@ -13,50 +13,49 @@ description: Install and use the pockethost CLI to link, watch, deploy, browse, 
 
 ## Install
 
-Requires **Node.js 20+**.
+`pockethost` is one executable with nothing else to install. It's a full [PocketOne](https://pocketone.dev) binary with PocketHost's commands added, so every `pocketone` command works under `pockethost` too.
+
+**macOS or Linux**, with [Homebrew](https://brew.sh):
 
 ```bash
-npm install -g pockethost
+brew install pockethost/tap/pockethost
 ```
 
-## Upgrading from phio
+**Windows**, with [Scoop](https://scoop.sh), in PowerShell:
 
-Before 3.0, the CLI was called **phio**. Swap the package:
+```powershell
+scoop bucket add pockethost https://github.com/pockethost/scoop-bucket
+scoop install pockethost
+```
+
+Or download the zip for your platform from [Releases](https://github.com/pockethost/pockethost/releases), unzip it, and put `pockethost` somewhere on your `PATH`.
+
+Check it with `pockethost --version`. To upgrade, run `brew upgrade pockethost` or `scoop update pockethost`, or `pockethost upgrade` if you installed from a zip.
+
+## Coming from the npm CLI
+
+The `pockethost` command used to be an npm package (and before 3.0, **phio**). This binary takes its place. Remove the npm package first, so the old command doesn't come first on your `PATH`:
 
 ```bash
-npm rm -g phio
-npm install -g pockethost
+npm rm -g pockethost phio
 ```
 
-Then use `pockethost` wherever you used `phio`. Everything carries over the first time you run it:
-
-- **Your SFTP key** is copied from phio's config folder, and your existing **`Phio`** key under **[Account → Keys](/account/keys)** keeps working. Run `pockethost login` once to save a token.
-- **`.phioconfig`** is renamed to **`.pockethostconfig`**. Commit the new file.
-- **`PHIO_*` environment variables** still work and print a warning. Rename them to `POCKETHOST_*` (for example `PHIO_INSTANCE_NAME` → `POCKETHOST_INSTANCE_NAME`) before a future major version drops them.
+Then install `pockethost` as above and run `pockethost link` in each project folder.
 
 ## Quick start
 
 ```bash
-pockethost login
-pockethost link my-instance
+pockethost link https://my-instance.pockethost.io
 pockethost dev
 ```
 
-1. **`pockethost login`**: opens **[Account → API Tokens](/account/tokens)** in your browser. Create a token and paste it back into the terminal.
-2. **`pockethost link <instance>`**: save the default instance to `.pockethostconfig` in the current directory.
-3. **`pockethost dev`**: watch local changes and deploy them to the instance.
+1. **`pockethost link <instance URL>`**: makes the instance this folder's remote and signs you in, in your browser or with one of the instance's superusers. To use a PocketHost API token from **[Account → API Tokens](/account/tokens)** instead, pass it after the URL.
+2. **`pockethost dev`**: keeps your local files and the instance in step both ways, and streams the instance's logs.
 
 For a one-shot upload without watching:
 
 ```bash
 pockethost deploy
-```
-
-Pass an instance name on any command to override the linked default:
-
-```bash
-pockethost deploy staging
-pockethost logs my-instance
 ```
 
 ## Commands
