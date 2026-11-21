@@ -1,6 +1,6 @@
 ---
 title: PocketHost CLI
-description: Install and use the pockethost CLI to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
+description: Install the pockethost CLI (Homebrew, Scoop, the install script or from source), and use it to link, watch, deploy, browse, download and upload files, and tail logs for PocketHost instances
 ---
 
 # PocketHost CLI
@@ -9,54 +9,65 @@ description: Install and use the pockethost CLI to link, watch, deploy, browse, 
 
 `deploy` and `dev` upload over HTTPS: the CLI sends only the files that changed, and PocketHost swaps them in all at once. The CLI signs in with a **personal access token**, on your computer and in CI alike.
 
-> **PocketHost is retiring SFTP file access on February 6, 2027.** `pockethost sftp` and `--sftp` stop working then. Use `deploy`/`dev` for code and the [file commands](#files) for everything else. See [Service update: SFTP sunset and CLI upgrade](/blog/sftp-sunset).
-
 ## Install
 
-Requires **Node.js 20+**.
+`pockethost` is one executable with nothing else to install. It's a full [PocketOne](https://pocketone.dev) binary with PocketHost's commands added, so every `pocketone` command works under `pockethost` too.
+
+**macOS or Linux**, with [Homebrew](https://brew.sh):
 
 ```bash
-npm install -g pockethost
+brew install pockethost/tap/pockethost
 ```
 
-## Upgrading from phio
+**Windows**, with [Scoop](https://scoop.sh), in PowerShell:
 
-Before 3.0, the CLI was called **phio**. Swap the package:
+```powershell
+scoop bucket add pockethost https://github.com/pockethost/scoop-bucket
+scoop install pockethost
+```
+
+**Install script** (macOS or Linux, no Homebrew):
 
 ```bash
-npm rm -g phio
-npm install -g pockethost
+curl -fsSL https://pockethost.io/install.sh | sh
 ```
 
-Then use `pockethost` wherever you used `phio`. Everything carries over the first time you run it:
+It puts `pockethost` in `/usr/local/bin` (asking for your password through `sudo` when that folder isn't yours). Set `POCKETHOST_INSTALL_DIR` to put it somewhere else, for example `curl -fsSL https://pockethost.io/install.sh | POCKETHOST_INSTALL_DIR=$HOME/.local/bin sh`. You can also download the zip for your platform from [Releases](https://github.com/pockethost/pockethost/releases) and put `pockethost` on your `PATH` yourself.
 
-- **Your SFTP key** is copied from phio's config folder, and your existing **`Phio`** key under **[Account → Keys](/account/keys)** keeps working. Run `pockethost login` once to save a token.
-- **`.phioconfig`** is renamed to **`.pockethostconfig`**. Commit the new file.
-- **`PHIO_*` environment variables** still work and print a warning. Rename them to `POCKETHOST_*` (for example `PHIO_INSTANCE_NAME` → `POCKETHOST_INSTANCE_NAME`) before a future major version drops them.
+**Build from source**, with [Go](https://go.dev) installed:
+
+```bash
+git clone https://github.com/pockethost/pockethost.git
+cd pockethost/packages/pockethost-go
+go build -o pockethost ./cmd/pockethost
+```
+
+Check it with `pockethost --version`. To upgrade, run `brew upgrade pockethost` or `scoop update pockethost`; otherwise `pockethost upgrade`, or run the install script again.
+
+## Coming from the npm CLI
+
+The `pockethost` command used to be an npm package (and before 3.0, **phio**). This binary takes its place. Remove the npm package first, so the old command doesn't come first on your `PATH`:
+
+```bash
+npm rm -g pockethost phio
+```
+
+Then install `pockethost` as above and run `pockethost link` in each project folder.
 
 ## Quick start
 
 ```bash
-pockethost login
-pockethost link my-instance
+pockethost link https://my-instance.pockethost.io
 pockethost dev
 ```
 
-1. **`pockethost login`**: opens **[Account → API Tokens](/account/tokens)** in your browser. Create a token and paste it back into the terminal.
-2. **`pockethost link <instance>`**: save the default instance to `.pockethostconfig` in the current directory.
-3. **`pockethost dev`**: watch local changes and deploy them to the instance.
+1. **`pockethost link <instance URL>`**: makes the instance this folder's remote and signs you in, in your browser or with one of the instance's superusers. To use a PocketHost API token from **[Account → API Tokens](/account/tokens)** instead, pass it after the URL.
+2. **`pockethost dev`**: keeps your local files and the instance in step both ways, and streams the instance's logs.
 
 For a one-shot upload without watching:
 
 ```bash
 pockethost deploy
-```
-
-Pass an instance name on any command to override the linked default:
-
-```bash
-pockethost deploy staging
-pockethost logs my-instance
 ```
 
 ## Commands
@@ -66,7 +77,7 @@ pockethost logs my-instance
 | `pockethost login [token]`                  | Save a personal access token on this computer                   |
 | `pockethost token [set\|clear\|status]`     | Save, remove, or check the token                                |
 | `pockethost logout`                         | Remove the saved token from this computer                       |
-| `pockethost info` (`whoami`)                | Show the token, linked instance, and SFTP key status            |
+| `pockethost info` (`whoami`)                | Show the token and the linked instance                          |
 | `pockethost list` (`ls`)                    | List the instances your token can reach                         |
 | `pockethost link [instance]`                | Link this directory to an instance (writes `.pockethostconfig`) |
 | `pockethost dev [instance]`                 | Watch local files and deploy on change                          |
@@ -75,7 +86,6 @@ pockethost logs my-instance
 | `pockethost pull [paths...]`                | Download instance files into this folder                        |
 | `pockethost upload <local> [remote]`        | Upload a file or folder to the instance                         |
 | `pockethost rm <paths...>`                  | Delete files on the instance                                    |
-| `pockethost sftp [instance]`                | Interactive SFTP session (retired February 6, 2027)             |
 | `pockethost logs [instance]`                | Tail instance logs                                              |
 | `pockethost show [instance]`                | Show power, URLs, domain, version and settings                  |
 | `pockethost power on\|off [instance]`       | Power an instance on or off                                     |
@@ -97,7 +107,6 @@ pockethost logs my-instance
 - `-i, --include <patterns...>`: extra include globs (comma-separated values work)
 - `-e, --exclude <patterns...>`: extra exclude globs
 - `--no-node-modules`: don't ship `node_modules` (see [Packages](#packages-node_modules))
-- `--sftp`: sync over SFTP with your SSH key instead of HTTPS (retired February 6, 2027)
 
 `deploy` makes the instance's files match your local folders, so files on the instance that you don't have locally are deleted. From CLI 4.3, it lists those files and asks before deleting anything. Add `-y, --yes` to skip the question; without a terminal (for example in CI), `deploy` refuses to delete files unless you pass `-y`. `dev` deletes them without asking, because it mirrors your local changes.
 
@@ -106,10 +115,6 @@ pockethost logs my-instance
 Default **includes**: `pb_*`, `package.json`, `bun.lock`, `bun.lockb`, `patches/**`.
 
 Default **excludes**: `pb_data/**`.
-
-`pockethost sftp` accepts:
-
-- `--print`: print the underlying `sftp` command instead of running it (useful when OpenSSH client tools are not installed)
 
 ## Files
 
@@ -130,7 +135,7 @@ Reading needs any token for the instance. `upload` and `rm` need write access.
 
 ### Start from what's on your instance
 
-If your instance has files that aren't in a local project yet (say you've been editing over SFTP), pull them before your first deploy:
+If your instance has files that aren't in a local project yet (say you've been changing them on the instance), pull them before your first deploy:
 
 ```bash
 mkdir my-app && cd my-app
@@ -176,24 +181,6 @@ Requires CLI 4.2 or later. The instance's `node_modules` ends up matching what y
 pockethost files pb_migrations
 pockethost rm pb_migrations/1700000000_bad.js
 ```
-
-## Interactive SFTP (`pockethost sftp`)
-
-> SFTP is being retired on February 6, 2027. Use the [file commands](#files) instead.
-
-Browse and edit instance files in an interactive SFTP session. It uses the CLI's SSH key, the same one as `--sftp` (see **[SSH key](#ssh-key-sftp)**).
-
-```bash
-pockethost sftp              # linked instance from .pockethostconfig
-pockethost sftp my-instance  # explicit instance
-pockethost sftp --print      # show the sftp command without running it
-```
-
-When a project is linked, the session opens in your instance directory (`{subdomain}/`). With no linked instance, it connects at the SFTP root so you can `cd` into any instance you have access to.
-
-The CLI runs your system's **`sftp`** client when it is on `PATH` (OpenSSH on macOS/Linux, optional Windows OpenSSH). If `sftp` is missing, it prints the full command to run manually. See **[SFTP File Access](/docs/ftp)** for client setup on every platform.
-
-This is file access only (`ls`, `cd`, `get`, `put`, and the rest). There is no remote shell or `exec`.
 
 ## Managing instances
 
@@ -258,35 +245,7 @@ Create tokens at **[Account → API Tokens](/account/tokens)**. Each token can b
 
 PocketHost doesn't install npm packages. `package.json`, `bun.lock`, and `patches/` are copied as plain files, and the CLI ships your production `node_modules` with the deploy (see [Packages](#packages-node_modules)). A deploy from a project without a `package.json`, from an older CLI or with `--no-node-modules` leaves the instance's `node_modules` alone.
 
-**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've edited files over SFTP, run [`pockethost pull`](#start-from-whats-on-your-instance) first.
-
-## SSH key (SFTP)
-
-With `--sftp`, and for `pockethost sftp`, the CLI connects with an Ed25519 key it keeps in its config folder (`~/.config/pockethost/` on Linux, your OS config folder elsewhere):
-
-- `pockethost_deploy_ed25519` (private key)
-- `pockethost_deploy_ed25519.pub` (public key)
-
-The key is created the first time you use SFTP. Tokens can't add SSH keys to your account, so add the public key under **[Account → Keys](/account/keys)** once. If it's missing, the CLI stops and prints the line to paste. Keys registered by earlier versions (**`PocketHost CLI`** or **`Phio`**) keep working.
-
-Run `pockethost info` to see the key's fingerprint and whether it's on your account. See **[Account access keys](/blog/account-access-keys)** for keys limited to specific instances.
-
-## How SFTP sync works (`--sftp`)
-
-With `--sftp`, the CLI connects to:
-
-| Setting          | Value                             |
-| ---------------- | --------------------------------- |
-| Host             | `ftp.pockethost.io`               |
-| Port             | `2222`                            |
-| Protocol         | SFTP                              |
-| Username         | Your PocketHost email             |
-| Auth             | The CLI's SSH key                 |
-| Remote directory | `{instanceName}/` (instance root) |
-
-Sync is incremental. The CLI writes `.ftp-deploy-sync-state.json` at the instance root to track what changed. Do not delete that file unless you want a full resync.
-
-Use **`pockethost sftp`** for an interactive session with the same credentials, or see **[SFTP File Access](/docs/ftp)** for Cyberduck, FileZilla, VS Code extensions, and manual `sftp` setup.
+**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project (or that you excluded with `-e`) are removed on deploy. If you've changed files on the instance directly, run [`pockethost pull`](#start-from-whats-on-your-instance) first.
 
 ## Environment variables
 
@@ -297,7 +256,7 @@ Override saved config without editing files:
 | `POCKETHOST_TOKEN`          | Personal access token (CI); overrides the saved one        |
 | `POCKETHOST_INSTANCE_NAME`  | Default instance name                                      |
 | `POCKETHOST_MOTHERSHIP_URL` | Mothership API URL (default production)                    |
-| `POCKETHOST_HOME`           | Config folder for the saved token and SSH key              |
+| `POCKETHOST_HOME`           | Config folder for the saved token                          |
 | `POCKETHOST_PROJECT_DIR`    | Project folder (default: found from the current directory) |
 
 `POCKETHOST_INSTANCE_NAME` takes precedence over `.pockethostconfig`. The older `PHIO_*` names still work with a warning.
@@ -329,8 +288,6 @@ jobs:
 
 See **[Deploy from CI](/docs/deploy-from-ci)** for per-branch instances and more detail.
 
-For GitHub Actions that already use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action), use SFTP on port 2222 with an Ed25519 private key. FTPS on port 21 is off. See **[FTPS officially sunset](/blog/ftps-officially-sunset)**.
-
 ## Troubleshooting
 
 ### `No instance name provided and none was found in .pockethostconfig`
@@ -345,21 +302,9 @@ Check `pockethost token status`. If the token was revoked or expired, create a n
 
 Check the instance name, and that the token's instance list includes it.
 
-### `This computer's SSH key isn't on your PocketHost account yet`
-
-Add the printed public key (also in `pockethost_deploy_ed25519.pub` in the CLI's config folder) under **[Account → Keys](/account/keys)**, then run the command again. Or skip SFTP: `pockethost deploy` needs only your token.
-
-### Permission denied (publickey) during `--sftp`
-
-Run `pockethost info` to check that the SFTP key is on your account and that the key's instance list includes this instance.
-
-### `Could not find 'sftp' on PATH`
-
-Install OpenSSH client tools for your OS, or run `pockethost sftp --print` and paste the command into your preferred SFTP client. See **[SFTP File Access](/docs/ftp)**.
-
 ### `phio: command not found` or old commands
 
-phio is now `pockethost`. See **[Upgrading from phio](#upgrading-from-phio)**.
+phio is now `pockethost`. See **[Coming from the npm CLI](#coming-from-the-npm-cli)**.
 
 ### `Email/password login was removed in CLI 4.0`
 

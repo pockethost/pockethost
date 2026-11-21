@@ -28,7 +28,6 @@ export const docsNav: DocNavSection[] = [
   {
     title: 'Deploying & files',
     items: [
-      { slug: 'ftp', title: 'SFTP File Access' },
       { slug: 'cli', title: 'PocketHost CLI' },
       { slug: 'deploy-from-ci', title: 'Deploy from CI' },
       { slug: 'static-assets', title: 'Static Assets' },

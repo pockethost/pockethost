@@ -5,7 +5,9 @@ public): PocketBase plus generic extensions under `ext/`. PocketHost uses `ext/c
 `.env`), `ext/host` (the multi-instance host), the runtime providers `ext/pocker` (in-process, sandboxed by
 `ext/sandbox`) and `ext/docker` (one container per instance), `ext/firewall` and `ext/edge` (forwarding between edges).
 
-One binary, `pockethost`, with role-first commands:
+One binary, `pockethost`: the whole `pocketone` binary (`serve`, `link`, `login`, `deploy`, `dev`, `clone`, `pull`,
+`logs`, `upgrade` and the rest, from `pocketone.dev/examples/pocketone/binary`), so PocketHost users install only
+this, plus PocketHost's server commands, which most users never run (`docker` replaces PocketOne's own):
 
 | Command | What it runs |
 |---|---|
@@ -22,11 +24,11 @@ PocketOne, the hook goes into PocketOne generically.
 
 `go.mod` requires PocketBase's module path and replaces it with PocketOne (which keeps PocketBase's module path so its
 upstream merges stay easy), and requires the PocketOne extension modules it uses (`github.com/pockethost/pocketone/ext/*`).
-Move every one of them to the same PocketOne commit:
+Move every one of them, and `pocketone.dev/examples/pocketone` (the stock binary), to the same PocketOne commit:
 
 ```sh
-go get $(grep -o 'github.com/pockethost/pocketone/ext/[a-z-]*' go.mod | sort -u | sed 's/$/@<commit>/')
-go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=github.com/pockethost/pocketone@<commit>
+go get $(grep -o 'pocketone.dev/[a-z/-]*' go.mod | grep / | sort -u | sed 's/$/@<commit>/')
+go mod edit -replace ganigeorgiev.com/pocketbase/pocketbase=pocketone.dev@$(go list -m -f '{{.Version}}' pocketone.dev@<commit>)
 go mod tidy
 ```
 
@@ -161,11 +163,12 @@ PocketOne release is followed by a PocketHost release that pins it, and PocketHo
 - [CHANGELOG.md](CHANGELOG.md): a line under `## Unreleased` for every user-visible change; its top says how to cut a
   release.
 - `release/release.sh vX.Y.Z` (from the repo root) tags, pushes the tag and runs goreleaser
-  ([release/goreleaser.yaml](release/goreleaser.yaml)), leaving a draft GitHub release with zips for Linux and macOS.
+  ([release/goreleaser.yaml](release/goreleaser.yaml)), leaving a draft GitHub release with zips for Linux, macOS and Windows.
   `release/release.sh --snapshot` builds the same zips locally into `.builds/` without tagging.
 - goreleaser also pushes `Formula/pockethost.rb` to
-  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap), even for a draft, so `brew install` fails
-  (404) until the draft is published. Publish soon after cutting.
+  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap) and `bucket/pockethost.json` to
+  [pockethost/scoop-bucket](https://github.com/pockethost/scoop-bucket), even for a draft, so `brew install` and
+  `scoop install` fail (404) until the draft is published. Publish soon after cutting.
 
 ## Rollout
 

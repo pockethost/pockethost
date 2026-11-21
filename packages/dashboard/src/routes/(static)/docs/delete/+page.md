@@ -17,7 +17,7 @@ Once deleted, you lose access to:
 - All files in `pb_migrations/*`
 - All files in `pb_static/*`
 
-The instance no longer appears in the dashboard and is not reachable over SFTP or HTTP.
+The instance no longer appears in the dashboard and is not reachable over HTTP.
 
 ### After you delete
 

@@ -89,4 +89,4 @@ In the PocketBase Backups list, each moved backup is replaced by a text file wit
 
 ## Back up and restore with the CLI
 
-If the admin isn't available or your instance won't start, use the [PocketHost CLI](/docs/cli#files). Power off the instance, then run `pockethost pull --data pb_data` to download the database and uploads. To restore, run `pockethost upload ./pb_data`. [SFTP](/docs/ftp) works too until it is retired on February 6, 2027.
+If the admin isn't available or your instance won't start, use the [PocketHost CLI](/docs/cli#files). Power off the instance, then run `pockethost pull --data pb_data` to download the database and uploads. To restore, run `pockethost upload ./pb_data`.

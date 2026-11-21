@@ -33,7 +33,8 @@ the two version numbers don't match.
 
 ### Added
 
-- Windows builds (amd64 and arm64) on every release, beside Linux and macOS.
+- `pockethost` is the whole PocketOne binary: `serve`, `link`, `login`, `deploy`, `dev`, `clone`, `pull`, `logs`, `pages`, `superuser`, `upgrade` and every other `pocketone` command work the same under `pockethost`, so it's the one thing PocketHost users install. The server commands (`edge`, `docker`, `mothership`, `version`) are unchanged. `pockethost upgrade` gets PocketHost's own releases.
+- Windows builds (amd64 and arm64) on every release, beside Linux and macOS. Install with [Scoop](https://scoop.sh): `scoop bucket add pockethost https://github.com/pockethost/scoop-bucket`, then `scoop install pockethost`. On macOS and Linux without Homebrew: `curl -fsSL https://pockethost.io/install.sh | sh`.
 - Docker edges take an instance's own superusers on the deploy API and `remote/v1`: `pocketone link https://<instance>.pockethost.io` signs in with one of the instance's superusers (email and password; the owner's PocketHost login when it's synced in), and that login deploys, pulls, reads logs and restarts. The edge asks the instance whether it accepts the token (cached 30 s). Pocker edges already took the instance's own tokens.
 - On pocker edges the deploy API and `remote/v1` also take an instance's own API tokens (its superusers'), so `pocketone login <instance URL>` and `pocketone clone <instance URL>`, which sign in to the instance in the browser, work on PocketHost as on any PocketOne app. Scopes as on a single app: none or `deploy` deploy, `deploy:read` reads. Docker edges take only PocketHost tokens and logins.
 
@@ -60,7 +61,7 @@ the two version numbers don't match.
 
 ### PocketOne
 
-- Built on PocketOne `main` at 7da9aa9f (after v0.0.1-alpha.10): the deploy API sends files in bundles (`POST files/bundle`, `tree?deep=1`) and the sign-in page honors `account` (the CLI gets the superuser form), contract streams (the edges' watch stream) no longer drop every 5 minutes, edge forwarding no longer holds a restarted far owner's requests forever (a held request's health checks get their own timeout), instance.tokens/v1 (Pocker checks an instance's own API tokens), API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.
+- Built on PocketOne `main` at 55534a7f (after v0.0.1-alpha.10): the stock `pocketone` binary as a package (`examples/pocketone/binary`), install.sh and Linux packages, Scoop and the pocketonehq tap, the deploy API sends files in bundles (`POST files/bundle`, `tree?deep=1`) and the sign-in page honors `account` (the CLI gets the superuser form), contract streams (the edges' watch stream) no longer drop every 5 minutes, edge forwarding no longer holds a restarted far owner's requests forever (a held request's health checks get their own timeout), instance.tokens/v1 (Pocker checks an instance's own API tokens), API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.
 
 ## v5.0.0-alpha.7 (2026-11-19)
 
