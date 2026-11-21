@@ -1,14 +1,14 @@
 ---
 title: Deploy from CI
-description: Deploy a PocketBase project to PocketHost from GitHub Actions or any CI with a personal access token and the pockethost CLI
+description: Deploy a PocketBase project to PocketHost from GitHub Actions or any CI with an API token and the pockethost CLI
 ---
 
 # Deploy from CI
 
 Point your CI at a PocketHost instance and every push deploys your `pb_hooks`, `pb_migrations`, `pb_public`, and packages. You need two things:
 
-1. A **personal access token** stored as a CI secret named `POCKETHOST_TOKEN`.
-2. A step that runs **`npx pockethost deploy <instance> -y`**. `-y` lets the deploy delete files on the instance that aren't in your repository; without it, CI deploys that would delete files stop instead (CLI 4.3 or later).
+1. An **API token** stored as a CI secret named `P1_TOKEN`.
+2. A step that installs [`pockethost`](/docs/cli) and runs **`pockethost deploy`**.
 
 No password, SSH key, or saved login is needed, so it works on fresh CI runners.
 
@@ -17,7 +17,7 @@ No password, SSH key, or saved login is needed, so it works on fresh CI runners.
 Go to **[Account → API Tokens](/account/tokens)** and click **Create token**:
 
 - **Name**: something you'll recognize later, like `GitHub Actions`.
-- **Access**: **Deploy + read**. Read-only tokens can list instances and tail logs, but can't deploy.
+- **Access**: **Deploy + read**. Read-only tokens can pull files and read logs, but can't deploy.
 - **Instances**: pick only the instances this pipeline deploys to, or **All instances**. To change this later, create a new token and revoke the old one.
 - **Expiry**: 90 days is the default. You can pick 30 days, 1 year, or no expiry.
 
@@ -25,11 +25,13 @@ Copy the token (`pbt_…`) right away. PocketHost stores only a hash of it, so i
 
 ## 2. Add it to your repository
 
-In GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Name it `POCKETHOST_TOKEN` and paste the token.
+In GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Name it `P1_TOKEN` and paste the token.
 
 ## 3. Add a workflow
 
 ### Deploy `main` to one instance
+
+Run `pockethost link https://my-app.pockethost.io` in your project once and commit `.pocketbase/remotes.json`, so the workflow knows which instance to deploy to:
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -43,17 +45,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: npx pockethost@latest deploy my-app -y
+      - run: curl -fsSL https://pockethost.io/install.sh | sh
+      - run: pockethost deploy --restart
         env:
-          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
+          P1_TOKEN: ${{ secrets.P1_TOKEN }}
 ```
+
+`--restart` restarts the instance when the deploy changed migrations or packages, so they apply.
 
 ### Deploy each branch to its own instance
 
-Create one instance per branch you care about (for example `myapp-main` and `myapp-staging`), give the token access to those instances, then name the target after the branch:
+Create one instance per branch you care about (for example `myapp-main` and `myapp-staging`), give the token access to those instances, then deploy to the instance's URL instead of a linked remote:
 
 ```yaml
 name: Deploy branch
@@ -66,23 +68,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: npx pockethost@latest deploy myapp-${{ github.ref_name }} -y
+      - run: curl -fsSL https://pockethost.io/install.sh | sh
+      - run: pockethost deploy https://myapp-${{ github.ref_name }}.pockethost.io --restart
         env:
-          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
+          P1_TOKEN: ${{ secrets.P1_TOKEN }}
 ```
 
-A push to a branch whose instance doesn't exist (or isn't in the token's scope) fails with `Instance '…' not found, or this token cannot access it.`
+A push to a branch whose instance doesn't exist, or isn't in the token's scope, fails the deploy.
 
-If your project has a `.pockethostconfig` (from `pockethost link`), you can leave off the instance name and the linked one is used.
+To use a different token per instance, link each one under a name (`pockethost link <url> --name staging`) and set `P1_TOKEN_STAGING` for the remote named `staging`. A `P1_TOKEN_<NAME>` variable wins over `P1_TOKEN`.
 
 ## What a deploy does
 
-1. The CLI hashes your project files and sends the list to your instance.
-2. PocketHost replies with the files it doesn't already have, and the CLI uploads only those, compressed.
-3. PocketHost swaps the new file set in all at once. When anything outside `pb_public` changed, it stops the instance for the swap and starts it again, so PocketBase never runs a half-updated set of hooks. Changes to `pb_public` alone go live without a restart.
+1. `pockethost` hashes your project files and sends the list to your instance.
+2. PocketHost replies with the files it doesn't already have, and only those are uploaded.
+3. PocketHost swaps the new files in. Hooks, pages and public files take effect right away; migrations and packages apply when the instance restarts (`--restart`).
 
 What gets deployed:
 
@@ -96,21 +96,17 @@ What never gets touched:
 - `.git*` files
 - anything else at the instance root
 
-**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project are removed on deploy. If you've changed hooks on the instance directly, copy those changes into your repo before the first CI deploy.
+**Your project is the source of truth.** A deploy makes the instance's code match your project, so files on the instance that aren't in your project are removed. If you've changed hooks on the instance directly, copy those changes into your repo before the first CI deploy (`pockethost pull` brings them down).
 
 ### npm packages
 
-PocketHost doesn't run `npm install`. Instead, `pockethost deploy` (CLI 4.2 or later) ships your production `node_modules` when there's a `package.json`: the packages in `dependencies` and everything they need, never `devDependencies`. In CI, install before you deploy (`npm ci` or `bun install`). See [Packages](/docs/cli#packages-node_modules).
+PocketHost doesn't run `npm install`. Instead, `pockethost deploy` ships your production `node_modules` when there's a `package.json`: the packages in `dependencies` and everything they need, never `devDependencies`. In CI, install before you deploy (`npm ci` or `bun install`). See [Packages](/docs/cli#packages-nodemodules).
 
 PocketBase's JavaScript engine has no Node.js built-ins, so packages that use them (`fs`, `crypto`, `Buffer`) won't run there. Packages that only ship ES modules won't load either, since it only understands CommonJS. For one of those, bundle it into a single file in `pb_hooks` with a bundler such as esbuild (`--bundle --format=cjs --platform=neutral`) and `require()` that file.
 
-PocketHost used to run `bun install` automatically when `package.json` or `bun.lock` changed. It doesn't anymore. If your project relies on that (for example a PocketPages app), its current `node_modules` keeps working until your next deploy with CLI 4.2, which replaces it with the packages you installed locally.
-
-Each deploy is recorded with its time, file count, and commit SHA. The CLI sends `$GITHUB_SHA` automatically. Pass `--commit <sha>` or `-m "<note>"` to set them yourself.
-
 ## Other CI systems
 
-Any CI that can run Node 20+ works the same way: set `POCKETHOST_TOKEN` as a secret environment variable and run `npx pockethost@latest deploy <instance> -y`.
+Any CI that can run a shell works the same way: set `P1_TOKEN` as a secret environment variable, install `pockethost` with `curl -fsSL https://pockethost.io/install.sh | sh` (or download it from [Releases](https://github.com/pockethost/pockethost/releases)), and run `pockethost deploy`.
 
 ## Security notes
 
@@ -120,18 +116,14 @@ Any CI that can run Node 20+ works the same way: set `POCKETHOST_TOKEN` as a sec
 
 ## Troubleshooting
 
-### `Authentication failed (POCKETHOST_TOKEN): Invalid or expired token.`
+### Not signed in, or the token is refused
 
-The token was revoked, has expired, or was pasted with a typo. Create a new one and update the secret.
+The token was revoked, has expired, or was pasted with a typo, or `P1_TOKEN` isn't set in the step's `env`. Create a new token and update the secret.
 
-### `This token is read-only.`
+### The token can't deploy
 
-Create a token with **Deploy + read** access.
+Create a token with **Deploy + read** access, and check that its instance list includes the instance. To add an instance, click **Edit** on the token at **[Account → API Tokens](/account/tokens)**.
 
-### `Instance '…' not found, or this token cannot access it.`
+### `Migrations or packages changed`
 
-Check the instance name, and that the token's instance list includes it. To add an instance, click **Edit** on the token at **[Account → API Tokens](/account/tokens)**.
-
-### `… is outside the deployable set`
-
-The CLI skips files outside the folders listed above and prints a warning. To ship other files, put them under `pb_public/` or `pb_hooks/`.
+Deploy with `--restart`, or run `pockethost restart` afterwards.

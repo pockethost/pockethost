@@ -4,7 +4,7 @@ description: Access PocketBase instance files over SFTP with Ed25519 SSH keys on
 ---
 # SFTP File Access
 
-> **PocketHost is retiring SFTP file access on February 6, 2027.** Move to the [PocketHost CLI](/docs/cli): `pockethost deploy` for code, and `pockethost files`, `pull`, `upload` and `rm` for everything else. See [Service update: SFTP sunset and CLI upgrade](/blog/sftp-sunset).
+> **PocketHost is retiring SFTP file access on February 6, 2027.** Move to the [PocketHost CLI](/docs/cli) for code (`pockethost deploy`, `dev`, `pull`) and to PocketBase's backups for your data. See [Service update: SFTP sunset and CLI upgrade](/blog/sftp-sunset).
 
 PocketHost provides **SFTP** access to your instance files. Use it to upload hooks, migrations, and backups.
 
@@ -223,14 +223,11 @@ FTPS on port 21 has been removed. Use SFTP with an Ed25519 key. See [FTPS offici
 
 ## Automated deploy (CLI and CI)
 
-For day-to-day development, use the **[PocketHost CLI](/docs/cli)** to link a project, watch local files, and deploy them:
+For day-to-day development, use the **[PocketHost CLI](/docs/cli)** to link a project, keep it in step and deploy it over HTTPS, with no SSH key:
 
 ```bash
-pockethost login
-pockethost link my-instance
+pockethost link https://my-instance.pockethost.io
 pockethost dev
 ```
 
-The CLI signs in with a personal access token and deploys over HTTPS, so it needs no SSH key. For `pockethost sftp` and `--sftp`, it keeps its own Ed25519 key; add that key under **[Account → Keys](/account/keys)** once (the CLI prints it if it's missing).
-
-For GitHub Actions, run **`pockethost deploy`** with a `POCKETHOST_TOKEN` secret (see [Deploy from CI](/docs/deploy-from-ci)), or use [SamKirkland/FTP-Deploy-Action](https://github.com/SamKirkland/FTP-Deploy-Action) over SFTP on port 2222 with an Ed25519 private key.
+For GitHub Actions, see [Deploy from CI](/docs/deploy-from-ci).

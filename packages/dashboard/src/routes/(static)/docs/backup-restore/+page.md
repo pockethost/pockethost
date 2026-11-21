@@ -86,7 +86,3 @@ In the PocketBase Backups list, each moved backup is replaced by a text file wit
 - **Deleting the `.txt` file deletes the backup.** When the `.txt` file is gone from your Backups list, whether you deleted it or PocketBase removed it as an old scheduled backup, the copy in cold storage is deleted 14 days later.
 - **Scheduled backups**: PocketBase counts `.txt` files toward **Max @auto backups**, and removes the oldest first, the same as zips.
 - **Restoring the `.txt` file itself does nothing.** It isn't a backup, so PocketBase leaves your data as it is.
-
-## Back up and restore with the CLI
-
-If the admin isn't available or your instance won't start, use the [PocketHost CLI](/docs/cli#files). Power off the instance, then run `pockethost pull --data pb_data` to download the database and uploads. To restore, run `pockethost upload ./pb_data`.

@@ -8,7 +8,7 @@ Your PocketBase instance managed by PocketHost can be accessed in several ways:
 
 1. `<uuid>.pockethost.io`
 2. `<subdomain>.pockethost.io`
-3. The [PocketHost CLI](/docs/cli#files) for direct file management
+3. The [PocketHost CLI](/docs/cli) for your project's code
 
 Each PocketHost instance is assigned a permanent UUID, and a unique subdomain that you can customize and update at any time.
 
@@ -16,4 +16,4 @@ Each PocketHost instance is assigned a permanent UUID, and a unique subdomain th
 
 Custom domains are supported on paid accounts, and we manage SSL certificates for you. Learn more about setting up custom domains [here](/docs/custom-domain).
 
-For direct file access, use the [PocketHost CLI](/docs/cli#files): `pockethost files`, `pull`, `upload` and `rm`.
+To deploy and download your code, use the [PocketHost CLI](/docs/cli): `pockethost deploy`, `dev` and `pull`.

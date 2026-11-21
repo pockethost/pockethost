@@ -54,13 +54,11 @@ PocketHost provides a user-friendly dashboard to manage your instances.
 Use the **[PocketHost CLI](/docs/cli)** for hooks, migrations, static files, and backups:
 
 ```bash
-npm install -g pockethost
-pockethost login
-pockethost link my-instance
+pockethost link https://my-instance.pockethost.io
 pockethost dev
 ```
 
-`pockethost dev` deploys your project as you save. `pockethost files`, `pull`, `upload` and `rm` handle everything else, including `pb_data`. See **[Files](/docs/cli#files)**.
+[Install `pockethost`](/docs/cli#install) first. `pockethost dev` keeps your project and the instance in step as you save; `pockethost deploy` uploads it once and `pockethost pull` brings files down. For your data, use backups in the PocketBase admin. See **[PocketHost CLI](/docs/cli)**.
 
 ---
 
