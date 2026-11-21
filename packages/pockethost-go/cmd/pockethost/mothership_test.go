@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"pocketone.dev/ext/config"
+	"pocketone.dev/ext/jsvm"
 )
 
 func TestFirstCommand(t *testing.T) {
@@ -26,12 +26,12 @@ func TestFirstCommand(t *testing.T) {
 }
 
 func TestMothershipJSLimits(t *testing.T) {
-	got := mothershipJSLimits(config.JSLimits{})
+	got := mothershipJSLimits(jsvm.VMConfig{})
 	if got.MemoryLimit != 1<<30 || got.TaskBudget != 5*time.Minute || got.TaskWall != 30*time.Minute ||
 		got.WaitTimeout != 5*time.Minute {
 		t.Fatalf("defaults: got %+v", got)
 	}
-	got = mothershipJSLimits(config.JSLimits{Memory: 2 << 30, TaskTime: time.Minute})
+	got = mothershipJSLimits(jsvm.VMConfig{MemoryLimit: 2 << 30, TaskBudget: time.Minute})
 	if got.MemoryLimit != 2<<30 || got.TaskBudget != time.Minute || got.TaskWall != 30*time.Minute {
 		t.Fatalf("yaml wins per key: got %+v", got)
 	}

@@ -16,11 +16,13 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pockethost/pockethost/packages/pockethost-go/fleet"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
+	apitokens "pocketone.dev/ext/api-tokens"
 	"pocketone.dev/ext/bundle"
 	"pocketone.dev/ext/config"
 	"pocketone.dev/ext/extkit"
 	"pocketone.dev/ext/jsvm"
 	p1mothership "pocketone.dev/ext/mothership"
+	"pocketone.dev/ext/standard"
 )
 
 // mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin
@@ -35,8 +37,11 @@ import (
 // The hooks read the same environment variables as before (LS_*, DISCORD_*, MOTHERSHIP_CLOUDFLARE_*, APP_URL,
 // TEST_EMAIL) from the process environment.
 //
-// pocketone.yaml (./pocketone.yaml, else next to the binary, or --config) sets the JS engine's limits in
-// app.js_limits; without it the mothership's own defaults below apply.
+// It is a standard PocketOne app: pocketone.yaml (./pocketone.yaml, else next to the binary, or --config) is read like
+// any PocketOne app's, its app section (standard.AppFromConfig) giving the defaults of --dir, --dev, --encryptionEnv
+// and --queryTimeout and the JS engine's limits (app.js_limits, each left out taking the mothership's defaults below),
+// and the standard extensions are registered (ext/standard: settings, API tokens, remotes, mcp, pitr, backups, ...),
+// each switched off with `<name>: {enabled: false}`. The hooks and migrations always come from the binary.
 func mothership(args []string) {
 	if len(args) >= 1 && (args[0] == "version" || args[0] == "--version") {
 		fmt.Println(mothershipVersion())
@@ -58,18 +63,20 @@ func mothership(args []string) {
 
 	// PocketBase parses os.Args itself: hand it everything after "mothership".
 	os.Args = append([]string{os.Args[0]}, args...)
-	cfgOpts := config.FromArgs(os.Args[1:])
-	if _, err := config.Load(cfgOpts); err != nil {
+	// pocketone.yaml's app section, as every PocketOne binary reads it (ext/standard); flags still win
+	cfg, err := config.Load(config.FromArgs(os.Args[1:]))
+	if err != nil {
 		log.Fatal(err)
 	}
-	appCfg, _ := config.App.Get()
+	appCfg, err := standard.AppFromConfig(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	app := pocketbase.New()
+	app := pocketbase.NewWithConfig(appCfg.PocketBase)
 	app.RootCmd.Use = "pockethost mothership"
 
-	var hooksPool int
 	var cfgPath, envPath string
-	app.RootCmd.PersistentFlags().IntVar(&hooksPool, "hooksPool", 15, "ignored: the mothership's JS runs on one QuickJS VM")
 	app.RootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "the config file (default ./pocketone.yaml, else next to the executable)")
 	app.RootCmd.PersistentFlags().StringVar(&envPath, "env-file", "", "secrets for $VAR references in the config file (default .env beside it)")
 	app.RootCmd.ParseFlags(os.Args[1:])
@@ -82,10 +89,27 @@ func mothership(args []string) {
 		// --hooksDir did).
 		hooks = fstest.MapFS{}
 	}
-	jsvm.MustRegister(app, jsvm.Config{
+	// The standard set, with the mothership's own JS (embedded hooks and migrations) on its JS engine. API tokens are
+	// for users only (PocketHost's customers), with no OAuth server: the dashboard creates them, edges verify them.
+	set := standard.New()
+	set.Providers = standard.ConfiguredProviders() // pocketone.yaml's providers: section
+	set.APITokens = apitokens.New(mothershipTokens)
+	// The mothership's JS already runs bulk mail on ext/bulkmail's tables, with its own sender (a JS port, routes under
+	// /api/bulkmail): a second sender on the same queue would send campaigns twice. Off until the port is retired;
+	// pocketone.yaml decides the other members.
+	set.Switches = func(name string) extkit.Config {
+		if name == "bulkmail" {
+			return extkit.Config{{"enabled": false}}
+		}
+		return standard.ConfiguredSwitches(name)
+	}
+	set.Add(fleetExtensions()...) // instance.watch/v1: the edges' lazy mirror (one stream each, hostnames on demand)
+	if err := set.Register(app, jsvm.Config{
 		Extensions: []any{bundle.Hooks(hooks), bundle.Migrations(mothershipapp.Migrations())},
-		VM:         mothershipJSLimits(appCfg.JSLimits),
-	})
+		VM:         mothershipJSLimits(appCfg.JS.VM),
+	}); err != nil {
+		log.Fatal(err)
+	}
 
 	// `migrate up/down/history-sync` as before. Automigrate stays off: collection edits in the admin must not write
 	// migration files (there is no app folder to write them to any more).
@@ -96,7 +120,6 @@ func mothership(args []string) {
 
 	registerTokens(app)      // API tokens (pbt_...) for deploys, checked by the edges
 	registerOwnerFields(app) // what instances get from their owners, so edges never read users
-	registerFleet(app)       // instance.watch/v1: the edges' lazy mirror (one stream each, hostnames on demand)
 
 	app.OnServe().Bind(&hook.Handler[*core.ServeEvent]{
 		Func: func(e *core.ServeEvent) error {
@@ -155,7 +178,7 @@ func containsEq(s string) bool {
 // takesValue lists the persistent flags that take a separate value (`--dir x`); booleans don't.
 func takesValue(flag string) bool {
 	switch flag {
-	case "--dir", "--encryptionEnv", "--queryTimeout", "--hooksPool", "--config", "--env-file":
+	case "--dir", "--encryptionEnv", "--queryTimeout", "--config", "--env-file":
 		return true
 	}
 	return false
@@ -173,8 +196,7 @@ const (
 )
 
 // mothershipJSLimits is pocketone.yaml's app.js_limits, each key left out taking the mothership's default.
-func mothershipJSLimits(l config.JSLimits) jsvm.VMConfig {
-	vm := jsvm.VMConfig{MemoryLimit: int64(l.Memory), TaskBudget: l.TaskTime, TaskWall: l.TaskWall}
+func mothershipJSLimits(vm jsvm.VMConfig) jsvm.VMConfig {
 	if vm.MemoryLimit == 0 {
 		vm.MemoryLimit = mothershipJSMemory
 	}
@@ -212,10 +234,11 @@ func mothershipVersion() string {
 	return fmt.Sprintf("commit %s%s, app %s", commit, dirty, h)
 }
 
-// registerFleet serves instance.watch/v1 to the edges: PocketOne's ext/mothership watch server, answering with
-// PocketHost's resolver over these collections (package fleet). The resolver reads PH_APEX_DOMAIN, PH_HTTP_PROTOCOL,
-// APP_URL and PH_DOC_URL from the environment (defaults: pockethost.io, https:, app.<apex>, <apex>/docs).
-func registerFleet(app core.App) {
+// fleetExtensions serve instance.watch/v1 to the edges: PocketOne's ext/mothership watch server, answering with
+// PocketHost's resolver over these collections (package fleet). They join the standard set as extras, so they're
+// registered before its contracts are sealed. The resolver reads PH_APEX_DOMAIN, PH_HTTP_PROTOCOL, APP_URL and
+// PH_DOC_URL from the environment (defaults: pockethost.io, https:, app.<apex>, <apex>/docs).
+func fleetExtensions() []extkit.Extension {
 	on := true
-	extkit.MustRegister(app, fleet.Extension{Cfg: fleet.ConfigFromEnv()}, &p1mothership.Server{Enabled: &on})
+	return []extkit.Extension{fleet.Extension{Cfg: fleet.ConfigFromEnv()}, &p1mothership.Server{Enabled: &on}}
 }

@@ -45,6 +45,7 @@ the two version numbers don't match.
 - The mothership's edge dump (`GET /api/mirror`) no longer carries users, and `/api/userToken` is gone: no edge reads either.
 - **edge:** Duplicate no longer copies the original's `pb_cache` (extensions' disposable files, including deploy's upload store) or `.pb_deploy`; the copy builds its own.
 - Instance ownership has its own table on the mothership, `instance_owners` (instance, user, sync_login), copied from `instances.uid` and `instances.syncAdmin`, which are removed. The dashboard's instance access, the `stats` view, the instance handlers, token scopes, disk-usage sums and the over-limit policy go through it; the Node jobs still on sfo-2 (SFTP, over-limit, archiving) read it too. Deleting a user still deletes their instances.
+- **mothership:** a standard PocketOne app: it reads `pocketone.yaml`'s `app` section like any PocketOne app (`dir`, `dev`, `encryption_env`, `query_timeout`, `js_limits`; flags still win) and registers PocketOne's standard extensions (settings, templates, cache, API tokens, remotes, mcp, pages, storage, s3redirect, pitr, backups, deploy, wasm, uicache, agent, agent-chat), each switched off with `<name>: {enabled: false}` in `pocketone.yaml`. Bulk mail stays the mothership's own (PocketOne's bulkmail extension is kept off: both would send from the same queue). Point-in-time restore (pitr) is on by default and keeps its history in `pb_data/litestream/`. `--hooksPool` is gone.
 
 ### PocketOne
 
