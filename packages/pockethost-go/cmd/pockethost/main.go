@@ -1,7 +1,9 @@
-// Command pockethost is PocketHost's server binary, on PocketOne. The first argument picks the role:
+// Command pockethost is PocketHost's binary: the whole PocketOne binary (serve, link, login, deploy, dev, clone, pull,
+// logs, upgrade, ...; pocketone.dev/examples/pocketone/binary) plus PocketHost's server commands, which most users
+// never run:
 //
 //	pockethost edge serve [--config pocketone.yaml] [--env-file .env]
-//	pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]
+//	pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]   (replaces PocketOne's docker command)
 //	pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (mothership.go)
 //	pockethost version   (also --version, -v: this release, and the PocketOne and PocketBase it's built on)
 //
@@ -12,48 +14,64 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
 	"os"
+
+	"github.com/spf13/cobra"
+	"pocketone.dev/examples/pocketone/binary"
+	"pocketone.dev/ext/upgrade"
 )
 
-const usage = `usage:
-  pockethost edge serve [--config pocketone.yaml] [--env-file .env]
-  pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]
-  pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (see mothership.go)
-  pockethost version`
-
 func main() {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, usage)
-		os.Exit(2)
-	}
-	switch args[0] {
-	case "version", "--version", "-v":
-		fmt.Println(versionString())
-		return
-	case "docker":
-		if err := dockerCmd(args[1:]); err != nil {
-			fmt.Fprintln(os.Stderr, "pockethost:", err)
-			os.Exit(1)
-		}
-		return
-	case "mothership":
-		mothership(args[1:])
-		return
-	case "edge":
-		if len(args) >= 2 {
-			switch args[1] {
-			case "serve":
-				edgeServe(args[2:])
-				return
+	binary.Main(binary.Options{
+		Version: versionString(),
+		// `pockethost upgrade`: PocketHost's own releases
+		Upgrade: upgrade.Config{Owner: "pockethost", Repo: "pockethost", ArchivePrefix: "pockethost", ArchiveExecutable: "pockethost"},
+		Commands: []*cobra.Command{
+			serverCommand("edge", "Runs a PocketHost edge (operators): edge serve [--config pocketone.yaml] [--env-file .env]",
+				func(args []string) error {
+					if len(args) == 0 || args[0] != "serve" {
+						return errors.New("usage: pockethost edge serve [--config pocketone.yaml] [--env-file .env]")
+					}
+					edgeServe(args[1:])
+					return nil
+				}),
+			serverCommand("docker", "Release binaries a docker edge serves (operators): docker seed|update [--config pocketone.yaml]",
+				dockerCmd),
+			serverCommand("mothership", "Runs PocketHost's mothership (operators): mothership serve|migrate|superuser|version|hooks export|versions",
+				func(args []string) error { mothership(args); return nil }),
+			{
+				Use:   "version",
+				Short: "Prints this release, and the PocketOne and PocketBase it's built on",
+				Args:  cobra.NoArgs,
+				Run:   func(*cobra.Command, []string) { fmt.Println(versionString()) },
+			},
+		},
+	})
+}
+
+// serverCommand is one of PocketHost's server commands: run gets every argument after the name and parses its own.
+func serverCommand(name, short string, run func(args []string) error) *cobra.Command {
+	return &cobra.Command{
+		Use:                name,
+		Short:              short,
+		DisableFlagParsing: true,
+		SilenceUsage:       true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 1 && (args[0] == "-h" || args[0] == "--help") {
+				fmt.Println(short)
+				return nil
 			}
-		}
+			if err := run(args); err != nil {
+				fmt.Fprintln(os.Stderr, "pockethost:", err)
+				os.Exit(1)
+			}
+			return nil
+		},
 	}
-	fmt.Fprintln(os.Stderr, usage)
-	os.Exit(2)
 }
 
 // edgeFlags parses an edge command's --config and --env-file.
