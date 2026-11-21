@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -176,8 +177,13 @@ func copyInstanceDir(src, dst string) (int64, error) {
 	return n, nil
 }
 
+// notCopied are top-level folders of an instance that a copy leaves out: its extensions' disposable files (pb_cache,
+// PocketOne's convention, which holds deploy's upload store) and the upload store's interim home (.pb_deploy). Each
+// copy rebuilds its own.
+var notCopied = []string{"pb_cache", ".pb_deploy"}
+
 // copyTree copies a folder: directories, regular files (with their modes) and symlinks (as links). Anything else
-// (sockets, devices) is skipped.
+// (sockets, devices) is skipped, and so are the top-level folders in notCopied.
 func copyTree(src, dst string) (int64, error) {
 	var total int64
 	err := filepath.WalkDir(src, func(p string, e fs.DirEntry, err error) error {
@@ -187,6 +193,9 @@ func copyTree(src, dst string) (int64, error) {
 		rel, err := filepath.Rel(src, p)
 		if err != nil {
 			return err
+		}
+		if e.IsDir() && slices.Contains(notCopied, rel) {
+			return filepath.SkipDir
 		}
 		to := filepath.Join(dst, rel)
 		info, err := e.Info()
