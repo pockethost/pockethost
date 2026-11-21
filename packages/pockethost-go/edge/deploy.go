@@ -34,9 +34,12 @@ func (b deployBackend) Lookup(host string) (deploy.Instance, bool) {
 	if !ok {
 		return deploy.Instance{}, false
 	}
-	out := deploy.Instance{ID: inst.ID, Subdomain: inst.Subdomain, OwnerID: inst.UID, Power: inst.Power, Suspension: inst.Suspension}
-	if u, ok := s.users[inst.UID]; ok {
-		out.OwnerSuspension = u.Suspension
+	out := deploy.Instance{ID: inst.ID, Subdomain: inst.Subdomain, Power: inst.Power, Suspension: inst.Suspension}
+	if len(inst.Owners) > 0 {
+		out.OwnerID = inst.Owners[0]
+	}
+	if inst.Blocked != nil && inst.Blocked.Status != 0 {
+		out.Blocked = inst.Blocked.Message
 	}
 	if !isMine(inst, s.myEdge, s.cfg.EdgeID) {
 		out.Elsewhere = host + " is served by another PocketHost edge"

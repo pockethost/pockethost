@@ -165,14 +165,13 @@ func TestDuplicatorSweep(t *testing.T) {
 
 func TestMapInstanceBlocksUnfinishedCopies(t *testing.T) {
 	cfg := Config{ApexDomain: "pockethost.io", EdgeID: "e1"}
-	owner := &userRec{ID: "u", Verified: true, SubscriptionQuantity: 1}
 	for status, want := range map[string]string{duplicateCopying: "still being copied", duplicateFailed: "could not be copied"} {
-		p, ok := mapInstance(cfg, instanceRec{ID: "i", Subdomain: "s", UID: "u", Power: true, Edge: "E1", DuplicateStatus: status}, owner, "E1", nil)
+		p, ok := mapInstance(cfg, instanceRec{ID: "i", Subdomain: "s", Power: true, Edge: "E1", DuplicateStatus: status}, "E1")
 		if !ok || p.Blocked == nil || p.Blocked.Status != http.StatusServiceUnavailable || !strings.Contains(p.Blocked.Message, want) {
 			t.Fatalf("%s: %+v", status, p.Blocked)
 		}
 	}
-	p, _ := mapInstance(cfg, instanceRec{ID: "i", Subdomain: "s", UID: "u", Power: true, Edge: "E1", DuplicateStatus: duplicateReady}, owner, "E1", nil)
+	p, _ := mapInstance(cfg, instanceRec{ID: "i", Subdomain: "s", Power: true, Edge: "E1", DuplicateStatus: duplicateReady}, "E1")
 	if p.Blocked != nil {
 		t.Fatalf("ready copy blocked: %+v", p.Blocked)
 	}

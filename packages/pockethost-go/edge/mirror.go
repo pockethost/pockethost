@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	ceedge "pocketone.dev/ext/edge"
@@ -17,7 +16,9 @@ import (
 )
 
 // Source is a pocker.InstanceSource backed by PocketHost's mothership mirror: a full dump at start and after every
-// reconnect, PocketBase realtime for changes, and a periodic drift poll as a safety net. It also receives Pocker's
+// reconnect, PocketBase realtime for changes, and a periodic drift poll as a safety net. It reads instances and edges
+// only: what an instance gets from its owner (blocked, superusers, trusted IPs, owners) the mothership has already
+// written on it. It also receives Pocker's
 // instance events and reports status back (pocker.EventSink).
 type Source struct {
 	cfg Config
@@ -25,26 +26,18 @@ type Source struct {
 	log *slog.Logger
 
 	mu        sync.Mutex
-	users     map[string]userRec
 	instances map[string]instanceRec
 	edges     map[string]edgeRec
 	myEdge    string
-	logins    map[string]loginCache          // by user id
-	emitted   map[string]pocker.Instance     // what Pocker currently has
-	claims    map[string]string              // host -> winning instance id (cname > subdomain > id; newest wins ties)
-	cands     map[string]map[string]claim    // host -> instance id -> its claim on that host
-	byUID     map[string]map[string]struct{} // owner id -> instance ids
+	emitted   map[string]pocker.Instance  // what Pocker currently has
+	claims    map[string]string           // host -> winning instance id (cname > subdomain > id; newest wins ties)
+	cands     map[string]map[string]claim // host -> instance id -> its claim on that host
 	lastDrift time.Time
 
 	out chan pocker.Change
 
 	routeInit sync.Once
 	rt        *ceedge.Router
-}
-
-type loginCache struct {
-	updated string
-	info    *tokenInfo
 }
 
 // NewSource creates the mothership source.
@@ -54,15 +47,14 @@ func NewSource(cfg Config, log *slog.Logger) *Source {
 	}
 	return &Source{
 		cfg: cfg, c: newClient(cfg.MothershipURL, cfg.AdminUser, cfg.AdminPassword), log: log,
-		users: map[string]userRec{}, instances: map[string]instanceRec{}, edges: map[string]edgeRec{},
-		logins: map[string]loginCache{}, emitted: map[string]pocker.Instance{}, claims: map[string]string{},
-		cands: map[string]map[string]claim{}, byUID: map[string]map[string]struct{}{},
+		instances: map[string]instanceRec{}, edges: map[string]edgeRec{},
+		emitted: map[string]pocker.Instance{}, claims: map[string]string{}, cands: map[string]map[string]claim{},
 		out: make(chan pocker.Change, 256),
 	}
 }
 
+// dump is GET /api/mirror. The mothership still sends users for edges on the build before this one; they're ignored.
 type dump struct {
-	Users     []userRec     `json:"users"`
 	Instances []instanceRec `json:"instances"`
 	Edges     []edgeRec     `json:"edges"`
 }
@@ -77,12 +69,8 @@ func (s *Source) fetchDump(ctx context.Context) (*dump, error) {
 
 // loadDumpLocked replaces the mirror state.
 func (s *Source) loadDumpLocked(d *dump) {
-	s.users = make(map[string]userRec, len(d.Users))
-	for _, u := range d.Users {
-		s.users[u.ID] = u
-	}
 	s.instances = make(map[string]instanceRec, len(d.Instances))
-	s.claims, s.cands, s.byUID = map[string]string{}, map[string]map[string]claim{}, map[string]map[string]struct{}{}
+	s.claims, s.cands = map[string]string{}, map[string]map[string]claim{}
 	for _, i := range d.Instances {
 		i := i
 		s.setInstanceLocked(i.ID, &i)
@@ -105,112 +93,13 @@ func (s *Source) resolveMyEdgeLocked() bool {
 	return prev != s.myEdge
 }
 
-// ownerLogin fetches (and caches per user version) the owner's login for superuser sync. Called with s.mu held, for
-// this edge's served instances with syncAdmin. A full diff can need thousands (sfo-2), so prefetchLogins fills the
-// cache in parallel first; this fetch is for single changes (a realtime event, a drift check).
-func (s *Source) ownerLoginLocked(ctx context.Context) func(uid string) *tokenInfo {
-	return func(uid string) *tokenInfo {
-		u := s.users[uid]
-		if c, ok := s.logins[uid]; ok && c.updated == u.Updated {
-			return c.info
-		}
-		var t tokenInfo
-		if err := s.c.do(ctx, http.MethodGet, "/api/userToken/"+uid, nil, &t); err != nil {
-			s.log.Warn("pockethost: owner login not available; admin sync skipped", "uid", uid, "error", err)
-			return nil
-		}
-		s.logins[uid] = loginCache{updated: u.Updated, info: &t}
-		return &t
-	}
-}
-
-// loginWorkers bounds the parallel owner-login fetches of prefetchLogins.
-const loginWorkers = 32
-
-// loginsNeededLocked lists the owners whose login the next full diff would fetch: owners of this edge's served
-// instances with admin sync, not cached for their current user record.
-func (s *Source) loginsNeededLocked() []string {
-	seen := map[string]bool{}
-	var out []string
-	note := func(uid string) *tokenInfo {
-		if !seen[uid] {
-			seen[uid] = true
-			out = append(out, uid)
-		}
-		return nil
-	}
-	for _, inst := range s.instances {
-		u, ok := s.users[inst.UID]
-		if !ok || !inst.SyncAdmin {
-			continue
-		}
-		if c, ok := s.logins[inst.UID]; ok && c.updated == u.Updated {
-			continue
-		}
-		mapInstance(s.cfg, inst, &u, s.myEdge, note)
-	}
-	return out
-}
-
-// prefetchLogins fetches, loginWorkers at a time (the cost is the round trip to the mothership, ~66 ms from sfo-2) and without holding s.mu, the owner logins the next full diff needs,
-// so a full diff doesn't make one sequential mothership call per owner under the lock (minutes on an edge with
-// thousands of owners). A failed fetch is cached as "no login" for that user record (admin sync skipped until the
-// owner's record changes), so the diff doesn't retry each one in turn.
-func (s *Source) prefetchLogins(ctx context.Context) {
-	s.mu.Lock()
-	uids := s.loginsNeededLocked()
-	s.mu.Unlock()
-	if len(uids) == 0 {
-		return
-	}
-	t0 := time.Now()
-	var failed atomic.Int64
-	work := make(chan string)
-	var wg sync.WaitGroup
-	for range min(loginWorkers, len(uids)) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for uid := range work {
-				var t tokenInfo
-				err := s.c.do(ctx, http.MethodGet, "/api/userToken/"+uid, nil, &t)
-				info := &t
-				if err != nil {
-					if failed.Add(1) <= 5 {
-						s.log.Warn("pockethost: owner login not available; admin sync skipped", "uid", uid, "error", err)
-					}
-					info = nil
-				}
-				s.mu.Lock()
-				s.logins[uid] = loginCache{updated: s.users[uid].Updated, info: info}
-				s.mu.Unlock()
-			}
-		}()
-	}
-feed:
-	for _, uid := range uids {
-		select {
-		case work <- uid:
-		case <-ctx.Done():
-			break feed
-		}
-	}
-	close(work)
-	wg.Wait()
-	s.log.Info("pockethost: owner logins fetched", "owners", len(uids), "failed", failed.Load(), "ms", time.Since(t0).Milliseconds())
-}
-
 // computeLocked maps one mothership instance (ok=false: not served).
 func (s *Source) computeLocked(ctx context.Context, id string) (pocker.Instance, bool) {
 	inst, ok := s.instances[id]
 	if !ok {
 		return pocker.Instance{}, false
 	}
-	var owner *userRec
-	if u, ok := s.users[inst.UID]; ok {
-		owner = &u
-	}
-	p, ok := mapInstance(s.cfg, inst, owner, s.myEdge, s.ownerLoginLocked(ctx))
+	p, ok := mapInstance(s.cfg, inst, s.myEdge)
 	if ok {
 		// keep only the hosts this instance wins (two instances can claim one name, e.g. a subdomain equal to
 		// another instance's id)
@@ -246,18 +135,12 @@ func (s *Source) claimsOf(inst instanceRec) map[string]claim {
 	return out
 }
 
-// setInstanceLocked records an instance version (nil = deleted), keeping the owner index and host claims current.
+// setInstanceLocked records an instance version (nil = deleted), keeping the host claims current.
 // It returns the instances whose hosts changed (besides the instance itself), for recomputation. Work is
 // proportional to the instance's own hosts, not to the number of instances.
 func (s *Source) setInstanceLocked(id string, next *instanceRec) map[string]bool {
 	affected := map[string]bool{}
 	if prev, ok := s.instances[id]; ok {
-		if ids := s.byUID[prev.UID]; ids != nil {
-			delete(ids, id)
-			if len(ids) == 0 {
-				delete(s.byUID, prev.UID)
-			}
-		}
 		for h := range s.claimsOf(prev) {
 			if c := s.cands[h]; c != nil {
 				delete(c, id)
@@ -271,10 +154,6 @@ func (s *Source) setInstanceLocked(id string, next *instanceRec) map[string]bool
 	}
 	if next != nil {
 		s.instances[id] = *next
-		if s.byUID[next.UID] == nil {
-			s.byUID[next.UID] = map[string]struct{}{}
-		}
-		s.byUID[next.UID][id] = struct{}{}
 		for h, c := range s.claimsOf(*next) {
 			if s.cands[h] == nil {
 				s.cands[h] = map[string]claim{}
@@ -347,11 +226,8 @@ func (s *Source) Snapshot(ctx context.Context) ([]pocker.Instance, error) {
 		return nil, err
 	}
 	s.mu.Lock()
-	s.loadDumpLocked(d)
-	s.mu.Unlock()
-	s.prefetchLogins(ctx)
-	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.loadDumpLocked(d)
 	s.emitted = map[string]pocker.Instance{}
 	s.diffLocked(ctx, nil)
 	s.lastDrift = time.Now()
@@ -393,7 +269,7 @@ func (s *Source) realtimeLoop(ctx context.Context) {
 	backoff := time.Second
 	first := true
 	for ctx.Err() == nil {
-		events, err := s.c.subscribe(ctx, []string{"instances/*", "users/*", "edges/*"})
+		events, err := s.c.subscribe(ctx, []string{"instances/*", "edges/*"})
 		if err != nil {
 			s.log.Warn("pockethost: realtime unavailable; retrying", "error", err, "in", backoff)
 			select {
@@ -410,9 +286,6 @@ func (s *Source) realtimeLoop(ctx context.Context) {
 			if d, err := s.fetchDump(ctx); err == nil {
 				s.mu.Lock()
 				s.loadDumpLocked(d)
-				s.mu.Unlock()
-				s.prefetchLogins(ctx)
-				s.mu.Lock()
 				changes := s.diffLocked(ctx, nil)
 				s.mu.Unlock()
 				s.emit(ctx, changes)
@@ -450,17 +323,6 @@ func (s *Source) applyEvent(ctx context.Context, ev realtimeEvent) {
 			ids = append(ids, id)
 		}
 		changes = s.diffLocked(ctx, ids)
-	case "users/*", "users":
-		var r userRec
-		if json.Unmarshal(msg.Record, &r) != nil || r.ID == "" {
-			break
-		}
-		if msg.Action == "delete" {
-			delete(s.users, r.ID)
-		} else {
-			s.users[r.ID] = r
-		}
-		changes = s.diffLocked(ctx, s.instanceIDsOfLocked(r.ID))
 	case "edges/*", "edges":
 		var r edgeRec
 		if json.Unmarshal(msg.Record, &r) != nil || r.ID == "" {
@@ -479,14 +341,6 @@ func (s *Source) applyEvent(ctx context.Context, ev realtimeEvent) {
 	s.emit(ctx, changes)
 }
 
-func (s *Source) instanceIDsOfLocked(uid string) []string {
-	ids := make([]string, 0, len(s.byUID[uid]))
-	for id := range s.byUID[uid] {
-		ids = append(ids, id)
-	}
-	return ids
-}
-
 // driftLoop catches events realtime missed: records updated since the last check (with 10s grace).
 func (s *Source) driftLoop(ctx context.Context) {
 	t := time.NewTicker(s.cfg.DriftCheckInterval)
@@ -501,10 +355,9 @@ func (s *Source) driftLoop(ctx context.Context) {
 		since := s.lastDrift.Add(-10 * time.Second)
 		s.mu.Unlock()
 		started := time.Now()
-		insts, err1 := s.c.listUpdatedSince(ctx, "instances", since)
-		users, err2 := s.c.listUpdatedSince(ctx, "users", since)
-		if err1 != nil || err2 != nil {
-			s.log.Warn("pockethost: drift check failed; will retry", "instances_error", err1, "users_error", err2)
+		insts, err := s.c.listUpdatedSince(ctx, "instances", since)
+		if err != nil {
+			s.log.Warn("pockethost: drift check failed; will retry", "error", err)
 			continue
 		}
 		s.mu.Lock()
@@ -516,13 +369,6 @@ func (s *Source) driftLoop(ctx context.Context) {
 					ids = append(ids, id)
 				}
 				ids = append(ids, r.ID)
-			}
-		}
-		for _, raw := range users {
-			var r userRec
-			if json.Unmarshal(raw, &r) == nil && r.ID != "" {
-				s.users[r.ID] = r
-				ids = append(ids, s.instanceIDsOfLocked(r.ID)...)
 			}
 		}
 		changes := s.diffLocked(ctx, ids)

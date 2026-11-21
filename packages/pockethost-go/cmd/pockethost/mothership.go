@@ -91,7 +91,8 @@ func mothership(args []string) {
 		Automigrate:  false,
 	})
 
-	registerTokens(app) // API tokens (pbt_...) for deploys, checked by the edges
+	registerTokens(app)      // API tokens (pbt_...) for deploys, checked by the edges
+	registerOwnerFields(app) // what instances get from their owners, so edges never read users
 
 	app.OnServe().Bind(&hook.Handler[*core.ServeEvent]{
 		Func: func(e *core.ServeEvent) error {
@@ -102,7 +103,8 @@ func mothership(args []string) {
 			if !e.Router.HasRoute(http.MethodGet, "/{path...}") {
 				e.Router.GET("/{path...}", apis.Static(fstest.MapFS{}, true))
 			}
-			registerMirror(e) // GET /api/mirror, the edges' dump, in Go
+			syncOwnerFieldsAtServe(e.App) // before the server listens: the backfill reaches edges through their dump
+			registerMirror(e)             // GET /api/mirror, the edges' dump, in Go
 			// the mothership keeps its own versions list (pocketbase_versions); nothing else writes it
 			scheduleVersions(e.App)
 			scheduleUsage(e.App)  // owners' disk use from the edges' instance_stats

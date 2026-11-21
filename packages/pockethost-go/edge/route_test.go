@@ -30,8 +30,7 @@ func routeSource(t *testing.T, sfo edgeRec) *Source {
 	t.Helper()
 	s := NewSource(testCfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	s.loadDumpLocked(&dump{
-		Users:     []userRec{{ID: "u1", Verified: true, SubscriptionQuantity: 1}},
-		Instances: []instanceRec{{ID: "away", Subdomain: "away", UID: "u1", Power: true, Edge: "E_SFO"}},
+		Instances: []instanceRec{{ID: "away", Subdomain: "away", Power: true, Edge: "E_SFO"}},
 		Edges:     []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1", Region: "sgp"}, sfo},
 	})
 	s.diffLocked(context.Background(), nil)
@@ -290,9 +289,8 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	s := NewSource(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	off := false
 	s.loadDumpLocked(&dump{
-		Users: []userRec{{ID: "u1", Verified: true, SubscriptionQuantity: 1}},
-		Instances: []instanceRec{{ID: "mine1", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP"},
-			{ID: "optout", Subdomain: "o", UID: "u1", Power: true, Edge: "E_SGP", AutoVacuum: &off}},
+		Instances: []instanceRec{{ID: "mine1", Subdomain: "shop", Power: true, Edge: "E_SGP"},
+			{ID: "optout", Subdomain: "o", Power: true, Edge: "E_SGP", AutoVacuum: &off}},
 		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}},
 	})
 	s.diffLocked(context.Background(), nil)
@@ -348,9 +346,8 @@ func TestTrustedProxyEndUserBuckets(t *testing.T) {
 	trustedHourly := 3
 	fw := &firewall.Firewall{Config: cfg, RateLimits: &firewall.RateLimits{IPHourly: 1, InstanceHourly: 1000,
 		Trusted: &firewall.RateLimitSet{IPHourly: trustedHourly, InstanceHourly: 1000}}}
-	owner := &userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1, TrustedIPs: raw(`["198.51.100.7"]`)}
-	inst, _ := mapInstance(testCfg, instanceRec{ID: "abc123", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP"},
-		owner, "E_SGP", nil)
+	inst, _ := mapInstance(testCfg, instanceRec{ID: "abc123", Subdomain: "shop", Power: true, Edge: "E_SGP",
+		Owners: []string{"u1"}, TrustedIPs: raw(`["198.51.100.7"]`)}, "E_SGP")
 	admit := func(remote string, hdr map[string]string) int {
 		r := httptest.NewRequest(http.MethodGet, "http://shop.pockethost.io/api/health", nil)
 		r.RemoteAddr = remote
