@@ -25,6 +25,8 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.8 (2026-11-21)
+
 ### Upgrading
 
 - Edges follow the mothership lazily (PocketOne's instance.watch/v1): deploy the mothership first (it serves the stream beside `GET /api/mirror`), with `PH_APEX_DOMAIN`, `PH_HTTP_PROTOCOL`, `APP_URL` and `PH_DOC_URL` in its environment when they differ from the defaults (pockethost.io, https:, app.<apex>, <apex>/docs). Then the edges, one at a time. `pockethost edge check` is gone.
@@ -61,7 +63,7 @@ the two version numbers don't match.
 
 ### PocketOne
 
-- Built on PocketOne `main` at 55534a7f (after v0.0.1-alpha.10): the stock `pocketone` binary as a package (`examples/pocketone/binary`), install.sh and Linux packages, Scoop and the pocketonehq tap, the deploy API sends files in bundles (`POST files/bundle`, `tree?deep=1`) and the sign-in page honors `account` (the CLI gets the superuser form), contract streams (the edges' watch stream) no longer drop every 5 minutes, edge forwarding no longer holds a restarted far owner's requests forever (a held request's health checks get their own timeout), instance.tokens/v1 (Pocker checks an instance's own API tokens), API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.
+- Built on [PocketOne v0.0.1-alpha.11](https://github.com/pocketonehq/pocketone/releases/tag/v0.0.1-alpha.11) (PocketBase v0.42.3): install.sh and Linux packages, Scoop and the pocketonehq tap, `pocketone clone`, deploys that stop on changes made on the remote, the deploy API's bundles, superuser sign-in in the browser, contract streams that no longer drop every 5 minutes, edge forwarding that no longer holds a restarted far owner's requests, instance.tokens/v1, API token scope values, api-tokens.verify/v1, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror, pb_cache hoisted out of instance folders, standard-member switches.
 
 ## v5.0.0-alpha.7 (2026-11-19)
 
