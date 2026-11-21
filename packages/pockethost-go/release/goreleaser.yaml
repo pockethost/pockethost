@@ -63,13 +63,22 @@ release:
   header: |
     ## Install or upgrade
 
-    **New install:**
+    **New install on macOS or Linux:**
 
     ```bash
     brew install pockethost/tap/pockethost
     ```
 
-    Homebrew on macOS or Linux; the formula comes from [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap). Or download the zip for your platform below.
+    That's Homebrew; the formula comes from [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap). Or download the zip for your platform below.
+
+    **New install on Windows:**
+
+    ```powershell
+    scoop bucket add pockethost https://github.com/pockethost/scoop-bucket
+    scoop install pockethost
+    ```
+
+    That's [Scoop](https://scoop.sh); the manifest comes from [pockethost/scoop-bucket](https://github.com/pockethost/scoop-bucket). Or download the zip for your platform below.
 
     **Upgrade:**
 
@@ -77,7 +86,7 @@ release:
     brew upgrade pockethost
     ```
 
-    Or download the zip below. Check the **Upgrading** section below, if this release has one, before you upgrade.
+    On Windows with Scoop, `scoop update pockethost`. Or download the zip below. Check the **Upgrading** section below, if this release has one, before you upgrade.
 
     **The npm `pockethost` CLI** also installs a `pockethost` command. If you have it (`npm ls -g pockethost`), whichever comes first on your PATH wins; the npm CLI still has commands this binary doesn't yet.
 
@@ -102,6 +111,22 @@ brews:
       bin.install "pockethost"
     test: |
       system "#{bin}/pockethost", "version"
+
+# The Scoop manifest in pockethost/scoop-bucket (Windows), pushed like the formula above, so it also points at a draft
+# until the release is published.
+scoops:
+  - name: pockethost
+    ids: [pockethost]
+    repository:
+      owner: pockethost
+      name: scoop-bucket
+    directory: bucket
+    homepage: https://pockethost.io
+    description: PocketHost, PocketBase hosting, built on PocketOne
+    license: MIT
+    commit_author:
+      name: PocketHost
+      email: noreply@pockethost.io
 
 # GitHub renders every newline in release notes as a line break: never hard-wrap the header above or CHANGELOG.md.
 # --release-notes (from release.sh) skips goreleaser's generated changelog.

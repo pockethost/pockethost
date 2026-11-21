@@ -161,11 +161,12 @@ PocketOne release is followed by a PocketHost release that pins it, and PocketHo
 - [CHANGELOG.md](CHANGELOG.md): a line under `## Unreleased` for every user-visible change; its top says how to cut a
   release.
 - `release/release.sh vX.Y.Z` (from the repo root) tags, pushes the tag and runs goreleaser
-  ([release/goreleaser.yaml](release/goreleaser.yaml)), leaving a draft GitHub release with zips for Linux and macOS.
+  ([release/goreleaser.yaml](release/goreleaser.yaml)), leaving a draft GitHub release with zips for Linux, macOS and Windows.
   `release/release.sh --snapshot` builds the same zips locally into `.builds/` without tagging.
 - goreleaser also pushes `Formula/pockethost.rb` to
-  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap), even for a draft, so `brew install` fails
-  (404) until the draft is published. Publish soon after cutting.
+  [pockethost/homebrew-tap](https://github.com/pockethost/homebrew-tap) and `bucket/pockethost.json` to
+  [pockethost/scoop-bucket](https://github.com/pockethost/scoop-bucket), even for a draft, so `brew install` and
+  `scoop install` fail (404) until the draft is published. Publish soon after cutting.
 
 ## Rollout
 
