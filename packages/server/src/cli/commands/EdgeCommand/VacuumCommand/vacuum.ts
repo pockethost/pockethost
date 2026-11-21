@@ -2,7 +2,9 @@ import {
   DATA_ROOT,
   DISCORD_HEALTH_CHANNEL_URL,
   INSTANCES_ROOT,
+  INSTANCE_COLLECTION,
   IS_DEV,
+  InstanceFields,
   LoggerService,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
@@ -141,7 +143,7 @@ const fetchFleetVacuumStats = async (): Promise<FleetVacuumStats | null> => {
       password: MOTHERSHIP_ADMIN_PASSWORD(),
       logger: LoggerService(),
     })
-    const instances = await client.getInstances()
+    const instances = await client.client.collection(INSTANCE_COLLECTION).getFullList<InstanceFields>()
     const skipped = instances.filter((instance) => instance.autoVacuum === false).length
     const fleetIds = new Set(instances.map((instance) => instance.id))
     const autoVacuumIds = new Set(

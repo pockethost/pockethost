@@ -4,7 +4,6 @@ import {
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
-  PocketBase,
   SingletonBaseConfig,
   mergeConfig,
   mkSingleton,
@@ -15,11 +14,6 @@ export type ClientServiceConfig = SingletonBaseConfig & {
   url: string
   username: string
   password: string
-  logger: Logger
-}
-
-export type MixinContext = {
-  client: PocketBase
   logger: Logger
 }
 

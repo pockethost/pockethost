@@ -1,6 +1,5 @@
 import { Command } from 'commander'
 import { ArchiveCommand } from './ArchiveCommand'
-import { DaemonCommand } from './DaemonCommand'
 import { DiskUsageCommand } from './DiskUsageCommand'
 import { FtpCommand } from './FtpCommand'
 import { OverLimitCommand } from './OverLimitCommand'
@@ -20,7 +19,6 @@ export const EdgeCommand = () => {
     .addCommand(VacuumCommand())
     .addCommand(DiskUsageCommand())
     .addCommand(OverLimitCommand())
-    .addCommand(DaemonCommand())
     .addCommand(FtpCommand())
     .action(() => {
       cmd.help()

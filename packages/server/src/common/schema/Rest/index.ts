@@ -10,7 +10,6 @@ export enum RestMethods {
 
 export enum RestCommands {
   Instance = 'instance',
-  UserToken = 'userToken',
 }
 
 export type RestPayloadBase = JsonObject
@@ -19,5 +18,4 @@ export const ajv = new Ajv()
 
 export * from './CreateInstance'
 export * from './DeleteInstance'
-export * from './GetUserTokenInfo'
 export * from './UpdateInstance'

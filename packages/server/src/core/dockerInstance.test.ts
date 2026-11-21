@@ -1,14 +1,7 @@
 import type { ContainerInspectInfo } from 'dockerode'
 import { describe, expect, it } from 'vitest'
 import { MOTHERSHIP_CONTAINER_NAME } from '../constants'
-import {
-  containerMatchesBinaryPath,
-  containerNofileUlimits,
-  getContainerBoundBinaryPath,
-  getContainerPortBinding,
-  isCustomerInstanceContainerName,
-  resolveInstanceIdFromInspect,
-} from './dockerInstance'
+import { containerNofileUlimits, isCustomerInstanceContainerName, resolveInstanceIdFromInspect } from './dockerInstance'
 
 const mkInspect = (overrides: Partial<ContainerInspectInfo>): ContainerInspectInfo =>
   ({
@@ -40,12 +33,6 @@ describe('resolveInstanceIdFromInspect', () => {
   })
 })
 
-describe('getContainerPortBinding', () => {
-  it('reads host port from inspect', () => {
-    expect(getContainerPortBinding(mkInspect({}))).toBe(33525)
-  })
-})
-
 describe('containerNofileUlimits', () => {
   it('uses server-friendly defaults above legacy 4096 hard cap', () => {
     expect(containerNofileUlimits()).toEqual([
@@ -55,16 +42,5 @@ describe('containerNofileUlimits', () => {
         Hard: 524288,
       },
     ])
-  })
-})
-
-describe('containerMatchesBinaryPath', () => {
-  it('matches pocketbase bind mount source', () => {
-    const info = mkInspect({
-      Mounts: [{ Source: '/opt/pb/0.39.0/linux_amd64/pocketbase', Destination: '/home/pockethost/pocketbase' }],
-    })
-    expect(getContainerBoundBinaryPath(info)).toBe('/opt/pb/0.39.0/linux_amd64/pocketbase')
-    expect(containerMatchesBinaryPath(info, '/opt/pb/0.39.0/linux_amd64/pocketbase')).toBe(true)
-    expect(containerMatchesBinaryPath(info, '/opt/pb/0.38.0/linux_amd64/pocketbase')).toBe(false)
   })
 })

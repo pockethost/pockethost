@@ -1,16 +1,18 @@
 import {
+  deleteBackupIceboxObject,
+  INSTANCE_COLLECTION,
+  InstanceFields,
   INSTANCES_QUARANTINE_ROOT,
   INSTANCES_ROOT,
+  listBackupIcebox,
+  logger,
   LoggerService,
+  mkInstanceDataPath,
   MOTHERSHIP_ADMIN_PASSWORD,
   MOTHERSHIP_ADMIN_USERNAME,
   MOTHERSHIP_URL,
   MothershipAdminClientService,
   PH_BACKUP_ICEBOX_REMOTE,
-  deleteBackupIceboxObject,
-  listBackupIcebox,
-  logger,
-  mkInstanceDataPath,
   type IceboxObject,
 } from '@'
 import { existsSync, globSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'fs'
@@ -99,7 +101,7 @@ const fetchInstanceIds = async (): Promise<string[]> => {
     password: MOTHERSHIP_ADMIN_PASSWORD(),
     logger: LoggerService(),
   })
-  const instances = await client.getInstances()
+  const instances = await client.client.collection(INSTANCE_COLLECTION).getFullList<InstanceFields>()
   dbg(`Fetched ${instances.length} instances from mothership`)
   return instances.map((instance) => instance.id)
 }

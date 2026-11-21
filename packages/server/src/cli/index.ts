@@ -4,11 +4,9 @@ import { LogLevelName, gracefulExit, logger } from '@'
 import { program } from 'commander'
 import { version } from '../../package.json'
 import { EdgeCommand } from './commands/EdgeCommand'
-import { FirewallCommand } from './commands/FirewallCommand'
 import { HealthCommand } from './commands/HealthCommand'
 import { MothershipCommand } from './commands/MothershipCommand'
 import { PocketBaseCommand } from './commands/PocketBaseCommand'
-import { ServeCommand } from './commands/ServeCommand'
 import { SftpCommand } from './commands/SftpCommand'
 import { initIoc } from './ioc'
 
@@ -25,8 +23,6 @@ export const main = async () => {
     .addCommand(MothershipCommand())
     .addCommand(EdgeCommand())
     .addCommand(HealthCommand())
-    .addCommand(FirewallCommand())
-    .addCommand(ServeCommand())
     .addCommand(SftpCommand())
     .addCommand(PocketBaseCommand())
     .action(async () => {

@@ -1,17 +1,4 @@
-import {
-  GetUserTokenPayload,
-  GetUserTokenPayloadSchema,
-  GetUserTokenResult,
-  Logger,
-  PocketBase,
-  RestCommands,
-  RestMethods,
-  adminAuthWithPassword,
-  createFirstAdmin as createFirstAdminRecord,
-  createRestHelper,
-} from '@'
-import { MixinContext } from '.'
-import { createInstanceMixin } from './InstanceMIxin'
+import { Logger, PocketBase, adminAuthWithPassword, createFirstAdmin as createFirstAdminRecord } from '@'
 
 export type PocketbaseClientApi = ReturnType<typeof createAdminPbClient>
 
@@ -28,25 +15,11 @@ export const createAdminPbClient = (url: string, logger: Logger) => {
 
   const createFirstAdmin = (email: string, password: string) => createFirstAdminRecord(client, email, password)
 
-  const context: MixinContext = { client, logger: _clientLogger }
-  const instanceApi = createInstanceMixin(context)
-
-  const restHelper = createRestHelper({ client })
-  const { mkRest } = restHelper
-
-  const getUserTokenInfo = mkRest<GetUserTokenPayload, GetUserTokenResult>(
-    RestCommands.UserToken,
-    RestMethods.Get,
-    GetUserTokenPayloadSchema
-  )
-
   const api = {
     client,
     url,
     createFirstAdmin,
     adminAuthViaEmail,
-    getUserTokenInfo,
-    ...instanceApi,
   }
 
   return api

@@ -112,7 +112,7 @@ When changing **any** of these server areas, verify the CLI still works:
 
 ### Quick smoke test (local)
 
-1. `pnpm dev:cli serve` (mothership + edge + SFTP)
+1. The Go mothership and edge (`packages/pockethost-go/README.md`) plus `pnpm dev:cli sftp serve`
 2. In a project with `.pockethostconfig`: `pnpm dev:cli-client -- deploy <subdomain> -v`
 3. Confirm sync completes and `.ftp-deploy-sync-state.json` is written at instance root
 

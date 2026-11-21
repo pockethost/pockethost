@@ -21,9 +21,6 @@ export const systemError = (message: string | Error): PhError => {
 export const isUserError = (err: unknown): err is PhError =>
   err instanceof Error && (err as PhError).phErrorKind === 'user'
 
-export const isSystemError = (err: unknown): err is PhError =>
-  err instanceof Error && (err as PhError).phErrorKind === 'system'
-
 const DOCKER_RUN_EXIT_CODES = new Set([125, 126, 127])
 
 /** Client-side SFTP/SSH failures (bad client, wrong port/protocol, failed handshake). */
@@ -64,14 +61,5 @@ export const isDockerContainerConflict = (err: unknown): boolean => {
   return (
     /\(HTTP code 409\)/i.test(msg) &&
     /removal of container.*is already in progress|container name.*is already in use|name is already in use/i.test(msg)
-  )
-}
-
-/** Docker daemon / host resource failures. App exit codes (e.g. JSVM) are user-side. */
-export const isPlatformDockerFailure = (statusCode: number, err?: unknown): boolean => {
-  if (DOCKER_RUN_EXIT_CODES.has(statusCode)) return true
-  const msg = `${err ?? ''}`
-  return /connect to the Docker daemon|ECONNREFUSED.*docker|no space left on device|too many open files|EMFILE|ENFILE|Could not get port binding|invalid port binding/i.test(
-    msg
   )
 }

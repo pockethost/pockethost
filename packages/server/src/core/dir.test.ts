@@ -2,18 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { afterAll, describe, expect, it } from 'vitest'
-import { dirHasAnyFile, shouldEnsureInstanceDirectories } from './dir'
-
-describe(`shouldEnsureInstanceDirectories`, () => {
-  it(`creates folders only when neither instance nor owner is suspended`, () => {
-    expect(shouldEnsureInstanceDirectories({ suspension: `` }, { suspension: `` })).toBe(true)
-    expect(shouldEnsureInstanceDirectories({ suspension: `` }, undefined)).toBe(true)
-    expect(shouldEnsureInstanceDirectories({ suspension: `Archived: x` }, { suspension: `` })).toBe(false)
-    expect(shouldEnsureInstanceDirectories({ suspension: `Fair use` }, { suspension: `` })).toBe(false)
-    expect(shouldEnsureInstanceDirectories({ suspension: `` }, { suspension: `Contact support` })).toBe(false)
-    expect(shouldEnsureInstanceDirectories({ suspension: `   ` }, { suspension: `` })).toBe(true)
-  })
-})
+import { dirHasAnyFile } from './dir'
 
 describe(`dirHasAnyFile`, () => {
   const root = mkdtempSync(join(tmpdir(), `ph-dir-`))

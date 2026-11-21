@@ -2,10 +2,6 @@ packages:
   - 'packages/*'
   - 'packages/server/src/mothership-app'
 
-patchedDependencies:
-  tail: patches/tail.patch
-  '@types/tail': patches/@types__tail.patch
-
 allowBuilds:
   '@parcel/watcher': true
   better-sqlite3: true

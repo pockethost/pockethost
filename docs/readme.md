@@ -24,12 +24,14 @@ If you're only doing frontend development, it is much easier to point these at t
 
 ## All Our Base
 
-You can run the complete PocketHost stack locally:
+The backend is the Go `pockethost` binary: `pockethost mothership serve` and `pockethost edge serve` (firewall,
+instances, deploy API, webhooks). See [packages/pockethost-go/README.md](../packages/pockethost-go/README.md). The Node
+`pnpm dev:cli serve` stack (Node mothership launcher, edge daemon and firewall) was removed after the Node edge retired on
+2026-11-15; `pnpm dev:cli sftp serve` still runs the Node SFTP server until SFTP retires.
 
 ```bash
-pnpm dev:mothership-hooks   # terminal 1 — watch mothership handlers
-pnpm dev:cli serve            # terminal 2 — mothership + edge + firewall + SFTP (ports 80/443)
-pnpm dev:dashboard            # terminal 3 — Vite on :5174, proxied by firewall
+pnpm dev:mothership-hooks   # watch mothership handlers
+pnpm dev:dashboard          # Vite on :5174
 ```
 
 Use **HTTPS** in the browser (secure context for Web Crypto, cookies, etc.):
@@ -37,10 +39,6 @@ Use **HTTPS** in the browser (secure context for Web Crypto, cookies, etc.):
 - `https://pockethost.lvh.me` — marketing/blog + dashboard (apex)
 - `https://app.pockethost.lvh.me` — dashboard (app subdomain)
 - `https://mothership.pockethost.lvh.me` — mothership API
-- `https://*.pockethost.lvh.me` — instance workers (fall-through to edge daemon)
+- `https://*.pockethost.lvh.me` — instances
 
-Do **not** use `http://pockethost.lvh.me:5174` for normal dev. That bypasses the firewall and is not a secure context.
-
-**TLS:** On first `serve`, devcert generates a local CA + cert under `$PH_HOME/ssl/` (`tls.key`, `tls.cert`). You may get one sudo prompt to trust the CA. Certs already on disk are reused.
-
-**Prerequisites:** `lvh.me` resolves to `127.0.0.1`. Binding ports 80/443 may require `sudo pnpm dev:cli serve` on macOS/Linux.
+**Prerequisites:** `lvh.me` resolves to `127.0.0.1`.

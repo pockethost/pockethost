@@ -1,14 +1,6 @@
 module.exports = {
   apps: [
     {
-      name: `firewall`,
-      script: 'pnpm prod:cli firewall serve',
-    },
-    {
-      name: `edge-daemon`,
-      script: 'pnpm prod:cli edge daemon serve',
-    },
-    {
       name: `edge-sftp`,
       script: 'pnpm prod:cli sftp serve',
       cron_restart: '0 0 * * *',

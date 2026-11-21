@@ -1,5 +1,4 @@
 export * from './ApiToken'
-export * from './Edge'
 export * from './Instance'
 export * from './InstanceLog'
 export * from './Rest'
