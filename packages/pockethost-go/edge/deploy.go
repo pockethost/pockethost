@@ -10,6 +10,9 @@ import (
 	"strings"
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
+	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
+	verifyv1 "pocketone.dev/ext/contracts/api-tokens/verify/v1"
+	"pocketone.dev/ext/extkit"
 )
 
 // DeployBackend answers the deploy API's questions from the mirror and the mothership: which instance a host names,
@@ -59,13 +62,33 @@ func authFailure(err error, fallback string) error {
 	return err
 }
 
-func (b deployBackend) VerifyPAT(ctx context.Context, token, ip string) (deploy.PATResult, error) {
-	var out deploy.PATResult
-	err := b.s.c.do(ctx, http.MethodPost, "/api/pat/verify", map[string]string{"token": token, "ip": ip}, &out)
-	if err != nil {
-		return out, authFailure(err, "Invalid or expired token.")
+// VerifyToken asks the mothership about an API token (api-tokens.verify/v1), as superuser. A token it refuses is an
+// *AuthError; an unreachable mothership stays an error.
+func (b deployBackend) VerifyToken(ctx context.Context, token, ip string) (apitokensv1.Grant, error) {
+	for attempt := 0; attempt < 2; attempt++ {
+		su, err := b.s.c.auth(ctx)
+		if err != nil {
+			return apitokensv1.Grant{}, err
+		}
+		res, err := verifyv1.NewClient(b.s.c.base, su, b.s.c.http).Verify(ctx, extkit.Auth{}, verifyv1.Input{Token: token, IP: ip})
+		var ce *extkit.Error
+		if errors.As(err, &ce) && ce.Status == http.StatusUnauthorized && attempt == 0 {
+			b.s.c.resetToken() // the edge's own login expired
+			continue
+		}
+		if err != nil {
+			return apitokensv1.Grant{}, err
+		}
+		if !res.Valid || res.Grant == nil {
+			msg := "Invalid or expired token."
+			if res.Reason == verifyv1.Expired {
+				msg = "This token has expired. Create a new one in the dashboard."
+			}
+			return apitokensv1.Grant{}, &deploy.AuthError{Status: http.StatusUnauthorized, Message: msg}
+		}
+		return *res.Grant, nil
 	}
-	return out, nil
+	return apitokensv1.Grant{}, errors.New("mothership: unauthorized")
 }
 
 // VerifyJWT refreshes the user's own PocketBase token (as that user, not as superuser).

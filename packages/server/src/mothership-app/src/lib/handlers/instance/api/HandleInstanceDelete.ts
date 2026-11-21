@@ -1,7 +1,7 @@
 import { mkLog } from '$util/Logger'
 import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
 
-/** DELETE /api/instance/{id}. Dashboard (JWT) or a personal access token with write access to the instance. */
+/** DELETE /api/instance/{id}. Signed-in dashboard user only. */
 export const HandleInstanceDelete = (e: core.RequestEvent) => {
   const log = mkLog(`DELETE:instance`)
 
@@ -25,7 +25,7 @@ export const HandleInstanceDelete = (e: core.RequestEvent) => {
     })
   )
 
-  const caller = resolveInstanceCaller(e, { kind: 'instance', instanceId: id })
+  const caller = resolveInstanceCaller(e)
   const record = findOwnedInstance(caller, id)
   log(`caller`, JSON.stringify(caller))
 

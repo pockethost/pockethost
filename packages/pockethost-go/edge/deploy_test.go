@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
@@ -19,22 +20,24 @@ func TestDeployBackend(t *testing.T) {
 	mux.HandleFunc("POST /api/collections/_superusers/auth-with-password", func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]string{"token": "TOKEN"})
 	})
-	mux.HandleFunc("POST /api/pat/verify", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/_c/api-tokens.verify/v1", func(w http.ResponseWriter, r *http.Request) {
 		var in map[string]string
 		_ = json.NewDecoder(r.Body).Decode(&in)
 		switch {
-		case r.Header.Get("Authorization") != "TOKEN":
+		case r.Header.Get("Authorization") == "STALE":
 			w.WriteHeader(401)
-		case in["token"] == "ph_pat_good" && in["ip"] == "1.2.3.4":
-			_, _ = w.Write([]byte(`{"tokenId":"t1","userId":"u1","label":"CI","scopes":["read"],"instanceIds":null}`))
-		case in["token"] == "ph_pat_blocked":
+			_, _ = w.Write([]byte(`{"code":"unauthorized","message":"sign in first"}`))
+		case r.Header.Get("Authorization") != "TOKEN":
 			w.WriteHeader(403)
-			_, _ = w.Write([]byte(`{"status":403,"message":"This token can't be used from this IP."}`))
-		case in["token"] == "ph_pat_boom":
+			_, _ = w.Write([]byte(`{"code":"forbidden","message":"only superusers may call this"}`))
+		case in["token"] == "pbt_good" && in["ip"] == "1.2.3.4":
+			_, _ = w.Write([]byte(`{"valid":true,"grant":{"tokenId":"t1","name":"CI","ownerCollection":"users","ownerId":"u1","scopes":["instances:read=aaaaaaaaaaaaaaa"]}}`))
+		case in["token"] == "pbt_old":
+			_, _ = w.Write([]byte(`{"valid":false,"reason":"expired"}`))
+		case in["token"] == "pbt_boom":
 			w.WriteHeader(502)
 		default:
-			w.WriteHeader(400)
-			_, _ = w.Write([]byte(`{"status":400,"message":""}`))
+			_, _ = w.Write([]byte(`{"valid":false,"reason":"invalid"}`))
 		}
 	})
 	mux.HandleFunc("POST /api/collections/users/auth-refresh", func(w http.ResponseWriter, r *http.Request) {
@@ -84,18 +87,26 @@ func TestDeployBackend(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	if r, err := b.VerifyPAT(ctx, "ph_pat_good", "1.2.3.4"); err != nil || r.UserID != "u1" || r.Label != "CI" || r.InstanceIDs != nil {
-		t.Fatalf("pat: %+v %v", r, err)
+	if g, err := b.VerifyToken(ctx, "pbt_good", "1.2.3.4"); err != nil || g.OwnerID != "u1" || g.Name != "CI" ||
+		len(g.Scopes) != 1 || g.Scopes[0] != "instances:read=aaaaaaaaaaaaaaa" {
+		t.Fatalf("token: %+v %v", g, err)
 	}
 	var ae *deploy.AuthError
-	if _, err := b.VerifyPAT(ctx, "ph_pat_blocked", ""); !errors.As(err, &ae) || ae.Status != 403 || ae.Message != "This token can't be used from this IP." {
-		t.Fatalf("403: %v", err)
+	if _, err := b.VerifyToken(ctx, "pbt_bad", ""); !errors.As(err, &ae) || ae.Status != 401 || ae.Message != "Invalid or expired token." {
+		t.Fatalf("invalid: %v", err)
 	}
-	if _, err := b.VerifyPAT(ctx, "ph_pat_bad", ""); !errors.As(err, &ae) || ae.Status != 401 || ae.Message != "Invalid or expired token." {
-		t.Fatalf("400: %v", err)
+	if _, err := b.VerifyToken(ctx, "pbt_old", ""); !errors.As(err, &ae) || ae.Status != 401 || !strings.Contains(ae.Message, "expired") {
+		t.Fatalf("expired: %v", err)
 	}
-	if _, err := b.VerifyPAT(ctx, "ph_pat_boom", ""); err == nil || errors.As(err, &ae) {
+	if _, err := b.VerifyToken(ctx, "pbt_boom", ""); err == nil || errors.As(err, &ae) {
 		t.Fatalf("outage must not be an auth error: %v", err)
+	}
+	// the edge's own login expired: it logs in again and retries once
+	s.c.mu.Lock()
+	s.c.token = "STALE"
+	s.c.mu.Unlock()
+	if _, err := b.VerifyToken(ctx, "pbt_good", "1.2.3.4"); err != nil {
+		t.Fatalf("re-login: %v", err)
 	}
 	if uid, err := b.VerifyJWT(ctx, "user-jwt"); err != nil || uid != "u1" {
 		t.Fatalf("jwt: %s %v", uid, err)

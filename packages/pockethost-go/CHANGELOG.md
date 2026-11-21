@@ -25,6 +25,20 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Upgrading
+
+- The npm `pockethost` CLI no longer works with PocketHost (it signed in through the mothership's old `/api/pat/*` routes, which are gone). Use the `pockethost` or `pocketone` binary.
+
+### Changed
+
+- API tokens are PocketOne API tokens (`pbt_…`, ext/api-tokens) on the mothership, with `instances` / `instances:read` scopes limited to some instances by value (`instances=<id>`). Existing `ph_pat_…` tokens keep working: each one moves over on its first use, with the same access and expiry.
+- Edges check tokens with the mothership's api-tokens.verify/v1 instead of `/api/pat/verify`.
+- The dashboard's API Tokens page creates and revokes tokens through the token API; a token's instances can't be edited any more (create a new token instead).
+
+### PocketOne
+
+- Built on PocketOne `main` at de42a86f (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history.
+
 ## v5.0.0-alpha.7 (2026-11-19)
 
 ### Fixed

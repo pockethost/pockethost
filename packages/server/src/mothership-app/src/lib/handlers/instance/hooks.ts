@@ -1,6 +1,6 @@
 /**
- * Instance endpoints accept a dashboard session (JWT) or a personal access token, so they don't use
- * `$apis.requireAuth()`. Each handler authenticates with `resolveInstanceCaller` (instance/lib/instanceCaller.ts).
+ * Instance endpoints are for the signed-in dashboard user. Each handler authenticates with `resolveInstanceCaller`
+ * (instance/lib/instanceCaller.ts).
  */
 routerAdd('PUT', '/api/instance/{id}', (e) => {
   return require(`${__hooks}/mothership`).HandleInstanceUpdate(e)

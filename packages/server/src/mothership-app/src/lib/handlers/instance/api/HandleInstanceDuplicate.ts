@@ -15,7 +15,7 @@ import { instanceNameError } from '../lib/instancePolicy'
 export const HandleInstanceDuplicate = (e: core.RequestEvent) => {
   const log = mkLog(`POST:instance/duplicate`)
   const sourceId = e.request.pathValue('id')
-  const caller = resolveInstanceCaller(e, { kind: 'create' })
+  const caller = resolveInstanceCaller(e)
   const source = findOwnedInstance(caller, sourceId)
 
   let data = new DynamicModel({ subdomain: '' }) as { subdomain?: string }

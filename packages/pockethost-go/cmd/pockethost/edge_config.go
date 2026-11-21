@@ -150,10 +150,8 @@ func edgeServeConfig(configPath, envPath string) error {
 	if err != nil {
 		return err
 	}
-	for _, r := range h.Runtimes {
-		if rt, ok := r.(*docker.Runtime); ok {
-			running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
-		}
+	if rt, ok := h.Runtime.(*docker.Runtime); ok {
+		running.Store(&instancesBox{edge.DockerInstances{RT: rt, Host: h, Log: log}})
 	}
 	// PocketOne's contracts for every instance this edge runs, so `pocketone remote ...` and `pocketone deploy`
 	// work against PocketHost: deploy/v1 is the deploy API (also at /_ph/deploy/v1 for the npm CLI); remote/v1 is

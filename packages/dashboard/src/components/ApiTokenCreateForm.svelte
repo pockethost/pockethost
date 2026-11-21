@@ -1,20 +1,25 @@
 <script lang="ts">
-  import { DEFAULT_EXPIRY_DAYS, EXPIRY_OPTIONS, expiryFromDays, sortBySubdomain } from '$lib/tokens/apiTokenLabels'
+  import {
+    API_TOKENS_PATH,
+    DEFAULT_EXPIRY_DAYS,
+    EXPIRY_OPTIONS,
+    expiryFromDays,
+    sortBySubdomain,
+    tokenScopes,
+  } from '$lib/tokens/apiTokenLabels'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
-  import type { ApiTokenFields, InstanceFields } from '@pockethost/server/common'
+  import type { InstanceFields } from '@pockethost/server/common'
   import { createEventDispatcher } from 'svelte'
 
   export let errorMessage = ''
-  /** When set, the form edits this token's instances only (the secret, name, access and expiry don't change). */
-  export let token: ApiTokenFields | null = null
 
-  const dispatch = createEventDispatcher<{ created: { token: string; label: string }; updated: { label: string } }>()
+  const dispatch = createEventDispatcher<{ created: { token: string; label: string } }>()
 
   let label = ''
   let canDeploy = true
-  let allInstances = token ? !!token.all_instances : true
-  let selectedInstanceIds: string[] = token ? [...(token.instances ?? [])] : []
+  let allInstances = true
+  let selectedInstanceIds: string[] = []
   let expiryDays: number = DEFAULT_EXPIRY_DAYS
   let saving = false
 
@@ -24,30 +29,6 @@
     selectedInstanceIds = selectedInstanceIds.includes(id)
       ? selectedInstanceIds.filter((value) => value !== id)
       : [...selectedInstanceIds, id]
-  }
-
-  const save = async () => {
-    if (!token) return
-    errorMessage = ''
-    // Drop ids that are no longer on the account (deleted instances), so they don't block saving.
-    const ids = selectedInstanceIds.filter((id) => !!$globalInstancesStore[id])
-    if (!allInstances && ids.length === 0) {
-      errorMessage = 'Select at least one instance or choose all instances.'
-      return
-    }
-    saving = true
-    try {
-      await client().client.send(`/api/tokens/${token.id}`, {
-        method: 'PATCH',
-        body: { all_instances: allInstances, instances: allInstances ? [] : ids },
-      })
-      dispatch('updated', { label: token.label })
-    } catch (error) {
-      const e = error as { response?: { message?: string } }
-      errorMessage = e.response?.message || `${error}`
-    } finally {
-      saving = false
-    }
   }
 
   const create = async () => {
@@ -62,14 +43,13 @@
     }
     saving = true
     try {
-      const res = await client().client.send<{ token: string }>(`/api/tokens`, {
+      const expires = expiryFromDays(expiryDays)
+      const res = await client().client.send<{ token: string }>(API_TOKENS_PATH, {
         method: 'POST',
         body: {
-          label: label.trim(),
-          scopes: canDeploy ? ['read', 'write'] : ['read'],
-          all_instances: allInstances,
-          instances: allInstances ? [] : selectedInstanceIds,
-          expires: expiryFromDays(expiryDays),
+          name: label.trim(),
+          scopes: tokenScopes(canDeploy, allInstances, selectedInstanceIds),
+          ...(expires ? { expires } : {}),
         },
       })
       dispatch('created', { token: res.token, label: label.trim() })
@@ -89,47 +69,41 @@
 
 <wa-card class="border border-white/10 bg-[#111111]/60 overflow-hidden">
   <div class="wa-card-header">
-    <h3 class="text-base font-semibold text-white">{token ? `Edit "${token.label}"` : 'Create token'}</h3>
+    <h3 class="text-base font-semibold text-white">Create token</h3>
   </div>
 
   <div class="wa-card-section wa-card-section--lg wa-stack-lg">
-    {#if token}
-      <p class="text-sm text-white/60">
-        Change which instances this token can reach. The token itself stays the same, so CI secrets keep working.
-      </p>
-    {:else}
-      <div class="field">
-        <label class="field-label" for="token-label">Name</label>
-        <wa-input
-          id="token-label"
-          value={label}
-          oninput={(e: Event) => (label = (e.currentTarget as HTMLInputElement).value)}
-          placeholder="GitHub Actions, laptop, …"
-        ></wa-input>
-      </div>
+    <div class="field">
+      <label class="field-label" for="token-label">Name</label>
+      <wa-input
+        id="token-label"
+        value={label}
+        oninput={(e: Event) => (label = (e.currentTarget as HTMLInputElement).value)}
+        placeholder="GitHub Actions, laptop, …"
+      ></wa-input>
+    </div>
 
-      <div class="field">
-        <span class="field-label">Access</span>
-        <div class="segmented segmented-compact">
-          <button
-            type="button"
-            class="segmented-item"
-            class:segmented-item-active={canDeploy}
-            onclick={() => (canDeploy = true)}
-          >
-            Deploy + read
-          </button>
-          <button
-            type="button"
-            class="segmented-item"
-            class:segmented-item-active={!canDeploy}
-            onclick={() => (canDeploy = false)}
-          >
-            Read only
-          </button>
-        </div>
+    <div class="field">
+      <span class="field-label">Access</span>
+      <div class="segmented segmented-compact">
+        <button
+          type="button"
+          class="segmented-item"
+          class:segmented-item-active={canDeploy}
+          onclick={() => (canDeploy = true)}
+        >
+          Deploy + read
+        </button>
+        <button
+          type="button"
+          class="segmented-item"
+          class:segmented-item-active={!canDeploy}
+          onclick={() => (canDeploy = false)}
+        >
+          Read only
+        </button>
       </div>
-    {/if}
+    </div>
 
     <div class="field">
       <span class="field-label">Instances</span>
@@ -171,36 +145,27 @@
       {/if}
     </div>
 
-    {#if !token}
-      <div class="field">
-        <span class="field-label">Expiry</span>
-        <div class="segmented segmented-compact">
-          {#each EXPIRY_OPTIONS as option (option.days)}
-            <button
-              type="button"
-              class="segmented-item"
-              class:segmented-item-active={expiryDays === option.days}
-              onclick={() => (expiryDays = option.days)}
-            >
-              {option.label}
-            </button>
-          {/each}
-        </div>
+    <div class="field">
+      <span class="field-label">Expiry</span>
+      <div class="segmented segmented-compact">
+        {#each EXPIRY_OPTIONS as option (option.days)}
+          <button
+            type="button"
+            class="segmented-item"
+            class:segmented-item-active={expiryDays === option.days}
+            onclick={() => (expiryDays = option.days)}
+          >
+            {option.label}
+          </button>
+        {/each}
       </div>
-    {/if}
+    </div>
 
     <div class="pt-2 flex flex-wrap gap-3">
-      {#if token}
-        <wa-button variant="brand" onclick={save} disabled={saving}>
-          <wa-icon slot="start" name="check"></wa-icon>
-          {saving ? 'Saving…' : 'Save changes'}
-        </wa-button>
-      {:else}
-        <wa-button variant="brand" onclick={create} disabled={saving}>
-          <wa-icon slot="start" name="plus"></wa-icon>
-          {saving ? 'Creating…' : 'Create token'}
-        </wa-button>
-      {/if}
+      <wa-button variant="brand" onclick={create} disabled={saving}>
+        <wa-icon slot="start" name="plus"></wa-icon>
+        {saving ? 'Creating…' : 'Create token'}
+      </wa-button>
     </div>
   </div>
 </wa-card>
