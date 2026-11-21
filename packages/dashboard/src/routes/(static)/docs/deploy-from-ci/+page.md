@@ -96,7 +96,7 @@ What never gets touched:
 - `.git*` files
 - anything else at the instance root
 
-**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project are removed on deploy. If you've edited hooks over SFTP, copy those changes into your repo before the first CI deploy.
+**Your project is the source of truth.** Files in `pb_hooks/`, `pb_migrations/`, `pb_public/`, or `patches/` on the instance that aren't in your project are removed on deploy. If you've changed hooks on the instance directly, copy those changes into your repo before the first CI deploy.
 
 ### npm packages
 

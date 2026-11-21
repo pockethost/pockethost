@@ -8,7 +8,7 @@ PocketHost runs the PocketBase version you choose, unmodified. To make it work w
 
 ## Hooks and migrations
 
-These files are added to your instance each time it starts. They're read-only and don't appear in your own files, so you won't see them over the [CLI](/docs/cli) or [SFTP](/docs/ftp). They work on every PocketBase version PocketHost runs.
+These files are added to your instance each time it starts. They're read-only and don't appear in your own files, so you won't see them over the [CLI](/docs/cli). They work on every PocketBase version PocketHost runs.
 
 | File | What it does |
 | --- | --- |

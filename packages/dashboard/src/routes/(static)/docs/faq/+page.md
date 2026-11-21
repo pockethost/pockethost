@@ -12,7 +12,7 @@ description: Frequently Asked Questions about PocketHost
 
 The goal of PocketHost is to provide a Firebase/Supabase-like experience where users can instantly provision new PocketBase instances.
 
-In addition to hosting, PocketHost supports PocketBase's built-in backup and restore, SFTP access, static file hosting, and Node.js cloud workers. It aims to deliver a turnkey solution for quickly deploying small and medium-sized PocketBase projects with minimal setup.
+In addition to hosting, PocketHost supports PocketBase's built-in backup and restore, static file hosting, and Node.js cloud workers. It aims to deliver a turnkey solution for quickly deploying small and medium-sized PocketBase projects with minimal setup.
 
 ### What is pockethost.io?
 
