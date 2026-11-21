@@ -30,9 +30,12 @@ const (
 
 // Instance is what the deploy API needs to know about the instance a request's host names.
 type Instance struct {
-	ID, Subdomain, OwnerID      string
-	Power                       bool
-	Suspension, OwnerSuspension string
+	ID, Subdomain, OwnerID string
+	Power                  bool
+	Suspension             string
+	// Blocked, if set, is why the owner's account blocks the instance (suspended, no paid instances, not verified):
+	// 403 with this message.
+	Blocked string
 	// Elsewhere, if set, means another edge serves the instance (421 with this message).
 	Elsewhere string
 }
@@ -278,7 +281,7 @@ func (a *API) authorize(r *http.Request, needWrite bool) (*reqCtx, error) {
 	if needWrite && !auth.canWrite(inst.ID) {
 		return nil, errf(403, "This token is read-only. Create a token with write access to deploy.")
 	}
-	if s := strings.TrimSpace(inst.OwnerSuspension); s != "" {
+	if s := strings.TrimSpace(inst.Blocked); s != "" {
 		return nil, errf(403, "%s", s)
 	}
 	if s := strings.TrimSpace(inst.Suspension); s != "" {

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"pocketone.dev/ext/pocker"
 	"strings"
 	"testing"
 
@@ -63,10 +64,10 @@ func TestDeployBackend(t *testing.T) {
 	cfg.MothershipURL = ms.URL
 	s := NewSource(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	s.loadDumpLocked(&dump{
-		Users: []userRec{{ID: "u1", Verified: true, SubscriptionQuantity: 1, Suspension: "account hold"}},
 		Instances: []instanceRec{
-			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", Cname: "Shop.Example.com", Updated: "1"},
-			{ID: "bbbbbbbbbbbbbbb", Subdomain: "far", UID: "u2", Edge: "E_AMS", Suspension: "x", Updated: "1"},
+			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", Owners: []string{"u1"}, Power: true, Edge: "E_SGP", Cname: "Shop.Example.com",
+				Updated: "1", Blocked: &pocker.Blocked{Status: 403, Message: "account hold"}},
+			{ID: "bbbbbbbbbbbbbbb", Subdomain: "far", Owners: []string{"u2"}, Edge: "E_AMS", Suspension: "x", Updated: "1"},
 		},
 		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}, {ID: "E_AMS", EdgeID: "ams-1"}},
 	})
@@ -74,12 +75,12 @@ func TestDeployBackend(t *testing.T) {
 
 	for _, h := range []string{"shop.pockethost.io", "aaaaaaaaaaaaaaa.pockethost.io", "shop.example.com", "SHOP.pockethost.io."} {
 		got, ok := b.Lookup(h)
-		want := deploy.Instance{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", OwnerID: "u1", Power: true, OwnerSuspension: "account hold"}
+		want := deploy.Instance{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", OwnerID: "u1", Power: true, Blocked: "account hold"}
 		if !ok || got != want {
 			t.Errorf("%s: %+v %v", h, got, ok)
 		}
 	}
-	if got, ok := b.Lookup("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.OwnerSuspension != "" || got.Suspension != "x" {
+	if got, ok := b.Lookup("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.Blocked != "" || got.Suspension != "x" {
 		t.Errorf("other edge: %+v", got)
 	}
 	if _, ok := b.Lookup("nope.pockethost.io"); ok {

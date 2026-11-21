@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"sync"
 
-	"ganigeorgiev.com/pocketbase/dbx"
 	"ganigeorgiev.com/pocketbase/pocketbase/apis"
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
-// mirrorDump is what an edge loads at boot and after every realtime reconnect (GET /api/mirror): every verified user,
-// the instances they own and the edges, each as the record's public export. Instances add `edge`, which is hidden from
-// customers but routes them.
+// mirrorDump is what an edge loads at boot and after every realtime reconnect (GET /api/mirror): every instance and
+// edge, each as the record's public export plus the hidden fields edges need: `edge` (where it runs) and the
+// owner-derived blocked, superusers, trusted_ips and owners (mothership_owners.go). Edges built since then read no
+// users; Users (every verified user) is kept only for edges still on the build before, and goes once none is left.
 type mirrorDump struct {
 	Users     []map[string]any `json:"users"`
 	Instances []map[string]any `json:"instances"`
@@ -27,7 +27,7 @@ func buildMirrorDump(app core.App) (*mirrorDump, error) {
 	if err != nil {
 		return nil, err
 	}
-	instances, err := app.FindAllRecords("instances", dbx.NewExp("instances.uid in (select id from users where verified = 1)"))
+	instances, err := app.FindAllRecords("instances")
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,9 @@ func buildMirrorDump(app core.App) (*mirrorDump, error) {
 	}
 	for _, r := range instances {
 		m := r.PublicExport()
-		m["edge"] = r.GetString("edge")
+		for _, f := range mirrorHiddenFields {
+			m[f] = r.Get(f)
+		}
 		d.Instances = append(d.Instances, m)
 	}
 	for _, r := range edges {
@@ -53,6 +55,9 @@ func buildMirrorDump(app core.App) (*mirrorDump, error) {
 	}
 	return d, nil
 }
+
+// mirrorHiddenFields are the hidden instance fields the dump sends (edges also get them over realtime, as superusers).
+var mirrorHiddenFields = []string{"edge", fieldBlocked, fieldSuperusers, fieldTrustedIPs, fieldOwners}
 
 // mirrorFlight shares one dump between requests that overlap: after a mothership restart every edge asks at the same
 // moment, and each full dump holds a few hundred MB while it's built. A request that joins a build already running

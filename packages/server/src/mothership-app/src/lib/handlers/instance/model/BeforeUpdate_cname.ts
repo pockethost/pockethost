@@ -7,6 +7,9 @@ export const BeforeUpdate_cname = (e: core.RecordUpdateEvent) => {
 
   const id = record.id
   const newCname = record.get('cname').trim()
+  // Only a changed custom domain is checked: other saves (the mothership writing owner fields, a status) must not fail
+  // on instances that already share a domain from before this check existed.
+  if (newCname === `${record.original().get('cname')}`.trim()) return
 
   // Only check if cname is already in use locally
   if (newCname.length > 0) {

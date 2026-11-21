@@ -375,12 +375,12 @@ func TestAPIAuth(t *testing.T) {
 	check("outage again", f.do("GET", Prefix+"/whoami", nil, withToken("pbt_outage")), 500, "mothership unreachable")
 	f.be.down = false
 
-	// suspensions (owner first), other edge
+	// blocks (the owner's first), other edge
 	inst := f.be.insts["myapp.example.com"]
-	inst.Suspension, inst.OwnerSuspension = "instance hold", "account hold"
+	inst.Suspension, inst.Blocked = "instance hold", "account hold"
 	f.be.insts["myapp.example.com"] = inst
-	check("owner suspension", f.do("GET", Prefix+"/whoami", nil), 403, "account hold")
-	inst.OwnerSuspension = ""
+	check("owner block", f.do("GET", Prefix+"/whoami", nil), 403, "account hold")
+	inst.Blocked = ""
 	f.be.insts["myapp.example.com"] = inst
 	check("instance suspension", f.do("GET", Prefix+"/whoami", nil), 403, "instance hold")
 	inst.Suspension, inst.Elsewhere = "", "myapp.example.com is served by another PocketHost edge"

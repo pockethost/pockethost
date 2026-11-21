@@ -36,16 +36,13 @@ var testCfg = Config{ApexDomain: "pockethost.io", HTTPProtocol: "https:", AppURL
 func raw(s string) json.RawMessage { return json.RawMessage(s) }
 
 func TestMapInstance(t *testing.T) {
-	owner := &userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1, TrustedIPs: raw(`["203.0.113.0/24"]`)}
-	inst := instanceRec{ID: "abc123", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", Cname: "Shop.Example.com",
+	inst := instanceRec{ID: "abc123", Subdomain: "shop", Power: true, Edge: "E_SGP", Cname: "Shop.Example.com",
 		Secrets:  raw(`{"STRIPE_KEY":"sk","PH_CORS_ORIGINS":"https://a.com, https://b.com,https://a.com","PB_ENCRYPTION_KEY":"k32"}`),
-		Firewall: raw(`"{\"ip_hourly\": 2000, \"ip_concurrent\": 1.5, \"instance_hourly\": -1}"`), SyncAdmin: true,
-		Version: "p1:0.0.*"}
-	login := func(uid string) *tokenInfo {
-		return &tokenInfo{Email: "o@x.com", PasswordHash: "$2a$hash", TokenKey: "tk"}
-	}
+		Firewall: raw(`"{\"ip_hourly\": 2000, \"ip_concurrent\": 1.5, \"instance_hourly\": -1}"`),
+		Version:  "p1:0.0.*", Owners: []string{"u1"}, TrustedIPs: raw(`["203.0.113.0/24"]`),
+		Superusers: []pocker.Superuser{{ID: "u1", Email: "o@x.com", PasswordHash: "$2a$hash", TokenKey: "tk"}}}
 
-	p, ok := mapInstance(testCfg, inst, owner, "E_SGP", login)
+	p, ok := mapInstance(testCfg, inst, "E_SGP")
 	if !ok || p.Blocked != nil {
 		t.Fatalf("own instance: ok=%v %+v", ok, p.Blocked)
 	}
@@ -82,43 +79,70 @@ func TestMapInstance(t *testing.T) {
 
 	// placement
 	// another edge's instance: forwarded after this edge's firewall, so it keeps rate limits and CORS, nothing else
-	if p, _ := mapInstance(testCfg, inst, owner, "E_OTHER", login); p.Remote != "edge:E_SGP" || p.Blocked != nil || p.Secrets != nil ||
+	if p, _ := mapInstance(testCfg, inst, "E_OTHER"); p.Remote != "edge:E_SGP" || p.Blocked != nil || p.Secrets != nil ||
 		p.Superusers != nil || p.Private != nil || p.ExtensionConfig("firewall") == nil || len(p.Access.CORSOrigins) == 0 {
 		t.Errorf("other edge: %+v", p)
 	}
 	legacy := inst
 	legacy.Edge = ""
-	if p, _ := mapInstance(testCfg, legacy, owner, "E_SGP", login); p.Remote != "edge:@sfo" {
+	if p, _ := mapInstance(testCfg, legacy, "E_SGP"); p.Remote != "edge:@sfo" {
 		t.Error("an instance without an edge belongs to sfo, not sgp-1")
 	}
 	sfo := testCfg
 	sfo.EdgeID = "sfo"
-	if p, _ := mapInstance(sfo, legacy, owner, "E_SFO", login); p.Blocked != nil {
+	if p, _ := mapInstance(sfo, legacy, "E_SFO"); p.Blocked != nil {
 		t.Errorf("legacy instance on sfo: %+v", p.Blocked)
 	}
 
-	// blocked rules, in the Node edge's order
+	// blocked rules: the owner's block (decided by the mothership) first, then the instance's own
 	cases := []struct {
 		name   string
-		mutate func(*instanceRec, *userRec)
+		mutate func(*instanceRec)
 		status int
+		msg    string
 	}{
-		{"owner suspended", func(i *instanceRec, u *userRec) { u.Suspension = "abuse"; i.Suspension = "x" }, 403},
-		{"instance suspended", func(i *instanceRec, u *userRec) { i.Suspension = "abuse" }, 403},
-		{"unpaid", func(i *instanceRec, u *userRec) { u.SubscriptionQuantity = 0; i.Power = false }, 402},
-		{"powered off", func(i *instanceRec, u *userRec) { i.Power = false }, 503},
-		{"unverified", func(i *instanceRec, u *userRec) { u.Verified = false }, 403},
+		{"owner blocked", func(i *instanceRec) {
+			i.Blocked = &pocker.Blocked{Status: 402, Message: "upgrade"}
+			i.Suspension, i.Power = "x", false
+		}, 402, "upgrade"},
+		{"instance suspended", func(i *instanceRec) { i.Suspension = "abuse" }, 403, "abuse"},
+		{"powered off", func(i *instanceRec) { i.Power = false }, 503, ""},
+		{"empty block is no block", func(i *instanceRec) { i.Blocked = &pocker.Blocked{}; i.Power = false }, 503, ""},
 	}
 	for _, c := range cases {
-		i2, u2 := inst, *owner
-		c.mutate(&i2, &u2)
-		p, _ := mapInstance(testCfg, i2, &u2, "E_SGP", login)
-		if p.Blocked == nil || p.Blocked.Status != c.status {
+		i2 := inst
+		c.mutate(&i2)
+		p, _ := mapInstance(testCfg, i2, "E_SGP")
+		if p.Blocked == nil || p.Blocked.Status != c.status || (c.msg != "" && p.Blocked.Message != c.msg) {
 			t.Errorf("%s: %+v", c.name, p.Blocked)
 		}
+		if p.Superusers != nil {
+			t.Errorf("%s: a blocked instance gets no superuser login", c.name)
+		}
 	}
-	if _, ok := mapInstance(testCfg, inst, nil, "E_SGP", login); ok {
-		t.Error("unknown owner: not served")
+}
+
+// The mothership sends the owner fields as JSON (cmd/pockethost/mothership_owners.go); the edge reads them.
+func TestOwnerFieldsJSON(t *testing.T) {
+	var r instanceRec
+	err := json.Unmarshal([]byte(`{"id":"i1","blocked":{"status":403,"message":"abuse"},
+		"superusers":[{"id":"u1","email":"o@x.com","tokenKey":"tk","passwordHash":"$2a$h"}],
+		"trusted_ips":["198.51.100.7"],"owners":["u1"]}`), &r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Blocked == nil || r.Blocked.Status != 403 || r.Blocked.Message != "abuse" {
+		t.Errorf("blocked: %+v", r.Blocked)
+	}
+	if len(r.Superusers) != 1 || r.Superusers[0].TokenKey != "tk" || r.Superusers[0].PasswordHash != "$2a$h" || r.Superusers[0].ID != "u1" {
+		t.Errorf("superusers: %+v", r.Superusers)
+	}
+	if strings.Join(stringList(r.TrustedIPs), ",") != "198.51.100.7" || len(r.Owners) != 1 {
+		t.Errorf("trusted_ips/owners: %s %v", r.TrustedIPs, r.Owners)
+	}
+	var none instanceRec
+	if err := json.Unmarshal([]byte(`{"id":"i2","blocked":null,"superusers":[],"trusted_ips":null,"owners":[]}`), &none); err != nil || none.Blocked != nil {
+		t.Errorf("empty fields: %+v %v", none, err)
 	}
 }
 
@@ -132,7 +156,6 @@ type fakeMothership struct {
 	heartbeats []map[string]any
 	statuses   []string
 	subscribed []string
-	hash       string
 	webhooks   []string // PATCHed webhooks fields
 }
 
@@ -184,9 +207,6 @@ func (f *fakeMothership) handler() http.Handler {
 	}))
 	mux.HandleFunc("GET /api/collections/{c}/records", auth(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"items":[],"totalPages":0}`))
-	}))
-	mux.HandleFunc("GET /api/userToken/{id}", auth(func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(tokenInfo{Email: "owner@example.com", PasswordHash: f.hash, TokenKey: "tk"})
 	}))
 	mux.HandleFunc("POST /api/edge/heartbeat", auth(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]any
@@ -241,10 +261,11 @@ func freeAddr(t *testing.T) string {
 
 func TestEdgeAgainstFakeMothership(t *testing.T) {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("owner-password"), 4)
-	f := &fakeMothership{t: t, sse: make(chan string, 16), hash: string(hash)}
-	owner := userRec{ID: "u1", Email: "owner@example.com", Verified: true, SubscriptionQuantity: 1}
-	unpaidOwner := userRec{ID: "u2", Verified: true, SubscriptionQuantity: 0}
-	mine := instanceRec{ID: "mine1", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", SyncAdmin: true,
+	f := &fakeMothership{t: t, sse: make(chan string, 16)}
+	// the owner's login (admin sync), resolved by the mothership
+	login := []pocker.Superuser{{ID: "u1", Email: "owner@example.com", PasswordHash: string(hash), TokenKey: "tk"}}
+	unpaidBlock := &pocker.Blocked{Status: 402, Message: "Instances will not run until you upgrade"}
+	mine := instanceRec{ID: "mine1", Subdomain: "shop", Power: true, Edge: "E_SGP", Owners: []string{"u1"}, Superusers: login,
 		Secrets: raw(`{"API_KEY":"v1","PH_CORS_ORIGINS":"https://shop.example.com"}`),
 		// hourly backup that missed its last run while the edge was down: fires once at start
 		Webhooks: raw(fmt.Sprintf(`[{"endpoint":"api/ph/backup","value":"0 * * * *","lastFired":{"timestamp":%d}},{"endpoint":"/never","value":"0 0 1 1 *"}]`,
@@ -262,10 +283,9 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	}))
 	defer sfoDaemon.Close()
 	f.d = dump{
-		Users: []userRec{owner, unpaidOwner},
 		Instances: []instanceRec{mine,
-			{ID: "elsewhere1", Subdomain: "blog", UID: "u1", Power: true, Edge: "E_SFO"},
-			{ID: "unpaid1", Subdomain: "cheap", UID: "u2", Power: true, Edge: "E_SGP"}},
+			{ID: "elsewhere1", Subdomain: "blog", Owners: []string{"u1"}, Power: true, Edge: "E_SFO"},
+			{ID: "unpaid1", Subdomain: "cheap", Owners: []string{"u2"}, Power: true, Edge: "E_SGP", Blocked: unpaidBlock}},
 		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1", Region: "sgp"},
 			{ID: "E_SFO", EdgeID: "sfo", Region: "sfo", InternalURL: sfoDaemon.URL, LastSeen: time.Now().UTC().Format("2006-01-02 15:04:05.000Z")}},
 	}
@@ -498,7 +518,7 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	f.mu.Lock()
 	subs := strings.Join(f.subscribed, ",")
 	f.mu.Unlock()
-	if subs != "instances/*,users/*,edges/*" {
+	if subs != "instances/*,edges/*" {
 		t.Errorf("subscriptions: %q", subs)
 	}
 
@@ -512,16 +532,14 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 	f.push("instances", "update", rotated)
 	waitFor("rotated secret", func() bool { _, b := call("GET", "shop.pockethost.io", "/key", "", nil); return b == "v2" })
 
-	// realtime: the owner's plan lapses
-	unpaid := owner
-	unpaid.SubscriptionQuantity = 0
-	f.push("users", "update", unpaid)
+	// realtime: the owner's plan lapses (the mothership rewrites the owner's instances with the block)
+	lapsed := rotated
+	lapsed.Blocked, lapsed.Updated = unpaidBlock, "later2"
+	f.push("instances", "update", lapsed)
 	waitFor("owner downgrade applied", func() bool { c, _ := call("GET", "shop.pockethost.io", "/api/health", "", nil); return c == 402 })
 
 	// instance moved to this edge: served here now
-	moved := instanceRec{ID: "elsewhere1", Subdomain: "blog", UID: "u1", Power: true, Edge: "E_SGP"}
-	unpaid.SubscriptionQuantity = 1
-	f.push("users", "update", unpaid)
+	moved := instanceRec{ID: "elsewhere1", Subdomain: "blog", Owners: []string{"u1"}, Power: true, Edge: "E_SGP"}
 	f.push("instances", "update", moved)
 	waitFor("moved instance served", func() bool { c, _ := call("GET", "blog.pockethost.io", "/api/health", "", nil); return c == 200 })
 
@@ -532,16 +550,14 @@ func TestEdgeAgainstFakeMothership(t *testing.T) {
 
 func TestHostClaimsFollowNodePriority(t *testing.T) {
 	s := NewSource(testCfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	owner := userRec{ID: "u1", Verified: true, SubscriptionQuantity: 1}
 	s.loadDumpLocked(&dump{
-		Users: []userRec{owner},
 		Instances: []instanceRec{
-			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", UID: "u1", Power: true, Edge: "E_SGP", Updated: "1"},
+			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", Power: true, Edge: "E_SGP", Updated: "1"},
 			// subdomain equal to the other instance's id: the subdomain wins that host
-			{ID: "bbbbbbbbbbbbbbb", Subdomain: "aaaaaaaaaaaaaaa", UID: "u1", Power: true, Edge: "E_SGP", Updated: "1"},
+			{ID: "bbbbbbbbbbbbbbb", Subdomain: "aaaaaaaaaaaaaaa", Power: true, Edge: "E_SGP", Updated: "1"},
 			// two claims on one custom domain: the most recently updated wins
-			{ID: "ccccccccccccccc", Subdomain: "c-old", Cname: "dup.example.com", UID: "u1", Power: true, Edge: "E_SGP", Updated: "1"},
-			{ID: "ddddddddddddddd", Subdomain: "d-new", Cname: "dup.example.com", UID: "u1", Power: true, Edge: "E_SGP", Updated: "2"},
+			{ID: "ccccccccccccccc", Subdomain: "c-old", Cname: "dup.example.com", Power: true, Edge: "E_SGP", Updated: "1"},
+			{ID: "ddddddddddddddd", Subdomain: "d-new", Cname: "dup.example.com", Power: true, Edge: "E_SGP", Updated: "2"},
 		},
 		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}},
 	})
