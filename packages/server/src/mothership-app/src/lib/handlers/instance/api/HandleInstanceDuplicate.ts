@@ -4,6 +4,7 @@ import { isAvailable } from '../../signup/isAvailable'
 import { duplicateSourceError } from '../lib/duplicatePolicy'
 import { findOwnedInstance, resolveInstanceCaller } from '../lib/instanceCaller'
 import { assertCanCreateInstance } from '../lib/instanceLimits'
+import { addOwner, syncLoginOf } from '../lib/instanceOwners'
 import { instanceNameError } from '../lib/instancePolicy'
 
 /**
@@ -45,7 +46,6 @@ export const HandleInstanceDuplicate = (e: core.RequestEvent) => {
   if (!version) throw new BadRequestError(`No PocketBase version is available right now.`)
 
   const record = new Record($app.findCollectionByNameOrId('instances'))
-  record.set('uid', caller.userId)
   record.set('subdomain', subdomain)
   record.set('power', false)
   record.set('status', 'idle')
@@ -53,7 +53,6 @@ export const HandleInstanceDuplicate = (e: core.RequestEvent) => {
   // Same edge: the copy reads the source's files from that edge's disk.
   record.set('edge', source.getString('edge'))
   record.set('dev', source.getBool('dev'))
-  record.set('syncAdmin', source.getBool('syncAdmin'))
   record.set('autoVacuum', source.getBool('autoVacuum'))
   // Secrets carry PB_ENCRYPTION_KEY, without which the copy can't read the source's encrypted settings.
   record.set('secrets', source.get('secrets'))
@@ -62,7 +61,11 @@ export const HandleInstanceDuplicate = (e: core.RequestEvent) => {
   record.set('duplicateOf', source.id)
   record.set('duplicateStatus', 'copying')
   record.set('duplicateError', '')
-  $app.save(record)
+  const syncLogin = syncLoginOf($app, source.id)
+  $app.runInTransaction((txApp) => {
+    txApp.save(record)
+    addOwner(txApp, record.id, caller.userId, syncLogin)
+  })
 
   log(`duplicated`, JSON.stringify({ source: source.id, copy: record.id, subdomain, version }))
   return e.json(200, { instance: record })

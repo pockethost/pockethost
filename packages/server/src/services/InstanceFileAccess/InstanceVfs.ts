@@ -1,7 +1,8 @@
-import { InstanceFields, Logger, PocketBase, UserFields, ensureInstanceDirectoryStructure } from '@'
+import { InstanceFields, Logger, PocketBase, ensureInstanceDirectoryStructure } from '@'
 import { Mode, constants, createReadStream, createWriteStream } from 'fs'
 import { isAbsolute, join, normalize, resolve, sep } from 'path'
 import { INSTANCES_ROOT } from '../../constants'
+import { fetchOwner } from '../MothershipAdminClientService/instanceOwners'
 import { InstanceVfsUserError, assertInstanceContext, isExpectedVfsClientError, isVfsNotFoundError } from './errors'
 import * as fsAsync from './fs-async'
 import { POWERED_OFF_ONLY } from './guards'
@@ -41,12 +42,13 @@ export class InstanceVfs {
     this.scope = scope
   }
 
-  private assertInstanceAccess(instance: InstanceFields) {
+  /** OwnerId: the instance's owner (its instance_owners row; '' when it has none). */
+  private assertInstanceAccess(instance: InstanceFields, ownerId: string) {
     if (!this.scope) {
       return
     }
 
-    if (!instanceAllowedByScope(this.scope, instance.id, instance.uid)) {
+    if (!instanceAllowedByScope(this.scope, instance.id, ownerId)) {
       throw new Error(`${instance.subdomain} not found.`)
     }
   }
@@ -56,11 +58,12 @@ export class InstanceVfs {
       return this.client.collection(`instances`).getFullList<InstanceFields>()
     }
 
+    // the user's instances: those with an instance_owners row for them
     const instances = await this.client.collection(`instances`).getFullList<InstanceFields>({
-      filter: `uid=${JSON.stringify(this.scope.userId)}`,
+      filter: `instance_owners_via_instance.user ?= ${JSON.stringify(this.scope.userId)}`,
     })
 
-    return instances.filter((instance) => instanceAllowedByScope(this.scope, instance.id, instance.uid))
+    return instances.filter((instance) => instanceAllowedByScope(this.scope, instance.id, this.scope!.userId))
   }
 
   get root() {
@@ -93,17 +96,16 @@ export class InstanceVfs {
       dbg(`checking validity`, { subdomain })
       if (!subdomain) return
       const filter = this.scope
-        ? `subdomain=${JSON.stringify(subdomain)} && uid=${JSON.stringify(this.scope.userId)}`
+        ? `subdomain=${JSON.stringify(subdomain)} && instance_owners_via_instance.user ?= ${JSON.stringify(this.scope.userId)}`
         : `subdomain=${JSON.stringify(subdomain)}`
-      const { expand, ...instance } = await this.client
-        .collection(`instances`)
-        .getFirstListItem<InstanceFields & { expand?: { uid?: UserFields } }>(filter, { expand: `uid` })
+      const instance = await this.client.collection(`instances`).getFirstListItem<InstanceFields>(filter)
       if (!instance?.id) {
         throw new Error(`${subdomain} not found.`)
       }
-      this.assertInstanceAccess(instance)
+      const owner = await fetchOwner(this.client, instance.id)
+      this.assertInstanceAccess(instance, owner?.user ?? '')
       /** Checked before ensureInstanceDirectoryStructure so archived instances are never recreated. */
-      const suspension = fileAccessSuspension(expand?.uid, instance)
+      const suspension = fileAccessSuspension(owner?.expand?.user, instance)
       if (suspension) {
         throw new InstanceVfsUserError(suspension)
       }

@@ -2066,6 +2066,43 @@ const pickEdgeForRegion = (edges, instanceCounts, region, nowMs) => edges.filter
 const isRegionName = (region) => /^[a-z][a-z0-9-]{1,31}$/.test(region);
 
 //#endregion
+//#region src/lib/handlers/instance/lib/instanceOwners.ts
+/**
+* Who owns an instance, and whether their login is synced into it as a superuser: the `instance_owners` table (one row
+* per owned instance; was `instances.uid` / `instances.syncAdmin`). The mothership's Go resolves what the instance gets
+* from its owner from these rows (blocked, superusers, trusted IPs, owners).
+*/
+/** The instance's owner row, or undefined when it has none. */
+const findOwnerRow = (app, instanceId) => {
+	try {
+		return app.findFirstRecordByFilter("instance_owners", "instance = {:id}", { id: instanceId }) ?? void 0;
+	} catch {
+		return;
+	}
+};
+/** The owner's user id, or '' when the instance has no owner. */
+const ownerOf = (app, instanceId) => findOwnerRow(app, instanceId)?.getString("user") ?? "";
+/** Whether the owner's login is synced into the instance as a superuser. */
+const syncLoginOf = (app, instanceId) => findOwnerRow(app, instanceId)?.getBool("sync_login") ?? false;
+/** Every instance the user owns. */
+const ownedInstances$1 = (app, userId) => app.findRecordsByFilter("instances", "instance_owners_via_instance.user ?= {:uid}", "", 0, 0, { uid: userId }).filter((r) => !!r);
+/** Makes userId the owner of a new instance. Call in the transaction that saved the instance. */
+const addOwner = (app, instanceId, userId, syncLogin) => {
+	const row = new Record(app.findCollectionByNameOrId("instance_owners"));
+	row.set("instance", instanceId);
+	row.set("user", userId);
+	row.set("sync_login", syncLogin);
+	app.save(row);
+};
+/** Turns the owner's login sync on or off. */
+const setSyncLogin = (app, instanceId, syncLogin) => {
+	const row = findOwnerRow(app, instanceId);
+	if (!row) throw new BadRequestError(`This instance has no owner.`);
+	row.set("sync_login", syncLogin);
+	app.save(row);
+};
+
+//#endregion
 //#region src/lib/handlers/instance/lib/instanceCaller.ts
 const deny = (status, message) => {
 	if (status === 401) throw new UnauthorizedError(message);
@@ -2083,7 +2120,7 @@ const findOwnedInstance = (caller, id) => {
 	} catch {
 		record = void 0;
 	}
-	if (!record || record.getString("uid") !== caller.userId) return deny(404, `Instance not found, or you cannot access it.`);
+	if (!record || ownerOf($app, record.id) !== caller.userId) return deny(404, `Instance not found, or you cannot access it.`);
 	return record;
 };
 
@@ -2146,7 +2183,7 @@ const powerOnLimitError = (instanceId, owned, allowance) => {
 //#endregion
 //#region src/lib/handlers/instance/lib/instanceLimits.ts
 /** Every instance the user owns, in the shape the limit rules need. */
-const ownedInstances = (uid) => $app.findRecordsByFilter("instances", "uid = {:uid}", "", 0, 0, { uid }).map((r) => ({
+const ownedInstances = (uid) => ownedInstances$1($app, uid).map((r) => ({
 	id: r.id,
 	power: r.getBool("power"),
 	suspension: r.getString("suspension"),
@@ -2235,16 +2272,17 @@ const HandleInstanceCreate = (e) => {
 	if (!edge) throw new BadRequestError(`The ${region} region is temporarily unavailable. Please try again in a minute.`);
 	const collection = $app.findCollectionByNameOrId("instances");
 	const record = new Record(collection);
-	record.set("uid", caller.userId);
 	record.set("subdomain", subdomain);
 	record.set("power", true);
 	record.set("status", "idle");
 	record.set("version", version);
 	record.set("edge", edge.id);
 	record.set("dev", true);
-	record.set("syncAdmin", true);
 	record.set("autoVacuum", true);
-	$app.save(record);
+	$app.runInTransaction((txApp) => {
+		txApp.save(record);
+		addOwner(txApp, record.id, caller.userId, true);
+	});
 	return e.json(200, { instance: record });
 };
 
@@ -2319,14 +2357,12 @@ const HandleInstanceDuplicate = (e) => {
 	const version = listSelectableVersions()[0];
 	if (!version) throw new BadRequestError(`No PocketBase version is available right now.`);
 	const record = new Record($app.findCollectionByNameOrId("instances"));
-	record.set("uid", caller.userId);
 	record.set("subdomain", subdomain);
 	record.set("power", false);
 	record.set("status", "idle");
 	record.set("version", version);
 	record.set("edge", source.getString("edge"));
 	record.set("dev", source.getBool("dev"));
-	record.set("syncAdmin", source.getBool("syncAdmin"));
 	record.set("autoVacuum", source.getBool("autoVacuum"));
 	record.set("secrets", source.get("secrets"));
 	record.set("webhooks", source.get("webhooks"));
@@ -2334,7 +2370,11 @@ const HandleInstanceDuplicate = (e) => {
 	record.set("duplicateOf", source.id);
 	record.set("duplicateStatus", "copying");
 	record.set("duplicateError", "");
-	$app.save(record);
+	const syncLogin = syncLoginOf($app, source.id);
+	$app.runInTransaction((txApp) => {
+		txApp.save(record);
+		addOwner(txApp, record.id, caller.userId, syncLogin);
+	});
 	log(`duplicated`, JSON.stringify({
 		source: source.id,
 		copy: record.id,
@@ -2439,7 +2479,8 @@ const HandleInstanceUpdate = (e) => {
 		if (ensureCustomHostname(newCname, log)) log(`Cloudflare custom hostname ready for "${newCname}" - frontend will poll for health`);
 	}
 	const recordAutoVacuum = record.getBool("autoVacuum");
-	if (subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncAdmin !== null && syncAdmin !== record.getBool("syncAdmin") || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged) {
+	const syncLoginChanging = syncAdmin !== null && syncAdmin !== syncLoginOf($app, record.id);
+	if (subdomain !== null && subdomain !== record.getString("subdomain") || version !== null && version !== record.getString("version") || syncLoginChanging || autoVacuum !== null && autoVacuum !== recordAutoVacuum || dev !== null && dev !== record.getBool("dev") || cnameChanged) {
 		if (record.getBool("power") || record.getString("status").toLowerCase() !== "idle") throw new BadRequestError(`Instance must be powered off first.`);
 	}
 	if (power === true && !record.getBool("power")) {
@@ -2453,13 +2494,15 @@ const HandleInstanceUpdate = (e) => {
 		power,
 		secrets,
 		webhooks,
-		syncAdmin,
 		autoVacuum,
 		dev,
 		cname
 	});
 	for (const [key, value] of Object.entries(sanitized)) record.set(key, value);
-	$app.save(record);
+	$app.runInTransaction((txApp) => {
+		txApp.save(record);
+		if (syncLoginChanging) setSyncLogin(txApp, record.id, syncAdmin === true);
+	});
 	return e.json(200, { status: "ok" });
 };
 
@@ -3867,7 +3910,7 @@ const closeClaim = (userRec) => {
 const attachClaimToUser = (app, claimUser, target, log) => {
 	if (!claimUser.getBool(`claim_open`)) throw new Error(`This purchase was already set up`);
 	if (claimUser.id === target.id) throw new Error(`Same account`);
-	if (app.findRecordsByFilter(`instances`, `uid = {:u}`, ``, 1, 0, { u: claimUser.id }).length) throw new Error(`That account already has instances; contact support`);
+	if (app.findRecordsByFilter(`instance_owners`, `user = {:u}`, ``, 1, 0, { u: claimUser.id }).length) throw new Error(`That account already has instances; contact support`);
 	const billingEmails = lsEmailsFor(claimUser);
 	app.runInTransaction((tx) => {
 		for (const rec of loadBillingItemRecords(tx, claimUser.id)) {
@@ -7598,14 +7641,13 @@ const HandleSignupConfirm = (e) => {
 		try {
 			const instance = new Record(instanceCollection);
 			instance.set("subdomain", desiredInstanceName);
-			instance.set("uid", user.get("id"));
 			instance.set("status", "idle");
 			instance.set("power", true);
-			instance.set("syncAdmin", true);
 			instance.set("autoVacuum", true);
 			instance.set("dev", true);
 			instance.set("version", version);
 			txApp.save(instance);
+			addOwner(txApp, instance.id, user.id, true);
 		} catch (e) {
 			if (`${e}`.match(/ UNIQUE /)) throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`);
 			throw error(`instanceName`, `fail`, `Could not create instance: ${e}`);
@@ -7802,12 +7844,12 @@ const validateSshKeyRecord = (record, authId) => {
 	const instanceIds = record.getStringSlice("instances") || [];
 	if (!allInstances && instanceIds.length === 0) throw new BadRequestError("Select at least one instance or choose all instances.");
 	if (!allInstances) for (const instanceId of instanceIds) {
-		const instance = $app.findRecordById("instances", instanceId);
-		if (instance.getString("uid") !== authId) {
+		const owner = ownerOf($app, instanceId);
+		if (owner !== authId) {
 			log({
 				instanceId,
 				authId,
-				uid: instance.getString("uid")
+				owner
 			});
 			throw new BadRequestError("One or more selected instances are not owned by you.");
 		}

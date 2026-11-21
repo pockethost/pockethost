@@ -143,7 +143,7 @@ export const closeClaim = (userRec: core.Record) => {
 export const attachClaimToUser = (app: core.App, claimUser: core.Record, target: core.Record, log: Logger) => {
   if (!claimUser.getBool(`claim_open`)) throw new Error(`This purchase was already set up`)
   if (claimUser.id === target.id) throw new Error(`Same account`)
-  const instances = app.findRecordsByFilter(`instances`, `uid = {:u}`, ``, 1, 0, { u: claimUser.id })
+  const instances = app.findRecordsByFilter(`instance_owners`, `user = {:u}`, ``, 1, 0, { u: claimUser.id })
   if (instances.length) throw new Error(`That account already has instances; contact support`)
 
   const billingEmails = lsEmailsFor(claimUser)

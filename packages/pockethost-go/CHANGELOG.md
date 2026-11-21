@@ -44,6 +44,7 @@ the two version numbers don't match.
 - **edge:** deploys run on PocketOne's deploy extension (ext/deploy) at `/api/_c/deploy/v1` only, reading and writing instance files through the runtime's instance.fs/v1; PocketHost's own copy of the deploy API is gone. The old `/_ph/deploy/v1` path (the npm CLI's) is gone, and each instance's upload cache moves from `DATA_ROOT/deploys/<id>` into the instance's folder. Deploys still send only what changed (files already in the folder count as uploaded), and the old `DATA_ROOT/deploys` folders can be deleted. The dashboard's live log view (`POST /logs`) is unchanged.
 - The mothership's edge dump (`GET /api/mirror`) no longer carries users, and `/api/userToken` is gone: no edge reads either.
 - **edge:** Duplicate no longer copies the original's `pb_cache` (extensions' disposable files, including deploy's upload store) or `.pb_deploy`; the copy builds its own.
+- Instance ownership has its own table on the mothership, `instance_owners` (instance, user, sync_login), copied from `instances.uid` and `instances.syncAdmin`, which are removed. The dashboard's instance access, the `stats` view, the instance handlers, token scopes, disk-usage sums and the over-limit policy go through it; the Node jobs still on sfo-2 (SFTP, over-limit, archiving) read it too. Deleting a user still deletes their instances.
 
 ### PocketOne
 

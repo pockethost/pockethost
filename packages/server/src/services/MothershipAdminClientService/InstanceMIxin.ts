@@ -1,7 +1,18 @@
-import { INSTANCE_COLLECTION, InstanceFields, InstanceFields_Create, InstanceId, InstanceStatus, WithUser } from '@'
+import {
+  INSTANCE_COLLECTION,
+  InstanceFields,
+  InstanceFields_Create,
+  InstanceId,
+  InstanceStatus,
+  LegacyInstanceFields,
+  UserFields,
+} from '@'
 import { MixinContext } from '.'
 
 export type InstanceApi = ReturnType<typeof createInstanceMixin>
+
+/** The retired Node edge's instance with its owner expanded (it read `uid`, which the mothership no longer has). */
+type WithUser = LegacyInstanceFields & { expand: { uid: UserFields } }
 
 export const createInstanceMixin = (context: MixinContext) => {
   const { logger } = context
@@ -13,15 +24,15 @@ export const createInstanceMixin = (context: MixinContext) => {
     return client.collection(INSTANCE_COLLECTION).create<InstanceFields>(payload)
   }
 
-  const getInstanceBySubdomain = (subdomain: string): Promise<InstanceFields & WithUser> =>
+  const getInstanceBySubdomain = (subdomain: string): Promise<WithUser> =>
     client.collection(INSTANCE_COLLECTION).getFirstListItem(`subdomain = '${subdomain}'`, { expand: 'uid' })
 
-  const getInstanceByCname = (host: string): Promise<InstanceFields & WithUser> =>
+  const getInstanceByCname = (host: string): Promise<WithUser> =>
     client.collection(INSTANCE_COLLECTION).getFirstListItem(`cname = '${host}'`, {
       expand: 'uid',
     })
 
-  const getInstanceById = async (instanceId: InstanceId): Promise<InstanceFields & WithUser> =>
+  const getInstanceById = async (instanceId: InstanceId): Promise<WithUser> =>
     client.collection(INSTANCE_COLLECTION).getOne(instanceId, { expand: 'uid' })
 
   const updateInstance = async (instanceId: InstanceId, fields: Partial<InstanceFields>) => {
@@ -32,7 +43,7 @@ export const createInstanceMixin = (context: MixinContext) => {
     await updateInstance(instanceId, { status })
   }
 
-  const getInstance = async (instanceId: InstanceId): Promise<InstanceFields & WithUser> => {
+  const getInstance = async (instanceId: InstanceId): Promise<WithUser> => {
     return client.collection(INSTANCE_COLLECTION).getOne(instanceId, { expand: 'uid' })
   }
 

@@ -1,5 +1,6 @@
 import { parseSshEd25519PublicKey } from '$common/sshPublicKey'
 import { mkLog } from '$util/Logger'
+import { ownerOf } from '../../instance/lib/instanceOwners'
 
 const validateSshKeyRecord = (record: models.Record, authId: string) => {
   const log = mkLog(`ssh-keys`)
@@ -26,9 +27,9 @@ const validateSshKeyRecord = (record: models.Record, authId: string) => {
 
   if (!allInstances) {
     for (const instanceId of instanceIds) {
-      const instance = $app.findRecordById('instances', instanceId)
-      if (instance.getString('uid') !== authId) {
-        log({ instanceId, authId, uid: instance.getString('uid') })
+      const owner = ownerOf($app, instanceId)
+      if (owner !== authId) {
+        log({ instanceId, authId, owner })
         throw new BadRequestError('One or more selected instances are not owned by you.')
       }
     }

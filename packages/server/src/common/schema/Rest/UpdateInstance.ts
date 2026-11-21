@@ -6,8 +6,11 @@ export type UpdateInstancePayload = {
   fields: Partial<
     Pick<
       InstanceFields,
-      'power' | 'secrets' | 'webhooks' | 'subdomain' | 'syncAdmin' | 'autoVacuum' | 'version' | 'dev' | 'cname'
-    >
+      'power' | 'secrets' | 'webhooks' | 'subdomain' | 'autoVacuum' | 'version' | 'dev' | 'cname'
+    > & {
+      /** The owner's login synced into the instance (the mothership's instance_owners.sync_login). */
+      syncAdmin: boolean
+    }
   >
 }
 

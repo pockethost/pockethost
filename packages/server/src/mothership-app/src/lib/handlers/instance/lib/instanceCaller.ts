@@ -1,3 +1,5 @@
+import { ownerOf } from './instanceOwners'
+
 /**
  * Who is calling an instance endpoint (`PUT`/`DELETE /api/instance/{id}`, `POST /api/instance`, duplicate): the
  * signed-in dashboard user. API tokens (pbt_...) don't reach the mothership's own routes; edges check them for
@@ -25,7 +27,7 @@ export const findOwnedInstance = (caller: InstanceCaller, id: string): core.Reco
   } catch {
     record = undefined
   }
-  if (!record || record.getString('uid') !== caller.userId) {
+  if (!record || ownerOf($app, record.id) !== caller.userId) {
     return deny(404, `Instance not found, or you cannot access it.`)
   }
   return record

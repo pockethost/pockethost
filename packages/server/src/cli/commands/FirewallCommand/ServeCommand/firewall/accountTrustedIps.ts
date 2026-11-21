@@ -1,4 +1,4 @@
-import { Logger, type UserFields, type UserId } from '@'
+import { Logger, type LegacyInstanceFields, type UserFields, type UserId } from '@'
 import IPCIDR from 'ip-cidr'
 import type { MothershipMirrorService } from 'src/services/MothershipMirrorService'
 import { toProxyCidrString } from './rateLimiterPure'
@@ -60,7 +60,7 @@ export const createAccountTrustedIpResolver = (
     const instance = await mirror.getInstanceByHost(hostname)
     if (!instance) return false
 
-    const accountCidrs = userCidrs.get(instance.uid) ?? []
+    const accountCidrs = userCidrs.get((instance as LegacyInstanceFields).uid) ?? []
     return accountCidrs.some((cidr) => cidr.contains(connectingIp))
   }
 

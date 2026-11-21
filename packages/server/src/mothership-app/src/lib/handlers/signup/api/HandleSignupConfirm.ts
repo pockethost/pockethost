@@ -1,4 +1,5 @@
 import { listVersions } from '$util/versions'
+import { addOwner } from '../../instance/lib/instanceOwners'
 import { error } from '../error'
 
 const suggestUniqueAuthRecordUsername = (collection: string, baseUsername: string) => {
@@ -82,14 +83,13 @@ export const HandleSignupConfirm = (e: core.RequestEvent) => {
     try {
       const instance = new Record(instanceCollection)
       instance.set('subdomain', desiredInstanceName)
-      instance.set('uid', user.get('id'))
       instance.set('status', 'idle')
       instance.set('power', true)
-      instance.set('syncAdmin', true)
       instance.set('autoVacuum', true)
       instance.set('dev', true)
       instance.set('version', version)
       txApp.save(instance)
+      addOwner(txApp, instance.id, user.id, true)
     } catch (e) {
       if (`${e}`.match(/ UNIQUE /)) {
         throw error(`instanceName`, `exists`, `Instance name was taken, sorry about that. Try another.`)

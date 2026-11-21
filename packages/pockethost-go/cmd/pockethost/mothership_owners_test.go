@@ -27,7 +27,7 @@ func ownersApp(t *testing.T) (core.App, *core.Record) {
 	users.Fields.Add(&core.TextField{Name: "suspension"}, &core.NumberField{Name: "subscription_quantity"},
 		&core.JSONField{Name: "trusted_ips"}, &core.TextField{Name: "nickname"})
 	inst := core.NewBaseCollection("instances")
-	inst.Fields.Add(&core.TextField{Name: "uid"}, &core.BoolField{Name: "syncAdmin"}, &core.TextField{Name: "subdomain"})
+	inst.Fields.Add(&core.TextField{Name: "subdomain"})
 	for _, f := range []string{fieldBlocked, fieldSuperusers, fieldTrustedIPs, fieldOwners} {
 		inst.Fields.Add(&core.JSONField{Name: f, Hidden: true})
 	}
@@ -35,6 +35,10 @@ func ownersApp(t *testing.T) (core.App, *core.Record) {
 		if err := app.Save(c); err != nil {
 			t.Fatal(err)
 		}
+	}
+	owners := ownersCollection(t, app, inst.Id, users.Id)
+	if err := app.Save(owners); err != nil {
+		t.Fatal(err)
 	}
 	u := core.NewRecord(users)
 	u.SetEmail("owner@example.com")
@@ -73,14 +77,35 @@ func viewOwner(t *testing.T, app core.App, id string) ownerView {
 	return v
 }
 
-func saveInstance(t *testing.T, app core.App, uid string, syncAdmin bool) string {
+// ownersCollection is instance_owners as migration 1796000000 makes it (relations cascade).
+func ownersCollection(t *testing.T, app core.App, instancesID, usersID string) *core.Collection {
+	t.Helper()
+	c := core.NewBaseCollection("instance_owners")
+	c.Fields.Add(&core.RelationField{Name: "instance", CollectionId: instancesID, MaxSelect: 1, CascadeDelete: true, Required: true},
+		&core.RelationField{Name: "user", CollectionId: usersID, MaxSelect: 1, CascadeDelete: true, Required: true},
+		&core.BoolField{Name: "sync_login"})
+	c.AddIndex("idx_instance_owners_instance", true, "instance", "")
+	return c
+}
+
+// saveInstance makes an instance and, when uid is set, its owner row (as the mothership's create handler does: the
+// instance first, then the row).
+func saveInstance(t *testing.T, app core.App, uid string, syncLogin bool) string {
 	t.Helper()
 	col, _ := app.FindCollectionByNameOrId("instances")
 	r := core.NewRecord(col)
-	r.Set("uid", uid)
-	r.Set("syncAdmin", syncAdmin)
 	if err := app.Save(r); err != nil {
 		t.Fatal(err)
+	}
+	if uid != "" {
+		oc, _ := app.FindCollectionByNameOrId("instance_owners")
+		row := core.NewRecord(oc)
+		row.Set("instance", r.Id)
+		row.Set("user", uid)
+		row.Set("sync_login", syncLogin)
+		if err := app.Save(row); err != nil {
+			t.Fatal(err)
+		}
 	}
 	return r.Id
 }
@@ -172,11 +197,46 @@ func TestOwnerChangesRewriteInstances(t *testing.T) {
 		t.Error("nickname isn't an owner field")
 	}
 
+	// sync_login off: the login leaves the instance
+	row, err := app.FindFirstRecordByFilter("instance_owners", "instance = {:id}", dbx.Params{"id": id})
+	if err != nil {
+		t.Fatal(err)
+	}
+	row.Set("sync_login", false)
+	if err := app.Save(row); err != nil {
+		t.Fatal(err)
+	}
+	if v := viewOwner(t, app, id); len(v.Superusers) != 0 {
+		t.Errorf("sync_login off keeps the login: %+v", v.Superusers)
+	}
+	// owner row removed: the instance has no owner
+	if err := app.Delete(row); err != nil {
+		t.Fatal(err)
+	}
+	if v := viewOwner(t, app, id); v.Blocked == nil || !strings.Contains(v.Blocked.Message, "no owner") || len(v.Owners) != 0 {
+		t.Errorf("owner row removed: %+v", v)
+	}
+}
+
+// Deleting a user deletes their instances (instances.uid's cascade did before ownership moved to instance_owners).
+func TestDeletedUserTakesTheirInstances(t *testing.T) {
+	app, u := ownersApp(t)
+	a := saveInstance(t, app, u.Id, true)
+	b := saveInstance(t, app, u.Id, false)
+	orphan := saveInstance(t, app, "", false)
 	if err := app.Delete(u); err != nil {
 		t.Fatal(err)
 	}
-	if v := viewOwner(t, app, id); v.Blocked == nil || !strings.Contains(v.Blocked.Message, "no owner") {
-		t.Errorf("deleted owner: %+v", v.Blocked)
+	for _, id := range []string{a, b} {
+		if _, err := app.FindRecordById("instances", id); err == nil {
+			t.Errorf("instance %s outlived its owner", id)
+		}
+	}
+	if _, err := app.FindRecordById("instances", orphan); err != nil {
+		t.Errorf("an instance with no owner isn't touched: %v", err)
+	}
+	if n, _ := app.CountRecords("instance_owners"); n != 0 {
+		t.Errorf("owner rows left: %d", n)
 	}
 }
 

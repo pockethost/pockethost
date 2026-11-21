@@ -1,3 +1,4 @@
+import type { LegacyInstanceFields } from '@'
 import {
   APP_URL,
   asyncExitHook,
@@ -291,8 +292,8 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
         }
 
         /** Best-effort admin sync — spawn proceeds if mothership is unavailable */
-        if (instance.syncAdmin) {
-          const uid = instance.uid
+        if ((instance as LegacyInstanceFields).syncAdmin) {
+          const uid = (instance as LegacyInstanceFields).uid
           dbg(`Fetching token info for uid ${uid}`)
           try {
             const { email, tokenKey, passwordHash } = await client.getUserTokenInfo({ id: uid })
@@ -538,7 +539,7 @@ export const instanceService = mkSingleton(async (config: InstanceServiceConfig)
       res.status(421).end(`${host} is served by another PocketHost edge`)
       return
     }
-    const owner = await mirror.getUser(instance.uid)
+    const owner = await mirror.getUser((instance as LegacyInstanceFields).uid)
     if (!owner) {
       throw new Error(`Instance owner is invalid`)
     }

@@ -185,8 +185,10 @@ func LoadAccounts(app core.App) ([]Account, error) {
 		Suspension string `db:"suspension"`
 		Updated    string `db:"updated"`
 	}
-	if err := app.DB().NewQuery(`SELECT id, uid, COALESCE(subdomain, '') AS subdomain, COALESCE(power, 0) AS power,
-		COALESCE(suspension, '') AS suspension, COALESCE(updated, '') AS updated FROM instances WHERE uid != ''`).All(&insts); err != nil {
+	// owned instances only: each joined to its instance_owners row
+	if err := app.DB().NewQuery(`SELECT i.id AS id, o.user AS uid, COALESCE(i.subdomain, '') AS subdomain, COALESCE(i.power, 0) AS power,
+		COALESCE(i.suspension, '') AS suspension, COALESCE(i.updated, '') AS updated
+		FROM instances i JOIN instance_owners o ON o.instance = i.id WHERE o.user != ''`).All(&insts); err != nil {
 		return nil, fmt.Errorf("instances: %w", err)
 	}
 	var payers []struct {

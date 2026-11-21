@@ -4,6 +4,7 @@ import { isAvailable } from '../../signup/isAvailable'
 import { DEFAULT_REGION, isRegionName, pickEdgeForRegion, type PlacementEdge } from '../lib/edgePlacement'
 import { resolveInstanceCaller } from '../lib/instanceCaller'
 import { assertCanCreateInstance } from '../lib/instanceLimits'
+import { addOwner } from '../lib/instanceOwners'
 import { instanceNameError } from '../lib/instancePolicy'
 
 /** POST /api/instance. Signed-in dashboard user only. */
@@ -68,17 +69,18 @@ export const HandleInstanceCreate = (e: core.RequestEvent) => {
 
   const collection = $app.findCollectionByNameOrId('instances')
   const record = new Record(collection)
-  record.set('uid', caller.userId)
   record.set('subdomain', subdomain)
   record.set('power', true)
   record.set('status', 'idle')
   record.set('version', version)
   record.set('edge', edge.id)
   record.set('dev', true)
-  record.set('syncAdmin', true)
   record.set('autoVacuum', true)
 
-  $app.save(record)
+  $app.runInTransaction((txApp) => {
+    txApp.save(record)
+    addOwner(txApp, record.id, caller.userId, true)
+  })
 
   return e.json(200, { instance: record })
 }
