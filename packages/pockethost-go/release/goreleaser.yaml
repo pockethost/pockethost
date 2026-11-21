@@ -31,9 +31,28 @@ builds:
       - linux
       - darwin
       - windows
+    # the same targets as PocketOne's release
     goarch:
       - amd64
       - arm64
+      - arm
+      - s390x
+      - ppc64le
+    goarm:
+      - 7
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: s390x
+      - goos: windows
+        goarch: ppc64le
+      - goos: darwin
+        goarch: arm
+      - goos: darwin
+        goarch: s390x
+      - goos: darwin
+        goarch: ppc64le
 
 archives:
   - id: pockethost
@@ -44,6 +63,39 @@ archives:
         dst: CHANGELOG.md
       - src: LICENSE*
         dst: .
+
+# Linux packages, like PocketOne's: the binary in /usr/bin, a systemd unit (deb, rpm) that runs `pockethost serve` as
+# the pockethost user with its data in /var/lib/pockethost, and its config in /etc/pockethost (kept on upgrade). Named
+# like the zips (pockethost_<version>_linux_<arch>.deb).
+nfpms:
+  - id: packages
+    ids: [pockethost]
+    package_name: pockethost
+    file_name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}'
+    formats: [deb, rpm, apk]
+    vendor: PocketHost
+    maintainer: PocketHost <noreply@pockethost.io>
+    homepage: https://pockethost.io
+    description: PocketHost, PocketBase hosting, built on PocketOne
+    license: MIT
+    bindir: /usr/bin
+    contents:
+      - src: packages/pockethost-go/release/packaging/pockethost.service
+        dst: /usr/lib/systemd/system/pockethost.service
+        packager: deb
+      - src: packages/pockethost-go/release/packaging/pockethost.service
+        dst: /usr/lib/systemd/system/pockethost.service
+        packager: rpm
+      - src: packages/pockethost-go/release/packaging/pocketone.yaml
+        dst: /etc/pockethost/pocketone.yaml
+        type: config|noreplace
+      - src: packages/pockethost-go/release/packaging/service.env
+        dst: /etc/pockethost/service.env
+        type: config|noreplace
+    scripts:
+      postinstall: packages/pockethost-go/release/packaging/postinstall.sh
+      preremove: packages/pockethost-go/release/packaging/preremove.sh
+      postremove: packages/pockethost-go/release/packaging/postremove.sh
 
 checksum:
   name_template: 'checksums.txt'
