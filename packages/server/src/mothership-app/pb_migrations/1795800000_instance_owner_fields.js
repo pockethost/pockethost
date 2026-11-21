@@ -7,7 +7,16 @@ migrate(
   (app) => {
     const instances = app.findCollectionByNameOrId('instances')
     const json = (id, name) =>
-      new Field({ hidden: true, id, maxSize: 200000, name, presentable: false, required: false, system: false, type: 'json' })
+      new Field({
+        hidden: true,
+        id,
+        maxSize: 200000,
+        name,
+        presentable: false,
+        required: false,
+        system: false,
+        type: 'json',
+      })
     instances.fields.add(json('ownblocked01', 'blocked'))
     instances.fields.add(json('ownsupers001', 'superusers'))
     instances.fields.add(json('owntrusted01', 'trusted_ips'))
