@@ -31,6 +31,10 @@ the two version numbers don't match.
 
 - The npm `pockethost` CLI no longer works with PocketHost (it signed in through the mothership's old `/api/pat/*` routes, which are gone). Use the `pockethost` or `pocketone` binary.
 
+### Added
+
+- On pocker edges the deploy API and `remote/v1` also take an instance's own API tokens (its superusers'), so `pocketone login <instance URL>` and `pocketone clone <instance URL>`, which sign in to the instance in the browser, work on PocketHost as on any PocketOne app. Scopes as on a single app: none or `deploy` deploy, `deploy:read` reads. Docker edges take only PocketHost tokens and logins.
+
 ### Changed
 
 - Edges no longer hold every instance: each opens one stream to the mothership, asks for a hostname the first time a request names it, and gets its changes after that (no dump, realtime subscription or drift poll). The mothership maps instances for each edge (host claims, blocks, superusers, firewall, forwarding). An edge keeps serving what it has while the mothership is unreachable, and starts over when the stream comes back. Duplicates reach their edge as its standing set; webhooks and the nightly vacuum list this edge's instances with one small query.
@@ -49,7 +53,7 @@ the two version numbers don't match.
 
 ### PocketOne
 
-- Built on PocketOne `main` at 4354fd2a (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.
+- Built on PocketOne `main` at 25ac8c31 (after v0.0.1-alpha.10): instance.tokens/v1 (Pocker checks an instance's own API tokens), API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, each instance's pb_cache hoisted to the edge's `pb_cache/instances/<id>` (outside instance folders; Docker edges get a `pb_cache` folder beside them), standard-member switches.
 
 ## v5.0.0-alpha.7 (2026-11-19)
 

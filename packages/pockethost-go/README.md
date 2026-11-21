@@ -104,14 +104,18 @@ for `pocketone dev`), so `pocketone deploy`, `dev` and `pull` work against Pocke
 runtime provides (`instance.fs/v1`). Deploys are not recorded. `edge.DeployBackend` (`edge/deploy.go`) tells it which
 instance a host names (from the mirror) and who a request acts as: the instance owner's PocketHost API token, checked
 with the mothership's `api-tokens.verify/v1`, or the user's own `auth-refresh` for a dashboard login, cached 30 s. A
-token's `instances` / `instances:read` scopes (optionally `=<instance id>`) decide what it may do. Requests for an
-instance on another edge are forwarded there.
+token's `instances` / `instances:read` scopes (optionally `=<instance id>`) decide what it may do. On pocker edges it
+also takes the instance's own API tokens, the ones `pocketone login` and `clone` get by signing in to the instance:
+checked with the instance (`instance.tokens/v1` on the host scope), only its superusers' count, with a single app's
+deploy scopes (none or `deploy`: read and write; `deploy:read`: read). Requests for an instance on another edge are
+forwarded there.
 
 On pocker edges, `remote/v1` at `/api/_c/remote/v1/` adds whoami, status, restart and logs from pocker's Manager (docker
 edges get docker's). It takes the same token or login (`DeployBackend.ContractAuth`): an `instances` token may
-restart, an `instances:read` token may read. Log in with `pocketone login <instance URL>` and paste a PocketHost token.
+restart, an `instances:read` token may read; an instance token likewise by its deploy scope. `pocketone login
+<instance URL>` signs in to the instance in the browser (pocker edges), or paste a PocketHost token.
 
-Tests: `go test ./edge/ -run 'Deploy|DashboardLogs'`.
+Tests: `go test ./edge/ -run 'Deploy|DashboardLogs|InstanceTokens'`.
 
 ## Firewall, webhooks, vacuum
 
