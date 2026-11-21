@@ -77,25 +77,35 @@ func resolveOwner(inst, owner *core.Record, appURL string) ownerFields {
 	return f
 }
 
-// applyOwner writes f on inst and reports whether anything changed.
-func applyOwner(inst *core.Record, f ownerFields) bool {
-	changed := false
-	set := func(field string, v any) {
-		next, _ := json.Marshal(v)
-		if !bytes.Equal(compactJSON(inst.GetString(field)), compactJSON(string(next))) {
-			inst.Set(field, json.RawMessage(next))
-			changed = true
+// ownerJSON is f as the four fields' JSON.
+func ownerJSON(f ownerFields) map[string]string {
+	enc := func(v any) string { b, _ := json.Marshal(v); return string(b) }
+	trusted := "null"
+	if f.TrustedIPs != nil {
+		trusted = string(compactJSON(string(f.TrustedIPs)))
+	}
+	return map[string]string{fieldBlocked: enc(f.Blocked), fieldSuperusers: enc(f.Superusers),
+		fieldTrustedIPs: trusted, fieldOwners: enc(f.Owners)}
+}
+
+// ownerDiff is the fields of f that differ from what inst holds.
+func ownerDiff(inst *core.Record, f ownerFields) map[string]string {
+	diff := map[string]string{}
+	for field, next := range ownerJSON(f) {
+		if !bytes.Equal(compactJSON(inst.GetString(field)), compactJSON(next)) {
+			diff[field] = next
 		}
 	}
-	set(fieldBlocked, f.Blocked)
-	set(fieldSuperusers, f.Superusers)
-	if f.TrustedIPs == nil {
-		set(fieldTrustedIPs, nil)
-	} else {
-		set(fieldTrustedIPs, f.TrustedIPs)
+	return diff
+}
+
+// applyOwner writes f on inst and reports whether anything changed.
+func applyOwner(inst *core.Record, f ownerFields) bool {
+	diff := ownerDiff(inst, f)
+	for field, next := range diff {
+		inst.Set(field, json.RawMessage(next))
 	}
-	set(fieldOwners, f.Owners)
-	return changed
+	return len(diff) > 0
 }
 
 // compactJSON normalizes a JSON value for comparison ("" and "null" are the same).
@@ -199,9 +209,10 @@ func refreshOwnerInstances(app core.App, owner *core.Record, uid ...string) (int
 	return n, nil
 }
 
-// syncOwnerFields checks every instance's owner-derived fields and saves the ones that drifted, in one transaction.
-// It runs at serve before the server listens, so no edge is subscribed yet and the first deploy's backfill (every
-// instance) reaches the edges through their dump, not as thousands of realtime events.
+// syncOwnerFields checks every instance's owner-derived fields and writes the ones that drifted, in one transaction.
+// It runs at serve before the server listens and writes the columns directly (no record hooks, no realtime): no edge
+// is subscribed yet, the first deploy's backfill (every instance) reaches the edges through their dump, and the
+// mothership's JS instance hooks don't run 20k times on its one VM.
 func syncOwnerFields(app core.App) (checked, saved int, err error) {
 	users, err := app.FindAllRecords("users")
 	if err != nil {
@@ -219,10 +230,15 @@ func syncOwnerFields(app core.App) (checked, saved int, err error) {
 	err = app.RunInTransaction(func(tx core.App) error {
 		for _, inst := range insts {
 			checked++
-			if !applyOwner(inst, resolveOwner(inst, byID[inst.GetString("uid")], appURL)) {
+			diff := ownerDiff(inst, resolveOwner(inst, byID[inst.GetString("uid")], appURL))
+			if len(diff) == 0 {
 				continue
 			}
-			if err := tx.SaveNoValidate(inst); err != nil {
+			params := dbx.Params{}
+			for field, v := range diff {
+				params[field] = v
+			}
+			if _, err := tx.DB().Update("instances", params, dbx.HashExp{"id": inst.Id}).Execute(); err != nil {
 				return fmt.Errorf("instance %s: %w", inst.Id, err)
 			}
 			saved++

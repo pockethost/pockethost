@@ -2644,6 +2644,7 @@ const BeforeUpdate_cname = (e) => {
 	if (!record) return;
 	const id = record.id;
 	const newCname = record.get("cname").trim();
+	if (newCname === `${record.original().get("cname")}`.trim()) return;
 	if (newCname.length > 0) {
 		const result = new DynamicModel({ id: "" });
 		if ((() => {
