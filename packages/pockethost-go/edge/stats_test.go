@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -75,8 +74,7 @@ func TestInstanceStatsSink(t *testing.T) {
 	}}
 	srv := httptest.NewServer(f.handler(t))
 	defer srv.Close()
-	s := NewSource(Config{MothershipURL: srv.URL, AdminUser: "a@b.c", AdminPassword: "x", EdgeID: "e1"}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	s.myEdge = "E1"
+	s := fakeSource(Config{MothershipURL: srv.URL, AdminUser: "a@b.c", AdminPassword: "x", EdgeID: "e1"}, &fakeFleet{self: "E1"})
 	sink := s.InstanceStats()
 	ctx := context.Background()
 

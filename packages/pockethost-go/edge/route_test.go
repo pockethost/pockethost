@@ -28,13 +28,9 @@ func pbTime(t time.Time) string { return t.UTC().Format("2006-01-02 15:04:05.000
 // routeSource: this edge is sgp-1; "away" runs on E_SFO.
 func routeSource(t *testing.T, sfo edgeRec) *Source {
 	t.Helper()
-	s := NewSource(testCfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	s.loadDumpLocked(&dump{
-		Instances: []instanceRec{{ID: "away", Subdomain: "away", Power: true, Edge: "E_SFO"}},
-		Edges:     []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1", Region: "sgp"}, sfo},
-	})
-	s.diffLocked(context.Background(), nil)
-	return s
+	return fakeSource(testCfg, &fakeFleet{self: "E_SGP",
+		insts: []pocker.Instance{{ID: "away", Hosts: []string{"away.pockethost.io", "away.pockethost.io"}, Remote: "edge:E_SFO"}},
+		edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1", Region: "sgp"}, sfo}})
 }
 
 func forward(s *Source, inst pocker.Instance, method string, hdr map[string]string) *httptest.ResponseRecorder {
@@ -286,14 +282,8 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	before := fileSize(dbPath)
 
 	cfg := testCfg
-	s := NewSource(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	s := fakeSource(cfg, &fakeFleet{self: "E_SGP"})
 	off := false
-	s.loadDumpLocked(&dump{
-		Instances: []instanceRec{{ID: "mine1", Subdomain: "shop", Power: true, Edge: "E_SGP"},
-			{ID: "optout", Subdomain: "o", Power: true, Edge: "E_SGP", AutoVacuum: &off}},
-		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}},
-	})
-	s.diffLocked(context.Background(), nil)
 	m := pocker.NewManager(sourcetest.ScopeOf(pocker.Instance{ID: "mine1", Hosts: []string{"shop.pockethost.io"}}, pocker.Instance{ID: "optout", Hosts: []string{"o.pockethost.io"}}), pocker.ManagerOptions{Standard: standard.New(), PBRoot: root, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -314,7 +304,12 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	}
 	opts := DefaultVacuumOptions()
 	opts.DiscordURL = ""
-	sum := s.NewVacuumer(func() Instances { return m }, opts).Sweep(ctx)
+	list := func(context.Context) ([]localRec, error) {
+		return []localRec{{ID: "mine1", Subdomain: "shop"}, {ID: "optout", Subdomain: "o", AutoVacuum: &off}}, nil
+	}
+	vac := s.NewVacuumer(func() Instances { return m }, opts)
+	vac.list = list
+	sum := vac.Sweep(ctx)
 	after := fileSize(dbPath)
 	if sum.Vacuumed != 1 || sum.SavedBytes <= 0 || after >= before/2 || len(sum.Failed) != 0 {
 		t.Fatalf("sweep: %+v before=%d after=%d", sum, before, after)
@@ -329,7 +324,7 @@ func TestVacuumCompactsWhileHeld(t *testing.T) {
 	}
 	db.Close()
 	// nothing to reclaim the second time: no stop at all
-	if sum := s.NewVacuumer(func() Instances { return m }, opts).Sweep(ctx); sum.Vacuumed != 0 {
+	if sum := vac.Sweep(ctx); sum.Vacuumed != 0 {
 		t.Fatalf("second sweep: %+v", sum)
 	}
 }
@@ -346,8 +341,8 @@ func TestTrustedProxyEndUserBuckets(t *testing.T) {
 	trustedHourly := 3
 	fw := &firewall.Firewall{Config: cfg, RateLimits: &firewall.RateLimits{IPHourly: 1, InstanceHourly: 1000,
 		Trusted: &firewall.RateLimitSet{IPHourly: trustedHourly, InstanceHourly: 1000}}}
-	inst, _ := mapInstance(testCfg, instanceRec{ID: "abc123", Subdomain: "shop", Power: true, Edge: "E_SGP",
-		Owners: []string{"u1"}, TrustedIPs: raw(`["198.51.100.7"]`)}, "E_SGP")
+	inst := pocker.Instance{ID: "abc123", Hosts: []string{"shop.pockethost.io"},
+		Extensions: map[string]any{"firewall": firewall.InstanceConfig{TrustedIPs: []string{"198.51.100.7"}}}}
 	admit := func(remote string, hdr map[string]string) int {
 		r := httptest.NewRequest(http.MethodGet, "http://shop.pockethost.io/api/health", nil)
 		r.RemoteAddr = remote

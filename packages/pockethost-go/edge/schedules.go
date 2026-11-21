@@ -71,6 +71,7 @@ type Scheduler struct {
 	sem     chan struct{}
 
 	mu      sync.Mutex
+	hooks   map[string]localRec       // this edge's instances with webhooks, as last listed (by id)
 	parsed  map[string]*cron.Schedule // expression -> schedule (nil = invalid)
 	running map[string]bool           // instance id + endpoint + value: a call in flight
 	wg      sync.WaitGroup
@@ -110,9 +111,25 @@ func (sc *Scheduler) ready() bool {
 	if m == nil || !m.Ready() {
 		return false // a catch-up call now would only get "starting"
 	}
-	sc.s.mu.Lock()
-	defer sc.s.mu.Unlock()
-	return len(sc.s.instances) > 0 && sc.s.myEdge != ""
+	return sc.s.myEdge() != ""
+}
+
+// refresh lists this edge's instances with webhooks (one small query a minute; the list is kept when it fails).
+func (sc *Scheduler) refresh(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	recs, err := sc.s.localInstances(ctx, `webhooks ~ "endpoint"`, "id,subdomain,webhooks")
+	if err != nil {
+		sc.s.log.Warn("pockethost: webhook list failed; using the last one", "error", err)
+		return
+	}
+	m := make(map[string]localRec, len(recs))
+	for _, r := range recs {
+		m[r.ID] = r
+	}
+	sc.mu.Lock()
+	sc.hooks = m
+	sc.mu.Unlock()
 }
 
 func (sc *Scheduler) schedule(expr string) *cron.Schedule {
@@ -139,26 +156,18 @@ type dueWebhook struct {
 func (sc *Scheduler) due(t time.Time, catchUp bool) []dueWebhook {
 	var out []dueWebhook
 	moment := cron.NewMoment(t.UTC())
-	sc.s.mu.Lock()
-	defer sc.s.mu.Unlock()
-	for id, inst := range sc.s.instances {
-		if len(inst.Webhooks) == 0 || string(inst.Webhooks) == "null" || !isMine(inst, sc.s.myEdge, sc.s.cfg.EdgeID) {
+	sc.mu.Lock()
+	list := sc.hooks
+	sc.mu.Unlock()
+	for id, inst := range list {
+		if len(inst.Webhooks) == 0 || string(inst.Webhooks) == "null" {
 			continue
 		}
 		var hooks []webhook
 		if json.Unmarshal(inst.Webhooks, &hooks) != nil {
 			continue
 		}
-		host := ""
-		for _, h := range hosts(inst, sc.s.cfg.ApexDomain) {
-			if sc.s.claims[h] == id {
-				host = h
-				break
-			}
-		}
-		if host == "" {
-			continue
-		}
+		host := sc.s.webhookHost(id, inst.Subdomain) // goes through the edge's own lookup, like any request
 		for _, h := range hooks {
 			if strings.TrimSpace(h.Value) == "" || strings.TrimSpace(h.Endpoint) == "" {
 				continue
@@ -181,6 +190,7 @@ func (sc *Scheduler) due(t time.Time, catchUp bool) []dueWebhook {
 }
 
 func (sc *Scheduler) tick(ctx context.Context, t time.Time, catchUp bool) {
+	sc.refresh(ctx)
 	for _, d := range sc.due(t, catchUp) {
 		key := d.instanceID + "\x00" + d.hook.Endpoint + "\x00" + d.hook.Value
 		sc.mu.Lock()
@@ -308,9 +318,9 @@ func (sc *Scheduler) fire(ctx context.Context, d dueWebhook) {
 
 // recordLastFired stores {timestamp, response} on the matching webhook of the instance's current record.
 func (sc *Scheduler) recordLastFired(ctx context.Context, d dueWebhook, status int, body string) error {
-	sc.s.mu.Lock()
-	raw := sc.s.instances[d.instanceID].Webhooks
-	sc.s.mu.Unlock()
+	sc.mu.Lock()
+	raw := sc.hooks[d.instanceID].Webhooks
+	sc.mu.Unlock()
 	var hooks []map[string]any
 	if json.Unmarshal(raw, &hooks) != nil {
 		return fmt.Errorf("webhooks changed")

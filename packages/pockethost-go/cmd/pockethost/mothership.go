@@ -14,10 +14,13 @@ import (
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
 	"ganigeorgiev.com/pocketbase/pocketbase/plugins/migratecmd"
 	"ganigeorgiev.com/pocketbase/pocketbase/tools/hook"
+	"github.com/pockethost/pockethost/packages/pockethost-go/fleet"
 	"github.com/pockethost/pockethost/packages/pockethost-go/mothershipapp"
 	"pocketone.dev/ext/bundle"
 	"pocketone.dev/ext/config"
+	"pocketone.dev/ext/extkit"
 	"pocketone.dev/ext/jsvm"
+	p1mothership "pocketone.dev/ext/mothership"
 )
 
 // mothership runs PocketHost's mothership: one trusted PocketOne app whose JS hooks, JS migrations and admin
@@ -93,6 +96,7 @@ func mothership(args []string) {
 
 	registerTokens(app)      // API tokens (pbt_...) for deploys, checked by the edges
 	registerOwnerFields(app) // what instances get from their owners, so edges never read users
+	registerFleet(app)       // instance.watch/v1: the edges' lazy mirror (one stream each, hostnames on demand)
 
 	app.OnServe().Bind(&hook.Handler[*core.ServeEvent]{
 		Func: func(e *core.ServeEvent) error {
@@ -206,4 +210,12 @@ func mothershipVersion() string {
 		h = "error:" + err.Error()
 	}
 	return fmt.Sprintf("commit %s%s, app %s", commit, dirty, h)
+}
+
+// registerFleet serves instance.watch/v1 to the edges: PocketOne's ext/mothership watch server, answering with
+// PocketHost's resolver over these collections (package fleet). The resolver reads PH_APEX_DOMAIN, PH_HTTP_PROTOCOL,
+// APP_URL and PH_DOC_URL from the environment (defaults: pockethost.io, https:, app.<apex>, <apex>/docs).
+func registerFleet(app core.App) {
+	on := true
+	extkit.MustRegister(app, fleet.Extension{Cfg: fleet.ConfigFromEnv()}, &p1mothership.Server{Enabled: &on})
 }

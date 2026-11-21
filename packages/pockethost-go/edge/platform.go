@@ -24,7 +24,7 @@ func Setup(cfg Config) func(inst pocker.Instance, app core.App) error {
 	return func(inst pocker.Instance, app core.App) error {
 		applyAppDefaults(cfg, inst, app)
 
-		token := inst.Private["backup_token"]
+		token := backupToken(cfg.BackupTokenSecret, inst.ID)
 		app.OnServe().BindFunc(func(e *core.ServeEvent) error {
 			e.Router.GET("/api/ph/backup", func(re *core.RequestEvent) error {
 				got := re.Request.Header.Get("x-ph-backup-token")

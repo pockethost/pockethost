@@ -10,7 +10,6 @@ One binary, `pockethost`, with role-first commands:
 | Command | What it runs |
 |---|---|
 | `pockethost edge serve --config pocketone.yaml --env-file .env` | an edge: firewall, instances (pocker or docker), deploy API, webhooks, vacuum |
-| `pockethost edge check --config pocketone.yaml --env-file .env` | read-only: how the mothership's records map on this edge |
 | `pockethost docker seed --config pocketone.yaml --env-file .env` | downloads the releases the mothership lists that this docker edge doesn't have yet |
 | `pockethost mothership serve\|migrate\|superuser\|version\|hooks export` | the mothership (hooks, migrations and admin add-on embedded) |
 | `pockethost mothership versions list\|update [minor ...]` | the PocketBase/PocketOne versions PocketHost supports (see Versions) |
@@ -135,7 +134,7 @@ One process replaces both Node jobs (`firewall` + `edge-daemon`).
   `/api/firewall/health` answers before the peer check (the LB monitor): 503 `starting` until the instance list has loaded, then 200.
   Instances on other edges are `Remote` in Pocker: this edge's peer check, rate limits and CORS apply, then
   `Source.Forward` proxies to the owner edge's `internal_url` with `X-Ph-Forwarded-By`; a request that already has it
-  gets 421 (no second hop). Owner healthy in the mirror (heartbeat within 30 s) or answering its health check → forward;
+  gets 421 (no second hop). Owner healthy in the edges list the mothership streams (heartbeat within 30 s) or answering its health check → forward;
   connect failures mark it suspect and GET/HEAD/OPTIONS are held and retried while it stays alive; otherwise 503.
   Dropped from the Node firewall: the `x-pockethost-secret` allowlist bypass, `/api/_private/reset` (pm2 restart), the
   daemon grace (one process now).

@@ -27,21 +27,26 @@ the two version numbers don't match.
 
 ### Upgrading
 
+- Edges follow the mothership lazily (PocketOne's instance.watch/v1): deploy the mothership first (it serves the stream beside `GET /api/mirror`), with `PH_APEX_DOMAIN`, `PH_HTTP_PROTOCOL`, `APP_URL` and `PH_DOC_URL` in its environment when they differ from the defaults (pockethost.io, https:, app.<apex>, <apex>/docs). Then the edges, one at a time. `pockethost edge check` is gone.
+
 - The npm `pockethost` CLI no longer works with PocketHost (it signed in through the mothership's old `/api/pat/*` routes, which are gone). Use the `pockethost` or `pocketone` binary.
 
 ### Changed
+
+- Edges no longer hold every instance: each opens one stream to the mothership, asks for a hostname the first time a request names it, and gets its changes after that (no dump, realtime subscription or drift poll). The mothership maps instances for each edge (host claims, blocks, superusers, firewall, forwarding). An edge keeps serving what it has while the mothership is unreachable, and starts over when the stream comes back. Duplicates reach their edge as its standing set; webhooks and the nightly vacuum list this edge's instances with one small query.
+- Backup tokens are derived on each edge from its own `backup_token_secret`; the mothership never holds the secret.
 
 - Deploys are no longer recorded: edges stop writing to the mothership after each deploy, and a mothership migration deletes the `deploys` collection and its rows. Deploy commits ignore the `commit`, `message` and `source` older clients send, and no longer answer with a `deployId`.
 - API tokens are PocketOne API tokens (`pbt_…`, ext/api-tokens) on the mothership, with `instances` / `instances:read` scopes limited to some instances by value (`instances=<id>`). Existing `ph_pat_…` tokens keep working: each one moves over on its first use, with the same access and expiry.
 - Edges check tokens with the mothership's api-tokens.verify/v1 instead of `/api/pat/verify`.
 - The dashboard's API Tokens page creates and revokes tokens through the token API; a token's instances can't be edited any more (create a new token instead).
 - Edges no longer read users: the mothership works out what each instance gets from its owner (blocked when the owner is suspended, has no paid instances or isn't verified; the owner's login for admin sync; the owner's trusted IPs; who may deploy) and writes it on the instance. Edges load and watch instances and edges only, and stop fetching owner logins one by one at start. Deploys now also refuse an instance whose owner has no paid instances or isn't verified, not only a suspended owner.
-- **edge:** deploys run on PocketOne's deploy extension (ext/deploy) at `/api/_c/deploy/v1` only, reading and writing instance files through the runtime's instance.fs/v1; PocketHost's own copy of the deploy API is gone. The old `/_ph/deploy/v1` path (the npm CLI's) is gone, and each instance's upload cache moves from `DATA_ROOT/deploys/<id>` to `.pb_deploy` in its folder, so the first deploy after the upgrade uploads every file once. The dashboard's live log view (`POST /logs`) is unchanged.
+- **edge:** deploys run on PocketOne's deploy extension (ext/deploy) at `/api/_c/deploy/v1` only, reading and writing instance files through the runtime's instance.fs/v1; PocketHost's own copy of the deploy API is gone. The old `/_ph/deploy/v1` path (the npm CLI's) is gone, and each instance's upload cache moves from `DATA_ROOT/deploys/<id>` to `pb_cache/deploy` next to its `pb_data`, so the first deploy after the upgrade uploads every file once. The dashboard's live log view (`POST /logs`) is unchanged.
 - The mothership's edge dump (`GET /api/mirror`) no longer carries users, and `/api/userToken` is gone: no edge reads either.
 
 ### PocketOne
 
-- Built on PocketOne `main` at de42a86f (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history.
+- Built on PocketOne `main` at 4c961421 (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history, the lazy mirror (instance.watch/v1, instance.resolve/v1, instance.lookup/v1, ext/mothership client), deploy's upload store in pb_cache, standard-member switches.
 
 ## v5.0.0-alpha.7 (2026-11-19)
 

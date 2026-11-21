@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -53,15 +51,10 @@ func TestDeployBackend(t *testing.T) {
 
 	cfg := testCfg
 	cfg.MothershipURL = ms.URL
-	s := NewSource(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	s.loadDumpLocked(&dump{
-		Instances: []instanceRec{
-			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", Owners: []string{"u1"}, Power: true, Edge: "E_SGP", Cname: "Shop.Example.com",
-				Updated: "1", Blocked: &pocker.Blocked{Status: 403, Message: "account hold"}},
-			{ID: "bbbbbbbbbbbbbbb", Subdomain: "far", Owners: []string{"u2"}, Edge: "E_AMS", Suspension: "x", Updated: "1"},
-		},
-		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}, {ID: "E_AMS", EdgeID: "ams-1"}},
-	})
+	s := fakeSource(cfg, &fakeFleet{self: "E_SGP", insts: []pocker.Instance{
+		local("aaaaaaaaaaaaaaa", "shop", map[string]string{"owners": "u1", "owner_block": "account hold"}, "shop.example.com"),
+		{ID: "bbbbbbbbbbbbbbb", Hosts: []string{"far.pockethost.io"}, Remote: "edge:E_AMS", Private: map[string]string{"owners": "u2"}},
+	}})
 	b := s.DeployBackend()
 
 	for _, h := range []string{"shop.pockethost.io", "aaaaaaaaaaaaaaa.pockethost.io", "shop.example.com", "SHOP.pockethost.io."} {
@@ -71,7 +64,7 @@ func TestDeployBackend(t *testing.T) {
 			t.Errorf("%s: %+v %v", h, got, ok)
 		}
 	}
-	if got, ok := b.lookupHost("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.OwnerSuspension != "" || got.Suspension != "x" {
+	if got, ok := b.lookupHost("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.OwnerSuspension != "" {
 		t.Errorf("other edge: %+v", got)
 	}
 	if _, ok := b.lookupHost("nope.pockethost.io"); ok {

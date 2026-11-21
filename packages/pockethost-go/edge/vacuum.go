@@ -47,6 +47,7 @@ type Vacuumer struct {
 	s       *Source
 	manager func() Instances
 	opts    VacuumOptions
+	list    func(ctx context.Context) ([]localRec, error) // this edge's instances; nil = ask the mothership
 }
 
 // NewVacuumer creates the vacuum job; manager returns the running Manager (nil until started).
@@ -89,17 +90,53 @@ type VacuumSummary struct {
 	Failed     []string
 }
 
-// vacuumCandidate lists this edge's instance ids and whether autoVacuum is on.
-func (v *Vacuumer) candidates() map[string]bool {
-	out := map[string]bool{}
-	v.s.mu.Lock()
-	defer v.s.mu.Unlock()
-	for id, inst := range v.s.instances {
-		if isMine(inst, v.s.myEdge, v.s.cfg.EdgeID) {
-			out[id] = inst.AutoVacuum == nil || *inst.AutoVacuum
+// candidate is one of this edge's instances: whether autoVacuum is on, and the hostname to look it up by.
+type candidate struct {
+	on   bool
+	host string
+}
+
+// candidates lists this edge's instances from the mothership (one query a night; the edge holds only the instances
+// it has served lately).
+func (v *Vacuumer) candidates(ctx context.Context) map[string]candidate {
+	list := v.list
+	if list == nil {
+		list = func(ctx context.Context) ([]localRec, error) {
+			return v.s.localInstances(ctx, "", "id,subdomain,autoVacuum")
 		}
 	}
+	recs, err := list(ctx)
+	if err != nil {
+		v.s.log.Warn("pockethost: vacuum: can't list this edge's instances", "error", err)
+		return nil
+	}
+	out := make(map[string]candidate, len(recs))
+	for _, r := range recs {
+		out[r.ID] = candidate{on: r.AutoVacuum == nil || *r.AutoVacuum, host: v.s.webhookHost(r.ID, r.Subdomain)}
+	}
 	return out
+}
+
+// instanceDir finds id's folder, looking it up first when the runtime doesn't have it yet (an idle instance this
+// edge hasn't served since it started): the lookup hands it to the runtime.
+func (v *Vacuumer) instanceDir(ctx context.Context, m Instances, id, host string) (string, bool) {
+	if dir, ok := m.InstanceDir(id); ok {
+		return dir, true
+	}
+	if inst, ok := v.s.lookup(ctx, host); !ok || inst.ID != id || inst.Remote != "" {
+		return "", false
+	}
+	for i := 0; i < 30; i++ { // the host applies the lookup's change on its own goroutine
+		if dir, ok := m.InstanceDir(id); ok {
+			return dir, true
+		}
+		select {
+		case <-ctx.Done():
+			return "", false
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+	return "", false
 }
 
 // Sweep vacuums every eligible database once, one instance at a time.
@@ -110,11 +147,12 @@ func (v *Vacuumer) Sweep(ctx context.Context) VacuumSummary {
 		return sum
 	}
 	start := time.Now()
-	for id, on := range v.candidates() {
+	for id, c := range v.candidates(ctx) {
 		if ctx.Err() != nil {
 			break
 		}
-		dir, ok := m.InstanceDir(id)
+		on := c.on
+		dir, ok := v.instanceDir(ctx, m, id, c.host)
 		if !ok {
 			continue
 		}
