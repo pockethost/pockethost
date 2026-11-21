@@ -35,6 +35,10 @@ the two version numbers don't match.
 - Edges check tokens with the mothership's api-tokens.verify/v1 instead of `/api/pat/verify`.
 - The dashboard's API Tokens page creates and revokes tokens through the token API; a token's instances can't be edited any more (create a new token instead).
 
+### PocketOne
+
+- Built on PocketOne `main` at de42a86f (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history.
+
 ## v5.0.0-alpha.7 (2026-11-19)
 
 ### Fixed
