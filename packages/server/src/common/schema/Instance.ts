@@ -69,13 +69,6 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   duplicateError?: string
 } & TExtra
 
-/**
- * The retired Node edge daemon's view of an instance (InstanceService, the Node mirror, the Node deploy service and
- * firewall): it read the owner from `uid` and admin sync from `syncAdmin`, which the mothership no longer has (they
- * moved to `instance_owners`). Only that code uses this type; it isn't run any more.
- */
-export type LegacyInstanceFields = InstanceFields & { uid: UserId; syncAdmin: boolean }
-
 /** Who owns an instance (the mothership's `instance_owners`; one row per owned instance). */
 export type InstanceOwnerFields = BaseFields & {
   instance: InstanceId
@@ -83,7 +76,5 @@ export type InstanceOwnerFields = BaseFields & {
   /** The owner's login is synced into the instance as a superuser ("admin sync"). */
   sync_login: boolean
 }
-
-export type InstanceFields_Create = Omit<InstanceFields, keyof BaseFields>
 
 export type InstanceRecordsById = { [_: RecordId]: InstanceFields }

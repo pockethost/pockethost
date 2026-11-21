@@ -1,5 +1,3 @@
-export const TRUSTED_IP_CLIENT_HEADER = 'x-pockethost-client-ip'
-
 export type TrustedIpList = string[]
 
 /** Max trusted IP entries per active account. */

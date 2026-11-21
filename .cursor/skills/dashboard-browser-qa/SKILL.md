@@ -15,7 +15,7 @@ The **Cursor IDE browser works** for PocketHost dashboard QA. Use the `cursor-id
 | Requirement | Notes |
 |-------------|-------|
 | `pnpm dev:dashboard` | Vite on `:5174` (usually already running) |
-| `pnpm dev:cli serve` | Mothership + firewall on 80/443. Required for login and app routes |
+| Go `pockethost mothership serve` + `pockethost edge serve` | Mothership + edge firewall on 80/443 (`packages/pockethost-go/README.md`). Required for login and app routes |
 | HTTPS base URL | `https://pockethost.lvh.me` — **not** `http://localhost:5174` (insecure context, wrong routing) |
 
 ## Credentials

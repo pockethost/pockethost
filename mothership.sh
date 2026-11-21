@@ -16,4 +16,4 @@ pnpm i
 
 pnpm --filter pockethost-mothership-app build
 
-pnpm dev:cli serve
+pnpm dev:cli mothership serve

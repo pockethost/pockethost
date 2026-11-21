@@ -4,18 +4,7 @@ import { existsSync } from 'fs'
 import { hostname } from 'os'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import {
-  InstanceFields,
-  SettingsHandlerFactory,
-  SettingsService,
-  ioc,
-  mkBoolean,
-  mkCsvString,
-  mkNumber,
-  mkPath,
-  mkString,
-  settings,
-} from '.'
+import { SettingsHandlerFactory, SettingsService, ioc, mkBoolean, mkNumber, mkPath, mkString, settings } from '.'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -36,31 +25,9 @@ export const _DATA_ROOT = env.get('DATA_ROOT').default(join(_PH_HOME, `data`)).a
 export const _SSL_HOME = join(_PH_HOME, `ssl`)
 
 export const _IS_DEV = process.env.NODE_ENV === 'development'
-export const _PH_FIREWALL_DAEMON_GRACE_MS = Number(env.get('PH_FIREWALL_DAEMON_GRACE_MS').default('60000').asString())
-export const _PH_FIREWALL_DAEMON_GRACE_RETRY_MS = Number(
-  env.get('PH_FIREWALL_DAEMON_GRACE_RETRY_MS').default('500').asString()
-)
-export const _PH_DAEMON_VACUUM_WAIT_MS = Number(env.get('PH_DAEMON_VACUUM_WAIT_MS').default('30000').asString())
-export const _PH_DAEMON_VACUUM_WAIT_RETRY_MS = Number(
-  env.get('PH_DAEMON_VACUUM_WAIT_RETRY_MS').default('50').asString()
-)
 export const _PH_VACUUM_MAX_CONCURRENT = Number(env.get('PH_VACUUM_MAX_CONCURRENT').default('10').asString())
 export const _PH_CONTAINER_NOFILE_SOFT = Number(env.get('PH_CONTAINER_NOFILE_SOFT').default('65536').asString())
 export const _PH_CONTAINER_NOFILE_HARD = Number(env.get('PH_CONTAINER_NOFILE_HARD').default('524288').asString())
-export const _PH_ENABLE_INSTANCE_WEBHOOKS = env.get('PH_ENABLE_INSTANCE_WEBHOOKS').asBool()
-export const _PH_DISABLE_INSTANCE_WEBHOOKS = _PH_ENABLE_INSTANCE_WEBHOOKS
-  ? false
-  : env
-      .get('PH_DISABLE_INSTANCE_WEBHOOKS')
-      .default(_IS_DEV ? 'true' : 'false')
-      .asBool()
-export const _PH_ENABLE_FIREWALL_RATE_LIMIT = env.get('PH_ENABLE_FIREWALL_RATE_LIMIT').asBool()
-export const _PH_DISABLE_FIREWALL_RATE_LIMIT = _PH_ENABLE_FIREWALL_RATE_LIMIT
-  ? false
-  : env
-      .get('PH_DISABLE_FIREWALL_RATE_LIMIT')
-      .default(_IS_DEV ? 'true' : 'false')
-      .asBool()
 export const _DEBUG = env.get(`PH_DEBUG`).default(_IS_DEV.toString()).asBool()
 export const _APEX_DOMAIN = env.get('APEX_DOMAIN').default('pockethost.lvh.me').asString()
 export const _HTTP_PROTOCOL = env
@@ -88,25 +55,10 @@ export const createSettings = () => ({
   APP_URL: mkString(`${_HTTP_PROTOCOL}//${_APEX_DOMAIN}`),
   APEX_DOMAIN: mkString(_APEX_DOMAIN),
 
-  IPCIDR_LIST: mkCsvString([]),
-  PH_USER_PROXY_IPS: mkCsvString([]),
   DAEMON_PORT: mkNumber(3000),
-  DAEMON_PB_IDLE_TTL: mkNumber(1000 * 5), // 5 seconds
-  PH_CONTAINER_LAUNCH_WARN_MS: mkNumber(200),
-  /** How often edge services re-check the mothership for changes their realtime mirror missed. 0 disables. */
-  PH_MIRROR_DRIFT_CHECK_MS: mkNumber(60 * 1000),
-  /** Force a realtime reconnect when no mothership event has arrived for this long while the mothership has changes. */
-  PH_MIRROR_STALL_MS: mkNumber(10 * 60 * 1000),
-  /** A realtime gap up to this long is caught up incrementally; longer gaps (and boot) get a full mirror dump. */
-  PH_MIRROR_CATCHUP_MAX_GAP_MS: mkNumber(10 * 60 * 1000),
   PH_CONTAINER_STOP_TIMEOUT_SEC: mkNumber(5),
   PH_CONTAINER_NOFILE_SOFT: mkNumber(_PH_CONTAINER_NOFILE_SOFT),
   PH_CONTAINER_NOFILE_HARD: mkNumber(_PH_CONTAINER_NOFILE_HARD),
-  PH_MAX_CONCURRENT_DOCKER_LAUNCHES: mkNumber(5),
-  PH_FIREWALL_DAEMON_GRACE_MS: mkNumber(_PH_FIREWALL_DAEMON_GRACE_MS),
-  PH_FIREWALL_DAEMON_GRACE_RETRY_MS: mkNumber(_PH_FIREWALL_DAEMON_GRACE_RETRY_MS),
-  PH_DAEMON_VACUUM_WAIT_MS: mkNumber(_PH_DAEMON_VACUUM_WAIT_MS),
-  PH_DAEMON_VACUUM_WAIT_RETRY_MS: mkNumber(_PH_DAEMON_VACUUM_WAIT_RETRY_MS),
   PH_VACUUM_MAX_CONCURRENT: mkNumber(_PH_VACUUM_MAX_CONCURRENT),
 
   MOTHERSHIP_NAME: mkString(_MOTHERSHIP_NAME),
@@ -124,8 +76,6 @@ export const createSettings = () => ({
   DATA_ROOT: mkPath(_DATA_ROOT, { create: true }),
   NODE_ENV: mkString(`production`),
   IS_DEV: mkBoolean(_IS_DEV),
-  PH_DISABLE_INSTANCE_WEBHOOKS: mkBoolean(_PH_DISABLE_INSTANCE_WEBHOOKS),
-  PH_DISABLE_FIREWALL_RATE_LIMIT: mkBoolean(_PH_DISABLE_FIREWALL_RATE_LIMIT),
   TRACE: mkBoolean(false),
 
   PH_FTP_PORT: mkNumber(21),
@@ -145,11 +95,6 @@ export const createSettings = () => ({
       .default(hostname() || 'local')
       .asString()
   ),
-  PH_EDGE_HEARTBEAT_MS: mkNumber(10_000),
-  /** Region this edge serves, reported in its heartbeat. */
-  PH_EDGE_REGION: mkString(env.get('PH_EDGE_REGION').default('sfo').asString()),
-  /** URL other edges use to reach this edge's daemon over the private network, e.g. `http://10.88.0.2:8080`. */
-  PH_EDGE_INTERNAL_URL: mkString(env.get('PH_EDGE_INTERNAL_URL').default('').asString()),
 
   INSTANCE_APP_ROOT: mkString(_INSTANCE_APP_ROOT()),
 
@@ -208,22 +153,10 @@ export const APP_URL = (...path: string[]) => [settings().APP_URL, path.join(`/`
 
 export const APEX_DOMAIN = () => settings().APEX_DOMAIN
 
-export const IPCIDR_LIST = () => settings().IPCIDR_LIST
-export const PH_USER_PROXY_IPS = () => settings().PH_USER_PROXY_IPS
 export const DAEMON_PORT = () => settings().DAEMON_PORT
-export const DAEMON_PB_IDLE_TTL = () => settings().DAEMON_PB_IDLE_TTL
-export const PH_CONTAINER_LAUNCH_WARN_MS = () => settings().PH_CONTAINER_LAUNCH_WARN_MS
-export const PH_MIRROR_DRIFT_CHECK_MS = () => settings().PH_MIRROR_DRIFT_CHECK_MS
-export const PH_MIRROR_STALL_MS = () => settings().PH_MIRROR_STALL_MS
-export const PH_MIRROR_CATCHUP_MAX_GAP_MS = () => settings().PH_MIRROR_CATCHUP_MAX_GAP_MS
 export const PH_CONTAINER_STOP_TIMEOUT_SEC = () => settings().PH_CONTAINER_STOP_TIMEOUT_SEC
 export const PH_CONTAINER_NOFILE_SOFT = () => settings().PH_CONTAINER_NOFILE_SOFT
 export const PH_CONTAINER_NOFILE_HARD = () => settings().PH_CONTAINER_NOFILE_HARD
-export const PH_MAX_CONCURRENT_DOCKER_LAUNCHES = () => settings().PH_MAX_CONCURRENT_DOCKER_LAUNCHES
-export const PH_FIREWALL_DAEMON_GRACE_MS = () => settings().PH_FIREWALL_DAEMON_GRACE_MS
-export const PH_FIREWALL_DAEMON_GRACE_RETRY_MS = () => settings().PH_FIREWALL_DAEMON_GRACE_RETRY_MS
-export const PH_DAEMON_VACUUM_WAIT_MS = () => settings().PH_DAEMON_VACUUM_WAIT_MS
-export const PH_DAEMON_VACUUM_WAIT_RETRY_MS = () => settings().PH_DAEMON_VACUUM_WAIT_RETRY_MS
 export const PH_VACUUM_MAX_CONCURRENT = () => settings().PH_VACUUM_MAX_CONCURRENT
 
 export const MOTHERSHIP_URL = (...path: string[]) =>
@@ -248,8 +181,6 @@ export const INITIAL_PORT_POOL_SIZE = () => settings().INITIAL_PORT_POOL_SIZE
 export const DATA_ROOT = (...paths: string[]) => join(settings().DATA_ROOT, ...paths)
 export const NODE_ENV = () => settings().NODE_ENV
 export const IS_DEV = () => settings().IS_DEV
-export const PH_DISABLE_INSTANCE_WEBHOOKS = () => settings().PH_DISABLE_INSTANCE_WEBHOOKS
-export const PH_DISABLE_FIREWALL_RATE_LIMIT = () => settings().PH_DISABLE_FIREWALL_RATE_LIMIT
 export const TRACE = () => settings().TRACE
 
 export const PH_FTP_PORT = () => settings().PH_FTP_PORT
@@ -264,13 +195,8 @@ export const PH_SFTP_HOST_KEY = () => settings().PH_SFTP_HOST_KEY
 
 export const EDGE_APEX_DOMAIN = () => settings().EDGE_APEX_DOMAIN
 export const PH_EDGE_ID = () => settings().PH_EDGE_ID
-export const PH_EDGE_HEARTBEAT_MS = () => settings().PH_EDGE_HEARTBEAT_MS
-export const PH_EDGE_REGION = () => settings().PH_EDGE_REGION
-export const PH_EDGE_INTERNAL_URL = () => settings().PH_EDGE_INTERNAL_URL
 
 export const INSTANCE_APP_ROOT = (...paths: string[]) => join(settings().INSTANCE_APP_ROOT, ...paths)
-export const INSTANCE_APP_HOOK_DIR = (...paths: string[]) => INSTANCE_APP_ROOT(`pb_hooks`, ...paths)
-export const INSTANCE_APP_MIGRATIONS_DIR = (...paths: string[]) => INSTANCE_APP_ROOT(`pb_migrations`, ...paths)
 
 export const DISCORD_HEALTH_CHANNEL_URL = () => env.get('DISCORD_HEALTH_CHANNEL_URL').asString()
 export const DISCORD_ALERT_CHANNEL_URL = () => env.get('DISCORD_ALERT_CHANNEL_URL').asString()
@@ -285,9 +211,6 @@ export const PH_BACKUP_ICEBOX_REMOTE = () =>
 /** HMAC key for archive download links. Falls back to PH_SECRET. */
 export const PH_ARCHIVE_LINK_SECRET = () =>
   env.get('PH_ARCHIVE_LINK_SECRET').asString() || env.get('PH_SECRET').asString() || ''
-/** HMAC key for per-instance backup tokens (`PH_BACKUP_TOKEN`). Falls back to PH_SECRET. Empty disables the tokens. */
-export const PH_BACKUP_TOKEN_SECRET = () =>
-  env.get('PH_BACKUP_TOKEN_SECRET').asString() || env.get('PH_SECRET').asString() || ''
 /** Public origin serving `/_ph/archive/:id` (the firewall, on the mothership host). */
 export const PH_ARCHIVE_LINK_ORIGIN = () =>
   env.get('PH_ARCHIVE_LINK_ORIGIN').asString() || `${_HTTP_PROTOCOL}//${_MOTHERSHIP_NAME}.${_APEX_DOMAIN}`
@@ -320,12 +243,6 @@ export const INSTANCES_QUARANTINE_ROOT = (...paths: string[]) => DATA_ROOT('quar
 export const MOTHERSHIP_DATA_DB = () => join(MOTHERSHIP_DATA_ROOT(), `pb_data`, `data.db`)
 export const mkContainerHomePath = (...path: string[]) => join(`/home/pockethost`, ...path.filter((v) => !!v))
 export const DOC_URL = (...path: string[]) => APP_URL('docs', ...path)
-export const mkInstanceCanonicalHostname = (instance: InstanceFields) =>
-  instance.cname && instance.cname.trim() !== '' ? instance.cname : `${instance.id}.${APEX_DOMAIN()}`
-export const mkInstanceHostname = (instance: InstanceFields) =>
-  [instance.subdomain, APEX_DOMAIN()].filter(Boolean).join('.')
-export const mkInstanceUrl = (instance: InstanceFields, ...paths: string[]) =>
-  [`${HTTP_PROTOCOL()}//${mkInstanceHostname(instance)}`, paths.join(`/`)].filter(Boolean).join('/')
 export const mkInstanceDataPath = (instanceId: string, ...path: string[]) => INSTANCES_ROOT(instanceId, ...path)
 
 export const logConstants = () => {
@@ -337,14 +254,7 @@ export const logConstants = () => {
     HTTP_PROTOCOL,
     APP_URL,
     APEX_DOMAIN,
-    IPCIDR_LIST,
-    PH_USER_PROXY_IPS,
     DAEMON_PORT,
-    DAEMON_PB_IDLE_TTL,
-    PH_CONTAINER_LAUNCH_WARN_MS,
-    PH_MIRROR_DRIFT_CHECK_MS,
-    PH_MIRROR_STALL_MS,
-    PH_MIRROR_CATCHUP_MAX_GAP_MS,
     PH_CONTAINER_STOP_TIMEOUT_SEC,
     PH_CONTAINER_NOFILE_SOFT,
     PH_CONTAINER_NOFILE_HARD,
@@ -365,8 +275,6 @@ export const logConstants = () => {
     DATA_ROOT,
     NODE_ENV,
     IS_DEV,
-    PH_DISABLE_INSTANCE_WEBHOOKS,
-    PH_DISABLE_FIREWALL_RATE_LIMIT,
     TRACE,
     PH_FTP_PORT,
     SSL_KEY,
@@ -378,9 +286,6 @@ export const logConstants = () => {
     PH_SFTP_HOST_KEY,
     EDGE_APEX_DOMAIN,
     PH_EDGE_ID,
-    PH_EDGE_HEARTBEAT_MS,
-    PH_EDGE_REGION,
-    PH_EDGE_INTERNAL_URL,
     INSTANCE_APP_ROOT: () => INSTANCE_APP_ROOT(),
     DISCORD_HEALTH_CHANNEL_URL,
     DISCORD_ALERT_CHANNEL_URL,
@@ -394,11 +299,6 @@ export const logConstants = () => {
     DOCKER_CONTAINER_HOST,
     DOCKER_INSTANCE_IMAGE_NAME,
     PH_POCKETBASE_ROOT,
-    PH_MAX_CONCURRENT_DOCKER_LAUNCHES,
-    PH_FIREWALL_DAEMON_GRACE_MS,
-    PH_FIREWALL_DAEMON_GRACE_RETRY_MS,
-    PH_DAEMON_VACUUM_WAIT_MS,
-    PH_DAEMON_VACUUM_WAIT_RETRY_MS,
     PH_VACUUM_MAX_CONCURRENT,
     MOTHERSHIP_DATA_DB,
     INSTANCES_ROOT,
