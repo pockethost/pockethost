@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pockethost/pockethost/packages/pockethost-go/fleet"
 	"io"
 	"io/fs"
 	"net/http"
@@ -21,9 +22,8 @@ import (
 // never starts on an empty folder.
 
 const (
-	duplicateCopying = "copying"
-	duplicateReady   = "ready"
-	duplicateFailed  = "failed"
+	duplicateReady  = fleet.DuplicateReady
+	duplicateFailed = fleet.DuplicateFailed
 )
 
 // Duplicator copies new duplicates' files on this edge.
@@ -54,39 +54,30 @@ func (d *Duplicator) Run(ctx context.Context) {
 	}
 }
 
-type pendingCopy struct{ id, source string }
+type pendingCopy struct{ id, source, problem string }
 
-// pending lists this edge's instances still waiting for their copy, oldest first.
+// pending lists this edge's instances still waiting for their copy, oldest first: the copies in the standing set the
+// mothership sends (their originals come with them, so the runtime has both).
 func (d *Duplicator) pending() []pendingCopy {
-	d.s.mu.Lock()
-	defer d.s.mu.Unlock()
 	var out []pendingCopy
-	for id, inst := range d.s.instances {
-		if inst.DuplicateStatus != duplicateCopying {
-			delete(d.finished, id) // the mirror caught up (or the copy was deleted and re-made)
-			continue
+	copying := map[string]bool{}
+	for _, inst := range d.s.standing() {
+		src, isCopy := inst.Private[fleet.PrivateDuplicateOf]
+		if !isCopy {
+			continue // an original
 		}
-		if d.finished[id] || !isMine(inst, d.s.myEdge, d.s.cfg.EdgeID) {
-			continue
+		copying[inst.ID] = true
+		if !d.finished[inst.ID] {
+			out = append(out, pendingCopy{id: inst.ID, source: src, problem: inst.Private[fleet.PrivateDuplicateProblem]})
 		}
-		out = append(out, pendingCopy{id: id, source: inst.DuplicateOf})
+	}
+	for id := range d.finished {
+		if !copying[id] {
+			delete(d.finished, id) // the mothership caught up (or the copy was deleted and re-made)
+		}
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].id < out[j].id })
 	return out
-}
-
-// sourceProblem says why the source can't be copied here (it is gone or another edge has it), or "".
-func (d *Duplicator) sourceProblem(source string) string {
-	d.s.mu.Lock()
-	defer d.s.mu.Unlock()
-	inst, ok := d.s.instances[source]
-	switch {
-	case source == "" || !ok:
-		return "the original instance no longer exists"
-	case !isMine(inst, d.s.myEdge, d.s.cfg.EdgeID):
-		return "the original instance moved to another server"
-	}
-	return ""
 }
 
 // Sweep makes every pending copy once, one at a time.
@@ -99,7 +90,7 @@ func (d *Duplicator) Sweep(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		if why := d.sourceProblem(p.source); why != "" {
+		if why := p.problem; why != "" {
 			d.finish(ctx, p.id, duplicateFailed, why)
 			continue
 		}
@@ -142,9 +133,7 @@ func (d *Duplicator) finish(ctx context.Context, id, status, msg string) {
 		d.s.log.Error("pockethost: duplicate report failed", "instance", id, "status", status, "error", err)
 		return
 	}
-	d.s.mu.Lock()
 	d.finished[id] = true
-	d.s.mu.Unlock()
 }
 
 // copyInstanceDir replaces dst with a copy of src: it copies into a sibling folder, then swaps it in, so dst is never

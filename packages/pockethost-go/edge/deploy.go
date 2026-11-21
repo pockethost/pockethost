@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pockethost/pockethost/packages/pockethost-go/fleet"
 	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 	verifyv1 "pocketone.dev/ext/contracts/api-tokens/verify/v1"
 	"pocketone.dev/ext/deploy"
@@ -46,27 +47,21 @@ func (b *DeployBackend) Lookup(r *http.Request) (deploy.Instance, bool) {
 }
 
 func (b *DeployBackend) lookupHost(host string) (deploy.Instance, bool) {
-	s := b.s
 	host = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(host)), ".")
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	id, ok := s.claims[host]
+	inst, ok := b.s.lookup(context.Background(), host)
 	if !ok {
 		return deploy.Instance{}, false
 	}
-	inst, ok := s.instances[id]
-	if !ok {
-		return deploy.Instance{}, false
+	p := inst.Private
+	if inst.Remote != "" {
+		out := deploy.Instance{ID: inst.ID, Elsewhere: host + " is served by another PocketHost edge"}
+		out.OwnerID, _, _ = strings.Cut(p[fleet.PrivateOwners], ",")
+		return out, true
 	}
-	out := deploy.Instance{ID: inst.ID, Subdomain: inst.Subdomain, Power: inst.Power, Suspension: inst.Suspension}
-	if len(inst.Owners) > 0 {
-		out.OwnerID = inst.Owners[0]
-	}
-	if inst.Blocked != nil && inst.Blocked.Status != 0 {
-		out.OwnerSuspension = inst.Blocked.Message // ext/deploy refuses with this message (403)
-	}
-	if !isMine(inst, s.myEdge, s.cfg.EdgeID) {
-		out.Elsewhere = host + " is served by another PocketHost edge"
+	out := deploy.Instance{ID: inst.ID, Subdomain: p[fleet.PrivateSubdomain], Power: p[fleet.PrivatePower] == "true",
+		Suspension: p[fleet.PrivateSuspension], OwnerSuspension: p[fleet.PrivateOwnerBlock]} // ext/deploy refuses an owner block (403)
+	if owners := p[fleet.PrivateOwners]; owners != "" {
+		out.OwnerID, _, _ = strings.Cut(owners, ",")
 	}
 	return out, true
 }

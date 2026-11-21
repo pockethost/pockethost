@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -62,16 +60,11 @@ const (
 
 func newTestDeployBackend(t *testing.T) (*DeployBackend, *fakeVerifier) {
 	t.Helper()
-	s := NewSource(testCfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	s.loadDumpLocked(&dump{
-		Instances: []instanceRec{
-			{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", Owners: []string{"user1"}, Power: true, Edge: "E_SGP", Updated: "1"},
-			{ID: "ccccccccccccccc", Subdomain: "held", Owners: []string{"user1"}, Power: true, Edge: "E_SGP", Updated: "1",
-				Blocked: &pocker.Blocked{Status: 403, Message: "account hold"}},
-			{ID: "bbbbbbbbbbbbbbb", Subdomain: "far", Owners: []string{"user1"}, Edge: "E_AMS", Updated: "1"},
-		},
-		Edges: []edgeRec{{ID: "E_SGP", EdgeID: "sgp-1"}, {ID: "E_AMS", EdgeID: "ams-1"}},
-	})
+	s := fakeSource(testCfg, &fakeFleet{self: "E_SGP", insts: []pocker.Instance{
+		local("aaaaaaaaaaaaaaa", "shop", map[string]string{"owners": "user1"}),
+		local("ccccccccccccccc", "held", map[string]string{"owners": "user1", "owner_block": "account hold"}),
+		{ID: "bbbbbbbbbbbbbbb", Hosts: []string{"far.pockethost.io"}, Remote: "edge:E_AMS", Private: map[string]string{"owners": "user1"}},
+	}})
 	v := &fakeVerifier{
 		grants: map[string]apitokensv1.Grant{
 			tokFull:   {OwnerID: "user1", Name: "CI", Scopes: []string{"instances"}},

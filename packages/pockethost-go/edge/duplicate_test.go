@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"pocketone.dev/ext/pocker"
 	"strings"
 	"sync"
 	"testing"
@@ -131,14 +131,15 @@ func TestDuplicatorSweep(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	s := NewSource(Config{MothershipURL: srv.URL, AdminUser: "a@b.c", AdminPassword: "x", EdgeID: "e1"}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	s.myEdge = "E1"
-	s.instances["orig"] = instanceRec{ID: "orig", Edge: "E1"}
-	s.instances["copy"] = instanceRec{ID: "copy", Edge: "E1", DuplicateOf: "orig", DuplicateStatus: duplicateCopying}
-	s.instances["orphan"] = instanceRec{ID: "orphan", Edge: "E1", DuplicateOf: "gone", DuplicateStatus: duplicateCopying}
-	s.instances["away"] = instanceRec{ID: "away", Edge: "E1", DuplicateOf: "other", DuplicateStatus: duplicateCopying}
-	s.instances["other"] = instanceRec{ID: "other", Edge: "E2"}
-	s.instances["theirs"] = instanceRec{ID: "theirs", Edge: "E2", DuplicateOf: "other", DuplicateStatus: duplicateCopying}
+	// the standing set the mothership sends this edge: its copies (with what it found about their originals) and the
+	// originals it can copy from
+	f := &fakeFleet{self: "E1", standing: []pocker.Instance{
+		{ID: "orig"},
+		{ID: "copy", Private: map[string]string{"duplicate_of": "orig"}},
+		{ID: "orphan", Private: map[string]string{"duplicate_of": "gone", "duplicate_problem": "the original instance no longer exists"}},
+		{ID: "away", Private: map[string]string{"duplicate_of": "other", "duplicate_problem": "the original instance moved to another server"}},
+	}}
+	s := fakeSource(Config{MothershipURL: srv.URL, AdminUser: "a@b.c", AdminPassword: "x", EdgeID: "e1"}, f)
 
 	root := t.TempDir()
 	writeFile(t, filepath.Join(root, "orig", "pb_data", "data.db"), "db")
@@ -171,19 +172,5 @@ func TestDuplicatorSweep(t *testing.T) {
 	d.Sweep(ctx)
 	if _, again := patches["copy"]; again {
 		t.Fatal("copied twice")
-	}
-}
-
-func TestMapInstanceBlocksUnfinishedCopies(t *testing.T) {
-	cfg := Config{ApexDomain: "pockethost.io", EdgeID: "e1"}
-	for status, want := range map[string]string{duplicateCopying: "still being copied", duplicateFailed: "could not be copied"} {
-		p, ok := mapInstance(cfg, instanceRec{ID: "i", Subdomain: "s", Power: true, Edge: "E1", DuplicateStatus: status}, "E1")
-		if !ok || p.Blocked == nil || p.Blocked.Status != http.StatusServiceUnavailable || !strings.Contains(p.Blocked.Message, want) {
-			t.Fatalf("%s: %+v", status, p.Blocked)
-		}
-	}
-	p, _ := mapInstance(cfg, instanceRec{ID: "i", Subdomain: "s", Power: true, Edge: "E1", DuplicateStatus: duplicateReady}, "E1")
-	if p.Blocked != nil {
-		t.Fatalf("ready copy blocked: %+v", p.Blocked)
 	}
 }

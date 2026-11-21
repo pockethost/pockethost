@@ -52,9 +52,7 @@ func fmtTime(t time.Time) string {
 // edgeRecord waits (up to a minute) for this edge's record id, known once the mirror has loaded.
 func (st *InstanceStats) edgeRecord(ctx context.Context) (string, error) {
 	for i := 0; i < 60; i++ {
-		st.s.mu.Lock()
-		id := st.s.myEdge
-		st.s.mu.Unlock()
+		id := st.s.myEdge()
 		if id != "" {
 			return id, nil
 		}

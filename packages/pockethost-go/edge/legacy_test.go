@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"pocketone.dev/ext/multisite"
 	"pocketone.dev/ext/docker"
+	"pocketone.dev/ext/multisite"
 )
 
 type fixedVersions []docker.Release
@@ -51,7 +51,7 @@ func TestLegacyVersionsFromCache(t *testing.T) {
 }
 
 func TestLegacyContainer(t *testing.T) {
-	prep := LegacyContainer(DockerContainer(nil))
+	prep := LegacyContainer(DockerContainer(nil, ""))
 	def := []string{"./pocketbase", "serve", "--http", "0.0.0.0:8090", "--dev"} // the runtime's default (hooks watcher on)
 	for _, c := range []struct {
 		version   string

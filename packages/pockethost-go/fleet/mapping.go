@@ -1,9 +1,6 @@
-package edge
+package fleet
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,7 +11,7 @@ import (
 	"pocketone.dev/ext/pocker"
 )
 
-// Mothership records as the mirror exports them.
+// Mothership records, as the mapping reads them (decoded from the records' fields by their JSON names).
 
 type instanceRec struct {
 	ID         string          `json:"id"`
@@ -52,6 +49,25 @@ type edgeRec struct {
 
 // legacyEdgeID owns instances that have no edge (they predate edges).
 const legacyEdgeID = "sfo"
+
+// Instance.Private keys the mapping sets for an edge's own instances.
+const (
+	PrivateSubdomain  = "subdomain"
+	PrivateOwners     = "owners" // comma-separated user ids that may deploy
+	PrivatePower      = "power"  // "true" or "false"
+	PrivateSuspension = "suspension"
+	PrivateOwnerBlock = "owner_block" // the message when the owner's account blocks it
+	// standing duplicates (see Resolver.Standing)
+	PrivateDuplicateOf      = "duplicate_of"
+	PrivateDuplicateProblem = "duplicate_problem"
+)
+
+// Duplicate statuses (instances.duplicateStatus).
+const (
+	DuplicateCopying = "copying"
+	DuplicateReady   = "ready"
+	DuplicateFailed  = "failed"
+)
 
 // remoteEdgePrefix marks pocker.Instance.Remote values: "edge:<edges record id>" or "edge:@<edge_id>" (legacy).
 const remoteEdgePrefix = "edge:"
@@ -147,16 +163,6 @@ func rateLimits(raw json.RawMessage) *firewall.RateLimits {
 	return r
 }
 
-// backupToken matches the Node edge: base64url(HMAC-SHA256(secret, "backup-token:<id>")).
-func backupToken(secret, instanceID string) string {
-	if secret == "" {
-		return ""
-	}
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte("backup-token:" + instanceID))
-	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
-}
-
 // Reserved secret names that are platform settings, not app variables.
 const (
 	secretCORS       = "PH_CORS_ORIGINS"
@@ -176,9 +182,10 @@ func splitOrigins(s string) []string {
 	return out
 }
 
-// mapInstance turns a mothership instance into a Pocker instance, the way the Node edge daemon decided what to serve.
-// ok is always true now (an instance without an owner is blocked by the mothership); it stays for the claims logic.
-func mapInstance(cfg Config, inst instanceRec, myEdge string) (pocker.Instance, bool) {
+// mapInstance turns a mothership instance into a Pocker instance for the edge myEdgeID (record id myEdge), the way the
+// Node edge daemon decided what to serve. The backup token isn't here: edges derive it from their own secret and the
+// instance id.
+func mapInstance(cfg Config, inst instanceRec, myEdge, myEdgeID string) pocker.Instance {
 	p := pocker.Instance{ID: inst.ID, Hosts: hosts(inst, cfg.ApexDomain)}
 	host := p.Hosts[0]
 
@@ -187,10 +194,13 @@ func mapInstance(cfg Config, inst instanceRec, myEdge string) (pocker.Instance, 
 	if fw := (firewall.InstanceConfig{RateLimits: rateLimits(inst.Firewall), TrustedIPs: stringList(inst.TrustedIPs)}); fw.RateLimits != nil || len(fw.TrustedIPs) > 0 {
 		p.Extensions = map[string]any{"firewall": fw} // owner's trusted IPs and the operator's rate-limit overrides
 	}
-	if !isMine(inst, myEdge, cfg.EdgeID) {
+	if !isMine(inst, myEdge, myEdgeID) {
 		// another edge runs it: Pocker applies this edge's firewall (rate limits, CORS) and forwards (Source.Forward)
 		p.Remote = remoteEdgePrefix + ownerEdge(inst)
-		return p, true
+		if len(inst.Owners) > 0 { // the deploy API checks who's asking before it answers "another edge"
+			p.Private = map[string]string{PrivateOwners: strings.Join(inst.Owners, ",")}
+		}
+		return p
 	}
 	switch {
 	case inst.Blocked != nil && inst.Blocked.Status != 0:
@@ -198,9 +208,9 @@ func mapInstance(cfg Config, inst instanceRec, myEdge string) (pocker.Instance, 
 		p.Blocked = &b
 	case inst.Suspension != "":
 		p.Blocked = &pocker.Blocked{Status: http.StatusForbidden, Message: inst.Suspension}
-	case inst.DuplicateStatus == duplicateCopying:
+	case inst.DuplicateStatus == DuplicateCopying:
 		p.Blocked = &pocker.Blocked{Status: http.StatusServiceUnavailable, Message: fmt.Sprintf("%s is still being copied.", host)}
-	case inst.DuplicateStatus == duplicateFailed:
+	case inst.DuplicateStatus == DuplicateFailed:
 		p.Blocked = &pocker.Blocked{Status: http.StatusServiceUnavailable, Message: fmt.Sprintf("%s could not be copied. Delete it and duplicate again.", host)}
 	case !inst.Power:
 		p.Blocked = &pocker.Blocked{Status: http.StatusServiceUnavailable,
@@ -217,7 +227,12 @@ func mapInstance(cfg Config, inst instanceRec, myEdge string) (pocker.Instance, 
 	p.Secrets = secrets
 	p.Dev = inst.Dev
 	p.Version = inst.Version // the docker runtime runs this release (pocker serves every instance in-process and ignores it)
-	p.Private = map[string]string{"backup_token": backupToken(cfg.BackupTokenSecret, inst.ID), "subdomain": inst.Subdomain}
+	// facts the edge's own Go code reads (platform defaults, the deploy API); never visible to the instance's JS
+	p.Private = map[string]string{PrivateSubdomain: inst.Subdomain, PrivateOwners: strings.Join(inst.Owners, ","),
+		PrivatePower: fmt.Sprint(inst.Power), PrivateSuspension: inst.Suspension}
+	if inst.Blocked != nil && inst.Blocked.Status != 0 {
+		p.Private[PrivateOwnerBlock] = inst.Blocked.Message
+	}
 
 	if p.Blocked == nil { // a blocked instance never starts: no login needed
 		for _, su := range inst.Superusers {
@@ -226,5 +241,5 @@ func mapInstance(cfg Config, inst instanceRec, myEdge string) (pocker.Instance, 
 			}
 		}
 	}
-	return p, true
+	return p
 }

@@ -1,31 +1,25 @@
 // Command pockethost is PocketHost's server binary, on PocketOne. The first argument picks the role:
 //
 //	pockethost edge serve [--config pocketone.yaml] [--env-file .env]
-//	pockethost edge check [--config pocketone.yaml] [--env-file .env]
 //	pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]
 //	pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (mothership.go)
 //	pockethost version   (also --version, -v: this release, and the PocketOne and PocketBase it's built on)
 //
 // An edge runs from pocketone.yaml: a runtime provider (pocker or docker), the firewall, and the `pockethost` section
-// (this edge, the mothership login); instances come from PocketHost's mothership mirror, the edge heartbeats and
+// (this edge, the mothership login); instances come from PocketHost's mothership, looked up as requests name them, the edge heartbeats and
 // reports instance status, and every instance gets PocketHost's platform routes. Secrets live in the .env beside the
 // config and never reach the instances.
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log/slog"
 	"os"
-
-	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
-	"pocketone.dev/ext/config"
 )
 
 const usage = `usage:
   pockethost edge serve [--config pocketone.yaml] [--env-file .env]
-  pockethost edge check [--config pocketone.yaml] [--env-file .env]
   pockethost docker seed|update [--config pocketone.yaml] [--env-file .env]
   pockethost mothership serve|migrate|superuser|version|hooks export|versions ...   (see mothership.go)
   pockethost version`
@@ -55,9 +49,6 @@ func main() {
 			case "serve":
 				edgeServe(args[2:])
 				return
-			case "check":
-				check(args[2:])
-				return
 			}
 		}
 	}
@@ -80,29 +71,4 @@ func edgeServe(args []string) {
 		slog.Error("pockethost: serve", "error", err)
 		os.Exit(1)
 	}
-}
-
-// check: read-only mapping report against the mothership (`pockethost edge check`).
-func check(args []string) {
-	configPath, envPath := edgeFlags("edge check", args)
-	if _, err := config.Load(config.Options{ConfigPath: configPath, EnvPath: envPath}); err != nil {
-		slog.Error("pockethost: config", "error", err)
-		os.Exit(1)
-	}
-	ph, err := edge.Section.Require()
-	if err != nil {
-		slog.Error("pockethost: config", "error", err)
-		os.Exit(1)
-	}
-	ecfg, err := edge.ConfigFromSection(ph)
-	if err != nil {
-		slog.Error("pockethost: config", "error", err)
-		os.Exit(1)
-	}
-	rep, err := edge.Check(context.Background(), ecfg)
-	if err != nil {
-		slog.Error("pockethost: check", "error", err)
-		os.Exit(1)
-	}
-	fmt.Println(rep)
 }

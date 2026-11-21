@@ -13,6 +13,7 @@ import (
 
 	"github.com/pockethost/pockethost/packages/pockethost-go/edge"
 	"pocketone.dev/ext/config"
+	cachev1 "pocketone.dev/ext/contracts/cache/v1"
 	deployv1 "pocketone.dev/ext/contracts/deploy/v1"
 	fsv1 "pocketone.dev/ext/contracts/instance/fs/v1"
 	remotev1 "pocketone.dev/ext/contracts/remote/v1"
@@ -92,12 +93,14 @@ func edgeServeConfig(configPath, envPath string) error {
 		sc, _ := docker.Section.Get()
 		root = cfg.ResolvePath(sc.Root)
 	}
+	std := standard.New()
 	pp := &pocker.Provider{
 		// every instance gets PocketOne's standard extensions: tokens with OAuth sign-in, MCP, PocketPages, PITR,
 		// settings and the rest (the host's own deploy/v1 and remote/v1 answer for them, see Host below)
-		Standard: standard.New(),
+		Standard: std,
 		SetupApp: edge.Setup(ecfg),
 		OnStart:  func(m *pocker.Manager) { running.Store(&instancesBox{m}) },
+		OnEvent:  source.InstanceEvent, // instance status back to the mothership
 		Resolve:  cfg.ResolvePath,
 	}
 	var platformBinds []string
@@ -116,7 +119,7 @@ func edgeServeConfig(configPath, envPath string) error {
 	}
 	// the mothership owns the versions list (pocketbase_versions): every edge serves the same ones
 	// container output goes to each instance's logs/exec.log, which the dashboard's log view reads
-	dp := &docker.Provider{Container: edge.DockerContainer(platformBinds), OnLog: edge.DockerLog(root), Resolve: cfg.ResolvePath, Versions: source.Versions()}
+	dp := &docker.Provider{Container: edge.DockerContainer(platformBinds, ecfg.BackupTokenSecret), OnLog: edge.DockerLog(root), Resolve: cfg.ResolvePath, Versions: source.Versions()}
 	if provider == "docker" && ph.LegacyReleases { // sfo-2 until Feb 6, 2027 (edge/legacy.go)
 		sc, _ := docker.Section.Get()
 		dp.Versions = edge.LegacyVersions(dp.Versions, &docker.Binaries{Root: cfg.ResolvePath(sc.Binaries)})
@@ -129,13 +132,20 @@ func edgeServeConfig(configPath, envPath string) error {
 
 	// host extensions, in order: servertiming first (http.wrap/v1, outermost: its header includes the edge's hops),
 	// then the one runtime this edge runs (runtime/v1); the firewall links itself (gate/v1)
-	exts := []multisite.Extension{servertiming.New()}
+	exts := []multisite.Extension{servertiming.New(),
+		// the host's own cache/v1 (the standard set's store, shared with pocker's instances): the lazy mirror keeps
+		// its answers there
+		multisite.Provides("cache", func(s *extkit.Scope) { cachev1.Contract.ProvideIn(s, std.Cache.Host(s)) }),
+		// instance.source/v1 and instance.lookup/v1: each hostname is asked of the mothership the first time a
+		// request names it, then followed on one stream (PocketOne's ext/mothership client)
+		source.Lazy,
+	}
 	if provider == "docker" {
 		exts = append(exts, dp)
 	} else {
 		exts = append(exts, pp)
 	}
-	h, err := multisite.FromConfig(multisite.Options{Source: source, Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log, Extensions: exts})
+	h, err := multisite.FromConfig(multisite.Options{Forward: ceedge.NewRouter(rc).Forward, Resolve: cfg.ResolvePath, Logger: log, Extensions: exts})
 	if err != nil {
 		return err
 	}

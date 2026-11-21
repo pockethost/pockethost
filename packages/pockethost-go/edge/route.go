@@ -1,6 +1,7 @@
 package edge
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -52,31 +53,6 @@ func parsePBTime(v string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("bad time %q", v)
 }
 
-// ownerEdgeOf resolves a Remote value ("edge:<record id>" / "edge:@<edge_id>") to the edge record.
-func (s *Source) ownerEdgeOf(remote string) (edgeRec, bool) {
-	ref := strings.TrimPrefix(remote, remoteEdgePrefix)
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if strings.HasPrefix(ref, "@") {
-		for _, e := range s.edges {
-			if e.EdgeID == ref[1:] {
-				return e, true
-			}
-		}
-		return edgeRec{}, false
-	}
-	e, ok := s.edges[ref]
-	return e, ok
-}
-
-// edgeByRecord returns an edge record by id.
-func (s *Source) edgeByRecord(id string) (edgeRec, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	e, ok := s.edges[id]
-	return e, ok
-}
-
 // RouteConfig is ext/edge configured like the Node firewall: PocketHost's forwarded-by header, the daemon health
 // path other edges probe, and PocketHost's 503 message. Edges is left for the caller.
 func RouteConfig(log *slog.Logger) ceedge.RouterConfig {
@@ -97,30 +73,12 @@ var _ ceedge.EdgeSource = (*Source)(nil)
 // Self implements ext/edge's EdgeSource: this edge's id.
 func (s *Source) Self() string { return s.cfg.EdgeID }
 
-// Resolve implements ext/edge's EdgeSource: a Remote value ("edge:<record id>" / "edge:@<edge_id>") to the edge.
-func (s *Source) Resolve(remote string) (ceedge.Edge, bool) {
-	e, ok := s.ownerEdgeOf(remote)
-	if !ok {
-		return ceedge.Edge{}, false
-	}
-	return toEdge(e), true
-}
+// Resolve implements ext/edge's EdgeSource: a Remote value ("edge:<record id>" / "edge:@<edge_id>") to the edge,
+// from the edges the mothership's stream sent.
+func (s *Source) Resolve(remote string) (ceedge.Edge, bool) { return s.fleet.Resolve(remote) }
 
-// Edges implements ext/edge's EdgeSource: every edge in the mirror.
-func (s *Source) Edges() []ceedge.Edge {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	out := make([]ceedge.Edge, 0, len(s.edges))
-	for _, e := range s.edges {
-		out = append(out, toEdge(e))
-	}
-	return out
-}
-
-func toEdge(e edgeRec) ceedge.Edge {
-	seen, _ := parsePBTime(e.LastSeen)
-	return ceedge.Edge{ID: e.EdgeID, InternalURL: e.InternalURL, Region: e.Region, Status: e.Status, LastSeen: seen}
-}
+// Edges implements ext/edge's EdgeSource: every edge the mothership's stream sent.
+func (s *Source) Edges() []ceedge.Edge { return s.fleet.Edges() }
 
 // Forward serves a request for an instance another edge runs, with this edge's mirror as the only edge source
 // (pocker.Server.Forward; `pockethost edge serve` passes Edges instead, so YAML edges can sit next to the mirror).
@@ -143,43 +101,23 @@ func normalizeRequestHost(h string) string {
 
 // IsRemote reports whether another edge runs the instance host names (unknown hosts are local).
 func (s *Source) IsRemote(host string) bool {
-	host = normalizeRequestHost(host)
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	id, ok := s.claims[host]
-	if !ok {
-		return false
-	}
-	inst, ok := s.instances[id]
-	return ok && !isMine(inst, s.myEdge, s.cfg.EdgeID)
+	inst, ok := s.lookup(context.Background(), host)
+	return ok && inst.Remote != ""
 }
 
 // edgeLabels: this edge, and the edge that runs host's instance (this edge for local instances; ok=false when no
 // instance has that host or its owner edge is unknown, so no origin headers are sent).
-func (s *Source) edgeLabels(host string) (me, origin [2]string, ok bool) {
+func (s *Source) edgeLabels(ctx context.Context, host string) (me, origin [2]string, ok bool) {
 	me = [2]string{s.cfg.EdgeID, s.cfg.Region}
-	host = normalizeRequestHost(host)
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	id, found := s.claims[host]
-	inst, known := s.instances[id]
-	if !found || !known {
+	inst, found := s.lookup(ctx, host)
+	if !found {
 		return me, origin, false
 	}
-	if isMine(inst, s.myEdge, s.cfg.EdgeID) {
+	if inst.Remote == "" {
 		return me, me, true
 	}
-	ref := ownerEdge(inst)
-	if strings.HasPrefix(ref, "@") {
-		for _, e := range s.edges {
-			if e.EdgeID == ref[1:] {
-				return me, [2]string{e.EdgeID, e.Region}, true
-			}
-		}
-		return me, origin, false
-	}
-	if e, ok := s.edges[ref]; ok {
-		return me, [2]string{e.EdgeID, e.Region}, true
+	if e, ok := s.fleet.Resolve(inst.Remote); ok {
+		return me, [2]string{e.ID, e.Region}, true
 	}
 	return me, origin, false
 }
@@ -238,7 +176,7 @@ func (s *Source) Front(fw *firewall.Firewall, ready func() bool, poweredBy strin
 			return
 		}
 		if r.URL.Path != DaemonHealthPath && r.URL.Path != pocker.HealthPath && r.Header.Get(ForwardedByHeader) == "" {
-			me, origin, ok := s.edgeLabels(r.Host)
+			me, origin, ok := s.edgeLabels(r.Context(), r.Host)
 			h := w.Header()
 			h.Set(HeaderEdgeName, me[0])
 			h.Set(HeaderEdgeRegion, me[1])
