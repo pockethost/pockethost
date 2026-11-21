@@ -17,11 +17,18 @@ import (
 	"pocketone.dev/ext/extkit"
 )
 
+// mothershipTokens configures the standard set's ext/api-tokens on the mothership: tokens are for users (PocketHost's
+// customers) only, and there's no OAuth server (the dashboard creates tokens; edges verify them).
+var mothershipTokens = apitokens.Config{
+	Collections: []string{"users"},
+	OAuth:       apitokens.OAuthConfig{Disabled: true},
+}
+
 // legacyPrefix starts the personal access tokens the mothership issued before ext/api-tokens
 // (`ph_pat_<record id>_<secret>`, rows of the api_tokens collection).
 const legacyPrefix = "ph_pat_"
 
-// registerTokens gives the mothership PocketHost's API tokens: ext/api-tokens (pbt_...), owned by users only, and
+// registerTokens sets up PocketHost's API tokens on the standard set's ext/api-tokens (pbt_..., owned by users only):
 // the two scopes the dashboard creates them with. Their values are instance ids ("instances=abc123"); the bare name
 // covers every instance the owner has. The scopes reach no route on the mothership itself: edges check a token
 // with api-tokens.verify/v1 (as superuser) and apply the scopes to the instance a request is for.
@@ -30,10 +37,10 @@ const legacyPrefix = "ph_pat_"
 // api_tokens row, whose hash is of the secret part only) with the same rights, and deletes the row. Customers' CI
 // secrets keep working unchanged.
 func registerTokens(app core.App) *apitokens.Tokens {
-	tk := apitokens.MustRegister(app, apitokens.Config{
-		Collections: []string{"users"},
-		OAuth:       apitokens.OAuthConfig{Disabled: true},
-	})
+	tk := apitokens.For(app) // the standard set's member (mothershipTokens)
+	if tk == nil {
+		panic("mothership: ext/api-tokens isn't registered (the standard set's api-tokens is off?)")
+	}
 	if err := tk.RegisterPrefix(legacyPrefix); err != nil {
 		panic(err)
 	}

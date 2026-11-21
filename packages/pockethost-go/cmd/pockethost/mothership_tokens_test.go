@@ -22,6 +22,7 @@ func tokensApp(t *testing.T) (core.App, *apitokens.Tokens, *core.Record) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { app.ResetBootstrapState() })
+	apitokens.MustRegister(app, mothershipTokens) // as the standard set registers it
 	tk := registerTokens(app)
 	if err := apitokens.EnsureSchema(app); err != nil {
 		t.Fatal(err)
