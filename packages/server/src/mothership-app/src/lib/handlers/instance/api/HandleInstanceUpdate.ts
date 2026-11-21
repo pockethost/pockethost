@@ -9,8 +9,8 @@ import { assertCanPowerOn } from '../lib/instanceLimits'
 import { applySecretsPatch, instanceNameError, invalidSecretKey } from '../lib/instancePolicy'
 
 /**
- * PUT /api/instance/{id}. Called by the dashboard. Besides the full `secrets` map, accepts `secretsPatch`
- * (`{ KEY: value | null }`) to change one secret without sending the others.
+ * PUT /api/instance/{id}. Called by the dashboard. Besides the full `secrets` map, accepts `secretsPatch` (`{ KEY:
+ * value | null }`) to change one secret without sending the others.
  */
 export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   const log = mkLog(`PUT:instance`)
