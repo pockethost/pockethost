@@ -39,7 +39,7 @@ the two version numbers don't match.
 
 ### PocketOne
 
-- Built on PocketOne main at fb2b76855 (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix and Import, one runtime per host, instance.fs/v1, no deploy history.
+- Built on PocketOne `main` at de42a86f (after v0.0.1-alpha.10): API token scope values, api-tokens.verify/v1, RegisterPrefix/Import, one runtime per host, instance.fs/v1, no deploy history.
 
 ## v5.0.0-alpha.7 (2026-11-19)
 
