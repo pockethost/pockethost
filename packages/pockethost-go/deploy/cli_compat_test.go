@@ -62,7 +62,7 @@ func TestCLICompat(t *testing.T) {
 	cmd.Env = append(os.Environ(),
 		"CLI_DIR="+cliDir, "INST_DIR="+f.instFile(""), "PARITY_PATHS="+string(parity),
 		"POCKETHOST_MOTHERSHIP_URL=http://central.localhost:"+port, "POCKETHOST_HOME="+t.TempDir(),
-		"POCKETHOST_TOKEN="+testPAT, "GITHUB_SHA=", "GITHUB_ACTIONS=")
+		"POCKETHOST_TOKEN="+testToken, "GITHUB_SHA=", "GITHUB_ACTIONS=")
 	out, err := cmd.CombinedOutput()
 	t.Logf("%s", out)
 	if err != nil {

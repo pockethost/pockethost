@@ -49,29 +49,6 @@ onRecordAfterDeleteSuccess((e) => {
 }, "users");
 
 //#endregion
-//#region src/lib/handlers/apiTokens/hooks.ts
-/**
-* Personal access tokens. The mothership never turns a PAT into `e.auth`, so `$apis.requireAuth()` routes and
-* collection rules stay JWT-only: a PAT cannot create tokens, manage SSH keys, or mint a JWT. PATs are checked only by
-* the explicit routes below and by edge services through /api/pat/verify.
-*/
-routerAdd("POST", "/api/tokens", (e) => {
-	return require(`${__hooks}/mothership`).HandleApiTokenCreate(e);
-}, $apis.requireAuth("users"));
-routerAdd("PATCH", "/api/tokens/{id}", (e) => {
-	return require(`${__hooks}/mothership`).HandleApiTokenUpdate(e);
-}, $apis.requireAuth("users"));
-routerAdd("POST", "/api/pat/verify", (e) => {
-	return require(`${__hooks}/mothership`).HandlePatVerify(e);
-}, $apis.requireSuperuserAuth());
-routerAdd("GET", "/api/pat/whoami", (e) => {
-	return require(`${__hooks}/mothership`).HandlePatWhoami(e);
-});
-routerAdd("GET", "/api/pat/instances", (e) => {
-	return require(`${__hooks}/mothership`).HandlePatInstances(e);
-});
-
-//#endregion
 //#region src/lib/handlers/bulkmail/hooks.ts
 routerAdd("GET", "/api/bulkmail/settings", (e) => require(`${__hooks}/mothership`).HandleBulkMailGetSettings(e), $apis.requireSuperuserAuth());
 routerAdd("PATCH", "/api/bulkmail/settings", (e) => require(`${__hooks}/mothership`).HandleBulkMailSaveSettings(e), $apis.requireSuperuserAuth());
@@ -137,8 +114,8 @@ cronAdd("edges-stale", "* * * * *", () => {
 //#endregion
 //#region src/lib/handlers/instance/hooks.ts
 /**
-* Instance endpoints accept a dashboard session (JWT) or a personal access token, so they don't use
-* `$apis.requireAuth()`. Each handler authenticates with `resolveInstanceCaller` (instance/lib/instanceCaller.ts).
+* Instance endpoints are for the signed-in dashboard user. Each handler authenticates with `resolveInstanceCaller`
+* (instance/lib/instanceCaller.ts).
 */
 routerAdd("PUT", "/api/instance/{id}", (e) => {
 	return require(`${__hooks}/mothership`).HandleInstanceUpdate(e);

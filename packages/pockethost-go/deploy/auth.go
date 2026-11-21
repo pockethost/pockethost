@@ -6,30 +6,50 @@ import (
 	"encoding/hex"
 	"errors"
 	"regexp"
-	"slices"
 	"strings"
 	"sync"
 	"time"
+
+	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 )
 
 // Auth is who a deploy request acts as.
 type Auth struct {
 	UserID string
-	Scopes []string // "read", "write"
-	// InstanceIDs limits a token to some instances; nil = every instance the user owns.
-	InstanceIDs []string
-	Via         string // "pat" or "jwt"
-	TokenLabel  string
+	// Scopes are an API token's scopes (api-tokens/v1: "instances", "instances:read=<id>", ...); nil means every scope
+	// (a dashboard login, or a token with no scopes).
+	Scopes     []string
+	Via        string // "token" or "jwt"
+	TokenLabel string
 }
 
-func (a Auth) can(scope string) bool { return slices.Contains(a.Scopes, scope) }
+// The mothership's API token scopes for PocketHost instances. Their values are instance ids: "instances=abc123"
+// covers one instance, the bare name every instance the owner has.
+const (
+	ScopeInstances     = "instances"      // deploy, read files and logs, restart
+	ScopeInstancesRead = "instances:read" // read files and logs
+)
 
-// allows: the token covers this instance (same rule as the Node edge's instanceAllowedByScope).
+// allows: the caller owns the instance and its token covers it (read or write).
 func (a Auth) allows(instanceID, ownerID string) bool {
 	if a.UserID != ownerID {
 		return false
 	}
-	return a.InstanceIDs == nil || slices.Contains(a.InstanceIDs, instanceID)
+	return apitokensv1.HoldsScope(a.Scopes, apitokensv1.JoinScope(ScopeInstances, instanceID)) ||
+		apitokensv1.HoldsScope(a.Scopes, apitokensv1.JoinScope(ScopeInstancesRead, instanceID))
+}
+
+// canWrite: the token may change the instance (deploy, restart).
+func (a Auth) canWrite(instanceID string) bool {
+	return apitokensv1.HoldsScope(a.Scopes, apitokensv1.JoinScope(ScopeInstances, instanceID))
+}
+
+// access is what the caller may do on the instance, as whoami shows it: ["read"] or ["read", "write"].
+func (a Auth) access(instanceID string) []string {
+	if a.canWrite(instanceID) {
+		return []string{"read", "write"}
+	}
+	return []string{"read"}
 }
 
 // AuthError is a token the mothership refused (401 or 403). Any other error from a verifier is an infrastructure
@@ -41,17 +61,20 @@ type AuthError struct {
 
 func (e *AuthError) Error() string { return e.Message }
 
-// PATResult is the mothership's /api/pat/verify answer.
-type PATResult struct {
-	TokenID     string   `json:"tokenId"`
-	UserID      string   `json:"userId"`
-	Label       string   `json:"label"`
-	Scopes      []string `json:"scopes"`
-	InstanceIDs []string `json:"instanceIds"`
+// tokenPrefixes start the API token secrets the mothership checks (ext/api-tokens): its own pbt_ tokens, and the
+// ph_pat_ tokens it issued before, which it imports on their first check.
+var tokenPrefixes = []string{"pbt_", "ph_pat_"}
+
+func isAPIToken(token string) bool {
+	for _, p := range tokenPrefixes {
+		if strings.HasPrefix(token, p) {
+			return true
+		}
+	}
+	return false
 }
 
 const (
-	patPrefix       = "ph_pat_"
 	authCacheTTL    = 30 * time.Second
 	authFreshMinAge = 2 * time.Second
 )
@@ -72,9 +95,10 @@ type authEntry struct {
 	err  *AuthError
 }
 
-// authResolver resolves "Authorization: Bearer <PAT or PocketBase JWT>". Results, failures included, are cached for
-// 30 s, so a revoked token stops working within that window. fresh re-verifies an entry at least 2 s old (used when a
-// cached PAT doesn't cover the instance, so widening a token takes effect at once without flooding the mothership).
+// authResolver resolves "Authorization: Bearer <API token or PocketBase JWT>". Results, failures included, are cached
+// for 30 s, so a revoked token stops working within that window. fresh re-verifies an entry at least 2 s old (used
+// when a cached token doesn't cover the instance, so a token made a moment ago works at once without flooding the
+// mothership).
 type authResolver struct {
 	backend Backend
 	now     func() time.Time
@@ -113,8 +137,8 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 	r.mu.Unlock()
 
 	var entry authEntry
-	if strings.HasPrefix(token, patPrefix) {
-		res, err := r.backend.VerifyPAT(ctx, token, ip)
+	if isAPIToken(token) {
+		g, err := r.backend.VerifyToken(ctx, token, ip)
 		if err != nil {
 			var ae *AuthError
 			if !errors.As(err, &ae) {
@@ -122,7 +146,11 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 			}
 			entry.err = ae
 		} else {
-			entry.auth = Auth{UserID: res.UserID, Scopes: res.Scopes, InstanceIDs: res.InstanceIDs, Via: "pat", TokenLabel: res.Label}
+			scopes := g.Scopes
+			if len(scopes) == 0 {
+				scopes = nil // the owner's full rights
+			}
+			entry.auth = Auth{UserID: g.OwnerID, Scopes: scopes, Via: "token", TokenLabel: g.Name}
 		}
 	} else {
 		uid, err := r.backend.VerifyJWT(ctx, token)
@@ -133,7 +161,7 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 			}
 			entry.err = ae
 		} else {
-			entry.auth = Auth{UserID: uid, Scopes: []string{"read", "write"}, Via: "jwt"}
+			entry.auth = Auth{UserID: uid, Via: "jwt"}
 		}
 	}
 	entry.at = r.now()

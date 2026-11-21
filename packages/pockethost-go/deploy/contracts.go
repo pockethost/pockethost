@@ -30,10 +30,10 @@ func (a *API) ContractAuth(r *http.Request) extkit.Auth {
 		return extkit.Auth{}
 	}
 	au := extkit.Auth{Kind: "record", ID: c.auth.UserID, Collection: "users", RecordID: c.auth.UserID}
-	if c.auth.Via == "pat" {
+	if c.auth.Via == "token" {
 		au.Kind, au.ID = "token", c.auth.TokenLabel
 		au.Scopes = []string{"remote:read"}
-		if c.auth.can("write") {
+		if c.auth.canWrite(c.inst.ID) {
 			au.Scopes = append(au.Scopes, "remote")
 		}
 	}

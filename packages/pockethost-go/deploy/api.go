@@ -15,6 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 )
 
 // Prefix is where the deploy API lives on every instance host.
@@ -54,8 +56,9 @@ type DeployRecord struct {
 // Backend is the control plane: instance lookup, token checks and deploy history.
 type Backend interface {
 	Lookup(host string) (Instance, bool)
-	// VerifyPAT and VerifyJWT return *AuthError for a refused token; any other error is treated as an outage.
-	VerifyPAT(ctx context.Context, token, ip string) (PATResult, error)
+	// VerifyToken checks an API token (pbt_..., api-tokens.verify/v1); VerifyJWT a user's login. Both return
+	// *AuthError for a refused token; any other error is treated as an outage.
+	VerifyToken(ctx context.Context, token, ip string) (apitokensv1.Grant, error)
 	VerifyJWT(ctx context.Context, token string) (userID string, err error)
 	RecordDeploy(ctx context.Context, rec DeployRecord) (id string, err error)
 }
@@ -264,7 +267,7 @@ func (a *API) authorize(r *http.Request, needWrite bool) (*reqCtx, error) {
 		return nil, err
 	}
 	// the token's instances may have just been edited in the dashboard: re-check before refusing
-	if auth.Via == "pat" && inst.OwnerID == auth.UserID && !auth.allows(inst.ID, inst.OwnerID) {
+	if auth.Via == "token" && inst.OwnerID == auth.UserID && !auth.allows(inst.ID, inst.OwnerID) {
 		if auth, err = a.auth.resolve(r.Context(), r.Header.Get("Authorization"), clientIP(r), true); err != nil {
 			return nil, err
 		}
@@ -272,7 +275,7 @@ func (a *API) authorize(r *http.Request, needWrite bool) (*reqCtx, error) {
 	if inst.OwnerID != auth.UserID || !auth.allows(inst.ID, inst.OwnerID) {
 		return nil, errf(404, "%s not found", host)
 	}
-	if needWrite && !auth.can("write") {
+	if needWrite && !auth.canWrite(inst.ID) {
 		return nil, errf(403, "This token is read-only. Create a token with write access to deploy.")
 	}
 	if s := strings.TrimSpace(inst.OwnerSuspension); s != "" {
@@ -375,7 +378,7 @@ func (a *API) whoami(w http.ResponseWriter, r *http.Request) error {
 	}
 	writeJSON(w, 200, map[string]any{
 		"instance": map[string]any{"id": c.inst.ID, "subdomain": c.inst.Subdomain},
-		"via":      c.auth.Via, "token": token, "scopes": c.auth.Scopes,
+		"via":      c.auth.Via, "token": token, "scopes": c.auth.access(c.inst.ID),
 	})
 	return nil
 }

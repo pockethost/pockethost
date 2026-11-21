@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 	"slices"
 	"testing"
 
@@ -35,10 +36,10 @@ func TestDeployV1Paths(t *testing.T) {
 		_ = json.Unmarshal(raw, &out)
 		return res.StatusCode, out
 	}
-	if code, body := get(deployv1.Prefix+"/files", testPAT); code != 200 || body["entries"] == nil {
+	if code, body := get(deployv1.Prefix+"/files", testToken); code != 200 || body["entries"] == nil {
 		t.Fatalf("files under deploy/v1: %d %v", code, body)
 	}
-	code, root := get(deployv1.Prefix+"/tree", testPAT)
+	code, root := get(deployv1.Prefix+"/tree", testToken)
 	if code != 200 || root["exists"] != true || root["hash"] == "" {
 		t.Fatalf("tree: %d %v", code, root)
 	}
@@ -55,10 +56,10 @@ func TestDeployV1Paths(t *testing.T) {
 // everything; anyone else is anonymous (the contract then refuses them).
 func TestContractAuth(t *testing.T) {
 	f := newAPIFixture(t)
-	ro := "ph_pat_readonly0000000000_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
-	other := "ph_pat_otheruser000000000_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-	f.be.pats[ro] = PATResult{UserID: "user1", Scopes: []string{"read"}}
-	f.be.pats[other] = PATResult{UserID: "user2", Scopes: []string{"read", "write"}}
+	ro := "pbt_readonly0000000000_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+	other := "pbt_otheruser000000000_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+	f.be.pats[ro] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances:read"}}
+	f.be.pats[other] = apitokensv1.Grant{OwnerID: "user2", Scopes: []string{"instances"}}
 	auth := func(token string) (kind string, scopes []string) {
 		req := httptest.NewRequest("GET", "/api/_c/remote/v1/status", nil)
 		req.Host = "myapp.example.com"
@@ -68,7 +69,7 @@ func TestContractAuth(t *testing.T) {
 		a := f.api.ContractAuth(req)
 		return a.Kind, a.Scopes
 	}
-	if k, s := auth(testPAT); k != "token" || !slices.Contains(s, "remote") || !slices.Contains(s, "remote:read") {
+	if k, s := auth(testToken); k != "token" || !slices.Contains(s, "remote") || !slices.Contains(s, "remote:read") {
 		t.Fatalf("write token: %s %v", k, s)
 	}
 	if k, s := auth(ro); k != "token" || slices.Contains(s, "remote") || !slices.Contains(s, "remote:read") {
@@ -77,7 +78,7 @@ func TestContractAuth(t *testing.T) {
 	if k, s := auth("jwt-user1"); k != "record" || s != nil {
 		t.Fatalf("login: %s %v", k, s)
 	}
-	for _, tok := range []string{"", other, "ph_pat_nope"} {
+	for _, tok := range []string{"", other, "pbt_nope"} {
 		if k, _ := auth(tok); k != "" {
 			t.Fatalf("%q should be anonymous, got %s", tok, k)
 		}

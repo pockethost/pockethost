@@ -1,30 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applySecretsPatch, instanceNameError, invalidSecretKey, patDenial } from './instancePolicy'
-
-const all = { scopes: ['read', 'write'], instanceIds: null }
-const scoped = { scopes: ['read', 'write'], instanceIds: ['a1'] }
-const readOnly = { scopes: ['read'], instanceIds: null }
-
-describe('patDenial', () => {
-  it('lets a write token for all instances change any instance and create', () => {
-    expect(patDenial(all, { kind: 'instance', instanceId: 'zz' })).toBeNull()
-    expect(patDenial(all, { kind: 'create' })).toBeNull()
-  })
-
-  it('lets a scoped write token change only its instances', () => {
-    expect(patDenial(scoped, { kind: 'instance', instanceId: 'a1' })).toBeNull()
-    expect(patDenial(scoped, { kind: 'instance', instanceId: 'b2' })).toMatchObject({ status: 404 })
-  })
-
-  it('refuses create for a scoped token', () => {
-    expect(patDenial(scoped, { kind: 'create' })).toMatchObject({ status: 403 })
-  })
-
-  it('refuses every write for a read-only token', () => {
-    expect(patDenial(readOnly, { kind: 'instance', instanceId: 'a1' })).toMatchObject({ status: 403 })
-    expect(patDenial(readOnly, { kind: 'create' })).toMatchObject({ status: 403 })
-  })
-})
+import { applySecretsPatch, instanceNameError, invalidSecretKey } from './instancePolicy'
 
 describe('applySecretsPatch', () => {
   it('sets, replaces and removes keys without touching the rest', () => {

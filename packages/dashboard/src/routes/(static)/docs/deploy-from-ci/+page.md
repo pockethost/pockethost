@@ -18,10 +18,10 @@ Go to **[Account → API Tokens](/account/tokens)** and click **Create token**:
 
 - **Name**: something you'll recognize later, like `GitHub Actions`.
 - **Access**: **Deploy + read**. Read-only tokens can list instances and tail logs, but can't deploy.
-- **Instances**: pick only the instances this pipeline deploys to, or **All instances**. You can change this later with **Edit**; the token stays the same, so you don't need to update your CI secret.
+- **Instances**: pick only the instances this pipeline deploys to, or **All instances**. To change this later, create a new token and revoke the old one.
 - **Expiry**: 90 days is the default. You can pick 30 days, 1 year, or no expiry.
 
-Copy the token (`ph_pat_…`) right away. PocketHost stores only a hash of it, so it is shown once.
+Copy the token (`pbt_…`) right away. PocketHost stores only a hash of it, so it is shown once.
 
 ## 2. Add it to your repository
 
@@ -116,7 +116,7 @@ Any CI that can run Node 20+ works the same way: set `POCKETHOST_TOKEN` as a sec
 
 - Scope each token to the instances it deploys. A token can't delete instances, change billing, manage SSH keys or tokens, or sign in to the dashboard.
 - Revoke a token at **[Account → API Tokens](/account/tokens)**. It stops working within about 30 seconds.
-- Tokens start with `ph_pat_`, which makes a leaked one easy to search for in logs and code.
+- Tokens start with `pbt_` (older ones with `ph_pat_`), which makes a leaked one easy to search for in logs and code.
 
 ## Troubleshooting
 

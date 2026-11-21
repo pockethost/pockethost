@@ -228,7 +228,7 @@ func (a *API) dashboardLogs(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if auth.Via == "pat" || inst.OwnerID != auth.UserID || (body.InstanceID != inst.ID && body.InstanceID != inst.Subdomain) {
+	if auth.Via == "token" || inst.OwnerID != auth.UserID || (body.InstanceID != inst.ID && body.InstanceID != inst.Subdomain) {
 		return errf(404, "%s not found", host)
 	}
 	if inst.Elsewhere != "" {

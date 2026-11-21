@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +31,7 @@ func TestWithPockerManager(t *testing.T) {
 
 	inst := Instance{ID: "inst1", Subdomain: "myapp", OwnerID: "user1", Power: true}
 	be := &fakeBackend{insts: map[string]Instance{"myapp.example.com": inst},
-		pats: map[string]PATResult{testPAT: {UserID: "user1", Scopes: []string{"read", "write"}}}}
+		pats: map[string]apitokensv1.Grant{testToken: {OwnerID: "user1", Scopes: []string{"instances"}}}}
 	api := New(Options{Backend: be, Instances: func() Instances { return mgr }, PBRoot: pbRoot, DataRoot: filepath.Join(root, "deploys"), Logger: quiet})
 	srv := httptest.NewServer(api.Wrap(mgr))
 	defer srv.Close()

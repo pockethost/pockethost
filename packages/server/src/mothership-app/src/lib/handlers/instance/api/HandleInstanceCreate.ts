@@ -6,10 +6,10 @@ import { resolveInstanceCaller } from '../lib/instanceCaller'
 import { assertCanCreateInstance } from '../lib/instanceLimits'
 import { instanceNameError } from '../lib/instancePolicy'
 
-/** POST /api/instance. Dashboard (JWT) or a personal access token for all instances with write access. */
+/** POST /api/instance. Signed-in dashboard user only. */
 export const HandleInstanceCreate = (e: core.RequestEvent) => {
   const log = mkLog(`POST:instance`)
-  const caller = resolveInstanceCaller(e, { kind: 'create' })
+  const caller = resolveInstanceCaller(e)
   log(`caller`, JSON.stringify(caller))
 
   log(`TOP OF POST`)

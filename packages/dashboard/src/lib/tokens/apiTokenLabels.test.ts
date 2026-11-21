@@ -6,6 +6,7 @@ import {
   tokenExpiryLabel,
   tokenLastUsedLabel,
   tokenScopeLabel,
+  tokenScopes,
 } from './apiTokenLabels'
 
 const now = Date.parse('2026-11-07T00:00:00Z')
@@ -17,12 +18,21 @@ describe('api token labels', () => {
   })
 
   it('labels access and scope', () => {
-    expect(tokenAccessLabel({ scopes: ['read', 'write'] })).toBe('Deploy + read')
-    expect(tokenAccessLabel({ scopes: ['read'] })).toBe('Read only')
+    expect(tokenAccessLabel({ scopes: ['instances'] })).toBe('Deploy + read')
+    expect(tokenAccessLabel({ scopes: ['instances=a'] })).toBe('Deploy + read')
+    expect(tokenAccessLabel({ scopes: ['instances:read=a'] })).toBe('Read only')
+    expect(tokenAccessLabel({ scopes: [] })).toBe('Deploy + read')
     const byId = { a: { subdomain: 'alpha' }, b: { subdomain: 'beta' } } as any
-    expect(tokenScopeLabel({ all_instances: true, instances: [] }, byId)).toBe('All instances')
-    expect(tokenScopeLabel({ all_instances: false, instances: ['a', 'b'] }, byId)).toBe('alpha, beta')
-    expect(tokenScopeLabel({ all_instances: false, instances: ['zz'] }, byId)).toBe('1 instance')
+    expect(tokenScopeLabel({ scopes: ['instances'] }, byId)).toBe('All instances')
+    expect(tokenScopeLabel({ scopes: ['instances=a', 'instances=b'] }, byId)).toBe('alpha, beta')
+    expect(tokenScopeLabel({ scopes: ['instances:read=zz'] }, byId)).toBe('1 instance')
+  })
+
+  it('builds scopes for a new token', () => {
+    expect(tokenScopes(true, true, [])).toEqual(['instances'])
+    expect(tokenScopes(false, true, [])).toEqual(['instances:read'])
+    expect(tokenScopes(true, false, ['a', 'b'])).toEqual(['instances=a', 'instances=b'])
+    expect(tokenScopes(false, false, ['a'])).toEqual(['instances:read=a'])
   })
 
   it('sorts instance names alphabetically, ignoring case', () => {
@@ -32,7 +42,7 @@ describe('api token labels', () => {
       c: { subdomain: 'docs' },
       d: { subdomain: 'pocketpages' },
     } as any
-    expect(tokenScopeLabel({ all_instances: false, instances: ['a', 'b', 'c', 'd'] }, byId)).toBe(
+    expect(tokenScopeLabel({ scopes: ['instances=a', 'instances=b', 'instances=c', 'instances=d'] }, byId)).toBe(
       'docs, pocketpages, Pocketpages-auth, pocketpages-daisyui'
     )
     expect(

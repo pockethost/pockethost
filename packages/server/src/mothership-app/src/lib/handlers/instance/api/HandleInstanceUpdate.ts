@@ -9,16 +9,15 @@ import { assertCanPowerOn } from '../lib/instanceLimits'
 import { applySecretsPatch, instanceNameError, invalidSecretKey } from '../lib/instancePolicy'
 
 /**
- * PUT /api/instance/{id}. Called by the dashboard (JWT) and by the CLI with a personal access token that has write
- * access to the instance. Besides the full `secrets` map, accepts `secretsPatch` (`{ KEY: value | null }`) so a token
- * can change one secret without reading the others.
+ * PUT /api/instance/{id}. Called by the dashboard. Besides the full `secrets` map, accepts `secretsPatch`
+ * (`{ KEY: value | null }`) to change one secret without sending the others.
  */
 export const HandleInstanceUpdate = (e: core.RequestEvent) => {
   const log = mkLog(`PUT:instance`)
 
   log(`TOP OF PUT`)
   const id = e.request.pathValue('id')
-  const caller = resolveInstanceCaller(e, { kind: 'instance', instanceId: id })
+  const caller = resolveInstanceCaller(e)
 
   let data = new DynamicModel({
     id: '',

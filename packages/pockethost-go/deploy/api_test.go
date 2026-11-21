@@ -14,22 +14,23 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 )
 
-const testPAT = "ph_pat_abcdefghij12345_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+const testToken = "pbt_abcdefghij12345_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
 
 type fakeBackend struct {
-	mu        sync.Mutex
-	insts     map[string]Instance // by host
-	pats      map[string]PATResult
-	patCalls  int
-	records   []DeployRecord
-	recordErr error
-	down      bool
+	mu          sync.Mutex
+	insts       map[string]Instance // by host
+	pats        map[string]apitokensv1.Grant
+	verifyCalls int
+	records     []DeployRecord
+	recordErr   error
+	down        bool
 }
 
 func (b *fakeBackend) Lookup(host string) (Instance, bool) {
@@ -39,16 +40,16 @@ func (b *fakeBackend) Lookup(host string) (Instance, bool) {
 	return i, ok
 }
 
-func (b *fakeBackend) VerifyPAT(_ context.Context, token, _ string) (PATResult, error) {
+func (b *fakeBackend) VerifyToken(_ context.Context, token, _ string) (apitokensv1.Grant, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	b.patCalls++
+	b.verifyCalls++
 	if b.down {
-		return PATResult{}, errors.New("mothership unreachable")
+		return apitokensv1.Grant{}, errors.New("mothership unreachable")
 	}
 	r, ok := b.pats[token]
 	if !ok {
-		return PATResult{}, &AuthError{401, "Invalid or expired token."}
+		return apitokensv1.Grant{}, &AuthError{401, "Invalid or expired token."}
 	}
 	return r, nil
 }
@@ -132,7 +133,7 @@ func newAPIFixture(t *testing.T) *apiFixture {
 	inst := Instance{ID: "inst1", Subdomain: "myapp", OwnerID: "user1", Power: true}
 	be := &fakeBackend{
 		insts: map[string]Instance{"myapp.example.com": inst},
-		pats:  map[string]PATResult{testPAT: {UserID: "user1", Label: "CI", Scopes: []string{"read", "write"}}},
+		pats:  map[string]apitokensv1.Grant{testToken: {OwnerID: "user1", Name: "CI", Scopes: []string{"instances"}}},
 	}
 	mgr := &fakeInstances{dirs: map[string]string{"inst1": filepath.Join(root, "instances", "inst1")}, running: map[string]bool{"inst1": true}}
 	api := New(Options{Backend: be, Instances: func() Instances { return mgr }, PBRoot: filepath.Join(root, "instances"),
@@ -178,7 +179,7 @@ func (f *apiFixture) do(method, path string, body any, opts ...func(*http.Reques
 	}
 	req, _ := http.NewRequest(method, f.srv.URL+path, rd)
 	req.Host = "myapp.example.com"
-	req.Header.Set("Authorization", "Bearer "+testPAT)
+	req.Header.Set("Authorization", "Bearer "+testToken)
 	for _, o := range opts {
 		o(req)
 	}
@@ -253,7 +254,7 @@ func TestAPIEndToEnd(t *testing.T) {
 	f.put("pb_hooks/old.pb.js", "old")
 
 	who := f.do("GET", Prefix+"/whoami", nil)
-	if who.status != 200 || who.body["via"] != "pat" || who.body["token"] != "CI" || who.body["instance"].(map[string]any)["subdomain"] != "myapp" {
+	if who.status != 200 || who.body["via"] != "token" || who.body["token"] != "CI" || who.body["instance"].(map[string]any)["subdomain"] != "myapp" {
 		t.Fatalf("whoami: %d %s", who.status, who.raw)
 	}
 
@@ -330,12 +331,12 @@ func TestAPICommitBeforeUpload(t *testing.T) {
 
 func TestAPIAuth(t *testing.T) {
 	f := newAPIFixture(t)
-	ro := "ph_pat_readonly0000000000_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
-	other := "ph_pat_otheruser000000000_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
-	scoped := "ph_pat_scoped00000000000_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-	f.be.pats[ro] = PATResult{UserID: "user1", Scopes: []string{"read"}}
-	f.be.pats[other] = PATResult{UserID: "user2", Scopes: []string{"read", "write"}}
-	f.be.pats[scoped] = PATResult{UserID: "user1", Scopes: []string{"read", "write"}, InstanceIDs: []string{"other"}}
+	ro := "pbt_readonly0000000000_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+	other := "pbt_otheruser000000000_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+	scoped := "pbt_scoped00000000000_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+	f.be.pats[ro] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances:read"}}
+	f.be.pats[other] = apitokensv1.Grant{OwnerID: "user2", Scopes: []string{"instances"}}
+	f.be.pats[scoped] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances=other"}}
 	check := func(name string, r resp, status int, msg string) {
 		t.Helper()
 		if r.status != status || !strings.Contains(fmt.Sprint(r.body["message"]), msg) || num0(r.body["status"]) != status {
@@ -344,7 +345,13 @@ func TestAPIAuth(t *testing.T) {
 	}
 	body := map[string]any{"files": map[string]any{}}
 	check("missing", f.do("POST", Prefix+"/check", body, withToken("")), 401, "Missing token. Set POCKETHOST_TOKEN")
-	check("bad", f.do("POST", Prefix+"/check", body, withToken("ph_pat_nope")), 401, "Invalid or expired token.")
+	// an old PocketHost token is checked (and imported) by the mothership like any API token
+	legacy := "ph_pat_abcdefghij12345_FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+	f.be.pats[legacy] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances"}}
+	if r := f.do("GET", Prefix+"/whoami", nil, withToken(legacy)); r.status != 200 || r.body["via"] != "token" {
+		t.Fatalf("old ph_pat_ token: %d %s", r.status, r.raw)
+	}
+	check("bad", f.do("POST", Prefix+"/check", body, withToken("pbt_nope")), 401, "Invalid or expired token.")
 	check("other owner", f.do("POST", Prefix+"/check", body, withToken(other)), 404, "myapp.example.com not found")
 	check("scope", f.do("POST", Prefix+"/check", body, withToken(scoped)), 404, "myapp.example.com not found")
 	check("read-only", f.do("POST", Prefix+"/check", body, withToken(ro)), 403, "This token is read-only.")
@@ -358,14 +365,14 @@ func TestAPIAuth(t *testing.T) {
 	check("unknown host", f.do("GET", Prefix+"/whoami", nil, withHost("nope.example.com")), 404, "nope.example.com not found")
 
 	// failures are cached; outages aren't
-	calls := f.be.patCalls
-	f.do("GET", Prefix+"/whoami", nil, withToken("ph_pat_nope"))
-	if f.be.patCalls != calls {
+	calls := f.be.verifyCalls
+	f.do("GET", Prefix+"/whoami", nil, withToken("pbt_nope"))
+	if f.be.verifyCalls != calls {
 		t.Fatal("refusal not cached")
 	}
 	f.be.down = true
-	check("outage", f.do("GET", Prefix+"/whoami", nil, withToken("ph_pat_outage")), 500, "mothership unreachable")
-	check("outage again", f.do("GET", Prefix+"/whoami", nil, withToken("ph_pat_outage")), 500, "mothership unreachable")
+	check("outage", f.do("GET", Prefix+"/whoami", nil, withToken("pbt_outage")), 500, "mothership unreachable")
+	check("outage again", f.do("GET", Prefix+"/whoami", nil, withToken("pbt_outage")), 500, "mothership unreachable")
 	f.be.down = false
 
 	// suspensions (owner first), other edge
@@ -391,13 +398,13 @@ func TestAPIScopeReverify(t *testing.T) {
 	f := newAPIFixture(t)
 	now := time.Now()
 	f.api.auth.now = func() time.Time { return now }
-	scoped := "ph_pat_scoped00000000000_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-	f.be.pats[scoped] = PATResult{UserID: "user1", Scopes: []string{"read", "write"}, InstanceIDs: []string{"other"}}
+	scoped := "pbt_scoped00000000000_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+	f.be.pats[scoped] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances=other"}}
 	if r := f.do("GET", Prefix+"/whoami", nil, withToken(scoped)); r.status != 404 {
 		t.Fatal(r.status)
 	}
 	// the owner widens the token in the dashboard; within 2 s the cache answers, after that a fresh check
-	f.be.pats[scoped] = PATResult{UserID: "user1", Scopes: []string{"read", "write"}, InstanceIDs: []string{"other", "inst1"}}
+	f.be.pats[scoped] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances=other", "instances=inst1"}}
 	if r := f.do("GET", Prefix+"/whoami", nil, withToken(scoped)); r.status != 404 {
 		t.Fatal("re-verified too soon", r.status)
 	}
@@ -535,8 +542,8 @@ func TestAPIFiles(t *testing.T) {
 	}
 
 	// read-only tokens can't write
-	f.be.pats["ph_pat_ro"] = PATResult{UserID: "user1", Scopes: []string{"read"}}
-	if r = f.do("PUT", Prefix+"/files/raw?path=pb_hooks/x.js", []byte("x"), withToken("ph_pat_ro")); r.status != 403 {
+	f.be.pats["pbt_ro"] = apitokensv1.Grant{OwnerID: "user1", Scopes: []string{"instances:read"}}
+	if r = f.do("PUT", Prefix+"/files/raw?path=pb_hooks/x.js", []byte("x"), withToken("pbt_ro")); r.status != 403 {
 		t.Fatal(r.status)
 	}
 }
@@ -552,7 +559,7 @@ func TestAPILogs(t *testing.T) {
 	defer cancel()
 	req, _ := http.NewRequestWithContext(ctx, "GET", f.srv.URL+Prefix+"/logs?n=1", nil)
 	req.Host = "myapp.example.com"
-	req.Header.Set("Authorization", "Bearer "+testPAT)
+	req.Header.Set("Authorization", "Bearer "+testToken)
 	res, err := f.srv.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -603,7 +610,7 @@ func TestAPILogsBeforeFileExists(t *testing.T) {
 	defer cancel()
 	req, _ := http.NewRequestWithContext(ctx, "GET", f.srv.URL+Prefix+"/logs", nil)
 	req.Host = "myapp.example.com"
-	req.Header.Set("Authorization", "Bearer "+testPAT)
+	req.Header.Set("Authorization", "Bearer "+testToken)
 	res, err := f.srv.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -665,7 +672,7 @@ func TestDashboardLogs(t *testing.T) {
 	if res, _ := post("jwt-other", `{"instanceId":"inst1"}`); res.StatusCode != 401 {
 		t.Fatalf("bad token: %d", res.StatusCode)
 	}
-	if res, _ := post("Bearer "+testPAT, `{"instanceId":"inst1"}`); res.StatusCode != 404 {
+	if res, _ := post("Bearer "+testToken, `{"instanceId":"inst1"}`); res.StatusCode != 404 {
 		t.Fatalf("PAT: %d", res.StatusCode)
 	}
 	if res, _ := post("jwt-user1", `{"instanceId":"other"}`); res.StatusCode != 404 {

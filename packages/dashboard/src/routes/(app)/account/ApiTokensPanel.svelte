@@ -2,26 +2,32 @@
   import ApiTokenCreateForm from '$components/ApiTokenCreateForm.svelte'
   import CopyField from '$components/CopyField.svelte'
   import FeatureTab from '$components/FeatureTab.svelte'
-  import { tokenAccessLabel, tokenExpiryLabel, tokenLastUsedLabel, tokenScopeLabel } from '$lib/tokens/apiTokenLabels'
+  import {
+    API_TOKENS_PATH,
+    tokenAccessLabel,
+    tokenExpiryLabel,
+    tokenLastUsedLabel,
+    tokenScopeLabel,
+    type ApiToken,
+  } from '$lib/tokens/apiTokenLabels'
   import { client } from '$src/pocketbase-client'
   import { globalInstancesStore } from '$util/stores'
-  import { API_TOKEN_COLLECTION, patDisplay, type ApiTokenFields } from '@pockethost/server/common'
   import { onMount } from 'svelte'
 
-  let tokens: ApiTokenFields[] = []
+  let tokens: ApiToken[] = []
   let loading = true
   let errorMessage = ''
   let successMessage = ''
   let showCreateForm = false
   let created: { token: string; label: string } | null = null
   let confirmRevokeId = ''
-  let editingId = ''
 
   const loadTokens = async () => {
     loading = true
     errorMessage = ''
     try {
-      tokens = await client().client.collection(API_TOKEN_COLLECTION).getFullList<ApiTokenFields>({ sort: '-created' })
+      const res = await client().client.send<{ items: ApiToken[] }>(API_TOKENS_PATH, { method: 'GET' })
+      tokens = res.items
     } catch (error) {
       errorMessage = `${error}`
     } finally {
@@ -40,24 +46,10 @@
     await loadTokens()
   }
 
-  const startEdit = (id: string) => {
-    errorMessage = ''
-    successMessage = ''
-    confirmRevokeId = ''
-    showCreateForm = false
-    editingId = id
-  }
-
-  const handleUpdated = async (e: CustomEvent<{ label: string }>) => {
-    editingId = ''
-    successMessage = `Token "${e.detail.label}" updated.`
-    await loadTokens()
-  }
-
   const revoke = async (id: string) => {
     errorMessage = ''
     try {
-      await client().client.collection(API_TOKEN_COLLECTION).delete(id)
+      await client().client.send(`${API_TOKENS_PATH}/${encodeURIComponent(id)}`, { method: 'DELETE' })
       successMessage = 'Token revoked.'
       confirmRevokeId = ''
       await loadTokens()
@@ -70,8 +62,9 @@
 <FeatureTab title="API Tokens" documentation="/docs/deploy-from-ci" bind:errorMessage {successMessage} successFlash>
   <svelte:fragment slot="summary">
     <p>
-      The <code>pockethost</code> CLI signs in with a personal access token, on your computer and in CI. Give each token only
-      the instances it needs, and revoke it here if it leaks.
+      <code>pocketone</code> and <code>pockethost</code> sign in with an API token, on your computer and in CI. Give each
+      token only the instances it needs, and revoke it here if it leaks. To change a token's instances, create a new one and
+      revoke the old one.
     </p>
   </svelte:fragment>
 
@@ -118,12 +111,12 @@
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex flex-wrap items-center gap-2 mb-1">
-              <span class="font-semibold text-white">{token.label}</span>
+              <span class="font-semibold text-white">{token.name}</span>
               <wa-badge variant="neutral" pill>{tokenAccessLabel(token)}</wa-badge>
               <wa-badge variant="neutral" pill>{tokenScopeLabel(token, $globalInstancesStore)}</wa-badge>
             </div>
             <p class="font-mono text-xs text-white/45 truncate">
-              {patDisplay(token.hint)} · {tokenLastUsedLabel(token.last_used)} · {tokenExpiryLabel(token.expires)}
+              {token.prefix}… · {tokenLastUsedLabel(token.lastUsed)} · {tokenExpiryLabel(token.expires)}
             </p>
           </div>
           {#if confirmRevokeId === token.id}
@@ -135,15 +128,6 @@
             </div>
           {:else}
             <div class="flex shrink-0 gap-2 sm:opacity-70 sm:group-hover:opacity-100">
-              <wa-button
-                variant="neutral"
-                size="s"
-                appearance="outline"
-                onclick={() => (editingId === token.id ? (editingId = '') : startEdit(token.id))}
-              >
-                <wa-icon slot="start" name="pen"></wa-icon>
-                Edit
-              </wa-button>
               <wa-button variant="danger" size="s" appearance="outline" onclick={() => (confirmRevokeId = token.id)}>
                 <wa-icon slot="start" name="trash"></wa-icon>
                 Revoke
@@ -151,14 +135,6 @@
             </div>
           {/if}
         </div>
-        {#if editingId === token.id}
-          <div>
-            <ApiTokenCreateForm {token} bind:errorMessage on:updated={handleUpdated} />
-            <div class="mt-3">
-              <wa-button variant="neutral" appearance="plain" onclick={() => (editingId = '')}>Cancel</wa-button>
-            </div>
-          </div>
-        {/if}
       {/each}
     </div>
   {/if}
@@ -170,13 +146,7 @@
         <wa-button variant="neutral" appearance="plain" onclick={() => (showCreateForm = false)}> Cancel </wa-button>
       </div>
     {:else}
-      <wa-button
-        variant="brand"
-        onclick={() => {
-          editingId = ''
-          showCreateForm = true
-        }}
-      >
+      <wa-button variant="brand" onclick={() => (showCreateForm = true)}>
         <wa-icon slot="start" name="plus"></wa-icon>
         Create token
       </wa-button>

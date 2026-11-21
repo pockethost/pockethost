@@ -1,41 +1,22 @@
-import { bearerToken } from '$common/pat'
-import { verifyPat } from '../../apiTokens/lib/verifyPat'
-import { patDenial, type PatNeed } from './instancePolicy'
-
 /**
- * Who is calling an instance endpoint (`PUT`/`DELETE /api/instance/{id}`, `POST /api/instance`): a dashboard session
- * (JWT, `e.auth`) or a personal access token (`Authorization: Bearer ph_pat_…`).
- *
- * The mothership never turns a PAT into `e.auth` (see apiTokens/hooks.ts), so these routes don't use
- * `$apis.requireAuth()`; they call `resolveInstanceCaller` instead, which accepts either.
+ * Who is calling an instance endpoint (`PUT`/`DELETE /api/instance/{id}`, `POST /api/instance`, duplicate): the
+ * signed-in dashboard user. API tokens (pbt_...) don't reach the mothership's own routes; edges check them for deploys.
  */
 export type InstanceCaller = {
   userId: string
-  via: 'jwt' | 'pat'
 }
 
-const deny = (status: 401 | 403 | 404, message: string): never => {
+const deny = (status: 401 | 404, message: string): never => {
   if (status === 401) throw new UnauthorizedError(message)
-  if (status === 403) throw new ForbiddenError(message)
   throw new NotFoundError(message)
 }
 
-export const resolveInstanceCaller = (e: core.RequestEvent, need: PatNeed): InstanceCaller => {
-  if (e.auth) return { userId: e.auth.id, via: 'jwt' }
-
-  const raw = bearerToken(e.request?.header.get('Authorization'))
-  if (!raw) return deny(401, `Sign in to the dashboard or send a personal access token.`)
-
-  const outcome = verifyPat(raw, e.realIP())
-  if (!outcome.ok) return deny(outcome.status, outcome.message)
-
-  const denial = patDenial(outcome.result, need)
-  if (denial) return deny(denial.status, denial.message)
-
-  return { userId: outcome.user.id, via: 'pat' }
+export const resolveInstanceCaller = (e: core.RequestEvent): InstanceCaller => {
+  if (!e.auth) return deny(401, `Sign in to the dashboard.`)
+  return { userId: e.auth.id }
 }
 
-/** Loads an instance the caller owns. Missing and not-owned look the same to tokens. */
+/** Loads an instance the caller owns. Missing and not-owned look the same. */
 export const findOwnedInstance = (caller: InstanceCaller, id: string): core.Record => {
   let record: core.Record | undefined
   try {
