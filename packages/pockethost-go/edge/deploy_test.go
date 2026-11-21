@@ -8,11 +8,11 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"pocketone.dev/ext/pocker"
 	"strings"
 	"testing"
 
-	"github.com/pockethost/pockethost/packages/pockethost-go/deploy"
+	"pocketone.dev/ext/deploy"
+	"pocketone.dev/ext/pocker"
 )
 
 func TestDeployBackend(t *testing.T) {
@@ -65,16 +65,16 @@ func TestDeployBackend(t *testing.T) {
 	b := s.DeployBackend()
 
 	for _, h := range []string{"shop.pockethost.io", "aaaaaaaaaaaaaaa.pockethost.io", "shop.example.com", "SHOP.pockethost.io."} {
-		got, ok := b.Lookup(h)
-		want := deploy.Instance{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", OwnerID: "u1", Power: true, Blocked: "account hold"}
+		got, ok := b.lookupHost(h)
+		want := deploy.Instance{ID: "aaaaaaaaaaaaaaa", Subdomain: "shop", OwnerID: "u1", Power: true, OwnerSuspension: "account hold"}
 		if !ok || got != want {
 			t.Errorf("%s: %+v %v", h, got, ok)
 		}
 	}
-	if got, ok := b.Lookup("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.Blocked != "" || got.Suspension != "x" {
+	if got, ok := b.lookupHost("far.pockethost.io"); !ok || got.Elsewhere != "far.pockethost.io is served by another PocketHost edge" || got.OwnerSuspension != "" || got.Suspension != "x" {
 		t.Errorf("other edge: %+v", got)
 	}
-	if _, ok := b.Lookup("nope.pockethost.io"); ok {
+	if _, ok := b.lookupHost("nope.pockethost.io"); ok {
 		t.Error("unknown host")
 	}
 

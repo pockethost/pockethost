@@ -1,4 +1,4 @@
-package deploy
+package edge
 
 import (
 	"context"
@@ -11,10 +11,11 @@ import (
 	"time"
 
 	apitokensv1 "pocketone.dev/ext/contracts/api-tokens/v1"
+	"pocketone.dev/ext/deploy"
 )
 
-// Auth is who a deploy request acts as.
-type Auth struct {
+// tokenAuth is who a request's credential belongs to, before it is checked against an instance.
+type tokenAuth struct {
 	UserID string
 	// Scopes are an API token's scopes (api-tokens/v1: "instances", "instances:read=<id>", ...); nil means every scope
 	// (a dashboard login, or a token with no scopes).
@@ -23,16 +24,9 @@ type Auth struct {
 	TokenLabel string
 }
 
-// The mothership's API token scopes for PocketHost instances. Their values are instance ids: "instances=abc123"
-// covers one instance, the bare name every instance the owner has.
-const (
-	ScopeInstances     = "instances"      // deploy, read files and logs, restart
-	ScopeInstancesRead = "instances:read" // read files and logs
-)
-
 // allows: the caller owns the instance and its token covers it (read or write).
-func (a Auth) allows(instanceID, ownerID string) bool {
-	if a.UserID != ownerID {
+func (a tokenAuth) allows(instanceID, ownerID string) bool {
+	if a.UserID == "" || a.UserID != ownerID {
 		return false
 	}
 	return apitokensv1.HoldsScope(a.Scopes, apitokensv1.JoinScope(ScopeInstances, instanceID)) ||
@@ -40,26 +34,16 @@ func (a Auth) allows(instanceID, ownerID string) bool {
 }
 
 // canWrite: the token may change the instance (deploy, restart).
-func (a Auth) canWrite(instanceID string) bool {
+func (a tokenAuth) canWrite(instanceID string) bool {
 	return apitokensv1.HoldsScope(a.Scopes, apitokensv1.JoinScope(ScopeInstances, instanceID))
 }
 
-// access is what the caller may do on the instance, as whoami shows it: ["read"] or ["read", "write"].
-func (a Auth) access(instanceID string) []string {
-	if a.canWrite(instanceID) {
-		return []string{"read", "write"}
-	}
-	return []string{"read"}
+// tokenVerifier checks credentials with the mothership. Both return *deploy.AuthError for a refused credential; any
+// other error is an outage.
+type tokenVerifier interface {
+	VerifyToken(ctx context.Context, token, ip string) (apitokensv1.Grant, error)
+	VerifyJWT(ctx context.Context, token string) (userID string, err error)
 }
-
-// AuthError is a token the mothership refused (401 or 403). Any other error from a verifier is an infrastructure
-// failure: it isn't cached.
-type AuthError struct {
-	Status  int
-	Message string
-}
-
-func (e *AuthError) Error() string { return e.Message }
 
 // tokenPrefixes start the API token secrets the mothership checks (ext/api-tokens): its own pbt_ tokens, and the
 // ph_pat_ tokens it issued before, which it imports on their first check.
@@ -91,8 +75,8 @@ func bearerToken(authorization string) string {
 
 type authEntry struct {
 	at   time.Time
-	auth Auth
-	err  *AuthError
+	auth tokenAuth
+	err  *deploy.AuthError
 }
 
 // authResolver resolves "Authorization: Bearer <API token or PocketBase JWT>". Results, failures included, are cached
@@ -100,21 +84,21 @@ type authEntry struct {
 // when a cached token doesn't cover the instance, so a token made a moment ago works at once without flooding the
 // mothership).
 type authResolver struct {
-	backend Backend
-	now     func() time.Time
+	verifier tokenVerifier
+	now      func() time.Time
 
 	mu    sync.Mutex
 	cache map[string]authEntry
 }
 
-func newAuthResolver(b Backend) *authResolver {
-	return &authResolver{backend: b, now: time.Now, cache: map[string]authEntry{}}
+func newAuthResolver(v tokenVerifier) *authResolver {
+	return &authResolver{verifier: v, now: time.Now, cache: map[string]authEntry{}}
 }
 
-func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fresh bool) (Auth, error) {
+func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fresh bool) (tokenAuth, error) {
 	token := bearerToken(authorization)
 	if token == "" {
-		return Auth{}, &AuthError{401, "Missing token. Set POCKETHOST_TOKEN or run 'pockethost token set'."}
+		return tokenAuth{}, &deploy.AuthError{Status: 401, Message: "Missing token. Run 'pockethost login' or set P1_TOKEN."}
 	}
 	sum := sha256.Sum256([]byte(token))
 	key := hex.EncodeToString(sum[:])
@@ -127,7 +111,7 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 	if ok && r.now().Sub(hit.at) < maxAge {
 		r.mu.Unlock()
 		if hit.err != nil {
-			return Auth{}, hit.err
+			return tokenAuth{}, hit.err
 		}
 		return hit.auth, nil
 	}
@@ -138,11 +122,11 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 
 	var entry authEntry
 	if isAPIToken(token) {
-		g, err := r.backend.VerifyToken(ctx, token, ip)
+		g, err := r.verifier.VerifyToken(ctx, token, ip)
 		if err != nil {
-			var ae *AuthError
+			var ae *deploy.AuthError
 			if !errors.As(err, &ae) {
-				return Auth{}, err // mothership unreachable: don't cache
+				return tokenAuth{}, err // mothership unreachable: don't cache
 			}
 			entry.err = ae
 		} else {
@@ -150,18 +134,18 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 			if len(scopes) == 0 {
 				scopes = nil // the owner's full rights
 			}
-			entry.auth = Auth{UserID: g.OwnerID, Scopes: scopes, Via: "token", TokenLabel: g.Name}
+			entry.auth = tokenAuth{UserID: g.OwnerID, Scopes: scopes, Via: "token", TokenLabel: g.Name}
 		}
 	} else {
-		uid, err := r.backend.VerifyJWT(ctx, token)
+		uid, err := r.verifier.VerifyJWT(ctx, token)
 		if err != nil {
-			var ae *AuthError
+			var ae *deploy.AuthError
 			if !errors.As(err, &ae) {
-				return Auth{}, err
+				return tokenAuth{}, err
 			}
 			entry.err = ae
 		} else {
-			entry.auth = Auth{UserID: uid, Via: "jwt"}
+			entry.auth = tokenAuth{UserID: uid, Via: "jwt"}
 		}
 	}
 	entry.at = r.now()
@@ -169,7 +153,7 @@ func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fr
 	r.cache[key] = entry
 	r.mu.Unlock()
 	if entry.err != nil {
-		return Auth{}, entry.err
+		return tokenAuth{}, entry.err
 	}
 	return entry.auth, nil
 }
