@@ -135,8 +135,10 @@ release:
     **Upgrade:**
 
     ```bash
-    brew upgrade pockethost
+    brew update && brew upgrade pockethost
     ```
+
+    `brew update` refreshes the tap first: Homebrew does that on its own only once a day, so a plain `brew upgrade` can miss a release that's hours old.
 
     On Windows with Scoop, `scoop update pockethost`. Or download the zip below. Check the **Upgrading** section below, if this release has one, before you upgrade.
 

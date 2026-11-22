@@ -42,7 +42,7 @@ cd pockethost/packages/pockethost-go
 go build -o pockethost ./cmd/pockethost
 ```
 
-Check it with `pockethost --version`. To upgrade, run `brew upgrade pockethost` or `scoop update pockethost`; otherwise `pockethost upgrade`, or run the install script again.
+Check it with `pockethost --version`. To upgrade, run `brew update && brew upgrade pockethost` or `scoop update pockethost`; otherwise `pockethost upgrade`, or run the install script again.
 
 ## Coming from the npm CLI
 
