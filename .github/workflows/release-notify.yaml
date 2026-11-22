@@ -21,6 +21,6 @@ jobs:
           kind="RELEASE"
           if [ "$PRERELEASE" = "true" ]; then kind="PRERELEASE"; fi
           msg="**POCKETHOST ${kind}** [${NAME}](${URL})
-          Upgrade: \`brew upgrade pockethost\`"
+          Upgrade: \`brew update && brew upgrade pockethost\`"
           jq -n --arg content "$msg" '{content: $content}' |
             curl -fsS -m 15 -H 'Content-Type: application/json' -d @- "$DISCORD_WEBHOOK"
