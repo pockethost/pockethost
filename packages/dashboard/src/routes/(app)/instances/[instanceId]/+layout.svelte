@@ -4,6 +4,7 @@
   import TabbedFeatureLayout from '$components/TabbedFeatureLayout.svelte'
   import InstanceDevModeBadge from '$components/InstanceDevModeBadge.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
+  import InstanceRegionBadge from '$components/InstanceRegionBadge.svelte'
   import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
   import type { FeatureTabNavSection } from '$lib/dashboard/featureTabTypes'
   import { globalInstancesStore, patchGlobalInstance, upsertGlobalInstance } from '$util/stores'
@@ -175,6 +176,7 @@
       <h1 class="text-lg font-bold text-white min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
         <span class="truncate">{$instance.subdomain}</span>
         <InstanceRuntimeBadge instance={$instance} />
+        <InstanceRegionBadge edge={$instance.edge} compact />
         {#if $instance.dev}
           <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
         {/if}
@@ -193,6 +195,7 @@
               v{$instance.version}
             </a>
             <InstanceRuntimeBadge instance={$instance} />
+            <InstanceRegionBadge edge={$instance.edge} />
             {#if $instance.dev}
               <InstanceDevModeBadge href={`/instances/${$instance.id}/dev`} />
             {/if}

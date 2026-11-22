@@ -25,6 +25,10 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Changed
+
+- **mothership:** signed-in users can read which region each edge is in (region slug, name and country) from the new `edge_regions` view, which the dashboard uses for instance region flags. The `regions` collection is now superuser-only, like `edges`.
+
 ## v5.0.0-alpha.10 (2026-11-21)
 
 ### PocketOne

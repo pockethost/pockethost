@@ -88,7 +88,9 @@
       const target = (instance.cname || instance.subdomain).toLowerCase()
       return target.includes(searchQuery.toLowerCase())
     })
+    // Powered-on instances first; within each group, favorites first, then by name.
     .sort((a, b) => {
+      if (a.power !== b.power) return a.power ? -1 : 1
       const aFav = favoriteSet.has(a.id)
       const bFav = favoriteSet.has(b.id)
       if (aFav !== bFav) return aFav ? -1 : 1
@@ -164,6 +166,7 @@
           <th>Name</th>
           <th>Status</th>
           <th>Version</th>
+          <th>Region</th>
           <th></th>
           <th>Power</th>
         </tr>
