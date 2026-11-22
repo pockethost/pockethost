@@ -25,6 +25,12 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.10 (2026-11-21)
+
+### PocketOne
+
+- Built on PocketOne [v0.0.1-alpha.12](https://github.com/pocketonehq/pocketone/releases/tag/v0.0.1-alpha.12) (PocketBase v0.42.3), the release with the jsvm map race fix that alpha.9 took from PocketOne main. No change in behavior from alpha.9: `pockethost version` now names the PocketOne release.
+
 ## v5.0.0-alpha.9 (2026-11-22)
 
 ### Fixed
