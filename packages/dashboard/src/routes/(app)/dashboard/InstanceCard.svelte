@@ -1,11 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { INSTANCE_ADMIN_URL } from '$lib/appEnv'
+  import { INSTANCE_ADMIN_URL, INSTANCE_URL } from '$lib/appEnv'
   import { client } from '$src/pocketbase-client'
   import { patchGlobalInstance } from '$util/stores'
   import InstanceFavoriteButton from '$components/InstanceFavoriteButton.svelte'
   import Toggle from '../instances/[instanceId]/Toggle.svelte'
   import InstanceRuntimeBadge from '$components/InstanceRuntimeBadge.svelte'
+  import InstanceRegionBadge from '$components/InstanceRegionBadge.svelte'
   import { isInstanceShuttingDown, reportPowerChangeError } from '$util/instancePower'
   import type { InstanceFields } from '@pockethost/server/common'
 
@@ -56,9 +57,20 @@
         <div onclick={(e) => e.stopPropagation()}>
           <InstanceFavoriteButton {isFavorite} onToggle={onToggleFavorite} />
         </div>
-        <span class="text-xl text-start font-semibold truncate flex-1 min-w-0">
+        <span class="text-xl text-start font-semibold truncate min-w-0">
           {instance.cname ? instance.cname : instance.subdomain}
         </span>
+        <a
+          href={INSTANCE_URL(instance)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onclick={(e) => e.stopPropagation()}
+          class="shrink-0 mr-auto text-xs text-white/35 hover:text-white/70"
+          title="Open the site in a new tab"
+          aria-label="Open the site in a new tab"
+        >
+          <wa-icon name="arrow-up-right-from-square"></wa-icon>
+        </a>
       </div>
 
       <div class="flex flex-nowrap items-center gap-1 min-w-0">
@@ -76,6 +88,7 @@
         >
           <span>v{instance.version}</span>
         </p>
+        <InstanceRegionBadge edge={instance.edge} />
       </div>
       <div class="flex items-center min-h-5">
         <InstanceRuntimeBadge {instance} />
