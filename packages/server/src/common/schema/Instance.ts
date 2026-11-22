@@ -60,7 +60,10 @@ export type InstanceFields<TExtra = {}> = BaseFields & {
   idleTtl: number
   /** Operator-only. `{ ip_hourly?, instance_hourly?, ip_concurrent?, instance_concurrent? }` via mothership admin. */
   firewall?: InstanceFirewall | null
-  /** The one edge that runs this instance (edges record id). Chosen by the mothership; hidden from customers. */
+  /**
+   * The one edge that runs this instance (edges record id), chosen by the mothership. Its region is in the
+   * `edge_regions` view (signed-in users; `edges` itself is superuser-only).
+   */
   edge?: string
   /** Set on a copy made with Duplicate: the id of the instance it was copied from. */
   duplicateOf?: string
