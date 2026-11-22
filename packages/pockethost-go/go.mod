@@ -10,31 +10,32 @@ require (
 	golang.org/x/crypto v0.59.0
 	golang.org/x/sys v0.50.0
 	modernc.org/sqlite v1.62.0
-	pocketone.dev/examples/pocketone v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/api-tokens v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/bundle v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/cache v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/config v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/contracts v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/deploy v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/docker v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/edge v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/extkit v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/firewall v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/jsvm v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/mothership v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/multisite v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/pocker v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/servertiming v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/standard v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/stats v0.0.0-20261121110645-e93b50eb43ab
-	pocketone.dev/ext/upgrade v0.0.0-20261121110645-e93b50eb43ab
+	pocketone.dev/examples/pocketone v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/api-tokens v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/bundle v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/cache v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/config v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/contracts v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/deploy v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/docker v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/edge v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/extkit v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/firewall v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/jsvm v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/mothership v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/multisite v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/pocker v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/servertiming v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/standard v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/stats v0.0.0-20261122012648-8ecf9639b69f
+	pocketone.dev/ext/upgrade v0.0.0-20261122012648-8ecf9639b69f
 )
 
 require (
 	ganigeorgiev.com/fexpr v0.7.0 // indirect
 	ganigeorgiev.com/pocketbase/ozzo-validation/v4 v4.4.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+	github.com/benallfree/nollama v0.0.1-alpha.1 // indirect
 	github.com/benbjohnson/litestream v0.5.18 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/caddyserver/certmagic v0.25.6 // indirect
@@ -102,25 +103,25 @@ require (
 	modernc.org/libquickjs v0.13.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	pocketone.dev/ext/agent v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/agent-chat v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/autotls v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/backups v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/bulkmail v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/desktop v0.0.0-20261121110645-e93b50eb43ab // indirect
+	pocketone.dev/ext/agent v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/agent-chat v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/autotls v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/backups v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/bulkmail v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/desktop v0.0.0-20261122012648-8ecf9639b69f // indirect
 	pocketone.dev/ext/mailtrap v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/mcp v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/pages v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/pitr v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/remotes v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/s3-fallback v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/s3redirect v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/sandbox v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/settings v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/templates v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/uicache v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/vacuum v0.0.0-20261121110645-e93b50eb43ab // indirect
-	pocketone.dev/ext/wasm v0.0.0-20261121110645-e93b50eb43ab // indirect
+	pocketone.dev/ext/mcp v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/pages v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/pitr v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/remotes v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/s3-fallback v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/s3redirect v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/sandbox v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/settings v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/templates v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/uicache v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/vacuum v0.0.0-20261122012648-8ecf9639b69f // indirect
+	pocketone.dev/ext/wasm v0.0.0-20261122012648-8ecf9639b69f // indirect
 )
 
-replace ganigeorgiev.com/pocketbase/pocketbase => pocketone.dev v0.0.1-alpha.10.0.20261121110645-e93b50eb43ab
+replace ganigeorgiev.com/pocketbase/pocketbase => pocketone.dev v0.0.1-alpha.11.0.20261122012648-8ecf9639b69f

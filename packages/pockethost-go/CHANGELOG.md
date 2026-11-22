@@ -25,6 +25,16 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.9 (2026-11-22)
+
+### Fixed
+
+- **mothership:** no longer crashes with `fatal error: concurrent map iteration and map write` when a JS hook gets a record or other value that another goroutine is writing (PocketOne's jsvm measured values by walking maps it didn't own; seen on the mothership 2026-11-21 23:23 UTC).
+
+### PocketOne
+
+- Built on PocketOne main [8ecf9639b](https://github.com/pocketonehq/pocketone/commit/8ecf9639b) (after v0.0.1-alpha.11, PocketBase v0.42.3): jsvm no longer walks maps other goroutines own, and an audit of the live Go maps JS can reach; PocketOne branding and a pocketone.dev docs link in the dashboard; ext/agent's built-in model on nollama's engine.
+
 ## v5.0.0-alpha.8 (2026-11-21)
 
 ### Upgrading
