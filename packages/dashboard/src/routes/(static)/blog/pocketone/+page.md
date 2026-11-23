@@ -28,7 +28,7 @@ PocketOne has its own version numbers, starting at 0.0.1. Each release notes the
 On macOS or Linux with [Homebrew](https://brew.sh):
 
 ```bash
-brew install pockethost/tap/pocketone
+brew install pocketonehq/tap/pocketone
 pocketone serve
 ```
 
