@@ -88,13 +88,16 @@ export const loadAllLsBillingItems = (app: core.App): { userId: string; item: Bi
 /**
  * Insert or update one billing item. When `providerUpdatedAt` is given and the stored row is newer, the write is
  * skipped so out-of-order webhooks cannot roll state back.
+ *
+ * If the row sat on another user, that user's entitlement is recomputed right away, so a moved purchase is never left
+ * counted on the account it left. `previousUser` names that account.
  */
 export const upsertBillingItem = (
   app: core.App,
   userId: string,
   item: BillingItem,
   options: { providerData?: unknown; providerUpdatedAt?: string; note?: string } = {}
-): { record: core.Record; skipped: boolean } => {
+): { record: core.Record; skipped: boolean; previousUser?: string } => {
   const existing = findBillingItemRecord(app, item)
   if (existing && options.providerUpdatedAt) {
     // JSON fields come back from Goja as raw bytes; read them as a string and parse.
@@ -110,6 +113,8 @@ export const upsertBillingItem = (
     }
   }
 
+  // Read before the write below: `rec` is the same record as `existing`.
+  const previousUser = existing ? existing.getString(`user`) : ``
   const rec = existing || new Record(app.findCollectionByNameOrId(COLLECTION))
   rec.set(`user`, userId)
   rec.set(`provider`, item.provider)
@@ -126,6 +131,14 @@ export const upsertBillingItem = (
   if (options.note !== undefined) rec.set(`note`, options.note)
   if (options.providerData !== undefined) rec.set(`provider_data`, options.providerData)
   app.save(rec)
+  if (previousUser && previousUser !== userId) {
+    try {
+      reconcileUser(app, app.findRecordById(`users`, previousUser))
+    } catch {
+      // the account it left was deleted: nothing to recompute
+    }
+    return { record: rec, skipped: false, previousUser }
+  }
   return { record: rec, skipped: false }
 }
 
@@ -144,6 +157,8 @@ export const upsertLsSubscription = (app: core.App, userId: string, sub: LsSubsc
 export type LsSyncReport = {
   subscriptions: number
   orders: number
+  /** Purchases found by email that another account already holds; left where they are. */
+  heldElsewhere: string[]
   /** LS resources found by email whose variant PocketHost does not know (e.g. retired variants). */
   unknown: string[]
 }
@@ -181,8 +196,35 @@ export const rememberLsEmails = (app: core.App, userRec: core.Record, emails: st
   return true
 }
 
+/**
+ * The account a checkout email belongs to: the account with that email, else the one account that lists it as an
+ * alternate Lemon Squeezy email. Throws when several accounts list it (a person has to decide); undefined when none.
+ */
+export const findUserByCheckoutEmail = (app: core.App, email: string): core.Record | undefined => {
+  for (const candidate of [...new Set([email, lc(email)])]) {
+    try {
+      return app.findFirstRecordByData(`users`, `email`, candidate)
+    } catch {}
+  }
+  const alternates = findUsersByAlternateLsEmail(app, email)
+  if (alternates.length > 1) {
+    throw new Error(`Checkout email ${email} is an alternate email on ${alternates.length} accounts`)
+  }
+  return alternates[0]
+}
+
+/** Accounts that list `email` as an alternate Lemon Squeezy email (not their account email). */
+export const findUsersByAlternateLsEmail = (app: core.App, email: string): core.Record[] => {
+  const em = lc(email)
+  if (!em) return []
+  return app
+    .findRecordsByFilter(`users`, `billing_links ~ {:em}`, ``, 0, 0, { em })
+    .filter((r): r is core.Record => !!r)
+    .filter((r) => lc(r.getString(`email`)) !== em && lsEmailsFor(r).includes(em))
+}
+
 export const syncUserFromLemonSqueezy = (app: core.App, userRec: core.Record, dryRun = false) => {
-  const report: LsSyncReport = { subscriptions: 0, orders: 0, unknown: [] }
+  const report: LsSyncReport = { subscriptions: 0, orders: 0, heldElsewhere: [], unknown: [] }
   const items: { item: BillingItem; providerData: any }[] = []
 
   for (const email of lsEmailsFor(userRec)) {
@@ -204,12 +246,22 @@ export const syncUserFromLemonSqueezy = (app: core.App, userRec: core.Record, dr
     }
   }
 
+  // Email finds purchases; it never takes one off the account that holds it (that account may be the buyer's main
+  // account, with this email as an alternate).
+  const mine = items.filter(({ item }) => {
+    const held = findBillingItemRecord(app, item)
+    if (held && held.getString(`user`) !== userRec.id) {
+      report.heldElsewhere.push(`${item.kind}:${item.external_id}`)
+      return false
+    }
+    return true
+  })
   if (!dryRun) {
-    for (const { item, providerData } of items) {
+    for (const { item, providerData } of mine) {
       upsertBillingItem(app, userRec.id, item, { providerData })
     }
   }
-  return { report, items: items.map((i) => i.item) }
+  return { report, items: mine.map((i) => i.item) }
 }
 
 const userEntitlementFields = (userRec: core.Record) => ({

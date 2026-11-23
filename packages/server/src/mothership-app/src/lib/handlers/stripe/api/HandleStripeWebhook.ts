@@ -20,6 +20,7 @@ import {
 import {
   ensureUserBootstrapped,
   findBillingItemRecord,
+  findUserByCheckoutEmail,
   reconcileUser,
   upsertBillingItem,
 } from '../../lemon/lib/billingStore'
@@ -51,7 +52,6 @@ type StripeContext = {
   bonus_error?: string
 }
 
-const lc = (s: unknown) => `${s ?? ''}`.trim().toLowerCase()
 const idOf = (v: unknown) => (typeof v === 'string' ? v : (v as any)?.id ? `${(v as any).id}` : '')
 
 /**
@@ -204,12 +204,11 @@ export const HandleStripeWebhook = (e: core.RequestEvent) => {
       if (!session) return undefined
       const email = `${session.customer_details?.email || session.customer_email || ''}`.trim()
       if (!email) throw new Error(`No user ID or checkout email on ${session.id}`)
-      for (const candidate of [...new Set([email, lc(email)])]) {
-        try {
-          const match = $app.findFirstRecordByData(`users`, `email`, candidate)
-          context.user_id_source = `email`
-          return match
-        } catch {}
+      // The account email, or an account that lists it as an alternate Lemon Squeezy email.
+      const match = findUserByCheckoutEmail($app, email)
+      if (match) {
+        context.user_id_source = `email`
+        return match
       }
       if (!metadata.claim) throw new Error(`No PocketHost user for checkout email ${email}`)
       const { user, created } = createBuyerAccount($app, email, metadata.claim, log)
