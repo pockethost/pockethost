@@ -127,3 +127,25 @@ export const claimSubscriptionsByOrder = (
   }
   return { owners, emails: claims.emails, conflicts: Object.keys(conflicted) }
 }
+
+/**
+ * Who a Lemon Squeezy purchase belongs to, the same whichever account is being reconciled:
+ *
+ * 1. A checkout claim (`custom_data.user_id`) wins.
+ * 2. Else the account that holds the row now keeps it. Email never moves a purchase off an account.
+ * 3. Else (a purchase PocketHost hasn't stored yet) the one account whose main or alternate LS emails include the
+ *    purchase's email. Several such accounts is a conflict: nobody gets it and reconcile reports it.
+ *
+ * Returns the owner's user id, or undefined (unowned, or a conflict when `conflict` is true).
+ */
+export const lsPurchaseOwner = (p: {
+  claimOwner?: string
+  holder?: string
+  emailCandidates: string[]
+}): { owner?: string; conflict: boolean } => {
+  if (p.claimOwner) return { owner: p.claimOwner, conflict: false }
+  if (p.holder) return { owner: p.holder, conflict: false }
+  const candidates = [...new Set(p.emailCandidates.filter(Boolean))]
+  if (candidates.length === 1) return { owner: candidates[0], conflict: false }
+  return { owner: undefined, conflict: candidates.length > 1 }
+}

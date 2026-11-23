@@ -31,6 +31,7 @@ import {
 import {
   ensureUserBootstrapped,
   findBillingItemRecord,
+  findUserByCheckoutEmail,
   loadBillingItems,
   reconcileUser,
   rememberLsEmails,
@@ -65,6 +66,14 @@ type SaleContext = {
   bonus_before?: number
   bonus_after?: number
   bonus_error?: string
+  /**
+   * The parts of the webhook payload that reconcile reads back as an ownership claim (`lsClaimsFromAudit`): the
+   * checkout's `user_id` and the resource it is about.
+   */
+  data?: {
+    meta: { custom_data: { user_id?: string } }
+    data: { type?: string; id?: string; attributes: { user_email?: string; subscription_id?: unknown } }
+  }
 }
 
 /** Events that post to the lemon_cancel_discord template. */
@@ -103,6 +112,14 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
     context.type = payload.data?.type
     context.resource_id = `${payload.data?.id ?? ''}`
     const attrs = payload.data?.attributes || {}
+    context.data = {
+      meta: { custom_data: { user_id: payload.meta?.custom_data?.user_id } },
+      data: {
+        type: context.type,
+        id: context.resource_id,
+        attributes: { user_email: attrs.user_email, subscription_id: attrs.subscription_id },
+      },
+    }
     if (!context.event_name || !context.type) {
       throw new Error(`Missing event name or type`)
     }
@@ -197,12 +214,11 @@ export const HandleLemonSqueezySale = (e: core.RequestEvent) => {
 
       const email = `${attrs.user_email || firstAttrs.user_email || ''}`.trim()
       if (!email) throw new Error(`No user ID or checkout email`)
-      for (const candidate of [...new Set([email, email.toLowerCase()])]) {
-        try {
-          const match = $app.findFirstRecordByData(`users`, `email`, candidate)
-          context.user_id_source = `email`
-          return match
-        } catch {}
+      // The account email, or an account that lists it as an alternate LS email.
+      const match = findUserByCheckoutEmail($app, email)
+      if (match) {
+        context.user_id_source = `email`
+        return match
       }
       // Pay first: a guest checkout (custom_data.claim) with no account for its email makes one from the order email;
       // the buyer claims it on /claim. Other unmatched sales still fail, as before, for reconcile to sort out.

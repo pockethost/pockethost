@@ -3559,6 +3559,9 @@ const loadAllLsBillingItems = (app) => app.findRecordsByFilter(COLLECTION, `prov
 /**
 * Insert or update one billing item. When `providerUpdatedAt` is given and the stored row is newer, the write is
 * skipped so out-of-order webhooks cannot roll state back.
+*
+* If the row sat on another user, that user's entitlement is recomputed right away, so a moved purchase is never left
+* counted on the account it left. `previousUser` names that account.
 */
 const upsertBillingItem = (app, userId, item, options = {}) => {
 	const existing = findBillingItemRecord(app, item);
@@ -3575,6 +3578,7 @@ const upsertBillingItem = (app, userId, item, options = {}) => {
 			skipped: true
 		};
 	}
+	const previousUser = existing ? existing.getString(`user`) : ``;
 	const rec = existing || new Record(app.findCollectionByNameOrId(COLLECTION));
 	rec.set(`user`, userId);
 	rec.set(`provider`, item.provider);
@@ -3591,6 +3595,16 @@ const upsertBillingItem = (app, userId, item, options = {}) => {
 	if (options.note !== void 0) rec.set(`note`, options.note);
 	if (options.providerData !== void 0) rec.set(`provider_data`, options.providerData);
 	app.save(rec);
+	if (previousUser && previousUser !== userId) {
+		try {
+			reconcileUser(app, app.findRecordById(`users`, previousUser));
+		} catch {}
+		return {
+			record: rec,
+			skipped: false,
+			previousUser
+		};
+	}
 	return {
 		record: rec,
 		skipped: false
@@ -3609,7 +3623,7 @@ const upsertLsSubscription = (app, userId, sub) => {
 	};
 };
 /** Pull every LS subscription + lifetime order for the user's email and upsert them. */
-const lc$3 = (s) => `${s ?? ""}`.trim().toLowerCase();
+const lc$2 = (s) => `${s ?? ""}`.trim().toLowerCase();
 const readBillingLinks = (userRec) => {
 	try {
 		return JSON.parse(userRec.getString(`billing_links`) || `null`) || {};
@@ -3620,7 +3634,7 @@ const readBillingLinks = (userRec) => {
 /** Every email this user has bought under on Lemon Squeezy: the account email plus recorded alternates. */
 const lsEmailsFor = (userRec) => {
 	const alt = readBillingLinks(userRec)?.lemonsqueezy?.emails || [];
-	return [...new Set([lc$3(userRec.getString(`email`)), ...alt.map(lc$3)])].filter(Boolean);
+	return [...new Set([lc$2(userRec.getString(`email`)), ...alt.map(lc$2)])].filter(Boolean);
 };
 /**
 * Record LS checkout emails that differ from the account email. Only call with emails tied to this user by checkout
@@ -3628,19 +3642,38 @@ const lsEmailsFor = (userRec) => {
 */
 const rememberLsEmails = (app, userRec, emails) => {
 	const known = lsEmailsFor(userRec);
-	const add = emails.map(lc$3).filter((e) => e && !known.includes(e));
+	const add = emails.map(lc$2).filter((e) => e && !known.includes(e));
 	if (!add.length) return false;
 	const links = readBillingLinks(userRec);
 	links.lemonsqueezy = links.lemonsqueezy || {};
-	links.lemonsqueezy.emails = [...new Set([...(links.lemonsqueezy.emails || []).map(lc$3), ...add])];
+	links.lemonsqueezy.emails = [...new Set([...(links.lemonsqueezy.emails || []).map(lc$2), ...add])];
 	userRec.set(`billing_links`, links);
 	app.saveNoValidate(userRec);
 	return true;
+};
+/**
+* The account a checkout email belongs to: the account with that email, else the one account that lists it as an
+* alternate Lemon Squeezy email. Throws when several accounts list it (a person has to decide); undefined when none.
+*/
+const findUserByCheckoutEmail = (app, email) => {
+	for (const candidate of [...new Set([email, lc$2(email)])]) try {
+		return app.findFirstRecordByData(`users`, `email`, candidate);
+	} catch {}
+	const alternates = findUsersByAlternateLsEmail(app, email);
+	if (alternates.length > 1) throw new Error(`Checkout email ${email} is an alternate email on ${alternates.length} accounts`);
+	return alternates[0];
+};
+/** Accounts that list `email` as an alternate Lemon Squeezy email (not their account email). */
+const findUsersByAlternateLsEmail = (app, email) => {
+	const em = lc$2(email);
+	if (!em) return [];
+	return app.findRecordsByFilter(`users`, `billing_links ~ {:em}`, ``, 0, 0, { em }).filter((r) => !!r).filter((r) => lc$2(r.getString(`email`)) !== em && lsEmailsFor(r).includes(em));
 };
 const syncUserFromLemonSqueezy = (app, userRec, dryRun = false) => {
 	const report = {
 		subscriptions: 0,
 		orders: 0,
+		heldElsewhere: [],
 		unknown: []
 	};
 	const items = [];
@@ -3667,10 +3700,18 @@ const syncUserFromLemonSqueezy = (app, userRec, dryRun = false) => {
 			report.orders++;
 		}
 	}
-	if (!dryRun) for (const { item, providerData } of items) upsertBillingItem(app, userRec.id, item, { providerData });
+	const mine = items.filter(({ item }) => {
+		const held = findBillingItemRecord(app, item);
+		if (held && held.getString(`user`) !== userRec.id) {
+			report.heldElsewhere.push(`${item.kind}:${item.external_id}`);
+			return false;
+		}
+		return true;
+	});
+	if (!dryRun) for (const { item, providerData } of mine) upsertBillingItem(app, userRec.id, item, { providerData });
 	return {
 		report,
-		items: items.map((i) => i.item)
+		items: mine.map((i) => i.item)
 	};
 };
 const userEntitlementFields = (userRec) => ({
@@ -4355,7 +4396,7 @@ const HandleLemonSqueezyCheckout = (e) => {
 //#endregion
 //#region ../common/billing/lsClaims.ts
 const str = (v) => `${v ?? ""}`.trim();
-const lc$2 = (v) => str(v).toLowerCase();
+const lc$1 = (v) => str(v).toLowerCase();
 const lsResourceKey = (kind, id) => str(id) ? `${kind}:${str(id)}` : void 0;
 /** Key for a billing item, or undefined when it is not a Lemon Squeezy row. */
 const lsResourceKeyOfItem = (item) => {
@@ -4385,7 +4426,7 @@ const lsClaimsFromAudit = (contexts) => {
 		if (!c || typeof c !== "object" || c.user_id_source === "email") continue;
 		const userId = str(c.data?.meta?.custom_data?.user_id);
 		if (!userId) continue;
-		const email = lc$2(c.data?.data?.attributes?.user_email);
+		const email = lc$1(c.data?.data?.attributes?.user_email);
 		if (email) (emails[userId] = emails[userId] || {})[email] = true;
 		const key = lsResourceKeyOfWebhookData(c.data?.data);
 		if (!key || conflicted[key]) continue;
@@ -4433,6 +4474,35 @@ const claimSubscriptionsByOrder = (claims, links) => {
 		conflicts: Object.keys(conflicted)
 	};
 };
+/**
+* Who a Lemon Squeezy purchase belongs to, the same whichever account is being reconciled:
+*
+* 1. A checkout claim (`custom_data.user_id`) wins.
+* 2. Else the account that holds the row now keeps it. Email never moves a purchase off an account.
+* 3. Else (a purchase PocketHost hasn't stored yet) the one account whose main or alternate LS emails include the
+*    purchase's email. Several such accounts is a conflict: nobody gets it and reconcile reports it.
+*
+* Returns the owner's user id, or undefined (unowned, or a conflict when `conflict` is true).
+*/
+const lsPurchaseOwner = (p) => {
+	if (p.claimOwner) return {
+		owner: p.claimOwner,
+		conflict: false
+	};
+	if (p.holder) return {
+		owner: p.holder,
+		conflict: false
+	};
+	const candidates = [...new Set(p.emailCandidates.filter(Boolean))];
+	if (candidates.length === 1) return {
+		owner: candidates[0],
+		conflict: false
+	};
+	return {
+		owner: void 0,
+		conflict: candidates.length > 1
+	};
+};
 
 //#endregion
 //#region src/lib/handlers/lemon/lib/runReconcile.ts
@@ -4447,7 +4517,7 @@ const listAll = (path) => {
 	return out;
 };
 const keyOf = (i) => `${i.provider}:${i.kind}:${i.external_id}`;
-const lc$1 = (s) => `${s ?? ""}`.trim().toLowerCase();
+const lc = (s) => `${s ?? ""}`.trim().toLowerCase();
 const PRESERVE_PREFIX = `preserve:`;
 const isPreserve = (i) => i.kind === `manual` && i.external_id.startsWith(PRESERVE_PREFIX);
 const userFields = (rec) => ({
@@ -4473,8 +4543,10 @@ const lsAuditContexts = () => {
 *
 * A purchase belongs to the user its checkout named (`custom_data.user_id`, learned from old webhook audit records),
 * matched by LS subscription / order ID, so it is found even after the customer changes their email in Lemon Squeezy,
-* and it never goes to a different account that happens to share an email. Purchases no checkout ties to anyone are
-* matched by email: the account email plus alternate LS emails (recorded in `billing_links` or seen on old checkouts).
+* and it never goes to a different account that happens to share an email. A purchase no checkout ties to anyone stays
+* on the account that holds it; only a purchase nobody holds yet is matched by email (the account email plus alternate
+* LS emails, recorded in `billing_links` or seen on old checkouts), and only when exactly one account matches
+* (`lsPurchaseOwner`). So the result is the same whichever account, or all of them, is reconciled.
 *
 * Slots are what verified LS purchases plus any founder/legacy/grandfathered baseline support. `preserve:<id>` rows
 * from the one-time backfill are released in normal runs: if Lemon Squeezy can't show a payment, the slots go (to 0 if
@@ -4523,7 +4595,7 @@ const runReconcile = (opts = {}) => {
 	const idFetchErrors = [];
 	let lsSubscriptionsSeen = 0;
 	const push = (email, found) => {
-		const k = lc$1(email);
+		const k = lc(email);
 		(byEmail[k] = byEmail[k] || []).push(found);
 		const resourceKey = lsResourceKeyOfItem(found.item);
 		if (resourceKey) byKey[resourceKey] = found;
@@ -4576,6 +4648,40 @@ const runReconcile = (opts = {}) => {
 	});
 	claims = claimSubscriptionsByOrder(auditClaims, subscriptionOrders);
 	indexOwners();
+	const auditAltOwners = {};
+	for (const uid of Object.keys(auditAlt)) for (const em of auditAlt[uid] || []) (auditAltOwners[lc(em)] = auditAltOwners[lc(em)] || []).push(uid);
+	const candidatesCache = {};
+	const emailCandidates = (email) => {
+		const em = lc(email);
+		if (!em) return [];
+		if (!candidatesCache[em]) {
+			const ids = [];
+			try {
+				ids.push($app.findFirstRecordByFilter(`users`, `email = {:em}`, { em }).id);
+			} catch {}
+			for (const rec of findUsersByAlternateLsEmail($app, em)) ids.push(rec.id);
+			for (const id of auditAltOwners[em] || []) if (userExists(id)) ids.push(id);
+			candidatesCache[em] = [...new Set(ids)];
+		}
+		return candidatesCache[em];
+	};
+	const emailConflicts = {};
+	/** The one account an LS purchase belongs to (see `lsPurchaseOwner`), or undefined. */
+	const purchaseOwner = (found) => {
+		const key = lsResourceKeyOfItem(found.item);
+		const holder = key ? holders[key]?.userId : void 0;
+		const email = `${found.providerData?.user_email || ""}`;
+		const { owner, conflict } = lsPurchaseOwner({
+			claimOwner: ownerOf(key),
+			holder: holder && userExists(holder) ? holder : void 0,
+			emailCandidates: emailCandidates(email)
+		});
+		if (conflict && key) emailConflicts[key] = {
+			email: lc(email),
+			accounts: emailCandidates(email)
+		};
+		return owner;
+	};
 	if (onlyUser) for (const key of ownedBy[onlyUser.id] || []) {
 		if (byKey[key]) continue;
 		const sep = key.indexOf(`:`);
@@ -4627,7 +4733,7 @@ const runReconcile = (opts = {}) => {
 	let usersWithAltEmails = 0;
 	for (const userRec of Object.values(users)) try {
 		const uid = userRec.id;
-		const email = lc$1(userRec.getString(`email`));
+		const email = lc(userRec.getString(`email`));
 		const emails = emailsOf(userRec);
 		const altEmails = emails.filter((em) => em !== email);
 		if (altEmails.length) usersWithAltEmails++;
@@ -4648,13 +4754,13 @@ const runReconcile = (opts = {}) => {
 			item,
 			to: ownerOf(lsResourceKeyOfItem(item))
 		});
-		for (const em of emails) for (const found of byEmail[em] || []) if (isMine(found.item)) merged[keyOf(found.item)] = found;
+		for (const em of emails) for (const found of byEmail[em] || []) if (purchaseOwner(found) === uid) merged[keyOf(found.item)] = found;
 		const rememberEmails = [...auditAlt[uid] || []];
 		for (const key of ownedBy[uid] || []) {
 			const fresh = byKey[key];
 			if (fresh) {
 				merged[keyOf(fresh.item)] = fresh;
-				const lsEmail = lc$1(fresh.providerData?.user_email);
+				const lsEmail = lc(fresh.providerData?.user_email);
 				if (lsEmail) rememberEmails.push(lsEmail);
 				continue;
 			}
@@ -4791,6 +4897,15 @@ const runReconcile = (opts = {}) => {
 		for (const g of p.gives) addMove(lsResourceKeyOfItem(g.item), p.userRec.id, g.to);
 	}
 	const reassigned = Object.values(moves);
+	const countedOn = {};
+	for (const p of plans) for (const f of Object.values(p.merged)) {
+		const key = lsResourceKeyOfItem(f.item);
+		if (key) (countedOn[key] = countedOn[key] || []).push(p.userRec.id);
+	}
+	const doubleCounted = Object.entries(countedOn).filter(([, ids]) => ids.length > 1).map(([key, ids]) => ({
+		key,
+		users: ids
+	}));
 	const inRun = new Set(plans.map((p) => p.userRec.id));
 	const outside = {};
 	const outsideOf = (id) => outside[id] = outside[id] || {
@@ -4809,7 +4924,7 @@ const runReconcile = (opts = {}) => {
 		const items = [...loadBillingItems($app, id).filter((i) => !leaving.includes(lsResourceKeyOfItem(i) || ``)), ...arriving];
 		affectedOutsideRun.push({
 			user_id: id,
-			email: lc$1(rec.getString(`email`)),
+			email: lc(rec.getString(`email`)),
 			before: rec.getInt(`subscription_quantity`),
 			after: reconcileEntitlement(items, now).subscription_quantity
 		});
@@ -4870,6 +4985,11 @@ const runReconcile = (opts = {}) => {
 		reductions,
 		reductionsHeld: holdReductions ? reducing.length : 0,
 		reassigned,
+		doubleCounted,
+		emailConflicts: Object.entries(emailConflicts).map(([key, c]) => ({
+			key,
+			...c
+		})),
 		affectedOutsideRun,
 		preserveReleased,
 		preserved,
@@ -4970,6 +5090,17 @@ const HandleLemonSqueezySale = (e) => {
 		context.type = payload.data?.type;
 		context.resource_id = `${payload.data?.id ?? ""}`;
 		const attrs = payload.data?.attributes || {};
+		context.data = {
+			meta: { custom_data: { user_id: payload.meta?.custom_data?.user_id } },
+			data: {
+				type: context.type,
+				id: context.resource_id,
+				attributes: {
+					user_email: attrs.user_email,
+					subscription_id: attrs.subscription_id
+				}
+			}
+		};
 		if (!context.event_name || !context.type) throw new Error(`Missing event name or type`);
 		/** Resolve the LS subscriptions this event is about, plus a lifetime order item if any. */
 		const resolveResources = () => {
@@ -5053,11 +5184,11 @@ const HandleLemonSqueezySale = (e) => {
 			}
 			const email = `${attrs.user_email || firstAttrs.user_email || ""}`.trim();
 			if (!email) throw new Error(`No user ID or checkout email`);
-			for (const candidate of [...new Set([email, email.toLowerCase()])]) try {
-				const match = $app.findFirstRecordByData(`users`, `email`, candidate);
+			const match = findUserByCheckoutEmail($app, email);
+			if (match) {
 				context.user_id_source = `email`;
 				return match;
-			} catch {}
+			}
 			const claim = payload.meta?.custom_data?.claim;
 			if (!claim) throw new Error(`No PocketHost user for checkout email ${email}`);
 			const { user, created } = createBuyerAccount($app, email, claim, log);
@@ -7987,7 +8118,6 @@ const HandleBillingCheckout = (e) => {
 
 //#endregion
 //#region src/lib/handlers/stripe/api/HandleStripeWebhook.ts
-const lc = (s) => `${s ?? ""}`.trim().toLowerCase();
 const idOf = (v) => typeof v === "string" ? v : v?.id ? `${v.id}` : "";
 /**
 * Stripe (Managed Payments) webhook. Like the Lemon Squeezy one: each event updates the billing item it is about, then
@@ -8122,11 +8252,11 @@ const HandleStripeWebhook = (e) => {
 			if (!session) return void 0;
 			const email = `${session.customer_details?.email || session.customer_email || ""}`.trim();
 			if (!email) throw new Error(`No user ID or checkout email on ${session.id}`);
-			for (const candidate of [...new Set([email, lc(email)])]) try {
-				const match = $app.findFirstRecordByData(`users`, `email`, candidate);
+			const match = findUserByCheckoutEmail($app, email);
+			if (match) {
 				context.user_id_source = `email`;
 				return match;
-			} catch {}
+			}
 			if (!metadata.claim) throw new Error(`No PocketHost user for checkout email ${email}`);
 			const { user, created } = createBuyerAccount($app, email, metadata.claim, log);
 			context.user_id_source = created ? `create` : `email`;

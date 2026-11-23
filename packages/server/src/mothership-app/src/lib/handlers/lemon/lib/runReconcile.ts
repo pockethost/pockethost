@@ -13,12 +13,14 @@ import {
 import {
   claimSubscriptionsByOrder,
   lsClaimsFromAudit,
+  lsPurchaseOwner,
   lsResourceKeyOfItem,
   type LsResourceKey,
 } from '$common/billing/lsClaims'
 import { resolveUserEntitlements } from '$common/billing/resolveUserEntitlements'
 import {
   ensureBaseline,
+  findUsersByAlternateLsEmail,
   loadAllLsBillingItems,
   loadBillingItems,
   lsEmailsFor,
@@ -110,8 +112,10 @@ type Plan = {
  *
  * A purchase belongs to the user its checkout named (`custom_data.user_id`, learned from old webhook audit records),
  * matched by LS subscription / order ID, so it is found even after the customer changes their email in Lemon Squeezy,
- * and it never goes to a different account that happens to share an email. Purchases no checkout ties to anyone are
- * matched by email: the account email plus alternate LS emails (recorded in `billing_links` or seen on old checkouts).
+ * and it never goes to a different account that happens to share an email. A purchase no checkout ties to anyone stays
+ * on the account that holds it; only a purchase nobody holds yet is matched by email (the account email plus alternate
+ * LS emails, recorded in `billing_links` or seen on old checkouts), and only when exactly one account matches
+ * (`lsPurchaseOwner`). So the result is the same whichever account, or all of them, is reconciled.
  *
  * Slots are what verified LS purchases plus any founder/legacy/grandfathered baseline support. `preserve:<id>` rows
  * from the one-time backfill are released in normal runs: if Lemon Squeezy can't show a payment, the slots go (to 0 if
@@ -224,6 +228,43 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   claims = claimSubscriptionsByOrder(auditClaims, subscriptionOrders)
   indexOwners()
 
+  // Accounts an LS email points at: its account, accounts listing it as an alternate, and old checkouts' emails.
+  const auditAltOwners: { [email: string]: string[] } = {}
+  for (const uid of Object.keys(auditAlt)) {
+    for (const em of auditAlt[uid] || []) (auditAltOwners[lc(em)] = auditAltOwners[lc(em)] || []).push(uid)
+  }
+  const candidatesCache: { [email: string]: string[] } = {}
+  const emailCandidates = (email: string) => {
+    const em = lc(email)
+    if (!em) return []
+    if (!candidatesCache[em]) {
+      const ids: string[] = []
+      try {
+        ids.push($app.findFirstRecordByFilter(`users`, `email = {:em}`, { em }).id)
+      } catch {
+        // no account with this email
+      }
+      for (const rec of findUsersByAlternateLsEmail($app, em)) ids.push(rec.id)
+      for (const id of auditAltOwners[em] || []) if (userExists(id)) ids.push(id)
+      candidatesCache[em] = [...new Set(ids)]
+    }
+    return candidatesCache[em]!
+  }
+  const emailConflicts: { [key: LsResourceKey]: { email: string; accounts: string[] } } = {}
+  /** The one account an LS purchase belongs to (see `lsPurchaseOwner`), or undefined. */
+  const purchaseOwner = (found: Found) => {
+    const key = lsResourceKeyOfItem(found.item)
+    const holder = key ? holders[key]?.userId : undefined
+    const email = `${(found.providerData as any)?.user_email || ''}`
+    const { owner, conflict } = lsPurchaseOwner({
+      claimOwner: ownerOf(key),
+      holder: holder && userExists(holder) ? holder : undefined,
+      emailCandidates: emailCandidates(email),
+    })
+    if (conflict && key) emailConflicts[key] = { email: lc(email), accounts: emailCandidates(email) }
+    return owner
+  }
+
   if (onlyUser) {
     // An email search can't find purchases whose LS email has since changed; fetch the user's own ones by ID.
     for (const key of ownedBy[onlyUser.id] || []) {
@@ -323,7 +364,7 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
         else gives.push({ item, to: ownerOf(lsResourceKeyOfItem(item))! })
       }
       for (const em of emails) {
-        for (const found of byEmail[em] || []) if (isMine(found.item)) merged[keyOf(found.item)] = found
+        for (const found of byEmail[em] || []) if (purchaseOwner(found) === uid) merged[keyOf(found.item)] = found
       }
       const rememberEmails = [...(auditAlt[uid] || [])]
       for (const key of ownedBy[uid] || []) {
@@ -467,6 +508,18 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
   }
   const reassigned = Object.values(moves)
 
+  // The same LS purchase counted on more than one account. Should be empty; anything here needs a person.
+  const countedOn: { [key: LsResourceKey]: string[] } = {}
+  for (const p of plans) {
+    for (const f of Object.values(p.merged)) {
+      const key = lsResourceKeyOfItem(f.item)
+      if (key) (countedOn[key] = countedOn[key] || []).push(p.userRec.id)
+    }
+  }
+  const doubleCounted = Object.entries(countedOn)
+    .filter(([, ids]) => ids.length > 1)
+    .map(([key, ids]) => ({ key, users: ids }))
+
   // Accounts outside this run (single-user mode) that a claimed purchase moves off or onto: show their new totals, and
   // recompute them on apply, so a moved purchase is never left counted on the account it left.
   const inRun = new Set(plans.map((p) => p.userRec.id))
@@ -549,6 +602,8 @@ export const runReconcile = (opts: ReconcileOptions = {}) => {
     reductions,
     reductionsHeld: holdReductions ? reducing.length : 0,
     reassigned,
+    doubleCounted,
+    emailConflicts: Object.entries(emailConflicts).map(([key, c]) => ({ key, ...c })),
     affectedOutsideRun,
     preserveReleased,
     preserved,

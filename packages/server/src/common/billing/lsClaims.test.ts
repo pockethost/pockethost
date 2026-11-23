@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   claimSubscriptionsByOrder,
   lsClaimsFromAudit,
+  lsPurchaseOwner,
   lsResourceKeyOfItem,
   lsResourceKeyOfWebhookData,
 } from './lsClaims'
@@ -135,5 +136,30 @@ describe('claimSubscriptionsByOrder', () => {
     expect(claims.owners).toEqual({ 'order:100': 'u1' })
     expect(claims.conflicts).toEqual(['subscription:30'])
     expect(start.owners).toEqual({ 'order:100': 'u1' })
+  })
+})
+
+describe('lsPurchaseOwner', () => {
+  it('a checkout claim wins over the holder and email', () => {
+    expect(lsPurchaseOwner({ claimOwner: 'a', holder: 'b', emailCandidates: ['c'] })).toEqual({
+      owner: 'a',
+      conflict: false,
+    })
+  })
+  it('the holder keeps an unclaimed purchase, whatever the emails say', () => {
+    expect(lsPurchaseOwner({ holder: 'main', emailCandidates: ['stub'] })).toEqual({ owner: 'main', conflict: false })
+    expect(lsPurchaseOwner({ holder: 'main', emailCandidates: ['main', 'stub'] })).toEqual({
+      owner: 'main',
+      conflict: false,
+    })
+  })
+  it('an unheld purchase goes to the one account its email matches', () => {
+    expect(lsPurchaseOwner({ emailCandidates: ['main', 'main'] })).toEqual({ owner: 'main', conflict: false })
+  })
+  it('an unheld purchase two accounts match by email is a conflict, not assigned', () => {
+    expect(lsPurchaseOwner({ emailCandidates: ['main', 'stub'] })).toEqual({ owner: undefined, conflict: true })
+  })
+  it('no claim, holder or email match: unowned', () => {
+    expect(lsPurchaseOwner({ emailCandidates: [] })).toEqual({ owner: undefined, conflict: false })
   })
 })
