@@ -43,19 +43,22 @@
   <td class="instance-table-name">
     <div class="instance-table-name-cell">
       <InstanceFavoriteButton {isFavorite} onToggle={onToggleFavorite} />
-      <!-- The domain opens the site in a new tab; the rest of the row opens the instance. -->
+      <!-- The row opens the instance; only the icon opens the site in a new tab. -->
+      <span class="instance-table-name-label">
+        {#if instance.cname}<span class="instance-table-name-text">{instance.cname}</span>{:else}<span
+            class="instance-table-name-text">{instance.subdomain}</span
+          ><span class="instance-table-sub">.{PUBLIC_APEX_DOMAIN}</span>{/if}
+      </span>
       <a
         href={INSTANCE_URL(instance)}
         target="_blank"
         rel="noopener noreferrer"
-        class="instance-table-name-link"
+        class="instance-table-name-icon"
         title="Open the site in a new tab"
+        aria-label="Open the site in a new tab"
         onclick={(e) => e.stopPropagation()}
       >
-        {#if instance.cname}<span class="instance-table-name-text">{instance.cname}</span>{:else}<span
-            class="instance-table-name-text">{instance.subdomain}</span
-          ><span class="instance-table-sub">.{PUBLIC_APEX_DOMAIN}</span>{/if}
-        <wa-icon name="arrow-up-right-from-square" class="instance-table-name-icon"></wa-icon>
+        <wa-icon name="arrow-up-right-from-square"></wa-icon>
       </a>
     </div>
   </td>
@@ -108,25 +111,20 @@
     min-width: 0;
   }
 
-  .instance-table-name-link {
+  .instance-table-name-label {
     display: inline-flex;
     align-items: baseline;
     min-width: 0;
-    text-decoration: none;
-  }
-
-  .instance-table-name-link:hover .instance-table-name-text {
-    text-decoration: underline;
   }
 
   .instance-table-name-icon {
-    margin-left: 0.375rem;
+    display: inline-flex;
     font-size: 0.6875rem;
     color: rgb(255 255 255 / 0.35);
-    align-self: center;
+    text-decoration: none;
   }
 
-  .instance-table-name-link:hover .instance-table-name-icon {
+  .instance-table-name-icon:hover {
     color: rgb(255 255 255 / 0.7);
   }
 
