@@ -103,7 +103,7 @@ func newAuthResolver(v tokenVerifier) *authResolver {
 func (r *authResolver) resolve(ctx context.Context, authorization, ip string, fresh bool) (tokenAuth, error) {
 	token := bearerToken(authorization)
 	if token == "" {
-		return tokenAuth{}, &deploy.AuthError{Status: 401, Message: "Missing token. Run 'pocketone login' or set P1_TOKEN."}
+		return tokenAuth{}, &deploy.AuthError{Status: 401, Message: "Missing token. Run 'pockethost login' or set POCKETHOST_TOKEN."}
 	}
 	sum := sha256.Sum256([]byte(token))
 	key := hex.EncodeToString(sum[:])

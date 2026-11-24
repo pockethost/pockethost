@@ -26,6 +26,7 @@ import (
 )
 
 func main() {
+	applyTokenEnv()
 	binary.Main(binary.Options{
 		Version: versionString(),
 		// `pockethost upgrade`: PocketHost's own releases

@@ -7,7 +7,7 @@ description: Deploy a PocketBase project to PocketHost from GitHub Actions or an
 
 Point your CI at a PocketHost instance and every push deploys your `pb_hooks`, `pb_migrations`, `pb_public`, and packages. You need two things:
 
-1. An **API token** stored as a CI secret named `P1_TOKEN`.
+1. An **API token** stored as a CI secret named `POCKETHOST_TOKEN`.
 2. A step that installs [`pockethost`](/docs/cli) and runs **`pockethost deploy`**.
 
 No password, SSH key, or saved login is needed, so it works on fresh CI runners.
@@ -25,7 +25,7 @@ Copy the token (`pbt_…`) right away. PocketHost stores only a hash of it, so i
 
 ## 2. Add it to your repository
 
-In GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Name it `P1_TOKEN` and paste the token.
+In GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Name it `POCKETHOST_TOKEN` and paste the token.
 
 ## 3. Add a workflow
 
@@ -48,7 +48,7 @@ jobs:
       - run: curl -fsSL https://pockethost.io/install.sh | sh
       - run: pockethost deploy --restart
         env:
-          P1_TOKEN: ${{ secrets.P1_TOKEN }}
+          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
 ```
 
 `--restart` restarts the instance when the deploy changed migrations or packages, so they apply.
@@ -71,12 +71,12 @@ jobs:
       - run: curl -fsSL https://pockethost.io/install.sh | sh
       - run: pockethost deploy https://myapp-${{ github.ref_name }}.pockethost.io --restart
         env:
-          P1_TOKEN: ${{ secrets.P1_TOKEN }}
+          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
 ```
 
 A push to a branch whose instance doesn't exist, or isn't in the token's scope, fails the deploy.
 
-To use a different token per instance, link each one under a name (`pockethost link <url> --name staging`) and set `P1_TOKEN_STAGING` for the remote named `staging`. A `P1_TOKEN_<NAME>` variable wins over `P1_TOKEN`.
+One token covers every instance in its scope, so all your branches share the same `POCKETHOST_TOKEN` secret. If `POCKETHOST_TOKEN` isn't set, `pockethost` falls back to `P1_TOKEN`.
 
 ## What a deploy does
 
@@ -106,7 +106,7 @@ PocketBase's JavaScript engine has no Node.js built-ins, so packages that use th
 
 ## Other CI systems
 
-Any CI that can run a shell works the same way: set `P1_TOKEN` as a secret environment variable, install `pockethost` with `curl -fsSL https://pockethost.io/install.sh | sh` (or download it from [Releases](https://github.com/pockethost/pockethost/releases)), and run `pockethost deploy`.
+Any CI that can run a shell works the same way: set `POCKETHOST_TOKEN` as a secret environment variable, install `pockethost` with `curl -fsSL https://pockethost.io/install.sh | sh` (or download it from [Releases](https://github.com/pockethost/pockethost/releases)), and run `pockethost deploy`.
 
 ## Security notes
 
@@ -118,7 +118,7 @@ Any CI that can run a shell works the same way: set `P1_TOKEN` as a secret envir
 
 ### Not signed in, or the token is refused
 
-The token was revoked, has expired, or was pasted with a typo, or `P1_TOKEN` isn't set in the step's `env`. Create a new token and update the secret.
+The token was revoked, has expired, or was pasted with a typo, or `POCKETHOST_TOKEN` isn't set in the step's `env`. Create a new token and update the secret.
 
 ### The token can't deploy
 

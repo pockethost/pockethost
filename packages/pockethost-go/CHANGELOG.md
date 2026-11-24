@@ -25,6 +25,10 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Added
+
+- `pockethost` reads its CI token from `POCKETHOST_TOKEN`, the variable the npm CLI used, so existing CI secrets keep working. `P1_TOKEN` is the fallback when `POCKETHOST_TOKEN` isn't set. The deploy API's missing-token message names `pockethost login` and `POCKETHOST_TOKEN`.
+
 ### Changed
 
 - **mothership:** signed-in users can read which region each edge is in (region slug, name and country) from the new `edge_regions` view, which the dashboard uses for instance region flags. The `regions` collection is now superuser-only, like `edges`.

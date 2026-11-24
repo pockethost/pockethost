@@ -55,7 +55,7 @@ npm rm -g pockethost phio
 Then install `pockethost` as above and run `pockethost link <instance URL>` in each project folder. A few things are different:
 
 - **Linking:** `link` takes the instance's URL and saves it in `.pocketbase/remotes.json`. The old `.pockethostconfig` isn't read; you can delete it.
-- **Signing in:** in your browser, with an instance superuser, or with a token passed to `link`. In CI, the token goes in `P1_TOKEN` instead of `POCKETHOST_TOKEN`.
+- **Signing in:** in your browser, with an instance superuser, or with a token passed to `link`. In CI, the token goes in `POCKETHOST_TOKEN`, as before.
 - **`dev`** syncs both ways now, so changes made on the instance come down too.
 - **Your data:** `pb_data` is never downloaded or uploaded. Use PocketBase's backups instead (see [Your data](#your-data)).
 - **Instance settings** (power, versions, domains, secrets, webhooks, creating and deleting) are in the [dashboard](/dashboard).
@@ -201,7 +201,7 @@ pockethost deploy --restart
 ## Deploy from CI
 
 1. Create a token at **[Account → API Tokens](/account/tokens)** with write access to the instance.
-2. Save it as a CI secret named `P1_TOKEN` (or `P1_TOKEN_STAGING` for the remote named `staging`).
+2. Save it as a CI secret named `POCKETHOST_TOKEN`. If `POCKETHOST_TOKEN` isn't set, `pockethost` falls back to `P1_TOKEN`.
 3. Commit `.pocketbase/remotes.json` (from `pockethost link`), install `pockethost` in the job and deploy:
 
 ```yaml
@@ -220,7 +220,7 @@ jobs:
 
       - name: Deploy to PocketHost
         env:
-          P1_TOKEN: ${{ secrets.P1_TOKEN }}
+          POCKETHOST_TOKEN: ${{ secrets.POCKETHOST_TOKEN }}
         run: pockethost deploy --restart
 ```
 
@@ -230,7 +230,7 @@ A CI run deploys without the "changed on the instance" check, since it has no re
 
 ### Not signed in
 
-Run `pockethost login` (or `pockethost remote list` to see which remote it means). In CI, check that `P1_TOKEN` is set and that the token hasn't been revoked or expired.
+Run `pockethost login` (or `pockethost remote list` to see which remote it means). In CI, check that `POCKETHOST_TOKEN` is set and that the token hasn't been revoked or expired.
 
 ### The deploy stops and lists files that changed on the instance
 

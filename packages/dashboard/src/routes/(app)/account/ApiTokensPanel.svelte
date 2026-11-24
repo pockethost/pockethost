@@ -85,7 +85,7 @@
         <CopyField text={created.token} />
         <p class="text-sm text-white/70">
           Pass it to <code>pockethost link &lt;instance URL&gt; &lt;token&gt;</code> on your machine, or save it as a CI
-          secret named <code>P1_TOKEN</code>.
+          secret named <code>POCKETHOST_TOKEN</code>.
         </p>
         <wa-button size="s" appearance="outline" onclick={() => (created = null)}>Done</wa-button>
       </div>
