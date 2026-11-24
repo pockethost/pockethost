@@ -24,9 +24,8 @@ Your existing token (ph_pat_ or pbt_) works with it:
   pockethost link https://<instance>.pockethost.io <token>
   pockethost deploy
 
-In CI, install it with the script above, set P1_TOKEN instead of
-POCKETHOST_TOKEN, and run \`pockethost deploy\` instead of
-\`npx pockethost@latest deploy\`.`
+In CI, install it with the script above and run \`pockethost deploy\`
+instead of \`npx pockethost@latest deploy\`. POCKETHOST_TOKEN keeps working.`
 
 const args = process.argv.slice(2)
 

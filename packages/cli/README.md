@@ -36,7 +36,7 @@ pockethost link https://my-instance.pockethost.io <token>
 pockethost deploy
 ```
 
-In CI, install it with the script, put the token in `P1_TOKEN` instead of `POCKETHOST_TOKEN`, and run
-`pockethost deploy` instead of `npx pockethost@latest deploy`.
+In CI, install it with the script and run `pockethost deploy` instead of `npx pockethost@latest deploy`. Your
+`POCKETHOST_TOKEN` secret keeps working.
 
 Docs: https://pockethost.io/docs/cli
