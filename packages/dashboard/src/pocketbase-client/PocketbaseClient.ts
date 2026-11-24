@@ -188,12 +188,26 @@ export const createPocketbaseClient = (config: PocketbaseClientConfig) => {
       {} as { [_: InstanceId]: InstanceFields }
     )
 
+  /**
+   * Never throws and never returns an empty list. Network-level failures (offline, CORS, a blocked or cancelled
+   * request) come back as status 0 with `data: {}`: reading `e.data.data` there used to throw inside callers' catch
+   * blocks, so the failure was swallowed and the UI showed nothing.
+   */
   const parseError = (e: Error): string[] => {
     if (!(e instanceof ClientResponseError)) return [`${e}`]
-    if (e.data.message && Object.keys(e.data.data).length === 0) return [e.data.message]
-    return Object.values(e.data.data as Record<string, { message?: string } | undefined>)
+    if (e.status === 0) {
+      return [
+        e.isAbort
+          ? 'The request was cancelled. Please try again.'
+          : 'Could not reach PocketHost. Check your connection. A VPN, proxy or browser extension may be blocking the request.',
+      ]
+    }
+    const data = (e.data ?? {}) as { message?: string; data?: Record<string, { message?: string } | undefined> }
+    const fieldMessages = Object.values(data.data ?? {})
       .map((v) => v?.message)
       .filter((v): v is string => !!v)
+    if (fieldMessages.length > 0) return fieldMessages
+    return [data.message || e.message || `Request failed (HTTP ${e.status}).`]
   }
 
   const resendVerificationEmail = async () => {

@@ -1,7 +1,7 @@
 <script lang="ts">
   import FeatureTab from '$components/FeatureTab.svelte'
   import { client } from '$src/pocketbase-client'
-  import { TRUSTED_IPS_MAX, type TrustedIpList } from '@pockethost/server/common'
+  import { normalizeTrustedIpEntry, TRUSTED_IPS_MAX, type TrustedIpList } from '@pockethost/server/common'
   import { onMount } from 'svelte'
 
   let trustedIps: TrustedIpList = []
@@ -28,7 +28,8 @@
     loadTrustedIps()
   })
 
-  const saveTrustedIps = async (next: TrustedIpList) => {
+  /** Returns true when the server accepted the list. Never fails silently: every error ends up in errorMessage. */
+  const saveTrustedIps = async (next: TrustedIpList): Promise<boolean> => {
     saving = true
     errorMessage = ''
     successMessage = ''
@@ -36,20 +37,49 @@
       const { trusted_ips } = await client().updateTrustedIps(next)
       trustedIps = trusted_ips
       successMessage = 'Trusted IPs saved.'
+      return true
     } catch (error) {
-      errorMessage = client()
+      console.error('[trusted-ips] save failed', error)
+      const message = client()
         .parseError(error as Error)
         .join(' ')
+        .trim()
+      errorMessage = message || 'Could not save your trusted IPs. Please try again.'
+      return false
     } finally {
       saving = false
     }
   }
 
-  const addIp = async () => {
-    const value = newIp.trim()
-    if (!value) return
-    newIp = ''
-    await saveTrustedIps([...trustedIps, value])
+  let ipInput: { value: string | null } | undefined
+
+  const addIp = async (e?: Event) => {
+    // A real <form> wraps the field so Enter works. Never let the browser submit it natively (that reloads the page).
+    e?.preventDefault()
+    if (saving) return
+    successMessage = ''
+    // Read the element too, in case an input event was missed (autofill, some browsers and extensions).
+    const value = (ipInput?.value || newIp).trim()
+    if (!value) {
+      errorMessage = 'Enter an IP address or CIDR range first.'
+      return
+    }
+    let normalized: string
+    try {
+      normalized = normalizeTrustedIpEntry(value)
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : `${error}`
+      return
+    }
+    if (trustedIps.includes(normalized)) {
+      errorMessage = `${normalized} is already in your list.`
+      return
+    }
+    // Clear the field only after the save succeeds, so a failure never looks like a page refresh.
+    if (await saveTrustedIps([...trustedIps, normalized])) {
+      newIp = ''
+      if (ipInput) ipInput.value = ''
+    }
   }
 
   const removeIp = async (ip: string) => {
@@ -82,17 +112,21 @@
     </div>
   {:else}
     <div class="max-w-form space-y-6">
-      <div class="auth-field-group">
+      <form class="auth-field-group" onsubmit={addIp} novalidate>
         <label class="auth-label" for="trustedIp">Add IP or CIDR</label>
         <div class="flex flex-col sm:flex-row gap-3">
           <wa-input
             id="trustedIp"
+            bind:this={ipInput}
             placeholder="203.0.113.5 or 198.51.100.0/24"
             value={newIp}
             oninput={(e: Event) => (newIp = (e.currentTarget as HTMLInputElement).value)}
+            onkeydown={(e: KeyboardEvent) => {
+              if (e.key === 'Enter' && !e.isComposing) addIp(e)
+            }}
             class="flex-1 w-full"
           ></wa-input>
-          <wa-button variant="brand" onclick={addIp} disabled={saving || !newIp.trim()}>
+          <wa-button variant="brand" onclick={addIp} disabled={saving}>
             {saving ? 'Saving…' : 'Add'}
           </wa-button>
         </div>
@@ -100,7 +134,7 @@
           Up to {TRUSTED_IPS_MAX} entries per account. Applies to all instances. For conferences and unpredictable egress,
           see <a href="/docs/trusted-ips#events-and-conferences" class="account-stat-link">Events and conferences</a>.
         </p>
-      </div>
+      </form>
 
       {#if trustedIps.length > 0}
         <ul class="space-y-2">
