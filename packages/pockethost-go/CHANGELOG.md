@@ -25,6 +25,10 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Upgrading
+
+1. `pockethost` no longer reads per-remote tokens (`P1_TOKEN_<REMOTE>`, such as `P1_TOKEN_STAGING`). CI uses one token in `POCKETHOST_TOKEN` (or `P1_TOKEN`), scoped to the instances it deploys to. To use another token for one command, set the variable for that command only.
+
 ### Added
 
 - `pockethost` reads its CI token from `POCKETHOST_TOKEN`, the variable the npm CLI used, so existing CI secrets keep working. `P1_TOKEN` is the fallback when `POCKETHOST_TOKEN` isn't set. The deploy API's missing-token message names `pockethost login` and `POCKETHOST_TOKEN`.
@@ -32,6 +36,10 @@ the two version numbers don't match.
 ### Changed
 
 - **mothership:** signed-in users can read which region each edge is in (region slug, name and country) from the new `edge_regions` view, which the dashboard uses for instance region flags. The `regions` collection is now superuser-only, like `edges`.
+
+### PocketOne
+
+- Built on PocketOne main [7ca8980f9](https://github.com/pocketonehq/pocketone/commit/7ca8980f9) (after v0.0.1-alpha.12, PocketBase v0.42.3): `P1_TOKEN` is the only token variable PocketOne reads; an instance's firewall settings (rate limits, trusted IPs) apply on edges fed by the mothership again; pocker's Env hook puts host values in every instance's environment over its secrets; realtime messages reach each client in the order they were sent; jsvm timers (`setTimeout`, `setInterval`, `queueMicrotask`) and async handlers that await up to 15 minutes; Pages `.ts` routes and `ctx.realtime.subscribe`; ext/llm replaces ext/agent, plus the key-value store (ext/kv) and LLM Search (ext/llm-search).
 
 ## v5.0.0-alpha.10 (2026-11-21)
 
