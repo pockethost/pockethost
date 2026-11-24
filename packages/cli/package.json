@@ -1,7 +1,7 @@
 {
   "name": "pockethost",
-  "version": "4.3.0",
-  "description": "The PocketHost CLI: deploy, sync, and tail logs for your PocketHost instances",
+  "version": "4.4.0",
+  "description": "Retired. The PocketHost CLI is now a standalone binary: https://pockethost.io/docs/cli",
   "repository": {
     "type": "git",
     "url": "https://github.com/pockethost/pockethost.git",

@@ -2,6 +2,14 @@
 
 Formerly published as `phio`. Versions below 3.0.0 are phio's history.
 
+## 4.4.0
+
+### Minor Changes
+
+- This CLI is retired. It stopped working on Nov 21, 2026, when PocketHost removed the servers it talks to. Every
+  command now prints how to install the new `pockethost` CLI (https://pockethost.io/docs/cli) and exits with an error.
+  `--version` and `--help` still work. Your existing token (`ph_pat_` or `pbt_`) works with the new CLI.
+
 ## 4.3.0
 
 ### Minor Changes
