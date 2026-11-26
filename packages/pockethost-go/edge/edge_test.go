@@ -133,11 +133,11 @@ func TestEdgeAgainstMothership(t *testing.T) {
 	var running atomic.Pointer[pocker.Manager]
 	fw := &firewall.Firewall{}
 	srv := &pocker.Server{Standard: standard.New(), Config: pcfg, Source: source.Lazy, SetupApp: Setup(cfg), Logger: logger, Forward: source.Forward,
-		Gates: []pocker.Gate{fw}, Extensions: []pocker.Extension{servertiming.New(), source.Lazy},
+		Gates: []pocker.Gate{fw}, Extensions: []pocker.Extension{servertiming.New(), source.Lazy, source.Statuses()},
 		Wrap: func(h http.Handler) http.Handler {
 			return source.Front(fw, func() bool { m := running.Load(); return m != nil && m.Ready() }, PoweredBy, NodeCompat(stats.Middleware(h)))
 		},
-		OnEvent: source.InstanceEvent, OnStart: running.Store}
+		OnStart: running.Store}
 	go source.NewScheduler(func() Instances {
 		if m := running.Load(); m != nil {
 			return m

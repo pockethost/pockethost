@@ -101,7 +101,6 @@ func edgeServeConfig(configPath, envPath string) error {
 		Standard: std,
 		SetupApp: edge.Setup(ecfg),
 		OnStart:  func(m *pocker.Manager) { running.Store(&instancesBox{m}) },
-		OnEvent:  source.InstanceEvent, // instance status back to the mothership
 		Resolve:  cfg.ResolvePath,
 	}
 	var platformBinds []string
@@ -140,6 +139,8 @@ func edgeServeConfig(configPath, envPath string) error {
 		// instance.source/v1 and instance.lookup/v1: each hostname is asked of the mothership the first time a
 		// request names it, then followed on one stream (PocketOne's ext/mothership client)
 		source.Lazy,
+		// instance status back to the mothership, from the host's supervisor (both runtimes)
+		source.Statuses(),
 	}
 	if provider == "docker" {
 		exts = append(exts, dp)

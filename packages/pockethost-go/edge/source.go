@@ -21,8 +21,8 @@ import (
 // Source is the edge's link to PocketHost's mothership. Instances come from PocketOne's lazy mirror
 // (ext/mothership/client): each hostname is asked for the first time a request names it, then followed on one
 // stream; the mothership maps the records (package fleet). Source adds PocketHost's own calls on top: the heartbeat,
-// status reports, the deploy API's questions, webhooks, vacuum, duplicates, usage stats. It also receives Pocker's
-// instance events and reports status back (pocker.EventSink).
+// status reports, the deploy API's questions, webhooks, vacuum, duplicates, usage stats. Statuses reports instance
+// status back.
 type Source struct {
 	cfg Config
 	c   *client

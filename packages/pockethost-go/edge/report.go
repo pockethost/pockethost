@@ -9,31 +9,94 @@ import (
 	"sync"
 	"time"
 
-	"pocketone.dev/ext/pocker"
+	statusv1 "pocketone.dev/ext/contracts/instance/status/v1"
+	"pocketone.dev/ext/multisite"
 )
 
-// InstanceEvent implements pocker.EventSink: instance status goes back to the mothership, like the Node edge did.
-func (s *Source) InstanceEvent(e pocker.Event) {
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+// StatusResync is how often the edge sends the mothership every instance it runs again, so a mothership that
+// restarted (and reset every instance to idle) shows them within a minute.
+const StatusResync = time.Minute
+
+// Statuses reports instance status to the mothership from the host's supervisor (instance.status/v1): starting and
+// running go to POST /api/mirror, idle and failed to the instance record. Register it on the host (it's a
+// multisite.Extension); changes are sent in order, one at a time, and every StatusResync the full picture again.
+func (s *Source) Statuses() multisite.Extension { return &statusReporter{s: s, resync: StatusResync} }
+
+type statusReporter struct {
+	s      *Source
+	resync time.Duration
+}
+
+func (r *statusReporter) Name() string { return "pockethost-status" }
+
+func (r *statusReporter) RegisterHost(h *multisite.Host) error {
+	st := h.Statuses()
+	changes := make(chan statusv1.Status, 1024)
+	full := make(chan struct{}, 1)
+	cancel := st.Subscribe(func(x statusv1.Status) {
+		select {
+		case changes <- x:
+		default: // a backlog (the mothership is down): the next full resync sends what's true then
+			select {
+			case full <- struct{}{}:
+			default:
+			}
+		}
+	})
+	h.Background = append(h.Background, func(ctx context.Context) {
 		defer cancel()
-		var err error
-		switch e.Kind {
-		case pocker.EventStarted:
-			err = s.c.do(ctx, http.MethodPost, "/api/mirror",
-				map[string]any{"instances": []map[string]string{{"id": e.InstanceID, "status": "running"}}, "dump": false}, nil)
-		case pocker.EventStopped:
-			// powered off (or suspended): the app no longer runs (/api/mirror only takes starting/running)
-			err = s.c.do(ctx, http.MethodPatch, "/api/collections/instances/records/"+e.InstanceID, map[string]string{"status": "idle"}, nil)
-		case pocker.EventFailed:
-			err = s.c.do(ctx, http.MethodPatch, "/api/collections/instances/records/"+e.InstanceID, map[string]string{"status": "failed"}, nil)
-		default:
-			return
+		t := time.NewTicker(r.resync)
+		defer t.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case x := <-changes:
+				r.send(ctx, x)
+			case <-full:
+				r.sendAll(ctx, st.Current())
+			case <-t.C:
+				r.sendAll(ctx, st.Current())
+			}
 		}
-		if err != nil {
-			s.log.Warn("pockethost: status report failed", "id", e.InstanceID, "kind", e.Kind, "error", err)
+	})
+	return nil
+}
+
+func (r *statusReporter) send(ctx context.Context, x statusv1.Status) {
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	var err error
+	switch x.State {
+	case statusv1.Starting, statusv1.Running:
+		err = r.s.c.do(ctx, http.MethodPost, "/api/mirror",
+			map[string]any{"instances": []map[string]string{{"id": x.InstanceID, "status": string(x.State)}}, "dump": false}, nil)
+	case statusv1.Idle, statusv1.Failed: // /api/mirror only takes starting/running
+		err = r.s.c.do(ctx, http.MethodPatch, "/api/collections/instances/records/"+x.InstanceID, map[string]string{"status": string(x.State)}, nil)
+	default:
+		return
+	}
+	if err != nil {
+		r.s.log.Warn("pockethost: status report failed", "id", x.InstanceID, "state", x.State, "error", err)
+	}
+}
+
+// sendAll sends every starting and running instance in one call (idle and failed ones are already on their records).
+func (r *statusReporter) sendAll(ctx context.Context, all []statusv1.Status) {
+	var list []map[string]string
+	for _, x := range all {
+		if x.State == statusv1.Starting || x.State == statusv1.Running {
+			list = append(list, map[string]string{"id": x.InstanceID, "status": string(x.State)})
 		}
-	}()
+	}
+	if len(list) == 0 {
+		return
+	}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	if err := r.s.c.do(ctx, http.MethodPost, "/api/mirror", map[string]any{"instances": list, "dump": false}, nil); err != nil {
+		r.s.log.Warn("pockethost: status resync failed", "instances", len(list), "error", err)
+	}
 }
 
 // Stats counts requests for the edge heartbeat, in the shape the mothership's edge view expects.
