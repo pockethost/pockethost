@@ -25,6 +25,14 @@ the two version numbers don't match.
 
 ## Unreleased
 
+### Fixed
+
+- **edge:** the dashboard shows each instance's real state again (starting, running, sleeping, failed) on every edge, docker included: an instance is running once its own `/api/health` answers, sleeping as soon as it stops, and a mothership restart no longer leaves every instance shown as sleeping (edges send what they run every minute). At startup an edge sets instances it isn't running back to sleeping.
+
+### PocketOne
+
+- Built on PocketOne main at [`ee81b249f`](https://github.com/pocketonehq/pocketone/commit/ee81b249f) (PocketBase v0.42.3): multisite hosts supervise instance status (instance.status/v1), with exit signals from pocker and docker.
+
 ## v5.0.0-alpha.11 (2026-11-24)
 
 ### Upgrading
