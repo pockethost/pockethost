@@ -45,6 +45,7 @@ func (r *statusReporter) RegisterHost(h *multisite.Host) error {
 	})
 	h.Background = append(h.Background, func(ctx context.Context) {
 		defer cancel()
+		r.correctStale(ctx, st)
 		t := time.NewTicker(r.resync)
 		defer t.Stop()
 		for {
@@ -61,6 +62,40 @@ func (r *statusReporter) RegisterHost(h *multisite.Host) error {
 		}
 	})
 	return nil
+}
+
+// correctStale runs once at startup: instances the mothership shows starting or running on this edge that this edge
+// isn't running are set idle. A Pocker edge's instances stop when it restarts, and a container that stopped while a
+// Docker edge was down isn't adopted, and nothing else would tell the mothership.
+func (r *statusReporter) correctStale(ctx context.Context, st statusv1.Statuses) {
+	var marked []localRec
+	for i := 0; ; i++ { // this edge's record id is known once the mirror has loaded
+		var err error
+		if marked, err = r.s.localInstances(ctx, `status = "running" || status = "starting"`, "id"); err == nil {
+			break
+		}
+		if i == 60 {
+			r.s.log.Warn("pockethost: stale status check skipped", "error", err)
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Second):
+		}
+	}
+	live := map[string]bool{}
+	for _, x := range st.Current() { // read after the list: an instance started meanwhile isn't corrected
+		live[x.InstanceID] = true
+	}
+	n := 0
+	for _, rec := range marked {
+		if !live[rec.ID] {
+			r.send(ctx, statusv1.Status{InstanceID: rec.ID, State: statusv1.Idle})
+			n++
+		}
+	}
+	r.s.log.Info("pockethost: stale statuses corrected", "marked", len(marked), "idle", n)
 }
 
 func (r *statusReporter) send(ctx context.Context, x statusv1.Status) {

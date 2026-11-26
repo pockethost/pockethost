@@ -106,6 +106,11 @@ func TestEdgeAgainstMothership(t *testing.T) {
 			time.Now().Add(-3*time.Hour).UnixMilli()))})
 	m.Save(t, "instances", elsewhere1, map[string]any{"subdomain": "blog", "owners": []string{"u1"}, "power": true, "edge": sfo.Id})
 	m.Save(t, "instances", unpaid1, map[string]any{"subdomain": "cheap", "owners": []string{"u2"}, "power": true, "edge": sgp.Id, "blocked": unpaidBlock})
+	// marked running from before this edge (re)started: this edge isn't running it, so it's corrected to idle; the other
+	// edge's running instance is left alone
+	const stale1 = "stale1111111111"
+	m.Save(t, "instances", stale1, map[string]any{"subdomain": "stale", "owners": []string{"u1"}, "power": true, "edge": sgp.Id, "status": "running"})
+	m.Save(t, "instances", elsewhere1, map[string]any{"status": "running"})
 
 	cfg := testCfg
 	cfg.MothershipURL, cfg.AdminUser, cfg.AdminPassword = m.URL, fleettest.Email, fleettest.Password
@@ -314,6 +319,18 @@ func TestEdgeAgainstMothership(t *testing.T) {
 	}
 	if c, _ := call("GET", "nope.pockethost.io", "/", "", nil); c != 404 {
 		t.Errorf("unknown: %d", c)
+	}
+
+	statusOf := func(id string) string {
+		rec, err := m.App.FindRecordById("instances", id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return rec.GetString("status")
+	}
+	waitFor("stale running status corrected", func() bool { return statusOf(stale1) == "idle" })
+	if got := statusOf(elsewhere1); got != "running" {
+		t.Errorf("another edge's instance: status %q, want running", got)
 	}
 
 	// status, heartbeat, subscriptions
