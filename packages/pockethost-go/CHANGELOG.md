@@ -25,13 +25,15 @@ the two version numbers don't match.
 
 ## Unreleased
 
+## v5.0.0-alpha.12 (2026-11-27)
+
 ### Fixed
 
 - **edge:** the dashboard shows each instance's real state again (starting, running, sleeping, failed) on every edge, docker included: an instance is running once its own `/api/health` answers, sleeping as soon as it stops, and a mothership restart no longer leaves every instance shown as sleeping (edges send what they run every minute). At startup an edge sets instances it isn't running back to sleeping.
 
 ### PocketOne
 
-- Built on PocketOne main at [`ee81b249f`](https://github.com/pocketonehq/pocketone/commit/ee81b249f) (PocketBase v0.42.3): multisite hosts supervise instance status (instance.status/v1), with exit signals from pocker and docker.
+- Built on PocketOne [v0.0.1-alpha.14](https://github.com/pocketonehq/pocketone/releases/tag/v0.0.1-alpha.14) (PocketBase v0.42.3): multisite hosts supervise instance status (instance.status/v1), with exit signals from pocker and docker; WASM keeps its compiled-module cache in each instance's pb_cache, so it works on edges where `$HOME` isn't set (calls no longer compile their module every time); two Pages fixes.
 
 ## v5.0.0-alpha.11 (2026-11-24)
 
